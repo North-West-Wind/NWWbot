@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'greet',
-	description: 'Tag a member and kick them (but not really).',
+	description: 'Tag a member and greet them (but not really).',
 	execute(message) {
 		if (!message.mentions.users.size) {
             return message.channel.send('Who am I greeting?');
