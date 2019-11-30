@@ -2,7 +2,9 @@ module.exports = {
 	name: 'reload',
 	description: 'Reloads a command',
 	args: true,
+  aliases: ['f5'],
 	execute(message, args) {
+    if (message.author.id !== '416227242264363008') return;
 		const commandName = args[0].toLowerCase();
 		const command = message.client.commands.get(commandName)
 			|| message.client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));

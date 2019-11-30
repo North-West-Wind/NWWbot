@@ -1,6 +1,22 @@
+const http = require('http');
+const express = require('express');
+const app = express();
+app.get("/", (request, response) => {
+  console.log(Date.now() + " Ping Received");
+  response.sendStatus(200);
+});
+app.listen(process.env.PORT);
+setInterval(() => {
+  http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
+}, 280000);
+
+
 const fs = require('fs');
 const Discord = require('discord.js');
 const { prefix } = require('./config.json');
+const ytdl = require('ytdl-core');
+const music = require('./music.js');
+const MojangAPI = require('mojang-api');
 
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
@@ -17,16 +33,19 @@ for (const file of commandFiles) {
 client.once('ready', () => {
 	console.log('Ready!');
 });
-
 // login to Discord with your app's token
 client.login(process.env.TOKEN);
 
-client.on('message', message => {
+client.on('message', async message => {
     // client.on('message', message => {
 if (!message.content.startsWith(prefix) || message.author.bot) return;
 
 const args = message.content.slice(prefix.length).split(/ +/);
 const commandName = args.shift().toLowerCase();
+  
+  if ( music.checkAdminCmd(message) )
+        return;
+  
 if (commandName.args && !args.length) {
     let reply = `You didn't provide any arguments, ${message.author}!`;
 
@@ -49,4 +68,5 @@ if (commandName.args && !args.length) {
 		console.error(error);
 		message.reply('there was an error trying to execute that command!');
 	}
+  
 });
