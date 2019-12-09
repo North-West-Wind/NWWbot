@@ -1,0 +1,176 @@
+const musicFunctions = {
+    addMusicQueueField(msg, content, queue) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const serverQueue = queue.get(msg.guild.id);
+            var toSendEmbed = [];
+            var color = Math.floor(Math.random() * 16777214) + 1;
+            let i = 0;
+            while (i < content.length) {
+                var embed = new discord_js_1.RichEmbed();
+                let index = 0;
+                while (i < content.length && index < 25) {
+                    var list = [];
+                    const element0 = content[i];
+                    index++;
+                    i++;
+                    const element1 = content[i];
+                    index++;
+                    i++;
+                    const element2 = content[i];
+                    index++;
+                    i++;
+                    const element3 = content[i];
+                    index++;
+                    i++;
+                    const element4 = content[i];
+                    index++;
+                    i++;
+                    list.push(element0);
+                    element1 ? list.push(element1) : console.log("Empty element");
+                    element1 ? list.push(element2) : console.log("Empty element");
+                    element1 ? list.push(element3) : console.log("Empty element");
+                    element1 ? list.push(element4) : console.log("Empty element");
+                    if (i < 25) {
+                        embed.setTitle(`Song queue for ${msg.guild.name}`);
+                        embed.setDescription(`There are ${serverQueue.songs.length} songs in total.`);
+                        embed.setAuthor(msg.author.username, msg.author.avatarURL);
+                    }
+                    embed.setTimestamp();
+                    embed.setFooter(`Now playing : ${serverQueue.songs[0].title}`);
+                    embed.addField("** **", list.join("\n"));
+                    embed.setColor(color);
+                }
+                toSendEmbed.push(embed);
+            }
+            return toSendEmbed;
+        });
+    },
+    handleVideo(queueList, video, msg, voiceChannel, musicVolume = 20, loopQueue = false, top = false, playlist = false) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const serverQueue = queueList.get(msg.guild.id);
+            const song = {
+                guild: msg.guild.name,
+                icon: video.thumbnails.default.url,
+                id: video.id,
+                length: {
+                    hrs: video.duration.hours,
+                    mins: video.duration.minutes,
+                    secs: video.duration.seconds
+                },
+                title: video.title,
+                url: `https://www.youtube.com/watch?v=${video.id}`
+            };
+            if (!serverQueue) {
+                var queueConstruct = {
+                    connection: null,
+                    loop: loopQueue,
+                    repeat: false,
+                    playing: true,
+                    songs: [],
+                    textChannel: msg.channel,
+                    voiceChannel,
+                    volume: musicVolume
+                };
+                queueList.set(msg.guild.id, queueConstruct);
+                queueConstruct.songs.push(song);
+                console.log("Song added to queue.");
+                try {
+                    var connection = yield voiceChannel.join();
+                    queueConstruct.connection = connection;
+                    musicFunctions.playMusic(msg.guild, queueConstruct.songs[0], queueList);
+                }
+                catch (error) {
+                    console.error(`I could not join the voice channel: ${error}`);
+                    queueList.delete(msg.guild.id);
+                    return msg.channel.send(`I could not join the voice channel: ${error}`).then((m) => {
+                        return m.delete(10000).catch((reason) => {
+                            console.log(`Attempting to delete a deleted message (Which is impossible)`);
+                        });
+                    });
+                }
+            }
+            else if (top) {
+                serverQueue.songs.splice(1, 0, song);
+                if (playlist)
+                    return undefined;
+                else
+                    return msg.channel.send(`✅ **${song.title}** has been added to the top of the queue!`).then((m) => {
+                        return m.delete(10000).catch((reason) => {
+                            console.log(`Attempting to delete a deleted message (Which is impossible)`);
+                        });
+                    });
+            }
+            else {
+                serverQueue.songs.push(song);
+                if (playlist)
+                    return undefined;
+                else
+                    return msg.channel.send(`✅ **${song.title}** has been added to the queue!`).then((m) => {
+                        return m.delete(10000).catch((reason) => {
+                            console.log(`Attempting to delete a deleted message (Which is impossible)`);
+                        });
+                    });
+            }
+            return undefined;
+        });
+    },
+    playMusic(guild, song, queueList) {
+        const serverQueue = queueList.get(guild.id);
+        try {
+            if (!song) {
+                serverQueue.voiceChannel.leave();
+                queueList.delete(guild.id);
+                return;
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+        const dispatcher = serverQueue.connection.playStream(ytdl(song.url, {
+            filter: "audioonly",
+            quality: "highestaudio"
+        })).on('end', (reason) => {
+            if (serverQueue.loop === true) {
+                console.log("Song ended, but looped");
+                var toPush = serverQueue.songs[0];
+                serverQueue.songs.push(toPush);
+                serverQueue.songs.shift();
+                musicFunctions.playMusic(guild, serverQueue.songs[0], queueList);
+            }
+            else if (serverQueue.repeat === true) {
+                console.log("Song ended, but repeated");
+                musicFunctions.playMusic(guild, serverQueue.songs[0], queueList);
+            }
+            else {
+                if (reason === 'Stream is not generating quickly enough.')
+                    console.log('Song ended.');
+                else
+                    console.log(`${reason}`);
+                serverQueue.songs.shift();
+                musicFunctions.playMusic(guild, serverQueue.songs[0], queueList);
+            }
+        }).on('error', (error) => { return console.error(error); });
+        dispatcher.setVolumeLogarithmic(serverQueue.volume / 100);
+        serverQueue.textChannel.send(`🎶 Start playing: **${song.title}**`).then((m) => {
+            return m.delete(10000).catch((reason) => {
+                console.log(`Attempting to delete a deleted message (Which is impossible)`);
+            });
+        });
+    },
+    shuffleArray(array) {
+        let temp = array[0];
+        array.splice(0, 1);
+        var i;
+        var j;
+        var x;
+        for (i = array.length - 1; i > 0; i--) {
+            j = Math.floor(Math.random() * (i + 1));
+            x = array[i];
+            array[i] = array[j];
+            array[j] = x;
+        }
+        array.unshift(temp);
+        temp = [];
+        return array;
+    }
+};

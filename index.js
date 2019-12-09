@@ -15,10 +15,12 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const { prefix } = require('./config.json');
 const ytdl = require('ytdl-core');
-const music = require('./music.js');
-const MojangAPI = require('mojang-api');
+const music = new require('./musictest.js');
+const giveaways = require("discord-giveaways");
+
 
 const client = new Discord.Client();
+
 client.commands = new Discord.Collection();
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -32,9 +34,24 @@ for (const file of commandFiles) {
 // this event will only trigger one time after logging in
 client.once('ready', () => {
 	console.log('Ready!');
+  giveaways.launch(client, {
+        updateCountdownEvery: 5000,
+        botsCanWin: false,
+        ignoreIfHasPermission: [
+            "MANAGE_MESSAGES",
+            "MANAGE_GUILD",
+            "ADMINISTRATOR"
+        ],
+        embedColor: "#FF0000",
+        embedColorEnd: "#000000",
+        reaction: "🎉",
+        storage: __dirname+"/giveaways.json"
+    });
+  client.user.setPresence("?help for help!", { type: "LISTENING"});
 });
 // login to Discord with your app's token
 client.login(process.env.TOKEN);
+
 
 client.on('message', async message => {
     // client.on('message', message => {

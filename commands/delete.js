@@ -5,7 +5,7 @@ module.exports = {
   args: true,
   usage: '<amount of messages>',
 	execute(message, args) {
-    if (!message.member.hasPermission('ADMINISTRATOR')) { 
+    if (!message.member.hasPermission('MANAGE_MESSAGES')) { 
       message.channel.send(`You don\'t have the permission to use this command.`)
       return;
     }
@@ -17,7 +17,7 @@ module.exports = {
 
 		message.channel.bulkDelete(amount, true).catch(err => {
 			console.error(err);
-			message.channel.send('I can\'t delete them. NOOOOOOOOOOOOOOOOOOOOOOOO!');
+			message.channel.send('I can\'t delete them. Try a smaller amount.');
 		});
 	},
 };
