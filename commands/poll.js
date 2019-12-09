@@ -8,6 +8,10 @@ module.exports = {
   description: "create a poll.",
   usage: "<title> <time> <options>",
   execute(message, args) {
+    message.delete();
+    if (message.mentions.users.size) {
+      return message.reply("I don't accept mentions in the poll!");
+    }
     const emojiList = [
       "\u0031\u20E3",
       "\u0032\u20E3",
@@ -35,20 +39,13 @@ module.exports = {
     const forceEndPollEmoji = "\u2705";
     const title = args[0];
     const options = args.slice(2);
-    
-    
-    
-    
-    
-    
-    
-    
-    const timeout = ms(args[1])/1000;
+
+    const timeout = ms(args[1]) / 1000;
     const pollEmbed = async (
       msg,
       title,
       options,
-      timeout = ms(args[1])/1000,
+      timeout = ms(args[1]) / 1000,
       emojiList = defEmojiList.slice(),
       forceEndPollEmoji = "\u2705"
     ) => {
@@ -59,19 +56,18 @@ module.exports = {
         return msg.reply("Please provide more than one choice.");
       if (options.length > emojiList.length)
         return msg.reply(`Please provide ${emojiList.length} or less choices.`);
-let minute = (timeout%3600)/60;
-      let hour = Math.floor((timeout%86400)/3600);
-      let day = Math.floor(timeout/3600/24);
+      let minute = Math.floor((timeout % 3600) / 60);
+      let hour = Math.floor((timeout % 86400) / 3600);
+      let day = Math.floor(timeout / 3600 / 24);
       let second = timeout % 60;
       let text = `*The poll will end in **${day} days ${hour} hours ${minute} minutes ${second} seconds**.\nPlease leave your vote below.*\n\n`;
       const emojiInfo = {};
       for (const option of options) {
         const emoji = emojiList.splice(0, 1);
         emojiInfo[emoji] = { option: option.replace(/_/g, " "), votes: 0 };
-        text += `${emoji} : \`${option.replace(/_/g, " ")}\`\n\n`;
+        text += `${emoji} : ${option.replace(/_/g, " ")}\n\n`;
       }
       const usedEmojis = Object.keys(emojiInfo);
-      
 
       const poll = await msg.channel.send(
         embedBuilder(title, msg.author.tag).setDescription(text)
@@ -112,7 +108,7 @@ let minute = (timeout%3600)/60;
       });
 
       reactionCollector.on("end", () => {
-        text = "*Alright, time\'s up!*\n\n";
+        text = "*Alright, time's up!*\n\n";
         for (const emoji in emojiInfo)
           text += `\`${emojiInfo[emoji].option}\` - \`${emojiInfo[emoji].votes}\`\n\n`;
         poll.delete();
@@ -124,7 +120,7 @@ let minute = (timeout%3600)/60;
 
     const embedBuilder = (title, author) => {
       return new Discord.RichEmbed()
-      .setColor(color)
+        .setColor(color)
         .setTitle(`Poll - ${title.replace(/_/g, " ")}`)
         .setFooter(`Poll created by ${author}`);
     };

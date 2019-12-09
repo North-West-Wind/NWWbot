@@ -34,6 +34,7 @@
     "node-fetch": "^2.6.0",
     "jquery": "^3.4.1",
     "jsdom": "^15.2.1",
-    "discord.js-poll-embed": "^1.0.2"
+    "discord.js-poll-embed": "^1.0.2",
+    "discord-giveaway": "^2.0.0"
   }
 }

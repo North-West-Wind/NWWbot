@@ -32,6 +32,8 @@ module.exports = {
 
         .addField("**Minecraft**", "minecraft\nhypixel\ntrade", true)
         .addField("**Music**", "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume", true)
+      
+      .addField("**Misc**", "giveaway\ntrade\npoll")
 
         .setTimestamp()
         .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");

@@ -1,5 +1,6 @@
 dependencies:
   aki-api: 3.2.1
+  discord-giveaway: 2.0.1
   discord-giveaways: 2.4.3
   discord.js: 11.5.1
   discord.js-music-v11: 1.3.4
@@ -413,6 +414,12 @@ packages:
     dev: false
     resolution:
       integrity: sha1-l4hXRCxEdJ5CBmE+N5RiBYJqvYA=
+  /discord-giveaway/2.0.1:
+    dependencies:
+      randomstring: 1.1.5
+    dev: false
+    resolution:
+      integrity: sha512-JX5g+dEaxs8lrqAiQGS2xIWJCp5AkSgasXEZenOBIhRmAAjpPTGU+LfeItLTwlqXCo7ZiitGCKQTtClyH6yzNg==
   /discord-giveaways/2.4.3:
     dependencies:
       randomstring: 1.1.5
@@ -1921,6 +1928,7 @@ shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
   aki-api: ^3.2.1
+  discord-giveaway: ^2.0.0
   discord-giveaways: ^2.4.3
   discord.js: ^11.5.1
   discord.js-music-v11: ^1.3.4
