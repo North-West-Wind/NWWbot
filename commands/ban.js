@@ -1,3 +1,5 @@
+const Discord = require("discord.js");
+var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
 	name: 'ban',
     description: 'Ban someone',
@@ -28,14 +30,21 @@ module.exports = {
          * Read more about what ban options there are over at
          * https://discord.js.org/#/docs/main/master/class/GuildMember?scrollTo=ban
          */
-        member.ban(`${args[1]}`).then(() => {
+        member.ban(`${args[0]}`).then(() => {
           // We let the message author know we were able to ban the person
-          message.reply(`banned ${user.tag}`);
+          const Embed = new Discord.RichEmbed()
+        .setColor(color)
+        .setTitle("Be gone!")
+        .setDescription("Someone is getting banned!")
+        .addField("User banned:", user.tag)
+        .setTimestamp()
+        .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+      return message.channel.send(Embed);
         }).catch(err => {
           // An error happened
           // This is generally due to the bot not being able to ban the member,
           // either due to missing permissions or role hierarchy
-          message.reply('I failed to ban the member');
+          message.reply('I failed to ban this member!');
           // Log the error
           console.error(err);
         });

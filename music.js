@@ -1,5 +1,6 @@
 const { prefix } = require("./config.json");
 const ytdl = require("ytdl-core");
+const Discord = require("discord.js");
 
 const queue = new Map();
 
@@ -14,7 +15,7 @@ async function execute(message, serverQueue) {
   const permissions = voiceChannel.permissionsFor(message.client.user);
   if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
     return message.channel.send(
-      "I need the permissions to join and speak in your voice channel!"
+      "I can't play in your voice channel!"
     );
   }
 
@@ -41,7 +42,12 @@ async function execute(message, serverQueue) {
       var connection = await voiceChannel.join();
       queueContruct.connection = connection;
       play(message.guild, queueContruct.songs[0]);
-     message.channel.send(`Now playing: ${song.title}`);
+      const Embed = new Discord.RichEmbed()
+      .setTitle('Now playing:')
+      .setDescription(song.title)
+      .setTimestamp()
+      .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+      message.channel.send(Embed);
     } catch (err) {
       console.log(err);
       queue.delete(message.guild.id);
@@ -50,7 +56,12 @@ async function execute(message, serverQueue) {
   } else {
     serverQueue.songs.push(song);
     console.log(serverQueue.songs);
-    return message.channel.send(`${song.title} has been added to the queue!`);
+    const Embed = new Discord.RichEmbed()
+      .setTitle('New song added:')
+      .setDescription(song.title)
+      .setTimestamp()
+      .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+    return message.channel.send(Embed);
   }
 }
 
@@ -62,8 +73,8 @@ function skip(message, serverQueue) {
   if (!serverQueue)
     return message.channel.send("There is no song that I could skip!");
   serverQueue.connection.dispatcher.end();
-  
-  message.channel.send('Skipped!');
+
+  message.channel.send("Skipped!");
 }
 
 function stop(message, serverQueue) {
@@ -96,13 +107,38 @@ function play(guild, song) {
     });
   dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
 }
-
+function showQueue(msg) {
+        const queue = this.queueList;
+        const serverQueue = queue.get(msg.guild.id);
+        if (!serverQueue)
+            return msg.channel.send('There is nothing playing.').then((m) => {
+                return m.delete(10000).catch((reason) => {
+                    console.log(`Attempting to delete a deleted message (Which is impossible)`);
+                });
+            });
+        var index = 0;
+        var songArray = serverQueue.songs.map((song) => { return `**${++index}-** [${song.title}](${song.url})`; });
+        musicFunctions.addMusicQueueField(msg, songArray, queue).then((results) => __awaiter(this, void 0, void 0, function* () {
+            for (let i = 0; i < results.length; i++) {
+                yield new Promise((r) => { return setTimeout(r, 500); });
+                const element = results[i];
+                msg.channel.send(element).then((m) => {
+                    return m.delete(30000).catch((reason) => {
+                        console.log(`Attempting to delete a deleted message (Which is impossible)`);
+                    });
+                });
+            }
+        }));
+                                                                      }
+                                                                                             
 module.exports = {
   checkAdminCmd: function(message) {
     if (message.author.bot) return;
+    if (message.channel instanceof Discord.DMChannel) return;
     if (!message.content.startsWith(prefix)) return;
 
-    let command = message.content, found = false;
+    let command = message.content,
+      found = false;
     const serverQueue = queue.get(message.guild.id);
     if (command.startsWith(`${prefix}play`)) {
       execute(message, serverQueue);
@@ -113,6 +149,18 @@ module.exports = {
       found = true;
       return found;
     } else if (command.startsWith(`${prefix}stop`)) {
+      stop(message, serverQueue);
+      found = true;
+      return found;
+    } else if (command.startsWith(`${prefix}p`)) {
+      execute(message, serverQueue);
+      found = true;
+      return found;
+    } else if (command.startsWith(`${prefix}s`)) {
+      skip(message, serverQueue);
+      found = true;
+      return found;
+    } else if (command.startsWith(`${prefix}dis`)) {
       stop(message, serverQueue);
       found = true;
       return found;
