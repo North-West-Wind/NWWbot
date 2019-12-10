@@ -26,7 +26,8 @@ module.exports = {
 
             function(error, response, body) {
               if (!error && response.statusCode === 200) {
-                if (!body.player.prefix) {
+                try {
+                
                   if (!body.player.rank) {
                     if (!body.player.newPackageRank) {
                       var rank = "Non";
@@ -48,22 +49,21 @@ module.exports = {
                       }
                     }
                   } else {
-                    if (body.player.rank === "YOUTUBER") {
-                      var rank = "Youtuber";
-                    }
                     if (body.player.rank === "ADMIN") {
-                      var rank = "ADMIN";
+                      var rank = "Hypixel Admin";
                     }
                   }
-                } else {
-                  if (body.player.prefix === "§c[OWNER]") {
-                    var rank = "OWNER";
-                  }
-                  if (body.player.prefix === "§d[PIG§b+++§d]") {
-                    var rank = "PIG+++";
-                  }
-                }
+                
                 message.channel.send("<@" + item.dcmc_dcid + "> is " + rank);
+                  let member = message.guild.members.get(item.dcmc_dcid);
+                  if(rank != "Non") {
+                    let role = message.guild.roles.find(`name`, rank);
+                  member.addRole(role).then(role => console.log("Gave " + item.dcmc_dcname + " the role " + role)).catch(console.error);
+                  message.channel.send("Gave <@" + item.dcmc_dcid + "> the role " + rank);
+                  }
+                } catch (err) {
+                  console.log(err);
+                }
               }
             }
           );
