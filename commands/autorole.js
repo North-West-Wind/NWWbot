@@ -2,6 +2,7 @@ module.exports = {
   name: "autorole",
   description: "Automatically give Discord users a hypixel row.",
   execute(message) {
+    if (message.author.id !== '416227242264363008') return;
     var request = require("request");
 
     const data = "http://warofunderworld.000webhostapp.com/json.php";
