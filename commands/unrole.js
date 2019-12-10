@@ -16,9 +16,13 @@ module.exports = {
 
 
 		// Remove a role!
+    if(message.member.roles.find(r => r.name === args[1])) {
         member.removeRole(role).then(role => console.log(`Removed role ${role} from ${taggedUser}.`)).catch(console.error);
         const taggedUser = message.mentions.users.first();
     
         message.channel.send(`Removed role ${role} from ${taggedUser}.`);
+    } else {
+      return message.reply("that user doesn't have the role " + role + "!");
+    }
 	},
 };
