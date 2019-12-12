@@ -69,7 +69,7 @@ module.exports = {
                   var rank = "[ADMIN]";
                 }
                 if (!body.player.newPackageRank && !body.player.rank) {
-                  var rank = "Non"
+                  var rank = "Non";
                 }
                 const exp = body.player.networkExp;
 
@@ -134,69 +134,61 @@ module.exports = {
                               "https://visage.surgeplay.com/full/256/" +
                               res[0].id;
                             if (rank != "Non") {
-                            var Embed = new Discord.RichEmbed()
-                              .setColor(color)
-                              .setTitle(res[0].name)
-                              .setDescription("General stats")
-                              .setThumbnail(
-                                "https://image.ibb.co/emhGrV/Hypixel-Thumbnail.png"
-                              )
-                              .addField("Rank", rank2, true)
-                              .addField("Level", level, true)
-                              .addField(
-                                "Minecraft Version",
-                                body.player.mcVersionRp,
-                                true
-                              )
-                              .addField("Guild", gbody.guild.name, true)
-                              .addField(
-                                "Karma",
-                                karma,
-                                true
-                              )
-                              .addField(
-                                "First/Last login",
-                                "`" + firstlogin + " | " + lastlogin + "`",
-                                true
-                              )
-                              .setImage(skin)
-                              .setTimestamp()
-                              .setFooter(
-                                "Have a nice day! :)",
-                                "https://i.imgur.com/hxbaDUY.png"
-                              );
+                              var Embed = new Discord.RichEmbed()
+                                .setColor(color)
+                                .setTitle(res[0].name)
+                                .setDescription("General stats")
+                                .setThumbnail(
+                                  "https://image.ibb.co/emhGrV/Hypixel-Thumbnail.png"
+                                )
+                                .addField("Rank", rank2, true)
+                                .addField("Level", level, true)
+                                .addField(
+                                  "Minecraft Version",
+                                  body.player.mcVersionRp,
+                                  true
+                                )
+                                .addField("Guild", gbody.guild.name, true)
+                                .addField("Karma", karma, true)
+                                .addField(
+                                  "First/Last login",
+                                  "`" + firstlogin + " | " + lastlogin + "`",
+                                  true
+                                )
+                                .setImage(skin)
+                                .setTimestamp()
+                                .setFooter(
+                                  "Have a nice day! :)",
+                                  "https://i.imgur.com/hxbaDUY.png"
+                                );
                             } else {
                               var Embed = new Discord.RichEmbed()
-                              .setColor(color)
-                              .setTitle(rank + res[0].name)
-                              .setDescription("General stats")
-                              .setThumbnail(
-                                "https://image.ibb.co/emhGrV/Hypixel-Thumbnail.png"
-                              )
-                              .addField("Rank", rank2, true)
-                              .addField("Level", level, true)
-                              .addField(
-                                "Minecraft Version",
-                                body.player.mcVersionRp,
-                                true
-                              )
-                              .addField("Guild", gbody.guild.name, true)
-                              .addField(
-                                "Karma",
-                                karma,
-                                true
-                              )
-                              .addField(
-                                "First/Last login",
-                                "`" + firstlogin + " | " + lastlogin + "`",
-                                true
-                              )
-                              .setImage(skin)
-                              .setTimestamp()
-                              .setFooter(
-                                "Have a nice day! :)",
-                                "https://i.imgur.com/hxbaDUY.png"
-                              );
+                                .setColor(color)
+                                .setTitle(rank + res[0].name)
+                                .setDescription("General stats")
+                                .setThumbnail(
+                                  "https://image.ibb.co/emhGrV/Hypixel-Thumbnail.png"
+                                )
+                                .addField("Rank", rank2, true)
+                                .addField("Level", level, true)
+                                .addField(
+                                  "Minecraft Version",
+                                  body.player.mcVersionRp,
+                                  true
+                                )
+                                .addField("Guild", gbody.guild.name, true)
+                                .addField("Karma", karma, true)
+                                .addField(
+                                  "First/Last login",
+                                  "`" + firstlogin + " | " + lastlogin + "`",
+                                  true
+                                )
+                                .setImage(skin)
+                                .setTimestamp()
+                                .setFooter(
+                                  "Have a nice day! :)",
+                                  "https://i.imgur.com/hxbaDUY.png"
+                                );
                             }
                             message.channel.send(Embed);
                           }
@@ -262,7 +254,7 @@ module.exports = {
                   var rank = "[ADMIN]";
                 }
 
-                if (args[0] === "achievements") {
+                if (args[0] === "achievements" || args[0] === "ach") {
                   message.author
                     .send("**Long list incoming!**")
                     .then(() => {
@@ -367,6 +359,115 @@ module.exports = {
                     );
 
                   message.channel.send(Embed);
+                } else if (args[0] === "bw" || args[0] === "bedwars") {
+                  const bw = body.player.stats.Bedwars;
+
+                  if (!bw.coins) {
+                    var coins = 0;
+                  } else {
+                    var coins = bw.coins;
+                  }
+
+                  if (!bw.winstreak) {
+                    var winstreak = 0;
+                  } else {
+                    var winstreak = bw.winstreak;
+                  }
+
+                  if (!bw.games_played_bedwars) {
+                    var played = 0;
+                  } else {
+                    var played = bw.games_played_bedwars;
+                  }
+
+                  if (!bw.kills_bedwars) {
+                    var kills = 0;
+                  } else {
+                    var kills = bw.kills_bedwars;
+                  }
+
+                  if (!bw.wins_bedwars) {
+                    var wins = 0;
+                  } else {
+                    var wins = bw.wins_bedwars;
+                  }
+
+                  if (!bw.deaths_bedwars) {
+                    var deaths = 0;
+                  } else {
+                    var deaths = bw.deaths_bedwars;
+                  }
+
+                  if (!bw.losses_bedwars) {
+                    var loss = 0;
+                  } else {
+                    var loss = bw.losses_bedwars;
+                  }
+
+                  const kdr = Math.round((kills / deaths) * 100) / 100;
+                  const wlr = Math.round((wins / loss) * 100) / 100;
+
+                  if (!bw.final_kills_bedwars) {
+                    var final = 0;
+                  } else {
+                    var final = bw.final_kills_bedwars;
+                  }
+
+                  if (!bw.beds_broken_bedwars) {
+                    var bed = 0;
+                  } else {
+                    var bed = bw.beds_broken_bedwars;
+                  }
+
+                  if (!bw.final_deaths_bedwars) {
+                    var fdeath = 0;
+                  } else {
+                    var fdeath = bw.final_deaths_bedwars;
+                  }
+
+                  if (!bw.beds_lost_bedwars) {
+                    var bedlost = 0;
+                  } else {
+                    var bedlost = bw.beds_lost_bedwars;
+                  }
+
+                  const fkdr = Math.round((final / fdeath) * 100) / 100;
+                  const bbr = Math.round((bed / bedlost) * 100) / 100;
+
+                  const Embed = new Discord.RichEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setDescription("Bed Wars Stats")
+                    .setThumbnail("https://i.ibb.co/2hvh1x1/TNT-64.png")
+                    .addField(
+                      "Level",
+                      body.player.achievements.bedwars_level,
+                      true
+                    )
+                    .addField("Coins", coins, true)
+                    .addField("Game played", played, true)
+                    .addField("Wins", wins, true)
+                    .addField("Losses", loss, true)
+                    .addField("WLR", wlr, true)
+                    .addField("Kills", kills, true)
+                    .addField("Deaths", deaths, true)
+                    .addField("KDR", kdr, true)
+                    .addField("Bed broken", bed, true)
+                    .addField("Bed lost", bedlost, true)
+                    .addField("Bed broken/lost", bbr, true)
+                    .addField("Final kills", final, true)
+                    .addField("Final deaths", fdeath, true)
+                    .addField("Final KDR", fkdr, true)
+
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      "https://i.imgur.com/hxbaDUY.png"
+                    );
+
+                  message.channel.send(Embed);
+                } else if (args[0] === "duels" || args[0] === "du") {
+                  message.channel.send("There are too much stuff and the creator is lazy so he didn't finish this command.")
                 }
               }
             }
