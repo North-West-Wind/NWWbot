@@ -1,6 +1,9 @@
 const { prefix } = require("./config.json");
 const ytdl = require("ytdl-core");
 const Discord = require("discord.js");
+const  YouTube  = require("simple-youtube-api");
+const youtube = new YouTube(process.env.YT);
+var loop = false;
 
 const queue = new Map();
 var color = Math.floor(Math.random() * 16777214) + 1;
@@ -220,6 +223,9 @@ const musicFunctions = {
    
 
 
+
+
+
 async function execute(message, serverQueue) {
   const args = message.content.split(" ");
 
@@ -232,9 +238,15 @@ async function execute(message, serverQueue) {
   if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
     return message.channel.send("I can't play in your voice channel!");
   }
-
-  const songInfo = await ytdl.getInfo(args[1]);
-  const song = {
+  function isUrl(s) {
+   var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+   return regexp.test(s);
+}
+  
+  const video = await youtube.search(args.join(" "));
+  console.log(video[0].url)
+  const songInfo = await ytdl.getInfo(video[0].url);
+  let song = {
     title: songInfo.title,
     url: songInfo.video_url
   };
@@ -252,6 +264,7 @@ async function execute(message, serverQueue) {
     queue.set(message.guild.id, queueContruct);
 
     queueContruct.songs.push(song);
+    
     try {
       var connection = await voiceChannel.join();
       queueContruct.connection = connection;
@@ -281,6 +294,7 @@ async function execute(message, serverQueue) {
   }
 }
 
+
 function skip(message, serverQueue) {
   if (!message.member.voiceChannel)
     return message.channel.send(
@@ -303,21 +317,37 @@ function stop(message, serverQueue) {
   message.channel.send(":wave:")
 }
 
-function play(guild, song) {
+async function play(guild, song) {
   const serverQueue = queue.get(guild.id);
-
 if (!song) {
+  if(!loop || loop === false) {
   serverQueue.voiceChannel.leave();
   queue.delete(guild.id);
   return;
+  } else {
+    try{
+    serverQueue.songs.shift();
+      play(guild, serverQueue.songs[0]);
+    serverQueue.songs.push(song);
+    } catch(err) {
+      console.log(err)
+    }
+  }
  }
 
   const dispatcher = serverQueue.connection
     .playStream(ytdl(song.url))
     .on("end", () => {
+      if(!loop || loop === false) {
       console.log("Music ended!");
       serverQueue.songs.shift();
       play(guild, serverQueue.songs[0]);
+      } else {
+        console.log("Music ended!");
+      serverQueue.songs.shift();
+      play(guild, serverQueue.songs[0]);
+        serverQueue.songs.push(song);
+      }
     })
     .on("error", error => {
       console.error(error);
@@ -328,7 +358,7 @@ function showQueue(message, serverQueue) {
   if (!serverQueue) return message.channel.send("There is nothing playing.");
   var index = 0;
   var songArray = serverQueue.songs.map(song => {
-    return `**${++index}-** [${song.title}](${song.url})`;
+    return `**${++index} - ** [${song.title}](${song.url})`;
   });
   musicFunctions.addMusicQueueField(message, songArray, queue).then(results =>
     __awaiter(this, void 0, void 0, function*() {
@@ -357,42 +387,20 @@ function nowPlaying(message, serverQueue) {
   return message.channel.send(embed);
 }
 
-function repeat(message, serverQueue) {
-  if (!message.member.voiceChannel)
-    return message.channel.send("You are not in a voice channel!");
-  if (!serverQueue)
-    return message.channel.send("There is nothing playing.").then(m => {});
-  if (serverQueue.repeat === false) {
-    serverQueue.repeat = true;
-    message.channel.send("The first song in the queue is now being repeated.");
-    if (serverQueue.loop === true) {
-      serverQueue.loop = false;
-      message.channel.send("Looping has been disabled to avoid confusion.");
-    }
-  } else {
-    serverQueue.repeat = false;
-    message.channel.send(
-      "The first song in the queue is no longer being repeated."
-    );
-  }
-}
 
-function loop(message, serverQueue) {
+function lp(message, serverQueue) {
   if (!message.member.voiceChannel)
     return message.channel.send("You are not in a voice channel!");
   if (!serverQueue) return message.channel.send("There is nothing playing.");
-  if (serverQueue.loop === false) {
-    serverQueue.loop = true;
+  if (loop === false) {
+    loop = true;
     message.channel.send("The song queue is now being looped.");
-    if (serverQueue.repeat === true) {
-      serverQueue.repeat = false;
-      message.channel.send(
-        "Repeating the first song has been disabled to avoid confusion."
-      );
-    }
+   
+    return loop;
   } else {
-    serverQueue.loop = false;
+    loop = false;
     message.channel.send("The song queue is no longer being looped.");
+    return loop
   }
 }
 
@@ -521,12 +529,8 @@ module.exports = {
       nowPlaying(message, serverQueue);
       found = true;
       return found;
-    } else if (command.startsWith(`${prefix}repeat`)) {
-      repeat(message, serverQueue);
-      found = true;
-      return found;
     } else if (command.startsWith(`${prefix}loop`)) {
-      loop(message, serverQueue);
+      lp(message, serverQueue);
       found = true;
       return found;
     } else if (command.startsWith(`${prefix}remove`)) {
