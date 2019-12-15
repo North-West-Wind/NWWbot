@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const pollEmbed = require("discord.js-poll-embed");
 const client = new Discord.Client();
 const ms = require("ms");
 module.exports = {
