@@ -8,6 +8,7 @@ dependencies:
   express: 4.17.1
   express.js: 1.0.0
   ffmpeg: 0.0.4
+  is-url: 1.2.4
   krunker.js: 1.2.5
   mojang-api: 0.0.2
   ms: 2.1.2
@@ -468,6 +469,10 @@ packages:
     dev: false
     resolution:
       integrity: sha1-5HnICFjfDBsR3dppQPlgEfzaSpo=
+  /is-url/1.2.4:
+    dev: false
+    resolution:
+      integrity: sha512-ITvGim8FhRiYe4IQ5uHSkj7pVaPDrCTkNd3yq3cV7iZAcJdHTUMPMEHcqSOy9xZ9qFenQCvi+2wjH9a1nXqHww==
   /isarray/1.0.0:
     dev: false
     resolution:
@@ -1171,6 +1176,7 @@ specifiers:
   express: ^4.17.1
   express.js: ^1.0.0
   ffmpeg: ^0.0.4
+  is-url: ^1.2.4
   krunker.js: ^1.2.4
   mojang-api: ^0.0.2
   ms: ^2.1.2

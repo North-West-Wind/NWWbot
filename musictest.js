@@ -3,6 +3,15 @@ const ytdl = require("ytdl-core");
 const Discord = require("discord.js");
 const  YouTube  = require("simple-youtube-api");
 const youtube = new YouTube(process.env.YT);
+function validURL(str) {
+  var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+    '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+    '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+    '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+    '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+  return !!pattern.test(str);
+}
 var loop = false;
 
 const queue = new Map();
@@ -242,10 +251,17 @@ async function execute(message, serverQueue) {
    var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
    return regexp.test(s);
 }
+  const checkURL = validURL(args[1]);
   
-  const video = await youtube.search(args.join(" "));
-  console.log(video[0].url)
-  const songInfo = await ytdl.getInfo(video[0].url);
+  
+  if(checkURL === true) {
+    var songInfo = await ytdl.getInfo(args[1]);
+  
+  }
+  else {
+    const video = await youtube.search(args.join(" "));
+  var songInfo = await ytdl.getInfo(video[0].url);
+  }
   let song = {
     title: songInfo.title,
     url: songInfo.video_url
