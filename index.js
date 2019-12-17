@@ -17,7 +17,7 @@ const { prefix } = require('./config.json');
 const ytdl = require('ytdl-core');
 const music = new require('./musictest.js');
 const giveaways = require("discord-giveaways");
-
+const giveaway = require("./giveaways.js");
 
 const client = new Discord.Client();
 
@@ -62,6 +62,9 @@ const commandName = args.shift().toLowerCase();
   
   if ( music.checkAdminCmd(message) )
         return;
+  
+
+  
   
 if (commandName.args && !args.length) {
     let reply = `You didn't provide any arguments, ${message.author}!`;
