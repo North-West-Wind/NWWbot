@@ -15,7 +15,7 @@ module.exports = {
     message.guild.roles
       .find(role => role.name === `${args[0]}`)
       .delete()
-      .then(role => console.log(`Deleted role ${role.name}`))
+      .then(role => console.log(`Deleted role ${role.name} in server ${message.guild}`))
       .catch(console.error);
 
     const Discord = require('discord.js');
@@ -23,7 +23,6 @@ module.exports = {
       .setColor(color)
       .setTitle("The role is gone!")
       .addField(`A role was deleted: `, `${args[0]}`, true)
-      .addBlankField()
       .setTimestamp()
       .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
     message.channel.send(Embed);

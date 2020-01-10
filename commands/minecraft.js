@@ -6,7 +6,8 @@ module.exports = {
   description: "Connect to Minecraft API.",
   args: true,
   aliases: ["mc"],
-  usage: "<uuid | profile> <username>",
+  usage: "<subcommand> <username>",
+  subcommands: ["uuid", "profile", "username", "server"],
   execute(message, args) {
     const MojangAPI = require("mojang-api");
     if (`${args[0]}` === "uuid") {
@@ -88,6 +89,15 @@ module.exports = {
               return;
             }
           });
+    }
+    if(args[0] === "server") {
+      const url = "https://api.mcsrvstat.us/2/" + args.join(" ");
+      var request = require("request");
+          request(
+            {
+              url: url,
+              json: true
+            },)
     }
   }
 };

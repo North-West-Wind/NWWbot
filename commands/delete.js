@@ -1,3 +1,5 @@
+const Discord = require("discord.js")
+
 module.exports = {
 	name: 'delete',
 	description: 'Delete specific amount of messages.',
@@ -5,7 +7,12 @@ module.exports = {
   args: true,
   usage: '<amount of messages>',
 	execute(message, args) {
-    if (!message.member.hasPermission('MANAGE_MESSAGES')) { 
+    
+     if (message.channel instanceof Discord.DMChannel) {
+       return message.channel.send("This command doesn't work for direct messages.")
+     }
+       
+    if (!message.member.hasPermission('MANAGE_MESSAGES')) {
       message.channel.send(`You don\'t have the permission to use this command.`)
       return;
     }

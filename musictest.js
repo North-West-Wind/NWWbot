@@ -229,9 +229,38 @@ const musicFunctions = {
     }
 };
 
-   
+   async function search(message) {
+     const filter = m => m.author.id === message.author.id;
+     const args = message.content.split(" ");
+     const Embed = new Discord.RichEmbed()
+     .setTitle("Search result of " + args.slice(1).join(" "))
+     .setColor(color)
+     .setFooter("Choose your song.");
+     const results = [];
+     const video = await youtube.search(args.slice(1).join(" "), 10);
+     var num = 0;
+     for(let i = 0; i < video.length; i++) {
+       try {
+       results.push(++num + " - " + video[i].title);
+       console.log(video[i].title);
+       } catch {
+         console.log("ooofed")
+       }
+     }
+     Embed.setDescription(results.join("\n\n"));
+     message.channel.send(Embed).then(() => {
+       message.channel.awaitMessages(filter, { max: 1, time: 30000, error: ["time"]}).then(collected => {
+         var s = parseInt(collected);
+         message.channel.send("You chose " + video[s].title);
+       })
+     });
+     
+   }
 
-
+function isUrl(s) {
+   var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+   return regexp.test(s);
+}
 
 
 
@@ -247,10 +276,7 @@ async function execute(message, serverQueue) {
   if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
     return message.channel.send("I can't play in your voice channel!");
   }
-  function isUrl(s) {
-   var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
-   return regexp.test(s);
-}
+  
   const checkURL = validURL(args[1]);
   
   
@@ -259,7 +285,7 @@ async function execute(message, serverQueue) {
   
   }
   else {
-    const video = await youtube.search(args.join(" "));
+    const video = await youtube.search(args.slice(1).join(" "), 10);
   var songInfo = await ytdl.getInfo(video[0].url);
   }
   let song = {
@@ -328,6 +354,7 @@ function stop(message, serverQueue) {
     return message.channel.send(
       "You have to be in a voice channel to stop the music!"
     );
+  loop = false;
   serverQueue.songs = [];
   serverQueue.connection.dispatcher.end();
   message.channel.send(":wave:")
@@ -529,23 +556,15 @@ module.exports = {
       stop(message, serverQueue);
       found = true;
       return found;
-    } else if (command.startsWith(`${prefix}queue`)) {
+    } else if (command.startsWith(`${prefix}queue`) || command.startsWith(`${prefix}q`)) {
       showQueue(message, serverQueue);
       found = true;
       return found;
-    } else if (command.startsWith(`${prefix}q`)) {
-      showQueue(message, serverQueue);
-      found = true;
-      return found;
-    } else if (command.startsWith(`${prefix}nowplaying`)) {
+    } else if (command.startsWith(`${prefix}nowplaying`) || command.startsWith(`${prefix}np`)) {
       nowPlaying(message, serverQueue);
       found = true;
       return found;
-    } else if (command.startsWith(`${prefix}np`)) {
-      nowPlaying(message, serverQueue);
-      found = true;
-      return found;
-    } else if (command.startsWith(`${prefix}loop`)) {
+    } else if (command.startsWith(`${prefix}loop`) || command.startsWith(`${prefix}lp`)) {
       lp(message, serverQueue);
       found = true;
       return found;

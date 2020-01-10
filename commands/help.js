@@ -27,13 +27,13 @@ module.exports = {
         )
         .addField("**Moderator**", "ban\nkick\nwarn", true)
 
-        .addField("**Random stuff**", "avatar\nbeep\ngreet\nping\nthx", true)
+        .addField("**Random stuff**", "avatar\nbeep\ngreet\nping\nthx\nspam\nmath", true)
         .addField("**Information**", "help\nserver", true)
 
         .addField("**Minecraft**", "minecraft\nhypixel\ntrade", true)
-        .addField("**Music**", "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume", true)
+        .addField("**Music**", "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove", true)
       
-      .addField("**Misc**", "giveaway\ntrade\npoll")
+      .addField("**Misc**", "giveaway\npoll")
 
         .setTimestamp()
         .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
@@ -69,6 +69,10 @@ module.exports = {
       data.push(`**Description:** ${command.description}`);
     if (command.usage)
       data.push(`**Usage:** ${prefix}${command.name} ${command.usage}`);
+     if(command.subcommands)
+      data.push(`**Subcommands:** ${command.subcommands.join(", ")}`);
+    if(command.subaliases)
+      data.push(`**Subcommands' Aliases:** ${command.subaliases.join(", ")}`);
 
     message.channel.send(data, { split: true });
   }
