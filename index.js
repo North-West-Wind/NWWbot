@@ -24,7 +24,8 @@ const mysql_config = {
   password: "EXtWjGJlwf",
   database: "AToOsccGeg",
   supportBigNumbers: true,
-  bigNumberStrings: true
+  bigNumberStrings: true,
+  charset: "utf8mb4"
 };
 
 var pool = mysql.createPool(mysql_config);
@@ -49,7 +50,7 @@ client.once("ready", () => {
 
   client.user.setPresence({
     game: {
-      name: "Being coded by owner",
+      name: "N0rthWestW1nd",
       type: "WATCHING"
     },
     status: "online"

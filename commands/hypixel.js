@@ -100,180 +100,178 @@ module.exports = {
                   },
                   function(err, resp, stuff) {
                     if (!error && response.statusCode === 200) {
-                      if(stuff.guild === null) {
+                      if (stuff.guild === null) {
                         var firstdate = new Date(body.player.firstLogin);
-                            var firstlogin = firstdate.toLocaleString();
-                            if (typeof body.player.karma === "undefined") {
-                              var karma = 0;
-                            } else {
-                              var karma = body.player.karma
-                                .toString()
-                                .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                            }
-                            // Create a new JavaScript Date object based on the timestamp
-                            // multiplied by 1000 so that the argument is in milliseconds, not seconds.
-                            var lastdate = new Date(body.player.lastLogin);
-                            var lastlogin = lastdate.toLocaleString();
-                            const rank2 = rank.replace(/[\[\]']+/g, "");
-                            let skin =
-                              "https://visage.surgeplay.com/full/256/" +
-                              res[0].id;
-                            if (rank === "Non") {
-                              var Embed = new Discord.RichEmbed()
-                                .setColor(color)
-                                .setTitle(res[0].name)
-                                .setDescription("General stats")
-                                .setThumbnail(
-                                  "https://image.ibb.co/emhGrV/Hypixel-Thumbnail.png"
-                                )
-                                .addField("Rank", rank2, true)
-                                .addField("Level", level, true)
-                                .addField(
-                                  "Minecraft Version",
-                                  body.player.mcVersionRp,
-                                  true
-                                )
-                                .addField("Guild", "No guild", true)
-                                .addField("Karma", karma, true)
-                                .addField(
-                                  "First/Last login",
-                                  "`" + firstlogin + " | " + lastlogin + "`",
-                                  true
-                                )
-                                .setImage(skin)
-                                .setTimestamp()
-                                .setFooter(
-                                  "Have a nice day! :)",
-                                  "https://i.imgur.com/hxbaDUY.png"
-                                );
-                            } else {
-                              var Embed = new Discord.RichEmbed()
-                                .setColor(color)
-                                .setTitle(rank + res[0].name)
-                                .setDescription("General stats")
-                                .setThumbnail(
-                                  "https://image.ibb.co/emhGrV/Hypixel-Thumbnail.png"
-                                )
-                                .addField("Rank", rank2, true)
-                                .addField("Level", level, true)
-                                .addField(
-                                  "Minecraft Version",
-                                  body.player.mcVersionRp,
-                                  true
-                                )
-                                .addField("Guild", "No guild", true)
-                                .addField("Karma", karma, true)
-                                .addField(
-                                  "First/Last login",
-                                  "`" + firstlogin + " | " + lastlogin + "`",
-                                  true
-                                )
-                                .setImage(skin)
-                                .setTimestamp()
-                                .setFooter(
-                                  "Have a nice day! :)",
-                                  "https://i.imgur.com/hxbaDUY.png"
-                                );
-                            }
-                            message.channel.send(Embed);
-                      }
-                      else {
-                      console.log("someone's guild"); // Print the json response
-                      const guild =
-                        "https://api.hypixel.net/guild?key=" +
-                        process.env.API +
-                        "&id=" +
-                        stuff.guild;
-
-                      request(
-                        {
-                          url: guild,
-                          json: true
-                        },
-                        function(gerr, gres, gbody) {
-                          if (!error && response.statusCode === 200) {
-                            console.log("guild stuff"); // Print the json response
-
-                            // Create a new JavaScript Date object based on the timestamp
-                            // multiplied by 1000 so that the argument is in milliseconds, not seconds.
-                            var firstdate = new Date(body.player.firstLogin);
-                            var firstlogin = firstdate.toLocaleString();
-                            if (typeof body.player.karma === "undefined") {
-                              var karma = 0;
-                            } else {
-                              var karma = body.player.karma
-                                .toString()
-                                .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                            }
-                            // Create a new JavaScript Date object based on the timestamp
-                            // multiplied by 1000 so that the argument is in milliseconds, not seconds.
-                            var lastdate = new Date(body.player.lastLogin);
-                            var lastlogin = lastdate.toLocaleString();
-                            const rank2 = rank.replace(/[\[\]']+/g, "");
-                            let skin =
-                              "https://visage.surgeplay.com/full/256/" +
-                              res[0].id;
-                            if (rank === "Non") {
-                              var Embed = new Discord.RichEmbed()
-                                .setColor(color)
-                                .setTitle(res[0].name)
-                                .setDescription("General stats")
-                                .setThumbnail(
-                                  "https://image.ibb.co/emhGrV/Hypixel-Thumbnail.png"
-                                )
-                                .addField("Rank", rank2, true)
-                                .addField("Level", level, true)
-                                .addField(
-                                  "Minecraft Version",
-                                  body.player.mcVersionRp,
-                                  true
-                                )
-                                .addField("Guild", gbody.guild.name, true)
-                                .addField("Karma", karma, true)
-                                .addField(
-                                  "First/Last login",
-                                  "`" + firstlogin + " | " + lastlogin + "`",
-                                  true
-                                )
-                                .setImage(skin)
-                                .setTimestamp()
-                                .setFooter(
-                                  "Have a nice day! :)",
-                                  "https://i.imgur.com/hxbaDUY.png"
-                                );
-                            } else {
-                              var Embed = new Discord.RichEmbed()
-                                .setColor(color)
-                                .setTitle(rank + res[0].name)
-                                .setDescription("General stats")
-                                .setThumbnail(
-                                  "https://image.ibb.co/emhGrV/Hypixel-Thumbnail.png"
-                                )
-                                .addField("Rank", rank2, true)
-                                .addField("Level", level, true)
-                                .addField(
-                                  "Minecraft Version",
-                                  body.player.mcVersionRp,
-                                  true
-                                )
-                                .addField("Guild", gbody.guild.name, true)
-                                .addField("Karma", karma, true)
-                                .addField(
-                                  "First/Last login",
-                                  "`" + firstlogin + " | " + lastlogin + "`",
-                                  true
-                                )
-                                .setImage(skin)
-                                .setTimestamp()
-                                .setFooter(
-                                  "Have a nice day! :)",
-                                  "https://i.imgur.com/hxbaDUY.png"
-                                );
-                            }
-                            message.channel.send(Embed);
-                          }
+                        var firstlogin = firstdate.toLocaleString();
+                        if (typeof body.player.karma === "undefined") {
+                          var karma = 0;
+                        } else {
+                          var karma = body.player.karma
+                            .toString()
+                            .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                         }
-                      );
+                        // Create a new JavaScript Date object based on the timestamp
+                        // multiplied by 1000 so that the argument is in milliseconds, not seconds.
+                        var lastdate = new Date(body.player.lastLogin);
+                        var lastlogin = lastdate.toLocaleString();
+                        const rank2 = rank.replace(/[\[\]']+/g, "");
+                        let skin =
+                          "https://visage.surgeplay.com/full/256/" + res[0].id;
+                        if (rank === "Non") {
+                          var Embed = new Discord.RichEmbed()
+                            .setColor(color)
+                            .setTitle(res[0].name)
+                            .setDescription("General stats")
+                            .setThumbnail(
+                              "https://image.ibb.co/emhGrV/Hypixel-Thumbnail.png"
+                            )
+                            .addField("Rank", rank2, true)
+                            .addField("Level", level, true)
+                            .addField(
+                              "Minecraft Version",
+                              body.player.mcVersionRp,
+                              true
+                            )
+                            .addField("Guild", "No guild", true)
+                            .addField("Karma", karma, true)
+                            .addField(
+                              "First/Last login",
+                              "`" + firstlogin + " | " + lastlogin + "`",
+                              true
+                            )
+                            .setImage(skin)
+                            .setTimestamp()
+                            .setFooter(
+                              "Have a nice day! :)",
+                              "https://i.imgur.com/hxbaDUY.png"
+                            );
+                        } else {
+                          var Embed = new Discord.RichEmbed()
+                            .setColor(color)
+                            .setTitle(rank + res[0].name)
+                            .setDescription("General stats")
+                            .setThumbnail(
+                              "https://image.ibb.co/emhGrV/Hypixel-Thumbnail.png"
+                            )
+                            .addField("Rank", rank2, true)
+                            .addField("Level", level, true)
+                            .addField(
+                              "Minecraft Version",
+                              body.player.mcVersionRp,
+                              true
+                            )
+                            .addField("Guild", "No guild", true)
+                            .addField("Karma", karma, true)
+                            .addField(
+                              "First/Last login",
+                              "`" + firstlogin + " | " + lastlogin + "`",
+                              true
+                            )
+                            .setImage(skin)
+                            .setTimestamp()
+                            .setFooter(
+                              "Have a nice day! :)",
+                              "https://i.imgur.com/hxbaDUY.png"
+                            );
+                        }
+                        message.channel.send(Embed);
+                      } else {
+                        console.log("someone's guild"); // Print the json response
+                        const guild =
+                          "https://api.hypixel.net/guild?key=" +
+                          process.env.API +
+                          "&id=" +
+                          stuff.guild;
+
+                        request(
+                          {
+                            url: guild,
+                            json: true
+                          },
+                          function(gerr, gres, gbody) {
+                            if (!error && response.statusCode === 200) {
+                              console.log("guild stuff"); // Print the json response
+
+                              // Create a new JavaScript Date object based on the timestamp
+                              // multiplied by 1000 so that the argument is in milliseconds, not seconds.
+                              var firstdate = new Date(body.player.firstLogin);
+                              var firstlogin = firstdate.toLocaleString();
+                              if (typeof body.player.karma === "undefined") {
+                                var karma = 0;
+                              } else {
+                                var karma = body.player.karma
+                                  .toString()
+                                  .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                              }
+                              // Create a new JavaScript Date object based on the timestamp
+                              // multiplied by 1000 so that the argument is in milliseconds, not seconds.
+                              var lastdate = new Date(body.player.lastLogin);
+                              var lastlogin = lastdate.toLocaleString();
+                              const rank2 = rank.replace(/[\[\]']+/g, "");
+                              let skin =
+                                "https://visage.surgeplay.com/full/256/" +
+                                res[0].id;
+                              if (rank === "Non") {
+                                var Embed = new Discord.RichEmbed()
+                                  .setColor(color)
+                                  .setTitle(res[0].name)
+                                  .setDescription("General stats")
+                                  .setThumbnail(
+                                    "https://image.ibb.co/emhGrV/Hypixel-Thumbnail.png"
+                                  )
+                                  .addField("Rank", rank2, true)
+                                  .addField("Level", level, true)
+                                  .addField(
+                                    "Minecraft Version",
+                                    body.player.mcVersionRp,
+                                    true
+                                  )
+                                  .addField("Guild", gbody.guild.name, true)
+                                  .addField("Karma", karma, true)
+                                  .addField(
+                                    "First/Last login",
+                                    "`" + firstlogin + " | " + lastlogin + "`",
+                                    true
+                                  )
+                                  .setImage(skin)
+                                  .setTimestamp()
+                                  .setFooter(
+                                    "Have a nice day! :)",
+                                    "https://i.imgur.com/hxbaDUY.png"
+                                  );
+                              } else {
+                                var Embed = new Discord.RichEmbed()
+                                  .setColor(color)
+                                  .setTitle(rank + res[0].name)
+                                  .setDescription("General stats")
+                                  .setThumbnail(
+                                    "https://image.ibb.co/emhGrV/Hypixel-Thumbnail.png"
+                                  )
+                                  .addField("Rank", rank2, true)
+                                  .addField("Level", level, true)
+                                  .addField(
+                                    "Minecraft Version",
+                                    body.player.mcVersionRp,
+                                    true
+                                  )
+                                  .addField("Guild", gbody.guild.name, true)
+                                  .addField("Karma", karma, true)
+                                  .addField(
+                                    "First/Last login",
+                                    "`" + firstlogin + " | " + lastlogin + "`",
+                                    true
+                                  )
+                                  .setImage(skin)
+                                  .setTimestamp()
+                                  .setFooter(
+                                    "Have a nice day! :)",
+                                    "https://i.imgur.com/hxbaDUY.png"
+                                  );
+                              }
+                              message.channel.send(Embed);
+                            }
+                          }
+                        );
                       }
                     }
                   }
@@ -519,7 +517,7 @@ module.exports = {
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setDescription("Bed Wars Stats")
-                    .setThumbnail("https://i.ibb.co/2hvh1x1/TNT-64.png")
+                    .setThumbnail("https://hypixel.net/styles/hypixel-uix/hypixel/game-icons/BedWars-44.png")
                     .addField(
                       "Level",
                       body.player.achievements.bedwars_level,
@@ -548,7 +546,9 @@ module.exports = {
 
                   message.channel.send(Embed);
                 } else if (args[0] === "duels" || args[0] === "du") {
-                  message.channel.send("There are too much stuff and the creator is lazy so he didn't finish this command.")
+                  message.channel.send(
+                    "There are too much stuff and the creator is lazy so he didn't finish this command."
+                  );
                 }
               }
             }

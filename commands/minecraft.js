@@ -70,34 +70,64 @@ module.exports = {
     }
     if (args[0] === "username") {
       MojangAPI.profile(args[1], function(err, res) {
-            if (err) console.log(err);
-            else {
-              console.log(res.id + " is also known as " + res.name + ".");
+        if (err) console.log(err);
+        else {
+          console.log(res.id + " is also known as " + res.name + ".");
 
-
-              const Embed = new Discord.RichEmbed()
-                .setColor(color)
-                .setTitle("UUID to Username:")
-                .setDescription(res.id)
-                .addField("Username", res.name, true)
-                .setTimestamp()
-                .setFooter(
-                  "Have a nice day! :)",
-                  "https://i.imgur.com/hxbaDUY.png"
-                );
-              message.channel.send(Embed);
-              return;
-            }
-          });
+          const Embed = new Discord.RichEmbed()
+            .setColor(color)
+            .setTitle("UUID to Username:")
+            .setDescription(res.id)
+            .addField("Username", res.name, true)
+            .setTimestamp()
+            .setFooter(
+              "Have a nice day! :)",
+              "https://i.imgur.com/hxbaDUY.png"
+            );
+          message.channel.send(Embed);
+          return;
+        }
+      });
     }
-    if(args[0] === "server") {
-      const url = "https://api.mcsrvstat.us/2/" + args.join(" ");
+    if (args[0] === "server") {
+      const url = "https://api.mcsrvstat.us/2/" + args.slice(1).join(" ");
       var request = require("request");
-          request(
-            {
-              url: url,
-              json: true
-            },)
+      request(
+        {
+          url: url,
+          json: true
+        },
+        function(err, res, body) {
+          if (!err && res.statusCode === 200) {
+            console.log("mc server check for " + args.slice(1).join(" "));
+          }
+          if (body.online === true) {
+            const ip = body.ip;
+            const port = body.port;
+            const player = body.players.online + " / " + body.players.max;
+            const version = body.version;
+            const hostname = body.hostname;
+            const desc = body.motd.clean.join("\n");
+            const spaceRemoved = desc.replace(/ +(?= )/g,'');
+            const Embed = new Discord.RichEmbed()
+              .setTitle(args.slice(1).join(" "))
+              .setColor(color)
+              .addField("IP", "`" + ip + "`", true)
+              .addField("Port", "`" + port + "`", true)
+              .addField("Player/Max", "`" + player + "`", true)
+              .addField("Version", "`" + version + "`", true)
+              .addField("Hostname", "`" + hostname + "`", true)
+              .addField("Description", "`" + spaceRemoved + "`")
+              .setTimestamp()
+              .setFooter(
+                "Have a nice day! :)",
+                "https://i.imgur.com/hxbaDUY.png"
+              );
+            
+            message.channel.send(Embed);
+          }
+        }
+      );
     }
   }
 };
