@@ -237,23 +237,31 @@ const musicFunctions = {
      .setColor(color)
      .setFooter("Choose your song.");
      const results = [];
+     var saved = [];
+     var info = [];
      const video = await youtube.search(args.slice(1).join(" "), 10);
      var num = 0;
      for(let i = 0; i < video.length; i++) {
        try {
+          saved.push(video[i]);
        results.push(++num + " - " + video[i].title);
        console.log(video[i].title);
        } catch {
          console.log("ooofed")
        }
      }
-     Embed.setDescription(results.join("\n\n"));
-     message.channel.send(Embed).then(() => {
-       message.channel.awaitMessages(filter, { max: 1, time: 30000, error: ["time"]}).then(collected => {
-         var s = parseInt(collected);
-         message.channel.send("You chose " + video[s].title);
-       })
-     });
+     Embed.setDescription(results.join("\n"));
+    message.channel.send(Embed)
+    .then(() => {
+      message.channel.awaitMessages(filter, { max: 1, time: 30000, error: ["time"] })
+      .then(async (collected) => {
+        var s = Math.floor(parseInt(collected.first().content) - 1);
+        message.channel.send("Music chosen: " + saved[s].title);
+        var chosen = await ytdl.getInfo(saved[s].url);
+        info.push(chosen);
+      });
+  
+    });
      
    }
 
@@ -265,6 +273,7 @@ function isUrl(s) {
 
 
 async function execute(message, serverQueue) {
+       const filter = m => m.author.id === message.author.id;
   const args = message.content.split(" ");
 
   const voiceChannel = message.member.voiceChannel;
@@ -286,7 +295,9 @@ async function execute(message, serverQueue) {
   }
   else {
     const video = await youtube.search(args.slice(1).join(" "), 10);
-  var songInfo = await ytdl.getInfo(video[0].url);
+    
+    var songInfo =  await ytdl.getInfo(video[0].url);
+    
   }
   let song = {
     title: songInfo.title,
@@ -545,6 +556,9 @@ module.exports = {
       found = true;
       return found;
     } else if (command.startsWith(`${prefix}altp`)) {
+      console.log(search(message).then(result => {
+        return result.info[0];
+      }));
       execute(message, serverQueue);
       found = true;
       return found;

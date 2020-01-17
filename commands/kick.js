@@ -1,3 +1,6 @@
+const Discord = require("discord.js");
+var color = Math.floor(Math.random() * 16777214) + 1;
+
 module.exports = {
   name: "kick",
   description: "Kick someone",
@@ -30,7 +33,16 @@ module.exports = {
           .kick(`${args[1]}`)
           .then(() => {
             // We let the message author know we were able to kick the person
-            message.reply(`Kicked ${user.tag}`);
+            const Embed = new Discord.RichEmbed()
+              .setTitle("Kicked user")
+              .setDescription(user.tag)
+              .setColor(color)
+              .setTimestamp()
+              .setFooter(
+                "Have a nice day! :)",
+                "https://i.imgur.com/hxbaDUY.png"
+              );
+            message.channel.send(Embed);
           })
           .catch(err => {
             // An error happened
