@@ -4,124 +4,88 @@ const client = new Discord.Client();
 module.exports = {
   name: "config",
   description: "Show configuration of the server.",
+  usage: "[subcommand]",
+  subcommands: ["new"],
   execute(message, args, pool) {
+    if (message.channel instanceof Discord.DMChannel) {
+       return message.channel.send("Direct messages is not configurable.")
+     }
     if (!message.member.hasPermission("MANAGE_GUILD")) {
       message.reply(`you don\'t have the permission to use this command.`);
       return;
     }
+    
+    
 
     const guild = message.guild;
 
-    if (args[0] === "welcomeMessage") {
-      if (args[1].startsWith("<#")) {
-        const channel = args[1].replace("<#", "");
-        const channel2 = channel.replace(">", "");
-        var stuff = [];
-        args.forEach(word => {
-          if (word.startsWith("{<#")) {
-            const first = word.replace("{<#", "");
-            const second = first.replace(">}", "");
-            const channel = guild.channels.get(second);
-            stuff.push("{#" + channel.name + "}");
-          } else {
-            stuff.push(word);
-          }
-        });
+    if (args[0] === "new") {
+      require("crypto").randomBytes(24, function(err, buffer) {
+        var generated = buffer.toString("hex");
         pool.getConnection(function(err, con) {
+          if (err) throw err;
           con.query(
-            "UPDATE servers SET welcome = '" +
-              stuff
-                .slice(2)
-                .join(" ")
-                .replace(/"/g, '\\"')
-                .replace(/'/g, "\\'") +
-              "', wel_channel = '" +
-              channel2 +
-              "' WHERE id=" +
-              guild.id,
-            function(err, result, fields) {
+            "UPDATE token SET id = '" +
+              generated +
+              "' WHERE guild = '" +
+              guild.id +
+              "'",
+            function(err, result) {
               if (err) throw err;
-              message.channel.send(
-                "Saved changes." + "```" + stuff.slice(2).join(" ") + "```"
+              console.log("Generated a new token for " + guild.name);
+              message.author.send(
+                "Generated a new token for server - **" +
+                  guild.name +
+                  "**\nToken: `" +
+                  generated + "`"
               );
             }
           );
           con.release();
-          if (err) throw err;
         });
-      } else {
-        pool.getConnection(function(err, con) {
-          con.query(
-            "UPDATE servers SET welcome = '" +
-              stuff
-                .slice(1)
-                .join(" ")
-                .replace(/"/g, '\\"')
-                .replace(/'/g, "\\'") +
-              "' WHERE id=" +
-              guild.id,
-            function(err, result, fields) {
-              if (err) throw err;
-              message.channel.send(
-                "WARNING: Only received welcome message. Please make sure if you have enter the welcome channel before.\n" +
-                  "Saved changes." +
-                  "```" +
-                  stuff.slice(1).join(" ") +
-                  "```"
-              );
-            }
-          );
-          con.release();
-          if (err) throw err;
-        });
-      }
-    } else if (args[0] === "autorole") {
-      if (!args[1]) {
-        return message.channel.send("Please include at least 1 role!");
-      }
-      var roleArray = [];
-      args.slice(1).forEach(role => {
-        const first = role.replace("<@&", "");
-        const second = first.replace(">", "");
-        const getRole = guild.roles.get(second);
-        if (getRole === undefined)
-          return message.channel.send(role + " is not a role!");
-        roleArray.push(getRole.name);
-      });
-      var autorole = '["' + roleArray.join('", "') + '"]';
-      pool.getConnection(function(err, con) {
-        con.query(
-          "UPDATE servers SET autorole = '" +
-            autorole +
-            "' WHERE id=" +
-            guild.id,
-          function(err, result, fields) {
-            if (err) throw err;
-            message.channel.send(
-              "All members will be given " +
-                args.slice(1).join(", ") +
-                " when joined."
-            );
-          }
-        );
       });
     } else {
       pool.getConnection(function(err, con) {
-        con.query("SELECT * FROM servers WHERE id=" + guild.id, function(
+        if (err) throw err;
+        con.query("SELECT * FROM token WHERE guild=" + guild.id, async function(
           err,
           result,
           fields
         ) {
-          const welcomeChannel = guild.channels.get(result[0].wel_channel);
-          const Embed = new Discord.RichEmbed()
-            .setTitle("Configuration of " + guild.name)
-            .setColor()
-            .addField("Welcome message", result[0].welcome, true)
-            .addField("Welcome channel", welcomeChannel, true);
-          message.channel.send(Embed);
           if (err) throw err;
-        });
+          if (result.length > 0) {
+            return message.author.send(
+              "Token was created for **" +
+                guild.name +
+                "** before.\nToken: `" +
+                result[0].id +
+                "`"
+            );
+          } else {
+            require("crypto").randomBytes(24, function(err, buffer) {
+              var generated = buffer.toString("hex");
 
+              con.query(
+                "INSERT INTO token (id, guild) VALUES('" +
+                  generated +
+                  "', '" +
+                  guild.id +
+                  "')",
+                function(err, result) {
+                  if (err) throw err;
+                  console.log("Created token for server " + guild.name);
+                  message.author.send(
+                    "Created token for guild - **" +
+                      guild.name +
+                      "**\nToken: `" +
+                      generated +
+                      "`"
+                  );
+                }
+              );
+            });
+          }
+        });
         con.release();
       });
     }
