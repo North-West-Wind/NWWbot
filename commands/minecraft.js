@@ -20,10 +20,13 @@ module.exports = {
       MojangAPI.nameToUuid(`${args[1]}`, function(err, res) {
         if (err) console.log(err);
         else
+          if(res[0] === undefined) {
+            return message.channel.send("No player named **" + args[1] + "** were found")
+          }
           console.log(res[0].name + "? No, they're " + res[0].id + " to me.");
         const Embed = new Discord.RichEmbed()
           .setColor(color)
-          .setTitle(`${args[1]}\'s UUID:`)
+          .setTitle(`${res[0].name}\'s UUID:`)
           .setDescription(res[0].id);
         message.channel.send(Embed);
         return;
@@ -39,6 +42,9 @@ module.exports = {
       MojangAPI.nameToUuid(`${args[1]}`, function(err, res) {
         if (err) console.log(err);
         else
+          if(res[0] === undefined) {
+            return message.channel.send("No player named **" + args[1] + "** were found")
+          }
           MojangAPI.profile(res[0].id, function(err, res) {
             if (err) console.log(err);
             else {
@@ -72,6 +78,7 @@ module.exports = {
       MojangAPI.profile(args[1], function(err, res) {
         if (err) console.log(err);
         else {
+          
           console.log(res.id + " is also known as " + res.name + ".");
 
           const Embed = new Discord.RichEmbed()
@@ -125,6 +132,8 @@ module.exports = {
               );
             
             message.channel.send(Embed);
+          } else {
+            message.channel.send("The server - **" + args.slice(1).join(" ") + "** - is offline/under maintenance.")
           }
         }
       );

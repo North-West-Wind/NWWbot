@@ -14,21 +14,21 @@
     "express": "^4.17.1",
     "express.js": "^1.0.0",
     "ffmpeg": "^0.0.4",
-    "ytdl-core": "^1.0.3",
+    "ytdl-core": "^1.0.7",
     "mojang-api": "^0.0.2",
-    "discord-giveaways": "^2.4.3",
+    "discord-giveaways": "^3.0.7",
     "ms": "^2.1.2",
     "aki-api": "^3.2.1",
     "mysql": "^2.17.1",
     "request-promise": "^4.2.5",
     "node-fetch": "^2.6.0",
-    "discord-giveaway": "^2.0.0",
     "algebra.js": "^0.2.6",
     "opusscript": "^0.0.7",
     "simple-youtube-api": "^5.2.1",
     "krunker.js": "^1.2.4",
-    "better-youtube-api": "^2.1.6",
+    "better-youtube-api": "^2.1.7",
     "is-url": "^1.2.4",
-    "moment": "^2.24.0"
+    "moment": "^2.24.0",
+    "canvas": "^2.6.1"
   }
 }
