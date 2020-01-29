@@ -51,7 +51,7 @@ client.once("ready", () => {
 
   client.user.setPresence({
     game: {
-      name: "N0rthWestW1nd",
+      name: "?help",
       type: "WATCHING"
     },
     status: "online"
@@ -82,11 +82,22 @@ client.on("guildMemberAdd", member => {
             if (word.startsWith("{#")) {
               const first = word.replace("{#", "");
               const second = first.replace("}", "");
-              const mentionedChannel = guild.channels.get(second);
-              if (mentionedChannel === null) {
-                messageArray.push("<#" + second + ">");
+              if (isNaN(parseInt(second))) {
+                const mentionedChannel = guild.channels.find(
+                  x => x.name === second
+                );
+                if (mentionedChannel === null) {
+                  messageArray.push("#" + second);
+                } else {
+                  messageArray.push(mentionedChannel);
+                }
               } else {
-                messageArray.push(mentionedChannel);
+                const mentionedChannel = guild.channels.get(second);
+                if (mentionedChannel === null) {
+                  messageArray.push("<#" + second + ">");
+                } else {
+                  messageArray.push(mentionedChannel);
+                }
               }
             }
 
@@ -94,11 +105,20 @@ client.on("guildMemberAdd", member => {
             else if (word.startsWith("{&")) {
               const first = word.replace("{&", "");
               const second = first.replace("}", "");
-              const mentionedRole = guild.roles.get(second);
-              if (mentionedRole === null) {
-                messageArray.push("<@" + second + ">");
+              if (isNaN(parseInt(second))) {
+                const mentionedRole = guild.roles.find(x => x.name === second);
+                if (mentionedRole === null) {
+                  messageArray.push("@" + second);
+                } else {
+                  messageArray.push(mentionedRole);
+                }
               } else {
-                messageArray.push(mentionedRole);
+                const mentionedRole = guild.roles.get(second);
+                if (mentionedRole === null) {
+                  messageArray.push("<@&" + second + ">");
+                } else {
+                  messageArray.push(mentionedRole);
+                }
               }
             }
 
@@ -106,11 +126,20 @@ client.on("guildMemberAdd", member => {
             else if (word.startsWith("{@")) {
               const first = word.replace("{@", "");
               const second = first.replace("}", "");
-              const mentionedUser = client.users.get(second);
-              if (mentionedUser === null) {
-                messageArray.push("<@" + second + ">");
+              if (isNaN(parseInt(second))) {
+                const mentionedUser = client.users.find(x => x.name === second);
+                if (mentionedUser === null) {
+                  messageArray.push("@" + second);
+                } else {
+                  messageArray.push(mentionedUser);
+                }
               } else {
-                messageArray.push(mentionedUser);
+                const mentionedUser = client.users.get(second);
+                if (mentionedUser === null) {
+                  messageArray.push("<@" + second + ">");
+                } else {
+                  messageArray.push(mentionedUser);
+                }
               }
             } else {
               messageArray.push(word);
@@ -120,7 +149,7 @@ client.on("guildMemberAdd", member => {
           //construct message
           const welcomeMessage = messageArray
             .join(" ")
-            .replace("{user}", member);
+            .replace(/{user}/g, member);
 
           //send message only
           channel.send(welcomeMessage);
@@ -232,7 +261,7 @@ client.on("guildMemberAdd", member => {
               // Pick up the pen
               ctx.beginPath();
               //line width setting
-      ctx.lineWidth = canvas.width / 102.4;
+              ctx.lineWidth = canvas.width / 51.2;
               // Start the arc to form a circle
               ctx.arc(
                 canvas.width / 2,
@@ -244,7 +273,7 @@ client.on("guildMemberAdd", member => {
               );
               // Put the pen down
               ctx.closePath();
-              ctx.strokeStyle = "black";
+              ctx.strokeStyle = "#dfdfdf";
               ctx.stroke();
               // Clip off the region you drew on
               ctx.clip();
@@ -325,45 +354,77 @@ client.on("guildMemberRemove", member => {
           const messageArray = [];
 
           splitMessage.forEach(word => {
+            //check channel
             if (word.startsWith("{#")) {
               const first = word.replace("{#", "");
               const second = first.replace("}", "");
-              const mentionedChannel = guild.channels.find(
-                channel => channel.name === second
-              );
-              if (mentionedChannel === null) {
-                messageArray.push("#" + second);
+              if (isNaN(parseInt(second))) {
+                const mentionedChannel = guild.channels.find(
+                  x => x.name === second
+                );
+                if (mentionedChannel === null) {
+                  messageArray.push("#" + second);
+                } else {
+                  messageArray.push(mentionedChannel);
+                }
               } else {
-                messageArray.push(mentionedChannel);
+                const mentionedChannel = guild.channels.get(second);
+                if (mentionedChannel === null) {
+                  messageArray.push("<#" + second + ">");
+                } else {
+                  messageArray.push(mentionedChannel);
+                }
               }
-            } else if (word.startsWith("{&")) {
+            }
+
+            //check role
+            else if (word.startsWith("{&")) {
               const first = word.replace("{&", "");
               const second = first.replace("}", "");
-              const mentionedRole = guild.roles.find(
-                role => role.name === second
-              );
-              if (mentionedRole === null) {
-                messageArray.push("@" + second);
+              if (isNaN(parseInt(second))) {
+                const mentionedRole = guild.roles.find(x => x.name === second);
+                if (mentionedRole === null) {
+                  messageArray.push("@" + second);
+                } else {
+                  messageArray.push(mentionedRole);
+                }
               } else {
-                messageArray.push(mentionedRole);
+                const mentionedRole = guild.roles.get(second);
+                if (mentionedRole === null) {
+                  messageArray.push("<@&" + second + ">");
+                } else {
+                  messageArray.push(mentionedRole);
+                }
               }
-            } else if (word.startsWith("{@")) {
+            }
+
+            //check mentioned users
+            else if (word.startsWith("{@")) {
               const first = word.replace("{@", "");
               const second = first.replace("}", "");
-              const mentionedUser = client.users.find(
-                user => user.username === second
-              );
-              if (mentionedUser === null) {
-                messageArray.push("@" + second);
+              if (isNaN(parseInt(second))) {
+                const mentionedUser = client.users.find(x => x.name === second);
+                if (mentionedUser === null) {
+                  messageArray.push("@" + second);
+                } else {
+                  messageArray.push(mentionedUser);
+                }
               } else {
-                messageArray.push(mentionedUser);
+                const mentionedUser = client.users.get(second);
+                if (mentionedUser === null) {
+                  messageArray.push("<@" + second + ">");
+                } else {
+                  messageArray.push(mentionedUser);
+                }
               }
             } else {
               messageArray.push(word);
             }
           });
 
-          const leaveMessage = messageArray.join(" ").replace("{user}", member);
+          const leaveMessage = messageArray
+            .join(" ")
+            .replace(/{user}/g, member);
           channel.send(leaveMessage);
         }
 
@@ -380,13 +441,27 @@ client.on("guildCreate", guild => {
   console.log("Joined a new guild: " + guild.name);
 
   pool.getConnection(function(err, con) {
-    con.query(
-      "INSERT INTO servers (id, autorole) VALUES (" + guild.id + ", '[]')",
-      function(err, result) {
-        if (err) throw err;
-        console.log("Inserted record for " + guild.name);
+    con.query("SELECT * FROM servers WHERE id = " + guild.id, function(
+      err,
+      result,
+      fields
+    ) {
+      if (err) throw err;
+      if (result.length > 0) {
+        console.log(
+          "Found row inserted for this server before. Cancelling row insert..."
+        );
+      } else {
+        con.query(
+          "INSERT INTO servers (id, autorole) VALUES (" + guild.id + ", '[]')",
+          function(err, result) {
+            if (err) throw err;
+            console.log("Inserted record for " + guild.name);
+          }
+        );
       }
-    );
+    });
+
     if (err) throw err;
     con.release();
   });
@@ -437,12 +512,14 @@ client.on("message", async message => {
       cmd => cmd.aliases && cmd.aliases.includes(commandName)
     );
 
-  if (!command) return;
-
+  if (!command) {
+    return;
+  } else {
   try {
     command.execute(message, args, pool);
   } catch (error) {
     console.error(error);
     message.reply("there was an error trying to execute that command!");
+  }
   }
 });
