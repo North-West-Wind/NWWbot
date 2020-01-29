@@ -6,16 +6,17 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
   name: "hypixel",
   description:
-    "Connect to Hypixel API.\nSubcommands are: achivevments, tnt, (blank)",
+    "Connect to Hypixel API.",
   args: true,
   aliases: ["hy"],
   usage: "<subcommand> <username>",
-  subcommands: ["achievements", "tnt", "bedwars"],
-  subaliases: ["ach", "bw"],
+  subcommands: ["achievements", "tnt", "bedwars", "duels"],
+  subaliases: ["ach", "bw", "du"],
   execute(message, args) {
     const MojangAPI = require("mojang-api");
     if (!args[1]) {
       if (!args[0]) {
+        
         return message.reply(
           "please provide a Minecraft username or use the subcommands."
         );
@@ -180,6 +181,11 @@ module.exports = {
                               "Have a nice day! :)",
                               "https://i.imgur.com/hxbaDUY.png"
                             );
+                        }
+                        if(body.player.socialMedia.links.DISCORD) {
+                          Embed.addField("Discord", "@" + body.player.socialMedia.links.DISCORD);
+                        } else {
+                          
                         }
                         message.channel.send(Embed);
                       } else {
