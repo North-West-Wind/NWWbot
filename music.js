@@ -324,7 +324,7 @@ async function execute(message, serverQueue) {
         const Embed = new Discord.RichEmbed()
           .setColor(color)
           .setTitle("Now playing:")
-          .setDescription(song.title)
+          .setDescription(`${song.title}`)
           .setTimestamp()
           .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
         message.channel.send(Embed);
@@ -339,7 +339,7 @@ async function execute(message, serverQueue) {
       const Embed = new Discord.RichEmbed()
         .setColor(color)
         .setTitle("New song added:")
-        .setDescription(song.title)
+        .setDescription(`${song.title}`)
         .setTimestamp()
         .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
       return message.channel.send(Embed);
@@ -348,9 +348,9 @@ async function execute(message, serverQueue) {
     const Embed = new Discord.RichEmbed()
       .setTitle("Search result of " + args.slice(1).join(" "))
       .setColor(color)
-    .setTimestamp()
+      .setTimestamp()
       .setFooter(
-        'Choose your song, or ⏹ to cancel.',
+        "Choose your song, or ⏹ to cancel.",
         "https://i.imgur.com/hxbaDUY.png"
       );
     const results = [];
@@ -360,7 +360,14 @@ async function execute(message, serverQueue) {
     for (let i = 0; i < video.length; i++) {
       try {
         saved.push(video[i]);
-        results.push(++num + " - " + decodeHtmlEntity(video[i].title));
+        results.push(
+          ++num +
+            " - [" +
+            decodeHtmlEntity(video[i].title) +
+            "](" +
+            video[i].url +
+            ")"
+        );
       } catch {
         console.log("ooofed");
       }
@@ -425,7 +432,13 @@ async function execute(message, serverQueue) {
             msg.clearReactions().catch(err => {
               console.log(err);
             });
-            return message.channel.send("Cancelled action.");
+            const cancelled = new Discord.RichEmbed()
+            .setColor(color)
+            .setTitle("Action cancelled.")
+            .setTimestamp()
+        .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+            
+            return msg.edit(cancelled);
           }
 
           if (reaction.emoji.name === "1️⃣") {
@@ -467,18 +480,18 @@ async function execute(message, serverQueue) {
           if (reaction.emoji.name === "🔟") {
             var s = 9;
           }
-        
-        const chosenEmbed = new Discord.RichEmbed()
-        .setColor(color)
-        .setTitle("Music chosen:")
-        .setDescription(decodeHtmlEntity(saved[s].title))
-        .setTimestamp()
-        .setFooter("Have a nice day :)", "https://i.imgur.com/hxbaDUY.png");
+
+          const chosenEmbed = new Discord.RichEmbed()
+            .setColor(color)
+            .setTitle("Music chosen:")
+            .setDescription(`${decodeHtmlEntity(saved[s].title)}`)
+            .setTimestamp()
+            .setFooter("Have a nice day :)", "https://i.imgur.com/hxbaDUY.png");
 
           msg.edit(chosenEmbed);
-        msg.clearReactions().catch(err => {
-              console.log(err);
-            });
+          msg.clearReactions().catch(err => {
+            console.log(err);
+          });
           var songInfo = await ytdl.getInfo(saved[s].url);
           var song = {
             title: songInfo.title,
@@ -506,7 +519,7 @@ async function execute(message, serverQueue) {
               const Embed = new Discord.RichEmbed()
                 .setColor(color)
                 .setTitle("Now playing:")
-                .setDescription(song.title)
+                .setDescription(`${song.title}`)
                 .setTimestamp()
                 .setFooter(
                   "Have a nice day! :)",
@@ -524,7 +537,7 @@ async function execute(message, serverQueue) {
             const Embed = new Discord.RichEmbed()
               .setColor(color)
               .setTitle("New song added:")
-              .setDescription(song.title)
+              .setDescription(`${song.title}`)
               .setTimestamp()
               .setFooter(
                 "Have a nice day! :)",
