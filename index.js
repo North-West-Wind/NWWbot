@@ -15,9 +15,8 @@ const Discord = require("discord.js");
 const { prefix } = require("./config.json");
 const { Image, createCanvas, loadImage } = require("canvas");
 const ytdl = require("ytdl-core");
-const music = new require("./musictest.js");
+const music = new require("./music.js");
 const giveaways = require("discord-giveaways");
-const giveaway = require("./giveaways.js");
 const mysql = require("mysql");
 const mysql_config = {
   host: "remotemysql.com",
