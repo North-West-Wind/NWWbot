@@ -265,7 +265,7 @@ const musicFunctions = {
 var decodeHtmlEntity = function(str) {
   return str.replace(/&#(\d+);/g, function(match, dec) {
     return String.fromCharCode(dec);
-  });
+  }).replace(/&quot;/g, `"`).replace(/&amp;/g, `&`);
 };
 
 var encodeHtmlEntity = function(str) {
@@ -369,41 +369,42 @@ async function execute(message, serverQueue) {
             ")"
         );
       } catch {
-        console.log("ooofed");
+        --num;
       }
     }
     Embed.setDescription(results.join("\n"));
     message.channel.send(Embed).then(async msg => {
-      if (video[0]) {
+      if (results[0]) {
         await msg.react("1️⃣");
       }
-      if (video[1]) {
+      if (results[1]) {
         await msg.react("2️⃣");
       }
-      if (video[2]) {
+      if (results[2]) {
         await msg.react("3️⃣");
       }
-      if (video[3]) {
+      if (results[3]) {
         await msg.react("4️⃣");
       }
-      if (video[4]) {
+      if (results[4]) {
         await msg.react("5️⃣");
       }
-      if (video[5]) {
+      if (results[5]) {
         await msg.react("6️⃣");
       }
-      if (video[6]) {
+      if (results[6]) {
         await msg.react("7️⃣");
       }
-      if (video[7]) {
+      if (results[7]) {
         await msg.react("8️⃣");
       }
-      if (video[8]) {
+      if (results[8]) {
         await msg.react("9️⃣");
       }
-      if (video[9]) {
+      if (results[9]) {
         await msg.react("🔟");
       }
+      
       await msg.react("⏹");
 
       const filter = (reaction, user) => {
@@ -547,10 +548,18 @@ async function execute(message, serverQueue) {
           }
         })
         .catch(err => {
+        const Ended = new Discord.RichEmbed()
+        .setColor(color)
+        .setTitle("Action cancelled.")
+        .setTimestamp()
+              .setFooter(
+                "Have a nice day! :)",
+                "https://i.imgur.com/hxbaDUY.png"
+              );
+        msg.edit(Ended)
           msg.clearReactions().catch(err => {
             console.log(err);
           });
-          message.channel.send("Time's up. Action cancelled.");
         });
     });
   }
