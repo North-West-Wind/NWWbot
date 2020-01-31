@@ -21,7 +21,7 @@ const mysql = require("mysql");
 const mysql_config = {
   host: "remotemysql.com",
   user: "AToOsccGeg",
-  password: "EXtWjGJlwf",
+  password: process.env.DBPW,
   database: "AToOsccGeg",
   supportBigNumbers: true,
   bigNumberStrings: true,
@@ -50,10 +50,114 @@ client.once("ready", () => {
 
   client.user.setPresence({
     game: {
-      name: "?help",
+      name: prefix + "help",
       type: "WATCHING"
     },
     status: "online"
+  });
+  pool.getConnection(function(err, con) {
+    if (err) throw err;
+    con.query("SELECT * FROM giveaways ORDER BY endAt ASC", function(
+      err,
+      results,
+      fields
+    ) {
+      results.forEach(async result => {
+        var currentDate = new Date();
+        var millisec = (result.endAt) - currentDate;
+        if (err) throw err;
+        setTimeout(async function() {
+          var fetchGuild = await client.guilds.get(result.guild);
+          var channel = await fetchGuild.channels.get(result.channel);
+          var msg = await channel.fetchMessage(result.id);
+          
+          var fetchUser = await client.fetchUser(result.author);
+          var endReacted = [];
+          var peopleReacted = await msg.reactions.get(result.emoji);
+          await peopleReacted.fetchUsers();
+          try {
+          for (const user of peopleReacted.users.values()) {
+            const data = user.id;
+            endReacted.push(data);
+          }
+          } catch(err) {
+            console.error(err);
+          }
+
+          const remove = endReacted.indexOf("649611982428962819");
+          if (remove > -1) {
+            endReacted.splice(remove, 1);
+          }
+          
+          if (endReacted.length === 0) {
+            con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
+              err,
+              result
+            ) {
+              if (err) throw err;
+              console.log("Deleted an ended giveaway record.");
+            });
+            const Ended = new Discord.RichEmbed()
+              .setColor(parseInt(result.color))
+              .setTitle(result.item)
+              .setDescription("Giveaway ended")
+              .addField("Winner(s)", "None. Cuz no one reacted.")
+              .setTimestamp()
+              .setFooter(
+                "Hosted by " +
+                  fetchUser.username +
+                  "#" +
+                  fetchUser.discriminator,
+                fetchUser.displayAvatarURL
+              );
+            msg.edit(Ended);
+            msg.clearReactions().catch(err => console.error(err));
+            return;
+          }
+
+          
+          var index = Math.floor(Math.random() * endReacted.length);
+          var winners = [];
+          var winnerMessage = "";
+          var winnerCount = result.winner;
+
+          for (var i = 0; i < winnerCount; i++) {
+            winners.push(endReacted[index]);
+            index = Math.floor(Math.random() * endReacted.length);
+          }
+
+          for (var i = 0; i < winners.length; i++) {
+            winnerMessage += "<@" + winners[i] + "> ";
+          }
+          
+          const Ended = new Discord.RichEmbed()
+            .setColor(parseInt(result.color))
+            .setTitle(result.item)
+            .setDescription("Giveaway ended")
+          .addField("Winner(s)", winnerMessage)
+            .setTimestamp()
+            .setFooter(
+              "Hosted by " + fetchUser.username + "#" + fetchUser.discriminator,
+              fetchUser.displayAvatarURL
+            );
+          msg.edit(Ended);
+          msg
+            .clearReactions()
+            .catch(error =>
+              console.error("Failed to clear reactions: ", error)
+            );
+
+          con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
+            err,
+            con
+          ) {
+            if (err) throw err;
+            console.log("Deleted an ended giveaway record.");
+          });
+        }, millisec);
+      });
+    });
+    con.release();
   });
 });
 // login to Discord with your app's token
@@ -514,11 +618,11 @@ client.on("message", async message => {
   if (!command) {
     return;
   } else {
-  try {
-    command.execute(message, args, pool);
-  } catch (error) {
-    console.error(error);
-    message.reply("there was an error trying to execute that command!");
-  }
+    try {
+      command.execute(message, args, pool);
+    } catch (error) {
+      console.error(error);
+      message.reply("there was an error trying to execute that command!");
+    }
   }
 });
