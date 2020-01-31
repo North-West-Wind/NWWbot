@@ -543,10 +543,11 @@ module.exports = {
       pool.getConnection(function(err, con) {
         if(err) throw err;
         con.query("SELECT * FROM giveaways WHERE guild = " + guild.id, function(err, results, fields) {
+          if(err) throw err;
           const Embed = new Discord.RichEmbed()
           .setColor(color)
           .setTitle("Giveaway list")
-          .setDescription(guild.name)
+          .setDescription("**" + guild.name + "** - " + results.length + " giveaways")
           .setTimestamp()
           .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
           
