@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const ms = require("ms");
 
 const { Image, createCanvas, loadImage } = require("canvas");
 var fs = require("fs");
@@ -7,155 +8,105 @@ module.exports = {
   name: "test",
   description: "For test, really.",
   execute(message, args, pool) {
-    pool.getConnection(function(err, con) {
-      if (err) throw err;
-      con.query(
-        "SELECT wel_img FROM servers WHERE id = " + message.guild.id,
-        function(err, result, fields) {
-          if (err) throw err;
-          var img = new Image();
-
-          img.onload = async function() {
-            var height = img.height;
-            var width = img.width;
-
-            // code here to use the dimensions
-            const canvas = createCanvas(width, height);
-            const ctx = canvas.getContext("2d");
-
-            const applyText = (canvas, text) => {
-              const ctx = canvas.getContext("2d");
-
-              // Declare a base size of the font
-              let fontSize = canvas.width / 12;
-
-              do {
-                // Assign the font to the context and decrement it so it can be measured again
-                ctx.font = `${(fontSize -= 5)}px sans-serif`;
-                // Compare pixel width of the text to the canvas minus the approximate avatar size
-              } while (
-                ctx.measureText(text).width >
-                canvas.width - canvas.width / 10
-              );
-
-              // Return the result to use in the actual canvas
-              return ctx.font;
-            };
-
-            const welcomeText = (canvas, text) => {
-              const ctx = canvas.getContext("2d");
-
-              // Declare a base size of the font
-              let fontSize = canvas.width / 24;
-
-              do {
-                // Assign the font to the context and decrement it so it can be measured again
-                ctx.font = `${(fontSize -= 5)}px sans-serif`;
-                // Compare pixel width of the text to the canvas minus the approximate avatar size
-              } while (
-                ctx.measureText(text).width >
-                canvas.width - canvas.width / 4
-              );
-
-              // Return the result to use in the actual canvas
-              return ctx.font;
-            };
-
-            const image = await loadImage(url);
-
-            // Select the color of the stroke
-            ctx.strokeStyle = "#74037b";
-            // Draw a rectangle with the dimensions of the entire canvas
-            ctx.strokeRect(0, 0, canvas.width, canvas.height);
-
-            const avatar = await loadImage(message.author.displayAvatarURL);
-
-            ctx.drawImage(image, 0, 0, width, height);
-
-            // Select the font size and type from one of the natively available fonts
-            var txt =
-              message.author.username + " #" + message.author.discriminator;
-            ctx.font = applyText(canvas, txt);
-
-            ctx.strokeStyle = "black";
-            ctx.lineWidth = canvas.width / 51.2;
-            ctx.strokeText(
-              txt,
-              canvas.width / 2 - ctx.measureText(txt).width / 2,
-              (canvas.height * 3) / 4
-            );
-            // Select the style that will be used to fill the text in
-            ctx.fillStyle = "#ffffff";
-
-            // Actually fill the text with a solid color
-            ctx.fillText(
-              txt,
-              canvas.width / 2 - ctx.measureText(txt).width / 2,
-              (canvas.height * 3) / 4
-            );
-
-            var welcome = "Welcome to the server!";
-
-            ctx.font = welcomeText(canvas, welcome);
-            ctx.strokeStyle = "black";
-            ctx.lineWidth = canvas.width / 102.4;
-            ctx.strokeText(
-              welcome,
-              canvas.width / 2 - ctx.measureText(welcome).width / 2,
-              (canvas.height * 6) / 7
-            );
-            ctx.fillStyle = "#ffffff";
-            ctx.fillText(
-              welcome,
-              canvas.width / 2 - ctx.measureText(welcome).width / 2,
-              (canvas.height * 6) / 7
-            );
-
-            // Pick up the pen
-            ctx.beginPath();
-            //line width setting
-            ctx.lineWidth = canvas.width / 51.2;
-            // Start the arc to form a circle
-
-            ctx.arc(
-              canvas.width / 2,
-              canvas.height / 3,
-              canvas.height / 5,
-              0,
-              Math.PI * 2,
-              true
-            );
-            // Put the pen down
-            ctx.closePath();
-            ctx.strokeStyle = "#dfdfdf";
-            ctx.stroke();
-            // Clip off the region you drew on
-            ctx.clip();
-
-            var buf = canvas.toBuffer();
-
-            ctx.drawImage(
-              avatar,
-              canvas.width / 2 - canvas.height / 5,
-              canvas.height / 3 - canvas.height / 5,
-              canvas.height / 2.5,
-              canvas.height / 2.5
-            );
-
-            const attachment = new Discord.Attachment(
-              canvas.toBuffer(),
-              "welcome-image.png"
-            );
-            //console.log('<img src="' + canvas.toDataURL() + '" />')
-            message.channel.send("Image", attachment);
-          };
-
-          var url = result[0].wel_img;
-
-          img.src = url;
-        }
-      );
-      con.release();
-    });
+    const filter = user => user.author.id === message.author.id;
+    const guild = message.guild;
+    message.channel
+      .send(
+        "Giveaway creation started. Which channel do you want the giveaway be in? (Please mention the channel)"
+      )
+      .then(() => {
+        message.channel
+          .awaitMessages(filter, { time: 30000, max: 1, error: ["time"] })
+          .then(collected => {
+            var channelID = collected
+              .first()
+              .content.replace(/<#/, "")
+              .replace(/>/, "");
+            var channel = guild.channels.get(channelID);
+            message.channel.send("The channel will be " + channel + "\n\nNow please enter the duration of the giveaway!")
+              .then(() => {
+                message.channel
+                  .awaitMessages(filter, {
+                    time: 30000,
+                    max: 1,
+                    error: ["time"]
+                  })
+                  .then(collected2 => {
+                    var duration = ms(collected2.first().content);
+                    var sec = duration / 1000;
+                    var dd = Math.floor(sec / 86400);
+                    var dh = Math.floor((sec % 86400) / 3600);
+                    var dm = Math.floor(((sec % 86400) % 3600) / 60);
+                    var ds = Math.floor(((sec % 86400) % 3600) % 60);
+                    message.channel.send(
+                      "The duration will be **" +
+                        dd +
+                        " days " +
+                        dh +
+                        " hours " +
+                        dm +
+                        " minutes " +
+                        ds +
+                        " seconds** \n\nI'd like to know how many participants can win this giveaway. Please enter the winner count."
+                      )
+                      .then(() => {
+                        message.channel
+                          .awaitMessages(filter, {
+                            time: 30000,
+                            max: 1,
+                            error: ["time"]
+                          })
+                          .then(collected3 => {
+                            if (parseInt(collected3.first().content) == 1) {
+                              var participant = "participant";
+                            } else {
+                              var participant = "participants";
+                            }
+                            message.channel.send(
+                              "Alright! **" +
+                                collected3.first().content +
+                                "** " +
+                                participant +
+                                " will win the giveaway. \n\nAt last, please tell me what is going to be giveaway!"
+                              )
+                              .then(() => {
+                                message.channel
+                                  .awaitMessages(filter, {
+                                    time: 30000,
+                                    max: 1,
+                                    error: ["time"]
+                                  })
+                                  .then(collected4 => {
+                                    message.channel.send(
+                                      "The items will be **" +
+                                        collected4.first().content +
+                                        "**"
+                                    );
+                                  })
+                                  .catch(err => {
+                                    message.channel.send(
+                                      "30 seconds have passed. Action cancelled."
+                                    );
+                                  });
+                              });
+                          })
+                          .catch(err => {
+                            message.channel.send(
+                              "30 seconds have passed. Action cancelled."
+                            );
+                          });
+                      });
+                  })
+                  .catch(err => {
+                    message.channel.send(
+                      "30 seconds have passed. Action cancelled."
+                    );
+                  });
+              });
+          })
+          .catch(err => {
+            message.channel.send("30 seconds have passed. Action cancelled.");
+          });
+      });
   }
 };
