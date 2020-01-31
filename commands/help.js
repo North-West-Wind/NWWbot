@@ -27,11 +27,11 @@ module.exports = {
         )
         .addField("**Moderator**", "ban\nkick\nwarn", true)
 
-        .addField("**Random stuff**", "avatar\nbeep\ngreet\nping\nthx\nspam\nmath", true)
-        .addField("**Information**", "help\nserver", true)
+        .addField("**Random stuff**", "avatar\ngreet\nthx\nspam\nmath\ntrade", true)
+        .addField("**Information**", "help\nserver\nping", true)
 
-        .addField("**Minecraft**", "minecraft\nhypixel\ntrade", true)
-        .addField("**Music**", "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove", true)
+        .addField("**Minecraft**", "minecraft\nhypixel", true)
+        .addField("**Music**", "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nloop", true)
       
       .addField("**Misc**", "giveaway\npoll")
 

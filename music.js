@@ -263,9 +263,12 @@ const musicFunctions = {
 };
 
 var decodeHtmlEntity = function(str) {
-  return str.replace(/&#(\d+);/g, function(match, dec) {
-    return String.fromCharCode(dec);
-  }).replace(/&quot;/g, `"`).replace(/&amp;/g, `&`);
+  return str
+    .replace(/&#(\d+);/g, function(match, dec) {
+      return String.fromCharCode(dec);
+    })
+    .replace(/&quot;/g, `"`)
+    .replace(/&amp;/g, `&`);
 };
 
 var encodeHtmlEntity = function(str) {
@@ -281,7 +284,7 @@ function isUrl(s) {
   return regexp.test(s);
 }
 
-async function execute(message, serverQueue) {
+async function execute(message, serverQueue, pool) {
   const args = message.content.split(" ");
 
   const voiceChannel = message.member.voiceChannel;
@@ -320,7 +323,8 @@ async function execute(message, serverQueue) {
       try {
         var connection = await voiceChannel.join();
         queueContruct.connection = connection;
-        play(message.guild, queueContruct.songs[0]);
+        
+        play(message.guild, queueContruct.songs[0], pool);
         const Embed = new Discord.RichEmbed()
           .setColor(color)
           .setTitle("Now playing:")
@@ -335,7 +339,7 @@ async function execute(message, serverQueue) {
       }
     } else {
       serverQueue.songs.push(song);
-      console.log(serverQueue.songs);
+      
       const Embed = new Discord.RichEmbed()
         .setColor(color)
         .setTitle("New song added:")
@@ -404,7 +408,7 @@ async function execute(message, serverQueue) {
       if (results[9]) {
         await msg.react("🔟");
       }
-      
+
       await msg.react("⏹");
 
       const filter = (reaction, user) => {
@@ -434,11 +438,14 @@ async function execute(message, serverQueue) {
               console.log(err);
             });
             const cancelled = new Discord.RichEmbed()
-            .setColor(color)
-            .setTitle("Action cancelled.")
-            .setTimestamp()
-        .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
-            
+              .setColor(color)
+              .setTitle("Action cancelled.")
+              .setTimestamp()
+              .setFooter(
+                "Have a nice day! :)",
+                "https://i.imgur.com/hxbaDUY.png"
+              );
+
             return msg.edit(cancelled);
           }
 
@@ -485,7 +492,9 @@ async function execute(message, serverQueue) {
           const chosenEmbed = new Discord.RichEmbed()
             .setColor(color)
             .setTitle("Music chosen:")
-            .setDescription(`${decodeHtmlEntity(saved[s].title)}`)
+            .setDescription(
+              `**[${decodeHtmlEntity(saved[s].title)}](${saved[s].url})**`
+            )
             .setTimestamp()
             .setFooter("Have a nice day :)", "https://i.imgur.com/hxbaDUY.png");
 
@@ -494,6 +503,7 @@ async function execute(message, serverQueue) {
             console.log(err);
           });
           var songInfo = await ytdl.getInfo(saved[s].url);
+
           var song = {
             title: songInfo.title,
             url: songInfo.video_url
@@ -516,47 +526,48 @@ async function execute(message, serverQueue) {
             try {
               var connection = await voiceChannel.join();
               queueContruct.connection = connection;
-              play(message.guild, queueContruct.songs[0]);
+              
+              play(message.guild, queueContruct.songs[0], pool);
               const Embed = new Discord.RichEmbed()
                 .setColor(color)
                 .setTitle("Now playing:")
-                .setDescription(`${song.title}`)
+                .setDescription(`**[${song.title}](${song.url})**`)
                 .setTimestamp()
                 .setFooter(
                   "Have a nice day! :)",
                   "https://i.imgur.com/hxbaDUY.png"
                 );
-              message.channel.send(Embed);
+              msg.edit(Embed);
             } catch (err) {
               console.log(err);
               queue.delete(message.guild.id);
-              return message.channel.send(err);
+              return console.error(err);
             }
           } else {
             serverQueue.songs.push(song);
-            console.log(serverQueue.songs);
+          
             const Embed = new Discord.RichEmbed()
               .setColor(color)
               .setTitle("New song added:")
-              .setDescription(`${song.title}`)
+              .setDescription(`**[${song.title}](${song.url})**`)
               .setTimestamp()
               .setFooter(
                 "Have a nice day! :)",
                 "https://i.imgur.com/hxbaDUY.png"
               );
-            return message.channel.send(Embed);
+            return msg.edit(Embed);
           }
         })
         .catch(err => {
-        const Ended = new Discord.RichEmbed()
-        .setColor(color)
-        .setTitle("Action cancelled.")
-        .setTimestamp()
-              .setFooter(
-                "Have a nice day! :)",
-                "https://i.imgur.com/hxbaDUY.png"
-              );
-        msg.edit(Ended)
+          const Ended = new Discord.RichEmbed()
+            .setColor(color)
+            .setTitle("Action cancelled.")
+            .setTimestamp()
+            .setFooter(
+              "Have a nice day! :)",
+              "https://i.imgur.com/hxbaDUY.png"
+            );
+          msg.edit(Ended);
           msg.clearReactions().catch(err => {
             console.log(err);
           });
@@ -588,12 +599,13 @@ function stop(message, serverQueue) {
   message.channel.send(":wave:");
 }
 
-async function play(guild, song) {
+async function play(guild, song, pool) {
   const serverQueue = queue.get(guild.id);
 
   if (!song) {
     serverQueue.voiceChannel.leave();
     queue.delete(guild.id);
+    
     return;
   }
 
@@ -608,13 +620,14 @@ async function play(guild, song) {
       ) {
         console.log("Music ended!");
         serverQueue.songs.shift();
-        play(guild, serverQueue.songs[0]);
+       
+        play(guild, serverQueue.songs[0], pool);
       } else {
         console.log("Music ended!");
         serverQueue.songs.push(song);
         serverQueue.songs.shift();
-
-        play(guild, serverQueue.songs[0]);
+        
+        play(guild, serverQueue.songs[0], pool);
       }
     })
     .on("error", error => {
@@ -644,12 +657,12 @@ function nowPlaying(message, serverQueue) {
   if (!serverQueue) return message.channel.send("There is nothing playing.");
   var embed = new discord_js_1.RichEmbed()
     .setColor(Math.floor(Math.random() * 16777214) + 1)
-    .setTimestamp()
-    .setThumbnail(serverQueue.songs[0].icon)
-    .addField(
-      `Now playing in ${message.guild.name}:`,
+    .setTitle("Now playing:")
+    .setDescription(
       `[**${serverQueue.songs[0].title}**](${serverQueue.songs[0].url})`
     )
+    .setTimestamp()
+    .setThumbnail(serverQueue.songs[0].icon)
     .setTimestamp()
     .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
   return message.channel.send(embed);
@@ -765,7 +778,7 @@ function shuffle(message, serverQueue) {
 }
 
 module.exports = {
-  checkAdminCmd: function(message) {
+  checkAdminCmd: function(message, pool) {
     if (message.author.bot) return;
     if (message.channel instanceof Discord.DMChannel) return;
     if (!message.content.startsWith(prefix)) return;
@@ -776,11 +789,11 @@ module.exports = {
       found = false;
     const serverQueue = queue.get(message.guild.id);
     if (command.startsWith(`${prefix}play`)) {
-      execute(message, serverQueue);
+      execute(message, serverQueue, pool);
       found = true;
       return found;
     } else if (command.startsWith(`${prefix}altp`)) {
-      execute(message, serverQueue);
+      execute(message, serverQueue, pool);
       found = true;
       return found;
     } else if (command.startsWith(`${prefix}skip`)) {

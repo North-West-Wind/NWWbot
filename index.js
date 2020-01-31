@@ -157,6 +157,57 @@ client.once("ready", () => {
         }, millisec);
       });
     });
+    con.query("SELECT * FROM poll ORDER BY endAt ASC", function(err, results, fields) {
+      if(err) throw err;
+      results.forEach(result => {
+        var currentDate = new Date();
+        var time = (result.endAt) - currentDate;
+        setTimeout(async function() {
+        var guild = await client.guilds.get(result.guild);
+          var channel = await guild.channels.get(result.channel);
+          var msg = await channel.fetchMessage(result.id);
+          var author = await client.fetchUser(result.author);
+          var allOptions = await JSON.parse(result.options);
+          
+          var pollResult = [];
+          var end = [];
+          for (const emoji of msg.reactions.values()) {
+            await pollResult.push(emoji.count);
+            var mesg =
+              "**" +
+              (emoji.count - 1) +
+              "** - `" +
+              allOptions[pollResult.length - 1] +
+              "`";
+            await end.push(mesg);
+          }
+
+          const Ended = new Discord.RichEmbed()
+            .setColor(result.color)
+            .setTitle(result.title)
+            .setDescription(
+              "Poll ended. Here are the results:\n\n\n" + end.join("\n\n")
+            )
+            .setTimestamp()
+            .setFooter(
+              "Hosted by " + author.username + "#" + author.discriminator,
+              author.displayAvatarURL
+            );
+          msg.edit(Ended);
+          msg.clearReactions().catch(err => {
+            console.error(err);
+          });
+          con.query("DELETE FROM poll WHERE id = " + msg.id, function(
+            err,
+            result
+          ) {
+            if (err) throw err;
+            console.log("Deleted an ended poll.");
+          });
+        }, time);
+        
+      })
+    })
     con.release();
   });
 });
@@ -597,7 +648,7 @@ client.on("message", async message => {
   const args = message.content.slice(prefix.length).split(/ +/);
   const commandName = args.shift().toLowerCase();
 
-  if (music.checkAdminCmd(message)) return;
+  if (music.checkAdminCmd(message, pool)) return;
 
   if (commandName.args && !args.length) {
     let reply = `You didn't provide any arguments, ${message.author}!`;

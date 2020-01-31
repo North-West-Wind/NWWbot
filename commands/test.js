@@ -15,68 +15,23 @@ module.exports = {
   name: "test",
   description: "For test, really.",
   execute(message, args, pool) {
-    
+    const Embed = new Discord.RichEmbed().setDescription(":one:");
+    message.channel.send(Embed).then(msg => {
+      msg.react("😄");
+      msg.react("👌");
+      msg.react("😀");
+      const filter = (reaction, user) => {
+        return (
+          ["😄", "👌"].includes(reaction.emoji.name) &&
+          user.id === message.author.id
+        );
+      };
 
-    var msgDate = new Date(message.createdTimestamp);
-
-    var date = msgDate.getDate();
-    var month = msgDate.getMonth();
-    var year = msgDate.getFullYear();
-    var hour = msgDate.getHours();
-    var minute = msgDate.getMinutes();
-    var second = msgDate.getSeconds();
-    var millisecond = msgDate.getMilliseconds();
-
-    var msgTime =
-      twoDigits(date) +
-      "/" +
-      twoDigits(month + 1) +
-      "/" +
-      twoDigits(year) +
-      " " +
-      twoDigits(hour) +
-      ":" +
-      twoDigits(minute) +
-      ":" +
-      twoDigits(second) +
-        "." +
-        twoDigits(millisecond) +
-      " UTC";
-    
-    var currentDate = new Date();
-    var cdate = currentDate.getDate();
-    var cmonth = currentDate.getMonth();
-    var cyear = currentDate.getFullYear();
-    var chour = currentDate.getHours();
-    var cminute = currentDate.getMinutes();
-    var csecond = currentDate.getSeconds();
-    var cmillisecond = currentDate.getMilliseconds();
-    
-    var currentTime =
-      twoDigits(cdate) +
-      "/" +
-      twoDigits(cmonth + 1) +
-      "/" +
-      twoDigits(cyear) +
-      " " +
-      twoDigits(chour) +
-      ":" +
-      twoDigits(cminute) +
-      ":" +
-      twoDigits(csecond) +
-        "." + 
-        twoDigits(cmillisecond) +
-      " UTC";
-    
-    const Embed = new Discord.RichEmbed()
-    .setColor(color)
-    .setTitle("Ping")
-    .addField("Message sent", "`" + msgTime + "`")
-    .addField("Message received", "`" + currentTime + "`")
-    .addField("Ping", "`" + (currentDate - msgDate) + "ms`")
-    .setTimestamp()
-    .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
-    message.channel.send(Embed);
-    
+      setTimeout(function() {
+        for(const emoji of msg.reactions.values()) {
+          console.log((emoji.count - 1));
+        }
+      }, 10000);
+    });
   }
 };
