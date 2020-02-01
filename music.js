@@ -302,6 +302,7 @@ async function execute(message, serverQueue, pool) {
   if (checkURL === true) {
     var songInfo = await ytdl.getInfo(args[1]);
     let song = {
+      id: songInfo.video_id,
       title: songInfo.title,
       url: songInfo.video_url
     };
@@ -328,7 +329,8 @@ async function execute(message, serverQueue, pool) {
         const Embed = new Discord.RichEmbed()
           .setColor(color)
           .setTitle("Now playing:")
-          .setDescription(`${song.title}`)
+        .setThumbnail(`https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`)
+          .setDescription(`**[${song.title}](${song.url})**`)
           .setTimestamp()
           .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
         message.channel.send(Embed);
@@ -343,7 +345,8 @@ async function execute(message, serverQueue, pool) {
       const Embed = new Discord.RichEmbed()
         .setColor(color)
         .setTitle("New song added:")
-        .setDescription(`${song.title}`)
+      .setThumbnail(`https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`)
+        .setDescription(`**[${song.title}](${song.url})**`)
         .setTimestamp()
         .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
       return message.channel.send(Embed);
@@ -492,6 +495,7 @@ async function execute(message, serverQueue, pool) {
           const chosenEmbed = new Discord.RichEmbed()
             .setColor(color)
             .setTitle("Music chosen:")
+          .setThumbnail(`https://img.youtube.com/vi/${saved[s].id}/maxresdefault.jpg`)
             .setDescription(
               `**[${decodeHtmlEntity(saved[s].title)}](${saved[s].url})**`
             )
@@ -505,6 +509,7 @@ async function execute(message, serverQueue, pool) {
           var songInfo = await ytdl.getInfo(saved[s].url);
 
           var song = {
+            id: songInfo.video_id,
             title: songInfo.title,
             url: songInfo.video_url
           };
@@ -531,6 +536,7 @@ async function execute(message, serverQueue, pool) {
               const Embed = new Discord.RichEmbed()
                 .setColor(color)
                 .setTitle("Now playing:")
+              .setThumbnail(`https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`)
                 .setDescription(`**[${song.title}](${song.url})**`)
                 .setTimestamp()
                 .setFooter(
@@ -549,6 +555,7 @@ async function execute(message, serverQueue, pool) {
             const Embed = new Discord.RichEmbed()
               .setColor(color)
               .setTitle("New song added:")
+            .setThumbnail(`https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`)
               .setDescription(`**[${song.title}](${song.url})**`)
               .setTimestamp()
               .setFooter(
@@ -662,7 +669,7 @@ function nowPlaying(message, serverQueue) {
       `[**${serverQueue.songs[0].title}**](${serverQueue.songs[0].url})`
     )
     .setTimestamp()
-    .setThumbnail(serverQueue.songs[0].icon)
+    .setThumbnail(`https://img.youtube.com/vi/${serverQueue.songs[0].id}/maxresdefault.jpg`)
     .setTimestamp()
     .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
   return message.channel.send(embed);
@@ -698,7 +705,7 @@ function remove(message, queueIndex) {
   if (!message.member.voiceChannel)
     return message.channel.send("You are not in a voice channel!");
   if (typeof queueIndex !== "number")
-    return console.log("The query provided is not a number.");
+    return message.channel.send("The query provided is not a number.");
   const serverQueue = queue.get(message.guild.id);
   if (!serverQueue) return message.channel.send("There is nothing playing.");
   var deleteIndex = queueIndex - 1;
@@ -712,7 +719,7 @@ function remove(message, queueIndex) {
   );
   var index = 0;
   var songArray = serverQueue.songs.map(song => {
-    return `**${++index}-** [${song.title}](${song.url})`;
+    return `**${++index} -** [${song.title}](${song.url})`;
   });
   musicFunctions.addMusicQueueField(message, songArray, queue).then(results =>
     __awaiter(this, void 0, void 0, function*() {

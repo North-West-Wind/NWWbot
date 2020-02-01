@@ -1,6 +1,9 @@
 const Discord = require("discord.js");
 const ms = require("ms");
 var color = Math.floor(Math.random() * 16777214) + 1;
+const ytdl = require("ytdl-core");
+const YouTube = require("simple-youtube-api");
+const youtube = new YouTube(process.env.YT);
 
 const { Image, createCanvas, loadImage } = require("canvas");
 var fs = require("fs");
@@ -15,23 +18,10 @@ module.exports = {
   name: "test",
   description: "For test, really.",
   execute(message, args, pool) {
-    const Embed = new Discord.RichEmbed().setDescription(":one:");
-    message.channel.send(Embed).then(msg => {
-      msg.react("😄");
-      msg.react("👌");
-      msg.react("😀");
-      const filter = (reaction, user) => {
-        return (
-          ["😄", "👌"].includes(reaction.emoji.name) &&
-          user.id === message.author.id
-        );
-      };
-
-      setTimeout(function() {
-        for(const emoji of msg.reactions.values()) {
-          console.log((emoji.count - 1));
-        }
-      }, 10000);
-    });
+    pool.getConnection(async function(err, con) {
+      var video = await youtube.search("furret walk", 1)
+      console.log(video[0])
+    })
+     
   }
 };

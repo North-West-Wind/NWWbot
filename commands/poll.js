@@ -128,7 +128,7 @@ module.exports = {
             --num;
           }
         }
-        
+
         var currentDate = new Date();
         var newDate = new Date(currentDate.getTime() + time);
 
@@ -164,12 +164,15 @@ module.exports = {
           ":" +
           twoDigits(second) +
           " UTC";
-        
+        var pollMsg = "⬆**Poll**⬇";
         const Embed = new Discord.RichEmbed()
           .setColor(color)
           .setTitle(title)
           .setDescription(
-            "React with the numbers to vote!\nThis poll will end at:\n**" + readableTime + "**\n\n\n" + optionArray.join("\n\n")
+            "React with the numbers to vote!\nThis poll will end at:\n**" +
+              readableTime +
+              "**\n\n\n" +
+              optionArray.join("\n\n")
           )
           .setTimestamp()
           .setFooter(
@@ -179,12 +182,10 @@ module.exports = {
               message.author.discriminator,
             message.author.displayAvatarURL
           );
-        var msg = await channel.send(Embed);
+        var msg = await channel.send(pollMsg, Embed);
         for (var i = 0; i < optionArray.length; i++) {
           await msg.react(emojis[i]);
         }
-
-        
 
         con.query(
           "INSERT INTO poll VALUES(" +
@@ -218,43 +219,54 @@ module.exports = {
         );
 
         setTimeout(async function() {
-          var result = [];
-          var end = [];
-          for (const emoji of msg.reactions.values()) {
-            await result.push(emoji.count);
-            var mesg =
-              "**" +
-              (emoji.count - 1) +
-              "** - `" +
-              allOptions[result.length - 1] +
-              "`";
-            await end.push(mesg);
-          }
-
-          const Ended = new Discord.RichEmbed()
-            .setColor(color)
-            .setTitle(title)
-            .setDescription(
-              "Poll ended. Here are the results:\n\n\n" + end.join("\n\n")
-            )
-            .setTimestamp()
-            .setFooter(
-              "Hosted by " +
-                message.author.username +
-                "#" +
-                message.author.discriminator,
-              message.author.displayAvatarURL
-            );
-          msg.edit(Ended);
-          msg.clearReactions().catch(err => {
-            console.error(err);
-          });
-          con.query("DELETE FROM poll WHERE id = " + msg.id, function(
+          con.query("SELECT * FROM poll WHERE id = " + msg.id, async function(
             err,
-            result
+            results,
+            fields
           ) {
             if (err) throw err;
-            console.log("Deleted an ended poll.");
+            if (results.length < 1) {
+              return;
+            } else {
+              var result = [];
+              var end = [];
+              for (const emoji of msg.reactions.values()) {
+                await result.push(emoji.count);
+                var mesg =
+                  "**" +
+                  (emoji.count - 1) +
+                  "** - `" +
+                  allOptions[result.length - 1] +
+                  "`";
+                await end.push(mesg);
+              }
+
+              const Ended = new Discord.RichEmbed()
+                .setColor(color)
+                .setTitle(title)
+                .setDescription(
+                  "Poll ended. Here are the results:\n\n\n" + end.join("\n\n")
+                )
+                .setTimestamp()
+                .setFooter(
+                  "Hosted by " +
+                    message.author.username +
+                    "#" +
+                    message.author.discriminator,
+                  message.author.displayAvatarURL
+                );
+              msg.edit(pollMsg, Ended);
+              msg.clearReactions().catch(err => {
+                console.error(err);
+              });
+              con.query("DELETE FROM poll WHERE id = " + msg.id, function(
+                err,
+                result
+              ) {
+                if (err) throw err;
+                console.log("Deleted an ended poll.");
+              });
+            }
           });
         }, time);
 
@@ -300,7 +312,7 @@ module.exports = {
               "`";
             await end.push(mesg);
           }
-
+          var pollMsg = "⬆**Poll**⬇";
           const Ended = new Discord.RichEmbed()
             .setColor(color)
             .setTitle(result[0].title)
@@ -312,7 +324,7 @@ module.exports = {
               "Hosted by " + author.username + "#" + author.discriminator,
               author.displayAvatarURL
             );
-          msg.edit(Ended);
+          msg.edit(pollMsg, Ended);
           msg.clearReactions().catch(err => {
             console.error(err);
           });

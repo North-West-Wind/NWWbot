@@ -181,7 +181,7 @@ client.once("ready", () => {
               "`";
             await end.push(mesg);
           }
-
+          var pollMsg = "⬆**Poll**⬇";
           const Ended = new Discord.RichEmbed()
             .setColor(result.color)
             .setTitle(result.title)
@@ -193,7 +193,7 @@ client.once("ready", () => {
               "Hosted by " + author.username + "#" + author.discriminator,
               author.displayAvatarURL
             );
-          msg.edit(Ended);
+          msg.edit(pollMsg, Ended);
           msg.clearReactions().catch(err => {
             console.error(err);
           });
