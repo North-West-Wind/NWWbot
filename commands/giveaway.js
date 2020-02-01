@@ -12,6 +12,21 @@ function twoDigits(d) {
   return d.toString();
 }
 
+function setTimeout_ (fn, delay) {
+    var maxDelay = Math.pow(2,31)-1;
+
+    if (delay > maxDelay) {
+        var args = arguments;
+        args[1] -= maxDelay;
+
+        return setTimeout(function () {
+            setTimeout_.apply(fn, args);
+        }, maxDelay);
+    }
+
+    return setTimeout.apply(fn, arguments);
+}
+
 module.exports = {
   name: "giveaway",
   description: "Giveaway something.",
@@ -241,7 +256,7 @@ module.exports = {
                                                 );
 
                                                 msg.react(result[0].giveaway);
-                                                setTimeout(function() {
+                                                setTimeout_(function() {
                                                   con.query(
                                                     "SELECT * FROM giveaways WHERE id = " +
                                                       msg.id,

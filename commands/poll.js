@@ -9,6 +9,21 @@ function twoDigits(d) {
   return d.toString();
 }
 
+function setTimeout_ (fn, delay) {
+    var maxDelay = Math.pow(2,31)-1;
+
+    if (delay > maxDelay) {
+        var args = arguments;
+        args[1] -= maxDelay;
+
+        return setTimeout(function () {
+            setTimeout_.apply(fn, args);
+        }, maxDelay);
+    }
+
+    return setTimeout.apply(fn, arguments);
+}
+
 module.exports = {
   name: "poll",
   description: "create a poll.",
@@ -94,7 +109,7 @@ module.exports = {
           error: ["time"]
         });
 
-        var options = optionString.first().content.split("\n");
+        var options = optionString.first().content.replace(/'/g, "#quot;").replace(/"/g, '#dquot;').split("\n");
         if (options.length <= 1) {
           return message.channel.send(
             "Please provide at least 2 options! Cancelling action..."
@@ -172,7 +187,7 @@ module.exports = {
             "React with the numbers to vote!\nThis poll will end at:\n**" +
               readableTime +
               "**\n\n\n" +
-              optionArray.join("\n\n")
+              optionArray.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')
           )
           .setTimestamp()
           .setFooter(
@@ -218,7 +233,7 @@ module.exports = {
           }
         );
 
-        setTimeout(async function() {
+        setTimeout_(async function() {
           con.query("SELECT * FROM poll WHERE id = " + msg.id, async function(
             err,
             results,
@@ -245,7 +260,7 @@ module.exports = {
                 .setColor(color)
                 .setTitle(title)
                 .setDescription(
-                  "Poll ended. Here are the results:\n\n\n" + end.join("\n\n")
+                  "Poll ended. Here are the results:\n\n\n" + end.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')
                 )
                 .setTimestamp()
                 .setFooter(
@@ -317,7 +332,7 @@ module.exports = {
             .setColor(color)
             .setTitle(result[0].title)
             .setDescription(
-              "Poll ended. Here are the results:\n\n\n" + end.join("\n\n")
+              "Poll ended. Here are the results:\n\n\n" + end.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')
             )
             .setTimestamp()
             .setFooter(

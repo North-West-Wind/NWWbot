@@ -19,8 +19,12 @@ module.exports = {
   description: "For test, really.",
   execute(message, args, pool) {
     pool.getConnection(async function(err, con) {
-      var video = await youtube.search("furret walk", 1)
-      console.log(video[0])
+      var time = await ms(args[0])
+      console.log(time)
+     if(time > 2147483647) {
+       var i = await (time - 2147483647);
+       console.log(i);
+     }
     })
      
   }

@@ -43,6 +43,21 @@ for (const file of commandFiles) {
   client.commands.set(command.name, command);
 }
 
+function setTimeout_ (fn, delay) {
+    var maxDelay = Math.pow(2,31)-1;
+
+    if (delay > maxDelay) {
+        var args = arguments;
+        args[1] -= maxDelay;
+
+        return setTimeout(function () {
+            setTimeout_.apply(fn, args);
+        }, maxDelay);
+    }
+
+    return setTimeout.apply(fn, arguments);
+}
+
 // when the client is ready, run this code
 // this event will only trigger one time after logging in
 client.once("ready", () => {
@@ -62,11 +77,12 @@ client.once("ready", () => {
       results,
       fields
     ) {
+      console.log("Found " + results.length + " giveaways");
       results.forEach(async result => {
         var currentDate = new Date();
         var millisec = (result.endAt) - currentDate;
         if (err) throw err;
-        setTimeout(async function() {
+        setTimeout_(async function() {
           var fetchGuild = await client.guilds.get(result.guild);
           var channel = await fetchGuild.channels.get(result.channel);
           var msg = await channel.fetchMessage(result.id);
@@ -113,7 +129,7 @@ client.once("ready", () => {
             msg.edit(Ended);
             msg.clearReactions().catch(err => console.error(err));
             return;
-          }
+          } else {
 
           
           var index = Math.floor(Math.random() * endReacted.length);
@@ -154,15 +170,17 @@ client.once("ready", () => {
             if (err) throw err;
             console.log("Deleted an ended giveaway record.");
           });
+        }
         }, millisec);
       });
     });
     con.query("SELECT * FROM poll ORDER BY endAt ASC", function(err, results, fields) {
       if(err) throw err;
+      console.log("Found " + results.length + " polls.");
       results.forEach(result => {
         var currentDate = new Date();
         var time = (result.endAt) - currentDate;
-        setTimeout(async function() {
+        setTimeout_(async function() {
         var guild = await client.guilds.get(result.guild);
           var channel = await guild.channels.get(result.channel);
           var msg = await channel.fetchMessage(result.id);
@@ -186,7 +204,7 @@ client.once("ready", () => {
             .setColor(result.color)
             .setTitle(result.title)
             .setDescription(
-              "Poll ended. Here are the results:\n\n\n" + end.join("\n\n")
+              "Poll ended. Here are the results:\n\n\n" + end.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')
             )
             .setTimestamp()
             .setFooter(
