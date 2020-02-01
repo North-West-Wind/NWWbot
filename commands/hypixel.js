@@ -3,10 +3,15 @@ var Buffer = require("buffer").Buffer;
 const http = require("http");
 var color = Math.floor(Math.random() * 16777214) + 1;
 
+function twoDigits(d) {
+  if (0 <= d && d < 10) return "0" + d.toString();
+  if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
+  return d.toString();
+}
+
 module.exports = {
   name: "hypixel",
-  description:
-    "Connect to Hypixel API.",
+  description: "Connect to Hypixel API.",
   args: true,
   aliases: ["hy"],
   usage: "<subcommand> <username>",
@@ -16,7 +21,6 @@ module.exports = {
     const MojangAPI = require("mojang-api");
     if (!args[1]) {
       if (!args[0]) {
-        
         return message.reply(
           "please provide a Minecraft username or use the subcommands."
         );
@@ -182,10 +186,12 @@ module.exports = {
                               "https://i.imgur.com/hxbaDUY.png"
                             );
                         }
-                        if(body.player.socialMedia.links.DISCORD) {
-                          Embed.addField("Discord", "@" + body.player.socialMedia.links.DISCORD);
+                        if (body.player.socialMedia.links.DISCORD) {
+                          Embed.addField(
+                            "Discord",
+                            "@" + body.player.socialMedia.links.DISCORD
+                          );
                         } else {
-                          
                         }
                         message.channel.send(Embed);
                       } else {
@@ -356,8 +362,278 @@ module.exports = {
                 if (body.player.rank === "ADMIN") {
                   var rank = "[ADMIN]";
                 }
+                if (args[0] === "guild" || args[0] === "g") {
+                  request(
+                    {
+                      url: guildurl,
+                      json: true
+                    },
+                    function(err, guildResponse, guildBody) {
+                      if (!err && guildResponse.statusCode === 200) {
+                        if (guildBody.guild === null) {
+                          return message.channel.send(
+                            "This player doesn't have a guild!"
+                          );
+                        }
+                        var guildURL =
+                          "https://api.hypixel.net/guild?key=" +
+                          process.env.API +
+                          "&id=" +
+                          guildBody.guild;
+                        request(
+                          {
+                            url: guildURL,
+                            json: true
+                          },
+                          async function(guErr, guRes, guBody) {
+                            if (!guErr && guRes.statusCode === 200) {
+                               var exp = [];
+                              var guildId = guBody.guild._id;
+                              var guildName = guBody.guild.name;
+                              var guildCoins = guBody.guild.coins
+                                .toString()
+                                .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                              var guildCreated = new Date(guBody.guild.created);
+                              var date = guildCreated.getDate();
+                              var month = guildCreated.getMonth();
+                              var year = guildCreated.getFullYear();
+                              var hour = guildCreated.getHours();
+                              var minute = guildCreated.getMinutes();
+                              var second = guildCreated.getSeconds();
 
-                if (args[0] === "achievements" || args[0] === "ach") {
+                              var readableTime =
+                                twoDigits(date) +
+                                "/" +
+                                twoDigits(month + 1) +
+                                "/" +
+                                twoDigits(year) +
+                                " " +
+                                twoDigits(hour) +
+                                ":" +
+                                twoDigits(minute) +
+                                ":" +
+                                twoDigits(second) +
+                                " UTC";
+                              var member = guBody.guild.members;
+                              function compare(a, b) {
+                                var first = Object.values(a.expHistory);
+                                var second = Object.values(b.expHistory);
+                                if (first[0] < second[0]) {
+                                  return 1;
+                                }
+                                if (first[0] > second[0]) {
+                                  return -1;
+                                }
+                                return 0;
+                              }
+                              await member.sort(compare);
+                              
+                              const Embed = new Discord.RichEmbed()
+                                .setColor(color)
+                                .setTitle(guildName)
+                                .setDescription("Guild of " + res[0].name)
+                                .addField("Guild ID", "`" + guildId + "`", true)
+                                .addField("Guild Name", guildName, true)
+                                .addField("Guild coins", guildCoins, true)
+                                .addField(
+                                  "Guild member count",
+                                  member.length,
+                                  true
+                                )
+                                .addField(
+                                  "Created date",
+                                  "`" + readableTime + "`",
+                                  true
+                                )
+                                .setTimestamp()
+                                .setFooter(
+                                  "Have a nice day! :)",
+                                  "https://i.imgur.com/hxbaDUY.png"
+                                );
+                              const topPlayer = new Discord.RichEmbed()
+                                .setColor(color)
+                                .setTitle(guildName)
+                                .setDescription("Top 10 GEXP gatherer")
+                                .setTimestamp()
+                                .setFooter(
+                                  "Have a nice day! :)",
+                                  "https://i.imgur.com/hxbaDUY.png"
+                                );
+                             
+                              for (var i = 0; i < 9; i++) {
+                                 console.log(member[i].expHistory);
+                                MojangAPI.profile(member[i].uuid, async function(err, result) {
+                                  if (err) console.log(err);
+                                  else {
+                                    var username = result.name;
+                                    var gexp = await Object.values(member[i].expHistory)
+                                    
+                                    topPlayer.addField(username, gexp[0]);
+                                  }
+                                });
+                                
+                              }
+                              const filter = (reaction, user) => {
+                                return (
+                                  ["◀", "▶", "⏮", "⏭", "⏹"].includes(
+                                    reaction.emoji.name
+                                  ) && user.id === message.author.id
+                                );
+                              };
+
+                              var allEmbeds = [Embed, topPlayer];
+
+                              const userReactions = message.reactions.filter(
+                                reaction =>
+                                  reaction.users.has(message.author.id)
+                              );
+
+                              var s = 0;
+                              function wait(s) {
+                                message.channel
+                                  .send(allEmbeds[s])
+                                  .then(async msg => {
+                                    try {
+                                      await msg.react("⏮");
+                                      await msg.react("◀");
+                                      await msg.react("▶");
+                                      await msg.react("⏭");
+                                      await msg.react("⏹");
+                                      await msg
+                                        .awaitReactions(filter, {
+                                          max: 1,
+                                          time: 60000,
+                                          errors: ["time"]
+                                        })
+                                        .then(async collected => {
+                                          const reaction = collected.first();
+
+                                          if (reaction.emoji.name === "◀") {
+                                            s -= 1;
+                                            if (s < 0) {
+                                              s = 1;
+                                            }
+                                            reaction.remove(message.author.id);
+
+                                            edit(msg, s);
+                                          } else if (
+                                            reaction.emoji.name === "▶"
+                                          ) {
+                                            s += 1;
+                                            if (s > 1) {
+                                              s = 0;
+                                            }
+                                            reaction.remove(message.author.id);
+                                            edit(msg, s);
+                                          } else if (
+                                            reaction.emoji.name === "⏮"
+                                          ) {
+                                            s = 0;
+                                            reaction.remove(message.author.id);
+
+                                            edit(msg, s);
+                                          } else if (
+                                            reaction.emoji.name === "⏭"
+                                          ) {
+                                            s = 1;
+                                            reaction.remove(message.author.id);
+
+                                            edit(msg, s);
+                                          } else {
+                                            msg.clearReactions().catch(err => {
+                                              console.log(err);
+                                            });
+                                          }
+                                        })
+                                        .catch(collected => {
+                                          msg.clearReactions().catch(err => {
+                                            console.log(err);
+                                          });
+                                        });
+                                    } catch {
+                                      err => {
+                                        console.log(err);
+                                      };
+                                    }
+                                  });
+                              }
+
+                              function edit(mesg, s) {
+                                mesg.edit(allEmbeds[s]).then(async msg => {
+                                  try {
+                                    await msg.react("⏮");
+                                    await msg.react("◀");
+                                    await msg.react("▶");
+                                    await msg.react("⏭");
+                                    await msg.react("⏹");
+                                    await msg
+                                      .awaitReactions(filter, {
+                                        max: 1,
+                                        time: 60000,
+                                        errors: ["time"]
+                                      })
+                                      .then(async collected => {
+                                        const reaction = collected.first();
+
+                                        if (reaction.emoji.name === "◀") {
+                                          s -= 1;
+                                          if (s < 0) {
+                                            s = 1;
+                                          }
+                                          reaction.remove(message.author.id);
+
+                                          edit(msg, s);
+                                        } else if (
+                                          reaction.emoji.name === "▶"
+                                        ) {
+                                          s += 1;
+                                          if (s > 1) {
+                                            s = 0;
+                                          }
+                                          reaction.remove(message.author.id);
+
+                                          edit(msg, s);
+                                        } else if (
+                                          reaction.emoji.name === "⏮"
+                                        ) {
+                                          s = 0;
+                                          reaction.remove(message.author.id);
+
+                                          edit(msg, s);
+                                        } else if (
+                                          reaction.emoji.name === "⏭"
+                                        ) {
+                                          s = 1;
+                                          reaction.remove(message.author.id);
+
+                                          edit(msg, s);
+                                        } else {
+                                          msg.clearReactions().catch(err => {
+                                            console.log(err);
+                                          });
+                                        }
+                                      })
+                                      .catch(collected => {
+                                        msg.clearReactions().catch(err => {
+                                          console.log(err);
+                                        });
+                                      });
+                                  } catch {
+                                    err => {
+                                      console.log(err);
+                                    };
+                                  }
+                                });
+                              }
+
+                              wait(s);
+                            }
+                          }
+                        );
+                      }
+                    }
+                  );
+                } else if (args[0] === "achievements" || args[0] === "ach") {
                   message.author
                     .send("**Long list incoming!**")
                     .then(() => {
@@ -2567,10 +2843,6 @@ module.exports = {
                   const sw = body.player.stats.SkyWars;
 
                   //sw level calculator
-
-                  
-
-                  
                 }
               }
             }
