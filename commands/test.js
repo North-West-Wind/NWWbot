@@ -19,12 +19,7 @@ module.exports = {
   description: "For test, really.",
   execute(message, args, pool) {
     pool.getConnection(async function(err, con) {
-      var time = await ms(args[0])
-      console.log(time)
-     if(time > 2147483647) {
-       var i = await (time - 2147483647);
-       console.log(i);
-     }
+     console.log(message.channel);
     })
      
   }

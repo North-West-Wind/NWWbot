@@ -6,28 +6,33 @@ module.exports = {
   description: "Unban a user.",
   usage: "<user|id> [reason]",
   execute(message, args) {
-     if (!message.member.hasPermission("BAN_MEMBERS")) {
+    if (!message.member.hasPermission("BAN_MEMBERS")) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
       return;
     }
-   
 
     if (!message.guild) return;
 
-    message.delete();
-    
+    if (isNaN(parseInt(args[0]))) {
+      if (!args[0].startsWith("<@")) {
+        return message.channel.send(
+          "**" + args[0] + "** is neither a mention or ID."
+        );
+      }
+    }
+
     const userID = args[0]
       .replace(/<@/g, "")
       .replace(/!/g, "")
       .replace(/>/g, "");
 
-
-    message.client.fetchUser(userID).then(user => {
-      if (user) {
+    message.client
+      .fetchUser(userID)
+      .then(user => {
         // Now we get the member from the user
-        if(args[1]) {
+        if (args[1]) {
           var reason = args.slice(1).join(" ");
           var member = message.guild.unban(user, reason);
         } else {
@@ -59,7 +64,7 @@ module.exports = {
                 unbanEmbed.addField("Reason", reason);
               }
               user.send(unbanEmbed).catch(err => {
-                console.log("Failed to send DM to " + user.username)
+                console.log("Failed to send DM to " + user.username);
               });
 
               var unbanSuccessfulEmbed = new Discord.RichEmbed() // Creates the embed thats returned to the person warning if its sent.
@@ -78,18 +83,16 @@ module.exports = {
               // An error happened
               // This is generally due to the bot not being able to ban the member,
               // either due to missing permissions or role hierarchy
-              message.reply("I failed to ban this member!");
+              message.channel.send("This member is not banned!");
               // Log the error
-              console.error(err);
             });
         } else {
           // The mentioned user isn't in this guild
-          message.reply("that user doesn't exist!");
+          message.channel.send("that user doesn't exist!");
         }
-      } else {
-        // Otherwise, if no user was mentioned
-        message.reply("you should tell me who is bad.");
-      }
-    })
+      })
+      .catch(err => {
+        return message.channel.send("I cannot find this member!");
+      });
   }
-}
+};

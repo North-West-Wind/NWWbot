@@ -16,7 +16,14 @@ module.exports = {
 
     if (!message.guild) return;
     
-    message.delete();
+   
+    if(isNaN(parseInt(args[0]))) {
+      if (!args[0].startsWith("<@")) {
+        return message.channel.send(
+          "**" + args[0] + "** is neither a mention or ID."
+        );
+      }
+    }
 
     const userID = args[0]
       .replace(/<@/g, "")
@@ -27,7 +34,6 @@ module.exports = {
     // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
 
     message.channel.client.fetchUser(userID).then(user => {
-      if (user) {
         // Now we get the member from the user
         if(args[1]) {
           var reason = args.slice(1).join(" ");
@@ -44,6 +50,7 @@ module.exports = {
            * Read more about what ban options there are over at
            * https://discord.js.org/#/docs/main/master/class/GuildMember?scrollTo=ban
            */
+          message.delete();
           member
             .then(() => {
               // We let the message author know we were able to ban the person
@@ -80,18 +87,17 @@ module.exports = {
               // An error happened
               // This is generally due to the bot not being able to ban the member,
               // either due to missing permissions or role hierarchy
-              message.reply("I failed to ban this member!");
+              message.channel.send("I failed to ban this member!");
               // Log the error
               console.error(err);
             });
         } else {
           // The mentioned user isn't in this guild
-          message.reply("that user doesn't exist!");
+          message.channel.send("that user doesn't exist!");
         }
-      } else {
-        // Otherwise, if no user was mentioned
-        message.reply("you should tell me who is bad.");
-      }
+      
+    }).catch(err => {
+      return message.channel.send("I cannot find this member!")
     });
     // If we have a user mentioned
   }
