@@ -45,7 +45,7 @@ module.exports = {
             var userID = message.author.id;
 
             con.query(
-              "INSERT INTO currency (user_id, currency, worked, last_worked, guild) VALUES(" +
+              "INSERT INTO currency (user_id, currency, worked, last_worked, guild, bank) VALUES(" +
                 userID +
                 ", " +
                 gain +
@@ -55,7 +55,7 @@ module.exports = {
                 currentDateSql +
                 "', " +
                 message.guild.id +
-                ")",
+                ", 0.00)",
               function(err, result) {
                 if (err) throw err;
                 console.log(
@@ -161,7 +161,7 @@ module.exports = {
               }
             );
             message.channel.send(
-              message.author + " worked and gained $" + gain + "!"
+              message.author + " worked and gained **$" + gain + "**!"
             );
           }
         }
