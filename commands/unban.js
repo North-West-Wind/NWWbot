@@ -1,39 +1,37 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
+
 module.exports = {
-  name: "ban",
-  description: "Ban someone",
-  args: true,
-  usage: "<user> [reason]",
+  name: "unban",
+  description: "Unban a user.",
+  usage: "<user|id> [reason]",
   execute(message, args) {
-    if (!message.member.hasPermission("BAN_MEMBERS")) {
+     if (!message.member.hasPermission("BAN_MEMBERS")) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
       return;
     }
-    // Let's pretend you mentioned the user you want to add a role to (!addrole @user Role Name):
+   
 
     if (!message.guild) return;
-    
-    message.delete();
 
+    message.delete();
+    
     const userID = args[0]
       .replace(/<@/g, "")
       .replace(/!/g, "")
       .replace(/>/g, "");
 
-    // Assuming we mention someone in the message, this will return the user
-    // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
 
-    message.channel.client.fetchUser(userID).then(user => {
+    message.client.fetchUser(userID).then(user => {
       if (user) {
         // Now we get the member from the user
         if(args[1]) {
           var reason = args.slice(1).join(" ");
-          var member = message.guild.ban(user, { reason: reason });
+          var member = message.guild.unban(user, reason);
         } else {
-          var member = message.guild.ban(user);
+          var member = message.guild.unban(user);
         }
         // If the member is in the guild
         if (member) {
@@ -48,9 +46,9 @@ module.exports = {
             .then(() => {
               // We let the message author know we were able to ban the person
 
-              var banEmbed = new Discord.RichEmbed() // Creates the embed that's DM'ed to the user when their warned!
+              var unbanEmbed = new Discord.RichEmbed() // Creates the embed that's DM'ed to the user when their warned!
                 .setColor(color)
-                .setTitle(`You've been banned`)
+                .setTitle(`You've been unbanned`)
                 .setDescription(`In **${message.guild.name}**`)
                 .setTimestamp()
                 .setFooter(
@@ -58,23 +56,23 @@ module.exports = {
                   message.author.displayAvatarURL
                 );
               if (args[1]) {
-                banEmbed.addField("Reason", reason);
+                unbanEmbed.addField("Reason", reason);
               }
-              user.send(banEmbed).catch(err => {
+              user.send(unbanEmbed).catch(err => {
                 console.log("Failed to send DM to " + user.username)
               });
 
-              var banSuccessfulEmbed = new Discord.RichEmbed() // Creates the embed thats returned to the person warning if its sent.
+              var unbanSuccessfulEmbed = new Discord.RichEmbed() // Creates the embed thats returned to the person warning if its sent.
                 .setColor(color)
-                .setTitle("User Banned!")
+                .setTitle("User Unbanned!")
                 .setDescription(
-                  "Banned **" +
+                  "Unbanned **" +
                     user.username +
                     "** in server **" +
                     message.guild.name +
                     "**."
                 );
-              return message.author.send(banSuccessfulEmbed);
+              return message.author.send(unbanSuccessfulEmbed);
             })
             .catch(err => {
               // An error happened
@@ -92,7 +90,6 @@ module.exports = {
         // Otherwise, if no user was mentioned
         message.reply("you should tell me who is bad.");
       }
-    });
-    // If we have a user mentioned
+    })
   }
-};
+}

@@ -82,19 +82,19 @@ const musicFunctions = {
           index++;
           i++;
           list.push(element0);
-          element1 ? list.push(element1) : console.log("Empty element");
-          element1 ? list.push(element2) : console.log("Empty element");
-          element1 ? list.push(element3) : console.log("Empty element");
-          element1 ? list.push(element4) : console.log("Empty element");
+          element1 ? list.push(element1) : console.log();
+          element1 ? list.push(element2) : console.log();
+          element1 ? list.push(element3) : console.log();
+          element1 ? list.push(element4) : console.log();
           if (i < 25) {
             embed.setTitle(`Song queue for ${message.guild.name}`);
             embed.setDescription(
               `There are ${serverQueue.songs.length} songs in total.`
             );
-            embed.setAuthor(message.author.username, message.author.avatarURL);
+            
           }
           embed.setTimestamp();
-          embed.setFooter(`Now playing : ${serverQueue.songs[0].title}`);
+          embed.setFooter(`Now playing : ${serverQueue.songs[0].title}`, "https://i.imgur.com/hxbaDUY.png");
           embed.addField("** **", list.join("\n"));
           embed.setColor(color);
         }
@@ -717,21 +717,7 @@ function remove(message, queueIndex) {
   message.channel.send(
     `**${removed[0].title}** has been removed from the queue.`
   );
-  var index = 0;
-  var songArray = serverQueue.songs.map(song => {
-    return `**${++index} -** [${song.title}](${song.url})`;
-  });
-  musicFunctions.addMusicQueueField(message, songArray, queue).then(results =>
-    __awaiter(this, void 0, void 0, function*() {
-      for (let i = 0; i < results.length; i++) {
-        yield new Promise(r => {
-          return setTimeout(r, 500);
-        });
-        const element = results[i];
-        message.channel.send(element);
-      }
-    })
-  );
+  
 }
 
 function pause(message, serverQueue) {
@@ -795,57 +781,57 @@ module.exports = {
     let command = message.content,
       found = false;
     const serverQueue = queue.get(message.guild.id);
-    if (command.startsWith(`${prefix}play`)) {
+    if (command.toLowerCase().startsWith(`${prefix}play`)) {
       execute(message, serverQueue, pool);
       found = true;
       return found;
-    } else if (command.startsWith(`${prefix}altp`)) {
+    } else if (command.toLowerCase().startsWith(`${prefix}altp`)) {
       execute(message, serverQueue, pool);
       found = true;
       return found;
-    } else if (command.startsWith(`${prefix}skip`)) {
+    } else if (command.toLowerCase().startsWith(`${prefix}skip`)) {
       skip(message, serverQueue);
       found = true;
       return found;
-    } else if (command.startsWith(`${prefix}stop`)) {
+    } else if (command.toLowerCase().startsWith(`${prefix}stop`)) {
       stop(message, serverQueue);
       found = true;
       return found;
     } else if (
-      command.startsWith(`${prefix}queue`) ||
-      command.startsWith(`${prefix}q`)
+      command.toLowerCase().startsWith(`${prefix}queue`) ||
+      command.toLowerCase().startsWith(`${prefix}q`)
     ) {
       showQueue(message, serverQueue);
       found = true;
       return found;
     } else if (
-      command.startsWith(`${prefix}nowplaying`) ||
-      command.startsWith(`${prefix}np`)
+      command.toLowerCase().startsWith(`${prefix}nowplaying`) ||
+      command.toLowerCase().startsWith(`${prefix}np`)
     ) {
       nowPlaying(message, serverQueue);
       found = true;
       return found;
     } else if (
-      command.startsWith(`${prefix}loop`) ||
-      command.startsWith(`${prefix}lp`)
+      command.toLowerCase().startsWith(`${prefix}loop`) ||
+      command.toLowerCase().startsWith(`${prefix}lp`)
     ) {
       lp(message, serverQueue);
       found = true;
       return found;
-    } else if (command.startsWith(`${prefix}remove`)) {
+    } else if (command.toLowerCase().startsWith(`${prefix}remove`)) {
       var queueIndex = parseInt(args[1]);
       remove(message, queueIndex);
       found = true;
       return found;
-    } else if (command.startsWith(`${prefix}pause`)) {
+    } else if (command.toLowerCase().startsWith(`${prefix}pause`)) {
       pause(message, serverQueue);
       found = true;
       return found;
-    } else if (command.startsWith(`${prefix}resume`)) {
+    } else if (command.toLowerCase().startsWith(`${prefix}resume`)) {
       resume(message, serverQueue);
       found = true;
       return found;
-    } else if (command.startsWith(`${prefix}shuffle`)) {
+    } else if (command.toLowerCase().startsWith(`${prefix}shuffle`)) {
       shuffle(message, serverQueue);
       found = true;
       return found;
