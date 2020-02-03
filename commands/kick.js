@@ -13,52 +13,83 @@ module.exports = {
       );
       return;
     }
-    // Let's pretend you mentioned the user you want to add a role to (!addrole @user Role Name):
+    if (!message.guild.me.hasPermission("KICK_MEMBERS")) {
+      message.channel.send(
+        `I don\'t have the permission to kick members.`
+      );
+      return;
+    }
+    
+    if (!message.guild) return;
+    
+    if(!args[0]) {
+      return message.channel.send("You didn't mention any user!")
+    }
+   
+    if(isNaN(parseInt(args[0]))) {
+      if (!args[0].startsWith("<@")) {
+        return message.channel.send(
+          "**" + args[0] + "** is neither a mention or ID."
+        );
+      }
+    }
 
-    // Assuming we mention someone in the message, this will return the user
-    // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
-    const user = message.mentions.users.first();
-    // If we have a user mentioned
-    if (user) {
-      // Now we get the member from the user
+    const userID = args[0]
+      .replace(/<@/g, "")
+      .replace(/!/g, "")
+      .replace(/>/g, "");
+    
+    
+    message.channel.client.fetchUser(userID).then(async user => {
       const member = message.guild.member(user);
       // If the member is in the guild
       if (member) {
-        /**
-         * Kick the member
-         * Make sure you run this on a member, not a user!
-         * There are big differences between a user and a member
-         */
-        member
-          .kick(`${args[1]}`)
-          .then(() => {
+        
+        if(args[1]) {
+          await member.kick(args.slice(1).join(" "))
+          var reason = args.slice(1).join(" ")
+        } else {
+          await member.kick()
+        }
+        
+          
             // We let the message author know we were able to kick the person
-            const Embed = new Discord.RichEmbed()
-              .setTitle("Kicked user")
-              .setDescription(user.tag)
-              .setColor(color)
-              .setTimestamp()
-              .setFooter(
-                "Have a nice day! :)",
-                "https://i.imgur.com/hxbaDUY.png"
-              );
-            message.channel.send(Embed);
-          })
-          .catch(err => {
-            // An error happened
-            // This is generally due to the bot not being able to kick the member,
-            // either due to missing permissions or role hierarchy
-            message.reply("I cannot kick the member");
-            // Log the error
-            console.error(err);
-          });
+            var kickEmbed = new Discord.RichEmbed() // Creates the embed that's DM'ed to the user when their warned!
+                .setColor(color)
+                .setTitle(`You've been kicked`)
+                .setDescription(`In **${message.guild.name}**`)
+                .setTimestamp()
+                .setFooter(
+                  "Kicked by " + message.author.tag,
+                  message.author.displayAvatarURL
+                );
+              if (args[1]) {
+                kickEmbed.addField("Reason", reason);
+              }
+              user.send(kickEmbed).catch(err => {
+                console.log("Failed to send DM to " + user.username)
+              });
+
+              var kickSuccessfulEmbed = new Discord.RichEmbed() // Creates the embed thats returned to the person warning if its sent.
+                .setColor(color)
+                .setTitle("User Kicked!")
+                .setDescription(
+                  "Kicked **" +
+                    user.tag +
+                    "** in server **" +
+                    message.guild.name +
+                    "**."
+                );
+              return message.author.send(kickSuccessfulEmbed);
+          
       } else {
         // The mentioned user isn't in this guild
         message.reply("That user doesn't exist!");
       }
+    })
+      // Now we get the member from the user
+      
       // Otherwise, if no user was mentioned
-    } else {
-      message.reply("Who should I kick?");
-    }
+    
   }
 };

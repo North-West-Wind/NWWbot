@@ -9,19 +9,19 @@ function twoDigits(d) {
   return d.toString();
 }
 
-function setTimeout_ (fn, delay) {
-    var maxDelay = Math.pow(2,31)-1;
+function setTimeout_(fn, delay) {
+  var maxDelay = Math.pow(2, 31) - 1;
 
-    if (delay > maxDelay) {
-        var args = arguments;
-        args[1] -= maxDelay;
+  if (delay > maxDelay) {
+    var args = arguments;
+    args[1] -= maxDelay;
 
-        return setTimeout(function () {
-            setTimeout_.apply(fn, args);
-        }, maxDelay);
-    }
+    return setTimeout(function() {
+      setTimeout_.apply(fn, args);
+    }, maxDelay);
+  }
 
-    return setTimeout.apply(fn, arguments);
+  return setTimeout.apply(fn, arguments);
 }
 
 module.exports = {
@@ -33,7 +33,7 @@ module.exports = {
     if (args[0] === "create") {
       pool.getConnection(async function(err, con) {
         if (err) throw err;
-        await message.channel.send(
+        var msg = await message.channel.send(
           "Starting a poll.\n\n`Please enter where you want to host your poll.(Mention the channel)`"
         );
         var channelCollected = await message.channel.awaitMessages(filter, {
@@ -47,11 +47,10 @@ module.exports = {
           .replace(/>/g, "");
         var channel = await message.guild.channels.get(channelID);
         if (!channel || channel === undefined || channel === null) {
-          return message.channel.send(
-            "That isn't a valid channel! Cancelling actions..."
-          );
+          return msg.edit("That isn't a valid channel! Cancelling actions...");
         }
-        await message.channel.send(
+        await channelCollected.first().delete();
+        await msg.edit(
           "Great! The channel will be " +
             channel +
             ".\n\n`Please tell me the title of the poll!`"
@@ -62,7 +61,8 @@ module.exports = {
           error: ["time"]
         });
         var title = collected.first().content;
-        await message.channel.send(
+        await collected.first().delete();
+        await msg.edit(
           "The title will be **" +
             title +
             "**\n\n`Now, I'd like to know the duration.`"
@@ -79,10 +79,12 @@ module.exports = {
         var dh = Math.floor((sec % 86400) / 3600);
         var dm = Math.floor(((sec % 86400) % 3600) / 60);
         var ds = Math.floor(((sec % 86400) % 3600) % 60);
+        var dmi = Math.floor((((duration % 86400) % 3600) % 60) % 1000)
         var d = "";
         var h = "";
         var m = "";
         var s = "";
+        var mi = "";
         if (dd !== 0) {
           d = " " + dd + " days";
         }
@@ -95,12 +97,17 @@ module.exports = {
         if (ds !== 0) {
           s = " " + ds + " seconds";
         }
-        await message.channel.send(
+        if (dmi !== 0) {
+          mi = " " + dmi + " milliseconds";
+        }
+        await collected2.first().delete();
+        await msg.edit(
           "Alright! The poll will last for**" +
             d +
             h +
             m +
             s +
+            mi +
             "**. \n\n`Last but not least, please enter the options. Please break a line for each options!`"
         );
         var optionString = await message.channel.awaitMessages(filter, {
@@ -109,15 +116,37 @@ module.exports = {
           error: ["time"]
         });
 
-        var options = optionString.first().content.replace(/'/g, "#quot;").replace(/"/g, '#dquot;').split("\n");
+        var options = optionString
+          .first()
+          .content.replace(/'/g, "#quot;")
+          .replace(/"/g, "#dquot;")
+          .split("\n");
         if (options.length <= 1) {
           return message.channel.send(
             "Please provide at least 2 options! Cancelling action..."
           );
         }
+        await optionString.first().delete();
+        await msg.edit("Nice! **" + options.length + "** options it is!\n\n");
         await message.channel.send(
-          "Nice! **" + options.length + "** options it is!"
+          "The poll will be held in channel " +
+            channel +
+            " for **" +
+            d +
+            h +
+            m +
+            s +
+            "** with the title **" +
+            title +
+            "** and the options will be **" +
+            optionString
+              .first()
+              .content.split("\n")
+              .join(", ") +
+            "**"
         );
+        
+        msg.delete(10000);
 
         var emojis = [
           "1️⃣",
@@ -187,7 +216,10 @@ module.exports = {
             "React with the numbers to vote!\nThis poll will end at:\n**" +
               readableTime +
               "**\n\n\n" +
-              optionArray.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')
+              optionArray
+                .join("\n\n")
+                .replace(/#quot;/g, "'")
+                .replace(/#dquot;/g, '"')
           )
           .setTimestamp()
           .setFooter(
@@ -234,6 +266,16 @@ module.exports = {
         );
 
         setTimeout_(async function() {
+          if(msg.deleted === true) {
+            con.query("DELETE FROM poll WHERE id = " + msg.id, function(
+                err,
+                result
+              ) {
+                if (err) throw err;
+                console.log("Deleted an ended poll.");
+              });
+            return;
+          } else {
           con.query("SELECT * FROM poll WHERE id = " + msg.id, async function(
             err,
             results,
@@ -260,7 +302,11 @@ module.exports = {
                 .setColor(color)
                 .setTitle(title)
                 .setDescription(
-                  "Poll ended. Here are the results:\n\n\n" + end.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')
+                  "Poll ended. Here are the results:\n\n\n" +
+                    end
+                      .join("\n\n")
+                      .replace(/#quot;/g, "'")
+                      .replace(/#dquot;/g, '"')
                 )
                 .setTimestamp()
                 .setFooter(
@@ -283,6 +329,7 @@ module.exports = {
               });
             }
           });
+        }
         }, time);
 
         con.release();
@@ -332,7 +379,11 @@ module.exports = {
             .setColor(color)
             .setTitle(result[0].title)
             .setDescription(
-              "Poll ended. Here are the results:\n\n\n" + end.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')
+              "Poll ended. Here are the results:\n\n\n" +
+                end
+                  .join("\n\n")
+                  .replace(/#quot;/g, "'")
+                  .replace(/#dquot;/g, '"')
             )
             .setTimestamp()
             .setFooter(

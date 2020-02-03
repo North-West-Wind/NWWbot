@@ -33,7 +33,7 @@ module.exports = {
       });
     }
 
-    if (args[0] === "profile") {
+    if (args[0] === "profile" || !args[0]) {
       if (!args[1]) {
         return message.channel.send(
           "Please tell me the Minecraft username of that user."

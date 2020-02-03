@@ -85,6 +85,16 @@ client.once("ready", () => {
           var fetchGuild = await client.guilds.get(result.guild);
           var channel = await fetchGuild.channels.get(result.channel);
           var msg = await channel.fetchMessage(result.id);
+          if(msg.deleted === true) {
+            con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
+            err,
+            con
+          ) {
+            if (err) throw err;
+            console.log("Deleted an ended giveaway record.");
+          });
+            return;
+          } else {
           
           var fetchUser = await client.fetchUser(result.author);
           var endReacted = [];
@@ -170,6 +180,7 @@ client.once("ready", () => {
             console.log("Deleted an ended giveaway record.");
           });
         }
+        }
         }, millisec);
       });
     });
@@ -183,6 +194,18 @@ client.once("ready", () => {
         var guild = await client.guilds.get(result.guild);
           var channel = await guild.channels.get(result.channel);
           var msg = await channel.fetchMessage(result.id);
+          
+          if(msg.deleted === true) {
+            con.query("DELETE FROM poll WHERE id = " + msg.id, function(
+            err,
+            result
+          ) {
+            if (err) throw err;
+            console.log("Deleted an ended poll.");
+          });
+            return;
+          } else {
+          
           var author = await client.fetchUser(result.author);
           var allOptions = await JSON.parse(result.options);
           
@@ -221,6 +244,7 @@ client.once("ready", () => {
             if (err) throw err;
             console.log("Deleted an ended poll.");
           });
+        }
         }, time);
         
       })
