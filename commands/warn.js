@@ -7,64 +7,80 @@ module.exports = {
   args: true,
   usage: "<user> [reason]",
   execute(message, args, pool) {
-    const user = message.mentions.users.first();
-
-    if (!user) {
-      if (args[0] === "me") {
-        return message.channel.send("Fuck you " + message.author);
-      } else if (args[0] === "@everyone") {
-        return message.channel.send(
-          "Fuck you " + message.author + ". I cannot warn everyone lol."
-        );
-      } else {
+    pool.getConnection(async function(err, con) {
+      if (!args[0]) {
         return message.reply("tell me who you are warning.");
       }
-    }
+      
+      if (args[0] === "me") {
+          return message.channel.send("Fuck you " + message.author);
+        } else if (args[0] === "@everyone") {
+          return message.channel.send(
+            "Fuck you " + message.author + ". I cannot warn everyone lol."
+          );
+        }
 
-    if (!message.member.hasPermission("BAN_MEMBERS "))
-      return message.channel.send(
-        "You don't have the permission to use this command!"
-      ); // Checks if the user has the permission
-    let mentioned = message.mentions.users.first(); // Gets the user mentioned!
-    // .slice(1) removes the user mention, .join(' ') joins all the words in the message, instead of just sending 1 word
+      if (isNaN(parseInt(args[0]))) {
+        if (!args[0].startsWith("<@")) {
+          return message.channel.send(
+            "**" + args[0] + "** is neither a mention or ID."
+          );
+        }
+      }
 
-    var reason = "";
-    var warningEmbed = new Discord.RichEmbed() // Creates the embed that's DM'ed to the user when their warned!
-      .setColor(embedColor)
-      .setTitle(`You've been warned`)
-      .setDescription(`In **${message.guild.name}**`)
-      .setTimestamp()
-      .setFooter(
-        "Warned by " + message.author.tag,
-        message.author.displayAvatarURL
-      );
+      const userID = args[0]
+        .replace(/<@/g, "")
+        .replace(/!/g, "")
+        .replace(/>/g, "");
 
-    if (!args[1]) {
-      mentioned.send(warningEmbed); // DMs the user the above embed!
-    } else {
-      // Triggers if the user dosn't provide a reason for the warning
-      reason = args.slice(1).join(" ");
-      warningEmbed.addField("Reason", reason);
-      mentioned.send(warningEmbed); // DMs the user the above embed!
-    }
-    var warnSuccessfulEmbed = new Discord.RichEmbed() // Creates the embed thats returned to the person warning if its sent.
-      .setColor(embedColor)
-      .setTitle("User Successfully Warned!")
-      .setDescription(
-        "Warned **" +
-          user.username +
-          "** in server **" +
-          message.guild.name +
-          "**."
-      );
-    message.author.send(warnSuccessfulEmbed); // Sends the warn successful embed
-    message.delete();
-    pool.getConnection(function(err, con) {
+      // Assuming we mention someone in the message, this will return the user
+      // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
+
+      const user = await message.channel.client.fetchUser(userID);
+
+
+      if (!message.member.hasPermission("BAN_MEMBERS "))
+        return message.channel.send(
+          "You don't have the permission to use this command!"
+        ); // Checks if the user has the permission
+
+      var reason = "";
+      var warningEmbed = new Discord.RichEmbed() // Creates the embed that's DM'ed to the user when their warned!
+        .setColor(embedColor)
+        .setTitle(`You've been warned`)
+        .setDescription(`In **${message.guild.name}**`)
+        .setTimestamp()
+        .setFooter(
+          "Warned by " + message.author.tag,
+          message.author.displayAvatarURL
+        );
+
+      if (!args[1]) {
+        user.send(warningEmbed); // DMs the user the above embed!
+      } else {
+        // Triggers if the user dosn't provide a reason for the warning
+        reason = args.slice(1).join(" ");
+        warningEmbed.addField("Reason", reason);
+        user.send(warningEmbed); // DMs the user the above embed!
+      }
+      var warnSuccessfulEmbed = new Discord.RichEmbed() // Creates the embed thats returned to the person warning if its sent.
+        .setColor(embedColor)
+        .setTitle("User Successfully Warned!")
+        .setDescription(
+          "Warned **" +
+            user.username +
+            "** in server **" +
+            message.guild.name +
+            "**."
+        );
+      message.author.send(warnSuccessfulEmbed); // Sends the warn successful embed
+      message.delete();
+
       con.query(
         "INSERT INTO warn (guild, user, reason) VALUES (" +
           message.guild.id +
           ", " +
-          mentioned.id +
+          user.id +
           ", '" +
           reason.replace(/'/g, /\\'/).replace(/"/g, /\\"/) +
           "')",
@@ -77,7 +93,7 @@ module.exports = {
         "SELECT * FROM warn WHERE guild = " +
           message.guild.id +
           " AND user = " +
-          mentioned.id,
+          user.id,
         function(err, results, fields) {
           if (err) throw err;
           if (results.length >= 3) {
@@ -103,12 +119,12 @@ module.exports = {
                   "**."
               );
             user.send(banEmbed);
-            message.author.send(banSuccessfulEmbed)
+            message.author.send(banSuccessfulEmbed);
             con.query(
               "DELETE FROM warn WHERE guild = " +
                 message.guild.id +
                 " AND user = " +
-                mentioned.id,
+                user.id,
               function(err, result) {
                 if (err) throw err;
                 console.log(

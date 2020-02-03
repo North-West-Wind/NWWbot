@@ -30,7 +30,7 @@ module.exports = {
         .addField("**Random stuff**", "avatar\ngreet\nthx\nspam\nmath\ntrade", true)
         .addField("**Information**", "help\nserver\nping", true)
 
-        .addField("**Minecraft**", "minecraft\nhypixel", true)
+        .addField("**API**", "minecraft\nhypixel\nkrunker", true)
         .addField("**Music**", "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nloop", true)
       
       .addField("**Misc**", "giveaway\npoll")

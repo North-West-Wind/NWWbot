@@ -4,7 +4,7 @@ module.exports = {
     args: true,
     usage: '<user> <role to remove>',
 	execute(message, args) {
-    if (!message.member.hasPermission('ADMINISTRATOR')) { 
+    if (!message.member.hasPermission('MANAGE_ROLES')) { 
       message.channel.send(`You don\'t have the permission to use this command.`)
       return;
     }

@@ -18,8 +18,11 @@ module.exports = {
   name: "test",
   description: "For test, really.",
   execute(message, args, pool) {
+    const filter = x => x.author.id === message.author.id;
     pool.getConnection(async function(err, con) {
-     console.log(message.channel);
+      var msg = await message.channel.fetchMessages({limit:1});
+    console.log(msg)
+     
     })
      
   }

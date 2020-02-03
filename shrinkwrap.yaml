@@ -3,7 +3,6 @@ dependencies:
   algebra.js: 0.2.6
   better-youtube-api: 2.1.7
   canvas: 2.6.1
-  discord-giveaways: 3.0.7
   discord.js: 11.5.1
   express: 4.17.1
   express.js: 1.0.0
@@ -13,7 +12,7 @@ dependencies:
   mojang-api: 0.0.2
   moment: 2.24.0
   ms: 2.1.2
-  mysql: 2.17.1
+  mysql: 2.18.1
   node-fetch: 2.6.0
   opusscript: 0.0.7
   request-promise: 4.2.5
@@ -123,10 +122,10 @@ packages:
     dev: false
     resolution:
       integrity: sha512-i4f1DpCBRx2RAeWTmDb2aIClU1tyek6RL36CTfM8njxEypa9vz52HZgJ+PQy1d4AkQjRuwAUeGZjUgeUWg7qkQ==
-  /bignumber.js/7.2.1:
+  /bignumber.js/9.0.0:
     dev: false
     resolution:
-      integrity: sha512-S4XzBk5sMB+Rcb/LNcpzXr57VRTxgAvaAEDAl1AwRx27j00hT84O6OkteE7u8UB3NuaaygCRrEpqox4uDOrbdQ==
+      integrity: sha512-t/OYhhJ2SD+YGBQcjY8GzzDHEk9f3nerxjtfa6tlMXfe7frs/WozhvCNoGvpM0P3bNf3Gq5ZRMlGr5f3r4/N8A==
   /bluebird/3.7.2:
     dev: false
     resolution:
@@ -291,12 +290,6 @@ packages:
     hasBin: true
     resolution:
       integrity: sha1-+hN8S9aY7fVc1c0CrFWfkaTEups=
-  /discord-giveaways/3.0.7:
-    dependencies:
-      merge-options: 2.0.0
-    dev: false
-    resolution:
-      integrity: sha512-T7/0g+oI/COGjKcu3rhwKdSpBxpzqaa4zWfvD5bJBY0fuCo8lgYlyeQIDpmcMB+KJQQ/4tfMDFQGRsC7bQuHPw==
   /discord.js/11.5.1:
     dependencies:
       long: 4.0.0
@@ -622,12 +615,6 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha1-o7MKXE8ZkYMWeqq5O+764937ZU8=
-  /is-plain-obj/2.0.0:
-    dev: false
-    engines:
-      node: '>=8'
-    resolution:
-      integrity: sha512-EYisGhpgSCwspmIuRHGjROWTon2Xp8Z7U03Wubk/bTL5TTRC5R1rGVgyjzBrk9+ULdH6cRD06KRcw/xfqhVYKQ==
   /is-typedarray/1.0.0:
     dev: false
     resolution:
@@ -712,14 +699,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-sAqqVW3YtEVoFQ7J0blT8/kMu2E=
-  /merge-options/2.0.0:
-    dependencies:
-      is-plain-obj: 2.0.0
-    dev: false
-    engines:
-      node: '>=8'
-    resolution:
-      integrity: sha512-S7xYIeWHl2ZUKF7SDeBhGg6rfv5bKxVBdk95s/I7wVF8d+hjLSztJ/B271cnUiF6CAFduEQ5Zn3HYwAjT16DlQ==
   /methods/1.1.2:
     dev: false
     engines:
@@ -825,17 +804,17 @@ packages:
     hasBin: true
     resolution:
       integrity: sha1-3TxQsm8FnyXn7e42REGDWOKprYk=
-  /mysql/2.17.1:
+  /mysql/2.18.1:
     dependencies:
-      bignumber.js: 7.2.1
-      readable-stream: 2.3.6
+      bignumber.js: 9.0.0
+      readable-stream: 2.3.7
       safe-buffer: 5.1.2
       sqlstring: 2.3.1
     dev: false
     engines:
       node: '>= 0.6'
     resolution:
-      integrity: sha512-7vMqHQ673SAk5C8fOzTG2LpPcf3bNt0oL3sFpxPEEFp1mdlDcrLK0On7z8ZYKaaHrHwNcQ/MTUz7/oobZ2OyyA==
+      integrity: sha512-Bca+gk2YWmqp2Uf6k5NFEurwY/0td0cpebAucFpY/3jhrwrVGuxU2uQFCHjU19SJfje0yQvi+rVWdq78hR5lig==
   /nan/2.14.0:
     dev: false
     resolution:
@@ -1185,18 +1164,6 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-y3bGgqKj3QBdxLbLkomlohkvsA8gdAiUQlSBJnBhfn+BPxg4bc62d8TcBW15wavDfgexCgccckhcZvywyQYPOw==
-  /readable-stream/2.3.6:
-    dependencies:
-      core-util-is: 1.0.2
-      inherits: 2.0.4
-      isarray: 1.0.0
-      process-nextick-args: 2.0.1
-      safe-buffer: 5.1.2
-      string_decoder: 1.1.1
-      util-deprecate: 1.0.2
-    dev: false
-    resolution:
-      integrity: sha512-tQtKA9WIAhBF3+VLAseyMqZeBjW0AHJoxOtYqSUZNJxauErmLbVm2FW1y+J/YA9dUrAC39ITejlZWhVIwawkKw==
   /readable-stream/2.3.7:
     dependencies:
       core-util-is: 1.0.2
@@ -1610,7 +1577,6 @@ specifiers:
   algebra.js: ^0.2.6
   better-youtube-api: ^2.1.7
   canvas: ^2.6.1
-  discord-giveaways: ^3.0.7
   discord.js: ^11.5.1
   express: ^4.17.1
   express.js: ^1.0.0
@@ -1620,7 +1586,7 @@ specifiers:
   mojang-api: ^0.0.2
   moment: ^2.24.0
   ms: ^2.1.2
-  mysql: ^2.17.1
+  mysql: ^2.18.1
   node-fetch: ^2.6.0
   opusscript: ^0.0.7
   request-promise: ^4.2.5

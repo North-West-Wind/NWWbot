@@ -12,10 +12,17 @@ module.exports = {
       );
       return;
     }
+    if(!message.guild.me.hasPermission('BAN_MEMBERS')) {
+      message.channel.send(`I don\'t have the permission to ban members.`)
+      return;
+    }
     // Let's pretend you mentioned the user you want to add a role to (!addrole @user Role Name):
 
     if (!message.guild) return;
     
+    if(!args[0]) {
+      return message.channel.send("You didn't mention any user!")
+    }
    
     if(isNaN(parseInt(args[0]))) {
       if (!args[0].startsWith("<@")) {
@@ -76,7 +83,7 @@ module.exports = {
                 .setTitle("User Banned!")
                 .setDescription(
                   "Banned **" +
-                    user.username +
+                    user.tag +
                     "** in server **" +
                     message.guild.name +
                     "**."

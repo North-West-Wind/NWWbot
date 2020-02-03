@@ -1,75 +1,47 @@
 module.exports = {
   name: "autorole",
-  description: "Automatically give Discord users a hypixel row.",
-  execute(message) {
-    if (message.author.id !== '416227242264363008') return;
-    var request = require("request");
-
-    const data = "http://warofunderworld.000webhostapp.com/json.php";
-    request(
-      {
-        url: data,
-        json: true
-      },
-      function(err, res, info) {
-        info.forEach(function(item, index, array) {
-          const url =
-            "https://api.hypixel.net/player?uuid=" +
-            item.dcmc_uuid +
-            "&key=" +
-            process.env.API;
-
-          request(
-            {
-              url: url,
-              json: true
-            },
-
-            function(error, response, body) {
-              if (!error && response.statusCode === 200) {
-                try {
-                
-                  if (!body.player.rank) {
-                    if (!body.player.newPackageRank) {
-                      var rank = "Non";
-                    } else {
-                      if (body.player.newPackageRank === "VIP") {
-                        var rank = "VIP";
-                      }
-                      if (body.player.newPackageRank === "VIP_PLUS") {
-                        var rank = "VIP+";
-                      }
-                      if (body.player.newPackageRank === "MVP") {
-                        var rank = "MVP";
-                      }
-                      if (body.player.newPackageRank === "MVP_PLUS") {
-                        var rank = "MVP+";
-                      }
-                      if (body.player.newPackageRank === "MVP_PLUS_PLUS") {
-                        var rank = "MVP++";
-                      }
-                    }
-                  } else {
-                    if (body.player.rank === "ADMIN") {
-                      var rank = "Hypixel Admin";
-                    }
-                  }
-                
-                message.channel.send("<@" + item.dcmc_dcid + "> is " + rank);
-                  let member = message.guild.members.get(item.dcmc_dcid);
-                  if(rank != "Non") {
-                    let role = message.guild.roles.find(`name`, rank);
-                  member.addRole(role).then(role => console.log("Gave " + item.dcmc_dcname + " the role " + role)).catch(console.error);
-                  message.channel.send("Gave <@" + item.dcmc_dcid + "> the role " + rank);
-                  }
-                } catch (err) {
-                  console.log(err);
-                }
-              }
-            }
-          );
-        });
+  description: "Automatically give all mentioned users a specific role.",
+  args: true,
+  usage: "<role> <user>",
+  execute(message, args) {
+    if (!message.member.hasPermission('MANAGE_ROLES')) { 
+      message.channel.send(`You don\'t have the permission to use this command.`)
+      return;
+    }
+    if(!message.guild.me.hasPermission('MANAGE_ROLES')) {
+      message.channel.send(`I don\'t have the permission to add roles to them.`)
+      return;
+    }
+    if(!args[0]) {
+      return message.channel.send("Please enter the role you want the users to be.")
+    }
+    if(!args[1]) {
+      return message.channel.send("Please mention at least 1 user.")
+    }
+    var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
+    if(isNaN(parseInt(roleID))) {
+      var role = message.guild.roles.find(x => x.name === `${args[0]}`);
+      if(role === null) {
+      return message.channel.send("No role was found with the name " + args[0])
+    }
+    } else {
+      var role = message.guild.roles.get(roleID);
+      if(role === null) {
+      return message.channel.send("No role was found with the id " + roleID)
+    }
+    }
+    
+    
+    args.slice(1).forEach(async mentioned => {
+      var userID = mentioned.replace(/<@/g, "").replace(/>/g, "").replace(/!/g, "");
+      var user = await message.guild.members.get(userID);
+      try {
+      await user.addRole(role);
+      message.channel.send("Successfully added **" + user.user.tag + "** to role **" + role.name + "**.")
+      } catch(err) {
+        message.channel.send("Failed adding **" + user.user.tag + "** to role **" + role.name + "**.")
       }
-    );
+    })
+    
   }
 };

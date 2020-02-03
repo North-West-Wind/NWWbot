@@ -9,6 +9,9 @@ module.exports = {
   usage: "<name>",
   args: true,
   execute(message, args) {
+    if(!args[0]) {
+      return message.channel.send("No username provided!")
+    }
     krunker.getUser(args[0]).then(data => {
       const sim = data.simplified;
       const name = sim.name;

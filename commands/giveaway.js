@@ -1,4 +1,3 @@
-const giveaways = require("discord-giveaways");
 const ms = require("ms"); // npm install ms
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -49,7 +48,7 @@ module.exports = {
         .send(
           "Giveaway creation started. \n\n`Which channel do you want the giveaway be in? (Please mention the channel)`"
         )
-        .then(() => {
+        .then(mesg => {
           message.channel
             .awaitMessages(filter, { time: 30000, max: 1, error: ["time"] })
             .then(collected => {
@@ -62,13 +61,13 @@ module.exports = {
             if(!permissions.has("SEND_MESSAGES") || !permissions.has("EMBED_LINKS")) {
               return message.channel.send("I cannot do giveaway in this channel as I don't have the permission!")
             }
-              message.channel
-                .send(
+            collected.first().delete();
+              mesg.edit(
                   "The channel will be " +
                     channel +
                     "\n\n`Now please enter the duration of the giveaway!`"
                 )
-                .then(() => {
+                .then(mesg => {
                   message.channel
                     .awaitMessages(filter, {
                       time: 30000,
@@ -82,10 +81,12 @@ module.exports = {
                       var dh = Math.floor((sec % 86400) / 3600);
                       var dm = Math.floor(((sec % 86400) % 3600) / 60);
                       var ds = Math.floor(((sec % 86400) % 3600) % 60);
+                    var dmi = Math.floor((((duration % 86400) % 3600) % 60) % 1000);
                     var d = "";
                     var h = "";
                     var m = "";
                     var s = "";
+                    var mi = "";
                     if(dd !== 0) {
                       d = " " + dd + " days";
                     }
@@ -98,14 +99,17 @@ module.exports = {
                     if(ds !== 0) {
                       s = " " + ds + " seconds";
                     }
-                      message.channel
-                        .send(
+                    if(dmi !== 0) {
+                      mi = " " + dmi + " milliseconds";
+                    }
+                    collected2.first().delete();
+                      mesg.edit(
                           "The duration will be**" + 
-                            d + h + m + s +
+                            d + h + m + s + mi +
                         
                             "** \n\n`I'd like to know how many participants can win this giveaway. Please enter the winner count.`"
                         )
-                        .then(() => {
+                        .then(mesg => {
                           message.channel
                             .awaitMessages(filter, {
                               time: 30000,
@@ -113,20 +117,23 @@ module.exports = {
                               error: ["time"]
                             })
                             .then(collected3 => {
+                            if(isNaN(parseInt(collected3.first().content))) {
+                              return message.channel.send("The query provided is not a number! Cancelling action...")
+                            }
                               if (parseInt(collected3.first().content) == 1) {
                                 var participant = "participant";
                               } else {
                                 var participant = "participants";
                               }
-                              message.channel
-                                .send(
+                            collected3.first().delete();
+                              mesg.edit(
                                   "Alright! **" +
                                     collected3.first().content +
                                     "** " +
                                     participant +
                                     " will win the giveaway. \n\n`At last, please tell me what is going to be giveaway!`"
                                 )
-                                .then(() => {
+                                .then(mesg => {
                                   message.channel
                                     .awaitMessages(filter, {
                                       time: 30000,
@@ -134,11 +141,21 @@ module.exports = {
                                       error: ["time"]
                                     })
                                     .then(collected4 => {
-                                      message.channel.send(
+                                      mesg.edit(
                                         "The items will be **" +
                                           collected4.first().content +
                                           "**"
                                       );
+                                    item = collected4.first().content;
+                                    winnerCount = collected3.first().content;
+                                    if (parseInt(collected3.first().content) == 1) {
+                                var sOrNot = "winner";
+                              } else {
+                                var sOrNot = "winners";
+                              }
+                                    message.channel.send("The giveaway will be held in " + channel + " for **" + d + h + m + s + "** with the item **" + item + "** and **" + winnerCount + "** " + sOrNot);
+                                    collected4.first().delete();
+                                    mesg.delete(10000);
 
                                       var millisec = ms(
                                         collected2.first().content
@@ -257,6 +274,19 @@ module.exports = {
 
                                                 msg.react(result[0].giveaway);
                                                 setTimeout_(function() {
+                                                  if(msg.deleted === true) {
+                                                    con.query(
+                                                          "DELETE FROM giveaways WHERE id = " +
+                                                            msg.id,
+                                                          function(err, con) {
+                                                            if (err) throw err;
+                                                            console.log(
+                                                              "Deleted an ended giveaway record."
+                                                            );
+                                                          }
+                                                        );
+                                                    return;
+                                                  } else {
                                                   con.query(
                                                     "SELECT * FROM giveaways WHERE id = " +
                                                       msg.id,
@@ -412,6 +442,7 @@ module.exports = {
                                                       }
                                                     }
                                                   );
+                                                }
                                                 }, time);
                                               });
                                           }
