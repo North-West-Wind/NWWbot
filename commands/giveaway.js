@@ -4,6 +4,7 @@ const client = new Discord.Client();
 var color = Math.floor(Math.random() * 16777214) + 1;
 const moment = require("moment");
 const mysql = require("mysql");
+const { prefix } = require("../config.json")
 
 function twoDigits(d) {
   if (0 <= d && d < 10) return "0" + d.toString();
@@ -11,282 +12,358 @@ function twoDigits(d) {
   return d.toString();
 }
 
-function setTimeout_ (fn, delay) {
-    var maxDelay = Math.pow(2,31)-1;
+function setTimeout_(fn, delay) {
+  var maxDelay = Math.pow(2, 31) - 1;
 
-    if (delay > maxDelay) {
-        var args = arguments;
-        args[1] -= maxDelay;
+  if (delay > maxDelay) {
+    var args = arguments;
+    args[1] -= maxDelay;
 
-        return setTimeout(function () {
-            setTimeout_.apply(fn, args);
-        }, maxDelay);
-    }
+    return setTimeout(function() {
+      setTimeout_.apply(fn, args);
+    }, maxDelay);
+  }
 
-    return setTimeout.apply(fn, arguments);
+  return setTimeout.apply(fn, arguments);
 }
 
 module.exports = {
   name: "giveaway",
   description: "Giveaway something.",
   args: true,
-  usage: "<time> <winners> <items>",
+  usage: "<subcommand>",
   aliases: ["g"],
-  subcommands: ["create", "end"],
-  execute(message, args, pool) {
-    const filter = user => user.author.id === message.author.id;
-    var guild = message.guild;
-    var ended = [];
+  subcommands: ["create", "end", "list"],
+  async execute(message, args, pool) {
+    
+    if(!args[0]) {
+      return message.channel.send(`Proper usage: ${prefix}${this.name} ${this.usage}`)
+    }
+    
     if (args[0] === "create") {
-      var item;
-      var time;
-      var winnerCount;
+      return await this.create(message, args, pool);
+    } 
+    if (args[0] === "end") {
+      return await this.end(message, args, pool);
+    } 
+    if (args[0] === "list") {
+      return await this.list(message,args, pool);
+    }
+  },
+  async create(message, args, pool) {
+    const filter = user => user.author.id === message.author.id;
+    const guild = message.guild;
+    var item;
+    var time;
+    var winnerCount;
 
-      var reacted = [];
+    var reacted = [];
 
-      message.channel
-        .send(
-          "Giveaway creation started. \n\n`Which channel do you want the giveaway be in? (Please mention the channel)`"
-        )
-        .then(mesg => {
-          message.channel
-            .awaitMessages(filter, { time: 30000, max: 1, error: ["time"] })
-            .then(collected => {
-              var channelID = collected
-                .first()
-                .content.replace(/<#/, "")
-                .replace(/>/, "");
-              var channel = guild.channels.get(channelID);
+    message.channel
+      .send(
+        'Giveaway creation started. Type "cancel" to cancel.\n\n`Which channel do you want the giveaway be in? (Please mention the channel)`'
+      )
+      .then(mesg => {
+        message.channel
+          .awaitMessages(filter, { time: 30000, max: 1, error: ["time"] })
+          .then(async collected => {
+            if (collected.first().content === "cancel") {
+              await collected.first().delete();
+              return mesg.edit("Cancelled giveaway.");
+            }
+            var channelID = collected
+              .first()
+              .content.replace(/<#/, "")
+              .replace(/>/, "");
+            var channel = guild.channels.get(channelID);
             const permissions = channel.permissionsFor(message.client.user);
-            if(!permissions.has("SEND_MESSAGES") || !permissions.has("EMBED_LINKS")) {
-              return message.channel.send("I cannot do giveaway in this channel as I don't have the permission!")
+            if (
+              !permissions.has("SEND_MESSAGES") ||
+              !permissions.has("EMBED_LINKS")
+            ) {
+              return message.channel.send(
+                "I cannot do giveaway in this channel as I don't have the permission!"
+              );
             }
             collected.first().delete();
-              mesg.edit(
-                  "The channel will be " +
-                    channel +
-                    "\n\n`Now please enter the duration of the giveaway!`"
-                )
-                .then(mesg => {
-                  message.channel
-                    .awaitMessages(filter, {
-                      time: 30000,
-                      max: 1,
-                      error: ["time"]
-                    })
-                    .then(collected2 => {
-                      var duration = ms(collected2.first().content);
-                      var sec = duration / 1000;
-                      var dd = Math.floor(sec / 86400);
-                      var dh = Math.floor((sec % 86400) / 3600);
-                      var dm = Math.floor(((sec % 86400) % 3600) / 60);
-                      var ds = Math.floor(((sec % 86400) % 3600) % 60);
-                    var dmi = Math.floor((((duration % 86400) % 3600) % 60) % 1000);
+            mesg
+              .edit(
+                "The channel will be " +
+                  channel +
+                  "\n\n`Now please enter the duration of the giveaway!`"
+              )
+              .then(mesg => {
+                message.channel
+                  .awaitMessages(filter, {
+                    time: 30000,
+                    max: 1,
+                    error: ["time"]
+                  })
+                  .then(async collected2 => {
+                    if (collected2.first().content === "cancel") {
+                      await collected2.first().delete();
+                      return mesg.edit("Cancelled giveaway.");
+                    }
+                    var duration = ms(collected2.first().content);
+                    var sec = duration / 1000;
+                    var dd = Math.floor(sec / 86400);
+                    var dh = Math.floor((sec % 86400) / 3600);
+                    var dm = Math.floor(((sec % 86400) % 3600) / 60);
+                    var ds = Math.floor(((sec % 86400) % 3600) % 60);
+                    var dmi = Math.floor(
+                      duration -
+                        dd * 86400000 -
+                        dh * 3600000 -
+                        dm * 60000 -
+                        ds * 1000
+                    );
                     var d = "";
                     var h = "";
                     var m = "";
                     var s = "";
                     var mi = "";
-                    if(dd !== 0) {
+                    if (dd !== 0) {
                       d = " " + dd + " days";
                     }
-                    if(dh !== 0) {
+                    if (dh !== 0) {
                       h = " " + dh + " hours";
                     }
-                    if(dm !== 0) {
+                    if (dm !== 0) {
                       m = " " + dm + " minutes";
                     }
-                    if(ds !== 0) {
+                    if (ds !== 0) {
                       s = " " + ds + " seconds";
                     }
-                    if(dmi !== 0) {
+                    if (dmi !== 0) {
                       mi = " " + dmi + " milliseconds";
                     }
                     collected2.first().delete();
-                      mesg.edit(
-                          "The duration will be**" + 
-                            d + h + m + s + mi +
-                        
-                            "** \n\n`I'd like to know how many participants can win this giveaway. Please enter the winner count.`"
-                        )
-                        .then(mesg => {
-                          message.channel
-                            .awaitMessages(filter, {
-                              time: 30000,
-                              max: 1,
-                              error: ["time"]
-                            })
-                            .then(collected3 => {
-                            if(isNaN(parseInt(collected3.first().content))) {
-                              return message.channel.send("The query provided is not a number! Cancelling action...")
+                    mesg
+                      .edit(
+                        "The duration will be**" +
+                          d +
+                          h +
+                          m +
+                          s +
+                          mi +
+                          "** \n\n`I'd like to know how many participants can win this giveaway. Please enter the winner count.`"
+                      )
+                      .then(mesg => {
+                        message.channel
+                          .awaitMessages(filter, {
+                            time: 30000,
+                            max: 1,
+                            error: ["time"]
+                          })
+                          .then(async collected3 => {
+                            if (collected3.first().content === "cancel") {
+                              await collected3.first().delete();
+                              return mesg.edit("Cancelled giveaway.");
                             }
-                              if (parseInt(collected3.first().content) == 1) {
-                                var participant = "participant";
-                              } else {
-                                var participant = "participants";
-                              }
+                            if (isNaN(parseInt(collected3.first().content))) {
+                              return message.channel.send(
+                                "The query provided is not a number! Cancelling action..."
+                              );
+                            }
+                            if (parseInt(collected3.first().content) == 1) {
+                              var participant = "participant";
+                            } else {
+                              var participant = "participants";
+                            }
                             collected3.first().delete();
-                              mesg.edit(
-                                  "Alright! **" +
-                                    collected3.first().content +
-                                    "** " +
-                                    participant +
-                                    " will win the giveaway. \n\n`At last, please tell me what is going to be giveaway!`"
-                                )
-                                .then(mesg => {
-                                  message.channel
-                                    .awaitMessages(filter, {
-                                      time: 30000,
-                                      max: 1,
-                                      error: ["time"]
-                                    })
-                                    .then(collected4 => {
-                                      mesg.edit(
-                                        "The items will be **" +
-                                          collected4.first().content +
-                                          "**"
-                                      );
+                            mesg
+                              .edit(
+                                "Alright! **" +
+                                  collected3.first().content +
+                                  "** " +
+                                  participant +
+                                  " will win the giveaway. \n\n`At last, please tell me what is going to be giveaway!`"
+                              )
+                              .then(mesg => {
+                                message.channel
+                                  .awaitMessages(filter, {
+                                    time: 30000,
+                                    max: 1,
+                                    error: ["time"]
+                                  })
+                                  .then(async collected4 => {
+                                    if (
+                                      collected4.first().content === "cancel"
+                                    ) {
+                                      await collected4.first().delete();
+                                      return mesg.edit("Cancelled giveaway.");
+                                    }
+                                    mesg.edit(
+                                      "The items will be **" +
+                                        collected4.first().content +
+                                        "**"
+                                    );
                                     item = collected4.first().content;
                                     winnerCount = collected3.first().content;
-                                    if (parseInt(collected3.first().content) == 1) {
-                                var sOrNot = "winner";
-                              } else {
-                                var sOrNot = "winners";
-                              }
-                                    message.channel.send("The giveaway will be held in " + channel + " for **" + d + h + m + s + "** with the item **" + item + "** and **" + winnerCount + "** " + sOrNot);
+                                    if (
+                                      parseInt(collected3.first().content) == 1
+                                    ) {
+                                      var sOrNot = "winner";
+                                    } else {
+                                      var sOrNot = "winners";
+                                    }
+                                    message.channel.send(
+                                      "The giveaway will be held in " +
+                                        channel +
+                                        " for **" +
+                                        d +
+                                        h +
+                                        m +
+                                        s +
+                                        mi +
+                                        "** with the item **" +
+                                        item +
+                                        "** and **" +
+                                        winnerCount +
+                                        "** " +
+                                        sOrNot
+                                    );
                                     collected4.first().delete();
                                     mesg.delete(10000);
 
-                                      var millisec = ms(
-                                        collected2.first().content
-                                      );
+                                    var millisec = ms(
+                                      collected2.first().content
+                                    );
 
-                                      var currentDate = new Date();
+                                    var currentDate = new Date();
 
-                                      var newDate = new Date(
-                                        currentDate.getTime() + millisec
-                                      );
+                                    var newDate = new Date(
+                                      currentDate.getTime() + millisec
+                                    );
 
-                                      var date = newDate.getDate();
-                                      var month = newDate.getMonth();
-                                      var year = newDate.getFullYear();
-                                      var hour = newDate.getHours();
-                                      var minute = newDate.getMinutes();
-                                      var second = newDate.getSeconds();
+                                    var date = newDate.getDate();
+                                    var month = newDate.getMonth();
+                                    var year = newDate.getFullYear();
+                                    var hour = newDate.getHours();
+                                    var minute = newDate.getMinutes();
+                                    var second = newDate.getSeconds();
 
-                                      var newDateSql =
-                                        year +
-                                        "-" +
-                                        twoDigits(month + 1) +
-                                        "-" +
-                                        twoDigits(date) +
-                                        " " +
-                                        twoDigits(hour) +
-                                        ":" +
-                                        twoDigits(minute) +
-                                        ":" +
-                                        twoDigits(second);
+                                    var newDateSql =
+                                      year +
+                                      "-" +
+                                      twoDigits(month + 1) +
+                                      "-" +
+                                      twoDigits(date) +
+                                      " " +
+                                      twoDigits(hour) +
+                                      ":" +
+                                      twoDigits(minute) +
+                                      ":" +
+                                      twoDigits(second);
 
-                                      var readableTime =
-                                        twoDigits(date) +
-                                        "/" +
-                                        twoDigits(month + 1) +
-                                        "/" +
-                                        twoDigits(year) +
-                                        " " +
-                                        twoDigits(hour) +
-                                        ":" +
-                                        twoDigits(minute) +
-                                        ":" +
-                                        twoDigits(second) +
-                                        " UTC";
+                                    var readableTime =
+                                      twoDigits(date) +
+                                      "/" +
+                                      twoDigits(month + 1) +
+                                      "/" +
+                                      twoDigits(year) +
+                                      " " +
+                                      twoDigits(hour) +
+                                      ":" +
+                                      twoDigits(minute) +
+                                      ":" +
+                                      twoDigits(second) +
+                                      " UTC";
 
-                                      winnerCount = parseInt(
-                                        collected3.first().content
-                                      );
-                                      time = ms(collected2.first().content);
-                                      item = collected4.first().content;
+                                    winnerCount = parseInt(
+                                      collected3.first().content
+                                    );
+                                    time = ms(collected2.first().content);
+                                    item = collected4.first().content;
 
-                                      pool.getConnection(function(err, con) {
-                                        if (err) throw err;
-                                        con.query(
-                                          "SELECT giveaway FROM servers WHERE id = " +
-                                            guild.id,
-                                          function(err, result, fields) {
-                                            var Embed = new Discord.RichEmbed()
-                                              .setColor(color)
-                                              .setTitle(item)
-                                              .setDescription(
+                                    pool.getConnection(function(err, con) {
+                                      if (err) throw err;
+                                      con.query(
+                                        "SELECT giveaway FROM servers WHERE id = " +
+                                          guild.id,
+                                        function(err, result, fields) {
+                                          var Embed = new Discord.RichEmbed()
+                                            .setColor(color)
+                                            .setTitle(item)
+                                            .setDescription(
+                                              "React with " +
+                                                result[0].giveaway +
+                                                " to participate!\n" +
+                                                "**" +
+                                                winnerCount +
+                                                " " +
+                                                sOrNot +
+                                                "** will win\n" +
                                                 "This giveaway will end at: \n**" +
-                                                  readableTime +
-                                                  "**"
-                                              )
-                                              .setTimestamp()
-                                              .setFooter(
-                                                "Hosted by " +
-                                                  message.author.username +
-                                                  "#" +
-                                                  message.author.discriminator,
-                                                message.author.displayAvatarURL
+                                                readableTime +
+                                                "**"
+                                            )
+                                            .setTimestamp()
+                                            .setFooter(
+                                              "Hosted by " +
+                                                message.author.username +
+                                                "#" +
+                                                message.author.discriminator,
+                                              message.author.displayAvatarURL
+                                            );
+
+                                          const giveawayMsg =
+                                            result[0].giveaway +
+                                            "**GIVEAWAY**" +
+                                            result[0].giveaway;
+                                          channel
+                                            .send(giveawayMsg, Embed)
+                                            .then(msg => {
+                                              con.query(
+                                                "INSERT INTO giveaways VALUES('" +
+                                                  msg.id +
+                                                  "', '" +
+                                                  guild.id +
+                                                  "', '" +
+                                                  channel.id +
+                                                  "', '" +
+                                                  item
+                                                    .replace(/"/g, '\\"')
+                                                    .replace(/'/g, "\\'") +
+                                                  "', '" +
+                                                  winnerCount +
+                                                  "', '" +
+                                                  newDateSql +
+                                                  "', '" +
+                                                  result[0].giveaway +
+                                                  "', '" +
+                                                  message.author.id +
+                                                  "', '" +
+                                                  color +
+                                                  "')",
+                                                function(err, result) {
+                                                  if (err) throw err;
+                                                  console.log(
+                                                    "Inserted record for " +
+                                                      item +
+                                                      " giveaway in channel " +
+                                                      channel.name +
+                                                      " of server " +
+                                                      guild.name
+                                                  );
+                                                }
                                               );
 
-                                            const giveawayMsg =
-                                              result[0].giveaway +
-                                              "**GIVEAWAY**" +
-                                              result[0].giveaway;
-                                            channel
-                                              .send(giveawayMsg, Embed)
-                                              .then(msg => {
-                                                con.query(
-                                                  "INSERT INTO giveaways VALUES('" +
-                                                    msg.id +
-                                                    "', '" +
-                                                    guild.id +
-                                                    "', '" +
-                                                    channel.id +
-                                                    "', '" +
-                                                    item
-                                                      .replace(/"/g, '\\"')
-                                                      .replace(/'/g, "\\'") +
-                                                    "', '" +
-                                                    winnerCount +
-                                                    "', '" +
-                                                    newDateSql +
-                                                    "', '" +
-                                                    result[0].giveaway +
-                                                    "', '" +
-                                                    message.author.id +
-                                                    "', '" +
-                                                    color +
-                                                    "')",
-                                                  function(err, result) {
-                                                    if (err) throw err;
-                                                    console.log(
-                                                      "Inserted record for " +
-                                                        item +
-                                                        " giveaway in channel " +
-                                                        channel.name +
-                                                        " of server " +
-                                                        guild.name
-                                                    );
-                                                  }
-                                                );
-
-                                                msg.react(result[0].giveaway);
-                                                setTimeout_(function() {
-                                                  if(msg.deleted === true) {
-                                                    con.query(
-                                                          "DELETE FROM giveaways WHERE id = " +
-                                                            msg.id,
-                                                          function(err, con) {
-                                                            if (err) throw err;
-                                                            console.log(
-                                                              "Deleted an ended giveaway record."
-                                                            );
-                                                          }
-                                                        );
-                                                    return;
-                                                  } else {
+                                              msg.react(result[0].giveaway);
+                                              setTimeout_(function() {
+                                                if (msg.deleted === true) {
+                                                  con.query(
+                                                    "DELETE FROM giveaways WHERE id = " +
+                                                      msg.id,
+                                                    function(err, con) {
+                                                      if (err) throw err;
+                                                      console.log(
+                                                        "Deleted an ended giveaway record."
+                                                      );
+                                                    }
+                                                  );
+                                                  return;
+                                                } else {
                                                   con.query(
                                                     "SELECT * FROM giveaways WHERE id = " +
                                                       msg.id,
@@ -304,7 +381,7 @@ module.exports = {
                                                         }
 
                                                         const remove = reacted.indexOf(
-                                                          "649611982428962819"
+                                                          "653133256186789891"
                                                         );
                                                         if (remove > -1) {
                                                           reacted.splice(
@@ -338,7 +415,7 @@ module.exports = {
                                                             )
                                                             .addField(
                                                               "Winner(s)",
-                                                              "None. Cuz no one reacted."
+                                                              "Nobody reacted."
                                                             )
                                                             .setTimestamp()
                                                             .setFooter(
@@ -443,42 +520,42 @@ module.exports = {
                                                     }
                                                   );
                                                 }
-                                                }, time);
-                                              });
-                                          }
-                                        );
-
-                                        con.release();
-                                      });
-                                    })
-                                    .catch(err => {
-                                      message.channel.send(
-                                        "30 seconds have passed. Action cancelled."
+                                              }, time);
+                                            });
+                                        }
                                       );
+
+                                      con.release();
                                     });
-                                });
-                            })
-                            .catch(err => {
-                              message.channel.send(
-                                "30 seconds have passed. Action cancelled."
-                              );
-                            });
-                        });
-                    })
-                    .catch(err => {
-                      message.channel.send(
-                        "30 seconds have passed. Action cancelled."
-                      );
-                    });
-                });
-            })
-            .catch(err => {
-              message.channel.send("30 seconds have passed. Action cancelled.");
-            });
-        });
-    } else if (args[0] === "end") {
-      if (!args[1]) {
-        return;
+                                  })
+                                  .catch(err => {
+                                    mesg.edit(
+                                      "30 seconds have passed. Action cancelled."
+                                    );
+                                  });
+                              });
+                          })
+                          .catch(err => {
+                            mesg.edit(
+                              "30 seconds have passed. Action cancelled."
+                            );
+                          });
+                      });
+                  })
+                  .catch(err => {
+                    mesg.edit("30 seconds have passed. Action cancelled.");
+                  });
+              });
+          })
+          .catch(err => {
+            mesg.edit("30 seconds have passed. Action cancelled.");
+          });
+      });
+  },
+  async end(message, args, pool) {
+    
+    if (!args[1]) {
+        return message.channel.send("You didn't provide any message ID!");
       }
       var msgID = args[1];
       pool.getConnection(function(err, con) {
@@ -498,8 +575,7 @@ module.exports = {
             );
           }
 
-          const done = msgID;
-          ended.push(done);
+          
 
           if (err) throw err;
           var fetchGuild = message.client.guilds.get(result[0].guild);
@@ -585,80 +661,83 @@ module.exports = {
         });
         con.release();
       });
-    } else if(args[0] === "list") {
-      pool.getConnection(function(err, con) {
-        if(err) throw err;
-        con.query("SELECT * FROM giveaways WHERE guild = " + guild.id, function(err, results, fields) {
-          if(err) throw err;
+  },
+  async list(message, args, pool) {
+    const guild = message.guild;
+    pool.getConnection(function(err, con) {
+        if (err) throw err;
+        con.query("SELECT * FROM giveaways WHERE guild = " + guild.id, function(
+          err,
+          results,
+          fields
+        ) {
+          if (err) throw err;
           const Embed = new Discord.RichEmbed()
-          .setColor(color)
-          .setTitle("Giveaway list")
-          .setDescription("**" + guild.name + "** - " + results.length + " giveaways")
-          .setTimestamp()
-          .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
-          
-          if(results.length > 25) {
-            for(var i = 0; i < 25; i++) {
-              var newDate = new Date(results[i].endAt)
+            .setColor(color)
+            .setTitle("Giveaway list")
+            .setDescription(
+              "**" + guild.name + "** - " + results.length + " giveaways"
+            )
+            .setTimestamp()
+            .setFooter(
+              "Have a nice day! :)",
+              "https://i.imgur.com/hxbaDUY.png"
+            );
+
+          if (results.length > 25) {
+            for (var i = 0; i < 25; i++) {
+              var newDate = new Date(results[i].endAt);
               var date = newDate.getDate();
-                                      var month = newDate.getMonth();
-                                      var year = newDate.getFullYear();
-                                      var hour = newDate.getHours();
-                                      var minute = newDate.getMinutes();
-                                      var second = newDate.getSeconds();
+              var month = newDate.getMonth();
+              var year = newDate.getFullYear();
+              var hour = newDate.getHours();
+              var minute = newDate.getMinutes();
+              var second = newDate.getSeconds();
 
-                                      
-
-                                      var readableTime =
-                                        twoDigits(date) +
-                                        "/" +
-                                        twoDigits(month + 1) +
-                                        "/" +
-                                        twoDigits(year) +
-                                        " " +
-                                        twoDigits(hour) +
-                                        ":" +
-                                        twoDigits(minute) +
-                                        ":" +
-                                        twoDigits(second) +
-                                        " UTC";
+              var readableTime =
+                twoDigits(date) +
+                "/" +
+                twoDigits(month + 1) +
+                "/" +
+                twoDigits(year) +
+                " " +
+                twoDigits(hour) +
+                ":" +
+                twoDigits(minute) +
+                ":" +
+                twoDigits(second) +
+                " UTC";
               Embed.addField(readableTime, results[i].item);
             }
-            
           } else {
             results.forEach(result => {
-              var newDate = new Date(result.endAt)
+              var newDate = new Date(result.endAt);
               var date = newDate.getDate();
-                                      var month = newDate.getMonth();
-                                      var year = newDate.getFullYear();
-                                      var hour = newDate.getHours();
-                                      var minute = newDate.getMinutes();
-                                      var second = newDate.getSeconds();
+              var month = newDate.getMonth();
+              var year = newDate.getFullYear();
+              var hour = newDate.getHours();
+              var minute = newDate.getMinutes();
+              var second = newDate.getSeconds();
 
-                                      
-
-                                      var readableTime =
-                                        twoDigits(date) +
-                                        "/" +
-                                        twoDigits(month + 1) +
-                                        "/" +
-                                        twoDigits(year) +
-                                        " " +
-                                        twoDigits(hour) +
-                                        ":" +
-                                        twoDigits(minute) +
-                                        ":" +
-                                        twoDigits(second) +
-                                        " UTC";
+              var readableTime =
+                twoDigits(date) +
+                "/" +
+                twoDigits(month + 1) +
+                "/" +
+                twoDigits(year) +
+                " " +
+                twoDigits(hour) +
+                ":" +
+                twoDigits(minute) +
+                ":" +
+                twoDigits(second) +
+                " UTC";
               Embed.addField(readableTime, result.item);
-            })
+            });
           }
-          message.channel.send(Embed)
-          
-          
+          message.channel.send(Embed);
         });
         con.release();
-      })
-    }
+      });
   }
 };

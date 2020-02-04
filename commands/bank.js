@@ -7,8 +7,15 @@ module.exports = {
   description: "Deposit/Withdraw cash in Discord.",
   usage: "[subcommand]",
   subcommands: ["deposit", "withdraw"],
-  execute(message, args, pool) {
-    if (!args[0]) {
+  async execute(message, args, pool) {
+    
+    if (args[0] === "deposit") {
+        return await this.deposit(message, args, pool);
+      } 
+      if (args[0] === "withdraw") {
+        return await this.withdraw(message, args, pool);
+      }
+    
         pool.getConnection(function(err, con) {
           if (err) throw err;
           con.query(
@@ -44,9 +51,11 @@ module.exports = {
           );
           con.release();
         });
-      }
-      if (args[0] === "deposit") {
-        if (!args[1]) {
+      
+      
+  },
+  async deposit(message, args, pool) {
+    if (!args[1]) {
           return message.channel.send(
             "Please tell me the amount to deposit. (Can be a number, `quarter`, `half`, `all`)"
           );
@@ -183,8 +192,9 @@ module.exports = {
             con.release();
           });
         }
-      } else if (args[0] === "withdraw") {
-        if (!args[1]) {
+  },
+  async withdraw(message, args, pool) {
+    if (!args[1]) {
           return message.channel.send(
             "Please tell me the amount to withdraw. (Can be a number, `quarter`, `half`, `all`)"
           );
@@ -321,6 +331,5 @@ module.exports = {
             con.release();
           });
         }
-      }
   }
 }

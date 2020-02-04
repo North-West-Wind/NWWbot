@@ -6,7 +6,7 @@ module.exports = {
   description: "Show configuration of the server.",
   usage: "[subcommand]",
   subcommands: ["new"],
-  execute(message, args, pool) {
+  async execute(message, args, pool) {
     if (message.channel instanceof Discord.DMChannel) {
        return message.channel.send("Direct messages is not configurable.")
      }
@@ -20,31 +20,9 @@ module.exports = {
     const guild = message.guild;
 
     if (args[0] === "new") {
-      require("crypto").randomBytes(24, function(err, buffer) {
-        var generated = buffer.toString("hex");
-        pool.getConnection(function(err, con) {
-          if (err) throw err;
-          con.query(
-            "UPDATE token SET id = '" +
-              generated +
-              "' WHERE guild = '" +
-              guild.id +
-              "'",
-            function(err, result) {
-              if (err) throw err;
-              console.log("Generated a new token for " + guild.name);
-              message.author.send(
-                "Generated a new token for server - **" +
-                  guild.name +
-                  "**\nToken: `" +
-                  generated + "`"
-              );
-            }
-          );
-          con.release();
-        });
-      });
-    } else {
+      return await this.new(message, args, pool)
+    }
+    
       pool.getConnection(function(err, con) {
         if (err) throw err;
         con.query("SELECT * FROM token WHERE guild=" + guild.id, async function(
@@ -88,6 +66,33 @@ module.exports = {
         });
         con.release();
       });
-    }
+    
+  },
+  new(message, args, pool) {
+    var guild = message.guild;
+    require("crypto").randomBytes(24, function(err, buffer) {
+        var generated = buffer.toString("hex");
+        pool.getConnection(function(err, con) {
+          if (err) throw err;
+          con.query(
+            "UPDATE token SET id = '" +
+              generated +
+              "' WHERE guild = '" +
+              guild.id +
+              "'",
+            function(err, result) {
+              if (err) throw err;
+              console.log("Generated a new token for " + guild.name);
+              message.author.send(
+                "Generated a new token for server - **" +
+                  guild.name +
+                  "**\nToken: `" +
+                  generated + "`"
+              );
+            }
+          );
+          con.release();
+        });
+      });
   }
 };

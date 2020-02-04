@@ -28,6 +28,7 @@
     "better-youtube-api": "^2.1.7",
     "is-url": "^1.2.4",
     "moment": "^2.24.0",
-    "canvas": "^2.6.1"
+    "canvas": "^2.6.1",
+    "random-words": "^1.1.0"
   }
 }
