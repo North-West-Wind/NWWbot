@@ -2,6 +2,7 @@ const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const client = new Discord.Client();
 const ms = require("ms");
+const { prefix } = require("../config.json")
 
 function twoDigits(d) {
   if (0 <= d && d < 10) return "0" + d.toString();
@@ -27,20 +28,39 @@ function setTimeout_(fn, delay) {
 module.exports = {
   name: "poll",
   description: "create a poll.",
-  usage: "<title> <time> <options>",
-  execute(message, args, pool) {
-    const filter = m => m.author.id === message.author.id;
+  usage: "<subcommand>",
+  async execute(message, args, pool) {
+    
+    if(!args[0]) {
+      return message.channel.send(`Proper usage: ${prefix}${this.name} ${this.usage}`)
+    }
+    
     if (args[0] === "create") {
-      pool.getConnection(async function(err, con) {
+      return await this.create(message, args, pool);
+    } 
+    if (args[0] === "end") {
+      return await this.create(message, args, pool);
+    } 
+    if (args[0] === "list") {
+      return await this.list(message, args, pool);
+    }
+  },
+  async create(message, args, pool) {
+    const filter = m => m.author.id === message.author.id;
+    pool.getConnection(async function(err, con) {
         if (err) throw err;
         var msg = await message.channel.send(
-          "Starting a poll.\n\n`Please enter where you want to host your poll.(Mention the channel)`"
+          "Starting a poll. Type \"cancel\" to cancel.\n\n`Please enter where you want to host your poll.(Mention the channel)`"
         );
         var channelCollected = await message.channel.awaitMessages(filter, {
           time: 30000,
           max: 1,
           error: ["error"]
-        });
+        }).catch(err => msg.edit("Time's up. Cancelled action."));
+        if(channelCollected.first().content === "cancel") {
+          await channelCollected.first().delete();
+          return msg.edit("Cancelled poll.")
+        }
         var channelID = channelCollected
           .first()
           .content.replace(/<#/g, "")
@@ -59,7 +79,11 @@ module.exports = {
           time: 30000,
           max: 1,
           error: ["time"]
-        });
+        }).catch(err => msg.edit("Time's up. Cancelled action."));
+        if(collected.first().content === "cancel") {
+          await collected.first().delete();
+          return msg.edit("Cancelled poll.")
+        }
         var title = collected.first().content;
         await collected.first().delete();
         await msg.edit(
@@ -71,7 +95,11 @@ module.exports = {
           time: 30000,
           max: 1,
           error: ["time"]
-        });
+        }).catch(err => msg.edit("Time's up. Cancelled action."));
+        if(collected2.first().content === "cancel") {
+          await collected2.first().delete();
+          return msg.edit("Cancelled poll.")
+        }
         var time = ms(collected2.first().content);
         var duration = ms(collected2.first().content);
         var sec = duration / 1000;
@@ -79,7 +107,7 @@ module.exports = {
         var dh = Math.floor((sec % 86400) / 3600);
         var dm = Math.floor(((sec % 86400) % 3600) / 60);
         var ds = Math.floor(((sec % 86400) % 3600) % 60);
-        var dmi = Math.floor((((duration % 86400) % 3600) % 60) % 1000)
+        var dmi = Math.floor(duration - (dd * 86400000) - (dh * 3600000) - (dm * 60000) - (ds * 1000));
         var d = "";
         var h = "";
         var m = "";
@@ -114,7 +142,11 @@ module.exports = {
           time: 60000,
           max: 1,
           error: ["time"]
-        });
+        }).catch(err => msg.edit("Time's up. Cancelled action."));
+        if(optionString.first().content === "cancel") {
+          await optionString.first().delete();
+          return msg.edit("Cancelled poll.")
+        }
 
         var options = optionString
           .first()
@@ -136,6 +168,7 @@ module.exports = {
             h +
             m +
             s +
+            mi +
             "** with the title **" +
             title +
             "** and the options will be **" +
@@ -334,8 +367,9 @@ module.exports = {
 
         con.release();
       });
-    } else if (args[0] === "end") {
-      if (!args[1]) {
+  },
+  async end(message, args, pool) {
+    if (!args[1]) {
         return message.channel.send("Please provide the ID of the message!");
       }
       var msgID = args[1];
@@ -404,8 +438,9 @@ module.exports = {
         });
         con.release();
       });
-    } else if (args[0] === "list") {
-      pool.getConnection(function(err, con) {
+  },
+  async list(message, args, pool) {
+    pool.getConnection(function(err, con) {
         if (err) throw err;
         con.query(
           "SELECT * FROM poll WHERE guild = " + message.guild.id,
@@ -478,6 +513,5 @@ module.exports = {
         );
         con.release();
       });
-    }
   }
 };

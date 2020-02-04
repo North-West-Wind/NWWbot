@@ -15,6 +15,7 @@ dependencies:
   mysql: 2.18.1
   node-fetch: 2.6.0
   opusscript: 0.0.7
+  random-words: 1.1.0
   request-promise: 4.2.5
   simple-youtube-api: 5.2.1
   ytdl-core: 1.0.7
@@ -665,7 +666,7 @@ packages:
   /krunker.js/1.2.5:
     dependencies:
       msgpack-lite: 0.1.26
-      npm: 6.13.6
+      npm: 6.13.7
       ws: 6.2.1
     dev: false
     engines:
@@ -848,7 +849,7 @@ packages:
       mkdirp: 0.5.1
       needle: 2.4.0
       nopt: 4.0.1
-      npm-packlist: 1.4.7
+      npm-packlist: 1.4.8
       npmlog: 4.1.2
       rc: 1.2.8
       rimraf: 2.7.1
@@ -876,14 +877,15 @@ packages:
     dev: false
     resolution:
       integrity: sha512-EPfafl6JL5/rU+ot6P3gRSCpPDW5VmIzX959Ob1+ySFUuuYHWHekXpwdUZcKP5C+DS4GEtdJluwBjnsNDl+fSA==
-  /npm-packlist/1.4.7:
+  /npm-packlist/1.4.8:
     dependencies:
       ignore-walk: 3.0.3
       npm-bundled: 1.1.1
+      npm-normalize-package-bin: 1.0.1
     dev: false
     resolution:
-      integrity: sha512-vAj7dIkp5NhieaGZxBJB8fF4R0078rqsmhJcAfXZ6O7JJhjhPK96n5Ry1oZcfLXgfun0GWTZPOxaEyqv8GBykQ==
-  /npm/6.13.6:
+      integrity: sha512-5+AZgwru5IevF5ZdnFglB5wNlHG1AOOuw28WhUq8/8emhBmLv6jX5by4WJCh7lW0uSYZYS6DXqIsyZVIXRZU9A==
+  /npm/6.13.7:
     bundledDependencies:
       - abbrev
       - ansicolors
@@ -1011,7 +1013,7 @@ packages:
     dev: false
     hasBin: true
     resolution:
-      integrity: sha512-NomC08kv7HIl1FOyLOe9Hp89kYsOsvx52huVIJ7i8hFW8Xp65lDwe/8wTIrh9q9SaQhA8hTrfXPh3BEL3TmMpw==
+      integrity: sha512-X967EKTT407CvgrWFjXusnPh0VLERcmR9hZFSVgkEquOomZkvpwLJ5zrQ3qrG9SpPLKJE4bPLUu76exKQ4a3Cg==
   /npmlog/4.1.2:
     dependencies:
       are-we-there-yet: 1.1.5
@@ -1137,6 +1139,10 @@ packages:
       node: '>=0.6'
     resolution:
       integrity: sha512-VCdBRNFTX1fyE7Nb6FYoURo/SPe62QCaAyzJvUjwRaIsc+NePBEniHlvxFmmX56+HZphIGtV0XeCirBtpDrTyQ==
+  /random-words/1.1.0:
+    dev: false
+    resolution:
+      integrity: sha512-GyV8PlSmQE08S/RSCjG9Uh0uQaUC7iRpA18PWk9OSnvNCzKQ+B2NxqqN/cYBej4t7dfBWxh10KFBYSiNcg1jlg==
   /range-parser/1.2.1:
     dev: false
     engines:
@@ -1589,6 +1595,7 @@ specifiers:
   mysql: ^2.18.1
   node-fetch: ^2.6.0
   opusscript: ^0.0.7
+  random-words: ^1.1.0
   request-promise: ^4.2.5
   simple-youtube-api: ^5.2.1
   ytdl-core: ^1.0.7
