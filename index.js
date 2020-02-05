@@ -84,7 +84,18 @@ client.once("ready", () => {
         setTimeout_(async function() {
           var fetchGuild = await client.guilds.get(result.guild);
           var channel = await fetchGuild.channels.get(result.channel);
+          try {
           var msg = await channel.fetchMessage(result.id);
+          } catch(err) {
+            con.query("DELETE FROM giveaways WHERE id = " + result.id, function(
+            err,
+            con
+          ) {
+            if (err) throw err;
+            console.log("Deleted an ended giveaway record.");
+          });
+            return;
+          }
           if(msg.deleted === true) {
             con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
             err,
@@ -166,6 +177,8 @@ client.once("ready", () => {
               fetchUser.displayAvatarURL
             );
           msg.edit(Ended);
+            var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`
+            msg.channel.send("Congratulation, " + winnerMessage + "! You won **" + result.item + "**!\n" + link)
           msg
             .clearReactions()
             .catch(error =>
@@ -193,7 +206,18 @@ client.once("ready", () => {
         setTimeout_(async function() {
         var guild = await client.guilds.get(result.guild);
           var channel = await guild.channels.get(result.channel);
+          try {
           var msg = await channel.fetchMessage(result.id);
+          } catch(err) {
+            con.query("DELETE FROM giveaways WHERE id = " + result.id, function(
+            err,
+            con
+          ) {
+            if (err) throw err;
+            console.log("Deleted an ended poll.");
+          });
+            return;
+          }
           
           if(msg.deleted === true) {
             con.query("DELETE FROM poll WHERE id = " + msg.id, function(
@@ -234,6 +258,9 @@ client.once("ready", () => {
               author.displayAvatarURL
             );
           msg.edit(pollMsg, Ended);
+            var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`
+           
+            msg.channel.send("A poll has ended!\n" + link);
           msg.clearReactions().catch(err => {
             console.error(err);
           });

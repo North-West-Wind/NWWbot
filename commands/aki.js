@@ -41,7 +41,7 @@ module.exports = {
   yes: "✅",
   no: "❌",
   unknown: "❓",
-  probably: "🤔",
+  probably: "⭕",
   probablyNot: "🚫",
   back: "⬅",
   stop: "⏹",
@@ -123,7 +123,7 @@ module.exports = {
       .setTitle("Question 1: " + info.question)
       .setDescription(nextInfo.nextQuestion)
       .setTimestamp()
-      .setFooter("Please answer within 60 seconds.");
+      .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL);
 
     var msg = await message.channel.send(embed);
     await msg.react(this.yes);
@@ -212,7 +212,7 @@ module.exports = {
           }
           embed.setTitle("Akinator was stopped");
           embed.setDescription("Thanks for playing!");
-          embed.setFooter("Have a nice day! :)");
+          embed.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
           msg.edit(embed);
           return;
         } else if (answerID != null) {
@@ -222,7 +222,9 @@ module.exports = {
             // we had the right answer
             if (answerID === 0) {
               // send message
-              embed.setFooter("I am right!")
+              embed.setFooter("I am right!", message.client.user.displayAvatarURL)
+              embed.setTitle("I got the correct answer!")
+              embed.setDescription("")
               msg = await msg.edit(
                 `Looks like I win again! This time after ${nextInfo.nextStep} steps. Thanks for playing!`,
                 embed
@@ -239,7 +241,7 @@ module.exports = {
               embed.setTitle("Akinator")
             .setDescription("Resuming game...")
             .setImage(undefined)
-            .setFooter("Please wait patiently")
+            .setFooter("Please wait patiently", message.client.user.displayAvatarURL)
             
             msg.edit(embed)
               await msg.react(this.probably)
@@ -295,7 +297,7 @@ module.exports = {
             
             embed.setTitle("Akinator")
             .setDescription("Loading result...")
-            .setFooter("Please wait patiently")
+            .setFooter("Please wait patiently", message.client.user.displayAvatarURL)
             
             msg.edit(embed)
             
@@ -350,7 +352,7 @@ module.exports = {
             embed.setDescription(
               `**${name}**\n**${description}**\n${this.yes} **Yes**\n${this.no} **No**`
             );
-            embed.setFooter("Am I correct?")
+            embed.setFooter("Am I correct?", message.client.user.displayAvatarURL)
             if (image != null) {
               embed.setImage(image);
             }
@@ -359,8 +361,10 @@ module.exports = {
 
             // done with the game, we can't do anything else.
             if (nextInfo.nextStep >= 79) {
+              embed.setTitle("This is my final guess!")
               embed.setDescription(`**${name}**\n**${description}**`)
-              embed.setFooter("This is my final guess!")
+              embed.setFooter("Hope I am correct!", message.client.user.displayAvatarURL)
+              msg.edit(embed)
               if (collector != null && collector.emit) {
                 collector.emit("end");
               }
@@ -376,7 +380,7 @@ module.exports = {
             )
             .setDescription(str)
             .setImage(undefined)
-            .setFooter("Please answer within 60 seconds.");
+            .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL);
           msg = await msg.edit(embed);
         }
       }, 1000);

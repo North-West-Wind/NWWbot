@@ -1,25 +1,40 @@
 dependencies:
+  '@discordjs/opus': 0.1.0
   aki-api: 3.2.1
   algebra.js: 0.2.6
-  better-youtube-api: 2.1.7
   canvas: 2.6.1
   discord.js: 11.5.1
   express: 4.17.1
   express.js: 1.0.0
-  ffmpeg: 0.0.4
+  ffmpeg-static: 4.0.1
   is-url: 1.2.4
   krunker.js: 1.2.5
   mojang-api: 0.0.2
   moment: 2.24.0
   ms: 2.1.2
   mysql: 2.18.1
+  nekos.life: 2.0.5
   node-fetch: 2.6.0
-  opusscript: 0.0.7
+  pixula-v2: 1.0.5
+  prism-media: 1.2.0
   random-words: 1.1.0
   request-promise: 4.2.5
   simple-youtube-api: 5.2.1
-  ytdl-core: 1.0.7
+  ytdl-core: github.com/fent/node-ytdl-core/99284abc4341fd8490a8f83ac1442bf02672a4d8
+  ytdl-core-discord: github.com/amishshah/ytdl-core-discord/5e80e129d01ef98f15bbc421c09fb61081b3eb79
 packages:
+  /@discordjs/opus/0.1.0:
+    dependencies:
+      node-addon-api: 2.0.0
+      node-pre-gyp: 0.14.0
+    dev: false
+    requiresBuild: true
+    resolution:
+      integrity: sha512-VWsrsgqSktxOEHx9SFcnOWJhYQOsyzaW3JVN73LDSzKrycEjtRIS+axlm4qeMGx60u6RH1SY15b3pl5G4+Y+gA==
+  /@types/node/13.7.0:
+    dev: false
+    resolution:
+      integrity: sha512-GnZbirvmqZUzMgkFn70c74OQpTTUcCzlhQliTzYjQMqg+hVKcDnxdL19Ne3UdYzdMA/+W3eb646FWn/ZaT1NfQ==
   /abbrev/1.1.1:
     dev: false
     resolution:
@@ -118,11 +133,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-pDAdOJtqQ/m2f/PKEaP2Y342Dp4=
-  /better-youtube-api/2.1.7:
-    deprecated: 'renamed to https://npmjs.com/package/popyt'
-    dev: false
-    resolution:
-      integrity: sha512-i4f1DpCBRx2RAeWTmDb2aIClU1tyek6RL36CTfM8njxEypa9vz52HZgJ+PQy1d4AkQjRuwAUeGZjUgeUWg7qkQ==
   /bignumber.js/9.0.0:
     dev: false
     resolution:
@@ -409,12 +419,16 @@ packages:
     dev: false
     resolution:
       integrity: sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==
-  /ffmpeg/0.0.4:
+  /ffmpeg-static/4.0.1:
     dependencies:
-      when: 3.7.8
+      progress: 2.0.3
+      simple-get: 3.1.0
     dev: false
+    engines:
+      node: '>=10'
+    requiresBuild: true
     resolution:
-      integrity: sha1-HEYN+OfaUSf2LO70v6BsWciWMMs=
+      integrity: sha512-tUGBiessDvslK6jfVpfrhm6NvXPrIOclSVsqI8FGx4uDPN6xvdH8mGghcZDOjXky65FjaRPcTu3y/8Ne6VXRtQ==
   /finalhandler/1.1.2:
     dependencies:
       debug: 2.6.9
@@ -820,7 +834,7 @@ packages:
     dev: false
     resolution:
       integrity: sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg==
-  /needle/2.4.0:
+  /needle/2.3.2:
     dependencies:
       debug: 3.2.6
       iconv-lite: 0.4.24
@@ -830,13 +844,21 @@ packages:
       node: '>= 4.4.x'
     hasBin: true
     resolution:
-      integrity: sha512-4Hnwzr3mi5L97hMYeNl8wRW/Onhy4nUKR/lVemJ8gJedxxUyBLm9kkrDColJvoSfwi0jCNhD+xCdOtiGDQiRZg==
+      integrity: sha512-DUzITvPVDUy6vczKKYTnWc/pBZ0EnjMJnQ3y+Jo5zfKFimJs7S3HFCxCRZYB9FUZcrzUQr3WsmvZgddMEIZv6w==
   /negotiator/0.6.2:
     dev: false
     engines:
       node: '>= 0.6'
     resolution:
       integrity: sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==
+  /nekos.life/2.0.5:
+    dev: false
+    resolution:
+      integrity: sha512-VRbi0vkoStpR/sHmu0gzlG0Dnh4xv8jAgmPXV7lcFwBGClcJE+x2XCr/WbbUkCtGzBzttJ/JEmImxd7tBtV6hA==
+  /node-addon-api/2.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-ASCL5U13as7HhOExbT6OlWJJUV/lLzL2voOSP1UVehpRD8FbSrSDjfScK/KwAvVTI5AS6r4VwbOMlIqtvRidnA==
   /node-fetch/2.6.0:
     dev: false
     engines:
@@ -847,7 +869,7 @@ packages:
     dependencies:
       detect-libc: 1.0.3
       mkdirp: 0.5.1
-      needle: 2.4.0
+      needle: 2.3.2
       nopt: 4.0.1
       npm-packlist: 1.4.8
       npmlog: 4.1.2
@@ -859,6 +881,22 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-TwWAOZb0j7e9eGaf9esRx3ZcLaE5tQ2lvYy1pb5IAaG1a2e2Kv5Lms1Y4hpj+ciXJRofIxxlt5haeQ/2ANeE0Q==
+  /node-pre-gyp/0.14.0:
+    dependencies:
+      detect-libc: 1.0.3
+      mkdirp: 0.5.1
+      needle: 2.3.2
+      nopt: 4.0.1
+      npm-packlist: 1.4.8
+      npmlog: 4.1.2
+      rc: 1.2.8
+      rimraf: 2.7.1
+      semver: 5.7.1
+      tar: 4.4.13
+    dev: false
+    hasBin: true
+    resolution:
+      integrity: sha512-+CvDC7ZttU/sSt9rFjix/P05iS43qHCOOGzcr3Ry99bXG7VX953+vFyEuph/tfqoYu8dttBkE86JSKBO2OzcxA==
   /nopt/4.0.1:
     dependencies:
       abbrev: 1.1.1
@@ -1053,10 +1091,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-WDsap3WWHUsROsF9nFC6753Xa9E=
-  /opusscript/0.0.7:
-    dev: false
-    resolution:
-      integrity: sha512-DcBadTdYTUuH9zQtepsLjQn4Ll6rs3dmeFvN+SD0ThPnxRBRm/WC1zXWPg+wgAJimB784gdZvUMA57gDP7FdVg==
   /os-homedir/1.0.2:
     dev: false
     engines:
@@ -1096,14 +1130,33 @@ packages:
     dev: false
     resolution:
       integrity: sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
+  /pixula-v2/1.0.5:
+    dev: false
+    resolution:
+      integrity: sha512-aG3IFW3A9srAj1DEeYYaqrALGkbhpKQATFS2GLm0mNglVTUaSfg7ptycpgGPls010OxNiorFLQCByFQ2GazgGw==
   /prism-media/0.0.3:
     dev: false
     resolution:
       integrity: sha512-c9KkNifSMU/iXT8FFTaBwBMr+rdVcN+H/uNv1o+CuFeTThNZNTOrQ+RgXA1yL/DeLk098duAeRPP3QNPNbhxYQ==
+  /prism-media/1.2.0:
+    dev: false
+    peerDependencies:
+      '@discordjs/opus': ^0.1.0
+      ffmpeg-static: ^2.4.0 || ^3.0.0
+      node-opus: ^0.3.1
+      opusscript: ^0.0.6
+    resolution:
+      integrity: sha512-zjcO/BLVlfxWqFpEUlDyL1R9XXMquasNP4xpeYDPPZi/Zcz0i6OXoqcvxOLgbRVPsJXVd29vlYmRx2bts+hzEw==
   /process-nextick-args/2.0.1:
     dev: false
     resolution:
       integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==
+  /progress/2.0.3:
+    dev: false
+    engines:
+      node: '>=0.4.0'
+    resolution:
+      integrity: sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==
   /proxy-addr/2.0.5:
     dependencies:
       forwarded: 0.1.2
@@ -1540,10 +1593,6 @@ packages:
       '0': node >=0.6.0
     resolution:
       integrity: sha1-OhBcoXBTr1XW4nDB+CiGguGNpAA=
-  /when/3.7.8:
-    dev: false
-    resolution:
-      integrity: sha1-xxMLan6gRpPoQs3J56Hyqjmjn4I=
   /wide-align/1.1.3:
     dependencies:
       string-width: 2.1.1
@@ -1575,27 +1624,55 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-gECPN5g5JnSy8hIq11xHIGe1T/Xzy0mWxQin3zhlJ3nG/YjPcEVEejrdd2XmA4Vv2Zw3+b1ZyDjmt37XfZri6A==
+  github.com/amishshah/ytdl-core-discord/5e80e129d01ef98f15bbc421c09fb61081b3eb79:
+    dependencies:
+      '@types/node': 13.7.0
+      prism-media: 1.2.0
+      ytdl-core: 1.0.7
+    dev: false
+    name: ytdl-core-discord
+    resolution:
+      registry: 'https://registry.npmjs.org/'
+      tarball: 'https://codeload.github.com/amishshah/ytdl-core-discord/tar.gz/5e80e129d01ef98f15bbc421c09fb61081b3eb79'
+    version: 1.1.0
+  github.com/fent/node-ytdl-core/99284abc4341fd8490a8f83ac1442bf02672a4d8:
+    dependencies:
+      html-entities: 1.2.1
+      m3u8stream: 0.6.4
+      miniget: 1.6.1
+      sax: 1.2.4
+    dev: false
+    engines:
+      node: '>=6'
+    name: ytdl-core
+    resolution:
+      registry: 'https://registry.npmjs.org/'
+      tarball: 'https://codeload.github.com/fent/node-ytdl-core/tar.gz/99284abc4341fd8490a8f83ac1442bf02672a4d8'
+    version: 1.0.7
 registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
+  '@discordjs/opus': ^0.1.0
   aki-api: ^3.2.1
   algebra.js: ^0.2.6
-  better-youtube-api: ^2.1.7
   canvas: ^2.6.1
   discord.js: ^11.5.1
   express: ^4.17.1
   express.js: ^1.0.0
-  ffmpeg: ^0.0.4
+  ffmpeg-static: ^4.0.1
   is-url: ^1.2.4
   krunker.js: ^1.2.4
   mojang-api: ^0.0.2
   moment: ^2.24.0
   ms: ^2.1.2
   mysql: ^2.18.1
+  nekos.life: ^2.0.5
   node-fetch: ^2.6.0
-  opusscript: ^0.0.7
+  pixula-v2: ^1.0.1
+  prism-media: ^1.2.0
   random-words: ^1.1.0
   request-promise: ^4.2.5
   simple-youtube-api: ^5.2.1
-  ytdl-core: ^1.0.7
+  ytdl-core: 'github:fent/node-ytdl-core#master'
+  ytdl-core-discord: 'github:amishshah/ytdl-core-discord#master'

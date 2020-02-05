@@ -1,5 +1,5 @@
 const { prefix } = require("./config.json");
-const ytdl = require("ytdl-core");
+const ytdl = require("ytdl-core-discord");
 const Discord = require("discord.js");
 const YouTube = require("simple-youtube-api");
 const youtube = new YouTube(process.env.YT);
@@ -15,7 +15,12 @@ function validURL(str) {
   ); // fragment locator
   return !!pattern.test(str);
 }
-var looping = [];
+function validYTURL(str) {
+  var pattern = new RegExp("^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(\.com)?\/.+"
+  ); // fragment locator
+  return !!pattern.test(str);
+}
+var looping = new Map();
 
 const queue = new Map();
 var color = Math.floor(Math.random() * 16777214) + 1;
@@ -279,13 +284,13 @@ var encodeHtmlEntity = function(str) {
   return buf.join("");
 };
 
-function isUrl(s) {
-  var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
-  return regexp.test(s);
-}
 
 async function execute(message, serverQueue, pool) {
   const args = message.content.split(" ");
+  
+  if(!args[1]) {
+    return message.channel.send("Please provide a link or keywords to get a music played!")
+  }
 
   const voiceChannel = message.member.voiceChannel;
   if (!voiceChannel)
@@ -300,7 +305,15 @@ async function execute(message, serverQueue, pool) {
   const checkURL = validURL(args[1]);
 
   if (checkURL === true) {
+    
+    if(validYTURL(args[1]) === false) {
+      return message.channel.send("We only support YouTube video links, sorry!")
+    }
+    try {
     var songInfo = await ytdl.getInfo(args[1]);
+    } catch (err) {
+      return message.channel.send("No video was found!")
+    }
     let song = {
       id: songInfo.video_id,
       title: songInfo.title,
@@ -617,20 +630,21 @@ async function play(guild, song, pool) {
   }
 
   const dispatcher = serverQueue.connection
-    .playStream(ytdl(song.url))
+    .playOpusStream(await ytdl(song.url, { highWaterMark: 1<<27 }))
     .on("end", () => {
-      const guildLoopStatus = looping.find(x => x.guild === guild.id);
+      const guildLoopStatus = looping.get(guild.id);
       if (
         guildLoopStatus === undefined ||
         guildLoopStatus === null ||
-        guildLoopStatus.loop === false
+        !guildLoopStatus ||
+        guildLoopStatus === false
       ) {
-        console.log("Music ended!");
+        console.log("Music ended! In " + guild.name);
         serverQueue.songs.shift();
        
         play(guild, serverQueue.songs[0], pool);
       } else {
-        console.log("Music ended!");
+        console.log("Music ended! In " + guild.name);
         serverQueue.songs.push(song);
         serverQueue.songs.shift();
         
@@ -679,24 +693,22 @@ function lp(message, serverQueue) {
   if (!message.member.voiceChannel)
     return message.channel.send("You are not in a voice channel!");
   if (!serverQueue) return message.channel.send("There is nothing playing.");
-  const guildLoopStatus = looping.find(x => x.guild === message.guild.id);
-  if (guildLoopStatus === undefined || guildLoopStatus === null) {
-    const guildLoop = {
-      guild: message.guild.id,
-      loop: true
-    };
-    looping.push(guildLoop);
+  const guildLoopStatus = looping.get(message.guild.id);
+  if (guildLoopStatus === undefined || guildLoopStatus === null || guildLoopStatus) {
+    
+    looping.set(message.guild.id, true);
     message.channel.send("The song queue is now being looped.");
+    
   } else {
-    if (guildLoopStatus.loop === false) {
-      guildLoopStatus.loop = true;
+    if (guildLoopStatus === false) {
+      guildLoopStatus = true;
       message.channel.send("The song queue is now being looped.");
 
-      return guildLoopStatus.loop;
+      return guildLoopStatus;
     } else {
-      guildLoopStatus.loop = false;
+      guildLoopStatus = false;
       message.channel.send("The song queue is no longer being looped.");
-      return guildLoopStatus.loop;
+      return guildLoopStatus;
     }
   }
 }
