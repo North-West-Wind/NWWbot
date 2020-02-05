@@ -34,6 +34,11 @@ const applyText = (canvas, text) => {
                 // Return the result to use in the actual canvas
                 return ctx.font;
               };
+function validYTURL(str) {
+  var pattern = new RegExp("^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(\.com)?\/.+"
+  ); // fragment locator
+  return !!pattern.test(str);
+}
 
 module.exports = {
   name: "test",
@@ -41,38 +46,8 @@ module.exports = {
   execute(message, args, pool) {
     const filter = x => x.author.id === message.author.id;
     pool.getConnection(async function(err, con) {
-      var words = randomWords(1)
-      var wordCanvas = await Canvas.createCanvas(720, 360);
-            const ctx = await wordCanvas.getContext('2d');
-            
-            
-            
-            var image = await Canvas.loadImage("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2F59793522-watercolor-paper-texture-abstract-white-blank-paper.jpg?v=1580730663162")
-            
-             await ctx.drawImage(image, 0, 0, 720, 360);
-            var txt = words[0];
-
-              //draw font
-              ctx.font = applyText(wordCanvas, txt);
-              ctx.strokeStyle = "black";
-              ctx.lineWidth = wordCanvas.width / 102.4;
-              ctx.strokeText(
-                txt,
-                wordCanvas.width / 2 - ctx.measureText(txt).width / 2,
-                (wordCanvas.height) / 2
-              );
-              ctx.fillStyle = "#ffffff";
-              ctx.fillText(
-                txt,
-                wordCanvas.width / 2 - ctx.measureText(txt).width / 2,
-                (wordCanvas.height) / 2
-              );
-      
-      var attachment = new Discord.Attachment(
-                wordCanvas.toBuffer(),
-                "word-image.png"
-              );
-     message.channel.send(attachment);
+      var link = `https://discordapp.com/channels/${message.guild.id}/${message.channel.id}/${message.id}`
+      message.channel.send(link);
     })
      
   }

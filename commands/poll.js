@@ -29,10 +29,11 @@ module.exports = {
   name: "poll",
   description: "create a poll.",
   usage: "<subcommand>",
+  subcommands: ["create","end", "list"],
   async execute(message, args, pool) {
     
     if(!args[0]) {
-      return message.channel.send(`Proper usage: ${prefix}${this.name} ${this.usage}`)
+      return message.channel.send(`Proper usage: ${prefix}${this.name} ${this.usage}\nSubcommands: \`${this.subcommands.join("`, `")}\``)
     }
     
     if (args[0] === "create") {
@@ -350,6 +351,9 @@ module.exports = {
                   message.author.displayAvatarURL
                 );
               msg.edit(pollMsg, Ended);
+              var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`
+           
+            msg.channel.send("A poll has ended!\n" + link);
               msg.clearReactions().catch(err => {
                 console.error(err);
               });
@@ -392,7 +396,18 @@ module.exports = {
 
           var guild = await message.client.guilds.get(result[0].guild);
           var channel = await guild.channels.get(result[0].channel);
-          var msg = await channel.fetchMessage(msgID);
+          try {
+          var msg = await channel.fetchMessage(result[0].id);
+          } catch(err) {
+            con.query("DELETE FROM giveaways WHERE id = " + result[0].id, function(
+            err,
+            con
+          ) {
+            if (err) throw err;
+            console.log("Deleted an ended poll.");
+          });
+            return;
+          }
           var author = await message.client.fetchUser(result[0].author);
           var allOptions = await JSON.parse(result[0].options);
 
@@ -425,6 +440,9 @@ module.exports = {
               author.displayAvatarURL
             );
           msg.edit(pollMsg, Ended);
+          var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`
+           
+            msg.channel.send("A poll has ended!\n" + link);
           msg.clearReactions().catch(err => {
             console.error(err);
           });

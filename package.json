@@ -13,8 +13,7 @@
     "discord.js": "^11.5.1",
     "express": "^4.17.1",
     "express.js": "^1.0.0",
-    "ffmpeg": "^0.0.4",
-    "ytdl-core": "^1.0.7",
+    "ytdl-core": "github:fent/node-ytdl-core#master",
     "mojang-api": "^0.0.2",
     "ms": "^2.1.2",
     "aki-api": "^3.2.1",
@@ -22,13 +21,17 @@
     "request-promise": "^4.2.5",
     "node-fetch": "^2.6.0",
     "algebra.js": "^0.2.6",
-    "opusscript": "^0.0.7",
     "simple-youtube-api": "^5.2.1",
     "krunker.js": "^1.2.4",
-    "better-youtube-api": "^2.1.7",
     "is-url": "^1.2.4",
     "moment": "^2.24.0",
     "canvas": "^2.6.1",
-    "random-words": "^1.1.0"
+    "random-words": "^1.1.0",
+    "ytdl-core-discord": "github:amishshah/ytdl-core-discord#master",
+    "prism-media": "^1.2.0",
+    "ffmpeg-static": "^4.0.1",
+    "@discordjs/opus": "^0.1.0",
+    "pixula-v2": "^1.0.1",
+    "nekos.life": "^2.0.5"
   }
 }
