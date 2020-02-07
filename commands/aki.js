@@ -55,21 +55,31 @@ module.exports = {
    * @returns {Promise<Promise<Message|Message[]>|*>}
    */
   async execute(message, args) {
-   if (args.length >= 1 && args[0].toLowerCase() === 'help') {
+    var ended = new Map();
+    if (args.length >= 1 && args[0].toLowerCase() === "help") {
       return await message.channel.send(await this.help(prefix, message, args));
     }
-    if (args.length >= 1 && args[0].toLowerCase() === 'region') {
+    if (args.length >= 1 && args[0].toLowerCase() === "region") {
       return await this.region(message, args);
     }
-    const reactPermissions = message.guild.me.hasPermission(['ADD_REACTIONS', 'EMBED_LINKS', 'READ_MESSAGE_HISTORY'])
-        && message.channel.permissionsFor(message.guild.me).has(['ADD_REACTIONS', 'EMBED_LINKS', 'READ_MESSAGE_HISTORY']);
+    const reactPermissions =
+      message.guild.me.hasPermission([
+        "ADD_REACTIONS",
+        "EMBED_LINKS",
+        "READ_MESSAGE_HISTORY"
+      ]) &&
+      message.channel
+        .permissionsFor(message.guild.me)
+        .has(["ADD_REACTIONS", "EMBED_LINKS", "READ_MESSAGE_HISTORY"]);
 
     if (!reactPermissions) {
-      return await message.channel.send('`❌` | I need reaction permissions, embed permissions, and read message history permissions.');
+      return await message.channel.send(
+        "`❌` | I need reaction permissions, embed permissions, and read message history permissions."
+      );
     }
-    
+
     // get region if it exists
-    let region = 'en';
+    let region = "en";
     if (args.length >= 1) {
       const testRegion = args[0];
       const i = this.regions.findIndex(reg => testRegion === reg);
@@ -123,7 +133,10 @@ module.exports = {
       .setTitle("Question 1: " + info.question)
       .setDescription(nextInfo.nextQuestion)
       .setTimestamp()
-      .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL);
+      .setFooter(
+        "Please answer within 60 seconds.",
+        message.client.user.displayAvatarURL
+      );
 
     var msg = await message.channel.send(embed);
     await msg.react(this.yes);
@@ -133,6 +146,8 @@ module.exports = {
     await msg.react(this.unknown);
     await msg.react(this.back);
     await msg.react(this.stop);
+
+    await ended.set(msg.id, false);
 
     const author = message.author.id;
     const filter = (reaction, user) =>
@@ -150,9 +165,26 @@ module.exports = {
 
     const collector = msg.createReactionCollector(filter);
 
-    const timeout = setTimeout(() => {
-      if (collector != null && collector.emit) {
-        collector.emit("end");
+    const timeout = setTimeout(async () => {
+      const isEnded = await ended.get(msg.id);
+      if (isEnded == false) {
+        embed
+          .setTitle("Akinator has timed out")
+          .setDescription("Please start a new game.")
+          .setImage(undefined)
+          .setFooter(
+            "60 seconds have passed!",
+            message.client.user.displayAvatarURL
+          );
+        msg.edit(embed);
+        await ended.delete(msg.id);
+        if (collector != null && collector.emit) {
+          collector.emit("end");
+        }
+      } else {
+        if (collector != null && collector.emit) {
+          collector.emit("end");
+        }
       }
     }, 6e4);
 
@@ -212,21 +244,26 @@ module.exports = {
           }
           embed.setTitle("Akinator was stopped");
           embed.setDescription("Thanks for playing!");
-          embed.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+          embed.setFooter(
+            "Have a nice day! :)",
+            message.client.user.displayAvatarURL
+          );
           msg.edit(embed);
           return;
         } else if (answerID != null) {
           // found
           if (found) {
-            
             // we had the right answer
             if (answerID === 0) {
               // send message
-              embed.setFooter("I am right!", message.client.user.displayAvatarURL)
-              embed.setTitle("I got the correct answer!")
-              embed.setDescription("")
+              embed.setFooter(
+                "I am right!",
+                message.client.user.displayAvatarURL
+              );
+              embed.setTitle("I got the correct answer!");
+              embed.setDescription("");
               msg = await msg.edit(
-                `Looks like I win again! This time after ${nextInfo.nextStep} steps. Thanks for playing!`,
+                `Looks like I got another one correct! This time after ${nextInfo.nextStep} steps. Thanks for playing!`,
                 embed
               );
 
@@ -238,17 +275,21 @@ module.exports = {
             }
             // wrong answer
             if (answerID === 1) {
-              embed.setTitle("Akinator")
-            .setDescription("Resuming game...")
-            .setImage(undefined)
-            .setFooter("Please wait patiently", message.client.user.displayAvatarURL)
-            
-            msg.edit(embed)
-              await msg.react(this.probably)
-              await msg.react(this.probablyNot)
-              await msg.react(this.unknown)
-              await msg.react(this.back)
-              await msg.react(this.stop)
+              embed
+                .setTitle("Akinator")
+                .setDescription("Resuming game...")
+                .setImage(undefined)
+                .setFooter(
+                  "Please wait patiently",
+                  message.client.user.displayAvatarURL
+                );
+
+              msg.edit(embed);
+              await msg.react(this.probably);
+              await msg.react(this.probablyNot);
+              await msg.react(this.unknown);
+              await msg.react(this.back);
+              await msg.react(this.stop);
             }
             found = false; // not found, time to reset on our side
           }
@@ -294,13 +335,17 @@ module.exports = {
             const { name } = win.answers[0];
             const image = win.answers[0].absolute_picture_path;
             const description = win.answers[0].description || "";
-            
-            embed.setTitle("Akinator")
-            .setDescription("Loading result...")
-            .setFooter("Please wait patiently", message.client.user.displayAvatarURL)
-            
-            msg.edit(embed)
-            
+
+            embed
+              .setTitle("Akinator")
+              .setDescription("Loading result...")
+              .setFooter(
+                "Please wait patiently",
+                message.client.user.displayAvatarURL
+              );
+
+            msg.edit(embed);
+
             const probably = msg.reactions.get(this.probably);
             try {
               for (const user of probably.users.values()) {
@@ -352,7 +397,10 @@ module.exports = {
             embed.setDescription(
               `**${name}**\n**${description}**\n${this.yes} **Yes**\n${this.no} **No**`
             );
-            embed.setFooter("Am I correct?", message.client.user.displayAvatarURL)
+            embed.setFooter(
+              "Am I correct?",
+              message.client.user.displayAvatarURL
+            );
             if (image != null) {
               embed.setImage(image);
             }
@@ -361,10 +409,13 @@ module.exports = {
 
             // done with the game, we can't do anything else.
             if (nextInfo.nextStep >= 79) {
-              embed.setTitle("This is my final guess!")
-              embed.setDescription(`**${name}**\n**${description}**`)
-              embed.setFooter("Hope I am correct!", message.client.user.displayAvatarURL)
-              msg.edit(embed)
+              embed.setTitle("This is my final guess!");
+              embed.setDescription(`**${name}**\n**${description}**`);
+              embed.setFooter(
+                "Hope I am correct!",
+                message.client.user.displayAvatarURL
+              );
+              msg.edit(embed);
               if (collector != null && collector.emit) {
                 collector.emit("end");
               }
@@ -380,7 +431,10 @@ module.exports = {
             )
             .setDescription(str)
             .setImage(undefined)
-            .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL);
+            .setFooter(
+              "Please answer within 60 seconds.",
+              message.client.user.displayAvatarURL
+            );
           msg = await msg.edit(embed);
         }
       }, 1000);
@@ -390,6 +444,7 @@ module.exports = {
 
     collector.on("end", (collected, reason) => {
       // remove the user from the set
+      ended.set(msg.id, true);
       this.users.delete(message.author.id);
       if (msg != null && msg.deleted != true) {
         msg.clearReactions().catch(console.error);
@@ -427,10 +482,13 @@ module.exports = {
   },
   async region(message, args) {
     const regionEmbed = new Discord.RichEmbed()
-    .setColor(color)
-    .setTitle("Akinator")
-    .setDescription("Region list\n\n`" + this.regions.join("`\n`") + "`")
-    .setFooter("Use \"" + prefix + "aki [region]\" to start a game.", message.client.user.displayAvatarURL)
+      .setColor(color)
+      .setTitle("Akinator")
+      .setDescription("Region list\n\n`" + this.regions.join("`\n`") + "`")
+      .setFooter(
+        'Use "' + prefix + 'aki [region]" to start a game.',
+        message.client.user.displayAvatarURL
+      );
     message.channel.send(regionEmbed);
   }
 };

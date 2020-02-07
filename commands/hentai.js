@@ -53,7 +53,9 @@ module.exports = {
     "pussyGif"
   ],
   async execute(message, args) {
-    
+    if(message.channel.nsfw === false) {
+      return message.channel.send("Please use an NSFW channel to use this command!")
+    }
     var tag = "random";
     if (args.length >= 1) {
       if (args[0] === "tags") {

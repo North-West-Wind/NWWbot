@@ -32,6 +32,9 @@
     "ffmpeg-static": "^4.0.1",
     "@discordjs/opus": "^0.1.0",
     "pixula-v2": "^1.0.1",
-    "nekos.life": "^2.0.5"
+    "nekos.life": "^2.0.5",
+    "reddit": "^1.0.3",
+    "reddit-wrapper-v2": "^1.1.6",
+    "discord-set": "^0.0.2"
   }
 }
