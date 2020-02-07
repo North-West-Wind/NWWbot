@@ -2,13 +2,41 @@ const http = require("http");
 const express = require("express");
 const app = express();
 app.get("/", (request, response) => {
-  console.log(Date.now() + " Ping Received");
+  var currentDate = new Date();
+
+  var date = currentDate.getDate();
+  var month = currentDate.getMonth();
+  var year = currentDate.getFullYear();
+  var hour = currentDate.getHours();
+  var minute = currentDate.getMinutes();
+  var second = currentDate.getSeconds();
+
+  var readableTime =
+    twoDigits(date) +
+    "/" +
+    twoDigits(month + 1) +
+    "/" +
+    twoDigits(year) +
+    " " +
+    twoDigits(hour) +
+    ":" +
+    twoDigits(minute) +
+    ":" +
+    twoDigits(second) +
+    " UTC";
+  console.log(readableTime + " Ping Received");
   response.sendStatus(200);
 });
 app.listen(process.env.PORT);
 setInterval(() => {
   http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
 }, 280000);
+
+function twoDigits(d) {
+  if (0 <= d && d < 10) return "0" + d.toString();
+  if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
+  return d.toString();
+}
 
 const fs = require("fs");
 const Discord = require("discord.js");
@@ -42,19 +70,19 @@ for (const file of commandFiles) {
   client.commands.set(command.name, command);
 }
 
-function setTimeout_ (fn, delay) {
-    var maxDelay = Math.pow(2,31)-1;
+function setTimeout_(fn, delay) {
+  var maxDelay = Math.pow(2, 31) - 1;
 
-    if (delay > maxDelay) {
-        var args = arguments;
-        args[1] -= maxDelay;
+  if (delay > maxDelay) {
+    var args = arguments;
+    args[1] -= maxDelay;
 
-        return setTimeout(function () {
-            setTimeout_.apply(fn, args);
-        }, maxDelay);
-    }
+    return setTimeout(function() {
+      setTimeout_.apply(fn, args);
+    }, maxDelay);
+  }
 
-    return setTimeout.apply(fn, arguments);
+  return setTimeout.apply(fn, arguments);
 }
 
 // when the client is ready, run this code
@@ -79,203 +107,224 @@ client.once("ready", () => {
       console.log("Found " + results.length + " giveaways");
       results.forEach(async result => {
         var currentDate = new Date();
-        var millisec = (result.endAt) - currentDate;
+        var millisec = result.endAt - currentDate;
         if (err) throw err;
         setTimeout_(async function() {
-          var fetchGuild = await client.guilds.get(result.guild);
-          var channel = await fetchGuild.channels.get(result.channel);
           try {
-          var msg = await channel.fetchMessage(result.id);
-          } catch(err) {
+            var fetchGuild = await client.guilds.get(result.guild);
+            var channel = await fetchGuild.channels.get(result.channel);
+          } catch (err) {
+            console.log("Failed fetching guild/channel of giveaway.");
+          }
+          try {
+            var msg = await channel.fetchMessage(result.id);
+          } catch (err) {
             con.query("DELETE FROM giveaways WHERE id = " + result.id, function(
-            err,
-            con
-          ) {
-            if (err) throw err;
-            console.log("Deleted an ended giveaway record.");
-          });
-            return;
-          }
-          if(msg.deleted === true) {
-            con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
-            err,
-            con
-          ) {
-            if (err) throw err;
-            console.log("Deleted an ended giveaway record.");
-          });
-            return;
-          } else {
-          
-          var fetchUser = await client.fetchUser(result.author);
-          var endReacted = [];
-          var peopleReacted = await msg.reactions.get(result.emoji);
-          await peopleReacted.fetchUsers();
-          try {
-          for (const user of peopleReacted.users.values()) {
-            const data = user.id;
-            endReacted.push(data);
-          }
-          } catch(err) {
-            console.error(err);
-          }
-
-          const remove = endReacted.indexOf("649611982428962819");
-          if (remove > -1) {
-            endReacted.splice(remove, 1);
-          }
-          
-          if (endReacted.length === 0) {
-            con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
               err,
-              result
+              con
             ) {
               if (err) throw err;
               console.log("Deleted an ended giveaway record.");
             });
-            const Ended = new Discord.RichEmbed()
-              .setColor(parseInt(result.color))
-              .setTitle(result.item)
-              .setDescription("Giveaway ended")
-              .addField("Winner(s)", "None. Cuz no one reacted.")
-              .setTimestamp()
-              .setFooter(
-                "Hosted by " +
-                  fetchUser.username +
-                  "#" +
-                  fetchUser.discriminator,
-                fetchUser.displayAvatarURL
-              );
-            msg.edit(Ended);
-            msg.clearReactions().catch(err => console.error(err));
+            return;
+          }
+          if (msg.deleted === true) {
+            con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
+              err,
+              con
+            ) {
+              if (err) throw err;
+              console.log("Deleted an ended giveaway record.");
+            });
             return;
           } else {
+            var fetchUser = await client.fetchUser(result.author);
+            var endReacted = [];
+            var peopleReacted = await msg.reactions.get(result.emoji);
+            await peopleReacted.fetchUsers();
+            try {
+              for (const user of peopleReacted.users.values()) {
+                const data = user.id;
+                endReacted.push(data);
+              }
+            } catch (err) {
+              console.error(err);
+            }
 
-          
-          var index = Math.floor(Math.random() * endReacted.length);
-          var winners = [];
-          var winnerMessage = "";
-          var winnerCount = result.winner;
+            const remove = endReacted.indexOf("649611982428962819");
+            if (remove > -1) {
+              endReacted.splice(remove, 1);
+            }
 
-          for (var i = 0; i < winnerCount; i++) {
-            winners.push(endReacted[index]);
-            index = Math.floor(Math.random() * endReacted.length);
+            if (endReacted.length === 0) {
+              con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
+                err,
+                result
+              ) {
+                if (err) throw err;
+                console.log("Deleted an ended giveaway record.");
+              });
+              const Ended = new Discord.RichEmbed()
+                .setColor(parseInt(result.color))
+                .setTitle(result.item)
+                .setDescription("Giveaway ended")
+                .addField("Winner(s)", "None. Cuz no one reacted.")
+                .setTimestamp()
+                .setFooter(
+                  "Hosted by " +
+                    fetchUser.username +
+                    "#" +
+                    fetchUser.discriminator,
+                  fetchUser.displayAvatarURL
+                );
+              msg.edit(Ended);
+              msg.clearReactions().catch(err => console.error(err));
+              return;
+            } else {
+              var index = Math.floor(Math.random() * endReacted.length);
+              var winners = [];
+              var winnerMessage = "";
+              var winnerCount = result.winner;
+
+              for (var i = 0; i < winnerCount; i++) {
+                winners.push(endReacted[index]);
+                index = Math.floor(Math.random() * endReacted.length);
+              }
+
+              for (var i = 0; i < winners.length; i++) {
+                winnerMessage += "<@" + winners[i] + "> ";
+              }
+
+              const Ended = new Discord.RichEmbed()
+                .setColor(parseInt(result.color))
+                .setTitle(result.item)
+                .setDescription("Giveaway ended")
+                .addField("Winner(s)", winnerMessage)
+                .setTimestamp()
+                .setFooter(
+                  "Hosted by " +
+                    fetchUser.username +
+                    "#" +
+                    fetchUser.discriminator,
+                  fetchUser.displayAvatarURL
+                );
+              msg.edit(Ended);
+              var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+              msg.channel.send(
+                "Congratulation, " +
+                  winnerMessage +
+                  "! You won **" +
+                  result.item +
+                  "**!\n" +
+                  link
+              );
+              msg
+                .clearReactions()
+                .catch(error =>
+                  console.error("Failed to clear reactions: ", error)
+                );
+
+              con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
+                err,
+                con
+              ) {
+                if (err) throw err;
+                console.log("Deleted an ended giveaway record.");
+              });
+            }
           }
-
-          for (var i = 0; i < winners.length; i++) {
-            winnerMessage += "<@" + winners[i] + "> ";
-          }
-          
-          const Ended = new Discord.RichEmbed()
-            .setColor(parseInt(result.color))
-            .setTitle(result.item)
-            .setDescription("Giveaway ended")
-          .addField("Winner(s)", winnerMessage)
-            .setTimestamp()
-            .setFooter(
-              "Hosted by " + fetchUser.username + "#" + fetchUser.discriminator,
-              fetchUser.displayAvatarURL
-            );
-          msg.edit(Ended);
-            var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`
-            msg.channel.send("Congratulation, " + winnerMessage + "! You won **" + result.item + "**!\n" + link)
-          msg
-            .clearReactions()
-            .catch(error =>
-              console.error("Failed to clear reactions: ", error)
-            );
-
-          con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
-            err,
-            con
-          ) {
-            if (err) throw err;
-            console.log("Deleted an ended giveaway record.");
-          });
-        }
-        }
         }, millisec);
       });
     });
-    con.query("SELECT * FROM poll ORDER BY endAt ASC", function(err, results, fields) {
-      if(err) throw err;
+    con.query("SELECT * FROM poll ORDER BY endAt ASC", function(
+      err,
+      results,
+      fields
+    ) {
+      if (err) throw err;
       console.log("Found " + results.length + " polls.");
       results.forEach(result => {
         var currentDate = new Date();
-        var time = (result.endAt) - currentDate;
+        var time = result.endAt - currentDate;
         setTimeout_(async function() {
-        var guild = await client.guilds.get(result.guild);
-          var channel = await guild.channels.get(result.channel);
           try {
-          var msg = await channel.fetchMessage(result.id);
-          } catch(err) {
-            con.query("DELETE FROM giveaways WHERE id = " + result.id, function(
-            err,
-            con
-          ) {
-            if (err) throw err;
-            console.log("Deleted an ended poll.");
-          });
+            var fetchGuild = await client.guilds.get(result.guild);
+            var channel = await fetchGuild.channels.get(result.channel);
+          } catch (err) {
+            console.log("Failed fetching guild/channel of giveaway.");
+          }
+          try {
+            var msg = await channel.fetchMessage(result.id);
+          } catch (err) {
+            con.query("DELETE FROM poll WHERE id = " + result.id, function(
+              err,
+              con
+            ) {
+              if (err) throw err;
+              console.log("Deleted an ended poll.");
+            });
             return;
           }
-          
-          if(msg.deleted === true) {
+
+          if (msg.deleted === true) {
             con.query("DELETE FROM poll WHERE id = " + msg.id, function(
-            err,
-            result
-          ) {
-            if (err) throw err;
-            console.log("Deleted an ended poll.");
-          });
+              err,
+              result
+            ) {
+              if (err) throw err;
+              console.log("Deleted an ended poll.");
+            });
             return;
           } else {
-          
-          var author = await client.fetchUser(result.author);
-          var allOptions = await JSON.parse(result.options);
-          
-          var pollResult = [];
-          var end = [];
-          for (const emoji of msg.reactions.values()) {
-            await pollResult.push(emoji.count);
-            var mesg =
-              "**" +
-              (emoji.count - 1) +
-              "** - `" +
-              allOptions[pollResult.length - 1] +
-              "`";
-            await end.push(mesg);
-          }
-          var pollMsg = "⬆**Poll**⬇";
-          const Ended = new Discord.RichEmbed()
-            .setColor(result.color)
-            .setTitle(result.title)
-            .setDescription(
-              "Poll ended. Here are the results:\n\n\n" + end.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')
-            )
-            .setTimestamp()
-            .setFooter(
-              "Hosted by " + author.username + "#" + author.discriminator,
-              author.displayAvatarURL
-            );
-          msg.edit(pollMsg, Ended);
-            var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`
-           
+            var author = await client.fetchUser(result.author);
+            var allOptions = await JSON.parse(result.options);
+
+            var pollResult = [];
+            var end = [];
+            for (const emoji of msg.reactions.values()) {
+              await pollResult.push(emoji.count);
+              var mesg =
+                "**" +
+                (emoji.count - 1) +
+                "** - `" +
+                allOptions[pollResult.length - 1] +
+                "`";
+              await end.push(mesg);
+            }
+            var pollMsg = "⬆**Poll**⬇";
+            const Ended = new Discord.RichEmbed()
+              .setColor(result.color)
+              .setTitle(result.title)
+              .setDescription(
+                "Poll ended. Here are the results:\n\n\n" +
+                  end
+                    .join("\n\n")
+                    .replace(/#quot;/g, "'")
+                    .replace(/#dquot;/g, '"')
+              )
+              .setTimestamp()
+              .setFooter(
+                "Hosted by " + author.username + "#" + author.discriminator,
+                author.displayAvatarURL
+              );
+            msg.edit(pollMsg, Ended);
+            var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+
             msg.channel.send("A poll has ended!\n" + link);
-          msg.clearReactions().catch(err => {
-            console.error(err);
-          });
-          con.query("DELETE FROM poll WHERE id = " + msg.id, function(
-            err,
-            result
-          ) {
-            if (err) throw err;
-            console.log("Deleted an ended poll.");
-          });
-        }
+            msg.clearReactions().catch(err => {
+              console.error(err);
+            });
+            con.query("DELETE FROM poll WHERE id = " + msg.id, function(
+              err,
+              result
+            ) {
+              if (err) throw err;
+              console.log("Deleted an ended poll.");
+            });
+          }
         }, time);
-        
-      })
-    })
+      });
+    });
     con.release();
   });
 });
@@ -675,7 +724,9 @@ client.on("guildCreate", guild => {
         );
       } else {
         con.query(
-          "INSERT INTO servers (id, autorole) VALUES (" + guild.id + ", '[]')",
+          "INSERT INTO servers (id, autorole, giveaway) VALUES (" +
+            guild.id +
+            ", '[]', '🎉')",
           function(err, result) {
             if (err) throw err;
             console.log("Inserted record for " + guild.name);

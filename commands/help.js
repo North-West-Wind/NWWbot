@@ -27,13 +27,14 @@ module.exports = {
         )
         .addField("**Moderator**", "ban\nkick\nwarn", true)
 
-        .addField("**Random stuff**", "avatar\ngreet\nthx\nspam\nmath\ntrade", true)
-        .addField("**Information**", "help\nserver\nping", true)
+        .addField("**Random stuff**", "greet\nthx\nspam\nmath\ntrade\nchat\nmeme", true)
+        .addField("**Information**", "help\nserver\nping\navatar", true)
 
         .addField("**API**", "minecraft\nhypixel\nkrunker\naki", true)
         .addField("**Music**", "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nloop", true)
       
-      .addField("**Misc**", "giveaway\npoll")
+      .addField("**Misc**", "giveaway\npoll", true)
+      .addField("**NSFW**", "hentai", true)
 
         .setTimestamp()
         .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");

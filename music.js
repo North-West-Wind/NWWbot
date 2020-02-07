@@ -660,7 +660,7 @@ function showQueue(message, serverQueue) {
   if (!serverQueue) return message.channel.send("There is nothing playing.");
   var index = 0;
   var songArray = serverQueue.songs.map(song => {
-    return `**${++index} - ** [${song.title}](${song.url})`;
+    return `**${++index} - ** [**${song.title}**](${song.url})`;
   });
   musicFunctions.addMusicQueueField(message, songArray, queue).then(results =>
     __awaiter(this, void 0, void 0, function*() {

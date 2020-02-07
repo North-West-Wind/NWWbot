@@ -399,7 +399,7 @@ module.exports = {
           try {
           var msg = await channel.fetchMessage(result[0].id);
           } catch(err) {
-            con.query("DELETE FROM giveaways WHERE id = " + result[0].id, function(
+            con.query("DELETE FROM poll WHERE id = " + result[0].id, function(
             err,
             con
           ) {
