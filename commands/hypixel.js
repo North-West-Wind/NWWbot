@@ -154,7 +154,7 @@ module.exports = {
                             .setTimestamp()
                             .setFooter(
                               "Have a nice day! :)",
-                              "https://i.imgur.com/hxbaDUY.png"
+                              message.client.user.displayAvatarURL
                             );
                         } else {
                           var Embed = new Discord.RichEmbed()
@@ -183,7 +183,7 @@ module.exports = {
                             .setTimestamp()
                             .setFooter(
                               "Have a nice day! :)",
-                              "https://i.imgur.com/hxbaDUY.png"
+                              message.client.user.displayAvatarURL
                             );
                         }
                         if (body.player.socialMedia.links.DISCORD) {
@@ -259,7 +259,7 @@ module.exports = {
                                   .setTimestamp()
                                   .setFooter(
                                     "Have a nice day! :)",
-                                    "https://i.imgur.com/hxbaDUY.png"
+                                    message.client.user.displayAvatarURL
                                   );
                               } else {
                                 var Embed = new Discord.RichEmbed()
@@ -290,7 +290,7 @@ module.exports = {
                                   .setTimestamp()
                                   .setFooter(
                                     "Have a nice day! :)",
-                                    "https://i.imgur.com/hxbaDUY.png"
+                                    message.client.user.displayAvatarURL
                                   );
                               }
                               message.channel.send(Embed);
@@ -448,7 +448,7 @@ module.exports = {
                                 .setTimestamp()
                                 .setFooter(
                                   "Have a nice day! :)",
-                                  "https://i.imgur.com/hxbaDUY.png"
+                                  message.client.user.displayAvatarURL
                                 );
                               const topPlayer = new Discord.RichEmbed()
                                 .setColor(color)
@@ -457,7 +457,7 @@ module.exports = {
                                 .setTimestamp()
                                 .setFooter(
                                   "Have a nice day! :)",
-                                  "https://i.imgur.com/hxbaDUY.png"
+                                  message.client.user.displayAvatarURL
                                 );
                              
                               for (var i = 0; i < 9; i++) {
@@ -737,7 +737,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   message.channel.send(Embed);
@@ -849,7 +849,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //solo
@@ -954,7 +954,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //double
@@ -1055,7 +1055,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //triple
@@ -1156,7 +1156,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //quadruple
@@ -1257,7 +1257,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
                   const filter = (reaction, user) => {
                     return (
@@ -1509,7 +1509,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //SW
@@ -1615,7 +1615,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //Mega Walls
@@ -1721,7 +1721,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //Classic
@@ -1827,7 +1827,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //Bow
@@ -1933,7 +1933,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //Blitz
@@ -2039,7 +2039,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //op
@@ -2145,7 +2145,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //No Debuff
@@ -2251,7 +2251,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //combo
@@ -2348,7 +2348,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //bridge
@@ -2468,7 +2468,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //sumo
@@ -2555,7 +2555,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   //Overall
@@ -2661,7 +2661,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      "https://i.imgur.com/hxbaDUY.png"
+                      message.client.user.displayAvatarURL
                     );
 
                   var allEmbeds = [

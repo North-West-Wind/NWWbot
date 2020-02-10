@@ -473,7 +473,7 @@ module.exports = {
               .setTimestamp()
               .setFooter(
                 "Have a nice day! :)",
-                "https://i.imgur.com/hxbaDUY.png"
+                message.client.user.displayAvatarURL
               );
             if (results.length > 25) {
               for (var i = 0; i < 25; i++) {

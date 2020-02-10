@@ -11,7 +11,7 @@ module.exports = {
         .setTitle(message.author.username + "'s avatar: ")
         .setImage(message.author.displayAvatarURL)
         .setTimestamp()
-        .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
       return message.channel.send(Embed);
     }
 
@@ -21,7 +21,7 @@ module.exports = {
         .setTitle(message.mentions.users.first().username + "'s avatar: ")
         .setImage(message.mentions.users.first().displayAvatarURL)
         .setTimestamp()
-        .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
       return message.channel.send(Embed);
     
 

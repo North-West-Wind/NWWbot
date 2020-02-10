@@ -46,8 +46,8 @@ module.exports = {
   execute(message, args, pool) {
     const filter = x => x.author.id === message.author.id;
     pool.getConnection(async function(err, con) {
-      var link = `https://discordapp.com/channels/${message.guild.id}/${message.channel.id}/${message.id}`
-      message.channel.send(link);
+      const voiceChannel = message.member.voiceChannel;
+      console.log(voiceChannel);
     })
      
   }

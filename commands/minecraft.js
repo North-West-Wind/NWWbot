@@ -66,7 +66,7 @@ module.exports = {
                 .setTimestamp()
                 .setFooter(
                   "Have a nice day! :)",
-                  "https://i.imgur.com/hxbaDUY.png"
+                  message.client.user.displayAvatarURL
                 );
               message.channel.send(Embed);
               return;
@@ -89,7 +89,7 @@ module.exports = {
             .setTimestamp()
             .setFooter(
               "Have a nice day! :)",
-              "https://i.imgur.com/hxbaDUY.png"
+              message.client.user.displayAvatarURL
             );
           message.channel.send(Embed);
           return;
@@ -128,15 +128,48 @@ module.exports = {
               .setTimestamp()
               .setFooter(
                 "Have a nice day! :)",
-                "https://i.imgur.com/hxbaDUY.png"
+                message.client.user.displayAvatarURL
               );
             
-            message.channel.send(Embed);
+            return message.channel.send(Embed);
           } else {
-            message.channel.send("The server - **" + args.slice(1).join(" ") + "** - is offline/under maintenance.")
+            return message.channel.send("The server - **" + args.slice(1).join(" ") + "** - is offline/under maintenance.")
           }
         }
       );
+    }
+    if(args[0] === "history") {
+      MojangAPI.nameToUuid(`${args[1]}`, function(err, res) {
+        if (err) console.log(err);
+        else
+          if(res[0] === undefined) {
+            return message.channel.send("No player named **" + args[1] + "** were found")
+          }
+        MojangAPI.nameHistory(res[0].id, function(err, result) {
+    if (err)
+        console.log(err);
+    else {
+      var names = [];
+        var num = 0
+          for(var i = result.length - 1; i > -1; i--) {
+            ++num;
+            if(num === 1) {
+              names.push("**" + num + ". " + result[i].name + "**");
+            } else {
+            names.push(num + ". " + result[i].name);
+            }
+          }
+          const Embed = new Discord.RichEmbed()
+          .setColor(color)
+          .setTitle(res[0].name + "'s Username History")
+          .setDescription(names.join("\n"))
+          .setFooter("Last changed on " + new Date(result[result.length - 1].changedToAt), message.client.user.displayAvatarURL);
+            
+        message.channel.send(Embed);
+    }
+});
+        return;
+      });
     }
   }
 };

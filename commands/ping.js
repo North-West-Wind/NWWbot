@@ -68,7 +68,7 @@ module.exports = {
       .addField("Message received", "`" + currentTime + "`")
       .addField("Ping", "`" + (currentDate - msgDate) + "ms`")
       .setTimestamp()
-      .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
     message.channel.send(Embed);
     message.author.send("Pong! Don't question me. I'm online.")
   }
