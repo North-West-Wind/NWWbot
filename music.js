@@ -99,7 +99,7 @@ const musicFunctions = {
             
           }
           embed.setTimestamp();
-          embed.setFooter(`Now playing : ${serverQueue.songs[0].title}`, "https://i.imgur.com/hxbaDUY.png");
+          embed.setFooter(`Now playing : ${serverQueue.songs[0].title}`, message.client.user.displayAvatarURL);
           embed.addField("** **", list.join("\n"));
           embed.setColor(color);
         }
@@ -345,7 +345,7 @@ async function execute(message, serverQueue, pool) {
         .setThumbnail(`https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`)
           .setDescription(`**[${song.title}](${song.url})**`)
           .setTimestamp()
-          .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+          .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
         message.channel.send(Embed);
       } catch (err) {
         console.log(err);
@@ -361,7 +361,7 @@ async function execute(message, serverQueue, pool) {
       .setThumbnail(`https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`)
         .setDescription(`**[${song.title}](${song.url})**`)
         .setTimestamp()
-        .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
       return message.channel.send(Embed);
     }
   } else {
@@ -371,7 +371,7 @@ async function execute(message, serverQueue, pool) {
       .setTimestamp()
       .setFooter(
         "Choose your song, or ⏹ to cancel.",
-        "https://i.imgur.com/hxbaDUY.png"
+        message.client.user.displayAvatarURL
       );
     const results = [];
     var saved = [];
@@ -459,7 +459,7 @@ async function execute(message, serverQueue, pool) {
               .setTimestamp()
               .setFooter(
                 "Have a nice day! :)",
-                "https://i.imgur.com/hxbaDUY.png"
+                message.client.user.displayAvatarURL
               );
 
             return msg.edit(cancelled);
@@ -513,7 +513,7 @@ async function execute(message, serverQueue, pool) {
               `**[${decodeHtmlEntity(saved[s].title)}](${saved[s].url})**`
             )
             .setTimestamp()
-            .setFooter("Have a nice day :)", "https://i.imgur.com/hxbaDUY.png");
+            .setFooter("Have a nice day :)", message.client.user.displayAvatarURL);
 
           msg.edit(chosenEmbed);
           msg.clearReactions().catch(err => {
@@ -554,7 +554,7 @@ async function execute(message, serverQueue, pool) {
                 .setTimestamp()
                 .setFooter(
                   "Have a nice day! :)",
-                  "https://i.imgur.com/hxbaDUY.png"
+                  message.client.user.displayAvatarURL
                 );
               msg.edit(Embed);
             } catch (err) {
@@ -573,7 +573,7 @@ async function execute(message, serverQueue, pool) {
               .setTimestamp()
               .setFooter(
                 "Have a nice day! :)",
-                "https://i.imgur.com/hxbaDUY.png"
+                message.client.user.displayAvatarURL
               );
             return msg.edit(Embed);
           }
@@ -585,7 +585,7 @@ async function execute(message, serverQueue, pool) {
             .setTimestamp()
             .setFooter(
               "Have a nice day! :)",
-              "https://i.imgur.com/hxbaDUY.png"
+              message.client.user.displayAvatarURL
             );
           msg.edit(Ended);
           msg.clearReactions().catch(err => {
@@ -627,6 +627,15 @@ async function play(guild, song, pool) {
     queue.delete(guild.id);
     
     return;
+  }
+  
+  const voiceChannel = guild.me.voiceChannel;
+  
+  if(voiceChannel.members.size <= 1) {
+    setTimeout(function() {
+      serverQueue.songs = [];
+      serverQueue.connection.dispatcher.end();
+    }, 30000)
   }
 
   const dispatcher = serverQueue.connection
@@ -685,7 +694,7 @@ function nowPlaying(message, serverQueue) {
     .setTimestamp()
     .setThumbnail(`https://img.youtube.com/vi/${serverQueue.songs[0].id}/maxresdefault.jpg`)
     .setTimestamp()
-    .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+    .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
   return message.channel.send(embed);
 }
 

@@ -19,7 +19,7 @@ module.exports = {
         .setDescription(
           `You can send ${prefix}help [command name] to get info on a specific command!`
         )
-        .setThumbnail("https://i.imgur.com/hxbaDUY.png")
+        .setThumbnail(message.client.user.displayAvatarURL)
         .addField(
           "**Managements**",
           "delete\nrole\nunrole\naddrole\ndelrole",
@@ -37,7 +37,7 @@ module.exports = {
       .addField("**NSFW**", "hentai", true)
 
         .setTimestamp()
-        .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
 
       return message.author
         .send(Embed)

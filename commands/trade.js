@@ -11,7 +11,7 @@ module.exports = {
     .setTitle(message.author.username + "'s trade")
     .setDescription(args.slice(0).join(" "))
     .setTimestamp()
-      .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
     message.channel.send(Embed);
   }
 }

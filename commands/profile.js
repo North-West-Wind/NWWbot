@@ -16,7 +16,7 @@ module.exports = {
         .addField("Tag/Discriminator", tag, true)
         .setColor(color)
         .setTimestamp()
-        .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
       message.channel.send(Embed);
     } else {
       if (message.channel instanceof Discord.DMChannel) {
@@ -34,7 +34,7 @@ module.exports = {
           .addField("Tag/Discriminator", tag, true)
           .setColor(color)
           .setTimestamp()
-          .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+          .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
         message.channel.send(Embed);
       } else {
         const user = client.users.find(x => x.username === args.join(" "));
@@ -56,7 +56,7 @@ module.exports = {
             .setTimestamp()
             .setFooter(
               "Have a nice day! :)",
-              "https://i.imgur.com/hxbaDUY.png"
+              message.client.user.displayAvatarURL
             );
           message.channel.send(Embed);
         }

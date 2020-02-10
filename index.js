@@ -2,29 +2,6 @@ const http = require("http");
 const express = require("express");
 const app = express();
 app.get("/", (request, response) => {
-  var currentDate = new Date();
-
-  var date = currentDate.getDate();
-  var month = currentDate.getMonth();
-  var year = currentDate.getFullYear();
-  var hour = currentDate.getHours();
-  var minute = currentDate.getMinutes();
-  var second = currentDate.getSeconds();
-
-  var readableTime =
-    twoDigits(date) +
-    "/" +
-    twoDigits(month + 1) +
-    "/" +
-    twoDigits(year) +
-    " " +
-    twoDigits(hour) +
-    ":" +
-    twoDigits(minute) +
-    ":" +
-    twoDigits(second) +
-    " UTC";
-  console.log(readableTime + " Ping Received");
   response.sendStatus(200);
 });
 app.listen(process.env.PORT);

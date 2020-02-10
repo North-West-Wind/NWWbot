@@ -29,7 +29,7 @@ module.exports = {
       .setTitle("Role created successfully")
       .setDescription(`Created a new role **${args[0]}**`, true)
       .setTimestamp()
-      .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
     message.channel.send(Embed);
   }
 };

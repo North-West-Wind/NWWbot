@@ -63,7 +63,7 @@ module.exports = {
       .addField("Featured?", featured, true)
       .addField("Hacker?", hacker, true)
       .setTimestamp()
-      .setFooter("Have a nice day! :)", "https://i.imgur.com/hxbaDUY.png");
+      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
     message.channel.send(Embed);
       
       
