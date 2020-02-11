@@ -3,7 +3,6 @@ dependencies:
   aki-api: 3.2.1
   algebra.js: 0.2.6
   canvas: 2.6.1
-  canvas-to-buffer: 1.1.0
   discord-set: 0.0.2
   discord.js: github.com/discordjs/discord.js/fe7df708e44e0280dfaf0f8e457b154781bb5140
   express: 4.17.1
@@ -136,13 +135,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-x57Zf380y48robyXkLzDZkdLS3k=
-  /atob/2.1.2:
-    dev: false
-    engines:
-      node: '>= 4.5.0'
-    hasBin: true
-    resolution:
-      integrity: sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
   /aws-sign2/0.7.0:
     dev: false
     resolution:
@@ -215,13 +207,6 @@ packages:
       node: '>= 0.8'
     resolution:
       integrity: sha512-zauLjrfCG+xvoyaqLoV8bLVXXNGC4JqlxFCutSDWA6fJrTo2ZuvLYTqZ7aHBLZSMOopbzwv8f+wZcVzfVTI2Dg==
-  /canvas-to-buffer/1.1.0:
-    dependencies:
-      atob: 2.1.2
-      typedarray-to-buffer: 3.1.5
-    dev: false
-    resolution:
-      integrity: sha512-ZdjAIbwVWx+Yj574t6GVYlkjpNDBMoKW36mdmqjKqxd5Fa9bA+MnsWIAbuRKR56VzkK19voLNJRJYJXMVq/9AA==
   /canvas/2.6.1:
     dependencies:
       nan: 2.14.0
@@ -2084,12 +2069,6 @@ packages:
       node: '>= 0.6'
     resolution:
       integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==
-  /typedarray-to-buffer/3.1.5:
-    dependencies:
-      is-typedarray: 1.0.0
-    dev: false
-    resolution:
-      integrity: sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==
   /unpipe/1.0.0:
     dev: false
     engines:
@@ -2231,7 +2210,6 @@ specifiers:
   aki-api: ^3.2.1
   algebra.js: ^0.2.6
   canvas: ^2.6.1
-  canvas-to-buffer: ^1.1.0
   discord-set: ^0.0.2
   discord.js: 'github:discordjs/discord.js'
   express: ^4.17.1
