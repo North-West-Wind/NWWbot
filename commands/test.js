@@ -5,7 +5,8 @@ const ytdl = require("ytdl-core");
 const YouTube = require("simple-youtube-api");
 const youtube = new YouTube(process.env.YT);
 const Canvas = require("canvas");
-const randomWords = require("random-words")
+const randomWords = require("random-words");
+const { getData, getPreview } = require("spotify-url-info");
 
 const { Image, createCanvas, loadImage } = require("canvas");
 var fs = require("fs");
@@ -43,12 +44,7 @@ function validYTURL(str) {
 module.exports = {
   name: "test",
   description: "For test, really.",
-  execute(message, args, pool) {
-    const filter = x => x.author.id === message.author.id;
-    pool.getConnection(async function(err, con) {
-      const voiceChannel = message.member.voiceChannel;
-      console.log(voiceChannel);
-    })
-     
+  async execute(message, args, pool) {
+    console.log(await getData("https://open.spotify.com/playlist/2yR017eSOXqWOsE8MpoJuJ?si=yJrujTf1Sb2NSYcNkY5VFg"))
   }
 };
