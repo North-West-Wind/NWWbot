@@ -74,30 +74,30 @@ module.exports = {
     
     var result = await nsfw[tag]();
     
-    const embed = new Discord.RichEmbed()
+    const embed = new Discord.MessageEmbed()
     .setColor(color)
     .setImage(result.url)
-    .setFooter("Made with Neko's Life", message.client.user.displayAvatarURL);
+    .setFooter("Made with Neko's Life", message.client.user.displayAvatarURL());
     message.channel.send(embed);
     
     
   },
   async random(message) {
     var result = await nsfw.randomHentaiGif();
-    const embed = new Discord.RichEmbed()
+    const embed = new Discord.MessageEmbed()
       .setColor(color)
       .setImage(result.url)
-      .setFooter("Made with Neko's Life", message.client.user.displayAvatarURL);
+      .setFooter("Made with Neko's Life", message.client.user.displayAvatarURL());
     message.channel.send(embed);
   },
   async tagsList(message) {
-    const embed = new Discord.RichEmbed()
+    const embed = new Discord.MessageEmbed()
       .setTitle("Hentai tag list")
       .setColor(color)
       .setDescription("**" + this.tags.join("\n") + "**")
       .setFooter(
         "Do not question when tags repeated.",
-        message.client.user.displayAvatarURL
+        message.client.user.displayAvatarURL()
       );
     message.channel.send(embed);
   }

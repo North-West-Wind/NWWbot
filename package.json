@@ -7,10 +7,13 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
+  "engines": {
+    "node": "10.2"
+  },
   "author": "NorthWestWind",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^11.5.1",
+    "discord.js": "discordjs/discord.js",
     "express": "^4.17.1",
     "express.js": "^1.0.0",
     "ytdl-core": "github:fent/node-ytdl-core#master",
@@ -35,6 +38,7 @@
     "nekos.life": "^2.0.5",
     "reddit": "^1.0.3",
     "reddit-wrapper-v2": "^1.1.6",
-    "discord-set": "^0.0.2"
+    "discord-set": "^0.0.2",
+    "serp": "^2.0.7"
   }
 }

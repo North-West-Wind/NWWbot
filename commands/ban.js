@@ -6,13 +6,13 @@ module.exports = {
   args: true,
   usage: "<user> [reason]",
   execute(message, args) {
-    if (!message.member.hasPermission("BAN_MEMBERS")) {
+    if (!message.member.permissions.has("BAN_MEMBERS")) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
       return;
     }
-    if(!message.guild.me.hasPermission('BAN_MEMBERS')) {
+    if(!message.guild.me.permissions.has('BAN_MEMBERS')) {
       message.channel.send(`I don\'t have the permission to ban members.`)
       return;
     }
@@ -40,13 +40,13 @@ module.exports = {
     // Assuming we mention someone in the message, this will return the user
     // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
 
-    message.channel.client.fetchUser(userID).then(user => {
+    message.channel.client.users.fetch(userID).then(user => {
         // Now we get the member from the user
         if(args[1]) {
           var reason = args.slice(1).join(" ");
-          var member = message.guild.ban(user, { reason: reason });
+          var member = message.guild.members.ban(user, { reason: reason });
         } else {
-          var member = message.guild.ban(user);
+          var member = message.guild.members.ban(user);
         }
         // If the member is in the guild
         if (member) {
@@ -62,14 +62,14 @@ module.exports = {
             .then(() => {
               // We let the message author know we were able to ban the person
 
-              var banEmbed = new Discord.RichEmbed() // Creates the embed that's DM'ed to the user when their warned!
+              var banEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
                 .setColor(color)
                 .setTitle(`You've been banned`)
                 .setDescription(`In **${message.guild.name}**`)
                 .setTimestamp()
                 .setFooter(
                   "Banned by " + message.author.tag,
-                  message.author.displayAvatarURL
+                  message.author.displayAvatarURL()
                 );
               if (args[1]) {
                 banEmbed.addField("Reason", reason);
@@ -78,7 +78,7 @@ module.exports = {
                 console.log("Failed to send DM to " + user.username)
               });
 
-              var banSuccessfulEmbed = new Discord.RichEmbed() // Creates the embed thats returned to the person warning if its sent.
+              var banSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
                 .setColor(color)
                 .setTitle("User Banned!")
                 .setDescription(

@@ -42,7 +42,7 @@ module.exports = {
         var hacker = "No"
       }
       
-      const Embed = new Discord.RichEmbed()
+      const Embed = new Discord.MessageEmbed()
       .setTitle(name)
       .setDescription("Krunker stats")
       .setColor(color)
@@ -63,7 +63,7 @@ module.exports = {
       .addField("Featured?", featured, true)
       .addField("Hacker?", hacker, true)
       .setTimestamp()
-      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     message.channel.send(Embed);
       
       

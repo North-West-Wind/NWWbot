@@ -9,14 +9,14 @@ module.exports = {
       const id = message.author.id;
       const username = message.author.username;
       const tag = "#" + message.author.discriminator;
-      const Embed = new Discord.RichEmbed()
+      const Embed = new Discord.MessageEmbed()
         .setTitle("Profile of " + username)
         .addField("ID", id, true)
         .addField("Username", username, true)
         .addField("Tag/Discriminator", tag, true)
         .setColor(color)
         .setTimestamp()
-        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       message.channel.send(Embed);
     } else {
       if (message.channel instanceof Discord.DMChannel) {
@@ -27,14 +27,14 @@ module.exports = {
         const id = tagged.id;
         const username = tagged.username;
         const tag = tagged.discriminator;
-        const Embed = new Discord.RichEmbed()
+        const Embed = new Discord.MessageEmbed()
           .setTitle("Profile of " + username)
           .addField("ID", id, true)
           .addField("Username", username, true)
           .addField("Tag/Discriminator", tag, true)
           .setColor(color)
           .setTimestamp()
-          .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+          .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
         message.channel.send(Embed);
       } else {
         const user = client.users.find(x => x.username === args.join(" "));
@@ -47,7 +47,7 @@ module.exports = {
           const id = user.id;
           const username = user.username;
           const tag = user.discriminator;
-          const Embed = new Discord.RichEmbed()
+          const Embed = new Discord.MessageEmbed()
             .setTitle("Profile of " + username)
             .addField("ID", id, true)
             .addField("Username", username, true)
@@ -56,7 +56,7 @@ module.exports = {
             .setTimestamp()
             .setFooter(
               "Have a nice day! :)",
-              message.client.user.displayAvatarURL
+              message.client.user.displayAvatarURL()
             );
           message.channel.send(Embed);
         }

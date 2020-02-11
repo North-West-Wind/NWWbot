@@ -34,7 +34,7 @@ module.exports = {
               } else {
                 var cash = results[0].currency;
                 var bank = results[0].bank;
-                const Embed = new Discord.RichEmbed()
+                const Embed = new Discord.MessageEmbed()
                   .setColor(color)
                   .setTitle(message.author.tag)
                   .setDescription("Economic status")
@@ -43,7 +43,7 @@ module.exports = {
                   .setTimestamp()
                   .setFooter(
                     'You can try to "deposit" or "withdraw"!',
-                    message.client.user.displayAvatarURL
+                    message.client.user.displayAvatarURL()
                   );
                 return message.channel.send(Embed);
               }

@@ -4,11 +4,11 @@ module.exports = {
   args: true,
   usage: "<role> <user>",
   execute(message, args) {
-    if (!message.member.hasPermission('MANAGE_ROLES')) { 
+    if (!message.member.permissions.has('MANAGE_ROLES')) { 
       message.channel.send(`You don\'t have the permission to use this command.`)
       return;
     }
-    if(!message.guild.me.hasPermission('MANAGE_ROLES')) {
+    if(!message.guild.me.permissions.has('MANAGE_ROLES')) {
       message.channel.send(`I don\'t have the permission to add roles to them.`)
       return;
     }
@@ -36,7 +36,7 @@ module.exports = {
       var userID = mentioned.replace(/<@/g, "").replace(/>/g, "").replace(/!/g, "");
       var user = await message.guild.members.get(userID);
       try {
-      await user.addRole(role);
+      await user.roles.add(role);
       message.channel.send("Successfully added **" + user.user.tag + "** to role **" + role.name + "**.")
       } catch(err) {
         message.channel.send("Failed adding **" + user.user.tag + "** to role **" + role.name + "**.")

@@ -3,23 +3,9 @@ const ytdl = require("ytdl-core-discord");
 const Discord = require("discord.js");
 const YouTube = require("simple-youtube-api");
 const youtube = new YouTube(process.env.YT);
-function validURL(str) {
-  var pattern = new RegExp(
-    "^(https?:\\/\\/)?" + // protocol
-    "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
-    "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
-    "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
-    "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
-      "(\\#[-a-z\\d_]*)?$",
-    "i"
-  ); // fragment locator
-  return !!pattern.test(str);
-}
-function validYTURL(str) {
-  var pattern = new RegExp("^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(\.com)?\/.+"
-  ); // fragment locator
-  return !!pattern.test(str);
-}
+
+const { validURL, validYTURL, encodeHtmlEntity, decodeHtmlEntity, shuffleArray } = require("./function.js")
+
 var looping = new Map();
 
 const queue = new Map();
@@ -59,230 +45,8 @@ var __awaiter =
   };
 
 const discord_js_1 = require("discord.js");
-const musicFunctions = {
-  addMusicQueueField(message, content, queue) {
-    return __awaiter(this, void 0, void 0, function*() {
-      const serverQueue = queue.get(message.guild.id);
-      var toSendEmbed = [];
-      var color = Math.floor(Math.random() * 16777214) + 1;
-      let i = 0;
-      while (i < content.length) {
-        var embed = new discord_js_1.RichEmbed();
-        let index = 0;
-        while (i < content.length && index < 25) {
-          var list = [];
-          const element0 = content[i];
-          index++;
-          i++;
-          const element1 = content[i];
-          index++;
-          i++;
-          const element2 = content[i];
-          index++;
-          i++;
-          const element3 = content[i];
-          index++;
-          i++;
-          const element4 = content[i];
-          index++;
-          i++;
-          list.push(element0);
-          element1 ? list.push(element1) : console.log();
-          element1 ? list.push(element2) : console.log();
-          element1 ? list.push(element3) : console.log();
-          element1 ? list.push(element4) : console.log();
-          if (i < 25) {
-            embed.setTitle(`Song queue for ${message.guild.name}`);
-            embed.setDescription(
-              `There are ${serverQueue.songs.length} songs in total.`
-            );
-            
-          }
-          embed.setTimestamp();
-          embed.setFooter(`Now playing : ${serverQueue.songs[0].title}`, message.client.user.displayAvatarURL);
-          embed.addField("** **", list.join("\n"));
-          embed.setColor(color);
-        }
-        toSendEmbed.push(embed);
-      }
-      return toSendEmbed;
-    });
-  },
-  handleVideo(
-    queueList,
-    video,
-    message,
-    voiceChannel,
-    musicVolume = 20,
-    loopQueue = false,
-    top = false,
-    playlist = false
-  ) {
-    return __awaiter(this, void 0, void 0, function*() {
-      const serverQueue = queueList.get(message.guild.id);
-      const song = {
-        guild: message.guild.name,
-        icon: video.thumbnails.default.url,
-        id: video.id,
-        length: {
-          hrs: video.duration.hours,
-          mins: video.duration.minutes,
-          secs: video.duration.seconds
-        },
-        title: video.title,
-        url: `https://www.youtube.com/watch?v=${video.id}`
-      };
-      if (!serverQueue) {
-        var queueConstruct = {
-          connection: null,
-          loop: loopQueue,
-          repeat: false,
-          playing: true,
-          songs: [],
-          textChannel: message.channel,
-          voiceChannel,
-          volume: musicVolume
-        };
-        queueList.set(message.guild.id, queueConstruct);
-        queueConstruct.songs.push(song);
-        console.log("Song added to queue.");
-        try {
-          var connection = yield voiceChannel.join();
-          queueConstruct.connection = connection;
-          musicFunctions.playMusic(
-            message.guild,
-            queueConstruct.songs[0],
-            queueList
-          );
-        } catch (error) {
-          console.error(`I could not join the voice channel: ${error}`);
-          queueList.delete(message.guild.id);
-          return message.channel
-            .send(`I could not join the voice channel: ${error}`)
-            .then(m => {
-              return m.delete(10000).catch(reason => {
-                console.log(
-                  `Attempting to delete a deleted message (Which is impossible)`
-                );
-              });
-            });
-        }
-      } else if (top) {
-        serverQueue.songs.splice(1, 0, song);
-        if (playlist) return undefined;
-        else
-          return message.channel
-            .send(
-              `✅ **${song.title}** has been added to the top of the queue!`
-            )
-            .then(m => {
-              return m.delete(10000).catch(reason => {
-                console.log(
-                  `Attempting to delete a deleted message (Which is impossible)`
-                );
-              });
-            });
-      } else {
-        serverQueue.songs.push(song);
-        if (playlist) return undefined;
-        else
-          return message.channel
-            .send(`✅ **${song.title}** has been added to the queue!`)
-            .then(m => {
-              return m.delete(10000).catch(reason => {
-                console.log(
-                  `Attempting to delete a deleted message (Which is impossible)`
-                );
-              });
-            });
-      }
-      return undefined;
-    });
-  },
-  playMusic(guild, song, queueList) {
-    const serverQueue = queueList.get(guild.id);
-    try {
-      if (!song) {
-        serverQueue.voiceChannel.leave();
-        queueList.delete(guild.id);
-        return;
-      }
-    } catch (error) {
-      console.log(error);
-    }
-    const dispatcher = serverQueue.connection
-      .playStream(
-        ytdl(song.url, {
-          filter: "audioonly",
-          quality: "highestaudio"
-        })
-      )
-      .on("end", reason => {
-        if (serverQueue.loop === true) {
-          console.log("Song ended, but looped");
-          var toPush = serverQueue.songs[0];
-          serverQueue.songs.push(toPush);
-          serverQueue.songs.shift();
-          musicFunctions.playMusic(guild, serverQueue.songs[0], queueList);
-        } else if (serverQueue.repeat === true) {
-          console.log("Song ended, but repeated");
-          musicFunctions.playMusic(guild, serverQueue.songs[0], queueList);
-        } else {
-          if (reason === "Stream is not generating quickly enough.")
-            console.log("Song ended.");
-          else console.log(`${reason}`);
-          serverQueue.songs.shift();
-          musicFunctions.playMusic(guild, serverQueue.songs[0], queueList);
-        }
-      })
-      .on("error", error => {
-        return console.error(error);
-      });
-    dispatcher.setVolumeLogarithmic(serverQueue.volume / 100);
-    serverQueue.textChannel
-      .send(`🎶 Start playing: **${song.title}**`)
-      .then(m => {
-        return m.delete(10000).catch(reason => {
-          console.log(
-            `Attempting to delete a deleted message (Which is impossible)`
-          );
-        });
-      });
-  },
-  shuffleArray(array) {
-    let temp = array[0];
-    array.splice(0, 1);
-    var i;
-    var j;
-    var x;
-    for (i = array.length - 1; i > 0; i--) {
-      j = Math.floor(Math.random() * (i + 1));
-      x = array[i];
-      array[i] = array[j];
-      array[j] = x;
-    }
-    array.unshift(temp);
-    temp = [];
-    return array;
-  }
-};
 
-var decodeHtmlEntity = function(str) {
-  return str
-    .replace(/&#(\d+);/g, function(match, dec) {
-      return String.fromCharCode(dec);
-    })
-    .replace(/&quot;/g, `"`)
-    .replace(/&amp;/g, `&`);
-};
 
-var encodeHtmlEntity = function(str) {
-  var buf = [];
-  for (var i = str.length - 1; i >= 0; i--) {
-    buf.unshift(["&#", str[i].charCodeAt(), ";"].join(""));
-  }
-  return buf.join("");
-};
 
 
 async function execute(message, serverQueue, pool) {
@@ -292,7 +56,7 @@ async function execute(message, serverQueue, pool) {
     return message.channel.send("Please provide a link or keywords to get a music played!")
   }
 
-  const voiceChannel = message.member.voiceChannel;
+  const voiceChannel = message.member.voice.channel;
   if (!voiceChannel)
     return message.channel.send(
       "You need to be in a voice channel to play music!"
@@ -338,14 +102,14 @@ async function execute(message, serverQueue, pool) {
         var connection = await voiceChannel.join();
         queueContruct.connection = connection;
         
-        play(message.guild, queueContruct.songs[0], pool);
-        const Embed = new Discord.RichEmbed()
+        play(message.guild, queueContruct.songs[0]);
+        const Embed = new Discord.MessageEmbed()
           .setColor(color)
           .setTitle("Now playing:")
         .setThumbnail(`https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`)
           .setDescription(`**[${song.title}](${song.url})**`)
           .setTimestamp()
-          .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+          .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
         message.channel.send(Embed);
       } catch (err) {
         console.log(err);
@@ -355,23 +119,23 @@ async function execute(message, serverQueue, pool) {
     } else {
       serverQueue.songs.push(song);
       
-      const Embed = new Discord.RichEmbed()
+      const Embed = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle("New song added:")
       .setThumbnail(`https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`)
         .setDescription(`**[${song.title}](${song.url})**`)
         .setTimestamp()
-        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       return message.channel.send(Embed);
     }
   } else {
-    const Embed = new Discord.RichEmbed()
+    const Embed = new Discord.MessageEmbed()
       .setTitle("Search result of " + args.slice(1).join(" "))
       .setColor(color)
       .setTimestamp()
       .setFooter(
         "Choose your song, or ⏹ to cancel.",
-        message.client.user.displayAvatarURL
+        message.client.user.displayAvatarURL()
       );
     const results = [];
     var saved = [];
@@ -450,16 +214,16 @@ async function execute(message, serverQueue, pool) {
         .then(async collected => {
           const reaction = collected.first();
           if (reaction.emoji.name === "⏹") {
-            msg.clearReactions().catch(err => {
+            msg.reactions.removeAll().catch(err => {
               console.log(err);
             });
-            const cancelled = new Discord.RichEmbed()
+            const cancelled = new Discord.MessageEmbed()
               .setColor(color)
               .setTitle("Action cancelled.")
               .setTimestamp()
               .setFooter(
                 "Have a nice day! :)",
-                message.client.user.displayAvatarURL
+                message.client.user.displayAvatarURL()
               );
 
             return msg.edit(cancelled);
@@ -505,7 +269,7 @@ async function execute(message, serverQueue, pool) {
             var s = 9;
           }
 
-          const chosenEmbed = new Discord.RichEmbed()
+          const chosenEmbed = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle("Music chosen:")
           .setThumbnail(`https://img.youtube.com/vi/${saved[s].id}/maxresdefault.jpg`)
@@ -513,10 +277,10 @@ async function execute(message, serverQueue, pool) {
               `**[${decodeHtmlEntity(saved[s].title)}](${saved[s].url})**`
             )
             .setTimestamp()
-            .setFooter("Have a nice day :)", message.client.user.displayAvatarURL);
+            .setFooter("Have a nice day :)", message.client.user.displayAvatarURL());
 
           msg.edit(chosenEmbed);
-          msg.clearReactions().catch(err => {
+          msg.reactions.removeAll().catch(err => {
             console.log(err);
           });
           var songInfo = await ytdl.getInfo(saved[s].url);
@@ -545,8 +309,8 @@ async function execute(message, serverQueue, pool) {
               var connection = await voiceChannel.join();
               queueContruct.connection = connection;
               
-              play(message.guild, queueContruct.songs[0], pool);
-              const Embed = new Discord.RichEmbed()
+              play(message.guild, queueContruct.songs[0]);
+              const Embed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle("Now playing:")
               .setThumbnail(`https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`)
@@ -554,7 +318,7 @@ async function execute(message, serverQueue, pool) {
                 .setTimestamp()
                 .setFooter(
                   "Have a nice day! :)",
-                  message.client.user.displayAvatarURL
+                  message.client.user.displayAvatarURL()
                 );
               msg.edit(Embed);
             } catch (err) {
@@ -565,7 +329,7 @@ async function execute(message, serverQueue, pool) {
           } else {
             serverQueue.songs.push(song);
           
-            const Embed = new Discord.RichEmbed()
+            const Embed = new Discord.MessageEmbed()
               .setColor(color)
               .setTitle("New song added:")
             .setThumbnail(`https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`)
@@ -573,22 +337,22 @@ async function execute(message, serverQueue, pool) {
               .setTimestamp()
               .setFooter(
                 "Have a nice day! :)",
-                message.client.user.displayAvatarURL
+                message.client.user.displayAvatarURL()
               );
             return msg.edit(Embed);
           }
         })
         .catch(err => {
-          const Ended = new Discord.RichEmbed()
+          const Ended = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle("Action cancelled.")
             .setTimestamp()
             .setFooter(
               "Have a nice day! :)",
-              message.client.user.displayAvatarURL
+              message.client.user.displayAvatarURL()
             );
           msg.edit(Ended);
-          msg.clearReactions().catch(err => {
+          msg.reactions.removeAll().catch(err => {
             console.log(err);
           });
         });
@@ -597,50 +361,70 @@ async function execute(message, serverQueue, pool) {
 }
 
 function skip(message, serverQueue) {
-  if (!message.member.voiceChannel)
+  const guild = message.guild;
+  if (!message.member.voice.channel)
     return message.channel.send(
       "You have to be in a voice channel to stop the music!"
     );
   if (!serverQueue)
     return message.channel.send("There is no song that I could skip!");
-  serverQueue.connection.dispatcher.end();
-
+  const guildLoopStatus = looping.get(message.guild.id);
+  serverQueue.connection.dispatcher.destroy();
+  if (
+        guildLoopStatus === undefined ||
+        guildLoopStatus === null ||
+        !guildLoopStatus ||
+        guildLoopStatus === false
+      ) {
+        console.log("Music ended! In " + guild.name);
+        serverQueue.songs.shift();
+        play(guild, serverQueue.songs[0]);
+      } else {
+        console.log("Music ended! In " + guild.name);
+        var song = serverQueue.songs[0];
+        serverQueue.songs.push(song);
+        serverQueue.songs.shift();
+        
+        play(guild, serverQueue.songs[0]);
+      }
   message.channel.send("Skipped!");
 }
 
 function stop(message, serverQueue) {
-  if (!message.member.voiceChannel)
+  if (!message.member.voice.channel)
     return message.channel.send(
       "You have to be in a voice channel to stop the music!"
     );
 
   serverQueue.songs = [];
-  serverQueue.connection.dispatcher.end();
+  serverQueue.connection.dispatcher.destroy();
+  message.guild.me.voice.channel.leave();
+  queue.delete(message.guild.id)
   message.channel.send(":wave:");
 }
 
-async function play(guild, song, pool) {
+async function play(guild, song) {
   const serverQueue = queue.get(guild.id);
 
   if (!song) {
-    serverQueue.voiceChannel.leave();
+    guild.me.voice.channel.leave();
     queue.delete(guild.id);
     
     return;
   }
   
-  const voiceChannel = guild.me.voiceChannel;
+  const voiceChannel = guild.me.voice.channel;
   
   if(voiceChannel.members.size <= 1) {
     setTimeout(function() {
       serverQueue.songs = [];
-      serverQueue.connection.dispatcher.end();
+      serverQueue.connection.dispatcher.destroy();
     }, 30000)
   }
 
   const dispatcher = serverQueue.connection
-    .playOpusStream(await ytdl(song.url, { highWaterMark: 1<<27 }))
-    .on("end", () => {
+    .play(await ytdl(song.url, { highWaterMark: 1<<27 }), { type: "opus"})
+    .on("finish", () => {
       const guildLoopStatus = looping.get(guild.id);
       if (
         guildLoopStatus === undefined ||
@@ -650,14 +434,13 @@ async function play(guild, song, pool) {
       ) {
         console.log("Music ended! In " + guild.name);
         serverQueue.songs.shift();
-       
-        play(guild, serverQueue.songs[0], pool);
+        play(guild, serverQueue.songs[0]);
       } else {
         console.log("Music ended! In " + guild.name);
         serverQueue.songs.push(song);
         serverQueue.songs.shift();
         
-        play(guild, serverQueue.songs[0], pool);
+        play(guild, serverQueue.songs[0]);
       }
     })
     .on("error", error => {
@@ -671,21 +454,18 @@ function showQueue(message, serverQueue) {
   var songArray = serverQueue.songs.map(song => {
     return `**${++index} - ** [**${song.title}**](${song.url})`;
   });
-  musicFunctions.addMusicQueueField(message, songArray, queue).then(results =>
-    __awaiter(this, void 0, void 0, function*() {
-      for (let i = 0; i < results.length; i++) {
-        const element = results[i];
-        message.channel.send(element).then(m => {
-          return;
-        });
-      }
-    })
-  );
+  var queueEmbed = new Discord.MessageEmbed()
+  .setColor(color)
+  .setTitle("Song queue for " + message.guild.name)
+  .setDescription("There are " + songArray.length + " songs in total.\n\n" + songArray.join("\n"))
+  .setTimestamp()
+  .setFooter("Now playing: " + serverQueue.songs[0].title, message.client.user.displayAvatarURL());
+  message.channel.send(queueEmbed);
 }
 
 function nowPlaying(message, serverQueue) {
   if (!serverQueue) return message.channel.send("There is nothing playing.");
-  var embed = new discord_js_1.RichEmbed()
+  var embed = new Discord.MessageEmbed()
     .setColor(Math.floor(Math.random() * 16777214) + 1)
     .setTitle("Now playing:")
     .setDescription(
@@ -694,36 +474,36 @@ function nowPlaying(message, serverQueue) {
     .setTimestamp()
     .setThumbnail(`https://img.youtube.com/vi/${serverQueue.songs[0].id}/maxresdefault.jpg`)
     .setTimestamp()
-    .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+    .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
   return message.channel.send(embed);
 }
 
 function lp(message, serverQueue) {
-  if (!message.member.voiceChannel)
+  if (!message.member.voice.channel)
     return message.channel.send("You are not in a voice channel!");
   if (!serverQueue) return message.channel.send("There is nothing playing.");
   const guildLoopStatus = looping.get(message.guild.id);
-  if (guildLoopStatus === undefined || guildLoopStatus === null || guildLoopStatus) {
+  if (guildLoopStatus === undefined || guildLoopStatus === null || !guildLoopStatus) {
     
     looping.set(message.guild.id, true);
     message.channel.send("The song queue is now being looped.");
     
   } else {
     if (guildLoopStatus === false) {
-      guildLoopStatus = true;
+      looping.set(message.guild.id, true)
       message.channel.send("The song queue is now being looped.");
 
-      return guildLoopStatus;
+      return;
     } else {
-      guildLoopStatus = false;
+      looping.set(message.guild.id, false);
       message.channel.send("The song queue is no longer being looped.");
-      return guildLoopStatus;
+      return;
     }
   }
 }
 
 function remove(message, queueIndex) {
-  if (!message.member.voiceChannel)
+  if (!message.member.voice.channel)
     return message.channel.send("You are not in a voice channel!");
   if (typeof queueIndex !== "number")
     return message.channel.send("The query provided is not a number.");
@@ -742,12 +522,12 @@ function remove(message, queueIndex) {
 }
 
 function pause(message, serverQueue) {
-  if (!message.member.voiceChannel)
+  if (!message.member.voice.channel)
     return message.channel.send("You are not in a voice channel!");
 
   if (serverQueue.playing === true) {
     serverQueue.playing = false;
-    serverQueue.connection.dispatcher.pause();
+    serverQueue.connection.dispatcher.pause(true);
     return message.channel.send("The song playback has been stopped.");
   } else {
     return message.channel.send("The song playback is already stopped.");
@@ -755,7 +535,7 @@ function pause(message, serverQueue) {
 }
 
 function resume(message, serverQueue) {
-  if (!message.member.voiceChannel)
+  if (!message.member.voice.channel)
     return message.channel.send("You are not in a voice channel!");
 
   if (serverQueue.playing === false) {
@@ -768,27 +548,22 @@ function resume(message, serverQueue) {
 }
 
 function shuffle(message, serverQueue) {
-  if (!message.member.voiceChannel)
+  if (!message.member.voice.channel)
     return message.channel.send("You are not in a voice channel!");
 
   if (!serverQueue) return message.channel.send("There is nothing playing.");
-  musicFunctions.shuffleArray(serverQueue.songs);
+  shuffleArray(serverQueue.songs);
   var index = 0;
   var songArray = serverQueue.songs.map(song => {
     return `**${++index}-** [${song.title}](${song.url})`;
   });
-  musicFunctions.addMusicQueueField(message, songArray, queue).then(results =>
-    __awaiter(this, void 0, void 0, function*() {
-      for (let i = 0; i < results.length; i++) {
-        yield new Promise(r => {
-          return setTimeout(r, 500);
-        });
-        const element = results[i];
-        message.channel.send(element);
-      }
-    })
-  );
-  message.channel.send("Song queue has been shuffled.");
+  var queueEmbed = new Discord.MessageEmbed()
+  .setColor(color)
+  .setTitle("Song queue for " + message.guild.name)
+  .setDescription("There are " + songArray.length + " songs in total.\n\n" + songArray.join("\n"))
+  .setTimestamp()
+  .setFooter("Now playing: " + serverQueue.songs[0].title, message.client.user.displayAvatarURL());
+  message.channel.send("Song queue has been shuffled.", queueEmbed);
 }
 
 module.exports = {
