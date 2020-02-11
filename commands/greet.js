@@ -11,6 +11,6 @@ module.exports = {
         // grab the "first" mentioned user from the message
         // this will return a `User` object, just like `message.author`
         const taggedUser = message.mentions.users.first();
-    message.channel.send("Hello there, " + taggedUser + "!");
+    message.channel.send("Hello there, **" + taggedUser.tag + "**!");
 	},
 };

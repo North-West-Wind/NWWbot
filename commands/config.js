@@ -10,7 +10,7 @@ module.exports = {
     if (message.channel instanceof Discord.DMChannel) {
        return message.channel.send("Direct messages is not configurable.")
      }
-    if (!message.member.hasPermission("MANAGE_GUILD")) {
+    if (!message.member.permissions.has("MANAGE_GUILD")) {
       message.reply(`you don\'t have the permission to use this command.`);
       return;
     }

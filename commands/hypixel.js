@@ -128,7 +128,7 @@ module.exports = {
                         let skin =
                           "https://visage.surgeplay.com/full/256/" + res[0].id;
                         if (rank === "Non") {
-                          var Embed = new Discord.RichEmbed()
+                          var Embed = new Discord.MessageEmbed()
                             .setColor(color)
                             .setTitle(res[0].name)
                             .setURL("https://hypixel.net/player/" + res[0].name)
@@ -154,10 +154,10 @@ module.exports = {
                             .setTimestamp()
                             .setFooter(
                               "Have a nice day! :)",
-                              message.client.user.displayAvatarURL
+                              message.client.user.displayAvatarURL()
                             );
                         } else {
-                          var Embed = new Discord.RichEmbed()
+                          var Embed = new Discord.MessageEmbed()
                             .setColor(color)
                             .setTitle(rank + res[0].name)
                             .setURL("https://hypixel.net/player/" + res[0].name)
@@ -183,7 +183,7 @@ module.exports = {
                             .setTimestamp()
                             .setFooter(
                               "Have a nice day! :)",
-                              message.client.user.displayAvatarURL
+                              message.client.user.displayAvatarURL()
                             );
                         }
                         if (body.player.socialMedia.links.DISCORD) {
@@ -231,7 +231,7 @@ module.exports = {
                                 "https://visage.surgeplay.com/full/256/" +
                                 res[0].id;
                               if (rank === "Non") {
-                                var Embed = new Discord.RichEmbed()
+                                var Embed = new Discord.MessageEmbed()
                                   .setColor(color)
                                   .setTitle(res[0].name)
                                   .setURL(
@@ -259,10 +259,10 @@ module.exports = {
                                   .setTimestamp()
                                   .setFooter(
                                     "Have a nice day! :)",
-                                    message.client.user.displayAvatarURL
+                                    message.client.user.displayAvatarURL()
                                   );
                               } else {
-                                var Embed = new Discord.RichEmbed()
+                                var Embed = new Discord.MessageEmbed()
                                   .setColor(color)
                                   .setTitle(rank + res[0].name)
                                   .setURL(
@@ -290,7 +290,7 @@ module.exports = {
                                   .setTimestamp()
                                   .setFooter(
                                     "Have a nice day! :)",
-                                    message.client.user.displayAvatarURL
+                                    message.client.user.displayAvatarURL()
                                   );
                               }
                               message.channel.send(Embed);
@@ -428,7 +428,7 @@ module.exports = {
                               }
                               await member.sort(compare);
                               
-                              const Embed = new Discord.RichEmbed()
+                              const Embed = new Discord.MessageEmbed()
                                 .setColor(color)
                                 .setTitle(guildName)
                                 .setDescription("Guild of " + res[0].name)
@@ -448,16 +448,16 @@ module.exports = {
                                 .setTimestamp()
                                 .setFooter(
                                   "Have a nice day! :)",
-                                  message.client.user.displayAvatarURL
+                                  message.client.user.displayAvatarURL()
                                 );
-                              const topPlayer = new Discord.RichEmbed()
+                              const topPlayer = new Discord.MessageEmbed()
                                 .setColor(color)
                                 .setTitle(guildName)
                                 .setDescription("Top 10 GEXP gatherer")
                                 .setTimestamp()
                                 .setFooter(
                                   "Have a nice day! :)",
-                                  message.client.user.displayAvatarURL
+                                  message.client.user.displayAvatarURL()
                                 );
                              
                               for (var i = 0; i < 9; i++) {
@@ -540,13 +540,13 @@ module.exports = {
 
                                             edit(msg, s);
                                           } else {
-                                            msg.clearReactions().catch(err => {
+                                            msg.reactions.removeAll().catch(err => {
                                               console.log(err);
                                             });
                                           }
                                         })
                                         .catch(collected => {
-                                          msg.clearReactions().catch(err => {
+                                          msg.reactions.removeAll().catch(err => {
                                             console.log(err);
                                           });
                                         });
@@ -608,13 +608,13 @@ module.exports = {
 
                                           edit(msg, s);
                                         } else {
-                                          msg.clearReactions().catch(err => {
+                                          msg.reactions.removeAll().catch(err => {
                                             console.log(err);
                                           });
                                         }
                                       })
                                       .catch(collected => {
-                                        msg.clearReactions().catch(err => {
+                                        msg.reactions.removeAll().catch(err => {
                                           console.log(err);
                                         });
                                       });
@@ -715,7 +715,7 @@ module.exports = {
                     var kills_capture = tnt.kills_capture;
                   }
 
-                  const Embed = new Discord.RichEmbed()
+                  const Embed = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -737,7 +737,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   message.channel.send(Embed);
@@ -818,7 +818,7 @@ module.exports = {
                   const fkdr = Math.round((final / fdeath) * 100) / 100;
                   const bbr = Math.round((bed / bedlost) * 100) / 100;
 
-                  const Embed = new Discord.RichEmbed()
+                  const Embed = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -849,7 +849,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //solo
@@ -923,7 +923,7 @@ module.exports = {
                   var fkdrSolo =
                     Math.round((finalSolo / fdeathSolo) * 100) / 100;
 
-                  const EmbedSolo = new Discord.RichEmbed()
+                  const EmbedSolo = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -954,7 +954,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //double
@@ -1024,7 +1024,7 @@ module.exports = {
                   var bbrTwo = Math.round((bedTwo / bedlostTwo) * 100) / 100;
                   var fkdrTwo = Math.round((finalTwo / fdeathTwo) * 100) / 100;
 
-                  const EmbedTwo = new Discord.RichEmbed()
+                  const EmbedTwo = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -1055,7 +1055,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //triple
@@ -1125,7 +1125,7 @@ module.exports = {
                   var bbrTri = Math.round((bedTri / bedlostTri) * 100) / 100;
                   var fkdrTri = Math.round((finalTri / fdeathTri) * 100) / 100;
 
-                  const EmbedTri = new Discord.RichEmbed()
+                  const EmbedTri = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -1156,7 +1156,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //quadruple
@@ -1226,7 +1226,7 @@ module.exports = {
                   var bbr4 = Math.round((bed4 / bedlost4) * 100) / 100;
                   var fkdr4 = Math.round((final4 / fdeath4) * 100) / 100;
 
-                  const Embed4 = new Discord.RichEmbed()
+                  const Embed4 = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -1257,7 +1257,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
                   const filter = (reaction, user) => {
                     return (
@@ -1322,13 +1322,13 @@ module.exports = {
 
                               edit(msg, s);
                             } else {
-                              msg.clearReactions().catch(err => {
+                              msg.reactions.removeAll().catch(err => {
                                 console.log(err);
                               });
                             }
                           })
                           .catch(collected => {
-                            msg.clearReactions().catch(err => {
+                            msg.reactions.removeAll().catch(err => {
                               console.log(err);
                             });
                           });
@@ -1384,13 +1384,13 @@ module.exports = {
 
                               edit(msg, s);
                             } else {
-                              msg.clearReactions().catch(err => {
+                              msg.reactions.removeAll().catch(err => {
                                 console.log(err);
                               });
                             }
                           })
                           .catch(collected => {
-                            msg.clearReactions().catch(err => {
+                            msg.reactions.removeAll().catch(err => {
                               console.log(err);
                             });
                           });
@@ -1477,7 +1477,7 @@ module.exports = {
                   var uhcWlr = Math.round((uhcWins / uhcLosses) * 100) / 100;
                   var uhcKdr = Math.round((uhcKills / uhcDeaths) * 100) / 100;
 
-                  const EmbedUhc = new Discord.RichEmbed()
+                  const EmbedUhc = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -1509,7 +1509,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //SW
@@ -1583,7 +1583,7 @@ module.exports = {
                   var swWlr = Math.round((swWins / swLosses) * 100) / 100;
                   var swKdr = Math.round((swKills / swDeaths) * 100) / 100;
 
-                  const EmbedSw = new Discord.RichEmbed()
+                  const EmbedSw = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -1615,7 +1615,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //Mega Walls
@@ -1689,7 +1689,7 @@ module.exports = {
                   var mwWlr = Math.round((mwWins / mwLosses) * 100) / 100;
                   var mwKdr = Math.round((mwKills / mwDeaths) * 100) / 100;
 
-                  const EmbedMw = new Discord.RichEmbed()
+                  const EmbedMw = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -1721,7 +1721,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //Classic
@@ -1795,7 +1795,7 @@ module.exports = {
                   var clsWlr = Math.round((clsWins / clsLosses) * 100) / 100;
                   var clsKdr = Math.round((clsKills / clsDeaths) * 100) / 100;
 
-                  const EmbedCls = new Discord.RichEmbed()
+                  const EmbedCls = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -1827,7 +1827,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //Bow
@@ -1901,7 +1901,7 @@ module.exports = {
                   var bowWlr = Math.round((bowWins / bowLosses) * 100) / 100;
                   var bowKdr = Math.round((bowKills / bowDeaths) * 100) / 100;
 
-                  const EmbedBow = new Discord.RichEmbed()
+                  const EmbedBow = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -1933,7 +1933,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //Blitz
@@ -2007,7 +2007,7 @@ module.exports = {
                   var bliWlr = Math.round((bliWins / bliLosses) * 100) / 100;
                   var bliKdr = Math.round((bliKills / bliDeaths) * 100) / 100;
 
-                  const EmbedBli = new Discord.RichEmbed()
+                  const EmbedBli = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -2039,7 +2039,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //op
@@ -2113,7 +2113,7 @@ module.exports = {
                   var opWlr = Math.round((opWins / opLosses) * 100) / 100;
                   var opKdr = Math.round((opKills / opDeaths) * 100) / 100;
 
-                  const EmbedOp = new Discord.RichEmbed()
+                  const EmbedOp = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -2145,7 +2145,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //No Debuff
@@ -2219,7 +2219,7 @@ module.exports = {
                   var poWlr = Math.round((poWins / poLosses) * 100) / 100;
                   var poKdr = Math.round((poKills / poDeaths) * 100) / 100;
 
-                  const EmbedPo = new Discord.RichEmbed()
+                  const EmbedPo = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -2251,7 +2251,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //combo
@@ -2316,7 +2316,7 @@ module.exports = {
                   var comWlr = Math.round((comWins / comLosses) * 100) / 100;
                   var comKdr = Math.round((comKills / comDeaths) * 100) / 100;
 
-                  const EmbedCom = new Discord.RichEmbed()
+                  const EmbedCom = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -2348,7 +2348,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //bridge
@@ -2434,7 +2434,7 @@ module.exports = {
                   var briWlr = Math.round((briWins / briLosses) * 100) / 100;
                   var briKdr = Math.round((briKills / briDeaths) * 100) / 100;
 
-                  const EmbedBri = new Discord.RichEmbed()
+                  const EmbedBri = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -2468,7 +2468,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //sumo
@@ -2523,7 +2523,7 @@ module.exports = {
                   var sumWlr = Math.round((sumWins / sumLosses) * 100) / 100;
                   var sumKdr = Math.round((sumKills / sumDeaths) * 100) / 100;
 
-                  const EmbedSum = new Discord.RichEmbed()
+                  const EmbedSum = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -2555,7 +2555,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   //Overall
@@ -2629,7 +2629,7 @@ module.exports = {
                   var wlr = Math.round((wins / losses) * 100) / 100;
                   var kdr = Math.round((kills / deaths) * 100) / 100;
 
-                  const Embed = new Discord.RichEmbed()
+                  const Embed = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
@@ -2661,7 +2661,7 @@ module.exports = {
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
-                      message.client.user.displayAvatarURL
+                      message.client.user.displayAvatarURL()
                     );
 
                   var allEmbeds = [
@@ -2746,13 +2746,13 @@ module.exports = {
                                 err => console.log(err);
                               }
                             } else {
-                              msg.clearReactions().catch(err => {
+                              msg.reactions.removeAll().catch(err => {
                                 console.log(err);
                               });
                             }
                           })
                           .catch(collected => {
-                            msg.clearReactions().catch(err => {
+                            msg.reactions.removeAll().catch(err => {
                               console.log(err);
                             });
                           });
@@ -2820,13 +2820,13 @@ module.exports = {
                                 err => console.log(err);
                               }
                             } else {
-                              msg.clearReactions().catch(err => {
+                              msg.reactions.removeAll().catch(err => {
                                 console.log(err);
                               });
                             }
                           })
                           .catch(collected => {
-                            msg.clearReactions().catch(err => {
+                            msg.reactions.removeAll().catch(err => {
                               console.log(err);
                             });
                           });

@@ -63,7 +63,7 @@ module.exports = {
       return await this.region(message, args);
     }
     const reactPermissions =
-      message.guild.me.hasPermission([
+      message.guild.me.permissions.has([
         "ADD_REACTIONS",
         "EMBED_LINKS",
         "READ_MESSAGE_HISTORY"
@@ -128,14 +128,14 @@ module.exports = {
     let nextInfo = {};
     nextInfo.nextQuestion = str;
 
-    const embed = new Discord.RichEmbed()
+    const embed = new Discord.MessageEmbed()
       .setColor(color)
       .setTitle("Question 1: " + info.question)
       .setDescription(nextInfo.nextQuestion)
       .setTimestamp()
       .setFooter(
         "Please answer within 60 seconds.",
-        message.client.user.displayAvatarURL
+        message.client.user.displayAvatarURL()
       );
 
     var msg = await message.channel.send(embed);
@@ -174,7 +174,7 @@ module.exports = {
           .setImage(undefined)
           .setFooter(
             "60 seconds have passed!",
-            message.client.user.displayAvatarURL
+            message.client.user.displayAvatarURL()
           );
         msg.edit(embed);
         await ended.delete(msg.id);
@@ -198,32 +198,32 @@ module.exports = {
           case this.yes:
             answerID = 0;
 
-            await r.remove(message.author.id);
+            await r.users.remove(message.author.id);
 
             break;
           case this.no:
             answerID = 1;
-            await r.remove(message.author.id);
+            await r.users.remove(message.author.id);
             break;
           case this.unknown:
             answerID = 2;
-            await r.remove(message.author.id);
+            await r.users.remove(message.author.id);
             break;
           case this.probably:
             answerID = 3;
-            await r.remove(message.author.id);
+            await r.users.remove(message.author.id);
             break;
           case this.probablyNot:
             answerID = 4;
-            await r.remove(message.author.id);
+            await r.users.remove(message.author.id);
             break;
           case this.back:
             answerID = 5;
-            await r.remove(message.author.id);
+            await r.users.remove(message.author.id);
             break;
           case this.stop:
             answerID = 6;
-            await r.remove(message.author.id);
+            await r.users.remove(message.author.id);
             break;
         }
         if (answerID === 5) {
@@ -246,7 +246,7 @@ module.exports = {
           embed.setDescription("Thanks for playing!");
           embed.setFooter(
             "Have a nice day! :)",
-            message.client.user.displayAvatarURL
+            message.client.user.displayAvatarURL()
           );
           msg.edit(embed);
           return;
@@ -258,7 +258,7 @@ module.exports = {
               // send message
               embed.setFooter(
                 "I am right!",
-                message.client.user.displayAvatarURL
+                message.client.user.displayAvatarURL()
               );
               embed.setTitle("I got the correct answer!");
               embed.setDescription("");
@@ -281,7 +281,7 @@ module.exports = {
                 .setImage(undefined)
                 .setFooter(
                   "Please wait patiently",
-                  message.client.user.displayAvatarURL
+                  message.client.user.displayAvatarURL()
                 );
 
               msg.edit(embed);
@@ -341,7 +341,7 @@ module.exports = {
               .setDescription("Loading result...")
               .setFooter(
                 "Please wait patiently",
-                message.client.user.displayAvatarURL
+                message.client.user.displayAvatarURL()
               );
 
             msg.edit(embed);
@@ -399,7 +399,7 @@ module.exports = {
             );
             embed.setFooter(
               "Am I correct?",
-              message.client.user.displayAvatarURL
+              message.client.user.displayAvatarURL()
             );
             if (image != null) {
               embed.setImage(image);
@@ -413,7 +413,7 @@ module.exports = {
               embed.setDescription(`**${name}**\n**${description}**`);
               embed.setFooter(
                 "Hope I am correct!",
-                message.client.user.displayAvatarURL
+                message.client.user.displayAvatarURL()
               );
               msg.edit(embed);
               if (collector != null && collector.emit) {
@@ -433,7 +433,7 @@ module.exports = {
             .setImage(undefined)
             .setFooter(
               "Please answer within 60 seconds.",
-              message.client.user.displayAvatarURL
+              message.client.user.displayAvatarURL()
             );
           msg = await msg.edit(embed);
         }
@@ -447,7 +447,7 @@ module.exports = {
       ended.set(msg.id, true);
       this.users.delete(message.author.id);
       if (msg != null && msg.deleted != true) {
-        msg.clearReactions().catch(console.error);
+        msg.reactions.removeAll().catch(console.error);
       }
     });
   },
@@ -461,7 +461,7 @@ module.exports = {
    * @returns {Promise<{embed: *}>}
    */
   async help(prefix, message, args) {
-    const helpEmbed = new Discord.RichEmbed()
+    const helpEmbed = new Discord.MessageEmbed()
       .setTitle("Akinator")
       .setDescription("• Can I guess it?\n• Supports up to 15 languages!")
       .addField("❯ Usage", `\`${prefix}aki [region]\``)
@@ -481,13 +481,13 @@ module.exports = {
     return message.channel.send(helpEmbed);
   },
   async region(message, args) {
-    const regionEmbed = new Discord.RichEmbed()
+    const regionEmbed = new Discord.MessageEmbed()
       .setColor(color)
       .setTitle("Akinator")
       .setDescription("Region list\n\n`" + this.regions.join("`\n`") + "`")
       .setFooter(
         'Use "' + prefix + 'aki [region]" to start a game.',
-        message.client.user.displayAvatarURL
+        message.client.user.displayAvatarURL()
       );
     message.channel.send(regionEmbed);
   }

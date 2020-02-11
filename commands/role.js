@@ -4,7 +4,7 @@ module.exports = {
     args: true,
     usage: '<user> <role>',
 	execute(message, args) {
-    if (!message.member.hasPermission('MANAGE_ROLES')) { 
+    if (!message.member.permissions.has('MANAGE_ROLES')) { 
       message.channel.send(`You don\'t have the permission to use this command.`)
       return;
     }
@@ -27,7 +27,7 @@ const taggedUser = message.mentions.users.first();
 		// or the person who made the command: let member = message.member;
 
 		// Add the role!
-		member.addRole(role).then(() => {
+		member.roles.add(role).then(() => {
       console.log(`Gave ${taggedUser.username} the role ${role.name}`);
       message.channel.send(`Successfully added **${taggedUser.tag}** to role **${role.name}**.`);
       

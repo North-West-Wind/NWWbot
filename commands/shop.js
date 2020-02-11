@@ -17,17 +17,17 @@ module.exports = {
           } else {
             var cash = results[0].currency;
           }
-          const shop = new Discord.RichEmbed()
+          const shop = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle("Welcome to the shop!")
             .setDescription("Choose an action:\n\n1️⃣ Shop\n2️⃣ Leave")
-            .setFooter("You have $" + cash, message.author.displayAvatarURL);
+            .setFooter("You have $" + cash, message.author.displayAvatarURL());
 
-          const leave = new Discord.RichEmbed()
+          const leave = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle("You were told to leave.")
             .setDescription("The staff waited too long and tells you to leave.")
-            .setFooter("You have $" + cash, message.author.displayAvatarURL);
+            .setFooter("You have $" + cash, message.author.displayAvatarURL());
 
           var msg = await message.channel.send(shop);
           await msg.react("1️⃣");
@@ -55,17 +55,17 @@ module.exports = {
               console.error("Failed to remove reactions.");
             }
 
-          const menu = new Discord.RichEmbed()
+          const menu = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle("Shop Menu")
             .setDescription("Nothing is being sold now.")
-            .setFooter("You have $" + cash, message.author.displayAvatarURL);
+            .setFooter("You have $" + cash, message.author.displayAvatarURL());
 
-          const manualLeave = new Discord.RichEmbed()
+          const manualLeave = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle("Goodbye!")
             .setDescription("said the staff.")
-            .setFooter("You have $" + cash, message.author.displayAvatarURL);
+            .setFooter("You have $" + cash, message.author.displayAvatarURL());
 
           if (reaction.emoji.name === "1️⃣") {
             

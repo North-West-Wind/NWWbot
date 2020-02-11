@@ -6,22 +6,22 @@ module.exports = {
   aliases: ["icon", "pfp"],
   execute(message) {
     if (!message.mentions.users.size) {
-      const Embed = new Discord.RichEmbed()
+      const Embed = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle(message.author.username + "'s avatar: ")
-        .setImage(message.author.displayAvatarURL)
+        .setImage(message.author.displayAvatarURL())
         .setTimestamp()
-        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       return message.channel.send(Embed);
     }
 
 
-      const Embed = new Discord.RichEmbed()
+      const Embed = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle(message.mentions.users.first().username + "'s avatar: ")
-        .setImage(message.mentions.users.first().displayAvatarURL)
+        .setImage(message.mentions.users.first().displayAvatarURL())
         .setTimestamp()
-        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       return message.channel.send(Embed);
     
 

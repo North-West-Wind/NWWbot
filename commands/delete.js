@@ -13,13 +13,13 @@ module.exports = {
       );
     }
 
-    if (!message.member.hasPermission("MANAGE_MESSAGES")) {
+    if (!message.member.permissions.has("MANAGE_MESSAGES")) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
       return;
     }
-    if (!message.guild.me.hasPermission("MANAGE_MESSAGES")) {
+    if (!message.guild.me.permissions.has("MANAGE_MESSAGES")) {
       message.channel.send(`I don\'t have the permission to delete messages.`);
       return;
     }

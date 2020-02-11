@@ -274,7 +274,7 @@ module.exports = {
               );
             
             
-            var attachment = new Discord.Attachment(
+            var attachment = new Discord.MessageAttachment(
                 wordCanvas.toBuffer(),
                 "word-image.png"
               );
@@ -345,7 +345,7 @@ module.exports = {
                 (wordCanvas.height) / 2
               );
             
-            var attachment = new Discord.Attachment(
+            var attachment = new Discord.MessageAttachment(
                 wordCanvas.toBuffer(),
                 "word-image.png"
               );
@@ -419,8 +419,8 @@ module.exports = {
               }
             );
             msg.delete()
-            message.channel.send(
-              message.author + " worked and gained **$" + gain + "**!"
+            message.channel.send("<@" +
+              message.author.id + "> worked and gained **$" + gain + "**!"
             );
           }
         }

@@ -36,23 +36,23 @@ module.exports = {
       // Assuming we mention someone in the message, this will return the user
       // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
 
-      const user = await message.channel.client.fetchUser(userID);
+      const user = await message.channel.client.users.fetch(userID);
 
 
-      if (!message.member.hasPermission("BAN_MEMBERS "))
+      if (!message.member.permissions.has("BAN_MEMBERS "))
         return message.channel.send(
           "You don't have the permission to use this command!"
         ); // Checks if the user has the permission
 
       var reason = "";
-      var warningEmbed = new Discord.RichEmbed() // Creates the embed that's DM'ed to the user when their warned!
+      var warningEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
         .setColor(embedColor)
         .setTitle(`You've been warned`)
         .setDescription(`In **${message.guild.name}**`)
         .setTimestamp()
         .setFooter(
           "Warned by " + message.author.tag,
-          message.author.displayAvatarURL
+          message.author.displayAvatarURL()
         );
 
       if (!args[1]) {
@@ -63,7 +63,7 @@ module.exports = {
         warningEmbed.addField("Reason", reason);
         user.send(warningEmbed); // DMs the user the above embed!
       }
-      var warnSuccessfulEmbed = new Discord.RichEmbed() // Creates the embed thats returned to the person warning if its sent.
+      var warnSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
         .setColor(embedColor)
         .setTitle("User Successfully Warned!")
         .setDescription(
@@ -98,7 +98,7 @@ module.exports = {
           if (err) throw err;
           if (results.length >= 3) {
             message.guild.ban(user);
-            var banEmbed = new Discord.RichEmbed() // Creates the embed that's DM'ed to the user when their warned!
+            var banEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
               .setColor(embedColor)
               .setTitle(`You've been banned`)
               .setDescription(`In **${message.guild.name}**`)
@@ -106,9 +106,9 @@ module.exports = {
               .setTimestamp()
               .setFooter(
                 "Banned by " + message.author.tag,
-                message.author.displayAvatarURL
+                message.author.displayAvatarURL()
               );
-            var banSuccessfulEmbed = new Discord.RichEmbed() // Creates the embed thats returned to the person warning if its sent.
+            var banSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
               .setColor(embedColor)
               .setTitle("User Banned!")
               .setDescription(

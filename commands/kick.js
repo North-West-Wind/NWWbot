@@ -7,13 +7,13 @@ module.exports = {
   args: true,
   usage: "<user> [reason]",
   execute(message, args) {
-    if (!message.member.hasPermission("KICK_MEMBERS")) {
+    if (!message.member.permissions.has("KICK_MEMBERS")) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
       return;
     }
-    if (!message.guild.me.hasPermission("KICK_MEMBERS")) {
+    if (!message.guild.me.permissions.has("KICK_MEMBERS")) {
       message.channel.send(
         `I don\'t have the permission to kick members.`
       );
@@ -40,7 +40,7 @@ module.exports = {
       .replace(/>/g, "");
     
     
-    message.channel.client.fetchUser(userID).then(async user => {
+    message.channel.client.users.fetch(userID).then(async user => {
       const member = message.guild.member(user);
       // If the member is in the guild
       if (member) {
@@ -54,14 +54,14 @@ module.exports = {
         
           
             // We let the message author know we were able to kick the person
-            var kickEmbed = new Discord.RichEmbed() // Creates the embed that's DM'ed to the user when their warned!
+            var kickEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
                 .setColor(color)
                 .setTitle(`You've been kicked`)
                 .setDescription(`In **${message.guild.name}**`)
                 .setTimestamp()
                 .setFooter(
                   "Kicked by " + message.author.tag,
-                  message.author.displayAvatarURL
+                  message.author.displayAvatarURL()
                 );
               if (args[1]) {
                 kickEmbed.addField("Reason", reason);
@@ -70,7 +70,7 @@ module.exports = {
                 console.log("Failed to send DM to " + user.username)
               });
 
-              var kickSuccessfulEmbed = new Discord.RichEmbed() // Creates the embed thats returned to the person warning if its sent.
+              var kickSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
                 .setColor(color)
                 .setTitle("User Kicked!")
                 .setDescription(

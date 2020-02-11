@@ -61,14 +61,14 @@ module.exports = {
       twoDigits(cmillisecond) +
       " UTC";
 
-    const Embed = new Discord.RichEmbed()
+    const Embed = new Discord.MessageEmbed()
       .setColor(color)
       .setTitle("Ping")
       .addField("Message sent", "`" + msgTime + "`")
       .addField("Message received", "`" + currentTime + "`")
       .addField("Ping", "`" + (currentDate - msgDate) + "ms`")
       .setTimestamp()
-      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     message.channel.send(Embed);
     message.author.send("Pong! Don't question me. I'm online.")
   }

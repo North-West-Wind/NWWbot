@@ -24,7 +24,7 @@ module.exports = {
             return message.channel.send("No player named **" + args[1] + "** were found")
           }
           console.log(res[0].name + "? No, they're " + res[0].id + " to me.");
-        const Embed = new Discord.RichEmbed()
+        const Embed = new Discord.MessageEmbed()
           .setColor(color)
           .setTitle(`${res[0].name}\'s UUID:`)
           .setDescription(res[0].id);
@@ -56,7 +56,7 @@ module.exports = {
               var obj = JSON.parse(text);
               let skin = "https://visage.surgeplay.com/full/256/" + res.id;
 
-              const Embed = new Discord.RichEmbed()
+              const Embed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle(res.name)
                 .setDescription("Profile:")
@@ -66,7 +66,7 @@ module.exports = {
                 .setTimestamp()
                 .setFooter(
                   "Have a nice day! :)",
-                  message.client.user.displayAvatarURL
+                  message.client.user.displayAvatarURL()
                 );
               message.channel.send(Embed);
               return;
@@ -81,7 +81,7 @@ module.exports = {
           
           console.log(res.id + " is also known as " + res.name + ".");
 
-          const Embed = new Discord.RichEmbed()
+          const Embed = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle("UUID to Username:")
             .setDescription(res.id)
@@ -89,7 +89,7 @@ module.exports = {
             .setTimestamp()
             .setFooter(
               "Have a nice day! :)",
-              message.client.user.displayAvatarURL
+              message.client.user.displayAvatarURL()
             );
           message.channel.send(Embed);
           return;
@@ -116,7 +116,7 @@ module.exports = {
             const hostname = body.hostname;
             const desc = body.motd.clean.join("\n");
             const spaceRemoved = desc.replace(/ +(?= )/g,'');
-            const Embed = new Discord.RichEmbed()
+            const Embed = new Discord.MessageEmbed()
               .setTitle(args.slice(1).join(" "))
               .setColor(color)
               .addField("IP", "`" + ip + "`", true)
@@ -128,7 +128,7 @@ module.exports = {
               .setTimestamp()
               .setFooter(
                 "Have a nice day! :)",
-                message.client.user.displayAvatarURL
+                message.client.user.displayAvatarURL()
               );
             
             return message.channel.send(Embed);
@@ -159,11 +159,11 @@ module.exports = {
             names.push(num + ". " + result[i].name);
             }
           }
-          const Embed = new Discord.RichEmbed()
+          const Embed = new Discord.MessageEmbed()
           .setColor(color)
           .setTitle(res[0].name + "'s Username History")
           .setDescription(names.join("\n"))
-          .setFooter("Last changed on " + new Date(result[result.length - 1].changedToAt), message.client.user.displayAvatarURL);
+          .setFooter("Last changed on " + new Date(result[result.length - 1].changedToAt), message.client.user.displayAvatarURL());
             
         message.channel.send(Embed);
     }

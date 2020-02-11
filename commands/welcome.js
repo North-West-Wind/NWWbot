@@ -163,7 +163,7 @@ module.exports = {
                 const image = await loadImage(url);
 
                 //fetch user avatar
-                const avatar = await loadImage(message.author.displayAvatarURL);
+                const avatar = await loadImage(message.author.displayAvatarURL({ format: 'png' }));
 
                 //draw background
                 ctx.drawImage(image, 0, 0, width, height);

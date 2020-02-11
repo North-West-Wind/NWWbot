@@ -6,7 +6,7 @@ module.exports = {
   description: "Unban a user.",
   usage: "<user|id> [reason]",
   execute(message, args) {
-    if (!message.member.hasPermission("BAN_MEMBERS")) {
+    if (!message.member.permissions.has("BAN_MEMBERS")) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
@@ -29,14 +29,14 @@ module.exports = {
       .replace(/>/g, "");
 
     message.client
-      .fetchUser(userID)
+      .users.fetch(userID)
       .then(user => {
         // Now we get the member from the user
         if (args[1]) {
           var reason = args.slice(1).join(" ");
-          var member = message.guild.unban(user, reason);
+          var member = message.guild.members.unban(user, reason);
         } else {
-          var member = message.guild.unban(user);
+          var member = message.guild.members.unban(user);
         }
         // If the member is in the guild
         if (member) {
@@ -51,14 +51,14 @@ module.exports = {
             .then(() => {
               // We let the message author know we were able to ban the person
 
-              var unbanEmbed = new Discord.RichEmbed() // Creates the embed that's DM'ed to the user when their warned!
+              var unbanEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
                 .setColor(color)
                 .setTitle(`You've been unbanned`)
                 .setDescription(`In **${message.guild.name}**`)
                 .setTimestamp()
                 .setFooter(
                   "Banned by " + message.author.tag,
-                  message.author.displayAvatarURL
+                  message.author.displayAvatarURL()
                 );
               if (args[1]) {
                 unbanEmbed.addField("Reason", reason);
@@ -67,7 +67,7 @@ module.exports = {
                 console.log("Failed to send DM to " + user.username);
               });
 
-              var unbanSuccessfulEmbed = new Discord.RichEmbed() // Creates the embed thats returned to the person warning if its sent.
+              var unbanSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
                 .setColor(color)
                 .setTitle("User Unbanned!")
                 .setDescription(

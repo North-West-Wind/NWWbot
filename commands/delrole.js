@@ -6,13 +6,13 @@ module.exports = {
   args: true,
   usage: "<role>",
   execute(message, args) {
-    if (!message.member.hasPermission("MANAGE_ROLES")) {
+    if (!message.member.permissions.has("MANAGE_ROLES")) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
       return;
     }
-    if(!message.guild.me.hasPermission('MANAGE_ROLES')) {
+    if(!message.guild.me.permissions.has('MANAGE_ROLES')) {
       message.channel.send(`I don\'t have the permission to delete roles.`)
       return;
     }
@@ -42,12 +42,12 @@ module.exports = {
     })
 
     const Discord = require('discord.js');
-    const Embed = new Discord.RichEmbed()
+    const Embed = new Discord.MessageEmbed()
       .setColor(color)
-      .setTitle("The role is gone!")
-      .addField(`A role was deleted: `, `${args[0]}`, true)
+      .setTitle("Role Deleted Successfully")
+      .setDescription("Deleted a role **" + role.name + "**")
       .setTimestamp()
-      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     message.channel.send(Embed);
 
   }

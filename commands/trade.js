@@ -7,11 +7,11 @@ module.exports = {
   usage: "<string>",
   execute(message, args) {
     message.delete(0);
-    const Embed = new Discord.RichEmbed()
+    const Embed = new Discord.MessageEmbed()
     .setTitle(message.author.username + "'s trade")
     .setDescription(args.slice(0).join(" "))
     .setTimestamp()
-      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     message.channel.send(Embed);
   }
 }

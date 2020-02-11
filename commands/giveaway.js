@@ -6,26 +6,7 @@ const moment = require("moment");
 const mysql = require("mysql");
 const { prefix } = require("../config.json");
 
-function twoDigits(d) {
-  if (0 <= d && d < 10) return "0" + d.toString();
-  if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
-  return d.toString();
-}
-
-function setTimeout_(fn, delay) {
-  var maxDelay = Math.pow(2, 31) - 1;
-
-  if (delay > maxDelay) {
-    var args = arguments;
-    args[1] -= maxDelay;
-
-    return setTimeout(function() {
-      setTimeout_.apply(fn, args);
-    }, maxDelay);
-  }
-
-  return setTimeout.apply(fn, arguments);
-}
+const { twoDigits, setTimeout_ } = require("../function.js");
 
 module.exports = {
   name: "giveaway",
@@ -157,7 +138,7 @@ module.exports = {
           con.query(
             "SELECT giveaway FROM servers WHERE id = " + guild.id,
             function(err, result, fields) {
-              var Embed = new Discord.RichEmbed()
+              var Embed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle(item)
                 .setDescription(
@@ -179,7 +160,7 @@ module.exports = {
                     message.author.username +
                     "#" +
                     message.author.discriminator,
-                  message.author.displayAvatarURL
+                  message.author.displayAvatarURL()
                 );
 
               const giveawayMsg =
@@ -260,7 +241,7 @@ module.exports = {
                                 );
                               }
                             );
-                            const Ended = new Discord.RichEmbed()
+                            const Ended = new Discord.MessageEmbed()
                               .setColor(color)
                               .setTitle(item)
                               .setDescription("Giveaway ended")
@@ -271,11 +252,11 @@ module.exports = {
                                   message.author.username +
                                   "#" +
                                   message.author.discriminator,
-                                message.author.displayAvatarURL
+                                message.author.displayAvatarURL()
                               );
                             msg.edit(giveawayMsg, Ended);
                             msg
-                              .clearReactions()
+                              .reactions.removeAll()
                               .catch(err => console.error(err));
                             return;
                           }
@@ -295,7 +276,7 @@ module.exports = {
                             winnerMessage += "<@" + winners[i] + "> ";
                           }
 
-                          const Ended = new Discord.RichEmbed()
+                          const Ended = new Discord.MessageEmbed()
                             .setColor(color)
                             .setTitle(item)
                             .setDescription("Giveaway ended")
@@ -306,7 +287,7 @@ module.exports = {
                                 message.author.username +
                                 "#" +
                                 message.author.discriminator,
-                              message.author.displayAvatarURL
+                              message.author.displayAvatarURL()
                             );
                           msg.edit(giveawayMsg, Ended);
                           var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
@@ -319,7 +300,7 @@ module.exports = {
                               link
                           );
                           msg
-                            .clearReactions()
+                            .reactions.removeAll()
                             .catch(error =>
                               console.error(
                                 "Failed to clear reactions: ",
@@ -394,9 +375,9 @@ module.exports = {
             collected.first().delete();
             mesg
               .edit(
-                "The channel will be " +
-                  channel +
-                  "\n\n`Now please enter the duration of the giveaway!`"
+                "The channel will be <#" +
+                  channel.id +
+                  ">\n\n`Now please enter the duration of the giveaway!`"
               )
               .then(mesg => {
                 message.channel
@@ -514,9 +495,9 @@ module.exports = {
                                       var sOrNot = "winners";
                                     }
                                     message.channel.send(
-                                      "The giveaway will be held in " +
-                                        channel +
-                                        " for **" +
+                                      "The giveaway will be held in <#" +
+                                        channel.id +
+                                        "> for **" +
                                         d +
                                         h +
                                         m +
@@ -588,7 +569,7 @@ module.exports = {
                                         "SELECT giveaway FROM servers WHERE id = " +
                                           guild.id,
                                         function(err, result, fields) {
-                                          var Embed = new Discord.RichEmbed()
+                                          var Embed = new Discord.MessageEmbed()
                                             .setColor(color)
                                             .setTitle(item)
                                             .setDescription(
@@ -610,7 +591,7 @@ module.exports = {
                                                 message.author.username +
                                                 "#" +
                                                 message.author.discriminator,
-                                              message.author.displayAvatarURL
+                                              message.author.displayAvatarURL()
                                             );
 
                                           const giveawayMsg =
@@ -713,7 +694,7 @@ module.exports = {
                                                               );
                                                             }
                                                           );
-                                                          const Ended = new Discord.RichEmbed()
+                                                          const Ended = new Discord.MessageEmbed()
                                                             .setColor(color)
                                                             .setTitle(item)
                                                             .setDescription(
@@ -732,14 +713,14 @@ module.exports = {
                                                                 message.author
                                                                   .discriminator,
                                                               message.author
-                                                                .displayAvatarURL
+                                                                .displayAvatarURL()
                                                             );
                                                           msg.edit(
                                                             giveawayMsg,
                                                             Ended
                                                           );
                                                           msg
-                                                            .clearReactions()
+                                                            .reactions.removeAll()
                                                             .catch(err =>
                                                               console.error(err)
                                                             );
@@ -778,7 +759,7 @@ module.exports = {
                                                             "> ";
                                                         }
 
-                                                        const Ended = new Discord.RichEmbed()
+                                                        const Ended = new Discord.MessageEmbed()
                                                           .setColor(color)
                                                           .setTitle(item)
                                                           .setDescription(
@@ -797,7 +778,7 @@ module.exports = {
                                                               message.author
                                                                 .discriminator,
                                                             message.author
-                                                              .displayAvatarURL
+                                                              .displayAvatarURL()
                                                           );
                                                         msg.edit(
                                                           giveawayMsg,
@@ -813,7 +794,7 @@ module.exports = {
                                                             link
                                                         );
                                                         msg
-                                                          .clearReactions()
+                                                          .reactions.removeAll()
                                                           .catch(error =>
                                                             console.error(
                                                               "Failed to clear reactions: ",
@@ -893,7 +874,7 @@ module.exports = {
         var fetchGuild = message.client.guilds.get(result[0].guild);
         var channel = fetchGuild.channels.get(result[0].channel);
 try {
-          var msg = await channel.fetchMessage(result[0].id);
+          var msg = await channel.messages.fetch(result[0].id);
           } catch(err) {
             con.query("DELETE FROM giveaways WHERE id = " + result[0].id, function(
             err,
@@ -903,7 +884,7 @@ try {
             console.log("Deleted an ended giveaway record.");
           });
             return;
-          }        var fetchUser = await message.client.fetchUser(result[0].author);
+          }        var fetchUser = await message.client.users.fetch(result[0].author);
         var endReacted = [];
         var peopleReacted = await msg.reactions.get(result[0].emoji);
         for (const user of peopleReacted.users.values()) {
@@ -924,7 +905,7 @@ try {
             if (err) throw err;
             console.log("Deleted an ended giveaway record.");
           });
-          const Ended = new Discord.RichEmbed()
+          const Ended = new Discord.MessageEmbed()
             .setColor(parseInt(result[0].color))
             .setTitle(result[0].item)
             .setDescription("Giveaway ended")
@@ -932,10 +913,10 @@ try {
             .setTimestamp()
             .setFooter(
               "Hosted by " + fetchUser.username + "#" + fetchUser.discriminator,
-              fetchUser.displayAvatarURL
+              fetchUser.displayAvatarURL()
             );
           msg.edit(Ended);
-          msg.clearReactions().catch(err => console.error(err));
+          msg.reactions.removeAll().catch(err => console.error(err));
           return;
         }
 
@@ -953,7 +934,7 @@ try {
           winnerMessage += "<@" + winners[i] + "> ";
         }
 
-        const Ended = new Discord.RichEmbed()
+        const Ended = new Discord.MessageEmbed()
           .setColor(parseInt(result[0].color))
           .setTitle(result[0].item)
           .setDescription("Giveaway ended")
@@ -961,7 +942,7 @@ try {
           .setTimestamp()
           .setFooter(
             "Hosted by " + fetchUser.username + "#" + fetchUser.discriminator,
-            fetchUser.displayAvatarURL
+            fetchUser.displayAvatarURL()
           );
         msg.edit(Ended);
         var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
@@ -974,7 +955,7 @@ try {
             link
         );
         msg
-          .clearReactions()
+          .reactions.removeAll()
           .catch(error => console.error("Failed to clear reactions: ", error));
 
         con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
@@ -998,14 +979,14 @@ try {
         fields
       ) {
         if (err) throw err;
-        const Embed = new Discord.RichEmbed()
+        const Embed = new Discord.MessageEmbed()
           .setColor(color)
           .setTitle("Giveaway list")
           .setDescription(
             "**" + guild.name + "** - " + results.length + " giveaways"
           )
           .setTimestamp()
-          .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+          .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 
         if (results.length > 25) {
           for (var i = 0; i < 25; i++) {

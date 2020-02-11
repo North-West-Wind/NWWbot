@@ -4,26 +4,7 @@ const client = new Discord.Client();
 const ms = require("ms");
 const { prefix } = require("../config.json")
 
-function twoDigits(d) {
-  if (0 <= d && d < 10) return "0" + d.toString();
-  if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
-  return d.toString();
-}
-
-function setTimeout_(fn, delay) {
-  var maxDelay = Math.pow(2, 31) - 1;
-
-  if (delay > maxDelay) {
-    var args = arguments;
-    args[1] -= maxDelay;
-
-    return setTimeout(function() {
-      setTimeout_.apply(fn, args);
-    }, maxDelay);
-  }
-
-  return setTimeout.apply(fn, arguments);
-}
+const { twoDigits, setTimeout_ } = require("../function.js");
 
 module.exports = {
   name: "poll",
@@ -243,7 +224,7 @@ module.exports = {
           twoDigits(second) +
           " UTC";
         var pollMsg = "⬆**Poll**⬇";
-        const Embed = new Discord.RichEmbed()
+        const Embed = new Discord.MessageEmbed()
           .setColor(color)
           .setTitle(title)
           .setDescription(
@@ -261,7 +242,7 @@ module.exports = {
               message.author.username +
               "#" +
               message.author.discriminator,
-            message.author.displayAvatarURL
+            message.author.displayAvatarURL()
           );
         var msg = await channel.send(pollMsg, Embed);
         for (var i = 0; i < optionArray.length; i++) {
@@ -332,7 +313,7 @@ module.exports = {
                 await end.push(mesg);
               }
 
-              const Ended = new Discord.RichEmbed()
+              const Ended = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle(title)
                 .setDescription(
@@ -348,13 +329,13 @@ module.exports = {
                     message.author.username +
                     "#" +
                     message.author.discriminator,
-                  message.author.displayAvatarURL
+                  message.author.displayAvatarURL()
                 );
               msg.edit(pollMsg, Ended);
               var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`
            
             msg.channel.send("A poll has ended!\n" + link);
-              msg.clearReactions().catch(err => {
+              msg.reactions.removeAll().catch(err => {
                 console.error(err);
               });
               con.query("DELETE FROM poll WHERE id = " + msg.id, function(
@@ -397,7 +378,7 @@ module.exports = {
           var guild = await message.client.guilds.get(result[0].guild);
           var channel = await guild.channels.get(result[0].channel);
           try {
-          var msg = await channel.fetchMessage(result[0].id);
+          var msg = await channel.messages.fetch(result[0].id);
           } catch(err) {
             con.query("DELETE FROM poll WHERE id = " + result[0].id, function(
             err,
@@ -408,7 +389,7 @@ module.exports = {
           });
             return;
           }
-          var author = await message.client.fetchUser(result[0].author);
+          var author = await message.client.users.fetch(result[0].author);
           var allOptions = await JSON.parse(result[0].options);
 
           var pollResult = [];
@@ -424,7 +405,7 @@ module.exports = {
             await end.push(mesg);
           }
           var pollMsg = "⬆**Poll**⬇";
-          const Ended = new Discord.RichEmbed()
+          const Ended = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle(result[0].title)
             .setDescription(
@@ -437,13 +418,13 @@ module.exports = {
             .setTimestamp()
             .setFooter(
               "Hosted by " + author.username + "#" + author.discriminator,
-              author.displayAvatarURL
+              author.displayAvatarURL()
             );
           msg.edit(pollMsg, Ended);
           var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`
            
             msg.channel.send("A poll has ended!\n" + link);
-          msg.clearReactions().catch(err => {
+          msg.reactions.removeAll().catch(err => {
             console.error(err);
           });
           con.query("DELETE FROM poll WHERE id = " + msg.id, function(
@@ -464,7 +445,7 @@ module.exports = {
           "SELECT * FROM poll WHERE guild = " + message.guild.id,
           function(err, results, fields) {
             if (err) throw err;
-            const Embed = new Discord.RichEmbed()
+            const Embed = new Discord.MessageEmbed()
               .setColor(color)
               .setTitle("Poll list")
               .setDescription(
@@ -473,7 +454,7 @@ module.exports = {
               .setTimestamp()
               .setFooter(
                 "Have a nice day! :)",
-                message.client.user.displayAvatarURL
+                message.client.user.displayAvatarURL()
               );
             if (results.length > 25) {
               for (var i = 0; i < 25; i++) {

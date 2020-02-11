@@ -13,13 +13,13 @@ module.exports = {
     const { commands } = message.client;
 
     if (!args.length) {
-      const Embed = new Discord.RichEmbed()
+      const Embed = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle("Command list is here!")
         .setDescription(
           `You can send ${prefix}help [command name] to get info on a specific command!`
         )
-        .setThumbnail(message.client.user.displayAvatarURL)
+        .setThumbnail(message.client.user.displayAvatarURL())
         .addField(
           "**Managements**",
           "delete\nrole\nunrole\naddrole\ndelrole",
@@ -37,7 +37,7 @@ module.exports = {
       .addField("**NSFW**", "hentai", true)
 
         .setTimestamp()
-        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL);
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 
       return message.author
         .send(Embed)
