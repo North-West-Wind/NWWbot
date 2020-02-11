@@ -27,17 +27,28 @@ module.exports = {
         )
         .addField("**Moderator**", "ban\nkick\nwarn", true)
 
-        .addField("**Random stuff**", "greet\nthx\nspam\nmath\ntrade\nchat\nmeme", true)
-        .addField("**Information**", "help\nserver\nping\navatar", true)
+        .addField(
+          "**Random stuff**",
+          "greet\nthx\nspam\nmath\ntrade\nchat\nmeme",
+          true
+        )
+        .addField("**Economy**", "work\nbank\nshop", true)
 
+        .addField("**Misc**", "giveaway\npoll", true)
+        .addField("**NSFW**", "hentai", true)
+        .addField("**Information**", "help\nserver\nping\navatar", true)
         .addField("**API**", "minecraft\nhypixel\nkrunker\naki", true)
-        .addField("**Music**", "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nloop", true)
-      
-      .addField("**Misc**", "giveaway\npoll", true)
-      .addField("**NSFW**", "hentai", true)
+        .addField(
+          "**Music**",
+          "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nloop",
+          true
+        )
 
         .setTimestamp()
-        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+        .setFooter(
+          "Have a nice day! :)",
+          message.client.user.displayAvatarURL()
+        );
 
       return message.author
         .send(Embed)
@@ -70,9 +81,9 @@ module.exports = {
       data.push(`**Description:** ${command.description}`);
     if (command.usage)
       data.push(`**Usage:** ${prefix}${command.name} ${command.usage}`);
-     if(command.subcommands)
+    if (command.subcommands)
       data.push(`**Subcommands:** ${command.subcommands.join(", ")}`);
-    if(command.subaliases)
+    if (command.subaliases)
       data.push(`**Subcommands' Aliases:** ${command.subaliases.join(", ")}`);
 
     message.channel.send(data, { split: true });

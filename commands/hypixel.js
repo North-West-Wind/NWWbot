@@ -513,7 +513,7 @@ module.exports = {
                                             if (s < 0) {
                                               s = 1;
                                             }
-                                            reaction.remove(message.author.id);
+                                            reaction.users.remove(message.author.id);
 
                                             edit(msg, s);
                                           } else if (
@@ -523,20 +523,20 @@ module.exports = {
                                             if (s > 1) {
                                               s = 0;
                                             }
-                                            reaction.remove(message.author.id);
+                                            reaction.users.remove(message.author.id);
                                             edit(msg, s);
                                           } else if (
                                             reaction.emoji.name === "⏮"
                                           ) {
                                             s = 0;
-                                            reaction.remove(message.author.id);
+                                            reaction.users.remove(message.author.id);
 
                                             edit(msg, s);
                                           } else if (
                                             reaction.emoji.name === "⏭"
                                           ) {
                                             s = 1;
-                                            reaction.remove(message.author.id);
+                                            reaction.users.remove(message.author.id);
 
                                             edit(msg, s);
                                           } else {
@@ -580,7 +580,7 @@ module.exports = {
                                           if (s < 0) {
                                             s = 1;
                                           }
-                                          reaction.remove(message.author.id);
+                                          reaction.users.remove(message.author.id);
 
                                           edit(msg, s);
                                         } else if (
@@ -590,21 +590,21 @@ module.exports = {
                                           if (s > 1) {
                                             s = 0;
                                           }
-                                          reaction.remove(message.author.id);
+                                          reaction.users.remove(message.author.id);
 
                                           edit(msg, s);
                                         } else if (
                                           reaction.emoji.name === "⏮"
                                         ) {
                                           s = 0;
-                                          reaction.remove(message.author.id);
+                                          reaction.users.remove(message.author.id);
 
                                           edit(msg, s);
                                         } else if (
                                           reaction.emoji.name === "⏭"
                                         ) {
                                           s = 1;
-                                          reaction.remove(message.author.id);
+                                          reaction.users.remove(message.author.id);
 
                                           edit(msg, s);
                                         } else {
@@ -1301,7 +1301,7 @@ module.exports = {
                               if (s < 0) {
                                 s = 4;
                               }
-                              reaction.remove(message.author.id);
+                              reaction.users.remove(message.author.id);
 
                               edit(msg, s);
                             } else if (reaction.emoji.name === "▶") {
@@ -1309,16 +1309,16 @@ module.exports = {
                               if (s > 4) {
                                 s = 0;
                               }
-                              reaction.remove(message.author.id);
+                              reaction.users.remove(message.author.id);
                               edit(msg, s);
                             } else if (reaction.emoji.name === "⏮") {
                               s = 0;
-                              reaction.remove(message.author.id);
+                              reaction.users.remove(message.author.id);
 
                               edit(msg, s);
                             } else if (reaction.emoji.name === "⏭") {
                               s = 4;
-                              reaction.remove(message.author.id);
+                              reaction.users.remove(message.author.id);
 
                               edit(msg, s);
                             } else {
@@ -1362,7 +1362,7 @@ module.exports = {
                               if (s < 0) {
                                 s = 4;
                               }
-                              reaction.remove(message.author.id);
+                              reaction.users.remove(message.author.id);
 
                               edit(msg, s);
                             } else if (reaction.emoji.name === "▶") {
@@ -1370,17 +1370,17 @@ module.exports = {
                               if (s > 4) {
                                 s = 0;
                               }
-                              reaction.remove(message.author.id);
+                              reaction.users.remove(message.author.id);
 
                               edit(msg, s);
                             } else if (reaction.emoji.name === "⏮") {
                               s = 0;
-                              reaction.remove(message.author.id);
+                              reaction.users.remove(message.author.id);
 
                               edit(msg, s);
                             } else if (reaction.emoji.name === "⏭") {
                               s = 4;
-                              reaction.remove(message.author.id);
+                              reaction.users.remove(message.author.id);
 
                               edit(msg, s);
                             } else {
@@ -2713,7 +2713,7 @@ module.exports = {
                                 s = 11;
                               }
                               try {
-                                await reaction.remove(message.author.id);
+                                await reaction.users.remove(message.author.id);
                                 await edit(msg, s);
                               } catch {
                                 err => console.log(err);
@@ -2724,7 +2724,7 @@ module.exports = {
                                 s = 0;
                               }
                               try {
-                                await reaction.remove(message.author.id);
+                                await reaction.users.remove(message.author.id);
                                 await edit(msg, s);
                               } catch {
                                 err => console.log(err);
@@ -2732,7 +2732,7 @@ module.exports = {
                             } else if (reaction.emoji.name === "⏮") {
                               s = 0;
                               try {
-                                await reaction.remove(message.author.id);
+                                await reaction.users.remove(message.author.id);
                                 await edit(msg, s);
                               } catch {
                                 err => console.log(err);
@@ -2740,7 +2740,7 @@ module.exports = {
                             } else if (reaction.emoji.name === "⏭") {
                               s = 11;
                               try {
-                                await reaction.remove(message.author.id);
+                                await reaction.users.remove(message.author.id);
                                 await edit(msg, s);
                               } catch {
                                 err => console.log(err);
@@ -2787,7 +2787,7 @@ module.exports = {
                                 s = 11;
                               }
                               try {
-                                await reaction.remove(message.author.id);
+                                await reaction.users.remove(message.author.id);
                                 await edit(msg, s);
                               } catch {
                                 err => console.log(err);
@@ -2798,7 +2798,7 @@ module.exports = {
                                 s = 0;
                               }
                               try {
-                                await reaction.remove(message.author.id);
+                                await reaction.users.remove(message.author.id);
                                 await edit(msg, s);
                               } catch {
                                 err => console.log(err);
@@ -2806,7 +2806,7 @@ module.exports = {
                             } else if (reaction.emoji.name === "⏮") {
                               s = 0;
                               try {
-                                await reaction.remove(message.author.id);
+                                await reaction.users.remove(message.author.id);
                                 await edit(msg, s);
                               } catch {
                                 err => console.log(err);
@@ -2814,7 +2814,7 @@ module.exports = {
                             } else if (reaction.emoji.name === "⏭") {
                               s = 11;
                               try {
-                                await reaction.remove(message.author.id);
+                                await reaction.users.remove(message.author.id);
                                 await edit(msg, s);
                               } catch {
                                 err => console.log(err);
