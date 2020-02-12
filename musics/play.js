@@ -351,14 +351,6 @@ module.exports = {
       return;
     }
 
-    const voiceChannel = guild.me.voice.channel;
-
-    if (voiceChannel.members.size <= 1) {
-      setTimeout(function() {
-        serverQueue.songs = [];
-        serverQueue.connection.dispatcher.destroy();
-      }, 30000);
-    }
 
     const dispatcher = serverQueue.connection
       .play(await ytdl(song.url, { highWaterMark: 1 << 27 }), { type: "opus" })

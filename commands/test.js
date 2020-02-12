@@ -45,6 +45,6 @@ module.exports = {
   name: "test",
   description: "For test, really.",
   async execute(message, args, pool) {
-    console.log(await getData("https://open.spotify.com/playlist/2yR017eSOXqWOsE8MpoJuJ?si=yJrujTf1Sb2NSYcNkY5VFg"))
+    console.log(message.guild.me.voice.channel);
   }
 };
