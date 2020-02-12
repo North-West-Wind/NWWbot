@@ -724,6 +724,43 @@ client.on("guildDelete", guild => {
   //remove from guildArray
 });
 
+var exit = new Map();
+
+client.on("voiceStateUpdate", async (oldState, newState) => {
+  const guild = oldState.guild || newState.guild;
+  let newUserChannel = newState.channel;
+  let oldUserChannel = oldState.channel;
+
+  if (oldUserChannel === null && newUserChannel !== null) {
+    if (newUserChannel.id !== guild.me.voice.channelID) return;
+    // User Joins a voice channel
+    exit.set(guild.id, false);
+    
+  } else if (newUserChannel === null) {
+    if (oldUserChannel.id !== guild.me.voice.channelID) return;
+    // User leaves a voice channel
+
+    if (guild.me.voice.channel.members.size <= 1) {
+      var pendingExit = await exit.get(guild.id);
+
+      if (pendingExit == true) return;
+
+      exit.set(guild.id, true);
+      
+      console.log("Pending exit.")
+
+      setTimeout(async function() {
+        var shouldExit = await exit.get(guild.id);
+
+        if (!shouldExit || shouldExit == false) return;
+
+        const mainMusic = require("./musics/main.js");
+        return await mainMusic.stop(guild);
+      }, 30000);
+    }
+  }
+});
+
 client.on("message", async message => {
   // client.on('message', message => {
   if (!message.content.startsWith(prefix) || message.author.bot) return;
@@ -747,19 +784,18 @@ client.on("message", async message => {
       cmd => cmd.aliases && cmd.aliases.includes(commandName)
     );
 
-  
-  
   if (!command) {
     return;
   } else {
     if (musicCommandsArray.includes(command.name) == true) {
-      
-      const mainMusic = require("./musics/main.js")
+      const mainMusic = require("./musics/main.js");
       try {
         return await mainMusic.music(message, commandName);
       } catch (error) {
         console.error(error);
-        return await message.reply("there was an error trying to execute that command!");
+        return await message.reply(
+          "there was an error trying to execute that command!"
+        );
       }
     }
     try {
