@@ -45,6 +45,7 @@ module.exports = {
   name: "test",
   description: "For test, really.",
   async execute(message, args, pool) {
-    console.log(message.guild.me.voice.channel);
+    var fetched = await message.channel.messages.fetch({limit: 2});
+    console.log(fetched);
   }
 };

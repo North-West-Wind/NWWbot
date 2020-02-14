@@ -548,9 +548,14 @@ client.on("guildMemberAdd", member => {
 
           //loop array
           for (let i = 0; i < roleArray.length; i++) {
-            var role = member.guild.roles.find(
+            if(isNaN(parseInt(roleArray[i]))) {
+              var role = member.guild.roles.find(
               role => role.name === roleArray[i]
             );
+            } else {
+              var role = member.guild.roles.get(roleArray[i]);
+            }
+            
 
             //check if roles are found
             if (role === null || role === undefined || !role) {
@@ -573,6 +578,7 @@ client.on("guildMemberAdd", member => {
 //someone left
 
 client.on("guildMemberRemove", member => {
+  if(member.user.kicked.get(member.guild.id) && member.user.kicked.get(member.guild.id) == true) return member.user.kicked.clear();
   const guild = member.guild;
   pool.getConnection(function(err, con) {
     con.query(
@@ -790,7 +796,7 @@ client.on("message", async message => {
     if (musicCommandsArray.includes(command.name) == true) {
       const mainMusic = require("./musics/main.js");
       try {
-        return await mainMusic.music(message, commandName);
+        return await mainMusic.music(message, commandName, pool);
       } catch (error) {
         console.error(error);
         return await message.reply(

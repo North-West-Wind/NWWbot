@@ -13,6 +13,7 @@ module.exports = {
     const { commands } = message.client;
 
     if (!args.length) {
+      const attachment = new Discord.MessageAttachment("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1581663440063");
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle("Command list is here!")
@@ -22,22 +23,17 @@ module.exports = {
         .setThumbnail(message.client.user.displayAvatarURL())
         .addField(
           "**Managements**",
-          "delete\nrole\nunrole\naddrole\ndelrole",
+          "delete\nrole\nunrole\naddrole\ndelrole\nautorole\nannounce",
           true
         )
-        .addField("**Moderator**", "ban\nkick\nwarn", true)
-
-        .addField(
-          "**Random stuff**",
-          "greet\nthx\nspam\nmath\ntrade\nchat\nmeme",
-          true
-        )
+        .addField("**Moderator**", "ban\nunban\nkick\nwarn\nunwarn\nmute\nunmute\ndeafen\nundeafen", true)
         .addField("**Economy**", "work\nbank\nshop", true)
+        .addField("**Fun**", "chat\nmeme\nrng", true)
 
-        .addField("**Misc**", "giveaway\npoll", true)
+        .addField("**Miscellaneous**", "giveaway\npoll\ngoogle\nspam\ntrade", true)
         .addField("**NSFW**", "hentai", true)
-        .addField("**Information**", "help\nserver\nping\navatar", true)
-        .addField("**API**", "minecraft\nhypixel\nkrunker\naki", true)
+        .addField("**Information**", "help\nserver\nping\navatar\nwelcome", true)
+        .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban", true)
         .addField(
           "**Music**",
           "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nloop",
@@ -51,10 +47,10 @@ module.exports = {
         );
 
       return message.author
-        .send(Embed)
+        .send({embed: Embed, files: [{attachment: "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1581663440063", name: "manual.pdf"}]})
         .then(() => {
           if (message.channel.type === "dm") return;
-          message.reply("Look at your DM!");
+          message.reply("look at your DM!");
         })
         .catch(error => {
           console.error(

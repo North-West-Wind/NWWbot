@@ -1,5 +1,10 @@
 const Discord = require("discord.js");
-const { validURL, validYTURL, decodeHtmlEntity } = require("../function.js");
+const {
+  validURL,
+  validYTURL,
+  decodeHtmlEntity,
+  encodeHtmlEntity
+} = require("../function.js");
 const ytdl = require("ytdl-core-discord");
 const YouTube = require("simple-youtube-api");
 const youtube = new YouTube(process.env.YT);
@@ -9,14 +14,11 @@ module.exports = {
   name: "play",
   description: "Play some music!",
   aliases: ["add"],
-  async music(message, serverQueue, looping, queue) {
+  async music(message, serverQueue, looping, queue, pool) {
+    
     const args = message.content.split(/ +/);
 
-    if (!args[1]) {
-      return message.channel.send(
-        "Please provide a link or keywords to get a music played!"
-      );
-    }
+    
 
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel)
@@ -28,6 +30,12 @@ module.exports = {
       return message.channel.send("I can't play in your voice channel!");
     }
 
+    if (!args[1]) {
+      return message.channel.send(
+        "Please provide a link or keywords to get a music played!"
+      );
+    }
+    
     const checkURL = validURL(args[1]);
 
     if (checkURL === true) {
@@ -59,13 +67,34 @@ module.exports = {
 
         queue.set(message.guild.id, queueContruct);
 
-        queueContruct.songs.push(song);
+        await queueContruct.songs.push(song);
 
         try {
+          pool.getConnection(function(err, con) {
+            con.query(
+              "UPDATE servers SET queue = '" +
+                (JSON.stringify(queueContruct.songs))
+                  
+                  .replace(/'/g, "\\'") +
+                "' WHERE id = " +
+                message.guild.id,
+              function(err, result) {
+                if (err) throw err;
+                console.log("Updated song queue of " + message.guild.name);
+              }
+            );
+            con.release();
+          });
           var connection = await voiceChannel.join();
           queueContruct.connection = connection;
 
-          this.play(message.guild, queueContruct.songs[0], looping, queue);
+          this.play(
+            message.guild,
+            queueContruct.songs[0],
+            looping,
+            queue,
+            pool
+          );
           const Embed = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle("Now playing:")
@@ -85,7 +114,22 @@ module.exports = {
           return message.channel.send(err);
         }
       } else {
-        serverQueue.songs.push(song);
+        await serverQueue.songs.push(song);
+        pool.getConnection(function(err, con) {
+          con.query(
+            "UPDATE servers SET queue = '" +
+              (JSON.stringify(serverQueue.songs))
+                
+                .replace(/'/g, "\\'") +
+              "' WHERE id = " +
+              message.guild.id,
+            function(err, result) {
+              if (err) throw err;
+              console.log("Updated song queue of " + message.guild.name);
+            }
+          );
+          con.release();
+        });
 
         const Embed = new Discord.MessageEmbed()
           .setColor(color)
@@ -188,7 +232,11 @@ module.exports = {
             const reaction = collected.first();
             if (reaction.emoji.name === "⏹") {
               msg.reactions.removeAll().catch(err => {
-                console.log(err);
+                if (err.message == "Missing Permissions") {
+                  msg.channel.send(
+                    "Failed to remove reaction of my message due to missing permission."
+                  );
+                }
               });
               const cancelled = new Discord.MessageEmbed()
                 .setColor(color)
@@ -259,7 +307,11 @@ module.exports = {
 
             msg.edit(chosenEmbed);
             msg.reactions.removeAll().catch(err => {
-              console.log(err);
+              if (err.message == "Missing Permissions") {
+                msg.channel.send(
+                  "Failed to remove reaction of my message due to missing permission."
+                );
+              }
             });
             var songInfo = await ytdl.getInfo(saved[s].url);
 
@@ -281,13 +333,33 @@ module.exports = {
 
               queue.set(message.guild.id, queueContruct);
 
-              queueContruct.songs.push(song);
-
+              await queueContruct.songs.push(song);
+              pool.getConnection(function(err, con) {
+                con.query(
+                  "UPDATE servers SET queue = '" +
+                    (JSON.stringify(queueContruct.songs))
+                      
+                      .replace(/'/g, "\\'") +
+                    "' WHERE id = " +
+                    message.guild.id,
+                  function(err, result) {
+                    if (err) throw err;
+                    console.log("Updated song queue of " + message.guild.name);
+                  }
+                );
+                con.release();
+              });
               try {
                 var connection = await voiceChannel.join();
                 queueContruct.connection = connection;
 
-                this.play(message.guild, queueContruct.songs[0], looping, queue);
+                this.play(
+                  message.guild,
+                  queueContruct.songs[0],
+                  looping,
+                  queue,
+                  pool
+                );
                 const Embed = new Discord.MessageEmbed()
                   .setColor(color)
                   .setTitle("Now playing:")
@@ -307,8 +379,22 @@ module.exports = {
                 return console.error(err);
               }
             } else {
-              serverQueue.songs.push(song);
-
+              await serverQueue.songs.push(song);
+              pool.getConnection(function(err, con) {
+                con.query(
+                  "UPDATE servers SET queue = '" +
+                    (JSON.stringify(serverQueue.songs))
+                      
+                      .replace(/'/g, "\\'") +
+                    "' WHERE id = " +
+                    message.guild.id,
+                  function(err, result) {
+                    if (err) throw err;
+                    console.log("Updated song queue of " + message.guild.name);
+                  }
+                );
+                con.release();
+              });
               const Embed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle("New song added:")
@@ -335,26 +421,38 @@ module.exports = {
               );
             msg.edit(Ended);
             msg.reactions.removeAll().catch(err => {
-              console.log(err);
+              if (err.message == "Missing Permissions") {
+                msg.channel.send(
+                  "Failed to remove reaction of my message due to missing permission."
+                );
+              }
             });
           });
       });
     }
   },
-  async play(guild, song, looping, queue) {
+  async play(guild, song, looping, queue, pool) {
     const serverQueue = queue.get(guild.id);
 
     if (!song) {
       guild.me.voice.channel.leave();
       queue.delete(guild.id);
-
+      pool.getConnection(function(err, con) {
+        con.query(
+          "UPDATE servers SET queue = NULL WHERE id = " + guild.id,
+          function(err, result) {
+            if (err) throw err;
+            console.log("Updated song queue of " + guild.name);
+          }
+        );
+        con.release();
+      });
       return;
     }
 
-
     const dispatcher = serverQueue.connection
       .play(await ytdl(song.url, { highWaterMark: 1 << 27 }), { type: "opus" })
-      .on("finish", () => {
+      .on("finish", async () => {
         const guildLoopStatus = looping.get(guild.id);
         if (
           guildLoopStatus === undefined ||
@@ -363,14 +461,43 @@ module.exports = {
           guildLoopStatus === false
         ) {
           console.log("Music ended! In " + guild.name);
-          serverQueue.songs.shift();
-          this.play(guild, serverQueue.songs[0], looping, queue);
+          await serverQueue.songs.shift();
+          pool.getConnection(function(err, con) {
+            con.query(
+              "UPDATE servers SET queue = '" +
+                (JSON.stringify(serverQueue.songs))
+                  
+                  .replace(/'/g, "\\'") +
+                "' WHERE id = " +
+                guild.id,
+              function(err, result) {
+                if (err) throw err;
+                console.log("Updated song queue of " + guild.name);
+              }
+            );
+            con.release();
+          });
+          this.play(guild, serverQueue.songs[0], looping, queue, pool);
         } else {
           console.log("Music ended! In " + guild.name);
           serverQueue.songs.push(song);
-          serverQueue.songs.shift();
-
-          this.play(guild, serverQueue.songs[0], looping, queue);
+          await serverQueue.songs.shift();
+          pool.getConnection(function(err, con) {
+            con.query(
+              "UPDATE servers SET queue = '" +
+                (JSON.stringify(serverQueue.songs))
+                  
+                  .replace(/'/g, "\\'") +
+                "' WHERE id = " +
+                guild.id,
+              function(err, result) {
+                if (err) throw err;
+                console.log("Updated song queue of " + guild.name);
+              }
+            );
+            con.release();
+          });
+          this.play(guild, serverQueue.songs[0], looping, queue, pool);
         }
       })
       .on("error", error => {

@@ -1,10 +1,12 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
+const { findUser } = require("../function.js");
 
 module.exports = {
   name: "unban",
   description: "Unban a user.",
   usage: "<user|id> [reason]",
+  args: true,
   execute(message, args) {
     if (!message.member.permissions.has("BAN_MEMBERS")) {
       message.channel.send(
@@ -15,22 +17,11 @@ module.exports = {
 
     if (!message.guild) return;
 
-    if (isNaN(parseInt(args[0]))) {
-      if (!args[0].startsWith("<@")) {
-        return message.channel.send(
-          "**" + args[0] + "** is neither a mention or ID."
-        );
-      }
-    }
-
-    const userID = args[0]
-      .replace(/<@/g, "")
-      .replace(/!/g, "")
-      .replace(/>/g, "");
-
-    message.client
-      .users.fetch(userID)
+    
+    findUser(message, args[0])
       .then(user => {
+      
+      if(!user) return;
         // Now we get the member from the user
         if (args[1]) {
           var reason = args.slice(1).join(" ");

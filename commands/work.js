@@ -1,35 +1,7 @@
 const randomWords = require("random-words");
 const Canvas = require("canvas");
 const Discord = require("discord.js")
-
-function getRandomNumber(min, max) {
-  return Math.random() * (max - min) + min;
-}
-function twoDigits(d) {
-  if (0 <= d && d < 10) return "0" + d.toString();
-  if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
-  return d.toString();
-}
-
-const applyText = (canvas, text) => {
-                const ctx = canvas.getContext("2d");
-
-                //calculate largest font size
-                let fontSize = canvas.width / 12;
-
-                //reduce font size loop
-                do {
-                  //reduce font size
-                  ctx.font = `${(fontSize -= 5)}px sans-serif`;
-                  // Compare pixel width of the text to the canvas minus the approximate avatar size
-                } while (
-                  ctx.measureText(text).width >
-                  canvas.width - 100
-                );
-
-                // Return the result to use in the actual canvas
-                return ctx.font;
-              };
+const { twoDigits, getRandomNumber, applyText } = require("../function.js")
 
 module.exports = {
   name: "work",

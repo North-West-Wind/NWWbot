@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
 var embedColor = Math.floor(Math.random() * 16777214) + 1;
+const { findUser } = require("../function.js")
 
 module.exports = {
   name: "unwarn",
@@ -19,23 +20,14 @@ module.exports = {
         );
       }
       
-      if(isNaN(parseInt(args[0]))) {
-      if (!args[0].startsWith("<@")) {
-        return message.channel.send(
-          "**" + args[0] + "** is neither a mention or ID."
-        );
-      }
-    }
-
-    const userID = args[0]
-      .replace(/<@/g, "")
-      .replace(/!/g, "")
-      .replace(/>/g, "");
+     
 
     // Assuming we mention someone in the message, this will return the user
     // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
 
-    const user = await message.channel.client.users.fetch(userID);
+    const user = await findUser(message, args[0]);
+      
+      if(!user) return;
 
     con.query("SELECT * FROM warn WHERE user = " + user.id + " AND guild = " + message.guild.id, function(err, results, fields) {
       if(err) throw err;

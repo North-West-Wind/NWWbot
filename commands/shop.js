@@ -40,7 +40,7 @@ module.exports = {
             );
           };
           var collected = await msg
-            .awaitReactions(filter, { max: 1, time: 60000, error: ["time"] })
+            .awaitReactions(filter, { max: 1, idle: 60000, error: ["time"] })
             .catch(err => msg.edit(leave));
           var reaction = collected.first();
           

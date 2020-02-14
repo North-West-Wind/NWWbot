@@ -66,11 +66,12 @@ module.exports = {
       message.guild.me.permissions.has([
         "ADD_REACTIONS",
         "EMBED_LINKS",
-        "READ_MESSAGE_HISTORY"
+        "READ_MESSAGE_HISTORY",
+        "MANAGE_MESSAGES"
       ]) &&
       message.channel
         .permissionsFor(message.guild.me)
-        .has(["ADD_REACTIONS", "EMBED_LINKS", "READ_MESSAGE_HISTORY"]);
+        .has(["ADD_REACTIONS", "EMBED_LINKS", "READ_MESSAGE_HISTORY", "MANAGE_MESSAGES"]);
 
     if (!reactPermissions) {
       return await message.channel.send(
@@ -79,7 +80,7 @@ module.exports = {
     }
 
     // get region if it exists
-    let region = "en";
+    let region = "en2";
     if (args.length >= 1) {
       const testRegion = args[0];
       const i = this.regions.findIndex(reg => testRegion === reg);
@@ -93,7 +94,7 @@ module.exports = {
     );
     let info = await aki.start(region).catch(console.error);
     if (!info) {
-      region = "en2";
+      region = "en";
       info = await aki.start(region).catch(console.error);
       if (!info) {
         region = "en3";

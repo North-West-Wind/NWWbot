@@ -68,13 +68,22 @@ module.exports = {
         if (channel === undefined) {
           return message.channel.send(args[1] + " is not a valid channel!");
         }
-        const permissions = channel.permissionsFor(message.client.user);
+        const permissions = channel.permissionsFor(message.guild.me);
+        const userPermission = channel.permissionsFor(message.member);
         if (
           !permissions.has("SEND_MESSAGES") ||
           !permissions.has("EMBED_LINKS")
         ) {
           return message.channel.send(
             "I cannot do giveaway in this channel as I don't have the permission!"
+          );
+        }
+        if (
+          !userPermission.has("SEND_MESSAGES") ||
+          !userPermission.has("EMBED_LINKS")
+        ) {
+          return message.channel.send(
+            "I cannot do giveaway in this channel as you don't have the permission to send message there!"
           );
         }
         var time = ms(args[2]);
@@ -255,8 +264,8 @@ module.exports = {
                                 message.author.displayAvatarURL()
                               );
                             msg.edit(giveawayMsg, Ended);
-                            msg
-                              .reactions.removeAll()
+                            msg.reactions
+                              .removeAll()
                               .catch(err => console.error(err));
                             return;
                           }
@@ -299,8 +308,8 @@ module.exports = {
                               "**!\n" +
                               link
                           );
-                          msg
-                            .reactions.removeAll()
+                          msg.reactions
+                            .removeAll()
                             .catch(error =>
                               console.error(
                                 "Failed to clear reactions: ",
@@ -363,13 +372,22 @@ module.exports = {
               .content.replace(/<#/, "")
               .replace(/>/, "");
             var channel = guild.channels.get(channelID);
-            const permissions = channel.permissionsFor(message.client.user);
+            const permissions = channel.permissionsFor(message.guild.me);
+            const userPermission = channel.permissionsFor(message.member);
             if (
               !permissions.has("SEND_MESSAGES") ||
               !permissions.has("EMBED_LINKS")
             ) {
               return message.channel.send(
                 "I cannot do giveaway in this channel as I don't have the permission!"
+              );
+            }
+            if (
+              !userPermission.has("SEND_MESSAGES") ||
+              !userPermission.has("EMBED_LINKS")
+            ) {
+              return message.channel.send(
+                "I cannot do giveaway in this channel as you don't have the permission to send message there!"
               );
             }
             collected.first().delete();
@@ -712,15 +730,14 @@ module.exports = {
                                                                 "#" +
                                                                 message.author
                                                                   .discriminator,
-                                                              message.author
-                                                                .displayAvatarURL()
+                                                              message.author.displayAvatarURL()
                                                             );
                                                           msg.edit(
                                                             giveawayMsg,
                                                             Ended
                                                           );
-                                                          msg
-                                                            .reactions.removeAll()
+                                                          msg.reactions
+                                                            .removeAll()
                                                             .catch(err =>
                                                               console.error(err)
                                                             );
@@ -777,8 +794,7 @@ module.exports = {
                                                               "#" +
                                                               message.author
                                                                 .discriminator,
-                                                            message.author
-                                                              .displayAvatarURL()
+                                                            message.author.displayAvatarURL()
                                                           );
                                                         msg.edit(
                                                           giveawayMsg,
@@ -793,8 +809,8 @@ module.exports = {
                                                             "**!\n" +
                                                             link
                                                         );
-                                                        msg
-                                                          .reactions.removeAll()
+                                                        msg.reactions
+                                                          .removeAll()
                                                           .catch(error =>
                                                             console.error(
                                                               "Failed to clear reactions: ",
@@ -873,18 +889,19 @@ module.exports = {
         if (err) throw err;
         var fetchGuild = message.client.guilds.get(result[0].guild);
         var channel = fetchGuild.channels.get(result[0].channel);
-try {
+        try {
           var msg = await channel.messages.fetch(result[0].id);
-          } catch(err) {
-            con.query("DELETE FROM giveaways WHERE id = " + result[0].id, function(
-            err,
-            con
-          ) {
-            if (err) throw err;
-            console.log("Deleted an ended giveaway record.");
-          });
-            return;
-          }        var fetchUser = await message.client.users.fetch(result[0].author);
+        } catch (err) {
+          con.query(
+            "DELETE FROM giveaways WHERE id = " + result[0].id,
+            function(err, con) {
+              if (err) throw err;
+              console.log("Deleted an ended giveaway record.");
+            }
+          );
+          return;
+        }
+        var fetchUser = await message.client.users.fetch(result[0].author);
         var endReacted = [];
         var peopleReacted = await msg.reactions.get(result[0].emoji);
         for (const user of peopleReacted.users.values()) {
@@ -954,8 +971,8 @@ try {
             "**!\n" +
             link
         );
-        msg
-          .reactions.removeAll()
+        msg.reactions
+          .removeAll()
           .catch(error => console.error("Failed to clear reactions: ", error));
 
         con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
@@ -986,7 +1003,10 @@ try {
             "**" + guild.name + "** - " + results.length + " giveaways"
           )
           .setTimestamp()
-          .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+          .setFooter(
+            "Have a nice day! :)",
+            message.client.user.displayAvatarURL()
+          );
 
         if (results.length > 25) {
           for (var i = 0; i < 25; i++) {
