@@ -3,7 +3,7 @@ const { play } = require("./play.js")
 module.exports = {
   name: "skip",
   description: "Skip a song in the queue.",
-  music(message, serverQueue, looping, queue) {
+  music(message, serverQueue, looping, queue, pool) {
     const guild = message.guild;
   if (!message.member.voice.channel)
     return message.channel.send(
@@ -21,14 +21,43 @@ module.exports = {
       ) {
         console.log("Music ended! In " + guild.name);
         serverQueue.songs.shift();
-        play(guild, serverQueue.songs[0], looping, queue);
+    pool.getConnection(function(err, con) {
+            con.query(
+              "UPDATE servers SET queue = '" +
+                (JSON.stringify(serverQueue.songs))
+                  
+                  .replace(/'/g, "\\'") +
+                "' WHERE id = " +
+                guild.id,
+              function(err, result) {
+                if (err) throw err;
+                console.log("Updated song queue of " + guild.name);
+              }
+            );
+            con.release();
+          });
+        play(guild, serverQueue.songs[0], looping, queue, pool);
       } else {
         console.log("Music ended! In " + guild.name);
         var song = serverQueue.songs[0];
         serverQueue.songs.push(song);
         serverQueue.songs.shift();
-        
-        play(guild, serverQueue.songs[0], looping, queue);
+        pool.getConnection(function(err, con) {
+            con.query(
+              "UPDATE servers SET queue = '" +
+                (JSON.stringify(serverQueue.songs))
+                  
+                  .replace(/'/g, "\\'") +
+                "' WHERE id = " +
+                guild.id,
+              function(err, result) {
+                if (err) throw err;
+                console.log("Updated song queue of " + guild.name);
+              }
+            );
+            con.release();
+          });
+        play(guild, serverQueue.songs[0], looping, queue, pool);
       }
   message.channel.send("Skipped!");
   }

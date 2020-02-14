@@ -45,6 +45,8 @@ module.exports = {
       // If the member is in the guild
       if (member) {
         
+        
+        
         if(args[1]) {
           await member.kick(args.slice(1).join(" "))
           var reason = args.slice(1).join(" ")
@@ -52,7 +54,8 @@ module.exports = {
           await member.kick()
         }
         
-          
+          user.kicked = new Discord.Collection()
+           await user.kicked.set(message.guild.id, true)
             // We let the message author know we were able to kick the person
             var kickEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
                 .setColor(color)

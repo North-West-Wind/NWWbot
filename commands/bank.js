@@ -9,6 +9,7 @@ module.exports = {
   subcommands: ["deposit", "withdraw"],
   async execute(message, args, pool) {
     
+    
     if (args[0] === "deposit") {
         return await this.deposit(message, args, pool);
       } 

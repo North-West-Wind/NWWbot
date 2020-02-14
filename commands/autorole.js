@@ -2,7 +2,7 @@ module.exports = {
   name: "autorole",
   description: "Automatically give all mentioned users a specific role.",
   args: true,
-  usage: "<role> <user>",
+  usage: "<role | role ID | role name> <user | user ID>",
   execute(message, args) {
     if (!message.member.permissions.has('MANAGE_ROLES')) { 
       message.channel.send(`You don\'t have the permission to use this command.`)

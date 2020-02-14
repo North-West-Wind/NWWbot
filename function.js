@@ -87,5 +87,67 @@ module.exports = {
     array.unshift(temp);
     temp = [];
     return array;
-  }
+  },
+  findUser(message, str) {
+    if(isNaN(parseInt(str))) {
+      if (!str.startsWith("<@")) {
+        message.channel.send(
+          "**" + str + "** is neither a mention or ID."
+        );
+        return;
+      }
+    }
+
+    const userID = str
+      .replace(/<@/g, "")
+      .replace(/!/g, "")
+      .replace(/>/g, "");
+
+    // Assuming we mention someone in the message, this will return the user
+    // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
+
+    return message.channel.client.users.fetch(userID)
+  },
+  findMember(message, str) {
+    if(isNaN(parseInt(str))) {
+      if (!str.startsWith("<@")) {
+        message.channel.send(
+          "**" + str + "** is neither a mention or ID."
+        );
+        return;
+      }
+    }
+
+    const userID = str
+      .replace(/<@/g, "")
+      .replace(/!/g, "")
+      .replace(/>/g, "");
+
+    // Assuming we mention someone in the message, this will return the user
+    // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
+
+    return message.guild.members.fetch(userID)
+  },
+  getRandomNumber(min, max) {
+  return Math.random() * (max - min) + min;
+  },
+  applyText(canvas, text) {
+                const ctx = canvas.getContext("2d");
+
+                //calculate largest font size
+                let fontSize = canvas.width / 12;
+
+                //reduce font size loop
+                do {
+                  //reduce font size
+                  ctx.font = `${(fontSize -= 5)}px sans-serif`;
+                  // Compare pixel width of the text to the canvas minus the approximate avatar size
+                } while (
+                  ctx.measureText(text).width >
+                  canvas.width - 100
+                );
+
+                // Return the result to use in the actual canvas
+                return ctx.font;
+              }
 };

@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
+const {findUser} = require("../function.js")
 
 module.exports = {
   name: "spam",
@@ -8,10 +9,9 @@ module.exports = {
   args: true,
   usage: "<user> <time> [message]",
   execute(message, args) {
-    if (!message.mentions.users.size) {
-            return message.channel.send('No user mentioned.');
-        }
-    const taggedUser = message.mentions.users.first();
+    
+    const taggedUser = findUser(message, args[0]);
+    if(!taggedUser) return;
     
     const time = parseInt(args[1]);
     if(isNaN(time)) {

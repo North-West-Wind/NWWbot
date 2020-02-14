@@ -1,10 +1,11 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
+const { findUser } = require("../function.js");
 module.exports = {
   name: "ban",
   description: "Ban someone",
   args: true,
-  usage: "<user> [reason]",
+  usage: "<user | user ID> [reason]",
   execute(message, args) {
     if (!message.member.permissions.has("BAN_MEMBERS")) {
       message.channel.send(
@@ -23,24 +24,12 @@ module.exports = {
     if(!args[0]) {
       return message.channel.send("You didn't mention any user!")
     }
+    
+    
    
-    if(isNaN(parseInt(args[0]))) {
-      if (!args[0].startsWith("<@")) {
-        return message.channel.send(
-          "**" + args[0] + "** is neither a mention or ID."
-        );
-      }
-    }
-
-    const userID = args[0]
-      .replace(/<@/g, "")
-      .replace(/!/g, "")
-      .replace(/>/g, "");
-
-    // Assuming we mention someone in the message, this will return the user
-    // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
-
-    message.channel.client.users.fetch(userID).then(user => {
+    findUser(message, args[0]).then(async user => {
+      
+      if(!user) return;
         // Now we get the member from the user
         if(args[1]) {
           var reason = args.slice(1).join(" ");
@@ -50,6 +39,9 @@ module.exports = {
         }
         // If the member is in the guild
         if (member) {
+          
+          user.kicked = new Discord.Collection()
+           await user.kicked.set(message.guild.id, true)
           /**
            * Ban the member
            * Make sure you run this on a member, not a user!
@@ -77,6 +69,8 @@ module.exports = {
               user.send(banEmbed).catch(err => {
                 console.log("Failed to send DM to " + user.username)
               });
+            
+            
 
               var banSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
                 .setColor(color)

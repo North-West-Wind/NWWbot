@@ -7,7 +7,7 @@ module.exports = {
   args: true,
   aliases: ["mc"],
   usage: "<subcommand> <username>",
-  subcommands: ["uuid", "profile", "username", "server"],
+  subcommands: ["uuid", "profile", "username", "server", "history"],
   execute(message, args) {
     const MojangAPI = require("mojang-api");
     if (`${args[0]}` === "uuid") {

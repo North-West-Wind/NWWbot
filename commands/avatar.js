@@ -1,11 +1,13 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
+const { findUser } = require("../function.js");
 module.exports = {
   name: "avatar",
   description: "Get the avatar URL of the tagged user(s), or your own avatar.",
   aliases: ["icon", "pfp"],
-  execute(message) {
-    if (!message.mentions.users.size) {
+  usage: "[user | user ID]",
+  async execute(message, args) {
+    if (!args[0]) {
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle(message.author.username + "'s avatar: ")
@@ -15,11 +17,13 @@ module.exports = {
       return message.channel.send(Embed);
     }
 
+    var user = await findUser(args[0]);
+    if(!user) return;
 
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
-        .setTitle(message.mentions.users.first().username + "'s avatar: ")
-        .setImage(message.mentions.users.first().displayAvatarURL())
+        .setTitle(user.username + "'s avatar: ")
+        .setImage(user.displayAvatarURL())
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       return message.channel.send(Embed);

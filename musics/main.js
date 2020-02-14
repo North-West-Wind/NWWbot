@@ -3,7 +3,7 @@ var queue = new Map();
 
 module.exports = {
   name: "main",
-  music(message, commandName) {
+  music(message, commandName, pool) {
     const command =
     message.client.commands.get(commandName) ||
     message.client.commands.find(
@@ -13,7 +13,7 @@ module.exports = {
     const serverQueue = queue.get(message.guild.id);
     
     try {
-      command.music(message, serverQueue, looping, queue);
+      command.music(message, serverQueue, looping, queue, pool);
     } catch(error) {
       console.error(error);
         message.reply("there was an error trying to execute that command!");
@@ -21,6 +21,7 @@ module.exports = {
   },
   stop(guild) {
     const serverQueue = queue.get(guild.id);
+    if(!serverQueue) return;
     serverQueue.songs = [];
   serverQueue.connection.dispatcher.destroy();
   guild.me.voice.channel.leave();

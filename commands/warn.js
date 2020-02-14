@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
 var embedColor = Math.floor(Math.random() * 16777214) + 1;
+const {findUser} = require("../function.js")
 
 module.exports = {
   name: "warn",
@@ -20,29 +21,23 @@ module.exports = {
           );
         }
 
-      if (isNaN(parseInt(args[0]))) {
-        if (!args[0].startsWith("<@")) {
-          return message.channel.send(
-            "**" + args[0] + "** is neither a mention or ID."
-          );
-        }
-      }
-
-      const userID = args[0]
-        .replace(/<@/g, "")
-        .replace(/!/g, "")
-        .replace(/>/g, "");
+      
 
       // Assuming we mention someone in the message, this will return the user
       // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
 
-      const user = await message.channel.client.users.fetch(userID);
+      const user = await findUser(message, args[0]);
 
 
-      if (!message.member.permissions.has("BAN_MEMBERS "))
+      if(!user) return;
+      if (!message.member.permissions.has("BAN_MEMBERS"))
         return message.channel.send(
           "You don't have the permission to use this command!"
         ); // Checks if the user has the permission
+      if (!message.guild.me.permissions.has("BAN_MEMBERS"))
+        return message.channel.send(
+          "I don't have the permission to warn user!"
+        ); // Checks if the bot has the permission
 
       var reason = "";
       var warningEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
@@ -94,7 +89,7 @@ module.exports = {
           message.guild.id +
           " AND user = " +
           user.id,
-        function(err, results, fields) {
+        async function(err, results, fields) {
           if (err) throw err;
           if (results.length >= 3) {
             message.guild.ban(user);
@@ -108,6 +103,8 @@ module.exports = {
                 "Banned by " + message.author.tag,
                 message.author.displayAvatarURL()
               );
+            user.kicked = new Discord.Collection()
+           await user.kicked.set(message.guild.id, true)
             var banSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
               .setColor(embedColor)
               .setTitle("User Banned!")
