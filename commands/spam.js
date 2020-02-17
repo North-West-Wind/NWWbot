@@ -8,7 +8,7 @@ module.exports = {
   aliases: ["sp"],
   args: true,
   usage: "<user> <time> [message]",
-  execute(message, args) {
+  async execute(message, args) {
     
     const taggedUser = findUser(message, args[0]);
     if(!taggedUser) return;

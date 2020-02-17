@@ -44,16 +44,7 @@ module.exports = {
             .catch(err => msg.edit(leave));
           var reaction = collected.first();
           
-          const userReactions = message.reactions.filter(reaction =>
-              reaction.users.has(message.author.id)
-            );
-            try {
-              for (const reaction of userReactions) {
-                await reaction.remove(message.author.id);
-              }
-            } catch (error) {
-              console.error("Failed to remove reactions.");
-            }
+          
 
           const menu = new Discord.MessageEmbed()
             .setColor(color)

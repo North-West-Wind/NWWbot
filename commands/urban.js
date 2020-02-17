@@ -17,7 +17,6 @@ module.exports = {
     const { list } = await fetch(
       `https://api.urbandictionary.com/v0/define?${query}`
     ).then(response => response.json());
-    console.log(list);
     if (!list.length) {
       return message.channel.send(
         `No results found for **${args.join(" ")}**.`
@@ -49,9 +48,6 @@ module.exports = {
         user.id === message.author.id
       );
     };
-    const userReactions = message.reactions.filter(reaction =>
-      reaction.users.has(message.author.id)
-    );
 
     var s = 0;
 

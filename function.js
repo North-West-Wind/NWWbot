@@ -106,7 +106,7 @@ module.exports = {
     // Assuming we mention someone in the message, this will return the user
     // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
 
-    return message.channel.client.users.fetch(userID)
+    return message.client.users.fetch(userID)
   },
   findMember(message, str) {
     if(isNaN(parseInt(str))) {

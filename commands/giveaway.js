@@ -876,7 +876,7 @@ module.exports = {
         result,
         fields
       ) {
-        if (result === undefined || !result || result === null) {
+        if (result.length == 0) {
           return message.channel.send("No giveaway was found!");
         }
 

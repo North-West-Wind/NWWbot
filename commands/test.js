@@ -45,7 +45,7 @@ module.exports = {
   name: "test",
   description: "For test, really.",
   async execute(message, args, pool) {
-    var fetched = await message.channel.messages.fetch({limit: 2});
-    console.log(fetched);
+    const guildIcon = message.guild.iconURL();
+    console.log(guildIcon);
   }
 };

@@ -89,9 +89,6 @@ module.exports = {
         region = this.regions[i];
       }
     }
-    const userReactions = message.reactions.filter(reaction =>
-      reaction.users.has(message.author.id)
-    );
     let info = await aki.start(region).catch(console.error);
     if (!info) {
       region = "en";

@@ -366,7 +366,7 @@ module.exports = {
           fields
         ) {
           if (err) throw err;
-          if (result[0] === undefined || !result[0] || result[0] === null) {
+          if (result.length == 0) {
             return message.channel.send("No poll was found!");
           }
           if (result[0].author !== message.author.id) {
