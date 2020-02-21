@@ -15,7 +15,7 @@ module.exports = {
       return message.reply("please provide the message to announce.")
     }
     
-    var channel = await message.guild.channels.get(args[0].replace(/<#/g, "").replace(/>/g, ""))
+    var channel = await message.guild.channels.resolve(args[0].replace(/<#/g, "").replace(/>/g, ""))
     if(!channel || channel == undefined || channel == null) return message.reply("the channel is not valid!");
     
     var clientPermission = channel.permissionsFor(message.guild.me);

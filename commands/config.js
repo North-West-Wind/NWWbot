@@ -30,13 +30,13 @@ module.exports = {
     }
 
     pool.getConnection(function(err, con) {
-      if (err) throw err;
+      if (err) return message.reply("there was an error trying to execute that command!");
       con.query("SELECT * FROM token WHERE guild=" + guild.id, async function(
         err,
         result,
         fields
       ) {
-        if (err) throw err;
+        if (err) return message.reply("there was an error trying to execute that command!");
         if (result.length > 0) {
           return message.author.send(
             "Token was created for **" +
@@ -56,7 +56,7 @@ module.exports = {
                 guild.id +
                 "')",
               function(err, result) {
-                if (err) throw err;
+                if (err) return message.reply("there was an error trying to execute that command!");
                 console.log("Created token for server " + guild.name);
                 message.author.send(
                   "Created token for guild - **" +
@@ -78,7 +78,7 @@ module.exports = {
     require("crypto").randomBytes(24, function(err, buffer) {
       var generated = buffer.toString("hex");
       pool.getConnection(function(err, con) {
-        if (err) throw err;
+        if (err) return message.reply("there was an error trying to execute that command!");
         con.query(
           "UPDATE token SET id = '" +
             generated +
@@ -86,7 +86,7 @@ module.exports = {
             guild.id +
             "'",
           function(err, result) {
-            if (err) throw err;
+            if (err) return message.reply("there was an error trying to execute that command!");
             console.log("Generated a new token for " + guild.name);
             message.author.send(
               "Generated a new token for server - **" +

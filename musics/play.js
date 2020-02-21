@@ -79,7 +79,7 @@ module.exports = {
                 "' WHERE id = " +
                 message.guild.id,
               function(err, result) {
-                if (err) throw err;
+                if (err) return message.reply("there was an error trying to execute that command!");
                 console.log("Updated song queue of " + message.guild.name);
               }
             );
@@ -124,7 +124,7 @@ module.exports = {
               "' WHERE id = " +
               message.guild.id,
             function(err, result) {
-              if (err) throw err;
+              if (err) return message.reply("there was an error trying to execute that command!");
               console.log("Updated song queue of " + message.guild.name);
             }
           );
@@ -343,7 +343,7 @@ module.exports = {
                     "' WHERE id = " +
                     message.guild.id,
                   function(err, result) {
-                    if (err) throw err;
+                    if (err) return message.reply("there was an error trying to execute that command!");
                     console.log("Updated song queue of " + message.guild.name);
                   }
                 );
@@ -389,7 +389,7 @@ module.exports = {
                     "' WHERE id = " +
                     message.guild.id,
                   function(err, result) {
-                    if (err) throw err;
+                    if (err) return message.reply("there was an error trying to execute that command!");
                     console.log("Updated song queue of " + message.guild.name);
                   }
                 );

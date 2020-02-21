@@ -4,7 +4,7 @@ dependencies:
   algebra.js: 0.2.6
   canvas: 2.6.1
   discord-set: 0.0.2
-  discord.js: github.com/discordjs/discord.js/21d37ed0cc71b227be0feadc4ffbcd522ca4f00e
+  discord.js: github.com/discordjs/discord.js/f85230812ff6de4f1ba1c021c93fe308fb0685e6
   express: 4.17.1
   express.js: 1.0.0
   ffmpeg-static: 4.0.1
@@ -14,6 +14,7 @@ dependencies:
   moment: 2.24.0
   ms: 2.1.2
   mysql: 2.18.1
+  mysql2: 2.1.0
   nekos.life: 2.0.5
   node-fetch: 2.6.0
   pixula-v2: 1.0.5
@@ -26,7 +27,7 @@ dependencies:
   simple-youtube-api: 5.2.1
   smm-api: 2.1.2
   spotify-url-info: 1.3.0
-  ytdl-core: github.com/fent/node-ytdl-core/99284abc4341fd8490a8f83ac1442bf02672a4d8
+  ytdl-core: github.com/fent/node-ytdl-core/9a99016ce9dfc9d887a054c8e6099ff7ceb689f6
   ytdl-core-discord: github.com/amishshah/ytdl-core-discord/5e80e129d01ef98f15bbc421c09fb61081b3eb79
 packages:
   /@discordjs/collection/0.1.4:
@@ -41,10 +42,10 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-VWsrsgqSktxOEHx9SFcnOWJhYQOsyzaW3JVN73LDSzKrycEjtRIS+axlm4qeMGx60u6RH1SY15b3pl5G4+Y+gA==
-  /@types/node/13.7.1:
+  /@types/node/13.7.4:
     dev: false
     resolution:
-      integrity: sha512-Zq8gcQGmn4txQEJeiXo/KiLpon8TzAl0kmKH4zdWctPj05nWwp1ClMdAVEloqrQKfaC48PNLdgN/aVaLqUrluA==
+      integrity: sha512-oVeL12C6gQS/GAExndigSaLxTrKpQPxewx9bOcwfvJiJge4rr7wNaph4J+ns5hrmIV2as5qxqN8YKthn9qh0jw==
   /abbrev/1.1.1:
     dev: false
     resolution:
@@ -98,6 +99,10 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha1-7QMXwyIGT3lGbAKWa922Bas32Zg=
+  /ansicolors/0.3.2:
+    dev: false
+    resolution:
+      integrity: sha1-ZlWX3oap/+Oqm/vmyuXG6kJrSXk=
   /aproba/1.2.0:
     dev: false
     resolution:
@@ -220,6 +225,14 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-S98rKsPcuhfTcYbtF53UIJhcbgIAK533d1kJKMwsMwAIFgfd58MOyxRud3kktlzWiEkFliaJtvyZCBtud/XVEA==
+  /cardinal/2.1.1:
+    dependencies:
+      ansicolors: 0.3.2
+      redeyed: 2.1.1
+    dev: false
+    hasBin: true
+    resolution:
+      integrity: sha1-fMEFXYItISlU0HsIXeolHMe8VQU=
   /caseless/0.12.0:
     dev: false
     resolution:
@@ -372,7 +385,7 @@ packages:
       integrity: sha512-pYAIzeRo8J6KPEaJ0VWOh5Pzkbw/RetuzehGM7QRRX5he4fPHx2rdKMB256ehJCkX+XRQm16eZLqLNS8RSZXZw==
   /decompress-response/4.2.1:
     dependencies:
-      mimic-response: 2.0.0
+      mimic-response: 2.1.0
     dev: false
     engines:
       node: '>=8'
@@ -421,6 +434,12 @@ packages:
     dev: false
     resolution:
       integrity: sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
+  /denque/1.4.1:
+    dev: false
+    engines:
+      node: '>=0.10'
+    resolution:
+      integrity: sha512-OfzPuSZKGcgr96rf1oODnfjqBFmr1DVoc/TrItj3Ohe0Ah1C5WX5Baquw/9U9KovnQ88EqmJbD66rKYUQYN1tQ==
   /depd/1.1.2:
     dev: false
     engines:
@@ -558,6 +577,13 @@ packages:
     dev: false
     resolution:
       integrity: sha1-Aljq5NPQwJdN4cFpGI7wBR0dGYg=
+  /esprima/4.0.1:
+    dev: false
+    engines:
+      node: '>=4'
+    hasBin: true
+    resolution:
+      integrity: sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A==
   /etag/1.8.1:
     dev: false
     engines:
@@ -728,6 +754,12 @@ packages:
     dev: false
     resolution:
       integrity: sha1-LANAXHU4w51+s3sxcCLjJfsBi/c=
+  /generate-function/2.3.1:
+    dependencies:
+      is-property: 1.0.2
+    dev: false
+    resolution:
+      integrity: sha512-eeB5GfMNeevm/GRYq20ShmsaGcmI81kIX2K9XQx5miC8KdHaC6Jm0qQ8ZNeGOi7wYB8OsdxKs+Y2oVuTFuVwKQ==
   /get-func-name/2.0.0:
     dev: false
     resolution:
@@ -857,6 +889,14 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==
+  /iconv-lite/0.5.1:
+    dependencies:
+      safer-buffer: 2.1.2
+    dev: false
+    engines:
+      node: '>=0.10.0'
+    resolution:
+      integrity: sha512-ONHr16SQvKZNSqjQT9gy5z24Jw+uqfO02/ngBSBoqChZ+W8qXX7GPRa1RoUnzGADw8K63R1BXUMzarCVQBpY8Q==
   /ieee754/1.1.13:
     dev: false
     resolution:
@@ -928,6 +968,10 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha1-o7MKXE8ZkYMWeqq5O+764937ZU8=
+  /is-property/1.0.2:
+    dev: false
+    resolution:
+      integrity: sha1-V/4cTkhHTt1lsJkR8msc1Ald2oQ=
   /is-regex/1.0.5:
     dependencies:
       has: 1.0.3
@@ -1053,6 +1097,23 @@ packages:
     dev: false
     resolution:
       integrity: sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
+  /long/4.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==
+  /lru-cache/4.1.5:
+    dependencies:
+      pseudomap: 1.0.2
+      yallist: 2.1.2
+    dev: false
+    resolution:
+      integrity: sha512-sWZlbEP2OsHNkXrMl5GYk/jKk70MBng6UU4YI/qGDYbgf6YbP4EvmqISbXCoJiRKs+1bSpFHVgQxvJ17F2li5g==
+  /lru-cache/5.1.1:
+    dependencies:
+      yallist: 3.1.1
+    dev: false
+    resolution:
+      integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==
   /m3u8stream/0.6.5:
     dependencies:
       miniget: 1.6.1
@@ -1099,12 +1160,12 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==
-  /mimic-response/2.0.0:
+  /mimic-response/2.1.0:
     dev: false
     engines:
       node: '>=8'
     resolution:
-      integrity: sha512-8ilDoEapqA4uQ3TwS0jakGONKXVJqpy+RpM+3b7pLdOjghCrEiGp9SRkFbUHAmZW9vdnrENWHjaweIoTIJExSQ==
+      integrity: sha512-wXqjST+SLt7R009ySCglWBCFpjUygmCIfD790/kVbiGmUgfYGuB14PiTd5DwVxSV4NcYHjzMkoj5LjQZwTQLEA==
   /miniget/1.6.1:
     dev: false
     engines:
@@ -1199,6 +1260,30 @@ packages:
       node: '>= 0.6'
     resolution:
       integrity: sha512-Bca+gk2YWmqp2Uf6k5NFEurwY/0td0cpebAucFpY/3jhrwrVGuxU2uQFCHjU19SJfje0yQvi+rVWdq78hR5lig==
+  /mysql2/2.1.0:
+    dependencies:
+      cardinal: 2.1.1
+      denque: 1.4.1
+      generate-function: 2.3.1
+      iconv-lite: 0.5.1
+      long: 4.0.0
+      lru-cache: 5.1.1
+      named-placeholders: 1.1.2
+      seq-queue: 0.0.5
+      sqlstring: 2.3.1
+    dev: false
+    engines:
+      node: '>= 8.0'
+    resolution:
+      integrity: sha512-9kGVyi930rG2KaHrz3sHwtc6K+GY9d8wWk1XRSYxQiunvGcn4DwuZxOwmK11ftuhhwrYDwGx9Ta4VBwznJn36A==
+  /named-placeholders/1.1.2:
+    dependencies:
+      lru-cache: 4.1.5
+    dev: false
+    engines:
+      node: '>=6.0.0'
+    resolution:
+      integrity: sha512-wiFWqxoLL3PGVReSZpjLVxyJ1bRqe+KKJVbr4hGs1KWfTZTQyezHFBbuKj9hsizHyGV2ne7EMjHdxEGAybD5SA==
   /nan/2.14.0:
     dev: false
     resolution:
@@ -1596,6 +1681,10 @@ packages:
       node: '>= 0.10'
     resolution:
       integrity: sha512-t/7RxHXPH6cJtP0pRG6smSr9QJidhB+3kXu0KgXnbGYMgzEnUxRQ4/LDdfOwZEMyIh3/xHb8PX3t+lfL9z+YVQ==
+  /pseudomap/1.0.2:
+    dev: false
+    resolution:
+      integrity: sha1-8FKijacOYYkX7wqKw0wa5aaChrM=
   /psl/1.7.0:
     dev: false
     resolution:
@@ -1692,6 +1781,12 @@ packages:
     dev: false
     resolution:
       integrity: sha512-Vo6KS68KECwOObpT4gz4110pkjox7V6n6XeaF0+A6flFgP0De1TpMy9VynYQVP4vRLBiaYdfHpijtPR+7I6pew==
+  /redeyed/2.1.1:
+    dependencies:
+      esprima: 4.0.1
+    dev: false
+    resolution:
+      integrity: sha1-iYS1gV2ZyyIEacme7v/jiRPmzAs=
   /regexp.prototype.flags/1.3.0:
     dependencies:
       define-properties: 1.1.3
@@ -1852,6 +1947,10 @@ packages:
       node: '>= 0.8.0'
     resolution:
       integrity: sha512-BsVKsiGcQMFwT8UxypobUKyv7irCNRHk1T0G680vk88yf6LBByGcZJOTJCrTP2xVN6yI+XjPJcNuE3V4fT9sAg==
+  /seq-queue/0.0.5:
+    dev: false
+    resolution:
+      integrity: sha1-1WgS4cAXpuTnw+Ojeh2m143TyT4=
   /serp/2.0.7:
     dependencies:
       cheerio: 0.22.0
@@ -2162,11 +2261,15 @@ packages:
       utf-8-validate: ^5.0.2
     resolution:
       integrity: sha512-sucePNSafamSKoOqoNfBd8V0StlkzJKL2ZAhGQinCfNQ+oacw+Pk7lcdAElecBF2VkLNZRiIb5Oi1Q5lVUVt2A==
+  /yallist/2.1.2:
+    dev: false
+    resolution:
+      integrity: sha1-HBH5IY8HYImkfdUS+TxmmaaoHVI=
   /yallist/3.1.1:
     dev: false
     resolution:
       integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==
-  /ytdl-core/1.0.7:
+  /ytdl-core/1.0.9:
     dependencies:
       html-entities: 1.2.1
       m3u8stream: 0.6.5
@@ -2176,19 +2279,19 @@ packages:
     engines:
       node: '>=6'
     resolution:
-      integrity: sha512-gECPN5g5JnSy8hIq11xHIGe1T/Xzy0mWxQin3zhlJ3nG/YjPcEVEejrdd2XmA4Vv2Zw3+b1ZyDjmt37XfZri6A==
+      integrity: sha512-HhFeLfjXU34h0FNHmSkSpKygdaYijSt8VNsC770VYBRFb+dyUKcm11cIKxu2MUSwT9znISZ0k1wFdaV/N5VW+Q==
   github.com/amishshah/ytdl-core-discord/5e80e129d01ef98f15bbc421c09fb61081b3eb79:
     dependencies:
-      '@types/node': 13.7.1
+      '@types/node': 13.7.4
       prism-media: 1.2.0
-      ytdl-core: 1.0.7
+      ytdl-core: 1.0.9
     dev: false
     name: ytdl-core-discord
     resolution:
       registry: 'https://registry.npmjs.org/'
       tarball: 'https://codeload.github.com/amishshah/ytdl-core-discord/tar.gz/5e80e129d01ef98f15bbc421c09fb61081b3eb79'
     version: 1.1.0
-  github.com/discordjs/discord.js/21d37ed0cc71b227be0feadc4ffbcd522ca4f00e:
+  github.com/discordjs/discord.js/f85230812ff6de4f1ba1c021c93fe308fb0685e6:
     dependencies:
       '@discordjs/collection': 0.1.4
       abort-controller: 3.0.0
@@ -2210,9 +2313,9 @@ packages:
       utf-8-validate: ^5.0.2
       zlib-sync: ^0.1.6
     resolution:
-      tarball: 'https://codeload.github.com/discordjs/discord.js/tar.gz/21d37ed0cc71b227be0feadc4ffbcd522ca4f00e'
+      tarball: 'https://codeload.github.com/discordjs/discord.js/tar.gz/f85230812ff6de4f1ba1c021c93fe308fb0685e6'
     version: 12.0.0-dev
-  github.com/fent/node-ytdl-core/99284abc4341fd8490a8f83ac1442bf02672a4d8:
+  github.com/fent/node-ytdl-core/9a99016ce9dfc9d887a054c8e6099ff7ceb689f6:
     dependencies:
       html-entities: 1.2.1
       m3u8stream: 0.6.5
@@ -2223,9 +2326,8 @@ packages:
       node: '>=6'
     name: ytdl-core
     resolution:
-      registry: 'https://registry.npmjs.org/'
-      tarball: 'https://codeload.github.com/fent/node-ytdl-core/tar.gz/99284abc4341fd8490a8f83ac1442bf02672a4d8'
-    version: 1.0.7
+      tarball: 'https://codeload.github.com/fent/node-ytdl-core/tar.gz/9a99016ce9dfc9d887a054c8e6099ff7ceb689f6'
+    version: 1.0.9
 registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
@@ -2245,6 +2347,7 @@ specifiers:
   moment: ^2.24.0
   ms: ^2.1.2
   mysql: ^2.18.1
+  mysql2: ^2.1.0
   nekos.life: ^2.0.5
   node-fetch: ^2.6.0
   pixula-v2: ^1.0.1

@@ -80,7 +80,7 @@ module.exports = {
           reason.replace(/'/g, /\\'/).replace(/"/g, /\\"/) +
           "')",
         function(err, result) {
-          if (err) throw err;
+          if (err) return message.reply("there was an error trying to execute that command!");
           console.log("Inserted warning record successfully.");
         }
       );
@@ -90,7 +90,7 @@ module.exports = {
           " AND user = " +
           user.id,
         async function(err, results, fields) {
-          if (err) throw err;
+          if (err) return message.reply("there was an error trying to execute that command!");
           if (results.length >= 3) {
             message.guild.ban(user);
             var banEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
@@ -123,7 +123,7 @@ module.exports = {
                 " AND user = " +
                 user.id,
               function(err, result) {
-                if (err) throw err;
+                if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
                   "Deleted all warnings for " +
                     user.username +

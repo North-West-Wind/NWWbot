@@ -18,14 +18,14 @@ module.exports = {
       }
     
         pool.getConnection(function(err, con) {
-          if (err) throw err;
+          if (err) return message.reply("there was an error trying to execute that command!");
           con.query(
             "SELECT * FROM currency WHERE user_id = " +
               message.author.id +
               " AND guild = " +
               message.guild.id,
             function(err, results, fields) {
-              if (err) throw err;
+              if (err) return message.reply("there was an error trying to execute that command!");
               if (results.length == 0) {
                 return message.channel.send(
                   "You don't have any bank account registered. Use `" +
@@ -63,7 +63,7 @@ module.exports = {
         }
         if (isNaN(parseInt(args[1]))) {
           pool.getConnection(function(err, con) {
-            if (err) throw err;
+            if (err) return message.reply("there was an error trying to execute that command!");
             con.query(
               "SELECT * FROM currency WHERE user_id = " +
                 message.author.id +
@@ -94,7 +94,7 @@ module.exports = {
                       " AND guild = " +
                       message.guild.id,
                     function(err, result) {
-                      if (err) throw err;
+                      if (err) return message.reply("there was an error trying to execute that command!");
                       message.channel.send(
                         "Deposited **$" + deposits + "** into bank!"
                       );
@@ -117,7 +117,7 @@ module.exports = {
                       " AND guild = " +
                       message.guild.id,
                     function(err, result) {
-                      if (err) throw err;
+                      if (err) return message.reply("there was an error trying to execute that command!");
                       message.channel.send(
                         "Deposited **$" + deposits + "** into bank!"
                       );
@@ -140,7 +140,7 @@ module.exports = {
                       " AND guild = " +
                       message.guild.id,
                     function(err, result) {
-                      if (err) throw err;
+                      if (err) return message.reply("there was an error trying to execute that command!");
                       message.channel.send(
                         "Deposited **$" + deposits + "** into bank!"
                       );
@@ -155,7 +155,7 @@ module.exports = {
           });
         } else {
           pool.getConnection(function(err, con) {
-            if (err) throw err;
+            if (err) return message.reply("there was an error trying to execute that command!");
             con.query(
               "SELECT * FROM currency WHERE user_id = " +
                 message.author.id +
@@ -182,7 +182,7 @@ module.exports = {
                     " AND guild = " +
                     message.guild.id,
                   function(err, result) {
-                    if (err) throw err;
+                    if (err) return message.reply("there was an error trying to execute that command!");
                     message.channel.send(
                       "Deposited **$" + deposits + "** into bank!"
                     );
@@ -202,7 +202,7 @@ module.exports = {
         }
         if (isNaN(parseInt(args[1]))) {
           pool.getConnection(function(err, con) {
-            if (err) throw err;
+            if (err) return message.reply("there was an error trying to execute that command!");
             con.query(
               "SELECT * FROM currency WHERE user_id = " +
                 message.author.id +
@@ -233,7 +233,7 @@ module.exports = {
                       " AND guild = " +
                       message.guild.id,
                     function(err, result) {
-                      if (err) throw err;
+                      if (err) return message.reply("there was an error trying to execute that command!");
                       message.channel.send(
                         "Withdrawed **$" + deposits + "** from bank!"
                       );
@@ -256,7 +256,7 @@ module.exports = {
                       " AND guild = " +
                       message.guild.id,
                     function(err, result) {
-                      if (err) throw err;
+                      if (err) return message.reply("there was an error trying to execute that command!");
                       message.channel.send(
                         "Withdrawed **$" + deposits + "** from bank!"
                       );
@@ -279,7 +279,7 @@ module.exports = {
                       " AND guild = " +
                       message.guild.id,
                     function(err, result) {
-                      if (err) throw err;
+                      if (err) return message.reply("there was an error trying to execute that command!");
                       message.channel.send(
                         "Withdrawed **$" + deposits + "** from bank!"
                       );
@@ -294,7 +294,7 @@ module.exports = {
           });
         } else {
           pool.getConnection(function(err, con) {
-            if (err) throw err;
+            if (err) return message.reply("there was an error trying to execute that command!");
             con.query(
               "SELECT * FROM currency WHERE user_id = " +
                 message.author.id +
@@ -321,7 +321,7 @@ module.exports = {
                     " AND guild = " +
                     message.guild.id,
                   function(err, result) {
-                    if (err) throw err;
+                    if (err) return message.reply("there was an error trying to execute that command!");
                     message.channel.send(
                       "Withdrawed **$" + deposits + "** from bank!"
                     );
