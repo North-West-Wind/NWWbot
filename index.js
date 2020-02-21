@@ -15,12 +15,14 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const { prefix } = require("./config.json");
 const { Image, createCanvas, loadImage } = require("canvas");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const mysql_config = {
-  host: "remotemysql.com",
-  user: "AToOsccGeg",
+  connectTimeout: 30000,
+  connectionLimit: 10,
+  host: "db4free.net",
+  user: "northwestwindnff",
   password: process.env.DBPW,
-  database: "AToOsccGeg",
+  database: "nwwbot",
   supportBigNumbers: true,
   bigNumberStrings: true,
   charset: "utf8mb4"
@@ -60,7 +62,7 @@ client.once("ready", () => {
 
   client.user.setActivity(prefix + "help", { type: "WATCHING" });
   pool.getConnection(function(err, con) {
-    if (err) throw err;
+    if (err) return console.log(err);
     con.query("SELECT * FROM giveaways ORDER BY endAt ASC", function(
       err,
       results,
@@ -70,11 +72,11 @@ client.once("ready", () => {
       results.forEach(async result => {
         var currentDate = new Date();
         var millisec = result.endAt - currentDate;
-        if (err) throw err;
+        if (err) return console.log(err);
         setTimeout_(async function() {
           try {
             var fetchGuild = await client.guilds.get(result.guild);
-            var channel = await fetchGuild.channels.get(result.channel);
+            var channel = await fetchGuild.channels.resolve(result.channel);
           } catch (err) {
             console.log("Failed fetching guild/channel of giveaway.");
           }
@@ -85,7 +87,7 @@ client.once("ready", () => {
               err,
               con
             ) {
-              if (err) throw err;
+              if (err) return console.log(err);
               console.log("Deleted an ended giveaway record.");
             });
             return;
@@ -95,7 +97,7 @@ client.once("ready", () => {
               err,
               con
             ) {
-              if (err) throw err;
+              if (err) return console.log(err);
               console.log("Deleted an ended giveaway record.");
             });
             return;
@@ -123,7 +125,7 @@ client.once("ready", () => {
                 err,
                 result
               ) {
-                if (err) throw err;
+                if (err) return console.log(err);
                 console.log("Deleted an ended giveaway record.");
               });
               const Ended = new Discord.MessageEmbed()
@@ -190,7 +192,7 @@ client.once("ready", () => {
                 err,
                 con
               ) {
-                if (err) throw err;
+                if (err) return console.log(err);
                 console.log("Deleted an ended giveaway record.");
               });
             }
@@ -203,7 +205,7 @@ client.once("ready", () => {
       results,
       fields
     ) {
-      if (err) throw err;
+      if (err) return console.log(err);
       console.log("Found " + results.length + " polls.");
       results.forEach(result => {
         var currentDate = new Date();
@@ -211,7 +213,7 @@ client.once("ready", () => {
         setTimeout_(async function() {
           try {
             var fetchGuild = await client.guilds.get(result.guild);
-            var channel = await fetchGuild.channels.get(result.channel);
+            var channel = await fetchGuild.channels.resolve(result.channel);
           } catch (err) {
             console.log("Failed fetching guild/channel of giveaway.");
           }
@@ -222,7 +224,7 @@ client.once("ready", () => {
               err,
               con
             ) {
-              if (err) throw err;
+              if (err) return console.log(err);
               console.log("Deleted an ended poll.");
             });
             return;
@@ -233,7 +235,7 @@ client.once("ready", () => {
               err,
               result
             ) {
-              if (err) throw err;
+              if (err) return console.log(err);
               console.log("Deleted an ended poll.");
             });
             return;
@@ -280,7 +282,7 @@ client.once("ready", () => {
               err,
               result
             ) {
-              if (err) throw err;
+              if (err) return console.log(err);
               console.log("Deleted an ended poll.");
             });
           }
@@ -304,7 +306,7 @@ client.on("guildMemberAdd", member => {
         if (result[0].wel_channel === null || result[0] === undefined) {
         } else {
           //get channel
-          const channel = guild.channels.get(result[0].wel_channel);
+          const channel = guild.channels.resolve(result[0].wel_channel);
 
           //convert message into array
           const splitMessage = result[0].welcome.split(" ");
@@ -325,7 +327,7 @@ client.on("guildMemberAdd", member => {
                   messageArray.push(mentionedChannel);
                 }
               } else {
-                const mentionedChannel = guild.channels.get(second);
+                const mentionedChannel = guild.channels.resolve(second);
                 if (mentionedChannel === null) {
                   messageArray.push("<#" + second + ">");
                 } else {
@@ -548,14 +550,13 @@ client.on("guildMemberAdd", member => {
 
           //loop array
           for (let i = 0; i < roleArray.length; i++) {
-            if(isNaN(parseInt(roleArray[i]))) {
+            if (isNaN(parseInt(roleArray[i]))) {
               var role = member.guild.roles.find(
-              role => role.name === roleArray[i]
-            );
+                role => role.name === roleArray[i]
+              );
             } else {
-              var role = member.guild.roles.get(roleArray[i]);
+              var role = member.guild.roles.fetch(roleArray[i]);
             }
-            
 
             //check if roles are found
             if (role === null || role === undefined || !role) {
@@ -569,7 +570,7 @@ client.on("guildMemberAdd", member => {
         //release SQL
         con.release();
 
-        if (err) throw err;
+        if (err) return console.log(err);
       }
     );
   });
@@ -578,7 +579,11 @@ client.on("guildMemberAdd", member => {
 //someone left
 
 client.on("guildMemberRemove", member => {
-  if(member.user.kicked.get(member.guild.id) && member.user.kicked.get(member.guild.id) == true) return member.user.kicked.clear();
+  if (
+    member.user.kicked.get(member.guild.id) &&
+    member.user.kicked.get(member.guild.id) == true
+  )
+    return member.user.kicked.clear();
   const guild = member.guild;
   pool.getConnection(function(err, con) {
     con.query(
@@ -590,7 +595,7 @@ client.on("guildMemberRemove", member => {
           result[0] === undefined
         ) {
         } else {
-          const channel = guild.channels.get(result[0].leave_channel);
+          const channel = guild.channels.resolve(result[0].leave_channel);
           const splitMessage = result[0].leave_msg.split(" ");
           const messageArray = [];
 
@@ -609,7 +614,7 @@ client.on("guildMemberRemove", member => {
                   messageArray.push(mentionedChannel);
                 }
               } else {
-                const mentionedChannel = guild.channels.get(second);
+                const mentionedChannel = guild.channels.resolve(second);
                 if (mentionedChannel === null) {
                   messageArray.push("<#" + second + ">");
                 } else {
@@ -671,7 +676,7 @@ client.on("guildMemberRemove", member => {
 
         con.release();
 
-        if (err) throw err;
+        if (err) return console.log(err);
       }
     );
   });
@@ -687,7 +692,7 @@ client.on("guildCreate", guild => {
       result,
       fields
     ) {
-      if (err) throw err;
+      if (err) return console.log(err);
       if (result.length > 0) {
         console.log(
           "Found row inserted for this server before. Cancelling row insert..."
@@ -698,14 +703,14 @@ client.on("guildCreate", guild => {
             guild.id +
             ", '[]', '🎉')",
           function(err, result) {
-            if (err) throw err;
+            if (err) return console.log(err);
             console.log("Inserted record for " + guild.name);
           }
         );
       }
     });
 
-    if (err) throw err;
+    if (err) return console.log(err);
     con.release();
   });
 
@@ -720,10 +725,10 @@ client.on("guildDelete", guild => {
       err,
       result
     ) {
-      if (err) throw err;
+      if (err) return console.log(err);
       console.log("Deleted record for " + guild.name);
     });
-    if (err) throw err;
+    if (err) return console.log(err);
     con.release();
   });
 
@@ -741,7 +746,6 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
     if (newUserChannel.id !== guild.me.voice.channelID) return;
     // User Joins a voice channel
     exit.set(guild.id, false);
-    
   } else if (newUserChannel === null) {
     if (oldUserChannel.id !== guild.me.voice.channelID) return;
     // User leaves a voice channel
@@ -752,8 +756,8 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
       if (pendingExit == true) return;
 
       exit.set(guild.id, true);
-      
-      console.log("Pending exit.")
+
+      console.log("Pending exit.");
 
       setTimeout(async function() {
         var shouldExit = await exit.get(guild.id);

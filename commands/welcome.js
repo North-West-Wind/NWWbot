@@ -8,12 +8,16 @@ module.exports = {
   execute(message, args, pool) {
     const member = message.author;
     const guild = message.guild;
-    pool.getConnection(function(err, con) {
+    try {
+      message.client.emit("guildMemberAdd")
+    } catch(error) {
+      pool.getConnection(function(err, con) {
       con.query(
         "SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id=" +
           guild.id,
         function(err, result, fields) {
-          if (result[0].wel_channel === null || result[0] === undefined) {
+          if (result[0].wel_channel === null || result[0] === undefined || result[0].wel_img) {
+            return message.channel.send("No welcome message configured.");
           } else {
             
 
@@ -237,7 +241,7 @@ module.exports = {
                 );
 
                 //declare attachment
-                var attachment = new Discord.Attachment(
+                var attachment = new Discord.MessageAttachment(
                   canvas.toBuffer(),
                   "welcome-image.png"
                 );
@@ -259,9 +263,11 @@ module.exports = {
           //release SQL
           con.release();
 
-          if (err) throw err;
+          if (err) return message.reply("there was an error trying to execute that command!");
         }
       );
     });
+    }
+    
   }
 };

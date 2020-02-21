@@ -30,7 +30,7 @@ module.exports = {
   async create(message, args, pool) {
     const filter = m => m.author.id === message.author.id;
     pool.getConnection(async function(err, con) {
-        if (err) throw err;
+        if (err) return message.reply("there was an error trying to execute that command!");
         var msg = await message.channel.send(
           "Starting a poll. Type \"cancel\" to cancel.\n\n`Please enter where you want to host your poll.(Mention the channel)`"
         );
@@ -47,7 +47,7 @@ module.exports = {
           .first()
           .content.replace(/<#/g, "")
           .replace(/>/g, "");
-        var channel = await message.guild.channels.get(channelID);
+        var channel = await message.guild.channels.resolve(channelID);
         if (!channel || channel === undefined || channel === null) {
           return msg.edit("That isn't a valid channel! Cancelling actions...");
         }
@@ -268,7 +268,7 @@ module.exports = {
             title.replace(/'/g, /\\'/).replace(/"/g, /\\"/) +
             "')",
           function(err, result) {
-            if (err) throw err;
+            if (err) return message.reply("there was an error trying to execute that command!");
             console.log(
               "Inserted poll record for " +
                 title +
@@ -286,7 +286,7 @@ module.exports = {
                 err,
                 result
               ) {
-                if (err) throw err;
+                if (err) return message.reply("there was an error trying to execute that command!");
                 console.log("Deleted an ended poll.");
               });
             return;
@@ -296,7 +296,7 @@ module.exports = {
             results,
             fields
           ) {
-            if (err) throw err;
+            if (err) return message.reply("there was an error trying to execute that command!");
             if (results.length < 1) {
               return;
             } else {
@@ -342,7 +342,7 @@ module.exports = {
                 err,
                 result
               ) {
-                if (err) throw err;
+                if (err) return message.reply("there was an error trying to execute that command!");
                 console.log("Deleted an ended poll.");
               });
             }
@@ -359,14 +359,14 @@ module.exports = {
       }
       var msgID = args[1];
       pool.getConnection(function(err, con) {
-        if (err) throw err;
+        if (err) return message.reply("there was an error trying to execute that command!");
         con.query("SELECT * FROM poll WHERE id = " + msgID, async function(
           err,
           result,
           fields
         ) {
-          if (err) throw err;
-          if (result[0] === undefined || !result[0] || result[0] === null) {
+          if (err) return message.reply("there was an error trying to execute that command!");
+          if (result.length == 0) {
             return message.channel.send("No poll was found!");
           }
           if (result[0].author !== message.author.id) {
@@ -376,7 +376,7 @@ module.exports = {
           }
 
           var guild = await message.client.guilds.get(result[0].guild);
-          var channel = await guild.channels.get(result[0].channel);
+          var channel = await guild.channels.resolve(result[0].channel);
           try {
           var msg = await channel.messages.fetch(result[0].id);
           } catch(err) {
@@ -384,7 +384,7 @@ module.exports = {
             err,
             con
           ) {
-            if (err) throw err;
+            if (err) return message.reply("there was an error trying to execute that command!");
             console.log("Deleted an ended poll.");
           });
             return;
@@ -431,7 +431,7 @@ module.exports = {
             err,
             result
           ) {
-            if (err) throw err;
+            if (err) return message.reply("there was an error trying to execute that command!");
             console.log("Deleted an ended poll.");
           });
         });
@@ -440,11 +440,11 @@ module.exports = {
   },
   async list(message, args, pool) {
     pool.getConnection(function(err, con) {
-        if (err) throw err;
+        if (err) return message.reply("there was an error trying to execute that command!");
         con.query(
           "SELECT * FROM poll WHERE guild = " + message.guild.id,
           function(err, results, fields) {
-            if (err) throw err;
+            if (err) return message.reply("there was an error trying to execute that command!");
             const Embed = new Discord.MessageEmbed()
               .setColor(color)
               .setTitle("Poll list")

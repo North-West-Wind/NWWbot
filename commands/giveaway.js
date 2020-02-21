@@ -62,7 +62,7 @@ module.exports = {
           );
         }
 
-        var channel = await message.guild.channels.get(
+        var channel = await message.guild.channels.resolve(
           args[1].replace(/<#/g, "").replace(/>/g, "")
         );
         if (channel === undefined) {
@@ -143,7 +143,7 @@ module.exports = {
         }
 
         pool.getConnection(function(err, con) {
-          if (err) throw err;
+          if (err) return message.reply("there was an error trying to execute that command!");
           con.query(
             "SELECT giveaway FROM servers WHERE id = " + guild.id,
             function(err, result, fields) {
@@ -196,7 +196,7 @@ module.exports = {
                     color +
                     "')",
                   function(err, result) {
-                    if (err) throw err;
+                    if (err) return message.reply("there was an error trying to execute that command!");
                     console.log(
                       "Inserted record for " +
                         item +
@@ -214,7 +214,7 @@ module.exports = {
                     con.query(
                       "DELETE FROM giveaways WHERE id = " + msg.id,
                       function(err, con) {
-                        if (err) throw err;
+                        if (err) return message.reply("there was an error trying to execute that command!");
                         console.log("Deleted an ended giveaway record.");
                       }
                     );
@@ -223,7 +223,7 @@ module.exports = {
                     con.query(
                       "SELECT * FROM giveaways WHERE id = " + msg.id,
                       function(err, res, fields) {
-                        if (err) throw err;
+                        if (err) return message.reply("there was an error trying to execute that command!");
                         if (res.length < 1) {
                           return;
                         } else {
@@ -244,7 +244,7 @@ module.exports = {
                             con.query(
                               "DELETE FROM giveaways WHERE id = " + msg.id,
                               function(err, result) {
-                                if (err) throw err;
+                                if (err) return message.reply("there was an error trying to execute that command!");
                                 console.log(
                                   "Deleted an ended giveaway record."
                                 );
@@ -320,7 +320,7 @@ module.exports = {
                           con.query(
                             "DELETE FROM giveaways WHERE id = " + msg.id,
                             function(err, con) {
-                              if (err) throw err;
+                              if (err) return message.reply("there was an error trying to execute that command!");
                               console.log("Deleted an ended giveaway record.");
                             }
                           );
@@ -371,7 +371,7 @@ module.exports = {
               .first()
               .content.replace(/<#/, "")
               .replace(/>/, "");
-            var channel = guild.channels.get(channelID);
+            var channel = guild.channels.resolve(channelID);
             const permissions = channel.permissionsFor(message.guild.me);
             const userPermission = channel.permissionsFor(message.member);
             if (
@@ -582,7 +582,7 @@ module.exports = {
                                     item = collected4.first().content;
 
                                     pool.getConnection(function(err, con) {
-                                      if (err) throw err;
+                                      if (err) return message.reply("there was an error trying to execute that command!");
                                       con.query(
                                         "SELECT giveaway FROM servers WHERE id = " +
                                           guild.id,
@@ -642,7 +642,7 @@ module.exports = {
                                                   color +
                                                   "')",
                                                 function(err, result) {
-                                                  if (err) throw err;
+                                                  if (err) return message.reply("there was an error trying to execute that command!");
                                                   console.log(
                                                     "Inserted record for " +
                                                       item +
@@ -661,7 +661,7 @@ module.exports = {
                                                     "DELETE FROM giveaways WHERE id = " +
                                                       msg.id,
                                                     function(err, con) {
-                                                      if (err) throw err;
+                                                      if (err) return message.reply("there was an error trying to execute that command!");
                                                       console.log(
                                                         "Deleted an ended giveaway record."
                                                       );
@@ -673,7 +673,7 @@ module.exports = {
                                                     "SELECT * FROM giveaways WHERE id = " +
                                                       msg.id,
                                                     function(err, res, fields) {
-                                                      if (err) throw err;
+                                                      if (err) return message.reply("there was an error trying to execute that command!");
                                                       if (res.length < 1) {
                                                         return;
                                                       } else {
@@ -822,7 +822,7 @@ module.exports = {
                                                           "DELETE FROM giveaways WHERE id = " +
                                                             msg.id,
                                                           function(err, con) {
-                                                            if (err) throw err;
+                                                            if (err) return message.reply("there was an error trying to execute that command!");
                                                             console.log(
                                                               "Deleted an ended giveaway record."
                                                             );
@@ -870,13 +870,13 @@ module.exports = {
     }
     var msgID = args[1];
     pool.getConnection(function(err, con) {
-      if (err) throw err;
+      if (err) return message.reply("there was an error trying to execute that command!");
       con.query("SELECT * FROM giveaways WHERE id = " + msgID, async function(
         err,
         result,
         fields
       ) {
-        if (result === undefined || !result || result === null) {
+        if (result.length == 0) {
           return message.channel.send("No giveaway was found!");
         }
 
@@ -886,16 +886,16 @@ module.exports = {
           );
         }
 
-        if (err) throw err;
+        if (err) return message.reply("there was an error trying to execute that command!");
         var fetchGuild = message.client.guilds.get(result[0].guild);
-        var channel = fetchGuild.channels.get(result[0].channel);
+        var channel = fetchGuild.channels.resolve(result[0].channel);
         try {
           var msg = await channel.messages.fetch(result[0].id);
         } catch (err) {
           con.query(
             "DELETE FROM giveaways WHERE id = " + result[0].id,
             function(err, con) {
-              if (err) throw err;
+              if (err) return message.reply("there was an error trying to execute that command!");
               console.log("Deleted an ended giveaway record.");
             }
           );
@@ -919,7 +919,7 @@ module.exports = {
             err,
             result
           ) {
-            if (err) throw err;
+            if (err) return message.reply("there was an error trying to execute that command!");
             console.log("Deleted an ended giveaway record.");
           });
           const Ended = new Discord.MessageEmbed()
@@ -979,7 +979,7 @@ module.exports = {
           err,
           con
         ) {
-          if (err) throw err;
+          if (err) return message.reply("there was an error trying to execute that command!");
           console.log("Deleted an ended giveaway record.");
         });
       });
@@ -989,13 +989,13 @@ module.exports = {
   async list(message, args, pool) {
     const guild = message.guild;
     pool.getConnection(function(err, con) {
-      if (err) throw err;
+      if (err) return message.reply("there was an error trying to execute that command!");
       con.query("SELECT * FROM giveaways WHERE guild = " + guild.id, function(
         err,
         results,
         fields
       ) {
-        if (err) throw err;
+        if (err) return message.reply("there was an error trying to execute that command!");
         const Embed = new Discord.MessageEmbed()
           .setColor(color)
           .setTitle("Giveaway list")

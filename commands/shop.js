@@ -6,12 +6,14 @@ module.exports = {
   description: "Spend your money here!",
   execute(message, args, pool) {
     pool.getConnection(function(err, con) {
+      if (err) return message.reply("there was an error trying to execute that command!");
       con.query(
         "SELECT * FROM currency WHERE user_id = " +
           message.author.id +
           " AND guild = " +
           message.guild.id,
         async function(err, results, fields) {
+          if (err) return message.reply("there was an error trying to execute that command!");
           if (results.length == 0) {
             var cash = 0;
           } else {
@@ -44,16 +46,7 @@ module.exports = {
             .catch(err => msg.edit(leave));
           var reaction = collected.first();
           
-          const userReactions = message.reactions.filter(reaction =>
-              reaction.users.has(message.author.id)
-            );
-            try {
-              for (const reaction of userReactions) {
-                await reaction.remove(message.author.id);
-              }
-            } catch (error) {
-              console.error("Failed to remove reactions.");
-            }
+          
 
           const menu = new Discord.MessageEmbed()
             .setColor(color)

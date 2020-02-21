@@ -37,6 +37,7 @@ module.exports = {
             var gain =
               Math.round((getRandomNumber(1, 1.5) + Number.EPSILON) * 100) /
               100;
+            var words = await randomWords(5);
             var worked = 1;
             var userID = message.author.id;
 
@@ -53,7 +54,7 @@ module.exports = {
                 message.guild.id +
                 ", 0.00)",
               function(err, result) {
-                if (err) throw err;
+                if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
                   message.author.username +
                     " worked in server " +
@@ -64,8 +65,8 @@ module.exports = {
                 );
               }
             );
-            return message.channel.send(
-              message.author + " worked and gained $" + gain + "!"
+            return message.channel.send("<@" +
+              message.author.id + "> worked and gained $" + gain + "!"
             );
           } else {
             var lastDate = results[0].last_worked;
@@ -261,7 +262,7 @@ module.exports = {
                 "' WHERE user_id = " +
                 message.author.id + " AND guild = " + message.guild.id,
               function(err, result) {
-                if (err) throw err;
+                if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
                   message.author.username +
                     " worked in server " + message.guild.name + " but failed their job."
@@ -280,7 +281,7 @@ module.exports = {
                 "' WHERE user_id = " +
                 message.author.id + " AND guild = " + message.guild.id,
               function(err, result) {
-                if (err) throw err;
+                if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
                   message.author.username +
                     " worked in server " + message.guild.name + " but failed their job."
@@ -332,7 +333,7 @@ module.exports = {
                 "' WHERE user_id = " +
                 message.author.id + " AND guild = " + message.guild.id,
               function(err, result) {
-                if (err) throw err;
+                if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
                   message.author.username +
                     " worked in server " + message.guild.name + " but failed their job."
@@ -350,7 +351,7 @@ module.exports = {
                 "' WHERE user_id = " +
                 message.author.id + " AND guild = " + message.guild.id,
               function(err, result) {
-                if (err) throw err;
+                if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
                   message.author.username +
                     " worked in server " + message.guild.name + " but failed their job."
@@ -380,7 +381,7 @@ module.exports = {
                 "' WHERE user_id = " +
                 message.author.id + " AND guild = " + message.guild.id,
               function(err, result) {
-                if (err) throw err;
+                if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
                   message.author.username +
                     " worked in server " +
@@ -397,7 +398,7 @@ module.exports = {
           }
         }
       );
-      if (err) throw err;
+      if (err) return message.reply("there was an error trying to execute that command!");
       con.release();
     });
   }

@@ -483,10 +483,7 @@ module.exports = {
 
                               var allEmbeds = [Embed, topPlayer];
 
-                              const userReactions = message.reactions.filter(
-                                reaction =>
-                                  reaction.users.has(message.author.id)
-                              );
+                            
 
                               var s = 0;
                               function wait(s) {
@@ -1273,10 +1270,6 @@ module.exports = {
                     EmbedTri,
                     Embed4
                   ];
-
-                  const userReactions = message.reactions.filter(reaction =>
-                    reaction.users.has(message.author.id)
-                  );
 
                   var s = 0;
                   function wait(s) {
@@ -2685,9 +2678,7 @@ module.exports = {
                       user.id === message.author.id
                     );
                   };
-                  const userReactions = message.reactions.filter(reaction =>
-                    reaction.users.has(message.author.id)
-                  );
+                 
 
                   var s = 0;
                   function wait(s) {
