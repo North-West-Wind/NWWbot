@@ -10,6 +10,7 @@ const YouTube = require("simple-youtube-api");
 const youtube = new YouTube(process.env.YT);
 var color = Math.floor(Math.random() * 16777214) + 1;
 
+
 module.exports = {
   name: "play",
   description: "Play some music!",
@@ -17,9 +18,8 @@ module.exports = {
   async music(message, serverQueue, looping, queue, pool) {
     
     const args = message.content.split(/ +/);
-
+    const play = this.play;
     
-
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel)
       return message.channel.send(
@@ -30,11 +30,63 @@ module.exports = {
       return message.channel.send("I can't play in your voice channel!");
     }
 
-    if (!args[1]) {
-      return message.channel.send(
-        "Please provide a link or keywords to get a music played!"
+    if(!args[1]) {
+    pool.getConnection(function(err, con) {
+      if(err) return message.reply("there was an error trying to execute that command!")
+      con.query("SELECT queue FROM servers WHERE id = " + message.guild.id, async function(err, result, fields) {
+        if(err) return message.reply("there was an error trying to execute that command!");
+        if(result.length == 0 || result[0] == undefined || result[0].queue == null) {
+          return message.channel.send(
+        "No song queue found for this server! Please provide a link or keywords to get a music played!"
       );
+        }
+        var storedQueue = JSON.parse(unescape(result[0].queue));
+        if(!serverQueue) {
+          var queueContruct = {
+            textChannel: message.channel,
+          voiceChannel: voiceChannel,
+          connection: null,
+          songs: storedQueue,
+          volume: 5,
+          playing: true
+          }
+          if(!message.guild.me.voice.channel) {
+            var connection = await voiceChannel.join();
+          } else {
+            var connection = message.guild.me.voice.connection;
+          }
+          queueContruct.connection = connection;
+          queue.set(message.guild.id, queueContruct);
+          play(
+            message.guild,
+            queueContruct.songs[0],
+            looping,
+            queue,
+            pool
+          );
+          var song = storedQueue[0]
+          const Embed = new Discord.MessageEmbed()
+            .setColor(color)
+            .setTitle("Now playing:")
+            .setThumbnail(
+              `https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`
+            )
+            .setDescription(`**[${song.title}](${song.url})**`)
+            .setTimestamp()
+            .setFooter(
+              "Have a nice day! :)",
+              message.client.user.displayAvatarURL()
+            );
+          message.channel.send(Embed);
+        } else {
+          return message.channel.send("Music is already playing.")
+        }
+      })
+      con.release()
+    });
+      return;
     }
+
     
     const checkURL = validURL(args[1]);
 
@@ -73,9 +125,9 @@ module.exports = {
           pool.getConnection(function(err, con) {
             con.query(
               "UPDATE servers SET queue = '" +
-                (JSON.stringify(queueContruct.songs))
+                escape(JSON.stringify(queueContruct.songs))
                   
-                  .replace(/'/g, "\\'") +
+                   +
                 "' WHERE id = " +
                 message.guild.id,
               function(err, result) {
@@ -118,9 +170,9 @@ module.exports = {
         pool.getConnection(function(err, con) {
           con.query(
             "UPDATE servers SET queue = '" +
-              (JSON.stringify(serverQueue.songs))
+              escape(JSON.stringify(serverQueue.songs))
                 
-                .replace(/'/g, "\\'") +
+                   +
               "' WHERE id = " +
               message.guild.id,
             function(err, result) {
@@ -337,9 +389,9 @@ module.exports = {
               pool.getConnection(function(err, con) {
                 con.query(
                   "UPDATE servers SET queue = '" +
-                    (JSON.stringify(queueContruct.songs))
+                    escape(JSON.stringify(queueContruct.songs))
                       
-                      .replace(/'/g, "\\'") +
+                       +
                     "' WHERE id = " +
                     message.guild.id,
                   function(err, result) {
@@ -383,9 +435,8 @@ module.exports = {
               pool.getConnection(function(err, con) {
                 con.query(
                   "UPDATE servers SET queue = '" +
-                    (JSON.stringify(serverQueue.songs))
-                      
-                      .replace(/'/g, "\\'") +
+                    escape(JSON.stringify(serverQueue.songs))
+                       +
                     "' WHERE id = " +
                     message.guild.id,
                   function(err, result) {
@@ -465,9 +516,9 @@ module.exports = {
           pool.getConnection(function(err, con) {
             con.query(
               "UPDATE servers SET queue = '" +
-                (JSON.stringify(serverQueue.songs))
+                escape(JSON.stringify(serverQueue.songs))
                   
-                  .replace(/'/g, "\\'") +
+                   +
                 "' WHERE id = " +
                 guild.id,
               function(err, result) {
@@ -485,9 +536,9 @@ module.exports = {
           pool.getConnection(function(err, con) {
             con.query(
               "UPDATE servers SET queue = '" +
-                (JSON.stringify(serverQueue.songs))
+                escape(JSON.stringify(serverQueue.songs))
                   
-                  .replace(/'/g, "\\'") +
+                   +
                 "' WHERE id = " +
                 guild.id,
               function(err, result) {

@@ -78,7 +78,7 @@ client.once("ready", () => {
             var fetchGuild = await client.guilds.get(result.guild);
             var channel = await fetchGuild.channels.resolve(result.channel);
           } catch (err) {
-            console.log("Failed fetching guild/channel of giveaway.");
+            return console.log("Failed fetching guild/channel of giveaway.");
           }
           try {
             var msg = await channel.messages.fetch(result.id);
