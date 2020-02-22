@@ -483,6 +483,7 @@ module.exports = {
     }
   },
   async play(guild, song, looping, queue, pool) {
+    const play = this.play;
     const serverQueue = queue.get(guild.id);
 
     if (!song) {
@@ -528,7 +529,7 @@ module.exports = {
             );
             con.release();
           });
-          this.play(guild, serverQueue.songs[0], looping, queue, pool);
+          play(guild, serverQueue.songs[0], looping, queue, pool);
         } else {
           console.log("Music ended! In " + guild.name);
           serverQueue.songs.push(song);
@@ -548,7 +549,7 @@ module.exports = {
             );
             con.release();
           });
-          this.play(guild, serverQueue.songs[0], looping, queue, pool);
+          play(guild, serverQueue.songs[0], looping, queue, pool);
         }
       })
       .on("error", error => {
