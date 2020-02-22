@@ -45,7 +45,12 @@ module.exports = {
   name: "test",
   description: "For test, really.",
   async execute(message, args, pool) {
-    const guildIcon = message.guild.iconURL();
-    console.log(guildIcon);
+    const voiceChannel = message.member.voice.channel;
+    if(!message.guild.me.voice.channel) {
+            var connection = await voiceChannel.join();
+          } else {
+            var connection = message.guild.me.voice.connection;
+          }
+    console.log(connection)
   }
 };

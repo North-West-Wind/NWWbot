@@ -2,12 +2,7 @@ const Discord = require("discord.js");
 var Buffer = require("buffer").Buffer;
 const http = require("http");
 var color = Math.floor(Math.random() * 16777214) + 1;
-
-function twoDigits(d) {
-  if (0 <= d && d < 10) return "0" + d.toString();
-  if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
-  return d.toString();
-}
+const { twoDigits, numberWithCommas } = require("../function.js")
 
 module.exports = {
   name: "hypixel",
@@ -17,7 +12,13 @@ module.exports = {
   usage: "<subcommand> <username>",
   subcommands: ["achievements", "tnt", "bedwars", "duels"],
   subaliases: ["ach", "bw", "du"],
-  execute(message, args) {
+  async execute(message, args) {
+    const filter = (reaction, user) => {
+                    return (
+                      ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
+                      user.id === message.author.id
+                    );
+                  };
     const MojangAPI = require("mojang-api");
     if (!args[1]) {
       if (!args[0]) {
@@ -144,7 +145,7 @@ module.exports = {
                               true
                             )
                             .addField("Guild", "No guild", true)
-                            .addField("Karma", karma, true)
+                            .addField("Karma", numberWithCommas(karma), true)
                             .addField(
                               "First/Last login",
                               "`" + firstlogin + " | " + lastlogin + "`",
@@ -173,7 +174,7 @@ module.exports = {
                               true
                             )
                             .addField("Guild", "No guild", true)
-                            .addField("Karma", karma, true)
+                            .addField("Karma", numberWithCommas(karma), true)
                             .addField(
                               "First/Last login",
                               "`" + firstlogin + " | " + lastlogin + "`",
@@ -249,7 +250,7 @@ module.exports = {
                                     true
                                   )
                                   .addField("Guild", gbody.guild.name, true)
-                                  .addField("Karma", karma, true)
+                                  .addField("Karma", numberWithCommas(karma), true)
                                   .addField(
                                     "First/Last login",
                                     "`" + firstlogin + " | " + lastlogin + "`",
@@ -280,7 +281,7 @@ module.exports = {
                                     true
                                   )
                                   .addField("Guild", gbody.guild.name, true)
-                                  .addField("Karma", karma, true)
+                                  .addField("Karma", numberWithCommas(karma), true)
                                   .addField(
                                     "First/Last login",
                                     "`" + firstlogin + " | " + lastlogin + "`",
@@ -332,7 +333,7 @@ module.exports = {
               json: true
             },
 
-            function(error, response, body) {
+            async function(error, response, body) {
               if (!error && response.statusCode === 200) {
                 console.log("someone's api"); // Print the json response
                 if (body.player.newPackageRank === "VIP") {
@@ -387,7 +388,7 @@ module.exports = {
                           },
                           async function(guErr, guRes, guBody) {
                             if (!guErr && guRes.statusCode === 200) {
-                               var exp = [];
+                              var exp = [];
                               var guildId = guBody.guild._id;
                               var guildName = guBody.guild.name;
                               var guildCoins = guBody.guild.coins
@@ -427,14 +428,14 @@ module.exports = {
                                 return 0;
                               }
                               await member.sort(compare);
-                              
+
                               const Embed = new Discord.MessageEmbed()
                                 .setColor(color)
                                 .setTitle(guildName)
                                 .setDescription("Guild of " + res[0].name)
                                 .addField("Guild ID", "`" + guildId + "`", true)
                                 .addField("Guild Name", guildName, true)
-                                .addField("Guild coins", guildCoins, true)
+                                .addField("Guild coins", numberWithCommas(guildCoins), true)
                                 .addField(
                                   "Guild member count",
                                   member.length,
@@ -459,19 +460,23 @@ module.exports = {
                                   "Have a nice day! :)",
                                   message.client.user.displayAvatarURL()
                                 );
-                             
+
                               for (var i = 0; i < 9; i++) {
-                                 console.log(member[i].expHistory);
-                                MojangAPI.profile(member[i].uuid, async function(err, result) {
-                                  if (err) console.log(err);
-                                  else {
-                                    var username = result.name;
-                                    var gexp = await Object.values(member[i].expHistory)
-                                    
-                                    topPlayer.addField(username, gexp[0]);
+                                console.log(member[i].expHistory);
+                                MojangAPI.profile(
+                                  member[i].uuid,
+                                  async function(err, result) {
+                                    if (err) console.log(err);
+                                    else {
+                                      var username = result.name;
+                                      var gexp = await Object.values(
+                                        member[i].expHistory
+                                      );
+
+                                      topPlayer.addField(username, gexp[0]);
+                                    }
                                   }
-                                });
-                                
+                                );
                               }
                               const filter = (reaction, user) => {
                                 return (
@@ -482,8 +487,6 @@ module.exports = {
                               };
 
                               var allEmbeds = [Embed, topPlayer];
-
-                            
 
                               var s = 0;
                               function wait(s) {
@@ -510,7 +513,9 @@ module.exports = {
                                             if (s < 0) {
                                               s = 1;
                                             }
-                                            reaction.users.remove(message.author.id);
+                                            reaction.users.remove(
+                                              message.author.id
+                                            );
 
                                             edit(msg, s);
                                           } else if (
@@ -520,32 +525,42 @@ module.exports = {
                                             if (s > 1) {
                                               s = 0;
                                             }
-                                            reaction.users.remove(message.author.id);
+                                            reaction.users.remove(
+                                              message.author.id
+                                            );
                                             edit(msg, s);
                                           } else if (
                                             reaction.emoji.name === "⏮"
                                           ) {
                                             s = 0;
-                                            reaction.users.remove(message.author.id);
+                                            reaction.users.remove(
+                                              message.author.id
+                                            );
 
                                             edit(msg, s);
                                           } else if (
                                             reaction.emoji.name === "⏭"
                                           ) {
                                             s = 1;
-                                            reaction.users.remove(message.author.id);
+                                            reaction.users.remove(
+                                              message.author.id
+                                            );
 
                                             edit(msg, s);
                                           } else {
-                                            msg.reactions.removeAll().catch(err => {
-                                              console.log(err);
-                                            });
+                                            msg.reactions
+                                              .removeAll()
+                                              .catch(err => {
+                                                console.log(err);
+                                              });
                                           }
                                         })
                                         .catch(collected => {
-                                          msg.reactions.removeAll().catch(err => {
-                                            console.log(err);
-                                          });
+                                          msg.reactions
+                                            .removeAll()
+                                            .catch(err => {
+                                              console.log(err);
+                                            });
                                         });
                                     } catch {
                                       err => {
@@ -577,7 +592,9 @@ module.exports = {
                                           if (s < 0) {
                                             s = 1;
                                           }
-                                          reaction.users.remove(message.author.id);
+                                          reaction.users.remove(
+                                            message.author.id
+                                          );
 
                                           edit(msg, s);
                                         } else if (
@@ -587,27 +604,35 @@ module.exports = {
                                           if (s > 1) {
                                             s = 0;
                                           }
-                                          reaction.users.remove(message.author.id);
+                                          reaction.users.remove(
+                                            message.author.id
+                                          );
 
                                           edit(msg, s);
                                         } else if (
                                           reaction.emoji.name === "⏮"
                                         ) {
                                           s = 0;
-                                          reaction.users.remove(message.author.id);
+                                          reaction.users.remove(
+                                            message.author.id
+                                          );
 
                                           edit(msg, s);
                                         } else if (
                                           reaction.emoji.name === "⏭"
                                         ) {
                                           s = 1;
-                                          reaction.users.remove(message.author.id);
+                                          reaction.users.remove(
+                                            message.author.id
+                                          );
 
                                           edit(msg, s);
                                         } else {
-                                          msg.reactions.removeAll().catch(err => {
-                                            console.log(err);
-                                          });
+                                          msg.reactions
+                                            .removeAll()
+                                            .catch(err => {
+                                              console.log(err);
+                                            });
                                         }
                                       })
                                       .catch(collected => {
@@ -720,7 +745,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FTNT.png?v=1579257361129"
                     )
-                    .addField("Coins", coins)
+                    .addField("Coins", numberWithCommas(coins))
                     .addField("Bowspleef deaths", deaths_bowspleef, true)
                     .addField("Bowspleef wins", wins_bowspleef, true)
                     .addField("TNTag kills", wins_tntag, true)
@@ -828,8 +853,8 @@ module.exports = {
                       body.player.achievements.bedwars_level,
                       true
                     )
-                    .addField("Coins", coins, true)
-                    .addField("Game played", played, true)
+                    .addField("Coins", numberWithCommas(coins), true)
+                    .addField("Game played", numberWithCommas(played), true)
                     .addField("Wins", wins, true)
                     .addField("Losses", loss, true)
                     .addField("WLR", wlr, true)
@@ -934,7 +959,7 @@ module.exports = {
                       true
                     )
                     .addField("Winstreak", winstSolo, true)
-                    .addField("Game played", playedSolo, true)
+                    .addField("Game played", numberWithCommas(playedSolo), true)
                     .addField("Wins", winsSolo, true)
                     .addField("Losses", lossSolo, true)
                     .addField("WLR", wlrSolo, true)
@@ -1035,7 +1060,7 @@ module.exports = {
                       true
                     )
                     .addField("Winstreak", winstTwo, true)
-                    .addField("Game played", playedTwo, true)
+                    .addField("Game played", numberWithCommas(playedTwo), true)
                     .addField("Wins", winsTwo, true)
                     .addField("Losses", lossTwo, true)
                     .addField("WLR", wlrTwo, true)
@@ -1136,7 +1161,7 @@ module.exports = {
                       true
                     )
                     .addField("Winstreak", winstTri, true)
-                    .addField("Game played", playedTri, true)
+                    .addField("Game played", numberWithCommas(playedTri), true)
                     .addField("Wins", winsTri, true)
                     .addField("Losses", lossTri, true)
                     .addField("WLR", wlrTri, true)
@@ -1237,7 +1262,7 @@ module.exports = {
                       true
                     )
                     .addField("Winstreak", winst4, true)
-                    .addField("Game played", played4, true)
+                    .addField("Game played", numberWithCommas(played4), true)
                     .addField("Wins", wins4, true)
                     .addField("Losses", loss4, true)
                     .addField("WLR", wlr4, true)
@@ -1256,12 +1281,7 @@ module.exports = {
                       "Have a nice day! :)",
                       message.client.user.displayAvatarURL()
                     );
-                  const filter = (reaction, user) => {
-                    return (
-                      ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
-                      user.id === message.author.id
-                    );
-                  };
+                  
 
                   var allEmbeds = [
                     Embed,
@@ -1270,132 +1290,53 @@ module.exports = {
                     EmbedTri,
                     Embed4
                   ];
-
                   var s = 0;
-                  function wait(s) {
-                    message.channel.send(allEmbeds[s]).then(async msg => {
-                      try {
-                        await msg.react("⏮");
+                  
+                  var msg = await message.channel.send(allEmbeds[0]);
+
+                  await msg.react("⏮");
                         await msg.react("◀");
                         await msg.react("▶");
                         await msg.react("⏭");
                         await msg.react("⏹");
-                        await msg
-                          .awaitReactions(filter, {
-                            max: 1,
-                            time: 60000,
-                            errors: ["time"]
-                          })
-                          .then(async collected => {
-                            const reaction = collected.first();
-
-                            if (reaction.emoji.name === "◀") {
-                              s -= 1;
+                  var collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"]});
+                  
+                  
+                  collector.on("collect", function(reaction, user) {
+                    reaction.users.remove(user.id);
+                    switch(reaction.emoji.name) {
+                      case "⏮":
+                        s = 0;
+                        msg.edit(allEmbeds[s])
+                        break;
+                      case "◀":
+                        s -= 1;
                               if (s < 0) {
                                 s = 4;
                               }
-                              reaction.users.remove(message.author.id);
-
-                              edit(msg, s);
-                            } else if (reaction.emoji.name === "▶") {
-                              s += 1;
+                        msg.edit(allEmbeds[s])
+                        break;
+                      case "▶":
+                        s += 1;
                               if (s > 4) {
                                 s = 0;
                               }
-                              reaction.users.remove(message.author.id);
-                              edit(msg, s);
-                            } else if (reaction.emoji.name === "⏮") {
-                              s = 0;
-                              reaction.users.remove(message.author.id);
-
-                              edit(msg, s);
-                            } else if (reaction.emoji.name === "⏭") {
-                              s = 4;
-                              reaction.users.remove(message.author.id);
-
-                              edit(msg, s);
-                            } else {
-                              msg.reactions.removeAll().catch(err => {
-                                console.log(err);
-                              });
-                            }
-                          })
-                          .catch(collected => {
-                            msg.reactions.removeAll().catch(err => {
-                              console.log(err);
-                            });
-                          });
-                      } catch {
-                        err => {
-                          console.log(err);
-                        };
-                      }
-                    });
-                  }
-
-                  function edit(mesg, s) {
-                    mesg.edit(allEmbeds[s]).then(async msg => {
-                      try {
-                        await msg.react("⏮");
-                        await msg.react("◀");
-                        await msg.react("▶");
-                        await msg.react("⏭");
-                        await msg.react("⏹");
-                        await msg
-                          .awaitReactions(filter, {
-                            max: 1,
-                            time: 60000,
-                            errors: ["time"]
-                          })
-                          .then(async collected => {
-                            const reaction = collected.first();
-
-                            if (reaction.emoji.name === "◀") {
-                              s -= 1;
-                              if (s < 0) {
-                                s = 4;
-                              }
-                              reaction.users.remove(message.author.id);
-
-                              edit(msg, s);
-                            } else if (reaction.emoji.name === "▶") {
-                              s += 1;
-                              if (s > 4) {
-                                s = 0;
-                              }
-                              reaction.users.remove(message.author.id);
-
-                              edit(msg, s);
-                            } else if (reaction.emoji.name === "⏮") {
-                              s = 0;
-                              reaction.users.remove(message.author.id);
-
-                              edit(msg, s);
-                            } else if (reaction.emoji.name === "⏭") {
-                              s = 4;
-                              reaction.users.remove(message.author.id);
-
-                              edit(msg, s);
-                            } else {
-                              msg.reactions.removeAll().catch(err => {
-                                console.log(err);
-                              });
-                            }
-                          })
-                          .catch(collected => {
-                            msg.reactions.removeAll().catch(err => {
-                              console.log(err);
-                            });
-                          });
-                      } catch {
-                        err => {
-                          console.log(err);
-                        };
-                      }
-                    });
-                  }
-
-                  wait(s);
+                        msg.edit(allEmbeds[s])
+                        break;
+                      case "⏭":
+                        s = 4;
+                        msg.edit(allEmbeds[s])
+                        break;
+                      case "⏹":
+                        collector.emit("end")
+                        break;
+                    }
+                  })
+                  collector.on("end", function() {
+                    msg.reactions.removeAll().catch(console.error);
+                  })
+                  
+                  
                 } else if (args[0] === "duels" || args[0] === "du") {
                   const du = body.player.stats.Duels;
 
@@ -1478,7 +1419,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", uhcRounds)
+                    .addField("Rounds Played", numberWithCommas(uhcRounds))
                     .addField("Wins", uhcWins, true)
                     .addField("Losses", uhcLosses, true)
                     .addField(
@@ -1584,7 +1525,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", swRounds)
+                    .addField("Rounds Played", numberWithCommas(swRounds))
                     .addField("Wins", swWins, true)
                     .addField("Losses", swLosses, true)
                     .addField(
@@ -1690,7 +1631,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", mwRounds)
+                    .addField("Rounds Played", numberWithCommas(mwRounds))
                     .addField("Wins", mwWins, true)
                     .addField("Losses", mwLosses, true)
                     .addField(
@@ -1796,7 +1737,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", clsRounds)
+                    .addField("Rounds Played", numberWithCommas(clsRounds))
                     .addField("Wins", clsWins, true)
                     .addField("Losses", clsLosses, true)
                     .addField(
@@ -1902,7 +1843,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", bowRounds)
+                    .addField("Rounds Played", numberWithCommas(bowRounds))
                     .addField("Wins", bowWins, true)
                     .addField("Losses", bowLosses, true)
                     .addField(
@@ -2008,7 +1949,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", bliRounds)
+                    .addField("Rounds Played", numberWithCommas(bliRounds))
                     .addField("Wins", bliWins, true)
                     .addField("Losses", bliLosses, true)
                     .addField(
@@ -2114,7 +2055,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", opRounds)
+                    .addField("Rounds Played", numberWithCommas(opRounds))
                     .addField("Wins", opWins, true)
                     .addField("Losses", opLosses, true)
                     .addField(
@@ -2220,7 +2161,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", poRounds)
+                    .addField("Rounds Played", numberWithCommas(poRounds))
                     .addField("Wins", poWins, true)
                     .addField("Losses", poLosses, true)
                     .addField(
@@ -2317,7 +2258,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", comRounds)
+                    .addField("Rounds Played", numberWithCommas(comRounds))
                     .addField("Wins", comWins, true)
                     .addField("Losses", comLosses, true)
                     .addField(
@@ -2435,7 +2376,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", briRounds, true)
+                    .addField("Rounds Played", numberWithCommas(briRounds), true)
                     .addField("Goal", briGoal, true)
                     .addField("Block Placed", briBlock, true)
                     .addField("Wins", briWins, true)
@@ -2524,7 +2465,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", sumRounds)
+                    .addField("Rounds Played", numberWithCommas(sumRounds))
                     .addField("Wins", sumWins, true)
                     .addField("Losses", sumLosses, true)
                     .addField(
@@ -2630,7 +2571,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", rounds)
+                    .addField("Rounds Played", numberWithCommas(rounds))
                     .addField("Wins", wins, true)
                     .addField("Losses", losses, true)
                     .addField(
@@ -2672,168 +2613,93 @@ module.exports = {
                     EmbedBri
                   ];
                   var s = 0;
-                  const filter = (reaction, user) => {
-                    return (
-                      ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
-                      user.id === message.author.id
-                    );
-                  };
-                 
+                  var msg = await message.channel.send(allEmbeds[0]);
 
-                  var s = 0;
-                  function wait(s) {
-                    message.channel.send(allEmbeds[s]).then(async msg => {
-                      try {
-                        await msg.react("⏮");
+                  await msg.react("⏮");
                         await msg.react("◀");
                         await msg.react("▶");
                         await msg.react("⏭");
                         await msg.react("⏹");
-                        await msg
-                          .awaitReactions(filter, {
-                            max: 1,
-                            time: 60000,
-                            errors: ["time"]
-                          })
-                          .then(async collected => {
-                            const reaction = collected.first();
-
-                            if (reaction.emoji.name === "◀") {
-                              s -= 1;
+                  var collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"]});
+                  
+                  
+                  collector.on("collect", function(reaction, user) {
+                    reaction.users.remove(user.id);
+                    switch(reaction.emoji.name) {
+                      case "⏮":
+                        s = 0;
+                        msg.edit(allEmbeds[s])
+                        break;
+                      case "◀":
+                        s -= 1;
                               if (s < 0) {
                                 s = 11;
                               }
-                              try {
-                                await reaction.users.remove(message.author.id);
-                                await edit(msg, s);
-                              } catch {
-                                err => console.log(err);
-                              }
-                            } else if (reaction.emoji.name === "▶") {
-                              s += 1;
+                        msg.edit(allEmbeds[s])
+                        break;
+                      case "▶":
+                        s += 1;
                               if (s > 11) {
                                 s = 0;
                               }
-                              try {
-                                await reaction.users.remove(message.author.id);
-                                await edit(msg, s);
-                              } catch {
-                                err => console.log(err);
-                              }
-                            } else if (reaction.emoji.name === "⏮") {
-                              s = 0;
-                              try {
-                                await reaction.users.remove(message.author.id);
-                                await edit(msg, s);
-                              } catch {
-                                err => console.log(err);
-                              }
-                            } else if (reaction.emoji.name === "⏭") {
-                              s = 11;
-                              try {
-                                await reaction.users.remove(message.author.id);
-                                await edit(msg, s);
-                              } catch {
-                                err => console.log(err);
-                              }
-                            } else {
-                              msg.reactions.removeAll().catch(err => {
-                                console.log(err);
-                              });
-                            }
-                          })
-                          .catch(collected => {
-                            msg.reactions.removeAll().catch(err => {
-                              console.log(err);
-                            });
-                          });
-                      } catch {
-                        err => {
-                          console.log(err);
-                        };
-                      }
-                    });
-                  }
-
-                  function edit(mesg, s) {
-                    mesg.edit(allEmbeds[s]).then(async msg => {
-                      try {
-                        await msg.react("⏮");
-                        await msg.react("◀");
-                        await msg.react("▶");
-                        await msg.react("⏭");
-                        await msg.react("⏹");
-                        await msg
-                          .awaitReactions(filter, {
-                            max: 1,
-                            time: 60000,
-                            errors: ["time"]
-                          })
-                          .then(async collected => {
-                            const reaction = collected.first();
-
-                            if (reaction.emoji.name === "◀") {
-                              s -= 1;
-                              if (s < 0) {
-                                s = 11;
-                              }
-                              try {
-                                await reaction.users.remove(message.author.id);
-                                await edit(msg, s);
-                              } catch {
-                                err => console.log(err);
-                              }
-                            } else if (reaction.emoji.name === "▶") {
-                              s += 1;
-                              if (s > 11) {
-                                s = 0;
-                              }
-                              try {
-                                await reaction.users.remove(message.author.id);
-                                await edit(msg, s);
-                              } catch {
-                                err => console.log(err);
-                              }
-                            } else if (reaction.emoji.name === "⏮") {
-                              s = 0;
-                              try {
-                                await reaction.users.remove(message.author.id);
-                                await edit(msg, s);
-                              } catch {
-                                err => console.log(err);
-                              }
-                            } else if (reaction.emoji.name === "⏭") {
-                              s = 11;
-                              try {
-                                await reaction.users.remove(message.author.id);
-                                await edit(msg, s);
-                              } catch {
-                                err => console.log(err);
-                              }
-                            } else {
-                              msg.reactions.removeAll().catch(err => {
-                                console.log(err);
-                              });
-                            }
-                          })
-                          .catch(collected => {
-                            msg.reactions.removeAll().catch(err => {
-                              console.log(err);
-                            });
-                          });
-                      } catch {
-                        err => {
-                          console.log(err);
-                        };
-                      }
-                    });
-                  }
-
-                  wait(s);
+                        msg.edit(allEmbeds[s])
+                        break;
+                      case "⏭":
+                        s = 11;
+                        msg.edit(allEmbeds[s])
+                        break;
+                      case "⏹":
+                        collector.emit("end")
+                        break;
+                    }
+                  })
+                  collector.on("end", function() {
+                    msg.reactions.removeAll().catch(console.error);
+                  })
                 } else if (args[0] === "skywars" || args[0] === "sw") {
                   const sw = body.player.stats.SkyWars;
 
                   //sw level calculator
+
+                  const EASY_LEVEL_EXP = [
+                    0, // Level 1
+                    20, //20
+                    50, //70
+                    80, //150
+                    100, //250
+                    250, //500
+                    500, //1000
+                    1000, //2000
+                    1500, //3500
+                    2500, //6000
+                    4000, //10000
+                    5000 //15000
+                  ];
+                  const EXP_PER_LEVEL = 10000;
+
+                  function getLevelForExp(exp) {
+                    var easyLevelsCount = (EASY_LEVEL_EXP.length);
+
+                    var easyLevelExp = 0;
+                    for (var i = 1; i <= easyLevelsCount; i++) {
+                      var expPerLevel = getExpForLevel(i);
+                      easyLevelExp += expPerLevel;
+                      if (exp < easyLevelExp) {
+                        return i - 1; //57965
+                      }
+                    }
+                    var extraLevels = (exp - easyLevelExp) / EXP_PER_LEVEL;
+                    return easyLevelsCount + extraLevels;
+                  }
+
+                  function getExpForLevel(level) {
+                    if (level <= (EASY_LEVEL_EXP.length)) {
+                      return EASY_LEVEL_EXP[level - 1];
+                    }
+
+                    return EXP_PER_LEVEL;
+                  }
+                  var level = Math.floor(getLevelForExp(sw.skywars_experience))
                 }
               }
             }
