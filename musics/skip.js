@@ -24,9 +24,7 @@ module.exports = {
     pool.getConnection(function(err, con) {
             con.query(
               "UPDATE servers SET queue = '" +
-                (JSON.stringify(serverQueue.songs))
-                  
-                  .replace(/'/g, "\\'") +
+                escape(JSON.stringify(serverQueue.songs)) +
                 "' WHERE id = " +
                 guild.id,
               function(err, result) {
@@ -45,9 +43,7 @@ module.exports = {
         pool.getConnection(function(err, con) {
             con.query(
               "UPDATE servers SET queue = '" +
-                (JSON.stringify(serverQueue.songs))
-                  
-                  .replace(/'/g, "\\'") +
+                escape(JSON.stringify(serverQueue.songs)) +
                 "' WHERE id = " +
                 guild.id,
               function(err, result) {
