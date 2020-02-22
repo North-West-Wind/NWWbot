@@ -21,7 +21,7 @@ module.exports = {
       return await this.create(message, args, pool);
     } 
     if (args[0] === "end") {
-      return await this.create(message, args, pool);
+      return await this.end(message, args, pool);
     } 
     if (args[0] === "list") {
       return await this.list(message, args, pool);
@@ -53,9 +53,9 @@ module.exports = {
         }
         await channelCollected.first().delete();
         await msg.edit(
-          "Great! The channel will be " +
+          "Great! The channel will be <#" +
             channel +
-            ".\n\n`Please tell me the title of the poll!`"
+            ">.\n\n`Please tell me the title of the poll!`"
         );
         var collected = await message.channel.awaitMessages(filter, {
           time: 30000,
@@ -143,9 +143,9 @@ module.exports = {
         await optionString.first().delete();
         await msg.edit("Nice! **" + options.length + "** options it is!\n\n");
         await message.channel.send(
-          "The poll will be held in channel " +
+          "The poll will be held in channel <#" +
             channel +
-            " for **" +
+            "> for **" +
             d +
             h +
             m +
@@ -161,7 +161,6 @@ module.exports = {
             "**"
         );
         
-        msg.delete(10000);
 
         var emojis = [
           "1️⃣",
@@ -302,7 +301,7 @@ module.exports = {
             } else {
               var result = [];
               var end = [];
-              for (const emoji of msg.reactions.values()) {
+              for (const emoji of msg.reactions.cache.values()) {
                 await result.push(emoji.count);
                 var mesg =
                   "**" +
@@ -375,8 +374,7 @@ module.exports = {
             );
           }
 
-          var guild = await message.client.guilds.get(result[0].guild);
-          var channel = await guild.channels.resolve(result[0].channel);
+          var channel = await message.client.channels.fetch(result[0].channel);
           try {
           var msg = await channel.messages.fetch(result[0].id);
           } catch(err) {
@@ -394,7 +392,7 @@ module.exports = {
 
           var pollResult = [];
           var end = [];
-          for (const emoji of msg.reactions.values()) {
+          for (const emoji of msg.reactions.cache.values()) {
             await pollResult.push(emoji.count);
             var mesg =
               "**" +
