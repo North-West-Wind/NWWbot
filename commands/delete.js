@@ -51,7 +51,6 @@ module.exports = {
         
       } else return message.channel.send("The query provided is not a number!");
     } else {
-      message.delete();
       message.channel.bulkDelete(amount, true).catch(err => {
         console.error(err);
         message.channel.send("I can't delete them. Try a smaller amount.");
