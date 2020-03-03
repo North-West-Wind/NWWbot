@@ -96,7 +96,48 @@ module.exports = {
         if (isNaN(winnerCount)) {
           return message.channel.send(args[3] + " is not a number!");
         }
+        
+        if(winnerCount == 1) {
+          var winnerS = " winner";
+        } else {
+          var winnerS = " winners";
+        }
+        
         var item = args.slice(4).join(" ");
+                    var sec = time / 1000;
+                    var dd = Math.floor(sec / 86400);
+                    var dh = Math.floor((sec % 86400) / 3600);
+                    var dm = Math.floor(((sec % 86400) % 3600) / 60);
+                    var ds = Math.floor(((sec % 86400) % 3600) % 60);
+                    var dmi = Math.floor(
+                      time -
+                        dd * 86400000 -
+                        dh * 3600000 -
+                        dm * 60000 -
+                        ds * 1000
+                    );
+                    var d = "";
+                    var h = "";
+                    var m = "";
+                    var s = "";
+                    var mi = "";
+                    if (dd !== 0) {
+                      d = " " + dd + " days";
+                    }
+                    if (dh !== 0) {
+                      h = " " + dh + " hours";
+                    }
+                    if (dm !== 0) {
+                      m = " " + dm + " minutes";
+                    }
+                    if (ds !== 0) {
+                      s = " " + ds + " seconds";
+                    }
+                    if (dmi !== 0) {
+                      mi = " " + dmi + " milliseconds";
+                    }
+        message.channel.send("Created new giveaway in channel <#" + channel.id + "> for**" + d + h + m + s + mi + "** with the item **" + item + "** and **" + winnerCount + winnerS + "**.");
+        
         var reacted = [];
         var currentDate = new Date();
 

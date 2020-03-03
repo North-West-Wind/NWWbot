@@ -5,7 +5,7 @@ module.exports = {
   aliases: ['f5'],
 	execute(message, args, pool, musicCommandsArray) {
     if (message.author.id !== '416227242264363008') return;
-		const commandName = args[0].toLowerCase();
+		var commandName = args[0].toLowerCase();
 		const command = message.client.commands.get(commandName)
 			|| message.client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
@@ -13,6 +13,8 @@ module.exports = {
 		if (!command) {
 			return message.channel.send(`There is no command with name or alias \`${commandName}\`, ${message.author}!`);
 		}
+    
+    commandName = command.name;
 
     if(musicCommandsArray.includes(commandName) == true) {
       delete require.cache[require.resolve(`../musics/${commandName}.js`)];
