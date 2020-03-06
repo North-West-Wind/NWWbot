@@ -3,9 +3,9 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "trade",
-  description: "Make a embed to show your trade.",
+  description: "Announce in the channel that you want to trade something.",
   args: true,
-  usage: "<string>",
+  usage: " ",
   async execute(message, args) {
     message.delete();
     const filter = x => x.author.id === message.author.id;

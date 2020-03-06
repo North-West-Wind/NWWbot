@@ -5,7 +5,8 @@ const { twoDigits, getRandomNumber, applyText } = require("../function.js")
 
 module.exports = {
   name: "work",
-  description: "Work and gain money!",
+  description: "Work in the server and gain virtual money. By working more, you will gain experience and level up. That can make you gain more.",
+  usage: " ",
   execute(message, args, pool) {
     var currentDate = new Date();
     var date = currentDate.getDate();

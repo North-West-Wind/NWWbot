@@ -4,10 +4,10 @@ const {findUser} = require("../function.js")
 
 module.exports = {
   name: "spam",
-  description: "Spam a person.",
+  description: "Spam a user with the message provided.",
   aliases: ["sp"],
   args: true,
-  usage: "<user> <time> <message>",
+  usage: "<user | user ID> <amount> <message>",
   async execute(message, args) {
     
     if(!args[0]) {

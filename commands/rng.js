@@ -2,7 +2,7 @@ const { getRandomNumber } = require("../function.js")
 
 module.exports = {
   name: "rng",
-  description: "Generates random number.",
+  description: "Random number generator. Generate a random number between range.",
   usage: "<min> <max>",
   aliases: ["randomnumber", "randomnumbergenerator"] ,
   execute(message, args) {

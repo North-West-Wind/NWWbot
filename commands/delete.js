@@ -2,10 +2,11 @@ const Discord = require("discord.js");
 
 module.exports = {
   name: "delete",
-  description: "Delete specific amount of messages.",
+  description: "Delete a specific amount of message in a channel. Sadly, this command does not work for DMs.",
   aliases: ["del"],
   args: true,
-  usage: "<amount of messages>",
+  usage: "<amount | subcommand>",
+  subcommands: ["all"],
   async execute(message, args) {
     if (message.channel instanceof Discord.DMChannel) {
       return message.channel.send(

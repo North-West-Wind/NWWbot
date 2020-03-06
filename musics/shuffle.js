@@ -5,6 +5,7 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
   name: "shuffle",
   description: "Shuffle the song queue.",
+  usage: " ",
   async music(message, serverQueue, pool) {
     if (!message.member.voice.channel)
       return message.channel.send("You are not in a voice channel!");

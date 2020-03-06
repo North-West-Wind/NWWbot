@@ -10,7 +10,7 @@ const { twoDigits, setTimeout_ } = require("../function.js");
 
 module.exports = {
   name: "giveaway",
-  description: "Giveaway something.",
+  description: "Create, end or list giveaways on the server.",
   args: true,
   usage: "<subcommand>",
   aliases: ["g"],

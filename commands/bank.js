@@ -4,7 +4,7 @@ const { prefix } = require("../config.json");
 
 module.exports = {
   name: "bank",
-  description: "Deposit/Withdraw cash in Discord.",
+  description: "Display your Discord Economy status. You can also deposit or withdraw money with this command.",
   usage: "[subcommand]",
   subcommands: ["deposit", "withdraw"],
   async execute(message, args, pool) {

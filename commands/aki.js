@@ -9,7 +9,7 @@ var color = Math.floor(Math.random() * 16777214) + 1;
  */
 module.exports = {
   name: "aki",
-  description: "aki.",
+  description: "Play Akinator on Discord!",
   aliases: ["akinator"],
   cooldown: 25,
   type: "other",

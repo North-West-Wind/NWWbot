@@ -3,10 +3,10 @@ var Buffer = require("buffer").Buffer;
 var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
   name: "minecraft",
-  description: "Connect to Minecraft API.",
+  description: "Connect to the Minecraft API and display information.",
   args: true,
   aliases: ["mc"],
-  usage: "<subcommand> <username>",
+  usage: "<subcommand> <username | UUID | IP>",
   subcommands: ["profile", "server", "history"],
   execute(message, args) {
     const MojangAPI = require("mojang-api");

@@ -1,6 +1,7 @@
 module.exports = {
   name: "pause",
-  description: "Pause the music playing on the server.",
+  description: "Pause the current music.",
+  usage: " ",
   music(message, serverQueue) {
     if (!message.member.voice.channel)
     return message.channel.send("You are not in a voice channel!");

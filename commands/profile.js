@@ -4,7 +4,8 @@ const client = new Discord.Client();
 const { findUser, findMember, twoDigits } = require("../function.js")
 module.exports = {
   name: "profile",
-  description: "Display profile of yourself.",
+  description: "Display profile of yourself or the mentioned user on the server.",
+  usage: "[user | user ID]",
   async execute(message, args) {
     if (!args[0]) {
       const member = message.member;

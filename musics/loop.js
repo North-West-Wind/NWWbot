@@ -1,6 +1,7 @@
 module.exports = {
   name: "loop",
-  description: "Change the loop status of the server.",
+  description: "Toggle loop of the song queue.",
+  usage: " ",
   aliases: ["lp"],
   music(message, serverQueue, looping) {
     if (!message.member.voice.channel)

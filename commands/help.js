@@ -4,16 +4,18 @@ const { prefix } = require("../config.json");
 const Discord = require("discord.js");
 module.exports = {
   name: "help",
-  description: "List all of my commands or info about a specific command.",
+  description: "Send you a DM with an embed of “help” and this PDF file.",
   aliases: ["commands"],
-  usage: "[command name]",
+  usage: "[command]",
   cooldown: 5,
   execute(message, args) {
     const data = [];
     const { commands } = message.client;
 
     if (!args.length) {
-      const attachment = new Discord.MessageAttachment("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1581663440063");
+      const attachment = new Discord.MessageAttachment(
+        "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1581663440063"
+      );
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle("Command list is here!")
@@ -26,13 +28,25 @@ module.exports = {
           "delete\nrole\nunrole\naddrole\ndelrole\nautorole\nannounce",
           true
         )
-        .addField("**Moderator**", "ban\nunban\nkick\nwarn\nunwarn\nmute\nunmute\ndeafen\nundeafen", true)
+        .addField(
+          "**Moderator**",
+          "ban\nunban\nkick\nwarn\nunwarn\nmute\nunmute\ndeafen\nundeafen",
+          true
+        )
         .addField("**Economy**", "work\nbank\nshop", true)
-        .addField("**Fun**", "chat\nmeme\nrng", true)
+        .addField("**Fun**", "chat\nmeme\nrng\ngreet\nthx\nrank", true)
 
-        .addField("**Miscellaneous**", "giveaway\npoll\ngoogle\nspam\ntrade", true)
+        .addField(
+          "**Miscellaneous**",
+          "giveaway\npoll\ngoogle\nspam\ntrade",
+          true
+        )
         .addField("**NSFW**", "hentai", true)
-        .addField("**Information**", "help\nserver\nping\navatar\nwelcome", true)
+        .addField(
+          "**Information**",
+          "help\nserver\nping\navatar\nwelcome",
+          true
+        )
         .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban", true)
         .addField(
           "**Music**",
@@ -47,7 +61,16 @@ module.exports = {
         );
 
       return message.author
-        .send({embed: Embed, files: [{attachment: "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1581663440063", name: "manual.pdf"}]})
+        .send({
+          embed: Embed,
+          files: [
+            {
+              attachment:
+                "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1583475715155",
+              name: "manual.pdf"
+            }
+          ]
+        })
         .then(() => {
           if (message.channel.type === "dm") return;
           message.reply("look at your DM!");
@@ -81,6 +104,11 @@ module.exports = {
       data.push(`**Subcommands:** ${command.subcommands.join(", ")}`);
     if (command.subaliases)
       data.push(`**Subcommands' Aliases:** ${command.subaliases.join(", ")}`);
+
+    if (command.subcommands)
+      data.push(
+        "\nIf you want to know how subcommands work, please refer to the manual."
+      );
 
     message.channel.send(data, { split: true });
   }

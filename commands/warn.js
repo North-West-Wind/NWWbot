@@ -4,9 +4,9 @@ const {findUser} = require("../function.js")
 
 module.exports = {
   name: "warn",
-  description: "Send a warning to someone. 3 warning will lead to ban.",
+  description: "Warn a member of the server. 3 warnings will lead to a ban.",
   args: true,
-  usage: "<user> [reason]",
+  usage: "<user | user ID> [reason]",
   execute(message, args, pool) {
     pool.getConnection(async function(err, con) {
       if (!args[0]) {

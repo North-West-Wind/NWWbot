@@ -3,8 +3,9 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "queue",
-  description: "Display the music queue of this server.",
+  description: "Display the current song queue.",
   aliases: ["q"],
+  usage: " ",
   music(message, serverQueue) {
     if (!serverQueue) return message.channel.send("There is nothing playing.");
   var index = 0;

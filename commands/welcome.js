@@ -4,7 +4,7 @@ const { createCanvas, Image, loadImage } = require("canvas");
 
 module.exports = {
   name: "welcome",
-  description: "Test the welcome message.",
+  description: "Test the welcome message and image.",
   execute(message, args, pool) {
     const member = message.author;
     const guild = message.guild;

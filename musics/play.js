@@ -87,8 +87,9 @@ async function play(guild, song, looping, queue, pool) {
 
 module.exports = {
   name: "play",
-  description: "Play some music!",
+  description: "Play music with the link or keywords provided. Only support YouTube videos currently.",
   aliases: ["add"],
+  usage: "<link | keywords>",
   async music(message, serverQueue, looping, queue, pool) {
     
     const args = message.content.split(/ +/);

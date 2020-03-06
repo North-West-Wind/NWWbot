@@ -2,7 +2,7 @@ const { findMember } = require("../function.js");
 
 module.exports = {
   name: "autorole",
-  description: "Automatically give all mentioned users a specific role.",
+  description: 'This has nothing to do with the auto-role when a user joins the server. The command is very similar to the “?role” command, but it can assign a single to multiple users at once.',
   args: true,
   usage: "<role | role ID | role name> <user | user ID>",
   async execute(message, args) {

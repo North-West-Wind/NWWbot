@@ -3,9 +3,9 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "kick",
-  description: "Kick someone",
+  description: "Kick a member of the server.",
   args: true,
-  usage: "<user> [reason]",
+  usage: "<user | user ID> [reason]",
   execute(message, args) {
     if (!message.member.permissions.has("KICK_MEMBERS")) {
       message.channel.send(
