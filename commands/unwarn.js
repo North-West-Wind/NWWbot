@@ -11,12 +11,12 @@ module.exports = {
       
       
       if(!args[0]) {
-        return message.reply("tell me who you are warning.");
+        return message.channel.send("Tell me who you are unwarning.");
       }
       
       if (args[0] === "@everyone") {
         return message.channel.send(
-          "I cannot warn everyone lol."
+          "I cannot unwarn everyone lol."
         );
       }
       

@@ -13,6 +13,7 @@ module.exports = {
     }
 
   serverQueue.songs = [];
+    if(serverQueue.connection.dispatcher)
   serverQueue.connection.dispatcher.destroy();
   message.guild.me.voice.channel.leave();
   queue.delete(message.guild.id);

@@ -10,6 +10,80 @@ const YouTube = require("simple-youtube-api");
 const youtube = new YouTube(process.env.YT);
 var color = Math.floor(Math.random() * 16777214) + 1;
 
+async function play(guild, song, looping, queue, pool) {
+    const serverQueue = queue.get(guild.id);
+
+    if (!song) {
+      guild.me.voice.channel.leave();
+      queue.delete(guild.id);
+      pool.getConnection(function(err, con) {
+        con.query(
+          "UPDATE servers SET queue = NULL WHERE id = " + guild.id,
+          function(err, result) {
+            if (err) throw err;
+            console.log("Updated song queue of " + guild.name);
+          }
+        );
+        con.release();
+      });
+      return;
+    }
+
+    const dispatcher = serverQueue.connection
+      .play(await ytdl(song.url, { highWaterMark: 1 << 27 }), { type: "opus" })
+      .on("finish", async () => {
+        const guildLoopStatus = looping.get(guild.id);
+        if (
+          guildLoopStatus === undefined ||
+          guildLoopStatus === null ||
+          !guildLoopStatus ||
+          guildLoopStatus === false
+        ) {
+          console.log("Music ended! In " + guild.name);
+          await serverQueue.songs.shift();
+          pool.getConnection(function(err, con) {
+            con.query(
+              "UPDATE servers SET queue = '" +
+                escape(JSON.stringify(serverQueue.songs))
+                  
+                   +
+                "' WHERE id = " +
+                guild.id,
+              function(err, result) {
+                if (err) throw err;
+                console.log("Updated song queue of " + guild.name);
+              }
+            );
+            con.release();
+          });
+          play(guild, serverQueue.songs[0], looping, queue, pool);
+        } else {
+          console.log("Music ended! In " + guild.name);
+          await serverQueue.songs.push(song);
+          await serverQueue.songs.shift();
+          pool.getConnection(function(err, con) {
+            con.query(
+              "UPDATE servers SET queue = '" +
+                escape(JSON.stringify(serverQueue.songs))
+                  
+                   +
+                "' WHERE id = " +
+                guild.id,
+              function(err, result) {
+                if (err) throw err;
+                console.log("Updated song queue of " + guild.name);
+              }
+            );
+            con.release();
+          });
+          play(guild, serverQueue.songs[0], looping, queue, pool);
+        }
+      })
+      .on("error", error => {
+        console.error(error);
+      });
+    dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
+  }
 
 module.exports = {
   name: "play",
@@ -18,7 +92,6 @@ module.exports = {
   async music(message, serverQueue, looping, queue, pool) {
     
     const args = message.content.split(/ +/);
-    const play = this.play;
     
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel)
@@ -140,7 +213,7 @@ module.exports = {
           var connection = await voiceChannel.join();
           queueContruct.connection = connection;
 
-          this.play(
+          play(
             message.guild,
             queueContruct.songs[0],
             looping,
@@ -405,7 +478,7 @@ module.exports = {
                 var connection = await voiceChannel.join();
                 queueContruct.connection = connection;
 
-                this.play(
+                play(
                   message.guild,
                   queueContruct.songs[0],
                   looping,
@@ -483,7 +556,6 @@ module.exports = {
     }
   },
   async play(guild, song, looping, queue, pool) {
-    const play = this.play;
     const serverQueue = queue.get(guild.id);
 
     if (!song) {
@@ -532,7 +604,7 @@ module.exports = {
           play(guild, serverQueue.songs[0], looping, queue, pool);
         } else {
           console.log("Music ended! In " + guild.name);
-          serverQueue.songs.push(song);
+          await serverQueue.songs.push(song);
           await serverQueue.songs.shift();
           pool.getConnection(function(err, con) {
             con.query(

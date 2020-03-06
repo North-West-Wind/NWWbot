@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 var Buffer = require("buffer").Buffer;
 const http = require("http");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { twoDigits, numberWithCommas } = require("../function.js")
+const { twoDigits, numberWithCommas } = require("../function.js");
 
 module.exports = {
   name: "hypixel",
@@ -10,15 +10,15 @@ module.exports = {
   args: true,
   aliases: ["hy"],
   usage: "<subcommand> <username>",
-  subcommands: ["achievements", "tnt", "bedwars", "duels"],
-  subaliases: ["ach", "bw", "du"],
+  subcommands: ["guild", "achievements", "tnt", "bedwars", "duels"],
+  subaliases: ["g", "ach", "tnt", "bw", "du"],
   async execute(message, args) {
     const filter = (reaction, user) => {
-                    return (
-                      ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
-                      user.id === message.author.id
-                    );
-                  };
+      return (
+        ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
+        user.id === message.author.id
+      );
+    };
     const MojangAPI = require("mojang-api");
     if (!args[1]) {
       if (!args[0]) {
@@ -250,7 +250,11 @@ module.exports = {
                                     true
                                   )
                                   .addField("Guild", gbody.guild.name, true)
-                                  .addField("Karma", numberWithCommas(karma), true)
+                                  .addField(
+                                    "Karma",
+                                    numberWithCommas(karma),
+                                    true
+                                  )
                                   .addField(
                                     "First/Last login",
                                     "`" + firstlogin + " | " + lastlogin + "`",
@@ -281,7 +285,11 @@ module.exports = {
                                     true
                                   )
                                   .addField("Guild", gbody.guild.name, true)
-                                  .addField("Karma", numberWithCommas(karma), true)
+                                  .addField(
+                                    "Karma",
+                                    numberWithCommas(karma),
+                                    true
+                                  )
                                   .addField(
                                     "First/Last login",
                                     "`" + firstlogin + " | " + lastlogin + "`",
@@ -415,19 +423,56 @@ module.exports = {
                                 ":" +
                                 twoDigits(second) +
                                 " UTC";
+
+                              var hypixelDate = new Date(Date.now() - 18000000);
+                              var guildDate =
+                                hypixelDate.getFullYear() +
+                                "-" +
+                                twoDigits(hypixelDate.getMonth() + 1) +
+                                "-" +
+                                twoDigits(hypixelDate.getDate());
                               var member = guBody.guild.members;
                               function compare(a, b) {
-                                var first = Object.values(a.expHistory);
-                                var second = Object.values(b.expHistory);
-                                if (first[0] < second[0]) {
+                                var first = a.expHistory[guildDate];
+                                var second = b.expHistory[guildDate];
+                                if (first < second) {
                                   return 1;
                                 }
-                                if (first[0] > second[0]) {
+                                if (first > second) {
                                   return -1;
                                 }
                                 return 0;
                               }
-                              await member.sort(compare);
+                              var members = [];
+                              member.forEach(aMember => {
+                                members.push(aMember);
+                              });
+
+                              await members.sort(compare);
+
+                              var GEXPs = [];
+                              var players = [];
+                              for (var i = 0; i < 10; i++) {
+                                var gexp = members[i].expHistory[guildDate];
+                                GEXPs.push(gexp);
+                                request(
+                                  {
+                                    url: `https://api.minetools.eu/uuid/${members[i].uuid}`,
+                                    json: true
+                                  },
+                                  function(err, expResponse, result) {
+                                    if (err) console.error(err);
+                                    else {
+                                      var username = result.name;
+
+                                      players.push(username);
+                                    }
+                                  }
+                                );
+                              }
+                              
+                              
+                              
 
                               const Embed = new Discord.MessageEmbed()
                                 .setColor(color)
@@ -435,7 +480,11 @@ module.exports = {
                                 .setDescription("Guild of " + res[0].name)
                                 .addField("Guild ID", "`" + guildId + "`", true)
                                 .addField("Guild Name", guildName, true)
-                                .addField("Guild coins", numberWithCommas(guildCoins), true)
+                                .addField(
+                                  "Guild coins",
+                                  numberWithCommas(guildCoins),
+                                  true
+                                )
                                 .addField(
                                   "Guild member count",
                                   member.length,
@@ -461,23 +510,12 @@ module.exports = {
                                   message.client.user.displayAvatarURL()
                                 );
 
-                              for (var i = 0; i < 9; i++) {
-                                console.log(member[i].expHistory);
-                                MojangAPI.profile(
-                                  member[i].uuid,
-                                  async function(err, result) {
-                                    if (err) console.log(err);
-                                    else {
-                                      var username = result.name;
-                                      var gexp = await Object.values(
-                                        member[i].expHistory
-                                      );
-
-                                      topPlayer.addField(username, gexp[0]);
-                                    }
-                                  }
-                                );
-                              }
+                              
+                                  setTimeout(function(){
+                                    for(var i = 0; i < GEXPs.length; i++) {
+                                  topPlayer.addField(players[i], GEXPs[i])
+                                }}, 1500)
+                              
                               const filter = (reaction, user) => {
                                 return (
                                   ["◀", "▶", "⏮", "⏭", "⏹"].includes(
@@ -489,49 +527,53 @@ module.exports = {
                               var allEmbeds = [Embed, topPlayer];
 
                               var s = 0;
-                              var msg = await message.channel.send(allEmbeds[0]);
+                              var msg = await message.channel.send(
+                                allEmbeds[0]
+                              );
 
-                  await msg.react("⏮");
-                        await msg.react("◀");
-                        await msg.react("▶");
-                        await msg.react("⏭");
-                        await msg.react("⏹");
-                  var collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"]});
-                  
-                  
-                  collector.on("collect", function(reaction, user) {
-                    reaction.users.remove(user.id);
-                    switch(reaction.emoji.name) {
-                      case "⏮":
-                        s = 0;
-                        msg.edit(allEmbeds[s])
-                        break;
-                      case "◀":
-                        s -= 1;
-                              if (s < 0) {
-                                s = allEmbeds.length - 1;
-                              }
-                        msg.edit(allEmbeds[s])
-                        break;
-                      case "▶":
-                        s += 1;
-                              if (s > allEmbeds.length - 1) {
-                                s = 0;
-                              }
-                        msg.edit(allEmbeds[s])
-                        break;
-                      case "⏭":
-                        s = allEmbeds.length - 1;
-                        msg.edit(allEmbeds[s])
-                        break;
-                      case "⏹":
-                        collector.emit("end")
-                        break;
-                    }
-                  })
-                  collector.on("end", function() {
-                    msg.reactions.removeAll().catch(console.error);
-                  })
+                              await msg.react("⏮");
+                              await msg.react("◀");
+                              await msg.react("▶");
+                              await msg.react("⏭");
+                              await msg.react("⏹");
+                              var collector = await msg.createReactionCollector(
+                                filter,
+                                { idle: 60000, errors: ["time"] }
+                              );
+
+                              collector.on("collect", function(reaction, user) {
+                                reaction.users.remove(user.id);
+                                switch (reaction.emoji.name) {
+                                  case "⏮":
+                                    s = 0;
+                                    msg.edit(allEmbeds[s]);
+                                    break;
+                                  case "◀":
+                                    s -= 1;
+                                    if (s < 0) {
+                                      s = allEmbeds.length - 1;
+                                    }
+                                    msg.edit(allEmbeds[s]);
+                                    break;
+                                  case "▶":
+                                    s += 1;
+                                    if (s > allEmbeds.length - 1) {
+                                      s = 0;
+                                    }
+                                    msg.edit(allEmbeds[s]);
+                                    break;
+                                  case "⏭":
+                                    s = allEmbeds.length - 1;
+                                    msg.edit(allEmbeds[s]);
+                                    break;
+                                  case "⏹":
+                                    collector.emit("end");
+                                    break;
+                                }
+                              });
+                              collector.on("end", function() {
+                                msg.reactions.removeAll().catch(console.error);
+                              });
                             }
                           }
                         );
@@ -1164,7 +1206,6 @@ module.exports = {
                       "Have a nice day! :)",
                       message.client.user.displayAvatarURL()
                     );
-                  
 
                   var allEmbeds = [
                     Embed,
@@ -1174,52 +1215,52 @@ module.exports = {
                     Embed4
                   ];
                   var s = 0;
-                  
+
                   var msg = await message.channel.send(allEmbeds[0]);
 
                   await msg.react("⏮");
-                        await msg.react("◀");
-                        await msg.react("▶");
-                        await msg.react("⏭");
-                        await msg.react("⏹");
-                  var collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"]});
-                  
-                  
+                  await msg.react("◀");
+                  await msg.react("▶");
+                  await msg.react("⏭");
+                  await msg.react("⏹");
+                  var collector = await msg.createReactionCollector(filter, {
+                    idle: 60000,
+                    errors: ["time"]
+                  });
+
                   collector.on("collect", function(reaction, user) {
                     reaction.users.remove(user.id);
-                    switch(reaction.emoji.name) {
+                    switch (reaction.emoji.name) {
                       case "⏮":
                         s = 0;
-                        msg.edit(allEmbeds[s])
+                        msg.edit(allEmbeds[s]);
                         break;
                       case "◀":
                         s -= 1;
-                              if (s < 0) {
-                                s = allEmbeds.length - 1;
-                              }
-                        msg.edit(allEmbeds[s])
+                        if (s < 0) {
+                          s = allEmbeds.length - 1;
+                        }
+                        msg.edit(allEmbeds[s]);
                         break;
                       case "▶":
                         s += 1;
-                              if (s > allEmbeds.length - 1) {
-                                s = 0;
-                              }
-                        msg.edit(allEmbeds[s])
+                        if (s > allEmbeds.length - 1) {
+                          s = 0;
+                        }
+                        msg.edit(allEmbeds[s]);
                         break;
                       case "⏭":
                         s = allEmbeds.length - 1;
-                        msg.edit(allEmbeds[s])
+                        msg.edit(allEmbeds[s]);
                         break;
                       case "⏹":
-                        collector.emit("end")
+                        collector.emit("end");
                         break;
                     }
-                  })
+                  });
                   collector.on("end", function() {
                     msg.reactions.removeAll().catch(console.error);
-                  })
-                  
-                  
+                  });
                 } else if (args[0] === "duels" || args[0] === "du") {
                   const du = body.player.stats.Duels;
 
@@ -2259,7 +2300,11 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FDuels.png?v=1579257359447"
                     )
-                    .addField("Rounds Played", numberWithCommas(briRounds), true)
+                    .addField(
+                      "Rounds Played",
+                      numberWithCommas(briRounds),
+                      true
+                    )
                     .addField("Goal", briGoal, true)
                     .addField("Block Placed", briBlock, true)
                     .addField("Wins", briWins, true)
@@ -2499,46 +2544,48 @@ module.exports = {
                   var msg = await message.channel.send(allEmbeds[0]);
 
                   await msg.react("⏮");
-                        await msg.react("◀");
-                        await msg.react("▶");
-                        await msg.react("⏭");
-                        await msg.react("⏹");
-                  var collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"]});
-                  
-                  
+                  await msg.react("◀");
+                  await msg.react("▶");
+                  await msg.react("⏭");
+                  await msg.react("⏹");
+                  var collector = await msg.createReactionCollector(filter, {
+                    idle: 60000,
+                    errors: ["time"]
+                  });
+
                   collector.on("collect", function(reaction, user) {
                     reaction.users.remove(user.id);
-                    switch(reaction.emoji.name) {
+                    switch (reaction.emoji.name) {
                       case "⏮":
                         s = 0;
-                        msg.edit(allEmbeds[s])
+                        msg.edit(allEmbeds[s]);
                         break;
                       case "◀":
                         s -= 1;
-                              if (s < 0) {
-                                s = allEmbeds.length - 1;
-                              }
-                        msg.edit(allEmbeds[s])
+                        if (s < 0) {
+                          s = allEmbeds.length - 1;
+                        }
+                        msg.edit(allEmbeds[s]);
                         break;
                       case "▶":
                         s += 1;
-                              if (s > allEmbeds.length - 1) {
-                                s = 0;
-                              }
-                        msg.edit(allEmbeds[s])
+                        if (s > allEmbeds.length - 1) {
+                          s = 0;
+                        }
+                        msg.edit(allEmbeds[s]);
                         break;
                       case "⏭":
                         s = allEmbeds.length - 1;
-                        msg.edit(allEmbeds[s])
+                        msg.edit(allEmbeds[s]);
                         break;
                       case "⏹":
-                        collector.emit("end")
+                        collector.emit("end");
                         break;
                     }
-                  })
+                  });
                   collector.on("end", function() {
                     msg.reactions.removeAll().catch(console.error);
-                  })
+                  });
                 } else if (args[0] === "skywars" || args[0] === "sw") {
                   const sw = body.player.stats.SkyWars;
 
@@ -2561,7 +2608,7 @@ module.exports = {
                   const EXP_PER_LEVEL = 10000;
 
                   function getLevelForExp(exp) {
-                    var easyLevelsCount = (EASY_LEVEL_EXP.length);
+                    var easyLevelsCount = EASY_LEVEL_EXP.length;
 
                     var easyLevelExp = 0;
                     for (var i = 1; i <= easyLevelsCount; i++) {
@@ -2576,378 +2623,408 @@ module.exports = {
                   }
 
                   function getExpForLevel(level) {
-                    if (level <= (EASY_LEVEL_EXP.length)) {
+                    if (level <= EASY_LEVEL_EXP.length) {
                       return EASY_LEVEL_EXP[level - 1];
                     }
 
                     return EXP_PER_LEVEL;
                   }
-                  if(!sw.skywars_experience) {
+                  if (!sw.skywars_experience) {
                     var level = 0;
                   } else {
-                    var level = Math.floor(getLevelForExp(sw.skywars_experience));
+                    var level = Math.floor(
+                      getLevelForExp(sw.skywars_experience)
+                    );
                   }
-                  
-                  if(!sw.coins) {
+
+                  if (!sw.coins) {
                     var coins = 0;
                   } else {
                     var coins = numberWithCommas(sw.coins);
                   }
-                  
-                  if(!sw.winstreak) {
+
+                  if (!sw.winstreak) {
                     var winstreak = 0;
                   } else {
                     var winstreak = sw.winstreak;
                   }
-                  
-                  if(!sw.kills) {
+
+                  if (!sw.kills) {
                     var kills = 0;
                   } else {
                     var kills = sw.kills;
                   }
-                  
-                  if(!sw.deaths) {
+
+                  if (!sw.deaths) {
                     var deaths = 0;
                   } else {
                     var deaths = sw.deaths;
                   }
-                  
-                  if(!sw.wins) {
+
+                  if (!sw.wins) {
                     var wins = 0;
                   } else {
                     var wins = sw.wins;
                   }
-                  
-                  if(!sw.losses) {
+
+                  if (!sw.losses) {
                     var losses = 0;
                   } else {
-                    var losses = sw.losses
+                    var losses = sw.losses;
                   }
-                  
-                  if(!sw.souls) {
+
+                  if (!sw.souls) {
                     var souls = 0;
                   } else {
                     var souls = sw.souls;
                   }
-                  
+
                   var wlr = Math.round((wins / losses) * 100) / 100;
                   var kdr = Math.round((kills / deaths) * 100) / 100;
-                  
-                  if(isNaN(wlr)) {
+
+                  if (isNaN(wlr)) {
                     wlr = "0.00";
                   }
-                  if(isNaN(kdr)) {
-                    kdr = "0.00"
+                  if (isNaN(kdr)) {
+                    kdr = "0.00";
                   }
-                  
+
                   const overallEmbed = new Discord.MessageEmbed()
-                  .setColor(color)
-                  .setTitle(rank + res[0].name)
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
                     .setDescription("SkyWars - **Overall**")
-                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSkywars.png?v=1579257360320")
-                  .addField("Coins", coins, true)
-                  .addField("Level", level, true)
-                  .addField("Winstreak", winstreak, true)
-                  .addField("Kills", kills, true)
-                  .addField("Deaths", deaths, true)
-                  .addField("KDR", kdr, true)
-                  .addField("Wins", wins, true)
-                  .addField("Losses", losses, true)
-                  .addField("WLR", wlr, true)
-                  .addField("Souls", souls, true)
-                  .setTimestamp()
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSkywars.png?v=1579257360320"
+                    )
+                    .addField("Coins", coins, true)
+                    .addField("Level", level, true)
+                    .addField("Winstreak", winstreak, true)
+                    .addField("Kills", kills, true)
+                    .addField("Deaths", deaths, true)
+                    .addField("KDR", kdr, true)
+                    .addField("Wins", wins, true)
+                    .addField("Losses", losses, true)
+                    .addField("WLR", wlr, true)
+                    .addField("Souls", souls, true)
+                    .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
                       message.client.user.displayAvatarURL()
                     );
-                  
+
                   //solo
-                  
-                  if(!sw.kills_solo_normal) {
+
+                  if (!sw.kills_solo_normal) {
                     var soloNormalKills = 0;
                   } else {
                     var soloNormalKills = sw.kills_solo_normal;
                   }
-                  
-                  if(!sw.deaths_solo_normal) {
+
+                  if (!sw.deaths_solo_normal) {
                     var soloNormalDeaths = 0;
                   } else {
                     var soloNormalDeaths = sw.deaths_solo_normal;
                   }
-                  
-                  if(!sw.wins_solo_normal) {
+
+                  if (!sw.wins_solo_normal) {
                     var soloNormalWins = 0;
                   } else {
                     var soloNormalWins = sw.wins_solo_normal;
                   }
-                  
-                  if(!sw.losses_solo_normal) {
+
+                  if (!sw.losses_solo_normal) {
                     var soloNormalLosses = 0;
                   } else {
                     var soloNormalLosses = sw.losses_solo_normal;
                   }
-                  
-                  var soloNormalWlr = Math.round((soloNormalWins / soloNormalLosses) * 100) / 100;
-                  var soloNormalKdr = Math.round((soloNormalKills / soloNormalDeaths) * 100) / 100;
-                  
-                  if(!sw.kills_solo_insane) {
+
+                  var soloNormalWlr =
+                    Math.round((soloNormalWins / soloNormalLosses) * 100) / 100;
+                  var soloNormalKdr =
+                    Math.round((soloNormalKills / soloNormalDeaths) * 100) /
+                    100;
+
+                  if (!sw.kills_solo_insane) {
                     var soloinsaneKills = 0;
                   } else {
                     var soloinsaneKills = sw.kills_solo_insane;
                   }
-                  
-                  if(!sw.deaths_solo_insane) {
+
+                  if (!sw.deaths_solo_insane) {
                     var soloinsaneDeaths = 0;
                   } else {
                     var soloinsaneDeaths = sw.deaths_solo_insane;
                   }
-                  
-                  if(!sw.wins_solo_insane) {
+
+                  if (!sw.wins_solo_insane) {
                     var soloinsaneWins = 0;
                   } else {
                     var soloinsaneWins = sw.wins_solo_insane;
                   }
-                  
-                  if(!sw.losses_solo_insane) {
+
+                  if (!sw.losses_solo_insane) {
                     var soloinsaneLosses = 0;
                   } else {
                     var soloinsaneLosses = sw.losses_solo_insane;
                   }
-                  
-                  var soloinsaneWlr = Math.round((soloinsaneWins / soloinsaneLosses) * 100) / 100;
-                  var soloinsaneKdr = Math.round((soloinsaneKills / soloinsaneDeaths) * 100) / 100;
-                  
-                  if(isNaN(soloNormalWlr)) {
+
+                  var soloinsaneWlr =
+                    Math.round((soloinsaneWins / soloinsaneLosses) * 100) / 100;
+                  var soloinsaneKdr =
+                    Math.round((soloinsaneKills / soloinsaneDeaths) * 100) /
+                    100;
+
+                  if (isNaN(soloNormalWlr)) {
                     wlr = "0.00";
                   }
-                  if(isNaN(soloNormalKdr)) {
-                    kdr = "0.00"
+                  if (isNaN(soloNormalKdr)) {
+                    kdr = "0.00";
                   }
-                  if(isNaN(soloinsaneWlr)) {
+                  if (isNaN(soloinsaneWlr)) {
                     wlr = "0.00";
                   }
-                  if(isNaN(soloinsaneKdr)) {
-                    kdr = "0.00"
+                  if (isNaN(soloinsaneKdr)) {
+                    kdr = "0.00";
                   }
-                  
+
                   const soloEmbed = new Discord.MessageEmbed()
-                  .setColor(color)
-                  .setTitle(rank + res[0].name)
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
                     .setDescription("SkyWars - **Solo**")
-                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSkywars.png?v=1579257360320")
-                  .addField("Normal Kills", soloNormalKills, true)
-                  .addField("Normal Deaths", soloNormalDeaths, true)
-                  .addField("Normal KDR", soloNormalKdr, true)
-                  .addField("Normal Wins", soloNormalWins, true)
-                  .addField("Normal Losses", soloNormalLosses, true)
-                  .addField("Normal WLR", soloNormalWlr, true)
-                  .addField("Insane Kills", soloinsaneKills, true)
-                  .addField("Insane Deaths", soloinsaneDeaths, true)
-                  .addField("Insane KDR", soloinsaneKdr, true)
-                  .addField("Insane Wins", soloinsaneWins, true)
-                  .addField("Insane Losses", soloinsaneLosses, true)
-                  .addField("Insane WLR", soloinsaneWlr, true)
-                  .setTimestamp()
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSkywars.png?v=1579257360320"
+                    )
+                    .addField("Normal Kills", soloNormalKills, true)
+                    .addField("Normal Deaths", soloNormalDeaths, true)
+                    .addField("Normal KDR", soloNormalKdr, true)
+                    .addField("Normal Wins", soloNormalWins, true)
+                    .addField("Normal Losses", soloNormalLosses, true)
+                    .addField("Normal WLR", soloNormalWlr, true)
+                    .addField("Insane Kills", soloinsaneKills, true)
+                    .addField("Insane Deaths", soloinsaneDeaths, true)
+                    .addField("Insane KDR", soloinsaneKdr, true)
+                    .addField("Insane Wins", soloinsaneWins, true)
+                    .addField("Insane Losses", soloinsaneLosses, true)
+                    .addField("Insane WLR", soloinsaneWlr, true)
+                    .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
                       message.client.user.displayAvatarURL()
                     );
                   //team
-                  
-                  if(!sw.kills_team_normal) {
+
+                  if (!sw.kills_team_normal) {
                     var teamNormalKills = 0;
                   } else {
                     var teamNormalKills = sw.kills_team_normal;
                   }
-                  
-                  if(!sw.deaths_team_normal) {
+
+                  if (!sw.deaths_team_normal) {
                     var teamNormalDeaths = 0;
                   } else {
                     var teamNormalDeaths = sw.deaths_team_normal;
                   }
-                  
-                  if(!sw.wins_team_normal) {
+
+                  if (!sw.wins_team_normal) {
                     var teamNormalWins = 0;
                   } else {
                     var teamNormalWins = sw.wins_team_normal;
                   }
-                  
-                  if(!sw.losses_team_normal) {
+
+                  if (!sw.losses_team_normal) {
                     var teamNormalLosses = 0;
                   } else {
                     var teamNormalLosses = sw.losses_team_normal;
                   }
-                  
-                  var teamNormalWlr = Math.round((teamNormalWins / teamNormalLosses) * 100) / 100;
-                  var teamNormalKdr = Math.round((teamNormalKills / teamNormalDeaths) * 100) / 100;
-                  
-                  if(!sw.kills_team_insane) {
+
+                  var teamNormalWlr =
+                    Math.round((teamNormalWins / teamNormalLosses) * 100) / 100;
+                  var teamNormalKdr =
+                    Math.round((teamNormalKills / teamNormalDeaths) * 100) /
+                    100;
+
+                  if (!sw.kills_team_insane) {
                     var teaminsaneKills = 0;
                   } else {
                     var teaminsaneKills = sw.kills_team_insane;
                   }
-                  
-                  if(!sw.deaths_team_insane) {
+
+                  if (!sw.deaths_team_insane) {
                     var teaminsaneDeaths = 0;
                   } else {
                     var teaminsaneDeaths = sw.deaths_team_insane;
                   }
-                  
-                  if(!sw.wins_team_insane) {
+
+                  if (!sw.wins_team_insane) {
                     var teaminsaneWins = 0;
                   } else {
                     var teaminsaneWins = sw.wins_team_insane;
                   }
-                  
-                  if(!sw.losses_team_insane) {
+
+                  if (!sw.losses_team_insane) {
                     var teaminsaneLosses = 0;
                   } else {
                     var teaminsaneLosses = sw.losses_team_insane;
                   }
-                  
-                  var teaminsaneWlr = Math.round((teaminsaneWins / teaminsaneLosses) * 100) / 100;
-                  var teaminsaneKdr = Math.round((teaminsaneKills / teaminsaneDeaths) * 100) / 100;
-                  
-                  if(isNaN(teamNormalWlr)) {
+
+                  var teaminsaneWlr =
+                    Math.round((teaminsaneWins / teaminsaneLosses) * 100) / 100;
+                  var teaminsaneKdr =
+                    Math.round((teaminsaneKills / teaminsaneDeaths) * 100) /
+                    100;
+
+                  if (isNaN(teamNormalWlr)) {
                     wlr = "0.00";
                   }
-                  if(isNaN(teamNormalKdr)) {
-                    kdr = "0.00"
+                  if (isNaN(teamNormalKdr)) {
+                    kdr = "0.00";
                   }
-                  if(isNaN(teaminsaneWlr)) {
+                  if (isNaN(teaminsaneWlr)) {
                     wlr = "0.00";
                   }
-                  if(isNaN(teaminsaneKdr)) {
-                    kdr = "0.00"
+                  if (isNaN(teaminsaneKdr)) {
+                    kdr = "0.00";
                   }
-                  
+
                   const teamEmbed = new Discord.MessageEmbed()
-                  .setColor(color)
-                  .setTitle(rank + res[0].name)
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
                     .setDescription("SkyWars - **Team**")
-                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSkywars.png?v=1579257360320")
-                  .addField("Normal Kills", teamNormalKills, true)
-                  .addField("Normal Deaths", teamNormalDeaths, true)
-                  .addField("Normal KDR", teamNormalKdr, true)
-                  .addField("Normal Wins", teamNormalWins, true)
-                  .addField("Normal Losses", teamNormalLosses, true)
-                  .addField("Normal WLR", teamNormalWlr, true)
-                  .addField("Insane Kills", teaminsaneKills, true)
-                  .addField("Insane Deaths", teaminsaneDeaths, true)
-                  .addField("Insane KDR", teaminsaneKdr, true)
-                  .addField("Insane Wins", teaminsaneWins, true)
-                  .addField("Insane Losses", teaminsaneLosses, true)
-                  .addField("Insane WLR", teaminsaneWlr, true)
-                  .setTimestamp()
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSkywars.png?v=1579257360320"
+                    )
+                    .addField("Normal Kills", teamNormalKills, true)
+                    .addField("Normal Deaths", teamNormalDeaths, true)
+                    .addField("Normal KDR", teamNormalKdr, true)
+                    .addField("Normal Wins", teamNormalWins, true)
+                    .addField("Normal Losses", teamNormalLosses, true)
+                    .addField("Normal WLR", teamNormalWlr, true)
+                    .addField("Insane Kills", teaminsaneKills, true)
+                    .addField("Insane Deaths", teaminsaneDeaths, true)
+                    .addField("Insane KDR", teaminsaneKdr, true)
+                    .addField("Insane Wins", teaminsaneWins, true)
+                    .addField("Insane Losses", teaminsaneLosses, true)
+                    .addField("Insane WLR", teaminsaneWlr, true)
+                    .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
                       message.client.user.displayAvatarURL()
                     );
                   //ranked
-                  
-                  if(!sw.kills_ranked_normal) {
+
+                  if (!sw.kills_ranked_normal) {
                     var rankedNormalKills = 0;
                   } else {
                     var rankedNormalKills = sw.kills_ranked_normal;
                   }
-                  
-                  if(!sw.deaths_ranked_normal) {
+
+                  if (!sw.deaths_ranked_normal) {
                     var rankedNormalDeaths = 0;
                   } else {
                     var rankedNormalDeaths = sw.deaths_ranked_normal;
                   }
-                  
-                  if(!sw.wins_ranked_normal) {
+
+                  if (!sw.wins_ranked_normal) {
                     var rankedNormalWins = 0;
                   } else {
                     var rankedNormalWins = sw.wins_ranked_normal;
                   }
-                  
-                  if(!sw.losses_ranked_normal) {
+
+                  if (!sw.losses_ranked_normal) {
                     var rankedNormalLosses = 0;
                   } else {
                     var rankedNormalLosses = sw.losses_ranked_normal;
                   }
-                  
-                  var rankedNormalWlr = Math.round((rankedNormalWins / rankedNormalLosses) * 100) / 100;
-                  var rankedNormalKdr = Math.round((rankedNormalKills / rankedNormalDeaths) * 100) / 100;
-                  
-                  
-                  
-                  if(isNaN(rankedNormalWlr)) {
+
+                  var rankedNormalWlr =
+                    Math.round((rankedNormalWins / rankedNormalLosses) * 100) /
+                    100;
+                  var rankedNormalKdr =
+                    Math.round((rankedNormalKills / rankedNormalDeaths) * 100) /
+                    100;
+
+                  if (isNaN(rankedNormalWlr)) {
                     wlr = "0.00";
                   }
-                  if(isNaN(rankedNormalKdr)) {
-                    kdr = "0.00"
+                  if (isNaN(rankedNormalKdr)) {
+                    kdr = "0.00";
                   }
-                  
-                  
+
                   const rankedEmbed = new Discord.MessageEmbed()
-                  .setColor(color)
-                  .setTitle(rank + res[0].name)
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
                     .setDescription("SkyWars - **Ranked**")
-                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSkywars.png?v=1579257360320")
-                  .addField("Ranked Kills", rankedNormalKills, true)
-                  .addField("Ranked Deaths", rankedNormalDeaths, true)
-                  .addField("Ranked KDR", rankedNormalKdr, true)
-                  .addField("Ranked Wins", rankedNormalWins, true)
-                  .addField("Ranked Losses", rankedNormalLosses, true)
-                  .addField("Ranked WLR", rankedNormalWlr, true)
-                  .setTimestamp()
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSkywars.png?v=1579257360320"
+                    )
+                    .addField("Ranked Kills", rankedNormalKills, true)
+                    .addField("Ranked Deaths", rankedNormalDeaths, true)
+                    .addField("Ranked KDR", rankedNormalKdr, true)
+                    .addField("Ranked Wins", rankedNormalWins, true)
+                    .addField("Ranked Losses", rankedNormalLosses, true)
+                    .addField("Ranked WLR", rankedNormalWlr, true)
+                    .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
                       message.client.user.displayAvatarURL()
                     );
-                  var allEmbeds = [overallEmbed, soloEmbed, teamEmbed, rankedEmbed];
-                  
+                  var allEmbeds = [
+                    overallEmbed,
+                    soloEmbed,
+                    teamEmbed,
+                    rankedEmbed
+                  ];
+
                   var s = 0;
                   var msg = await message.channel.send(allEmbeds[0]);
 
                   await msg.react("⏮");
-                        await msg.react("◀");
-                        await msg.react("▶");
-                        await msg.react("⏭");
-                        await msg.react("⏹");
-                  var collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"]});
-                  
-                  
+                  await msg.react("◀");
+                  await msg.react("▶");
+                  await msg.react("⏭");
+                  await msg.react("⏹");
+                  var collector = await msg.createReactionCollector(filter, {
+                    idle: 60000,
+                    errors: ["time"]
+                  });
+
                   collector.on("collect", function(reaction, user) {
                     reaction.users.remove(user.id);
-                    switch(reaction.emoji.name) {
+                    switch (reaction.emoji.name) {
                       case "⏮":
                         s = 0;
-                        msg.edit(allEmbeds[s])
+                        msg.edit(allEmbeds[s]);
                         break;
                       case "◀":
                         s -= 1;
-                              if (s < 0) {
-                                s = allEmbeds.length - 1;
-                              }
-                        msg.edit(allEmbeds[s])
+                        if (s < 0) {
+                          s = allEmbeds.length - 1;
+                        }
+                        msg.edit(allEmbeds[s]);
                         break;
                       case "▶":
                         s += 1;
-                              if (s > allEmbeds.length - 1) {
-                                s = 0;
-                              }
-                        msg.edit(allEmbeds[s])
+                        if (s > allEmbeds.length - 1) {
+                          s = 0;
+                        }
+                        msg.edit(allEmbeds[s]);
                         break;
                       case "⏭":
                         s = allEmbeds.length - 1;
-                        msg.edit(allEmbeds[s])
+                        msg.edit(allEmbeds[s]);
                         break;
                       case "⏹":
-                        collector.emit("end")
+                        collector.emit("end");
                         break;
                     }
-                  })
+                  });
                   collector.on("end", function() {
                     msg.reactions.removeAll().catch(console.error);
-                  })
+                  });
                 }
               }
             }

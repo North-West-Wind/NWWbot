@@ -18,6 +18,7 @@ module.exports = {
     return message.channel.send(
       `You cannot remove the song that is now playing. To remove it, use skip command instead.`
     );
+    var title = serverQueue.songs[deleteIndex].title;
   var removed = await serverQueue.songs.splice(deleteIndex, 1);
     pool.getConnection(function(err, con) {
             con.query(
@@ -34,7 +35,7 @@ module.exports = {
             con.release();
           });
   message.channel.send(
-    `**${removed[0].title}** has been removed from the queue.`
+    `**${title}** has been removed from the queue.`
   );
   }
 }

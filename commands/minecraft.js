@@ -7,31 +7,9 @@ module.exports = {
   args: true,
   aliases: ["mc"],
   usage: "<subcommand> <username>",
-  subcommands: ["uuid", "profile", "username", "server", "history"],
+  subcommands: ["profile", "server", "history"],
   execute(message, args) {
     const MojangAPI = require("mojang-api");
-    if (`${args[0]}` === "uuid") {
-      if (!args[1]) {
-        return message.channel.send(
-          "Please tell me the Minecraft username of that user."
-        );
-      }
-
-      MojangAPI.nameToUuid(`${args[1]}`, function(err, res) {
-        if (err) console.log(err);
-        else
-          if(res[0] === undefined) {
-            return message.channel.send("No player named **" + args[1] + "** were found")
-          }
-          console.log(res[0].name + "? No, they're " + res[0].id + " to me.");
-        const Embed = new Discord.MessageEmbed()
-          .setColor(color)
-          .setTitle(`${res[0].name}\'s UUID:`)
-          .setDescription(res[0].id);
-        message.channel.send(Embed);
-        return;
-      });
-    }
 
     if (args[0] === "profile" || !args[0]) {
       if (!args[1]) {
@@ -72,28 +50,6 @@ module.exports = {
               return;
             }
           });
-      });
-    }
-    if (args[0] === "username") {
-      MojangAPI.profile(args[1], function(err, res) {
-        if (err) console.log(err);
-        else {
-          
-          console.log(res.id + " is also known as " + res.name + ".");
-
-          const Embed = new Discord.MessageEmbed()
-            .setColor(color)
-            .setTitle("UUID to Username:")
-            .setDescription(res.id)
-            .addField("Username", res.name, true)
-            .setTimestamp()
-            .setFooter(
-              "Have a nice day! :)",
-              message.client.user.displayAvatarURL()
-            );
-          message.channel.send(Embed);
-          return;
-        }
       });
     }
     if (args[0] === "server") {

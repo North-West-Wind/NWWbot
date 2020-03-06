@@ -6,6 +6,9 @@ module.exports = {
     if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
     return d.toString();
   },
+  SumArray(arr){
+    return arr.reduce((a,b)=>a+b);  
+  },
 
   setTimeout_(fn, delay) {
     var maxDelay = Math.pow(2, 31) - 1;
@@ -88,7 +91,7 @@ module.exports = {
     temp = [];
     return array;
   },
-  findUser(message, str) {
+  async findUser(message, str) {
     if(isNaN(parseInt(str))) {
       if (!str.startsWith("<@")) {
         message.channel.send(
@@ -105,10 +108,17 @@ module.exports = {
 
     // Assuming we mention someone in the message, this will return the user
     // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
+    
+    try {
+      var user = await message.client.users.fetch(userID);
+    } catch(err) {
+      message.channel.send("No user was found!");
+      return;
+    }
 
-    return message.client.users.fetch(userID)
+    return user;
   },
-  findMember(message, str) {
+  async findMember(message, str) {
     if(isNaN(parseInt(str))) {
       if (!str.startsWith("<@")) {
         message.channel.send(
@@ -125,8 +135,15 @@ module.exports = {
 
     // Assuming we mention someone in the message, this will return the user
     // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
+    
+    try {
+      var member = await message.guild.members.fetch(userID);
+    } catch(err) {
+      message.channel.send("No user was found!");
+      return;
+    }
 
-    return message.guild.members.fetch(userID)
+    return member;
   },
   getRandomNumber(min, max) {
   return Math.random() * (max - min) + min;

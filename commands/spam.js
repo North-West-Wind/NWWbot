@@ -7,16 +7,27 @@ module.exports = {
   description: "Spam a person.",
   aliases: ["sp"],
   args: true,
-  usage: "<user> <time> [message]",
+  usage: "<user> <time> <message>",
   async execute(message, args) {
     
-    const taggedUser = findUser(message, args[0]);
+    if(!args[0]) {
+      return message.channel.send("Please tell me the user!");
+    }
+    if(!args[1]) {
+      return message.channel.send("Please tell me the time you want to spam this user!");
+    }
+    if(!args[2]) {
+      return message.channel.send("Please enter the message to spam!")
+    }
+    
+    const taggedUser = await findUser(message, args[0]);
     if(!taggedUser) return;
     
     const time = parseInt(args[1]);
     if(isNaN(time)) {
       return message.channel.send("The time you want to spam this user is not a number.")
     }
+    
     const msg = args.slice(2).join(" ");
     
     
