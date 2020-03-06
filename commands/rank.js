@@ -4,7 +4,7 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "rank",
-  description: "Display your rank of the server's leveling system.",
+  description: "Display your rank in the server. However, this command requires a DLC to work. Leveling system was inspired by MEE6.",
   async execute(message, args, pool) {
     try {
     var dlc = await message.guild.members.fetch("684639278944223277");

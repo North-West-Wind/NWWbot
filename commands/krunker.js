@@ -4,9 +4,9 @@ const Discord = require("discord.js")
 var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
   name: "krunker",
-  description: "Connect to the Krunker.io API.",
+  description: "Connect to the Krunker.io API and display stats.",
   aliases: ["kr"],
-  usage: "<name>",
+  usage: "<username>",
   args: true,
   execute(message, args) {
     if(!args[0]) {

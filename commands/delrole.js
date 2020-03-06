@@ -2,9 +2,9 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "delrole",
-  description: "Delete a role.",
+  description: "Remove a role from the server.",
   args: true,
-  usage: "<role>",
+  usage: "<role | role ID | role name>",
   async execute(message, args) {
     if (!message.member.permissions.has("MANAGE_ROLES")) {
       message.channel.send(

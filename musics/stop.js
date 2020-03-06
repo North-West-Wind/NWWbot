@@ -1,7 +1,8 @@
 module.exports = {
   name: "stop",
-  description: "Stop the music playing in the server.",
+  description: "Stop the music and disconnect the bot from the voice channel.",
   aliases: ["end", "disconnect"],
+  usage: " ",
   music(message, serverQueue, looping, queue, pool) {
     const guild = message.guild;
     if (!message.member.voice.channel)

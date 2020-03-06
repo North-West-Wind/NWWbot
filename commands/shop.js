@@ -4,6 +4,7 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
   name: "shop",
   description: "Spend your money here!",
+  usage: " ",
   execute(message, args, pool) {
     pool.getConnection(function(err, con) {
       if (err) return message.reply("there was an error trying to execute that command!");

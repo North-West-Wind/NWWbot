@@ -8,7 +8,8 @@ function twoDigits(d) {
 
 module.exports = {
   name: "ping",
-  description: "Ping!",
+  description: "Ping the bot and it will show you something interesting (not really).",
+  usage: " ",
   execute(message, args) {
     var msgDate = new Date(message.createdTimestamp);
 

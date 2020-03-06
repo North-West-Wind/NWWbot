@@ -4,9 +4,10 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "undeafen",
-  description: "Undeafen a member.",
+  description: "Undeafen a member while the member is in a voice channel.",
   args: true,
   aliases: ["undeaf"],
+  usage: "<user | user ID> [reason]",
   async execute(message, args) {
     if (!message.member.permissions.has("DEAFEN_MEMBERS")) {
       message.channel.send(

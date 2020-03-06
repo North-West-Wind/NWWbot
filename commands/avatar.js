@@ -3,7 +3,7 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 const { findUser } = require("../function.js");
 module.exports = {
   name: "avatar",
-  description: "Get the avatar URL of the tagged user(s), or your own avatar.",
+  description: "Display the message author's avatar or the mentioned user's avatar.",
   aliases: ["icon", "pfp"],
   usage: "[user | user ID]",
   async execute(message, args) {

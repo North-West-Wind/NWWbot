@@ -4,8 +4,8 @@ const { findUser } = require("../function.js")
 
 module.exports = {
   name: "unwarn",
-  description: "Clear all warnings sent to the user before.",
-  usage: "<user|id>",
+  description: "Remove all warnings of a member of the server.",
+  usage: "<user | user ID>",
   execute(message, args, pool) {
     pool.getConnection(async function(err, con) {
       

@@ -8,7 +8,7 @@ const { twoDigits, setTimeout_ } = require("../function.js");
 
 module.exports = {
   name: "poll",
-  description: "create a poll.",
+  description: "Create, end or list giveaways on the server.",
   usage: "<subcommand>",
   subcommands: ["create","end", "list"],
   async execute(message, args, pool) {

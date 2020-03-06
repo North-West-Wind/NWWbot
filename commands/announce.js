@@ -4,9 +4,9 @@ const client = new Discord.Client();
 
 module.exports = {
 	name: 'announce',
-	description: 'Disguise as the bot.',
+	description: 'Let the bot announce something for you in a specific channel.',
   aliases: ['ann'],
-  usage: "<channel> <announcement>",
+  usage: "<channel | channel ID> <announcement>",
 	async execute(message, args) {
    if(!args[0]) {
      return message.reply("please tell me the channel to announce.")

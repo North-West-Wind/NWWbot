@@ -2,9 +2,9 @@ const { findMember } = require("../function.js")
 
 module.exports = {
 	name: 'unrole',
-    description: 'Remove role from someone',
+    description: 'Remove a role from the mentioned user or the user ID in the message.',
     args: true,
-    usage: '<user> <role to remove>',
+    usage: '<user | userID> <role | role ID | role name>',
 	async execute(message, args) {
     if (!message.member.permissions.has('MANAGE_ROLES')) { 
       message.channel.send(`You don\'t have the permission to use this command.`)

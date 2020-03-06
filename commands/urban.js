@@ -5,8 +5,9 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "urban",
-  description: "Search in the Urban Dictionary.",
+  description: "Search the Urban Dictionary on Discord.",
   args: true,
+  usage: "<query>",
   async execute(message, args) {
     if (!args.length) {
       return message.channel.send("You need to supply a search term!");

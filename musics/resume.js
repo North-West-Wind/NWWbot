@@ -1,6 +1,7 @@
 module.exports = {
   name: "resume",
-  description: "Resume the music.",
+  description: "Resume the paused music.",
+  usage: " ",
   music(message, serverQueue) {
     if (!message.member.voice.channel)
     return message.channel.send("You are not in a voice channel!");

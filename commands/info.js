@@ -5,7 +5,7 @@ const { twoDigits } = require("../function.js");
 module.exports = {
   name: "info",
   description: "Display information of the bot.",
-  usage: "",
+  usage: " ",
   execute(message) {
     var date = message.client.readyAt.getDate();
         var month = message.client.readyAt.getMonth();

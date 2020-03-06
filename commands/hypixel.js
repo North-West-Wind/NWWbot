@@ -6,10 +6,10 @@ const { twoDigits, numberWithCommas } = require("../function.js");
 
 module.exports = {
   name: "hypixel",
-  description: "Connect to Hypixel API.",
+  description: "Work in progress. Shows stats of a player in the Hypixel server.",
   args: true,
   aliases: ["hy"],
-  usage: "<subcommand> <username>",
+  usage: "[subcommand] <username>",
   subcommands: ["guild", "achievements", "tnt", "bedwars", "duels"],
   subaliases: ["g", "ach", "tnt", "bw", "du"],
   async execute(message, args) {

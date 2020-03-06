@@ -4,7 +4,8 @@ const { twoDigits } = require("../function.js")
 
 module.exports = {
 	name: 'server',
-	description: 'Display info about this server.',
+	description: 'Display some server information.',
+  usage: " ",
 	execute(message) {
     const name = message.guild.name;
     const id = message.guild.id;

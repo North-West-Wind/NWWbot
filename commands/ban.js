@@ -3,7 +3,7 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 const { findUser } = require("../function.js");
 module.exports = {
   name: "ban",
-  description: "Ban someone",
+  description: "Ban a member of the server.",
   args: true,
   usage: "<user | user ID> [reason]",
   execute(message, args) {

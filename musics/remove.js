@@ -3,6 +3,7 @@ const { prefix } = require("../config.json")
 module.exports = {
   name: "remove",
   description: "Remove a music from the song queue.",
+  usage: "<index>",
   async music(message, serverQueue, looping, queue, pool) {
     const args = message.content.split(" ").slice(prefix.length);
     

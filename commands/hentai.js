@@ -6,9 +6,7 @@ const { prefix } = require("../config.json");
 module.exports = {
   name: "hentai",
   description:
-    "Display a hentai image. Use `" +
-    prefix +
-    "hentai tags` to display tags. Empty tag for random gif.",
+    "Return something very NSFW. Require NSFW channel.",
   usage: "[tag]",
   aliases: ["h"],
   tags: [
@@ -74,5 +72,13 @@ module.exports = {
     .setTimestamp()
       .setFooter("Made with Akaneko", message.client.user.displayAvatarURL());
     message.channel.send(embed);
+  },
+  async tagsList(message) {
+    const list = new Discord.MessageEmbed()
+    .setTitle("Tag list")
+    .setColor(color)
+    .setDescription("**" + this.tags.join("**\n**") + "**")
+    .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL())
+    message.channel.send(list);
   }
 };

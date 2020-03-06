@@ -2,7 +2,8 @@ const { play } = require("./play.js")
 
 module.exports = {
   name: "skip",
-  description: "Skip a song in the queue.",
+  description: "Skip a music in the song queue.",
+  usage: " ",
   music(message, serverQueue, looping, queue, pool) {
     const guild = message.guild;
   if (!message.member.voice.channel)

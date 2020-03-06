@@ -2,8 +2,9 @@ const Discord = require("discord.js");
 
 module.exports = {
   name: "np",
-  description: "Display the music playing on the server.",
+  description: "Display the music being played.",
   aliases: ["nowplaying"],
+  usage: " ",
   music(message, serverQueue) {
     if (!serverQueue) return message.channel.send("There is nothing playing.");
   var embed = new Discord.MessageEmbed()

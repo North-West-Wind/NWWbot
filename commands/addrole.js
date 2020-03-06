@@ -3,7 +3,7 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "addrole",
-  description: "Create a new role.",
+  description: "Add a new role to the server. The “color” parameter is optional.",
   args: true,
   usage: "<role name> [color]",
   execute(message, args) {

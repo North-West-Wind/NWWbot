@@ -4,8 +4,9 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "unmute",
-  description: "Unmute a member.",
+  description: "Unmute a member while the member is in a voice channel.",
   args: true,
+  usage: "<user | user ID> [reason]",
   async execute(message, args) {
     if (!message.member.permissions.has("MUTE_MEMBERS")) {
       message.channel.send(

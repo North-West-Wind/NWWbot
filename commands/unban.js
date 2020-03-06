@@ -4,8 +4,8 @@ const { findUser } = require("../function.js");
 
 module.exports = {
   name: "unban",
-  description: "Unban a user.",
-  usage: "<user|id> [reason]",
+  description: "Unban a member of the server.",
+  usage: "<user | user ID> [reason]",
   args: true,
   execute(message, args) {
     if (!message.member.permissions.has("BAN_MEMBERS")) {
