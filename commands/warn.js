@@ -10,14 +10,14 @@ module.exports = {
   execute(message, args, pool) {
     pool.getConnection(async function(err, con) {
       if (!args[0]) {
-        return message.reply("tell me who you are warning.");
+        return message.channel.send("Tell me who you are warning.");
       }
       
       if (args[0] === "me") {
           return message.channel.send("Fuck you " + message.author);
         } else if (args[0] === "@everyone") {
           return message.channel.send(
-            "Fuck you " + message.author + ". I cannot warn everyone lol."
+            "Fuck you <@" + message.author.id + ">. I cannot warn everyone lol."
           );
         }
 

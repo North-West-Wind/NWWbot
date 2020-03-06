@@ -12,10 +12,18 @@ module.exports = {
     var msg = await message.channel.send("What do you want?");
     var collected = await message.channel.awaitMessages(filter, { max: 1, time: 60000, errors: ["time"]}).catch(err => msg.edit("Timed out"));
     var want = collected.first().content;
+    if(want === "cancel") {
+      collected.first().delete();
+      return msg.edit("Cancelled trade.")
+    }
     await collected.first().delete();
     await msg.edit("What do you have?");
     var collected2 = await message.channel.awaitMessages(filter, {max: 1, time: 60000, errors: ["time"]}).catch(err => msg.edit("Timed out"));
     var offer = collected2.first().content;
+    if(offer === "cancel") {
+      collected2.first().delete();
+      return msg.edit("Cancelled trade.")
+    }
     await collected2.first().delete();
     msg.delete();
     const Embed = new Discord.MessageEmbed()

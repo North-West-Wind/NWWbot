@@ -1,9 +1,11 @@
+const { findMember } = require("../function.js");
+
 module.exports = {
   name: "autorole",
   description: "Automatically give all mentioned users a specific role.",
   args: true,
   usage: "<role | role ID | role name> <user | user ID>",
-  execute(message, args) {
+  async execute(message, args) {
     if (!message.member.permissions.has('MANAGE_ROLES')) { 
       message.channel.send(`You don\'t have the permission to use this command.`)
       return;
@@ -20,12 +22,12 @@ module.exports = {
     }
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
     if(isNaN(parseInt(roleID))) {
-      var role = message.guild.roles.find(x => x.name === `${args[0]}`);
+      var role = await message.guild.roles.cache.find(x => x.name === `${args[0]}`);
       if(role === null) {
       return message.channel.send("No role was found with the name " + args[0])
     }
     } else {
-      var role = message.guild.roles.get(roleID);
+      var role = await message.guild.roles.cache.get(roleID);
       if(role === null) {
       return message.channel.send("No role was found with the id " + roleID)
     }
@@ -33,8 +35,8 @@ module.exports = {
     
     
     args.slice(1).forEach(async mentioned => {
-      var userID = mentioned.replace(/<@/g, "").replace(/>/g, "").replace(/!/g, "");
-      var user = await message.guild.members.get(userID);
+      var user = await findMember(message, mentioned);
+      if(!user) return;
       try {
       await user.roles.add(role);
       message.channel.send("Successfully added **" + user.user.tag + "** to role **" + role.name + "**.")

@@ -11,6 +11,7 @@ module.exports = {
 
     if (!serverQueue) return message.channel.send("There is nothing playing.");
     await shuffleArray(serverQueue.songs);
+    /*
     pool.getConnection(function(err, con) {
       con.query(
         "UPDATE servers SET queue = '" +
@@ -27,9 +28,10 @@ module.exports = {
       );
       con.release();
     });
+    */
     var index = 0;
     var songArray = serverQueue.songs.map(song => {
-      return `**${++index}-** [${song.title}](${song.url})`;
+      return `**${++index} - [${song.title}](${song.url})**`;
     });
     var queueEmbed = new Discord.MessageEmbed()
       .setColor(color)

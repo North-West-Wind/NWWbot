@@ -77,6 +77,7 @@ module.exports = {
     const embed = new Discord.MessageEmbed()
     .setColor(color)
     .setImage(result.url)
+    .setTimestamp()
     .setFooter("Made with Neko's Life", message.client.user.displayAvatarURL());
     message.channel.send(embed);
     
@@ -87,6 +88,7 @@ module.exports = {
     const embed = new Discord.MessageEmbed()
       .setColor(color)
       .setImage(result.url)
+    .setTimestamp()
       .setFooter("Made with Neko's Life", message.client.user.displayAvatarURL());
     message.channel.send(embed);
   },
@@ -95,6 +97,7 @@ module.exports = {
       .setTitle("Hentai tag list")
       .setColor(color)
       .setDescription("**" + this.tags.join("\n") + "**")
+    .setTimestamp()
       .setFooter(
         "Do not question when tags repeated.",
         message.client.user.displayAvatarURL()

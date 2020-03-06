@@ -17,7 +17,7 @@ module.exports = {
       return message.channel.send(Embed);
     }
 
-    var user = await findUser(args[0]);
+    var user = await findUser(message, args[0]);
     if(!user) return;
 
       const Embed = new Discord.MessageEmbed()

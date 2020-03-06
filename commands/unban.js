@@ -17,6 +17,7 @@ module.exports = {
 
     if (!message.guild) return;
 
+    message.delete();
     
     findUser(message, args[0])
       .then(user => {

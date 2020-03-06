@@ -30,7 +30,10 @@ module.exports = {
   async create(message, args, pool) {
     const filter = m => m.author.id === message.author.id;
     pool.getConnection(async function(err, con) {
-        if (err) return message.reply("there was an error trying to execute that command!");
+        if (err) {
+          console.error(err);
+          return message.reply("there was an error trying to execute that command!");
+        }
         var msg = await message.channel.send(
           "Starting a poll. Type \"cancel\" to cancel.\n\n`Please enter where you want to host your poll.(Mention the channel)`"
         );
@@ -49,7 +52,8 @@ module.exports = {
           .replace(/>/g, "");
         var channel = await message.guild.channels.resolve(channelID);
         if (!channel || channel === undefined || channel === null) {
-          return msg.edit("That isn't a valid channel! Cancelling actions...");
+          channelCollected.first().delete();
+          return msg.edit(channelID + " isn't a valid channel!");
         }
         await channelCollected.first().delete();
         await msg.edit(
@@ -84,6 +88,10 @@ module.exports = {
         }
         var time = ms(collected2.first().content);
         var duration = ms(collected2.first().content);
+      if(isNaN(time)) {
+        collected2.first().delete();
+        return message.channel.send("**" + collected2.first().content + "** is not a valid duration!");
+      }
         var sec = duration / 1000;
         var dd = Math.floor(sec / 86400);
         var dh = Math.floor((sec % 86400) / 3600);
@@ -136,6 +144,7 @@ module.exports = {
           .replace(/"/g, "#dquot;")
           .split("\n");
         if (options.length <= 1) {
+          optionString.first().delete();
           return message.channel.send(
             "Please provide at least 2 options! Cancelling action..."
           );
@@ -256,7 +265,7 @@ module.exports = {
             ", " +
             channel.id +
             `, '["` +
-            options.join('", "') +
+            escape(options).join('", "') +
             `"]', "` +
             newDateSql +
             '", ' +
@@ -264,7 +273,7 @@ module.exports = {
             ", " +
             color +
             ", '" +
-            title.replace(/'/g, /\\'/).replace(/"/g, /\\"/) +
+            escape(title) +
             "')",
           function(err, result) {
             if (err) return message.reply("there was an error trying to execute that command!");
@@ -359,7 +368,7 @@ module.exports = {
       var msgID = args[1];
       pool.getConnection(function(err, con) {
         if (err) return message.reply("there was an error trying to execute that command!");
-        con.query("SELECT * FROM poll WHERE id = " + msgID, async function(
+        con.query("SELECT * FROM poll WHERE id = '" + msgID + "'", async function(
           err,
           result,
           fields
@@ -398,14 +407,14 @@ module.exports = {
               "**" +
               (emoji.count - 1) +
               "** - `" +
-              allOptions[pollResult.length - 1] +
+              unescape(allOptions[pollResult.length - 1]) +
               "`";
             await end.push(mesg);
           }
           var pollMsg = "⬆**Poll**⬇";
           const Ended = new Discord.MessageEmbed()
             .setColor(color)
-            .setTitle(result[0].title)
+            .setTitle(unescape(result[0].title))
             .setDescription(
               "Poll ended. Here are the results:\n\n\n" +
                 end
@@ -477,7 +486,7 @@ module.exports = {
                   ":" +
                   twoDigits(second) +
                   " UTC";
-                Embed.addField(readableTime, results[i].title);
+                Embed.addField(readableTime, unescape(results[i].title));
               }
             } else {
               results.forEach(result => {
@@ -502,7 +511,7 @@ module.exports = {
                   ":" +
                   twoDigits(second) +
                   " UTC";
-                Embed.addField(readableTime, result.title);
+                Embed.addField(readableTime, unescape(result.title));
               });
             }
             message.channel.send(Embed);

@@ -15,14 +15,16 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const { prefix } = require("./config.json");
 const { Image, createCanvas, loadImage } = require("canvas");
-const mysql = require("mysql2");
+const mysql = require("mysql");
 const mysql_config = {
   connectTimeout: 30000,
+  acquireTimeout: 30000,
+  timeout: 30000,
   connectionLimit: 10,
-  host: "db4free.net",
-  user: "northwestwindnff",
+  host: process.env.DBHOST,
+  user: process.env.DBUSER,
   password: process.env.DBPW,
-  database: "nwwbot",
+  database: process.env.DBNAME,
   supportBigNumbers: true,
   bigNumberStrings: true,
   charset: "utf8mb4"
@@ -62,7 +64,7 @@ client.once("ready", () => {
 
   client.user.setActivity("Hello there!", { type: "WATCHING" });
   pool.getConnection(function(err, con) {
-    if (err) return console.log(err);
+    if (err) return console.error(err);
     con.query("SELECT * FROM giveaways ORDER BY endAt ASC", function(
       err,
       results,
@@ -72,7 +74,7 @@ client.once("ready", () => {
       results.forEach(async result => {
         var currentDate = new Date();
         var millisec = result.endAt - currentDate;
-        if (err) return console.log(err);
+        if (err) return console.error(err);
         setTimeout_(async function() {
           try {
             var channel = await client.channels.fetch(result.channel);
@@ -87,7 +89,7 @@ client.once("ready", () => {
               err,
               con
             ) {
-              if (err) return console.log(err);
+              if (err) return console.error(err);
               console.log("Deleted an ended giveaway record.");
             });
             return;
@@ -97,7 +99,7 @@ client.once("ready", () => {
               err,
               con
             ) {
-              if (err) return console.log(err);
+              if (err) return console.error(err);
               console.log("Deleted an ended giveaway record.");
             });
             return;
@@ -125,12 +127,12 @@ client.once("ready", () => {
                 err,
                 result
               ) {
-                if (err) return console.log(err);
+                if (err) return console.error(err);
                 console.log("Deleted an ended giveaway record.");
               });
               const Ended = new Discord.MessageEmbed()
                 .setColor(parseInt(result.color))
-                .setTitle(result.item)
+                .setTitle(unescape(result.item))
                 .setDescription("Giveaway ended")
                 .addField("Winner(s)", "None. Cuz no one reacted.")
                 .setTimestamp()
@@ -161,7 +163,7 @@ client.once("ready", () => {
 
               const Ended = new Discord.MessageEmbed()
                 .setColor(parseInt(result.color))
-                .setTitle(result.item)
+                .setTitle(unescape(result.item))
                 .setDescription("Giveaway ended")
                 .addField("Winner(s)", winnerMessage)
                 .setTimestamp()
@@ -178,7 +180,7 @@ client.once("ready", () => {
                 "Congratulation, " +
                   winnerMessage +
                   "! You won **" +
-                  result.item +
+                  unescape(result.item) +
                   "**!\n" +
                   link
               );
@@ -192,7 +194,7 @@ client.once("ready", () => {
                 err,
                 con
               ) {
-                if (err) return console.log(err);
+                if (err) return console.error(err);
                 console.log("Deleted an ended giveaway record.");
               });
             }
@@ -205,7 +207,7 @@ client.once("ready", () => {
       results,
       fields
     ) {
-      if (err) return console.log(err);
+      if (err) return console.error(err);
       console.log("Found " + results.length + " polls.");
       results.forEach(result => {
         var currentDate = new Date();
@@ -224,7 +226,7 @@ client.once("ready", () => {
               err,
               con
             ) {
-              if (err) return console.log(err);
+              if (err) return console.error(err);
               console.log("Deleted an ended poll.");
             });
             return;
@@ -235,7 +237,7 @@ client.once("ready", () => {
               err,
               result
             ) {
-              if (err) return console.log(err);
+              if (err) return console.error(err);
               console.log("Deleted an ended poll.");
             });
             return;
@@ -251,7 +253,7 @@ client.once("ready", () => {
                 "**" +
                 (emoji.count - 1) +
                 "** - `" +
-                allOptions[pollResult.length - 1] +
+                unescape(allOptions[pollResult.length - 1]) +
                 "`";
               await end.push(mesg);
             }
@@ -282,7 +284,7 @@ client.once("ready", () => {
               err,
               result
             ) {
-              if (err) return console.log(err);
+              if (err) return console.error(err);
               console.log("Deleted an ended poll.");
             });
           }
@@ -298,11 +300,12 @@ client.login(process.env.TOKEN);
 client.on("guildMemberAdd", member => {
   const guild = member.guild;
   console.log(member.user.username + " has joined " + guild.name);
+  if(member.user.bot) return;
   pool.getConnection(function(err, con) {
     con.query(
       "SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id=" +
         guild.id,
-      function(err, result, fields) {
+      async function(err, result, fields) {
         if (result[0].wel_channel === null || result[0] === undefined) {
         } else {
           //get channel
@@ -548,15 +551,22 @@ client.on("guildMemberAdd", member => {
           //parse array
           var roleArray = JSON.parse(result[0].autorole);
 
-          
-              //assign role
-              member.roles.add(roleArray);
+          for (var i = 0; i < roleArray.length; i++) {
+            var roleID = roleArray[i];
+            if (isNaN(parseInt(roleID))) {
+              var role = await guild.roles.find(x => x.name === roleID);
+            } else {
+              var role = await guild.roles.fetch(roleID);
+            }
+            //loop array
+            member.roles.add(role);
+          }
         }
 
         //release SQL
         con.release();
 
-        if (err) return console.log(err);
+        if (err) return console.error(err);
       }
     );
   });
@@ -657,7 +667,7 @@ client.on("guildMemberRemove", member => {
 
         con.release();
 
-        if (err) return console.log(err);
+        if (err) return console.error(err);
       }
     );
   });
@@ -673,7 +683,7 @@ client.on("guildCreate", guild => {
       result,
       fields
     ) {
-      if (err) return console.log(err);
+      if (err) return console.error(err);
       if (result.length > 0) {
         console.log(
           "Found row inserted for this server before. Cancelling row insert..."
@@ -684,14 +694,14 @@ client.on("guildCreate", guild => {
             guild.id +
             ", '[]', '🎉')",
           function(err, result) {
-            if (err) return console.log(err);
+            if (err) return console.error(err);
             console.log("Inserted record for " + guild.name);
           }
         );
       }
     });
 
-    if (err) return console.log(err);
+    if (err) return console.error(err);
     con.release();
   });
 
@@ -706,10 +716,10 @@ client.on("guildDelete", guild => {
       err,
       result
     ) {
-      if (err) return console.log(err);
+      if (err) return console.error(err);
       console.log("Deleted record for " + guild.name);
     });
-    if (err) return console.log(err);
+    if (err) return console.error(err);
     con.release();
   });
 

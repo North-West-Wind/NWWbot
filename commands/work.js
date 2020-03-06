@@ -66,7 +66,7 @@ module.exports = {
               }
             );
             return message.channel.send("<@" +
-              message.author.id + "> worked and gained $" + gain + "!"
+              message.author.id + "> worked and gained $" + gain + "!\nBut next time, you will need to do something to gain!"
             );
           } else {
             var lastDate = results[0].last_worked;
@@ -254,7 +254,6 @@ module.exports = {
             
             var msg = await message.channel.send("Type the following words within 60 seconds:\n**Word 1:**", attachment);
               var collected = await message.channel.awaitMessages(filter, { time: 60000, max: 1, error: ["time"]});
-            collected.first().delete();
             if(collected.first() === undefined || collected.first() === null || !collected.first()) {
               con.query(
               "UPDATE currency SET last_worked = '" +
@@ -273,6 +272,8 @@ module.exports = {
                   msg.delete()
               return message.channel.send("You didn't type the word within 60 seconds and failed your job. Better luck next time!");
             }
+            
+            collected.first().delete();
               if(collected.first().content !== words[0]) {
                 
                 con.query(
@@ -325,7 +326,6 @@ module.exports = {
                 msg.delete();
                 var msg = await message.channel.send("Type the following words within 60 seconds:\n**Word " + ++num + ":**", attachment);
                 var collected2 = await message.channel.awaitMessages(filter, { time: 60000, max: 1, error: ["time"]});
-                collected2.first().delete();
                 if(collected2.first() === undefined || collected2.first() === null || !collected2.first()) {
               con.query(
               "UPDATE currency SET last_worked = '" +
@@ -344,6 +344,8 @@ module.exports = {
                   msg.delete();
               return message.channel.send("You didn't type the word within 60 seconds and failed your job. Better luck next time!");
             }
+                
+                collected2.first().delete();
                 if(collected2.first().content !== words[i]) {
                   con.query(
               "UPDATE currency SET last_worked = '" +

@@ -9,6 +9,10 @@ module.exports = {
     if(!args[0])
     return set.meme(message.channel, ["memes", "dankmemes", "meme"], { readyMade: true });
     
+    try {
     set.meme(message.channel, args, { readyMade: true });
+    } catch(err) {
+      return message.channel.send("That is not a valid subreddit!");
+    }
   }
 }

@@ -6,6 +6,7 @@ module.exports = {
   name: "deafen",
   description: "Deafen a member.",
   args: true,
+  aliases: ["deaf"],
   async execute(message, args) {
     if (!message.member.permissions.has("DEAFEN_MEMBERS")) {
       message.channel.send(
