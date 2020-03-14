@@ -2,7 +2,6 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 var color = Math.floor(Math.random() * 16777214) + 1;
-const moment = require("moment");
 const mysql = require("mysql");
 const { prefix } = require("../config.json");
 

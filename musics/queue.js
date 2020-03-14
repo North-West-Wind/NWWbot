@@ -10,7 +10,13 @@ module.exports = {
     if (!serverQueue) return message.channel.send("There is nothing playing.");
   var index = 0;
   var songArray = serverQueue.songs.map(song => {
-    return `**${++index} - ** [**${song.title}**](${song.url})`;
+    var str;
+    if(song.type === 0)
+    str = `**${++index} - ** [**${song.title}**](${song.url})`;
+    else if(song.type === 1)
+      str = `**${++index} - ** [**${song.title}**](${song.spot})`;
+    
+    return str;
   });
   var queueEmbed = new Discord.MessageEmbed()
   .setColor(color)

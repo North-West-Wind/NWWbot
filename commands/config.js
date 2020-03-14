@@ -30,19 +30,27 @@ module.exports = {
     }
 
     pool.getConnection(function(err, con) {
-      if (err) return message.reply("there was an error trying to execute that command!");
-      con.query("SELECT * FROM token WHERE guild=" + guild.id, async function(
+      if (err) {
+          console.error(err);
+          return message.reply("there was an error trying to execute that command!");
+          
+          }
+      con.query("SELECT * FROM servers WHERE id='" + guild.id + "'", async function(
         err,
         result,
         fields
       ) {
-        if (err) return message.reply("there was an error trying to execute that command!");
-        if (result.length > 0) {
+        if (err) {
+          console.error(err);
+          return message.reply("there was an error trying to execute that command!");
+          
+          }
+        if (result[0].token !== null) {
           return message.author.send(
             "Token was created for **" +
               guild.name +
               "** before.\nToken: `" +
-              result[0].id +
+              result[0].token +
               "`"
           );
         } else {
@@ -50,13 +58,13 @@ module.exports = {
             var generated = buffer.toString("hex");
 
             con.query(
-              "INSERT INTO token (id, guild) VALUES('" +
-                generated +
-                "', '" +
-                guild.id +
-                "')",
+              "UPDATE servers SET token = '" + generated + "' WHERE id = '" + guild.id + "'",
               function(err, result) {
-                if (err) return message.reply("there was an error trying to execute that command!");
+                if (err) {
+          console.error(err);
+          return message.reply("there was an error trying to execute that command!");
+          
+          }
                 console.log("Created token for server " + guild.name);
                 message.author.send(
                   "Created token for guild - **" +
@@ -78,15 +86,19 @@ module.exports = {
     require("crypto").randomBytes(24, function(err, buffer) {
       var generated = buffer.toString("hex");
       pool.getConnection(function(err, con) {
-        if (err) return message.reply("there was an error trying to execute that command!");
+        if (err) {
+          console.error(err);
+          return message.reply("there was an error trying to execute that command!");
+          
+          }
         con.query(
-          "UPDATE token SET id = '" +
-            generated +
-            "' WHERE guild = '" +
-            guild.id +
-            "'",
+          "UPDATE servers SET token = '" + generated + "' WHERE id = '" + guild.id + "'",
           function(err, result) {
-            if (err) return message.reply("there was an error trying to execute that command!");
+            if (err) {
+          console.error(err);
+          return message.reply("there was an error trying to execute that command!");
+          
+          }
             console.log("Generated a new token for " + guild.name);
             message.author.send(
               "Generated a new token for server - **" +
@@ -118,7 +130,7 @@ module.exports = {
     var receivedToken = loginToken.first().content;
     loginToken.first().delete();
     pool.getConnection(function(err, con) {
-      con.query("SELECT * FROM token WHERE id = '" + receivedToken + "' AND guild = " + message.guild.id, async function(err, results, fields) {
+      con.query("SELECT * FROM servers WHERE token = '" + receivedToken + "' AND id = " + message.guild.id, async function(err, results, fields) {
         if(err) throw err;
         if(results.length < 1) {
           login.setDescription("Wrong token.").setFooter("Try again when you have the correct one for your server.", message.client.user.displayAvatarURL());
