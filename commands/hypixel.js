@@ -22,8 +22,8 @@ module.exports = {
     const MojangAPI = require("mojang-api");
     if (!args[1]) {
       if (!args[0]) {
-        return message.reply(
-          "please provide a Minecraft username or use the subcommands."
+        return message.channel.send(
+          "Please provide a Minecraft username or use the subcommands."
         );
       }
       MojangAPI.nameToUuid(`${args[0]}`, function(err, res) {

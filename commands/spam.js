@@ -27,21 +27,23 @@ module.exports = {
     if(isNaN(time)) {
       return message.channel.send("The time you want to spam this user is not a number.")
     }
+    if(time > 120) return message.channel.send("Please don't spam more than 120 times. That would be annoying.")
     
     const msg = args.slice(2).join(" ");
     
     
      console.log("Will spam user " + taggedUser.username + " for " + time + " times with the message " + msg);
     message.delete();
-     for (let i = 0; i < time; i++) {
-       if(i == time) {
-         console.log("Stopped")
-         return;
-       } else {
-         console.log("Spamming " + taggedUser.username + " for " + Math.floor(i + 1) + " time(s).")
-         taggedUser.send(msg)
-       }
-     }
+    var i = 0;
+    var spam = setInterval(function() {
+      if(i == time) {
+        clearInterval(spam);
+        return;
+      }
+      console.log("Spamming " + taggedUser.username + " for " + Math.floor(i + 1) + " time(s).")
+         taggedUser.send(msg);
+      i++;
+    }, 1000)
 
     
   }

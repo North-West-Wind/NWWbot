@@ -6,8 +6,8 @@ module.exports = {
     if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
     return d.toString();
   },
-  SumArray(arr){
-    return arr.reduce((a,b)=>a+b);  
+  SumArray(arr) {
+    return arr.reduce((a, b) => a + b);
   },
 
   setTimeout_(fn, delay) {
@@ -41,6 +41,12 @@ module.exports = {
       "^(http(s)?://)?((w){3}.)?youtu(be|.be)?(.com)?/.+"
     ); // fragment locator
     return !!pattern.test(str);
+  },
+  validSPURL(str) {
+    var pattern = new RegExp(
+      /^(spotify:|https:\/\/[a-z]+\.spotify\.com\/)/
+    )
+    return pattern.test(str);
   },
   decodeHtmlEntity(str) {
     return str
@@ -92,11 +98,9 @@ module.exports = {
     return array;
   },
   async findUser(message, str) {
-    if(isNaN(parseInt(str))) {
+    if (isNaN(parseInt(str))) {
       if (!str.startsWith("<@")) {
-        message.channel.send(
-          "**" + str + "** is neither a mention or ID."
-        );
+        message.channel.send("**" + str + "** is neither a mention or ID.");
         return;
       }
     }
@@ -108,10 +112,10 @@ module.exports = {
 
     // Assuming we mention someone in the message, this will return the user
     // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
-    
+
     try {
       var user = await message.client.users.fetch(userID);
-    } catch(err) {
+    } catch (err) {
       message.channel.send("No user was found!");
       return;
     }
@@ -119,11 +123,9 @@ module.exports = {
     return user;
   },
   async findMember(message, str) {
-    if(isNaN(parseInt(str))) {
+    if (isNaN(parseInt(str))) {
       if (!str.startsWith("<@")) {
-        message.channel.send(
-          "**" + str + "** is neither a mention or ID."
-        );
+        message.channel.send("**" + str + "** is neither a mention or ID.");
         return;
       }
     }
@@ -135,10 +137,10 @@ module.exports = {
 
     // Assuming we mention someone in the message, this will return the user
     // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
-    
+
     try {
       var member = await message.guild.members.fetch(userID);
-    } catch(err) {
+    } catch (err) {
       message.channel.send("No user was found!");
       return;
     }
@@ -146,32 +148,44 @@ module.exports = {
     return member;
   },
   getRandomNumber(min, max) {
-  return Math.random() * (max - min) + min;
+    return Math.random() * (max - min) + min;
   },
   applyText(canvas, text) {
-                const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
 
-                //calculate largest font size
-                let fontSize = canvas.width / 12;
+    //calculate largest font size
+    let fontSize = canvas.width / 12;
 
-                //reduce font size loop
-                do {
-                  //reduce font size
-                  ctx.font = `${(fontSize -= 5)}px sans-serif`;
-                  // Compare pixel width of the text to the canvas minus the approximate avatar size
-                } while (
-                  ctx.measureText(text).width >
-                  canvas.width - 100
-                );
+    //reduce font size loop
+    do {
+      //reduce font size
+      ctx.font = `${(fontSize -= 5)}px sans-serif`;
+      // Compare pixel width of the text to the canvas minus the approximate avatar size
+    } while (ctx.measureText(text).width > canvas.width - 100);
 
-                // Return the result to use in the actual canvas
-                return ctx.font;
-              },
+    // Return the result to use in the actual canvas
+    return ctx.font;
+  },
   numberWithCommas(x) {
     x = x.toString();
     var pattern = /(-?\d+)(\d{3})/;
-    while (pattern.test(x))
-        x = x.replace(pattern, "$1,$2");
+    while (pattern.test(x)) x = x.replace(pattern, "$1,$2");
     return x;
-}
+  },
+  isGoodMusicVideoContent(videoSearchResultItem) {
+   const contains = (string, content) => {
+    return !!~(string || "").indexOf(content);
+  }
+    return (
+      contains(videoSearchResultItem.raw.snippet.channelTitle, "VEVO") ||
+      contains(
+        videoSearchResultItem.raw.snippet.channelTitle.toLowerCase(),
+        "official"
+      ) ||
+      contains(
+        videoSearchResultItem.raw.snippet.title.toLowerCase(),
+        "official"
+      )
+    );
+  }
 };

@@ -1,0 +1,163 @@
+<html>
+  <head>
+    <title>N0rthWestW1nd</title>
+    <link rel="stylesheet" href="/style.css" />
+    <style>
+      #grad {
+        background-image: linear-gradient(to bottom right, #34eb67, #37B9E9);
+        font-family: Comic Sans MS;
+      }
+      h1 {
+        text-align: center;
+        font-size: 75px;
+        margin-top: 10px;
+        -webkit-text-stroke-width: 2px;
+        -webkit-text-stroke-color: white;
+      }
+      h2 {
+        text-align: center;
+        font-size: 50px;
+        -webkit-text-stroke-width: 1px;
+        -webkit-text-stroke-color: white;
+      }
+      .avatar {
+        border-radius: 50%;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 15%;
+        border: 10px solid #fcba03;
+      }
+      .button {
+        background-color: #7289DA;
+        border: none;
+        color: white;
+        padding: 20px 40px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 50px;
+        margin-top: 20px;
+        border-radius: 5%;
+      }
+      .footer {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: #009122;
+        color: white;
+        text-align: center;
+        box-shadow: 10px 10px 8px 20px #22853d;
+      }
+      .text-a {
+        text-decoration: none;
+        color: #fcba03;
+      }
+      .text-a:hover {
+        text-decoration: underline;
+      }
+      p.comic-sans {
+        color: #5e5e5e;
+      }
+      .navbar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background-color: #37BCE3;
+        color: white;
+        text-align: center;
+        box-shadow: 10px 10px 10px #22853d;
+      }
+
+      /* Links inside the navbar */
+      .navbar a {
+        float: left;
+        display: block;
+        color: #f2f2f2;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+      }
+
+      /* Change background on mouse-over */
+      .navbar a:hover {
+        background: #ddd;
+        color: black;
+      }
+      .placeholder {
+        height: 30px;
+      }
+    </style>
+    <link
+      id="favicon"
+      rel="icon"
+      href="https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fnw-round.png?v=1583595095120"
+      type="image/x-icon"
+    />
+  </head>
+  <body id="grad">
+    <div class="navbar">
+      <a href="/">Home</a>
+      <a href="news">News</a>
+      <a href="#contact">About</a>
+    </div>
+    <div class="placeholder"></div>
+    <h1>
+      News
+    </h1>
+    <h2>
+      W.I.P.
+    </h2>
+    <script type="text/javascript">
+      const mysql = require("mysql");
+      const mysql_config = {
+        connectTimeout: 30000,
+        acquireTimeout: 30000,
+        timeout: 30000,
+        connectionLimit: 10,
+        host: process.env.DBHOST,
+        user: process.env.DBUSER,
+        password: process.env.DBPW,
+        database: process.env.DBNAME,
+        supportBigNumbers: true,
+        bigNumberStrings: true,
+        charset: "utf8mb4"
+      };
+
+      var con = mysql.createConnection(mysql_config);
+      con.connect();
+      con.query("SELECT * FROM updates ORDER BY updateTime", function(
+        err,
+        results
+      ) {
+        if (err) throw err;
+        var HTML = '<table border="1" width="100%">';
+
+        for (var i = 0; i < results.length; i++) {
+          var result = results[i];
+          HTML +=
+            "<tr><th>" +
+            result.version +
+            "</th><th>" +
+            result.title +
+            '</th></tr><tr><td colspan="2">' +
+            result.description +
+            "</td></tr>";
+        }
+
+        HTML += "</table>";
+        $('#updates').append(HTML);
+      });
+      con.end();
+    </script>
+    <div id="updates"></div>
+    <div class="footer">
+      <p>
+        If you encounter any bugs or issues, please report them in the
+        <a href="https://discord.gg/S44PNSh" class="text-a">support server</a>.
+      </p>
+    </div>
+  </body>
+</html>

@@ -5,7 +5,9 @@ module.exports = {
   aliases: ['f5'],
 	execute(message, args, pool, musicCommandsArray) {
     if (message.author.id !== '416227242264363008') return;
-		var commandName = args[0].toLowerCase();
+    
+    args.forEach(arg => {
+      var commandName = arg.toLowerCase();
 		const command = message.client.commands.get(commandName)
 			|| message.client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
@@ -39,5 +41,7 @@ module.exports = {
 
 		
 		message.channel.send(`Command \`${commandName}\` was reloaded!`);
+    })
+		
 	},
 };

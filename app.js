@@ -2,8 +2,14 @@ const http = require("http");
 const express = require("express");
 const app = express();
 app.get("/", (request, response) => {
-  response.sendStatus(200);
+  response.sendFile(__dirname + "/views/index.html");
 });
+app.get("/news", (request, response) => {
+  response.sendFile(__dirname + "/views/news.html");
+});
+app.get("/about", (request, response) => {
+  response.sendFile(__dirname + "/views/about.html");
+})
 app.listen(process.env.PORT);
 setInterval(() => {
   http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);

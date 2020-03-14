@@ -1,0 +1,86 @@
+#grad {
+  background-image: linear-gradient(to bottom right, #34eb67, #37B9E9);
+  font-family: Comic Sans MS;
+}
+h1 {
+  text-align: center;
+  font-size: 75px;
+  margin-top: 10px;
+  -webkit-text-stroke-width: 2px;
+  -webkit-text-stroke-color: white;
+}
+h2 {
+  text-align: center;
+  font-size: 50px;
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: white;
+}
+.avatar {
+  border-radius: 50%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 15%;
+  border: 10px solid #fcba03;
+}
+.button {
+  background-color: #7289DA;
+  border: none;
+  color: white;
+  padding: 20px 40px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 50px;
+  margin-top: 20px;
+  border-radius: 5%;
+}
+.footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: #009122;
+  color: white;
+  text-align: center;
+  box-shadow: 10px 10px 8px 20px #22853d;
+}
+.text-a {
+  text-decoration: none;
+  color: #fcba03;
+}
+.text-a:hover {
+  text-decoration: underline;
+}
+p.comic-sans {
+  color: #5e5e5e;
+}
+.navbar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  background-color: #37BCE3;
+  color: white;
+  text-align: center;
+  box-shadow: 10px 10px 10px #22853d;
+}
+
+/* Links inside the navbar */
+.navbar a {
+  float: left;
+  display: block;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+/* Change background on mouse-over */
+.navbar a:hover {
+  background: #ddd;
+  color: black;
+}
+.placeholder {
+  height: 30px;
+}

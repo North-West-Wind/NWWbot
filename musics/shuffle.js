@@ -32,8 +32,11 @@ module.exports = {
     */
     var index = 0;
     var songArray = serverQueue.songs.map(song => {
-      return `**${++index} - [${song.title}](${song.url})**`;
-    });
+    if(song.type === 0)
+    return `**${++index} - ** [**${song.title}**](${song.url})`;
+    else if(song.type === 1)
+      return `**${++index} - ** [**${song.title}**](${song.spot})`
+  });
     var queueEmbed = new Discord.MessageEmbed()
       .setColor(color)
       .setTitle("Song queue for " + message.guild.name)

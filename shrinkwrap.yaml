@@ -3,21 +3,19 @@ dependencies:
   akaneko: 2.1.0
   aki-api: 3.2.1
   algebra.js: 0.2.6
+  apiai: 4.0.3
   canvas: 2.6.1
   discord-set: 0.0.2
-  discord.js: github.com/discordjs/discord.js/0066d0089ea44591094b5aaa078c531c0dca8aa3
+  discord.js: github.com/discordjs/discord.js/76634db9bec10f52521d77fac970406fa8b3f36a
   express: 4.17.1
   express.js: 1.0.0
   ffmpeg-static: 4.0.1
-  is-url: 1.2.4
   krunker.js: 1.2.5
   mojang-api: 0.0.2
-  moment: 2.24.0
   ms: 2.1.2
   mysql: 2.18.1
-  nekos.life: 2.0.5
   node-fetch: 2.6.0
-  pixula-v2: 1.0.5
+  node-spotify-webhelper: 0.0.6
   prism-media: 1.2.1
   random-words: 1.1.0
   reddit: 1.0.3
@@ -26,8 +24,9 @@ dependencies:
   serp: 2.0.7
   simple-youtube-api: 5.2.1
   smm-api: 2.1.2
-  spotify-url-info: 1.3.0
-  ytdl-core: github.com/fent/node-ytdl-core/3d4b9f876ef85d06d4ba0672ce3d5b4699199169
+  spotify-web-api-node: 4.0.0
+  youtube-search: 1.1.4
+  ytdl-core: github.com/fent/node-ytdl-core/e7d3e423104b0d059577c37cfe30e138fc3cc886
   ytdl-core-discord: github.com/amishshah/ytdl-core-discord/653e28bda27483842bdc0d0e1199903fc560e643
 packages:
   /@discordjs/collection/0.1.5:
@@ -42,10 +41,10 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-VWsrsgqSktxOEHx9SFcnOWJhYQOsyzaW3JVN73LDSzKrycEjtRIS+axlm4qeMGx60u6RH1SY15b3pl5G4+Y+gA==
-  /@types/node/13.7.7:
+  /@types/node/13.9.1:
     dev: false
     resolution:
-      integrity: sha512-Uo4chgKbnPNlxQwoFmYIwctkQVkMMmsAoGGU4JKwLuvBefF0pCq4FybNSnfkfRCpC7ZW7kttcC/TrRtAJsvGtg==
+      integrity: sha512-E6M6N0blf/jiZx8Q3nb0vNaswQeEyn0XlupO+xN6DtJ6r6IT4nXrTry7zhIfYvFCl3/8Cu6WIysmUBKiqV0bqQ==
   /abbrev/1.1.1:
     dev: false
     resolution:
@@ -103,6 +102,10 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha1-7QMXwyIGT3lGbAKWa922Bas32Zg=
+  /apiai/4.0.3:
+    dev: false
+    resolution:
+      integrity: sha1-LRqjutH9lBjeqtpQk2noTgEe+vg=
   /aproba/1.2.0:
     dev: false
     resolution:
@@ -138,6 +141,10 @@ packages:
     dev: false
     resolution:
       integrity: sha512-csOlWGAcRFJaI6m+F2WKdnMKr4HhdhFVBk0H/QbJFMCr+uO2kwohwXQPxw/9OCxp05r5ghVBFSyioixx3gfkNQ==
+  /async/3.2.0:
+    dev: false
+    resolution:
+      integrity: sha512-TR2mEZFVOj2pLStYxLht7TyfuRzaydfpxr3k9RpHIzMgw7A64dzsdqCxH1WJyQdoe8T10nDXd9wnEigmiuHIZw==
   /asynckit/0.4.0:
     dev: false
     resolution:
@@ -150,6 +157,13 @@ packages:
     dev: false
     resolution:
       integrity: sha512-wMHVg2EOHaMRxbzgFJ9gtjOOCrI80OHLG14rxi28XwOW8ux6IiEbRCGGGqCtdAIg4FQCbW20k9RsT4y3gJlFug==
+  /axios/0.18.1:
+    dependencies:
+      follow-redirects: 1.5.10
+      is-buffer: 2.0.4
+    dev: false
+    resolution:
+      integrity: sha512-0BfJq4NSfQXd+SkFdrvFbG7addhYSBA2mQwISr46pD6E5iqkWg02RAs8vyTT/j0RTnoYmeXauBuSv1qKwR179g==
   /balanced-match/1.0.0:
     dev: false
     resolution:
@@ -287,6 +301,10 @@ packages:
       node: '>= 0.8'
     resolution:
       integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==
+  /component-emitter/1.3.0:
+    dev: false
+    resolution:
+      integrity: sha512-Rd3se6QB+sO1TwqZjscQrurpEPIfO0/yYnSin6Q/rD3mOutHvUrCAhJub3r90uNb+SESBuE0QYoB90YdfatsRg==
   /concat-map/0.0.1:
     dev: false
     resolution:
@@ -319,6 +337,10 @@ packages:
       node: '>= 0.6'
     resolution:
       integrity: sha512-+Hp8fLp57wnUSt0tY0tHEXh4voZRDnoIrZPqlo3DPiI4y9lwg/jqx+1Om94/W6ZaPDOUbnjOt/99w66zk+l1Xg==
+  /cookiejar/2.1.2:
+    dev: false
+    resolution:
+      integrity: sha512-Mw+adcfzPxcPeI+0WlvRrr/3lGVO0bD75SxX6811cxSh1Wbxx7xZBGK1eVtDf6si8rg2lhnUjsVLMFMfbRIuwA==
   /core-util-is/1.0.2:
     dev: false
     resolution:
@@ -329,13 +351,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-m0arIkh7dKXACSUlWI2ZloWM0wI=
-  /cross-fetch/3.0.4:
-    dependencies:
-      node-fetch: 2.6.0
-      whatwg-fetch: 3.0.0
-    dev: false
-    resolution:
-      integrity: sha512-MSHgpjQqgbT/94D4CyADeNoYh52zMkCX4pcJvPP5WqPsLFMKjr2TCMg381ox5qI0ii2dPwaLx/00477knXqXVw==
   /css-select/1.2.0:
     dependencies:
       boolbase: 1.0.0
@@ -363,6 +378,12 @@ packages:
     dev: false
     resolution:
       integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==
+  /debug/3.1.0:
+    dependencies:
+      ms: 2.0.0
+    dev: false
+    resolution:
+      integrity: sha512-OX8XqP7/1a9cqkxYw2yXss15f26NKWBpDXQd0/uK/KPqdQhxbPa994hnzjcE2VqQpDslf55723cKPUOGSmMY3g==
   /debug/3.2.6:
     dependencies:
       ms: 2.1.2
@@ -670,6 +691,14 @@ packages:
       node: '>= 0.8'
     resolution:
       integrity: sha512-aAWcW57uxVNrQZqFXjITpW3sIUQmHGG3qSb9mUah9MgMC4NeWhNOlNjXEYq3HjRAvL6arUviZGGJsBg6z0zsWA==
+  /follow-redirects/1.5.10:
+    dependencies:
+      debug: 3.1.0
+    dev: false
+    engines:
+      node: '>=4.0'
+    resolution:
+      integrity: sha512-0V5l4Cizzvqt5D44aTXbFZz+FtyXV1vrDN6qrelxtfYQKW0KO0W2T/hkE8xvGa/540LkZlkaUjO4ailYTFtHVQ==
   /forever-agent/0.6.1:
     dev: false
     resolution:
@@ -684,6 +713,16 @@ packages:
       node: '>= 0.12'
     resolution:
       integrity: sha512-1lLKB2Mu3aGP1Q/2eCOx0fNbRMe7XdwktwOruhfqqd0rIJWwN4Dh+E3hrPSlDCXnSR7UtZ1N38rVXm+6+MEhJQ==
+  /form-data/2.5.1:
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      mime-types: 2.1.26
+    dev: false
+    engines:
+      node: '>= 0.12'
+    resolution:
+      integrity: sha512-m21N3WOmEEURgk6B9GLOE4RuWOFf28Lhh9qGYeNlGq4VDXUlJy2th2slBNU8Gp8EzloYZOibZJ7t5ecIrFSjVA==
   /form-data/3.0.0:
     dependencies:
       asynckit: 0.4.0
@@ -694,6 +733,10 @@ packages:
       node: '>= 6'
     resolution:
       integrity: sha512-CKMFDglpbMi6PyN+brwB9Q/GOw0eAnsrEZDgcsH5Krhz5Od/haKHAX0NmQfha2zPPz0JpWzA7GJHGSnvCRLWsg==
+  /formidable/1.2.2:
+    dev: false
+    resolution:
+      integrity: sha512-V8gLm+41I/8kguQ4/o1D3RIHRmhYFG4pnNyonvua+40rqcEmT4+V71yaZ3B457xbbgCsCfjSPi65u/W6vK1U5Q==
   /forwarded/0.1.2:
     dev: false
     engines:
@@ -798,10 +841,6 @@ packages:
       node: '>= 0.4.0'
     resolution:
       integrity: sha512-f2dvO0VU6Oej7RkWJGrehjbzMAjFp5/VKPp5tTpWIV4JHHZK1/BxbFRtf/siA2SWTe09caDmVtYYzWEIbBS4zw==
-  /himalaya/1.1.0:
-    dev: false
-    resolution:
-      integrity: sha512-LLase1dHCRMel68/HZTFft0N0wti0epHr3nNY7ynpLbyZpmrKMQ8YIpiOV77TM97cNpC8Wb2n6f66IRggwdWPw==
   /html-entities/1.2.1:
     dev: false
     engines:
@@ -907,6 +946,12 @@ packages:
       node: '>= 0.4'
     resolution:
       integrity: sha512-xPh0Rmt8NE65sNzvyUmWgI1tz3mKq74lGA0mL8LYZcoIzKOzDh6HmrYm3d18k60nHerC8A9Km8kYu87zfSFnLA==
+  /is-buffer/2.0.4:
+    dev: false
+    engines:
+      node: '>=4'
+    resolution:
+      integrity: sha512-Kq1rokWXOPXWuaMAqZiJW4XxsmD9zGx9q4aePabbn3qCRGedtH7Cm+zV8WETitMfu1wdh+Rvd6w5egwSngUX2A==
   /is-callable/1.1.5:
     dev: false
     engines:
@@ -953,10 +998,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-5HnICFjfDBsR3dppQPlgEfzaSpo=
-  /is-url/1.2.4:
-    dev: false
-    resolution:
-      integrity: sha512-ITvGim8FhRiYe4IQ5uHSkj7pVaPDrCTkNd3yq3cV7iZAcJdHTUMPMEHcqSOy9xZ9qFenQCvi+2wjH9a1nXqHww==
   /isarray/1.0.0:
     dev: false
     resolution:
@@ -1126,10 +1167,10 @@ packages:
     dev: false
     resolution:
       integrity: sha1-hX/Kv8M5fSYluCKCYuhqp6ARsF0=
-  /minimist/1.2.0:
+  /minimist/1.2.5:
     dev: false
     resolution:
-      integrity: sha1-o1AIsg9BOD7sH7kU9M1d95omQoQ=
+      integrity: sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==
   /minipass/2.9.0:
     dependencies:
       safe-buffer: 5.2.0
@@ -1158,6 +1199,7 @@ packages:
       integrity: sha1-xiS5SHy+5qfOhIIs+WZ1fnwvxmU=
   /moment/2.24.0:
     dev: false
+    optional: true
     resolution:
       integrity: sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
   /ms/2.0.0:
@@ -1231,10 +1273,6 @@ packages:
       node: '>= 0.6'
     resolution:
       integrity: sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==
-  /nekos.life/2.0.5:
-    dev: false
-    resolution:
-      integrity: sha512-VRbi0vkoStpR/sHmu0gzlG0Dnh4xv8jAgmPXV7lcFwBGClcJE+x2XCr/WbbUkCtGzBzttJ/JEmImxd7tBtV6hA==
   /nock/10.0.6:
     dependencies:
       chai: 4.2.0
@@ -1266,7 +1304,7 @@ packages:
       detect-libc: 1.0.3
       mkdirp: 0.5.1
       needle: 2.3.3
-      nopt: 4.0.1
+      nopt: 4.0.3
       npm-packlist: 1.4.8
       npmlog: 4.1.2
       rc: 1.2.8
@@ -1282,7 +1320,7 @@ packages:
       detect-libc: 1.0.3
       mkdirp: 0.5.1
       needle: 2.3.3
-      nopt: 4.0.1
+      nopt: 4.0.3
       npm-packlist: 1.4.8
       npmlog: 4.1.2
       rc: 1.2.8
@@ -1293,14 +1331,21 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-+CvDC7ZttU/sSt9rFjix/P05iS43qHCOOGzcr3Ry99bXG7VX953+vFyEuph/tfqoYu8dttBkE86JSKBO2OzcxA==
-  /nopt/4.0.1:
+  /node-spotify-webhelper/0.0.6:
+    dependencies:
+      request: 2.88.2
+      wintools: 0.1.0
+    dev: false
+    resolution:
+      integrity: sha1-UuiJ5WFRfzOhP7jXQaM/VlpWAZ0=
+  /nopt/4.0.3:
     dependencies:
       abbrev: 1.1.1
       osenv: 0.1.5
     dev: false
     hasBin: true
     resolution:
-      integrity: sha1-0NRoWv1UFRk8jHUFYC0NF81kR00=
+      integrity: sha512-CvaGwVMztSMJLOeXPrez7fyfObdZqNUK1cPAEzLHrTybIua9pMdmmPR5YwtfNftIOMv3DPUhFaxsZMNTQO20Kg==
   /npm-bundled/1.1.1:
     dependencies:
       npm-normalize-package-bin: 1.0.1
@@ -1565,10 +1610,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
-  /pixula-v2/1.0.5:
-    dev: false
-    resolution:
-      integrity: sha512-aG3IFW3A9srAj1DEeYYaqrALGkbhpKQATFS2GLm0mNglVTUaSfg7ptycpgGPls010OxNiorFLQCByFQ2GazgGw==
   /prism-media/1.2.1:
     dev: false
     peerDependencies:
@@ -1656,7 +1697,7 @@ packages:
     dependencies:
       deep-extend: 0.6.0
       ini: 1.3.5
-      minimist: 1.2.0
+      minimist: 1.2.5
       strip-json-comments: 2.0.1
     dev: false
     hasBin: true
@@ -1830,6 +1871,10 @@ packages:
     dev: false
     resolution:
       integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
+  /sax/0.5.8:
+    dev: false
+    resolution:
+      integrity: sha1-1HLbIo6zMcJQaw6MFVJK25OdEsE=
   /sax/1.2.4:
     dev: false
     resolution:
@@ -1919,20 +1964,12 @@ packages:
     dev: false
     resolution:
       integrity: sha512-UoYK3eOGvZiDldKO8HtkpBYmvgS/YCjHWgXRTNG2ddcCSah1nrwukWmMa60kAFbPyS6muCYx2ZN6qOw7a42fog==
-  /spotify-uri/1.1.0:
-    dev: false
-    resolution:
-      integrity: sha512-WbNRkvCcuKCYxAci+raz7uojZ6P9VZTQatH2AqRSJ5t2JH4/YBaMDOjbsSlYxkMNqqrDcIWzKIqHzHPE47d7Bg==
-  /spotify-url-info/1.3.0:
+  /spotify-web-api-node/4.0.0:
     dependencies:
-      cross-fetch: 3.0.4
-      himalaya: 1.1.0
-      spotify-uri: 1.1.0
+      superagent: 3.8.3
     dev: false
-    engines:
-      node: '>=8.0.0'
     resolution:
-      integrity: sha512-WYKDqcmuwh8c2w4IbxsqWk56FxbE+7PVkdxxL6EGXq//M9a/7xlbGcvgyDT7pyjPEZa+SpEENwkw8V8KkDH/3g==
+      integrity: sha512-FQAX4qiP9xfjmJpkSfF5PEVr7RVorUZiLvcdVTlhVFLYAmQ8VSsZlyb0yTK0GExKhAcgJy9GfWxqjSB2r9SrjA==
   /sqlstring/2.3.1:
     dev: false
     engines:
@@ -2039,6 +2076,23 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-PFMZQukIwml8DsNEhYwobHygpgo=
+  /superagent/3.8.3:
+    dependencies:
+      component-emitter: 1.3.0
+      cookiejar: 2.1.2
+      debug: 3.2.6
+      extend: 3.0.2
+      form-data: 2.5.1
+      formidable: 1.2.2
+      methods: 1.1.2
+      mime: 1.6.0
+      qs: 6.9.1
+      readable-stream: 2.3.7
+    dev: false
+    engines:
+      node: '>= 4.0'
+    resolution:
+      integrity: sha512-GLQtLMCoEIK4eDv6OGtkOoSMt3D+oq0y3dsxMuYuDvaNUvuT8eFBuLmfR0iYYzHC1e8hpzC6ZsxbuP6DIalMFA==
   /tar/4.4.13:
     dependencies:
       chownr: 1.1.4
@@ -2140,16 +2194,18 @@ packages:
       '0': node >=0.6.0
     resolution:
       integrity: sha1-OhBcoXBTr1XW4nDB+CiGguGNpAA=
-  /whatwg-fetch/3.0.0:
-    dev: false
-    resolution:
-      integrity: sha512-9GSJUgz1D4MfyKU7KRqwOjXCXTqWdFNvEr7eUBYchQiVc744mqK/MzXPNR2WsPkmkOa4ywfg8C2n8h+13Bey1Q==
   /wide-align/1.1.3:
     dependencies:
       string-width: 2.1.1
     dev: false
     resolution:
       integrity: sha512-QGkOQc8XL6Bt5PwnsExKBPuMKBxnGxWWW3fU55Xt4feHozMUhdUMaBCk290qpm/wG5u/RSKzwdAC4i51YigihA==
+  /wintools/0.1.0:
+    dependencies:
+      async: 3.2.0
+    dev: false
+    resolution:
+      integrity: sha1-V1fLo9CischdDMhcnKdKCVSxrZw=
   /wrappy/1.0.2:
     dev: false
     resolution:
@@ -2160,7 +2216,7 @@ packages:
     dev: false
     resolution:
       integrity: sha512-GIyAXC2cB7LjvpgMt9EKS2ldqr0MTrORaleiOno6TweZ6r3TKtoFQWay/2PceJ3RuBasOHzXNn5Lrw1X0bEjqA==
-  /ws/7.2.1:
+  /ws/7.2.3:
     dev: false
     engines:
       node: '>=8.3.0'
@@ -2168,11 +2224,24 @@ packages:
       bufferutil: ^4.0.1
       utf-8-validate: ^5.0.2
     resolution:
-      integrity: sha512-sucePNSafamSKoOqoNfBd8V0StlkzJKL2ZAhGQinCfNQ+oacw+Pk7lcdAElecBF2VkLNZRiIb5Oi1Q5lVUVt2A==
+      integrity: sha512-HTDl9G9hbkNDk98naoR/cHDws7+EyYMOdL1BmjsZXRUjf7d+MficC4B7HLUPlSiho0vg+CWKrGIt/VJBd1xunQ==
+  /xml2js/0.2.8:
+    dependencies:
+      sax: 0.5.8
+    dev: false
+    resolution:
+      integrity: sha1-m4FpCTFjH/CdGVdUn69U9PmAs8I=
   /yallist/3.1.1:
     dev: false
     resolution:
       integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==
+  /youtube-search/1.1.4:
+    dependencies:
+      axios: 0.18.1
+      xml2js: 0.2.8
+    dev: false
+    resolution:
+      integrity: sha512-eS3VAqm2avF094d/zu/iKjxMWIAPZ9GZ2V4qVYlznUwt2gEfQRG64o4rRHmeG60GGPCRNoPIJfbjilbfGSMfVA==
   /ytdl-core/1.0.9:
     dependencies:
       html-entities: 1.2.1
@@ -2186,15 +2255,16 @@ packages:
       integrity: sha512-HhFeLfjXU34h0FNHmSkSpKygdaYijSt8VNsC770VYBRFb+dyUKcm11cIKxu2MUSwT9znISZ0k1wFdaV/N5VW+Q==
   github.com/amishshah/ytdl-core-discord/653e28bda27483842bdc0d0e1199903fc560e643:
     dependencies:
-      '@types/node': 13.7.7
+      '@types/node': 13.9.1
       prism-media: 1.2.1
       ytdl-core: 1.0.9
     dev: false
     name: ytdl-core-discord
     resolution:
+      registry: 'https://registry.npmjs.org/'
       tarball: 'https://codeload.github.com/amishshah/ytdl-core-discord/tar.gz/653e28bda27483842bdc0d0e1199903fc560e643'
     version: 1.1.0
-  github.com/discordjs/discord.js/0066d0089ea44591094b5aaa078c531c0dca8aa3:
+  github.com/discordjs/discord.js/76634db9bec10f52521d77fac970406fa8b3f36a:
     dependencies:
       '@discordjs/collection': 0.1.5
       abort-controller: 3.0.0
@@ -2203,7 +2273,7 @@ packages:
       prism-media: 1.2.1
       setimmediate: 1.0.5
       tweetnacl: 1.0.3
-      ws: 7.2.1
+      ws: 7.2.3
     dev: false
     engines:
       node: '>=12.0.0'
@@ -2216,9 +2286,9 @@ packages:
       utf-8-validate: ^5.0.2
       zlib-sync: ^0.1.6
     resolution:
-      tarball: 'https://codeload.github.com/discordjs/discord.js/tar.gz/0066d0089ea44591094b5aaa078c531c0dca8aa3'
-    version: 12.0.1
-  github.com/fent/node-ytdl-core/3d4b9f876ef85d06d4ba0672ce3d5b4699199169:
+      tarball: 'https://codeload.github.com/discordjs/discord.js/tar.gz/76634db9bec10f52521d77fac970406fa8b3f36a'
+    version: 12.0.2
+  github.com/fent/node-ytdl-core/e7d3e423104b0d059577c37cfe30e138fc3cc886:
     dependencies:
       html-entities: 1.2.1
       m3u8stream: 0.6.5
@@ -2229,7 +2299,7 @@ packages:
       node: '>=10'
     name: ytdl-core
     resolution:
-      tarball: 'https://codeload.github.com/fent/node-ytdl-core/tar.gz/3d4b9f876ef85d06d4ba0672ce3d5b4699199169'
+      tarball: 'https://codeload.github.com/fent/node-ytdl-core/tar.gz/e7d3e423104b0d059577c37cfe30e138fc3cc886'
     version: 2.0.0
 registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
@@ -2239,21 +2309,19 @@ specifiers:
   akaneko: ^2.1.0
   aki-api: ^3.2.1
   algebra.js: ^0.2.6
+  apiai: ^4.0.3
   canvas: ^2.6.1
   discord-set: ^0.0.2
   discord.js: 'github:discordjs/discord.js'
   express: ^4.17.1
   express.js: ^1.0.0
   ffmpeg-static: ^4.0.1
-  is-url: ^1.2.4
   krunker.js: ^1.2.4
   mojang-api: ^0.0.2
-  moment: ^2.24.0
   ms: ^2.1.2
   mysql: ^2.18.1
-  nekos.life: ^2.0.5
   node-fetch: ^2.6.0
-  pixula-v2: ^1.0.1
+  node-spotify-webhelper: ^0.0.6
   prism-media: ^1.2.0
   random-words: ^1.1.0
   reddit: ^1.0.3
@@ -2262,6 +2330,7 @@ specifiers:
   serp: ^2.0.7
   simple-youtube-api: ^5.2.1
   smm-api: ^2.1.2
-  spotify-url-info: ^1.3.0
+  spotify-web-api-node: ^4.0.0
+  youtube-search: ^1.1.4
   ytdl-core: 'github:fent/node-ytdl-core#master'
   ytdl-core-discord: 'github:amishshah/ytdl-core-discord#master'
