@@ -3,16 +3,75 @@ var Buffer = require("buffer").Buffer;
 const http = require("http");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits, numberWithCommas } = require("../function.js");
+const fetch = require("node-fetch");
+const contains = (string, content) => {
+    return !!~(string || "").indexOf(content);
+  }
 
 module.exports = {
   name: "hypixel",
-  description: "Work in progress. Shows stats of a player in the Hypixel server.",
+  description:
+    "Work in progress. Shows stats of a player in the Hypixel server.",
   args: true,
   aliases: ["hy"],
   usage: "[subcommand] <username>",
   subcommands: ["guild", "achievements", "tnt", "bedwars", "duels"],
   subaliases: ["g", "ach", "tnt", "bw", "du"],
-  async execute(message, args) {
+  async execute(message, args, pool, yeet, hypixelQueries) {
+    if (hypixelQueries > 100) return message.channel.send("Hey! Slow down!");
+    
+    if (args[0] === "auctionhouse" || args[0] === "ah") {
+      if(!args[1]) return message.channel.send("Please enter an item!");
+        var auctionsAPI = await fetch(
+          `https://api.hypixel.net/skyblock/auctions?key=${process.env.API}`
+        ).then(response => response.json());
+        hypixelQueries++;
+        var totalPage = auctionsAPI.totalPages;
+        var auctions = auctionsAPI.auctions;
+        for (var i = 1; i < totalPage; i++) {
+          var auctionsAPI = await fetch(
+            `https://api.hypixel.net/skyblock/auctions?key=${process.env.API}&page=${i}`
+          ).then(response => response.json());
+          hypixelQueries++;
+          auctionsAPI.auctions.forEach(auction => {
+            auctions.push(auction);
+          });
+        }
+        var item = auctions.filter(auction => {
+          var searched = auction.item_name.toLowerCase().search(args.slice(1).join(" ").toLowerCase());
+          if(searched !== -1) return true;
+          else return false;
+        });
+      if(item.length == 0) return message.channel.send("No item found for `" + args.slice(1).join(" ") + "`");
+      
+      function compare(a, b) {
+        if((a.highest_bid_amount > 0 ? a.highest_bid_amount : a.starting_bid) < (b.highest_bid_amount > 0 ? b.highest_bid_amount : b.starting_bid)) return -1;
+        if((a.highest_bid_amount > 0 ? a.highest_bid_amount : a.starting_bid) > (b.highest_bid_amount > 0 ? b.highest_bid_amount : b.starting_bid)) return 1;
+        return 0;
+      }
+      
+      item.sort(compare);
+      var lowest = (item[0].highest_bid_amount > 0 ? item[0].highest_bid_amount : item[0].starting_bid);
+      var highest = (item[item.length - 1].highest_bid_amount > 0 ? item[item.length - 1].highest_bid_amount : item[item.length - 1].starting_bid);
+      var average = 0;
+      for(const i of item) {
+        average += (i.highest_bid_amount > 0 ? i.highest_bid_amount : i.starting_bid)
+      }
+      average = average / item.length;
+      
+      const Embed = new Discord.MessageEmbed()
+      .setColor(color)
+      .setTitle("Search results of \"" + args.slice(1).join(" ") + '"')
+      .setDescription(`Highest: \$${highest}\nLowest: \$${lowest}\nAverage: \$${Math.round(average)}`)
+      .setTimestamp()
+      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+      
+      message.channel.send(Embed);
+
+        return;
+      }
+    
+    
     const filter = (reaction, user) => {
       return (
         ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
@@ -26,6 +85,7 @@ module.exports = {
           "Please provide a Minecraft username or use the subcommands."
         );
       }
+      
       MojangAPI.nameToUuid(`${args[0]}`, function(err, res) {
         if (err) console.log(err);
         else {
@@ -50,8 +110,8 @@ module.exports = {
               url: url,
               json: true
             },
-
             function(error, response, body) {
+              hypixelQueries++;
               if (!error && response.statusCode === 200) {
                 console.log("someone's api"); // Print the json response
                 if (body.player.newPackageRank === "VIP") {
@@ -110,6 +170,7 @@ module.exports = {
                     json: true
                   },
                   function(err, resp, stuff) {
+                    hypixelQueries++;
                     if (!error && response.statusCode === 200) {
                       if (stuff.guild === null) {
                         var firstdate = new Date(body.player.firstLogin);
@@ -209,6 +270,7 @@ module.exports = {
                             json: true
                           },
                           function(gerr, gres, gbody) {
+                            hypixelQueries++;
                             if (!error && response.statusCode === 200) {
                               console.log("guild stuff"); // Print the json response
 
@@ -342,6 +404,7 @@ module.exports = {
             },
 
             async function(error, response, body) {
+              hypixelQueries++;
               if (!error && response.statusCode === 200) {
                 console.log("someone's api"); // Print the json response
                 if (body.player.newPackageRank === "VIP") {
@@ -378,6 +441,7 @@ module.exports = {
                       json: true
                     },
                     function(err, guildResponse, guildBody) {
+                      hypixelQueries++;
                       if (!err && guildResponse.statusCode === 200) {
                         if (guildBody.guild === null) {
                           return message.channel.send(
@@ -395,6 +459,7 @@ module.exports = {
                             json: true
                           },
                           async function(guErr, guRes, guBody) {
+                            hypixelQueries++;
                             if (!guErr && guRes.statusCode === 200) {
                               var exp = [];
                               var guildId = guBody.guild._id;
@@ -470,9 +535,6 @@ module.exports = {
                                   }
                                 );
                               }
-                              
-                              
-                              
 
                               const Embed = new Discord.MessageEmbed()
                                 .setColor(color)
@@ -510,12 +572,12 @@ module.exports = {
                                   message.client.user.displayAvatarURL()
                                 );
 
-                              
-                                  setTimeout(function(){
-                                    for(var i = 0; i < GEXPs.length; i++) {
-                                  topPlayer.addField(players[i], GEXPs[i])
-                                }}, 1500)
-                              
+                              setTimeout(function() {
+                                for (var i = 0; i < GEXPs.length; i++) {
+                                  topPlayer.addField(players[i], GEXPs[i]);
+                                }
+                              }, 1500);
+
                               const filter = (reaction, user) => {
                                 return (
                                   ["◀", "▶", "⏮", "⏭", "⏹"].includes(
@@ -3025,6 +3087,8 @@ module.exports = {
                   collector.on("end", function() {
                     msg.reactions.removeAll().catch(console.error);
                   });
+                } else if(args[0] === "") {
+                  
                 }
               }
             }

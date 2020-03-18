@@ -31,7 +31,10 @@ module.exports = {
   name: "test",
   description: "For test, really.",
   async execute(message, args, pool) {
-   var results = await search('surviv tavern music', opts);
-    console.log(results);
+    if(message.author.id !== process.env.DC) return message.channel.send("You can't use this.");
+    var guilds = message.client.guilds;
+    for(const guild of guilds.cache.values()) {
+      console.log(guild.id + " - " + guild.name);
+    }
   }
 };
