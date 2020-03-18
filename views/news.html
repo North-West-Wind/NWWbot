@@ -89,6 +89,12 @@
       .placeholder {
         height: 30px;
       }
+      li {
+        font-size: 30px;
+      }
+      ul {
+        margin-left: 10%;
+      }
     </style>
     <link
       id="favicon"
@@ -107,52 +113,14 @@
     <h1>
       News
     </h1>
-    <h2>
-      W.I.P.
-    </h2>
-    <script type="text/javascript">
-      const mysql = require("mysql");
-      const mysql_config = {
-        connectTimeout: 30000,
-        acquireTimeout: 30000,
-        timeout: 30000,
-        connectionLimit: 10,
-        host: process.env.DBHOST,
-        user: process.env.DBUSER,
-        password: process.env.DBPW,
-        database: process.env.DBNAME,
-        supportBigNumbers: true,
-        bigNumberStrings: true,
-        charset: "utf8mb4"
-      };
-
-      var con = mysql.createConnection(mysql_config);
-      con.connect();
-      con.query("SELECT * FROM updates ORDER BY updateTime", function(
-        err,
-        results
-      ) {
-        if (err) throw err;
-        var HTML = '<table border="1" width="100%">';
-
-        for (var i = 0; i < results.length; i++) {
-          var result = results[i];
-          HTML +=
-            "<tr><th>" +
-            result.version +
-            "</th><th>" +
-            result.title +
-            '</th></tr><tr><td colspan="2">' +
-            result.description +
-            "</td></tr>";
-        }
-
-        HTML += "</table>";
-        $('#updates').append(HTML);
-      });
-      con.end();
-    </script>
-    <div id="updates"></div>
+    <div width="100%">
+      <ul>
+        <li>1.0.0 Initial Release (16/3/2020)</li>
+        <p>
+          The bot is out for everyone to use!
+        </p>
+      </ul>
+    </div>
     <div class="footer">
       <p>
         If you encounter any bugs or issues, please report them in the

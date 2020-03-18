@@ -6,6 +6,7 @@ module.exports = {
   description: "Spend your money here!",
   usage: " ",
   execute(message, args, pool) {
+    if(message.author.id !== process.env.DC) return message.channel.send("This command is not finished. Please be patient...")
     pool.getConnection(function(err, con) {
       if (err)
         return message.reply(

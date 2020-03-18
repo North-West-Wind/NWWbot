@@ -735,16 +735,21 @@ client.on("guildDelete", guild => {
 var exit = new Map();
 
 client.on("voiceStateUpdate", async (oldState, newState) => {
+  
   const guild = oldState.guild || newState.guild;
   let newUserChannel = newState.channel;
   let oldUserChannel = oldState.channel;
-
   if (oldUserChannel === null && newUserChannel !== null) {
     if (newUserChannel.id !== guild.me.voice.channelID) return;
     // User Joins a voice channel
     exit.set(guild.id, false);
   } else if (newUserChannel === null) {
+    try {
     if (oldUserChannel.id !== guild.me.voice.channelID) return;
+    } catch(err) {
+      console.log(guild.name);
+      return console.error(err);
+    }
     // User leaves a voice channel
 
     if (guild.me.voice.channel.members.size <= 1) {
@@ -767,6 +772,9 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
     }
   }
 });
+
+var hypixelQueries = 0;
+setInterval(() => hypixelQueries = 0, 60000);
 
 client.on("message", async message => {
   // client.on('message', message => {
@@ -806,7 +814,7 @@ client.on("message", async message => {
       }
     }
     try {
-      command.execute(message, args, pool, musicCommandsArray);
+      command.execute(message, args, pool, musicCommandsArray, hypixelQueries);
     } catch (error) {
       console.error(error);
       message.reply("there was an error trying to execute that command!");
