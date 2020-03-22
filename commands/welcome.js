@@ -12,11 +12,13 @@ module.exports = {
       message.client.emit("guildMemberAdd")
     } catch(error) {
       pool.getConnection(function(err, con) {
+          if(err) return message.reply("there was an error executing that command!");
       con.query(
         "SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id=" +
           guild.id,
         function(err, result, fields) {
-          if (result[0].wel_channel === null || result[0] === undefined || result[0].wel_img) {
+          if(err) return message.reply("there was an error executing that command!");
+          if (result[0].wel_channel === null || result[0] === undefined || result[0].welcome === null) {
             return message.channel.send("No welcome message configured.");
           } else {
             

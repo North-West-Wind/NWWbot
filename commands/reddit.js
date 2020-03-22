@@ -15,7 +15,8 @@ var redditConn = new RedditAPI({
 
 module.exports = {
   name: "reddit",
-  description: "Fetch posts from reddit.",
+  description: "Fetch memes from Reddit.",
+  usage: "[subreddits]",
   execute(message, args) {
     var subreddits;
     var def = ["memes", "dankmemes", "meme"];
@@ -37,13 +38,14 @@ module.exports = {
           .setImage(data.url)
           .setColor("BLURPLE")
           .setFooter(
-            `${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 💭`
+            `${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`
           )
           .setTimestamp();
 
         message.channel.send(em);
       })
       .catch(function(err) {
+      message.reply("there was an error trying to execute that command!")
         return console.error("api request failed: " + err);
       });
   }

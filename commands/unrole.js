@@ -14,11 +14,21 @@ module.exports = {
     if(!args[0]) return message.channel.send("Please mention an user!");
     if(!args[1]) return message.channel.send("Please mention a role!");
     
-		var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
-    if(isNaN(parseInt(roleID))) {
-      var role = await message.guild.roles.cache.find(x => x.name === `${args[1]}`);
+		 var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
+    if (isNaN(parseInt(roleID))) {
+      var role = await message.guild.roles.cache.find(
+        x => x.name.toLowerCase() === `${args[1].toLowerCase()}`
+      );
+      if (role === null) {
+        return message.channel.send(
+          "No role was found with the name " + args[1]
+        );
+      }
     } else {
-      var role = await message.guild.roles.fetch(roleID);
+      var role = await message.guild.roles.cache.get(roleID);
+      if (role === null) {
+        return message.channel.send("No role was found!");
+      }
     }
 		// Let's pretend you mentioned the user you want to add a role to (!addrole @user Role Name):
 		let member = await findMember(message, args[0]);

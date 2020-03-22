@@ -82,6 +82,7 @@ module.exports = {
           max: 1,
           error: ["time"]
         }).catch(err => msg.edit("Time's up. Cancelled action."));
+      if(collected2.first() === undefined) msg.edit("Time's up. Cancelled action.");
         if(collected2.first().content === "cancel") {
           await collected2.first().delete();
           return msg.edit("Cancelled poll.")
@@ -256,6 +257,9 @@ module.exports = {
         for (var i = 0; i < optionArray.length; i++) {
           await msg.react(emojis[i]);
         }
+      for(var i = 0; i < options.length; i++) {
+        options[i] = escape(options[i]);
+      }
 
         con.query(
           "INSERT INTO poll VALUES(" +
@@ -265,7 +269,7 @@ module.exports = {
             ", " +
             channel.id +
             `, '["` +
-            escape(options).join('", "') +
+            options.join('", "') +
             `"]', "` +
             newDateSql +
             '", ' +

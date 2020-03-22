@@ -13,6 +13,7 @@ module.exports = {
   if (!serverQueue)
     return message.channel.send("There is no song that I could skip!");
   const guildLoopStatus = looping.get(message.guild.id);
+    if(serverQueue.playing === false) return message.channel.send("No music is being played.")
   serverQueue.connection.dispatcher.destroy();
   if (
         guildLoopStatus === undefined ||

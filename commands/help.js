@@ -14,13 +14,13 @@ module.exports = {
 
     if (!args.length) {
       const attachment = new Discord.MessageAttachment(
-        "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1583484095940"
+        "https://cdn.glitch.com/3d575fe2-b6e6-45bb-9435-aec3db23fb8b%2Fmanual.pdf?v=1584842429794"
       );
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle("Command list is here!")
         .setDescription(
-          `You can send ${prefix}help [command name] to get info on a specific command!`
+          `You can send \`${prefix}help [command name]\` to get info on a specific command!\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`
         )
         .setThumbnail(message.client.user.displayAvatarURL())
         .addField(
@@ -34,7 +34,7 @@ module.exports = {
           true
         )
         .addField("**Economy**", "work\nbank\nshop", true)
-        .addField("**Fun**", "chat\nmeme\nrng\ngreet\nthx\nrank", true)
+        .addField("**Fun**", "chat\nreddit\nrng\ngreet\nthx\nrank", true)
 
         .addField(
           "**Miscellaneous**",
@@ -44,7 +44,7 @@ module.exports = {
         .addField("**NSFW**", "hentai", true)
         .addField(
           "**Information**",
-          "help\nserver\nping\navatar\nwelcome",
+          "help\nserver\nping\navatar\nwelcome\nrole-info",
           true
         )
         .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban", true)
