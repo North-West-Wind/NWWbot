@@ -5,73 +5,245 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits, numberWithCommas } = require("../function.js");
 const fetch = require("node-fetch");
 const contains = (string, content) => {
-    return !!~(string || "").indexOf(content);
-  }
+  return !!~(string || "").indexOf(content);
+};
 
 module.exports = {
   name: "hypixel",
   description:
-    "Work in progress. Shows stats of a player in the Hypixel server.",
+    "Shows Hypixel related stuff.",
   args: true,
   aliases: ["hy"],
   usage: "[subcommand] <username>",
-  subcommands: ["guild", "achievements", "tnt", "bedwars", "duels"],
-  subaliases: ["g", "ach", "tnt", "bw", "du"],
+  subcommands: [
+    "guild",
+    "achievements",
+    "tntgames",
+    "bedwars",
+    "duels",
+    "skywars",
+    "blitz",
+    "arcade",
+    "murdermystery",
+    "buildbattle",
+    "copsandcrims",
+    "vampirez",
+    "paintball",
+    "quake",
+    "uhc",
+    "walls",
+    "megawalls",
+    "crazywalls",
+    "smashhero",
+    "speeduhc",
+    "arena",
+    "pit",
+    "skyblock",
+    "auctionhouse",
+    "bazaar"
+  ],
+  subaliases: ["g", "ach", "tnt", "bw", "du", "sw", "sg", "ar", "mm", "bb", "mcgo", "vz", "pb", "q", "uhc", "wa", "mw", "cw", "sh", "suhc", "are", "p", "sb", "ah", "ba"],
   async execute(message, args, pool, yeet, hypixelQueries) {
-    if (hypixelQueries > 100) return message.channel.send("Hey! Slow down!");
-    
+    if (hypixelQueries > 90) return message.channel.send("Hey! Slow down!");
+    if (!args[0]) {
+      return message.channel.send(
+        "Please use one of the subcommands or enter an username for profile!"
+      );
+    }
+
+    args[0] = args[0].toLowerCase();
+
     if (args[0] === "auctionhouse" || args[0] === "ah") {
-      if(!args[1]) return message.channel.send("Please enter an item!");
-        var auctionsAPI = await fetch(
-          `https://api.hypixel.net/skyblock/auctions?key=${process.env.API}`
-        ).then(response => response.json());
-        hypixelQueries++;
-        var totalPage = auctionsAPI.totalPages;
-        var auctions = auctionsAPI.auctions;
-        for (var i = 1; i < totalPage; i++) {
-          var auctionsAPI = await fetch(
-            `https://api.hypixel.net/skyblock/auctions?key=${process.env.API}&page=${i}`
-          ).then(response => response.json());
-          hypixelQueries++;
-          auctionsAPI.auctions.forEach(auction => {
-            auctions.push(auction);
-          });
-        }
-        var item = auctions.filter(auction => {
-          var searched = auction.item_name.toLowerCase().search(args.slice(1).join(" ").toLowerCase());
-          if(searched !== -1) return true;
-          else return false;
-        });
-      if(item.length == 0) return message.channel.send("No item found for `" + args.slice(1).join(" ") + "`");
+      if (!args[1]) return message.channel.send("Please enter an item!");
+      var itemIDs = await fetch(
+        `https://api.slothpixel.me/api/skyblock/items`
+      ).then(res => res.json());
+      var items = new Discord.Collection(Object.entries(itemIDs));
+      var firstPrior = items.filter(item => {
+        return item.name.toLowerCase().search(args.slice(1).join(" ").toLowerCase()) === 0 ? true : false
+      });
+      var search = items.filter(item => {
+        var searched = item.name.toLowerCase().search(
+          args
+            .slice(1)
+            .join(" ")
+            .toLowerCase()
+        );
+        if (searched !== -1) return true;
+        else return false;
+      });
+      if(search.size == 0) {
+        if(firstPrior.size == 0)
+        return message.channel.send(
+          "No item found for `" + args.slice(1).join(" ") + "`"
+        );
+      }
       
+      var id = firstPrior.size !== 0 ? firstPrior.keys().next().value : search.keys().next().value;
+      
+      var auctionsAPI = await fetch(
+        `https://api.slothpixel.me/api/skyblock/auctions?id=${id}&limit=1000`
+      ).then(response => response.json());
+      
+      var auctions = auctionsAPI;
+      
+      if (auctions.length == 0)
+        return message.channel.send(
+          "No item found for `" + args.slice(1).join(" ") + "`"
+        );
+
       function compare(a, b) {
-        if((a.highest_bid_amount > 0 ? a.highest_bid_amount : a.starting_bid) < (b.highest_bid_amount > 0 ? b.highest_bid_amount : b.starting_bid)) return -1;
-        if((a.highest_bid_amount > 0 ? a.highest_bid_amount : a.starting_bid) > (b.highest_bid_amount > 0 ? b.highest_bid_amount : b.starting_bid)) return 1;
+        if (
+          (a.highest_bid_amount > 0 ? a.highest_bid_amount : a.starting_bid) / a.item.count <
+          (b.highest_bid_amount > 0 ? b.highest_bid_amount : b.starting_bid) / b.item.count
+        )
+          return -1;
+        if (
+          (a.highest_bid_amount > 0 ? a.highest_bid_amount : a.starting_bid) / a.item.count >
+          (b.highest_bid_amount > 0 ? b.highest_bid_amount : b.starting_bid) / b.item.count
+        )
+          return 1;
         return 0;
       }
-      
-      item.sort(compare);
-      var lowest = (item[0].highest_bid_amount > 0 ? item[0].highest_bid_amount : item[0].starting_bid);
-      var highest = (item[item.length - 1].highest_bid_amount > 0 ? item[item.length - 1].highest_bid_amount : item[item.length - 1].starting_bid);
+
+      auctions.sort(compare);
+      var lowest =
+        (auctions[0].highest_bid_amount > 0
+          ? auctions[0].highest_bid_amount
+          : auctions[0].starting_bid) / auctions[0].item.count;
+      var highest =
+        (auctions[auctions.length - 1].highest_bid_amount > 0
+          ? auctions[auctions.length - 1].highest_bid_amount
+          : auctions[auctions.length - 1].starting_bid) /
+        auctions[auctions.length - 1].item.count;
       var average = 0;
-      for(const i of item) {
-        average += (i.highest_bid_amount > 0 ? i.highest_bid_amount : i.starting_bid)
+      for (const i of auctions) {
+        average +=
+          (i.highest_bid_amount > 0 ? i.highest_bid_amount : i.starting_bid) /
+          i.item.count;
       }
-      average = average / item.length;
+      average = average / auctions.length;
+      var median =
+        (auctions[Math.ceil(auctions.length / 2)].highest_bid_amount > 0
+          ? auctions[Math.ceil(auctions.length / 2)].highest_bid_amount
+          : auctions[Math.ceil(auctions.length / 2)].starting_bid) / auctions[Math.ceil(auctions.length / 2)].item.count;
+
+      const Embed = new Discord.MessageEmbed()
+        .setColor(color)
+        .setTitle(
+          'Price deatails of "' +
+            id.replace(/_/g, " ") +
+            '" from ' +
+            auctions.length +
+            " auctions"
+        )
+        .setDescription(
+          `Highest: \$${numberWithCommas(Math.round(highest))} - **${
+            auctions[auctions.length - 1].item_name
+          }**\nLowest: \$${numberWithCommas(Math.round(lowest))} - **${
+            auctions[0].item_name
+          }**\nAverage: \$${numberWithCommas(
+            Math.round(average)
+          )}\nMedian: \$${numberWithCommas(median)}`
+        )
+        .setTimestamp()
+        .setFooter(
+          "Have a nice day! :)",
+          message.client.user.displayAvatarURL()
+        );
+
+      message.channel.send(Embed);
+
+      return;
+    } else if(args[0] === "bazaar" || args[0] === "ba") {
+      if (!args[1]) return message.channel.send("Please enter an item!");
+      var productIdsAPI = await fetch(`https://api.hypixel.net/skyblock/bazaar/products?key=${process.env.API}`).then(resp => resp.json());
+      var productIds = productIdsAPI.productIds;
+      var list = ["OAK_LOG", "BIRCH_LOG", "SPRUCE_LOG", "DARK_OAK_LOG", "ACACIA_LOG", "JUNGLE_LOG", "COCOA_BEANS", "LAPIS_LAZULI", "RAW_SALMON", "PUFFERFISH"];
+      list.forEach(stuff => productIds.push(stuff));
+      var firstPrior = productIds.filter(item => {
+        return item.toLowerCase().replace(/_/g, " ").search(args.slice(1).join(" ").toLowerCase()) === 0 ? true : false
+      });
+      var search = productIds.filter(item => {
+        var searched = item.toLowerCase().replace(/_/g, " ").search(
+          args
+            .slice(1)
+            .join(" ")
+            .toLowerCase()
+        );
+        if (searched !== -1) return true;
+        else return false;
+      });
+      
+      if(search.length == 0) {
+        if(firstPrior.length == 0)
+        return message.channel.send(
+          "No item found for `" + args.slice(1).join(" ") + "`"
+        );
+      }
+      
+      var id = firstPrior.length > 0 ? firstPrior : search;
+      var searchedID = id[0];
+      switch(id[0]) {
+        case "OAK_LOG":
+          id[0] = "LOG";
+          break;
+        case "BIRCH_LOG":
+          id[0] = "LOG:2";
+          break;
+        case "SPRUCE_LOG":
+          id[0] = "LOG:1";
+          break;
+        case "JUNGLE_LOG":
+          id[0] = "LOG:3";
+          break;
+        case "DARK_OAK_LOG":
+          id[0] = "LOG_2:1";
+          break;
+        case "ACACIA_LOG":
+          id[0] = "LOG_2";
+          break;
+        case "COCOA_BEANS":
+          id[0] = "INK_SACK:3";
+          break;
+        case "LAPIS_LAZULI":
+          id[0] = "INK_SACK:4";
+          break;
+        case "RAW_SALMON":
+          id[0] = "RAW_FISH:1";
+          break;
+        case "PUFFERFISH":
+          id[0] = "RAW_FISH:3";
+          break;
+        default:
+          id = id;
+      }
+      var product = await fetch(`https://api.hypixel.net/skyblock/bazaar/product?key=${process.env.API}&productId=${id[0]}`).then(resp => resp.json());
+      var stats = product.product_info.quick_status;
+      var buyPrice = stats.buyPrice;
+      var buyVol = stats.buyVolume;
+      var buyOrder = stats.buyOrders;
+      var sellPrice = stats.sellPrice;
+      var sellVol = stats.sellVolume;
+      var sellOrder = stats.sellOrders;
       
       const Embed = new Discord.MessageEmbed()
       .setColor(color)
-      .setTitle("Search results of \"" + args.slice(1).join(" ") + '"')
-      .setDescription(`Highest: \$${highest}\nLowest: \$${lowest}\nAverage: \$${Math.round(average)}`)
+      .setTitle("Price details of \"" + searchedID.replace(/_/g, " ") + "\" from Bazaar")
+      .addField("Buy Price", numberWithCommas(Math.round(buyPrice * 100) / 100), true)
+      .addField("Buy Volume", numberWithCommas(buyVol), true)
+      .addField("Buy Orders", numberWithCommas(buyOrder), true)
+      .addField("Sell Price", numberWithCommas(Math.round(sellPrice * 100) / 100), true)
+      .addField("Sell Volume", numberWithCommas(sellVol), true)
+      .addField("Sell Orders", numberWithCommas(sellOrder), true)
       .setTimestamp()
       .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       
       message.channel.send(Embed);
+      
+      return;
+    }
 
-        return;
-      }
-    
-    
     const filter = (reaction, user) => {
       return (
         ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
@@ -85,7 +257,7 @@ module.exports = {
           "Please provide a Minecraft username or use the subcommands."
         );
       }
-      
+
       MojangAPI.nameToUuid(`${args[0]}`, function(err, res) {
         if (err) console.log(err);
         else {
@@ -378,6 +550,7 @@ module.exports = {
         }
       });
     } else {
+      args[1] = args[1].toLowerCase();
       MojangAPI.nameToUuid(`${args[1]}`, function(err, res) {
         if (err) console.log(err);
         else {
@@ -728,7 +901,7 @@ module.exports = {
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
-                    .setDescription("TNT Games Stats")
+                    .setDescription("TNT Games - **Overall**")
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FTNT.png?v=1579257361129"
                     )
@@ -2759,7 +2932,7 @@ module.exports = {
                     .setThumbnail(
                       "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSkywars.png?v=1579257360320"
                     )
-                    .addField("Coins", coins, true)
+                    .addField("Coins", numberWithCommas(coins), true)
                     .addField("Level", level, true)
                     .addField("Winstreak", winstreak, true)
                     .addField("Kills", kills, true)
@@ -3087,8 +3260,2443 @@ module.exports = {
                   collector.on("end", function() {
                     msg.reactions.removeAll().catch(console.error);
                   });
-                } else if(args[0] === "") {
+                } else if (args[0] === "blitz" || args[0] === "sg") {
+                  var hg = body.player.stats.HungerGames;
+
+                  var deaths = hg.deaths ? hg.deaths : 0;
+                  var damageTaken = hg.damage_taken ? hg.damage_taken : 0;
+                  var played = hg.games_played ? hg.games_played : 0;
+                  var time = hg.time_played ? hg.time_played : 0;
+                  var wins = hg.wins ? hg.wins : 0;
+                  var coins = hg.coins ? hg.coins : 0;
+                  var kills = hg.kills ? hg.kills : 0;
+                  var damage = hg.damage ? hg.damage : 0;
+                  var arrows = hg.arrows_hit ? hg.arrows_hit : 0;
+                  var fired = hg.arrows_fired ? hg.arrows_fired : 0;
+                  var losses = played - wins;
+                  var wlr = isNaN(Math.round((wins / losses) * 100) / 100)
+                    ? "0.00"
+                    : Math.round((wins / losses) * 100) / 100;
+                  var kdr = isNaN(Math.round((kills / deaths) * 100) / 100)
+                    ? "0.00"
+                    : Math.round((kills / deaths) * 100) / 100;
+
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Blitz Survival - **Overall**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSG.png?v=1579257360066"
+                    )
+                    .addField("Coins", numberWithCommas(coins))
+                    .addField("Games Played", played, true)
+                    .addField("Damage Dealt", damage, true)
+                    .addField("Damage Taken", damageTaken, true)
+                    .addField("Time Played", time, true)
+                    .addField("Arrows Fired", fired, true)
+                    .addField("Arrows Hit", arrows, true)
+                    .addField("Kills", kills, true)
+                    .addField("Deaths", deaths, true)
+                    .addField("KDR", kdr, true)
+                    .addField("Wins", wins, true)
+                    .addField("Losses", losses, true)
+                    .addField("WLR", wlr, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  message.channel.send(Embed);
+                } else if (args[0] === "arcade" || args[0] === "ar") {
+                  var ar = body.player.stats.Arcade;
+
+                  var coins = ar.coins ? ar.coins : 0;
+
+                  var blockingKills = ar.kills_dayone ? ar.kills_dayone : 0;
+                  var blockingWins = ar.wins_dayone ? ar.wins_dayone : 0;
+                  var blockingHeadshots = ar.headshots_dayone
+                    ? ar.headshots_dayone
+                    : 0;
+
+                  var bountyKills = ar.kills_oneinthequiver
+                    ? ar.kills_oneinthequiver
+                    : 0;
+                  var bountyDeaths = ar.deaths_oneinthequiver
+                    ? ar.deaths_oneinthequiver
+                    : 0;
+                  var bountyWins = ar.wins_oneinthequiver
+                    ? ar.wins_oneinthequiver
+                    : 0;
+
+                  var dragonKills = ar.kills_dragonwars2
+                    ? ar.kills_dragonwars2
+                    : 0;
+                  var dragonWins = ar.wins_dragonwars2
+                    ? ar.wins_dragonwars2
+                    : 0;
+
+                  var enderWins = ar.wins_ender ? ar.wins_ender : 0;
+
+                  var farmWins = ar.wins_farm_hunt ? ar.wins_farm_hunt : 0;
+
+                  var soccerPowerkicks = ar.powerkicks_soccer
+                    ? ar.powerkicks_soccer
+                    : 0;
+                  var soccerGoals = ar.goals_soccer ? ar.goals_soccer : 0;
+                  var soccerWins = ar.wins_soccer ? ar.wins_soccer : 0;
+                  var soccerKicks = ar.kicks_soccer ? ar.kicks_soccer : 0;
+
+                  var hiderWins = ar.hider_wins_hide_and_seek
+                    ? ar.hider_wins_hide_and_seek
+                    : 0;
+                  var seekerWins = ar.seeker_wins_hide_and_seek
+                    ? ar.seeker_wins_hide_and_seek
+                    : 0;
+
+                  var holeRounds = ar.rounds_hole_in_the_wall
+                    ? ar.rounds_hole_in_the_wall
+                    : 0;
+
+                  var saysRounds = ar.rounds_simon_says
+                    ? ar.rounds_simon_says
+                    : 0;
+                  var saysWins = ar.wins_simon_says ? ar.wins_simon_says : 0;
+
+                  var miniKills = ar.kills_mini_walls ? ar.kills_mini_walls : 0;
+                  var miniDeaths = ar.deaths_mini_walls
+                    ? ar.deaths_mini_walls
+                    : 0;
+                  var miniWithers = ar.wither_kills_mini_walls
+                    ? ar.wither_kills_mini_walls
+                    : 0;
+                  var miniFinal = ar.final_kills_mini_walls
+                    ? ar.final_kills_mini_walls
+                    : 0;
+                  var miniArrows = ar.arrows_hit_mini_walls
+                    ? ar.arrows_hit_mini_walls
+                    : 0;
+                  var miniWins = ar.wins_mini_walls ? ar.wins_mini_walls : 0;
+                  var miniShots = ar.arrows_shot_mini_walls
+                    ? ar.arrows_shot_mini_walls
+                    : 0;
+                  var miniWitherDmg = ar.wither_damage_mini_walls
+                    ? ar.wither_damage_mini_walls
+                    : 0;
+
+                  var party1Wins = ar.wins_party ? ar.wins_party : 0;
+                  var party2Wins = ar.wins_party_2 ? ar.wins_party_2 : 0;
+                  var party3Wins = ar.wins_party_3 ? ar.wins_party_3 : 0;
+
+                  var throwDeaths = ar.deaths_throw_out
+                    ? ar.deaths_throw_out
+                    : 0;
+                  var throwKills = ar.kills_throw_out ? ar.kills_throw_out : 0;
+                  var throwWins = ar.wins_throw_out ? ar.wins_throw_out : 0;
+
+                  var zombFast20 = ar.fastest_time_20_zombies
+                    ? ar.fastest_time_20_zombies
+                    : 0;
+                  var zombBest = ar.best_round_zombies
+                    ? ar.best_round_zombies
+                    : 0;
+                  var zombFast10 = ar.fastest_time_10_zombies
+                    ? ar.fastest_time_10_zombies
+                    : 0;
+                  var zombBullets = ar.bullets_shot_zombies
+                    ? ar.bullets_shot_zombies
+                    : 0;
+                  var zombBulletHits = ar.bullets_hit_zombies
+                    ? ar.bullets_hit_zombies
+                    : 0;
+                  var zombHeadshot = ar.headshots_zombies
+                    ? ar.headshots_zombies
+                    : 0;
+                  var zombRevived = ar.players_revived_zombies
+                    ? ar.players_revived_zombies
+                    : 0;
+                  var zombDeaths = ar.deaths_zombies ? ar.deaths_zombies : 0;
+                  var zombWindows = ar.windows_repaired_zombies
+                    ? ar.windows_repaired_zombies
+                    : 0;
+                  var zombRounds = ar.total_rounds_survived_zombies
+                    ? ar.total_rounds_survived_zombies
+                    : 0;
+                  var zombKills = ar.zombie_kills_zombies
+                    ? ar.zombie_kills_zombies
+                    : 0;
+
+                  var creeperMax = ar.max_wave ? ar.max_wave : 0;
+
+                  var gwDeaths = ar.sw_deaths ? ar.sw_deaths : 0;
+                  var gwWins = ar.sw_game_wins ? ar.sw_game_wins : 0;
+                  var gwKills = ar.sw_kills ? ar.sw_kills : 0;
+                  var gwRebelKills = ar.sw_rebel_kills ? ar.sw_rebel_kills : 0;
+                  var gwShots = ar.sw_shots_fired ? ar.sw_shots_fired : 0;
+
+                  const Embed1 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription(
+                      "Arcade - **Overall/Blocking Dead/Bounty Hunters/Dragon Wars/Ender Spleef**"
+                    )
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FArcade.png?v=1579257357849"
+                    )
+                    .addField("Coins", numberWithCommas(coins))
+                    .addField("Blocking Dead Kills", blockingKills, true)
+                    .addField("Blocking Dead Wins", blockingWins, true)
+                    .addField(
+                      "Blocking Dead Headshots",
+                      blockingHeadshots,
+                      true
+                    )
+                    .addField("Bounty Hunters Kills", bountyKills, true)
+                    .addField("Bounty Hunters Deaths", bountyDeaths, true)
+                    .addField("Bounty Hunters Wins", bountyWins, true)
+                    .addField("Dragon Wars Kills", dragonKills, true)
+                    .addField("Dragon Wars Wins", dragonWins, true)
+                    .addField("Ender Spleef Wins", enderWins, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  const Embed2 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription(
+                      "Arcade - **Football/Hide and Seek/Farm Hunt/Hypixel Says**"
+                    )
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FArcade.png?v=1579257357849"
+                    )
+                    .addField("Football Powerkicks", soccerPowerkicks, true)
+                    .addField("Football Kicks", soccerKicks, true)
+                    .addField("Football Goals", soccerGoals, true)
+                    .addField("Football Wins", soccerWins, true)
+                    .addField("Hide and Seek Hider Wins", hiderWins, true)
+                    .addField("Hide and Seek Seeker Wins", seekerWins, true)
+                    .addField("Farm Hunt Wins", farmWins, true)
+                    .addField("Hypixel Says Rounds Played", saysRounds, true)
+                    .addField("Hypixel Says Wins", saysWins, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  const Embed3 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Arcade - **Hole in the Wall/Mini Walls**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FArcade.png?v=1579257357849"
+                    )
+                    .addField(
+                      "Hole in the Wall Rounds Played",
+                      holeRounds,
+                      true
+                    )
+                    .addField("Mini Walls Kills", miniKills, true)
+                    .addField("Mini Walls Deaths", miniDeaths, true)
+                    .addField("Mini Walls Wither Kills", miniWithers, true)
+                    .addField("Mini Walls Wither Damage", miniWitherDmg, true)
+                    .addField("Mini Walls Wins", miniWins, true)
+                    .addField("Mini Walls Arrow Shots", miniShots, true)
+                    .addField("Mini Walls Arrow Hits", miniArrows, true)
+                    .addField("Mini Walls Final Kills", miniFinal, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  const Embed4 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Arcade - **Party Games/Throw Out**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FArcade.png?v=1579257357849"
+                    )
+                    .addField("Party Games 1 Wins", party1Wins, true)
+                    .addField("Party Games 2 Wins", party2Wins, true)
+                    .addField("Party Games 3 Wins", party3Wins, true)
+                    .addField("Throw Out Kills", throwKills, true)
+                    .addField("Throw Out Deaths", throwDeaths, true)
+                    .addField("Throw Out Wins", throwWins, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  const Embed5 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Arcade - **Zombies**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FArcade.png?v=1579257357849"
+                    )
+                    .addField("Zombies Best Rounds", zombBest, true)
+                    .addField("Zombies Fastest 10 Rounds", zombFast10, true)
+                    .addField("Zombies Fastest 20 Rounds", zombFast20, true)
+                    .addField("Zombies Bullet Shots", zombBullets, true)
+                    .addField("Zombies Bullet Hits", zombBulletHits, true)
+                    .addField("Zombies Headshots", zombHeadshot, true)
+                    .addField("Zombies Kills", zombKills, true)
+                    .addField("Zombies Deaths", zombDeaths, true)
+                    .addField("Zombies Players Revived", zombRevived, true)
+                    .addField("Zombies Windows Repaired", zombWindows, true)
+                    .addField("Zombies Rounds Survived", zombRounds, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  const Embed6 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Arcade - **Galaxy Wars/Creeper Attack**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FArcade.png?v=1579257357849"
+                    )
+                    .addField("Galaxy Wars Kills", gwKills, true)
+                    .addField("Galaxy Wars Deaths", gwDeaths, true)
+                    .addField("Galaxy Wars Wins", gwWins, true)
+                    .addField("Galaxy Wars Fired Shots", gwShots, true)
+                    .addField("Galaxy Wars Rebel Kills", gwRebelKills, true)
+                    .addField("Creeper Attack Max Wave", creeperMax, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  var allEmbeds = [
+                    Embed1,
+                    Embed2,
+                    Embed3,
+                    Embed4,
+                    Embed5,
+                    Embed6
+                  ];
+                  var s = 0;
+                  var msg = await message.channel.send(allEmbeds[0]);
+
+                  await msg.react("⏮");
+                  await msg.react("◀");
+                  await msg.react("▶");
+                  await msg.react("⏭");
+                  await msg.react("⏹");
+                  var collector = await msg.createReactionCollector(filter, {
+                    idle: 60000,
+                    errors: ["time"]
+                  });
+
+                  collector.on("collect", function(reaction, user) {
+                    reaction.users.remove(user.id);
+                    switch (reaction.emoji.name) {
+                      case "⏮":
+                        s = 0;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "◀":
+                        s -= 1;
+                        if (s < 0) {
+                          s = allEmbeds.length - 1;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "▶":
+                        s += 1;
+                        if (s > allEmbeds.length - 1) {
+                          s = 0;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏭":
+                        s = allEmbeds.length - 1;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏹":
+                        collector.emit("end");
+                        break;
+                    }
+                  });
+                  collector.on("end", function() {
+                    msg.reactions.removeAll().catch(console.error);
+                  });
+                } else if (args[0] === "murdermystery" || args[0] === "mm") {
+                  var mm = body.player.stats.MurderMystery;
+
+                  var wins = mm.wins ? mm.wins : 0;
+                  var coins = mm.coins ? mm.coins : 0;
+                  var played = mm.games ? mm.games : 0;
+                  var quickDetect = mm.quickest_detective_win_time_seconds
+                    ? mm.quickest_detective_win_time_seconds
+                    : 0;
+                  var hero = mm.was_hero ? mm.was_hero : 0;
+                  var bow = mm.bow_kills ? mm.bow_kills : 0;
+                  var detectWins = mm.detective_wins ? mm.detective_wins : 0;
+                  var kills = mm.kills ? mm.kills : 0;
+                  var pickedCoin = mm.coins_pickedup ? mm.coins_pickedup : 0;
+                  var murderKills = mm.kills_as_murderer
+                    ? mm.kills_as_murderer
+                    : 0;
+                  var knifeKills = mm.knife_kills ? mm.knife_kills : 0;
+                  var deaths = mm.deaths ? mm.deaths : 0;
+                  var trapKills = mm.trap_kills ? mm.trap_kills : 0;
+                  var thrownKnifeKills = mm.thrown_knife_kills
+                    ? mm.thrown_knife_kills
+                    : 0;
+                  var survived = mm.total_time_survived_seconds
+                    ? mm.total_time_survived_seconds
+                    : 0;
+                  var longestSurvived = mm.longest_time_as_survivor_seconds
+                    ? mm.longest_time_as_survivor_seconds
+                    : 0;
+                  var quickDown = mm.quickest_showdown_win_time_seconds
+                    ? mm.quickest_showdown_win_time_seconds
+                    : 0;
+                  var quickMurderWin = mm.quickest_murderer_win_time_seconds
+                    ? mm.quickest_murderer_win_time_seconds
+                    : 0;
+                  var murderWins = mm.murderer_wins ? mm.murderer_wins : 0;
+                  var survivorWins = mm.survivor_wins ? mm.survivor_wins : 0;
+                  var survivorKills = mm.kills_as_survivor
+                    ? mm.kills_as_survivor
+                    : 0;
+
+                  //classic
+                  var classicPlayed = mm.games_MURDER_CLASSIC
+                    ? mm.games_MURDER_CLASSIC
+                    : 0;
+                  var classicWins = mm.wins_MURDER_CLASSIC
+                    ? mm.wins_MURDER_CLASSIC
+                    : 0;
+                  var classicQuickDetect = mm.quickest_detective_win_time_seconds_MURDER_CLASSIC
+                    ? mm.quickest_detective_win_time_seconds_MURDER_CLASSIC
+                    : 0;
+                  var classicBow = mm.bow_kills_MURDER_CLASSIC
+                    ? mm.bow_kills_MURDER_CLASSIC
+                    : 0;
+                  var classicHero = mm.was_hero_MURDER_CLASSIC
+                    ? mm.was_hero_MURDER_CLASSIC
+                    : 0;
+                  var classicKills = mm.kills_MURDER_CLASSIC
+                    ? mm.kills_MURDER_CLASSIC
+                    : 0;
+                  var classicPickedCoin = mm.coins_pickedup_MURDER_CLASSIC
+                    ? mm.coins_pickedup_MURDER_CLASSIC
+                    : 0;
+                  var classicDetectWins = mm.detective_wins_MURDER_CLASSIC
+                    ? mm.detective_wins_MURDER_CLASSIC
+                    : 0;
+                  var classicKnifeKills = mm.knife_kills_MURDER_CLASSIC
+                    ? mm.knife_kills_MURDER_CLASSIC
+                    : 0;
+                  var classicMurderKills = mm.kills_as_murderer_MURDER_CLASSIC
+                    ? mm.kills_as_murderer_MURDER_CLASSIC
+                    : 0;
+                  var classicDeaths = mm.deaths_MURDER_CLASSIC
+                    ? mm.deaths_MURDER_CLASSIC
+                    : 0;
+                  var classicTrapKills = mm.trap_kills_MURDER_CLASSIC
+                    ? mm.trap_kills_MURDER_CLASSIC
+                    : 0;
+                  var classicThrownKnifeKills = mm.thrown_knife_kills_MURDER_CLASSIC
+                    ? mm.thrown_knife_kills_MURDER_CLASSIC
+                    : 0;
+                  var classicQuickMurderWin = mm.quickest_murderer_win_time_seconds_MURDER_CLASSIC
+                    ? mm.quickest_murderer_win_time_seconds_MURDER_CLASSIC
+                    : 0;
+                  var classicMurderWins = mm.murderer_wins_MURDER_CLASSIC
+                    ? mm.murderer_wins_MURDER_CLASSIC
+                    : 0;
+
+                  //infection
+                  var infectLongestSurvived = mm.longest_time_as_survivor_seconds_MURDER_INFECTION
+                    ? mm.longest_time_as_survivor_seconds_MURDER_INFECTION
+                    : 0;
+                  var infectSurvived = mm.total_time_survived_seconds_MURDER_INFECTION
+                    ? mm.total_time_survived_seconds_MURDER_INFECTION
+                    : 0;
+                  var infectPlayed = mm.games_MURDER_INFECTION
+                    ? mm.games_MURDER_INFECTION
+                    : 0;
+                  var infectSurvivorWins = mm.survivor_wins_MURDER_INFECTION
+                    ? mm.survivor_wins_MURDER_INFECTION
+                    : 0;
+                  var infectSurvivorKills = mm.kills_as_survivor_MURDER_INFECTION
+                    ? mm.kills_as_survivor_MURDER_INFECTION
+                    : 0;
+                  var infectLast = mm.last_one_alive_MURDER_INFECTION
+                    ? mm.last_one_alive_MURDER_INFECTION
+                    : 0;
+
+                  //showdown
+                  var showQuickDown = mm.quickest_showdown_win_time_seconds_MURDER_SHOWDOWN
+                    ? mm.quickest_showdown_win_time_seconds_MURDER_SHOWDOWN
+                    : 0;
+                  var showKills = mm.kills_MURDER_SHOWDOWN
+                    ? mm.kills_MURDER_SHOWDOWN
+                    : 0;
+                  var showPlayed = mm.games_MURDER_SHOWDOWN
+                    ? mm.games_MURDER_SHOWDOWN
+                    : 0;
+                  var showWins = mm.wins_MURDER_SHOWDOWN
+                    ? mm.wins_MURDER_SHOWDOWN
+                    : 0;
+                  var showDeaths = mm.deaths_MURDER_SHOWDOWN
+                    ? mm.deaths_MURDER_SHOWDOWN
+                    : 0;
+                  var showPickedCoin = mm.coins_pickedup_MURDER_SHOWDOWN
+                    ? mm.coins_pickedup_MURDER_SHOWDOWN
+                    : 0;
+                  var showBow = mm.bow_kills_MURDER_SHOWDOWN
+                    ? mm.bow_kills_MURDER_SHOWDOWN
+                    : 0;
+
+                  //assassin
+                  var assPlayed = mm.games_MURDER_ASSASSINS
+                    ? mm.games_MURDER_ASSASSINS
+                    : 0;
+                  var assDeaths = mm.deaths_MURDER_ASSASSINS
+                    ? mm.deaths_MURDER_ASSASSINS
+                    : 0;
+                  var assPickedCoin = mm.coins_pickedup_MURDER_ASSASSINS
+                    ? mm.coins_pickedup_MURDER_ASSASSINS
+                    : 0;
+                  var assWins = mm.wins_MURDER_ASSASSINS
+                    ? mm.wins_MURDER_ASSASSINS
+                    : 0;
+                  var assKnifeKills = mm.knife_kills_MURDER_ASSASSINS
+                    ? mm.knife_kills_MURDER_ASSASSINS
+                    : 0;
+                  var assKills = mm.kills_MURDER_ASSASSINS
+                    ? mm.kills_MURDER_ASSASSINS
+                    : 0;
+                  var assThrownKnifeKills = mm.thrown_knife_kills_MURDER_ASSASSINS
+                    ? mm.thrown_knife_kills_MURDER_ASSASSINS
+                    : 0;
+
+                  //double
+                  var doublePlayed = mm.games_MURDER_DOUBLE_UP
+                    ? mm.games_MURDER_DOUBLE_UP
+                    : 0;
+                  var doublePickedCoin = mm.coins_pickedup_MURDER_DOUBLE_UP
+                    ? mm.coins_pickedup_MURDER_DOUBLE_UP
+                    : 0;
+                  var doubleWins = mm.wins_MURDER_DOUBLE_UP
+                    ? mm.wins_MURDER_DOUBLE_UP
+                    : 0;
+                  var doubleDeaths = mm.deaths_MURDER_DOUBLE_UP
+                    ? mm.deaths_MURDER_DOUBLE_UP
+                    : 0;
+                  var doubleKnifeKills = mm.knife_kills_MURDER_DOUBLE_UP
+                    ? mm.knife_kills_MURDER_DOUBLE_UP
+                    : 0;
+                  var doubleKills = mm.kills_MURDER_DOUBLE_UP
+                    ? mm.kills_MURDER_DOUBLE_UP
+                    : 0;
+                  var doubleMurderKills = mm.kills_as_murderer_MURDER_DOUBLE_UP
+                    ? mm.kills_as_murderer_MURDER_DOUBLE_UP
+                    : 0;
+                  var doubleHero = mm.was_hero_MURDER_DOUBLE_UP
+                    ? mm.was_hero_MURDER_DOUBLE_UP
+                    : 0;
+                  var doubleBow = mm.bow_kills_MURDER_DOUBLE_UP
+                    ? mm.bow_kills_MURDER_DOUBLE_UP
+                    : 0;
+                  var doubleDetectWins = mm.detective_wins_MURDER_DOUBLE_UP
+                    ? mm.detective_wins_MURDER_DOUBLE_UP
+                    : 0;
+                  var doubleMurderWins = mm.murderer_wins_MURDER_DOUBLE_UP
+                    ? mm.murderer_wins_MURDER_DOUBLE_UP
+                    : 0;
+                  var doubleTrapKills = mm.trap_kills_MURDER_DOUBLE_UP
+                    ? mm.trap_kills_MURDER_DOUBLE_UP
+                    : 0;
+                  var doubleQuickMurderWin = mm.quickest_murderer_win_time_seconds_MURDER_DOUBLE_UP
+                    ? mm.quickest_murderer_win_time_seconds_MURDER_DOUBLE_UP
+                    : 0;
+                  var doubleThrownKnifeKills = mm.thrown_knife_kills_MURDER_DOUBLE_UP
+                    ? mm.thrown_knife_kills_MURDER_DOUBLE_UP
+                    : 0;
+
+                  const overall = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Murder Mystery - **Overall**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FMurderMystery.png?v=1579257356991"
+                    )
+                    .addField("Coins", numberWithCommas(coins))
+                    .addField("Games Played", played, true)
+                    .addField("Coins Picked", pickedCoin, true)
+                    .addField("Hero", hero, true)
+                    .addField("Wins", wins, true)
+                    .addField("Deaths", deaths, true)
+                    .addField("Kills", kills, true)
+                    .addField("Win as Survivor", survivorWins, true)
+                    .addField("Win as Detective", detectWins, true)
+                    .addField("Win as Murderer", murderWins, true)
+                    .addField("Kill as Survivor", survivorKills, true)
+                    .addField("Bow Kills", bow, true)
+                    .addField("Trap Kills", trapKills, true)
+                    .addField("Kill as Murderer", murderKills, true)
+                    .addField("Knife Kills", knifeKills, true)
+                    .addField("Thrown Knife Kills", thrownKnifeKills, true)
+                    .addField("Quickest Showdown Win Time", quickDown, true)
+                    .addField("Quickest Detective Win Time", quickDetect, true)
+                    .addField(
+                      "Quickest Murderer Win Time",
+                      quickMurderWin,
+                      true
+                    )
+                  .addField("KDR", isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  const classic = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Murder Mystery - **Classic**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FMurderMystery.png?v=1579257356991"
+                    )
+                    .addField("Games Played", classicPlayed, true)
+                    .addField("Coins Picked", classicPickedCoin, true)
+                    .addField("Hero", classicHero, true)
+                    .addField("Wins", classicWins, true)
+                    .addField("Deaths", classicDeaths, true)
+                    .addField("Kills", classicKills, true)
+                    .addField("Win as Detective", classicDetectWins, true)
+                    .addField("Win as Murderer", classicMurderWins, true)
+                  .addField("KDR", isNaN(Math.round((classicKills / classicDeaths) * 100) / 100) ? "0.00" : Math.round((classicKills / classicDeaths) * 100) / 100, true)
+                    .addField("Bow Kills", classicBow, true)
+                    .addField("Trap Kills", classicTrapKills, true)
+                    .addField("\u200b", "\u200b", true)
                   
+                    .addField("Kill as Murderer", classicMurderKills, true)
+                    .addField("Knife Kills", classicKnifeKills, true)
+                    .addField(
+                      "Thrown Knife Kills",
+                      classicThrownKnifeKills,
+                      true
+                    )
+                    .addField(
+                      "Quickest Murderer Win Time",
+                      classicQuickMurderWin,
+                      true
+                    )
+                    .addField(
+                      "Quickest Detective Win Time",
+                      classicQuickDetect,
+                      true
+                    )
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  const double = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Murder Mystery - **Double Up**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FMurderMystery.png?v=1579257356991"
+                    )
+                    .addField("Games Played", doublePlayed, true)
+                    .addField("Coins Picked", doublePickedCoin, true)
+                    .addField("Hero", doubleHero, true)
+                    .addField("Wins", doubleWins, true)
+                    .addField("Deaths", doubleDeaths, true)
+                    .addField("Kills", doubleKills, true)
+                    .addField("Win as Detective", doubleDetectWins, true)
+                    .addField("Win as Murderer", doubleMurderWins, true)
+                  .addField("KDR", isNaN(Math.round((doubleKills / doubleDeaths) * 100) / 100) ? "0.00" : Math.round((doubleKills / doubleDeaths) * 100) / 100, true)
+                    .addField("Bow Kills", doubleBow, true)
+                    .addField("Trap Kills", doubleTrapKills, true)
+                    .addField(
+                      "Quickest Murderer Win Time",
+                      doubleQuickMurderWin,
+                      true
+                    )
+                    .addField("Kill as Murderer", doubleMurderKills, true)
+                    .addField("Knife Kills", doubleKnifeKills, true)
+                    .addField(
+                      "Thrown Knife Kills",
+                      doubleThrownKnifeKills,
+                      true
+                    )
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  const assassin = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Murder Mystery - **Assassins**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FMurderMystery.png?v=1579257356991"
+                    )
+                    .addField("Games Played", assPlayed, true)
+                    .addField("Coins Picked", assPickedCoin, true)
+                    .addField("\u200b", "\u200b", true)
+                    .addField("Wins", assWins, true)
+                    .addField("Deaths", assDeaths, true)
+                    
+                  .addField("KDR", isNaN(Math.round((assKills / assDeaths) * 100) / 100) ? "0.00" : Math.round((assKills / assDeaths) * 100) / 100, true)
+                    .addField("Kills", assKills, true)
+                    .addField("Knife Kills", assKnifeKills, true)
+                    .addField("Thrown Knife Kills", assThrownKnifeKills, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  const infection = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Murder Mystery - **Infection**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FMurderMystery.png?v=1579257356991"
+                    )
+                    .addField("Games Played", infectPlayed, true)
+                    .addField("Win as Survivor", infectSurvivorWins, true)
+                    .addField("Kill as Survivor", infectSurvivorKills, true)
+                    .addField("Total Survived Time", infectSurvived, true)
+                    .addField(
+                      "Longest Survived Time",
+                      infectLongestSurvived,
+                      true
+                    )
+                    .addField("Last One Alive", infectLast, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  const showdown = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Murder Mystery - **Showdown**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FMurderMystery.png?v=1579257356991"
+                    )
+                    .addField("Games Played", showPlayed, true)
+                    .addField("Coins Picked", showPickedCoin, true)
+                    .addField("Bow Kills", showBow, true)
+                    .addField("Wins", showWins, true)
+                    .addField("Deaths", showDeaths, true)
+                    .addField("Kills", showKills, true)
+                  .addField("KDR", isNaN(Math.round((showKills / showDeaths) * 100) / 100) ? "0.00" : Math.round((showKills / showDeaths) * 100) / 100, true)
+                    .addField("Quickest Showdown Win Time", showQuickDown, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  var allEmbeds = [
+                    overall,
+                    classic,
+                    double,
+                    assassin,
+                    infection,
+                    showdown
+                  ];
+
+                  var s = 0;
+                  var msg = await message.channel.send(allEmbeds[0]);
+
+                  await msg.react("⏮");
+                  await msg.react("◀");
+                  await msg.react("▶");
+                  await msg.react("⏭");
+                  await msg.react("⏹");
+                  var collector = await msg.createReactionCollector(filter, {
+                    idle: 60000,
+                    errors: ["time"]
+                  });
+
+                  collector.on("collect", function(reaction, user) {
+                    reaction.users.remove(user.id);
+                    switch (reaction.emoji.name) {
+                      case "⏮":
+                        s = 0;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "◀":
+                        s -= 1;
+                        if (s < 0) {
+                          s = allEmbeds.length - 1;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "▶":
+                        s += 1;
+                        if (s > allEmbeds.length - 1) {
+                          s = 0;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏭":
+                        s = allEmbeds.length - 1;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏹":
+                        collector.emit("end");
+                        break;
+                    }
+                  });
+                  collector.on("end", function() {
+                    msg.reactions.removeAll().catch(console.error);
+                  });
+                } else if (args[0] === "buildbattle" || args[0] === "bb") {
+                  var bb = body.player.stats.BuildBattle;
+
+                  var normalSoloWins = bb.wins_solo_normal
+                    ? bb.wins_solo_normal
+                    : 0;
+                  var normalTeamWins = bb.wins_teams_normal
+                    ? bb.wins_teams_normal
+                    : 0;
+                  var wins = bb.wins ? bb.wins : 0;
+                  var played = bb.games_played ? bb.games_played : 0;
+                  var score = bb.score ? bb.score : 0;
+                  var coins = bb.coins ? bb.coins : 0;
+                  var correct = bb.correct_guesses ? bb.correct_guesses : 0;
+                  var proSoloWins = bb.wins_solo_pro ? bb.wins_solo_pro : 0;
+                  var soloMostPoints = bb.solo_most_points
+                    ? bb.solo_most_points
+                    : 0;
+                  var guessWins = bb.wins_guess_the_build
+                    ? bb.wins_guess_the_build
+                    : 0;
+
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Build Battle - **Overall**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FBuildBattle.png?v=1579257358660"
+                    )
+                    .addField("Coins", numberWithCommas(coins))
+                    .addField("Games Played", played, true)
+                    .addField("Score", score, true)
+                    .addField("Wins", wins, true)
+                    .addField("Normal Solo Wins", normalSoloWins, true)
+                    .addField("Normal Teams Wins", normalTeamWins, true)
+                    .addField("Pro Solo Wins", proSoloWins, true)
+                    .addField("Solo Most Points", soloMostPoints, true)
+                    .addField("Guess the Build Wins", guessWins, true)
+                    .addField("Correct Guesses", correct, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  message.channel.send(Embed);
+                } else if (args[0] === "copsandcrims" || args[0] === "mcgo") {
+                  var cc = body.player.stats.MCGO;
+
+                  var grenKills = cc.grenade_kills ? cc.grenade_kills : 0;
+                  var deathmatchKills = cc.kills_deathmatch
+                    ? cc.kills_deathmatch
+                    : 0;
+                  var gameWins = cc.game_wins ? cc.game_wins : 0;
+                  var headshotKills = cc.headshot_kills ? cc.headshot_kills : 0;
+                  var deathmatchWins = cc.game_wins_deathmatch
+                    ? cc.game_wins_deathmatch
+                    : 0;
+                  var defused = cc.bombs_defused ? cc.bombs_defused : 0;
+                  var planted = cc.bombs_planted ? cc.bombs_planted : 0;
+                  var kills = cc.kills ? cc.kills : 0;
+                  var deathmatchDeaths = cc.deaths_deathmatch
+                    ? cc.deaths_deathmatch
+                    : 0;
+                  var deathmatchCrimKills = cc.criminal_kills_deathmatch
+                    ? cc.criminal_kills_deathmatch
+                    : 0;
+                  var coins = cc.coins ? cc.coins : 0;
+                  var fired = cc.shots_fired ? cc.shots_fired : 0;
+                  var roundWins = cc.round_wins ? cc.round_wins : 0;
+
+                  var deathmatchCopKills = cc.cop_kills_deathmatch
+                    ? cc.cop_kills_deathmatch
+                    : 0;
+
+                  var copKills = cc.cop_kills ? cc.cop_kills : 0;
+                  var crimKills = cc.criminal_kills ? cc.criminal_kills : 0;
+
+                  var deaths = cc.deaths ? cc.deaths : deathmatchDeaths;
+
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Cops and Crims - **Overall**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FCVC.png?v=1579257359319"
+                    )
+                    .addField("Coins", numberWithCommas(coins))
+                    .addField("Games Wins", gameWins, true)
+                    .addField("Round Wins", roundWins, true)
+                    .addField("Shots Fired", fired, true)
+
+                    .addField("Kills", kills, true)
+                    .addField("Cop Kills", copKills, true)
+                    .addField("Criminal Kills", crimKills, true)
+
+                    .addField("Deathmatch Kills", deathmatchKills, true)
+                    .addField("Deathmatch Cop Kills", deathmatchCopKills, true)
+                    .addField(
+                      "Deathmatch Criminal Kills",
+                      deathmatchCrimKills,
+                      true
+                    )
+
+                    .addField("Grenade Kills", grenKills, true)
+                    .addField("Headshot Kills", headshotKills, true)
+                  .addField("KDR", isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100, true)
+
+                    .addField("Deaths", deaths, true)
+                    .addField("Deathmatch Deaths", deathmatchDeaths, true)
+                  .addField("Deathmatch KDR", isNaN(Math.round((deathmatchKills / deathmatchDeaths) * 100) / 100) ? "0.00" : Math.round((deathmatchKills / deathmatchDeaths) * 100) / 100, true)
+                  
+                    .addField("Bombs Planted", planted, true)
+                    .addField("Bombs Defused", defused, true)
+                  .addField("Planted / Defused", isNaN(Math.round((planted / defused) * 100) / 100) ? "0.00" : Math.round((planted / defused) * 100) / 100, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+
+                  message.channel.send(Embed);
+                } else if (args[0] === "vampirez" || args[0] === "vz") {
+                  var vz = body.player.stats.VampireZ;
+                  
+                  var coins = vz.coins ? vz.coins : 0;
+                  var humanDeaths = vz.human_deaths ? vz.human_deaths : 0;
+                  var humanKills = vz.human_kills ? vz.human_kills : 0;
+                  var humanWins = vz.human_wins ? vz.human_wins : 0;
+                  var zombKills = vz.zombie_kills ? vz.zombie_kills : 0;
+                  var vampKills = vz.vampire_kills ? vz.vampire_kills : 0;
+                  var vampWins = vz.vampire_wins ? vz.vampire_wins : 0;
+                  var vampDeaths = vz.vampire_deaths ? vz.vampire_deaths : 0;
+                  
+                  var humanKdr = Math.round((humanKills / humanDeaths) * 100) / 100;
+                  var vampKdr = Math.round((vampKills / vampDeaths) * 100) / 100;
+                  
+                  humanKdr = isNaN(humanKdr) ? "0.00" : humanKdr;
+                  vampKdr = isNaN(vampKdr) ? "0.00" : vampKdr;
+                  
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("VampireZ - **Overall**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FVampireZ.png?v=1579257357094"
+                    )
+                    .addField("Coins", numberWithCommas(coins))
+                  .addField("Human Kills", humanKills, true)
+                  .addField("Human Deaths", humanDeaths, true)
+                  .addField("Human KDR", humanKdr, true)
+                  .addField("Vampire Kills", vampKills, true)
+                  .addField("Vampire Deaths", vampDeaths, true)
+                  .addField("Vampire KDR", vampKdr, true)
+                  .addField("Human Wins", humanWins, true)
+                  .addField("Vamper Wins", vampWins, true)
+                  .addField("Zombie Kills", zombKills, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  message.channel.send(Embed);
+                } else if(args[0] === "paintball" || args[0] === "pb") {
+                  var pb = body.player.stats.Paintball;
+                  
+                  var coins = pb.coins ? pb.coins : 0;
+                  var deaths = pb.deaths ? pb.deaths : 0;
+                  var fired = pb.shots_fired ? pb.shots_fired : 0;
+                  var wins = pb.wins ? pb.wins : 0;
+                  var killstreak = pb.killstreaks ? pb.killstreaks : 0;
+                  var kills = pb.kills ? pb.kills : 0;
+                  
+                  
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Paintball - **Overall**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FPaintball.png?v=1579257356701"
+                    )
+                    .addField("Coins", numberWithCommas(coins))
+                  .addField("Kills", kills , true)
+                  .addField("Deaths", deaths, true)
+                  .addField("KDR", isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100, true)
+                  .addField("Wins", wins, true)
+                  .addField("Winstreak", winstreak, true)
+                  .addField("Shots Fired", fired, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  message.channel.send(Embed);
+                } else if(args[0] === "quake" || args[0] === "q") {
+                  var q = body.player.stats.Quake;
+                  
+                  var coins = q.coins ? q.coins : 0;
+                  var deaths = q.deaths ? q.deaths : 0;
+                  var kills = q.kills ? q.kills : 0;
+                  var killstreak = q.killstreaks ? q.killstreaks : 0;
+                  var wins = q.wins ? q.wins : 0;
+                  var teamKills = q.kills_teams ? q.kills_teams : 0;
+                  var teamKillstreak = q.killstreaks_teams ? q.killstreaks_teams : 0;
+                  var teamDeaths = q.deaths_teams ? q.deaths_teams : 0;
+                  var teamWins = q.wins_teams ? q.wins_teams : 0;
+                  var highestKillstreak = q.highest_killstreak ? q.highest_killstreak : 0;
+                  var teamFired = q.shots_fired_teams ? q.shots_fired_teams : 0;
+                  var teamHeadshots = q.headshots_teams ? q.headshots_teams : 0;
+                  var headshots = q.headshots ?q.headshots : 0;
+                  var fired = q.shots_fired ? q.shots_fired :0;
+                  var kdr = isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100;
+                  var teamKdr = isNaN(Math.round((teamKills / teamDeaths) * 100) / 100) ? "0.00" : Math.round((teamKills / teamDeaths) * 100) / 100;
+                  
+                  
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("QuakeCraft - **Overall**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FQuakecraft.png?v=1579257356670"
+                    )
+                    .addField("Coins", numberWithCommas(coins))
+                  .addField("Kills", kills , true)
+                  .addField("Deaths", deaths, true)
+                  .addField("KDR", kdr, true)
+                  .addField("Wins", wins, true)
+                  .addField("Shots Fired", fired, true)
+                  .addField("Headshots", headshots, true)
+                  .addField("Team Kills", teamKills, true)
+                  .addField("Team Deaths", teamDeaths, true)
+                  .addField("Team KDR", teamKdr, true)
+                  .addField("Team Wins", teamWins, true)
+                  .addField("Team Shots Fired", teamFired, true)
+                  .addField("Team Headshots", teamHeadshots, true)
+                  .addField("Killstreak", killstreak, true)
+                  .addField("Team Killstreak", teamKillstreak, true)
+                  .addField("Highest Killstreak", highestKillstreak, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  message.channel.send(Embed);
+                } else if(args[0] === "uhc") {
+                  var uhc = body.player.stats.UHC;
+                  
+                  var coins = uhc.coins ? uhc.coins : 0;
+                  var deaths = uhc.deaths ? uhc.deaths : 0;
+                  var kills = uhc.kills ? uhc.kills : 0;
+                  var score = uhc.score ? uhc.score : 0;
+                  var wins = uhc.wins ? uhc.wins : 0;
+                  var heads = uhc.heads_eaten ? uhc.heads_eaten : 0;
+                  var kdr = isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100;
+                  
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("UHC - **Overall**")
+                    .setThumbnail(
+                      "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FUHC.png?v=1579257356947"
+                    )
+                    .addField("Coins", numberWithCommas(coins))
+                  .addField("Kills", kills , true)
+                  .addField("Deaths", deaths, true)
+                  .addField("KDR", kdr, true)
+                  .addField("Wins", wins, true)
+                  .addField("Score", score, true)
+                  .addField("Heads Eaten", heads, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  message.channel.send(Embed);
+                } /* else if(args[0] === "battleground" || args[0] === "bg") {
+                  var bg = body.player.stats.Battleground;
+                  
+                  var assists = bg.assists ? bg.assists : 0;
+                  var coins = bg.coins ? bg.coins : 0;
+                  var damage = bg.damage ? bg.damage : 0;
+                  var dmgTaken = bg.damage_taken ? bg.damage_taken : 0;
+                  var deaths = bg.deaths ? bg.deaths : 0;
+                  var heal = bg.heal ? bg.heal : 0;
+                  var kills = bg.kills ? bg.kills : 0;
+                  var losses = bg.losses ? bg.losses : 0;
+                  var winstreak = bg.win_streak ? bg.win_streak : 0;
+                  var wins = bg.wins ? bg.wins : 0;
+                  var kdr = isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100;
+                  var wlr = isNaN(Math.round((wins / losses) * 100) / 100) ? "0.00" : Math.round((wins / losses) * 100) / 100;
+                  
+                  
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Battleground - **Overall**")
+                    .addField("Coins", numberWithCommas(coins))
+                  .addField("Kills", kills , true)
+                  .addField("Deaths", deaths, true)
+                  .addField("KDR", kdr, true)
+                  .addField("Wins", wins, true)
+                  .addField("Losses", losses, true)
+                  .addField("WLR", wlr, true)
+                  .addField("Winstreak", winstreak, true)
+                  .addField("Heal", heal, true)
+                  .addField("Assists", assists, true)
+                  .addField("Damage", damage, true)
+                  .addField("Damage Taken", dmgTaken, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  message.channel.send(Embed);
+                }*/ else if(args[0] === "walls" || args[0] === "wa") {
+                  var w = body.player.stats.Walls;
+                  
+                  var coins = w.coins ? w.coins : 0;
+                  var deaths = w.deaths ? w.deaths : 0;
+                  var kills = w.kills ? w.kills : 0;
+                  var losses = w.losses ? w.losses : 0;
+                  var wins = w.wins ? w.wins : 0;
+                  var kdr = isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100;
+                  var wlr = isNaN(Math.round((wins / losses) * 100) / 100) ? "0.00" : Math.round((wins / losses) * 100) / 100;
+                  
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Walls - **Overall**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FWalls.png?v=1579257357338")
+                    .addField("Coins", numberWithCommas(coins))
+                  .addField("Kills", kills , true)
+                  .addField("Deaths", deaths, true)
+                  .addField("KDR", kdr, true)
+                  .addField("Wins", wins, true)
+                  .addField("Losses", losses, true)
+                  .addField("WLR", wlr, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  message.channel.send(Embed);
+                } else if(args[0] === "megawalls" || args[0] === "mw") {
+                  var mw = body.player.stats.Walls3;
+                  
+                  var assists = mw.assists ? mw.assists : 0;
+                  var coins = mw.coins ? mw.coins : 0;
+                  var deaths = mw.deaths ? mw.deaths : 0;
+                  var finalDeaths = mw.finalDeaths ? mw.finalDeaths : 0;
+                  var finalKills = mw.finalKills ? mw.finalKills : 0;
+                  var kills = mw.kills ? mw.kills : 0;
+                  var losses = mw.losses ? mw.losses : 0;
+                  var wins = mw.wins ? mw.wins : 0;
+                  var gamePlayed = mw.games_played ? mw.games_played: 0;
+                  var damageDealt = mw.damage_dealt ? mw.damage_dealt : 0;
+                  var kdr = isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100;
+                  var wlr = isNaN(Math.round((wins / losses) * 100) / 100) ? "0.00" : Math.round((wins / losses) * 100) / 100;
+                  var finalKdr = isNaN(Math.round((finalKills / finalDeaths) * 100) / 100) ? "0.00" : Math.round((finalKills / finalDeaths) * 100) / 100;
+                  
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Mega Walls - **Overall**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FMegaWalls.png?v=1579257359756")
+                    .addField("Coins", numberWithCommas(coins))
+                  .addField("Games Played", played, true)
+                  .addField("Assists", assists, true)
+                  .addField("Damage Dealt", damageDealt, true)
+                  .addField("Kills", kills , true)
+                  .addField("Deaths", deaths, true)
+                  .addField("KDR", kdr, true)
+                  .addField("Wins", wins, true)
+                  .addField("Losses", losses, true)
+                  .addField("WLR", wlr, true)
+                  .addField("Final Kills", finalKills , true)
+                  .addField("Final Deaths", finalDeaths, true)
+                  .addField("Final KDR", finalKdr, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  message.channel.send(Embed);
+                }  else if(args[0] === "crazywalls" || args[0] === "cw") {
+                  var cw = body.player.stats.TrueCombat;
+                  
+                  var arrows = cw.arrows_shot ?cw.arrows_shot : 0;
+                  var coins = cw.coins ? cw.coins : 0;
+                  var kills = cw.kills ? cw.kills : 0;
+                  var wins = cw.wins ? cw.wins : 0;
+                  var winstreak = cw.win_streak ? cw.win_streak : 0;
+                  var games = cw.games ? cw.games :0;
+                  var deaths = cw.deaths ? cw.deaths : 0;
+                  var losses = cw.losses ? cw.losses : 0;
+                  var kdr = isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100;
+                  var wlr = isNaN(Math.round((wins / losses) * 100) / 100) ? "0.00" : Math.round((wins / losses) * 100) / 100;
+                  
+                  var soloLuckyWins = cw.crazywalls_wins_solo_chaos ? cw.crazywalls_wins_solo_chaos : 0;
+                  var soloLuckyKills = cw.crazywalls_kills_solo_chaos ? cw.crazywalls_kills_solo_chaos : 0;
+                  var soloLuckyLosses = cw.crazywalls_losses_solo_chaos ? cw.crazywalls_losses_solo_chaos : 0;
+                  var soloLuckyGames = cw.crazywalls_games_solo_chaos ? cw.crazywalls_games_solo_chaos : 0;
+                  var soloLuckyDeaths = cw.crazywalls_deaths_solo_chaos ? cw.crazywalls_deaths_solo_chaos  :0;
+                  var soloLuckyKdr = isNaN(Math.round((soloLuckyKills / soloLuckyDeaths) * 100) / 100) ? "0.00" : Math.round((soloLuckyKills / soloLuckyDeaths) * 100) / 100;
+                  var soloLuckyWlr = isNaN(Math.round((soloLuckyWins / soloLuckyLosses) * 100) / 100) ? "0.00" : Math.round((soloLuckyWins / soloLuckyLosses) * 100) / 100;
+                  
+                  var soloDeaths = cw.crazywalls_deaths_solo ? cw.crazywalls_deaths_solo : 0;
+                  var soloGames = cw.crazywalls_games_solo ? cw.crazywalls_games_solo  :0;
+                  var soloLosses = cw.crazywalls_losses_solo ? cw.crazywalls_losses_solo : 0;
+                  var soloKills = cw.crazywalls_kills_solo ? cw.crazywalls_kills_solo : 0;
+                  var soloWins = cw.crazywalls_wins_solo ? cw.crazywalls_wins_solo : 0;
+                  var soloKdr = isNaN(Math.round((soloKills / soloDeaths) * 100) / 100) ? "0.00" : Math.round((soloKills / soloDeaths) * 100) / 100;
+                  var soloWlr = isNaN(Math.round((soloWins / soloLosses) * 100) / 100) ? "0.00" : Math.round((soloWins / soloLosses) * 100) / 100;
+                  
+                  var teamLuckyWins = cw.crazywalls_wins_team_chaos ? cw.crazywalls_wins_team_chaos : 0;
+                  var teamLuckyKills = cw.crazywalls_kills_team_chaos ? cw.crazywalls_kills_team_chaos : 0;
+                  var teamLuckyLosses = cw.crazywalls_losses_team_chaos ? cw.crazywalls_losses_team_chaos : 0;
+                  var teamLuckyGames = cw.crazywalls_games_team_chaos ? cw.crazywalls_games_team_chaos : 0;
+                  var teamLuckyDeaths = cw.crazywalls_deaths_team_chaos ? cw.crazywalls_deaths_team_chaos  :0;
+                  var teamLuckyKdr = isNaN(Math.round((teamLuckyKills / teamLuckyDeaths) * 100) / 100) ? "0.00" : Math.round((teamLuckyKills / teamLuckyDeaths) * 100) / 100;
+                  var teamLuckyWlr = isNaN(Math.round((teamLuckyWins / teamLuckyLosses) * 100) / 100) ? "0.00" : Math.round((teamLuckyWins / teamLuckyLosses) * 100) / 100;
+                  
+                  var teamDeaths = cw.crazywalls_deaths_team ? cw.crazywalls_deaths_team : 0;
+                  var teamGames = cw.crazywalls_games_team ? cw.crazywalls_games_team  :0;
+                  var teamLosses = cw.crazywalls_losses_team ? cw.crazywalls_losses_team : 0;
+                  var teamKills = cw.crazywalls_kills_team ? cw.crazywalls_kills_team : 0;
+                  var teamWins = cw.crazywalls_wins_team ? cw.crazywalls_wins_team : 0;
+                  var teamKdr = isNaN(Math.round((teamKills / teamDeaths) * 100) / 100) ? "0.00" : Math.round((teamKills / teamDeaths) * 100) / 100;
+                  var teamWlr = isNaN(Math.round((teamWins / teamLosses) * 100) / 100) ? "0.00" : Math.round((teamWins / teamLosses) * 100) / 100;
+                  
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Crazy Walls - **Overall**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FCrazyWalls.png?v=1579257358927")
+                    .addField("Coins", numberWithCommas(coins))
+                  .addField("Games Played", games, true)
+                  .addField("Arrows Shot", arrows, true)
+                  .addField("Winstreak", winstreak, true)
+                  .addField("Kills", kills, true)
+                  .addField("Deaths", deaths, true)
+                  .addField("KDR", kdr, true)
+                  .addField("Wins", wins, true)
+                  .addField("Losses", losses, true)
+                  .addField("WLR", wlr, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed2 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Crazy Walls - **Solo Normal**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FCrazyWalls.png?v=1579257358927")
+                  .addField("Games Played", soloGames)
+                  .addField("Kills", soloKills, true)
+                  .addField("Deaths", soloDeaths, true)
+                  .addField("KDR", soloKdr, true)
+                  .addField("Wins", soloWins, true)
+                  .addField("Losses", soloLosses, true)
+                  .addField("WLR", soloWlr, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed3 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Crazy Walls - **Solo Lucky**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FCrazyWalls.png?v=1579257358927")
+                  .addField("Games Played", soloLuckyGames)
+                  .addField("Kills", soloLuckyKills, true)
+                  .addField("Deaths", soloLuckyDeaths, true)
+                  .addField("KDR", soloLuckyKdr, true)
+                  .addField("Wins", soloLuckyWins, true)
+                  .addField("Losses", soloLuckyLosses, true)
+                  .addField("WLR", soloLuckyWlr, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed4 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Crazy Walls - **Team Normal**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FCrazyWalls.png?v=1579257358927")
+                  .addField("Games Played", teamGames)
+                  .addField("Kills", teamKills, true)
+                  .addField("Deaths", teamDeaths, true)
+                  .addField("KDR", teamKdr, true)
+                  .addField("Wins", teamWins, true)
+                  .addField("Losses", teamLosses, true)
+                  .addField("WLR", teamWlr, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed5 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Crazy Walls - **Team Lucky**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FCrazyWalls.png?v=1579257358927")
+                  .addField("Games Played", teamLuckyGames)
+                  .addField("Kills", teamLuckyKills, true)
+                  .addField("Deaths", teamLuckyDeaths, true)
+                  .addField("KDR", teamLuckyKdr, true)
+                  .addField("Wins", teamLuckyWins, true)
+                  .addField("Losses", teamLuckyLosses, true)
+                  .addField("WLR", teamLuckyWlr, true)
+                    .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  var allEmbeds = [Embed, Embed2, Embed3, Embed4, Embed5];
+                  var s = 0;
+                  var msg = await message.channel.send(allEmbeds[0]);
+
+                  await msg.react("⏮");
+                  await msg.react("◀");
+                  await msg.react("▶");
+                  await msg.react("⏭");
+                  await msg.react("⏹");
+                  var collector = await msg.createReactionCollector(filter, {
+                    idle: 60000,
+                    errors: ["time"]
+                  });
+
+                  collector.on("collect", function(reaction, user) {
+                    reaction.users.remove(user.id);
+                    switch (reaction.emoji.name) {
+                      case "⏮":
+                        s = 0;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "◀":
+                        s -= 1;
+                        if (s < 0) {
+                          s = allEmbeds.length - 1;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "▶":
+                        s += 1;
+                        if (s > allEmbeds.length - 1) {
+                          s = 0;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏭":
+                        s = allEmbeds.length - 1;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏹":
+                        collector.emit("end");
+                        break;
+                    }
+                  });
+                  collector.on("end", function() {
+                    msg.reactions.removeAll().catch(console.error);
+                  });
+                } else if(args[0] === "smashhero" || args[0] === "sh") {
+                  var sh = body.player.stats.SuperSmash;
+                  
+                  var level = sh.smashLevel ? sh.smashLevel : 0;
+                  var coins = sh.coins ? sh.coins : 0;
+                  var winstreak = sh.win_streak ? sh.win_streak : 0;
+                  var kills = sh.kills ? sh.kills : 0;
+                  var wins = sh.wins ? sh.wins : 0;
+                  var damageDealt = sh.damage_dealt ? sh.damage_dealt : 0;
+                  var smasher = sh.smasher ? sh.smasher : 0;
+                  var smashed = sh.smashed ? sh.smashed : 0;
+                  var deaths = sh.deaths ? sh.deaths : 0;
+                  var games = sh.games ? sh.games : 0;
+                  var losses = sh.losses? sh.losses:0;
+                  var quits = sh.quits? sh.quits : 0;
+                  var kdr = isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100;
+                  var wlr = isNaN(Math.round((wins / losses) * 100) / 100) ? "0.00" : Math.round((wins / losses) * 100) / 100;
+                  
+                  var teamWins = sh.wins_teams ? sh.wins_teams :0;
+                  var teamSmashed = sh.smashed_teams ?sh.smashed_teams : 0;
+                  var teamKills = sh.kills_teams ? sh.kills_teams : 0;
+                  var teamSmasher = sh.smasher_teams ? sh.smasher_teams : 0;
+                  var teamDeaths = sh.deaths_teams ? sh.deaths_teams : 0;
+                  var teamGames = sh.games_teams ? sh.games_teams : 0;
+                  var teamLosses = sh.losses_teams ? sh.losses_teams : 0;
+                  var teamDamageDealt = sh.damage_dealt_teams ? sh.damage_dealt_teams : 0;
+                  var teamKdr = isNaN(Math.round((teamKills / teamDeaths) * 100) / 100) ? "0.00" : Math.round((teamKills / teamDeaths) * 100) / 100;
+                  var teamWlr = isNaN(Math.round((teamWins / teamLosses) * 100) / 100) ? "0.00" : Math.round((teamWins / teamLosses) * 100) / 100;
+                  
+                  var normalSmasher = sh.smasher_normal ? sh.smasher_normal : 0;
+                  var normalLosses = sh.losses_normal ? sh.losses_normal : 0;
+                  var normalSmashed = sh.smashed_normal? sh.smashed_normal :0;
+                  var normalDeaths = sh.deaths_normal ? sh.deaths_normal : 0;
+                  var normalGames = sh.games_normal ? sh.games_normal : 0;
+                  var normalKills = sh.kills_normal ? sh.kills_normal : 0;
+                  var normalDamageDealt = sh.damage_dealt_normal ? sh.damage_dealt_normal : 0;
+                  var normalWins = sh.wins_normal ? sh.wins_normal : 0;
+                  var normalKdr = isNaN(Math.round((normalKills / normalDeaths) * 100) / 100) ? "0.00" : Math.round((normalKills / normalDeaths) * 100) / 100;
+                  var normalWlr = isNaN(Math.round((normalWins / normalLosses) * 100) / 100) ? "0.00" : Math.round((normalWins / normalLosses) * 100) / 100;
+                  
+                  var triSmasher = sh.smasher_3v3 ? sh.smasher_3v3: 0;
+                  var triDamageDealt = sh.damage_dealt_3v3 ? sh.damage_dealt_3v3 : 0;
+                  var triKills = sh.kills_3v3 ? sh.kills_3v3 : 0;
+                  var triDeaths = sh.deaths_3v3 ? sh.deaths_3v3 : 0;
+                  var triGames = sh.games_3v3 ? sh.games_3v3 : 0;
+                  var triSmashed = sh.smashed_3v3 ? sh.smashed_3v3 : 0;
+                  var triLosses = sh.losses_3v3 ? sh.losses_3v3 : 0;
+                  var triWins = sh.wins_3v3 ? sh.wins_3v3 : 0;
+                  var triKdr = isNaN(Math.round((triKills / triDeaths) * 100) / 100) ? "0.00" : Math.round((triKills / triDeaths) * 100) / 100;
+                  var triWlr = isNaN(Math.round((triWins / triLosses) * 100) / 100) ? "0.00" : Math.round((triWins / triLosses) * 100) / 100;
+                  
+                  var doubleDeaths = sh.deaths_2v2 ? sh.deaths_2v2 : 0;
+                  var doubleKills = sh.kills_2v2 ? sh.kills_2v2 : 0;
+                  var doubleGames = sh.games_2v2 ? sh.games_2v2 : 0;
+                  var doubleSmashed = sh.smashed_2v2 ? sh.smashed_2v2 : 0;
+                  var doubleSmasher = sh.smasher_2v2 ? sh.smasher_2v2 : 0;
+                  var doubleLosses = sh.losses_2v2 ? sh.losses_2v2 : 0;
+                  var doubleDamageDealt = sh.damage_dealt_2v2 ? sh.damage_dealt_2v2 : 0;
+                  var doubleWins = sh.wins_2v2 ? sh.wins_2v2 : 0;
+                  var doubleKdr = isNaN(Math.round((doubleKills / doubleDeaths) * 100) / 100) ? "0.00" : Math.round((doubleKills / doubleDeaths) * 100) / 100;
+                  var doubleWlr = isNaN(Math.round((doubleWins / doubleLosses) * 100) / 100) ? "0.00" : Math.round((doubleWins / doubleLosses) * 100) / 100;
+                  
+                  
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Smash Hero - **Overall**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSmashHeroes.png?v=1579257360564")
+                    .addField("Coins", numberWithCommas(coins), true)
+                  .addField("Smash Level", level, true)
+                    .addField("\u200b", "\u200b", true)
+                  
+                  .addField("Games Played", games, true)
+                  .addField("Damage Dealt", damageDealt, true)
+                  .addField("Winstreak", winstreak, true)
+                  
+                  .addField("Smasher", smasher, true)
+                  .addField("Smashed", smashed, true)
+                  .addField("Quits", quits, true)
+                  
+                   .addField("Kills", kills, true)
+                  .addField("Deaths", deaths, true)
+                  .addField("KDR", kdr, true)
+                  
+                  .addField("Wins", wins, true)
+                  .addField("Losses", losses, true)
+                  .addField("WLR", wlr, true)
+                  
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed1 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Smash Hero - **Team**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSmashHeroes.png?v=1579257360564")
+                  
+                  .addField("Games Played", teamGames, true)
+                  
+                  .addField("Smasher", teamSmasher, true)
+                  .addField("Smashed", teamSmashed, true)
+                  .addField("Damage Dealt", teamDamageDealt, true)
+                  
+                  .addField("Kills", teamKills, true)
+                  .addField("Deaths", teamDeaths, true)
+                  .addField("KDR", teamKdr, true)
+                  
+                  .addField("Wins", teamWins, true)
+                  .addField("Losses", teamLosses, true)
+                  .addField("WLR", teamWlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed2 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Smash Hero - **Normal**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSmashHeroes.png?v=1579257360564")
+                  
+                  .addField("Games Played", normalGames, true)
+                  
+                  .addField("Smasher", normalSmasher, true)
+                  .addField("Smashed", normalSmashed, true)
+                  .addField("Damage Dealt", normalDamageDealt, true)
+                  
+                  .addField("Kills", normalKills, true)
+                  .addField("Deaths", normalDeaths, true)
+                  .addField("KDR", normalKdr, true)
+                  
+                  .addField("Wins", normalWins, true)
+                  .addField("Losses", normalLosses, true)
+                  .addField("WLR", normalWlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed3 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Smash Hero - **2v2**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSmashHeroes.png?v=1579257360564")
+                  
+                  .addField("Games Played", doubleGames, true)
+                  
+                  .addField("Smasher", doubleSmasher, true)
+                  .addField("Smashed", doubleSmashed, true)
+                  .addField("Damage Dealt", doubleDamageDealt, true)
+                  
+                  .addField("Kills", doubleKills, true)
+                  .addField("Deaths", doubleDeaths, true)
+                  .addField("KDR", doubleKdr, true)
+                  
+                  .addField("Wins", doubleWins, true)
+                  .addField("Losses", doubleLosses, true)
+                  .addField("WLR", doubleWlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed4 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Smash Hero - **3v3**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSmashHeroes.png?v=1579257360564")
+                  
+                  .addField("Games Played", triGames, true)
+                  
+                  .addField("Smasher", triSmasher, true)
+                  .addField("Smashed", triSmashed, true)
+                  .addField("Damage Dealt", triDamageDealt, true)
+                  
+                  .addField("Kills", triKills, true)
+                  .addField("Deaths", triDeaths, true)
+                  .addField("KDR", triKdr, true)
+                  
+                  .addField("Wins", triWins, true)
+                  .addField("Losses", triLosses, true)
+                  .addField("WLR", triWlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  var allEmbeds = [Embed, Embed2, Embed1, Embed3, Embed4];
+                  var s = 0;
+                  var msg = await message.channel.send(allEmbeds[0]);
+
+                  await msg.react("⏮");
+                  await msg.react("◀");
+                  await msg.react("▶");
+                  await msg.react("⏭");
+                  await msg.react("⏹");
+                  var collector = await msg.createReactionCollector(filter, {
+                    idle: 60000,
+                    errors: ["time"]
+                  });
+
+                  collector.on("collect", function(reaction, user) {
+                    reaction.users.remove(user.id);
+                    switch (reaction.emoji.name) {
+                      case "⏮":
+                        s = 0;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "◀":
+                        s -= 1;
+                        if (s < 0) {
+                          s = allEmbeds.length - 1;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "▶":
+                        s += 1;
+                        if (s > allEmbeds.length - 1) {
+                          s = 0;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏭":
+                        s = allEmbeds.length - 1;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏹":
+                        collector.emit("end");
+                        break;
+                    }
+                  });
+                  collector.on("end", function() {
+                    msg.reactions.removeAll().catch(console.error);
+                  });
+                } else if(args[0] === "speeduhc" || args[0] === "suhc") {
+                  var uhc = body.player.stats.SpeedUHC;
+                  
+                  var coins = uhc.coins ? uhc.coins : 0;
+                  var wins = uhc.wins ? uhc.wins : 0;
+                  var kills = uhc.kills ? uhc.kills : 0;
+                  var killstreak = uhc.killstreak ? uhc.killstreak : 0;
+                  var winstreak = uhc.winstreak ? uhc.winstreak : 0;
+                  var games = uhc.games? uhc.games : 0;
+                  var highestWinstreak = uhc.kills_normal ? uhc.kills_normal : 0;
+                  var highestKillstreak = uhc.highestKillstreak ? uhc.highestKillstreak : 0;
+                  var losses = uhc.losses ? uhc.losses : 0;
+                  var quits = uhc.quits ? uhc.quits : 0;
+                  var deaths = uhc.deaths ? uhc.deaths : 0;
+                  var arrows = uhc.arrows_shot ? uhc.arrows_shot: 0;
+                  var arrowHits = uhc.arrows_hit? uhc.arrows_hit : 0;
+                  var assists = uhc.assists ? uhc.assists : 0;
+                  var kdr = isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100;
+                  var wlr = isNaN(Math.round((wins / losses) * 100) / 100) ? "0.00" : Math.round((wins / losses) * 100) / 100;
+                  
+                  var normalWins = uhc.wins_normal ? uhc.wins_normal : 0;
+                  var normalGames = uhc.games_normal? uhc.games_normal : 0;
+                  var normalWinstreak = uhc.winstreak_normal ? uhc.winstreak_normal: 0;
+                  var normalKillstreak = uhc.killstreak_normal ? uhc.killstreak_normal : 0;
+                  var normalKills = uhc.kills_normal ? uhc.kills_normal : 0;
+                  var normalDeaths = uhc.deaths_normal ? uhc.deaths_normal : 0;
+                  var normalLosses = uhc.losses_normal ? uhc.losses_normal: 0;
+                  var normalAssists = uhc.assists_normal ? uhc.assists_normal : 0;
+                  var normalKdr = isNaN(Math.round((normalKills / normalDeaths) * 100) / 100) ? "0.00" : Math.round((normalKills / normalDeaths) * 100) / 100;
+                  var normalWlr = isNaN(Math.round((normalWins / normalLosses) * 100) / 100) ? "0.00" : Math.round((normalWins / normalLosses) * 100) / 100;
+                  
+                  var insaneWinstreak = uhc.winstreak_insane ? uhc.winstreak_insane :0;
+                  var insaneKillstreak = uhc.killstreak_insane ? uhc.killstreak_insane : 0;
+                  var insaneWins = uhc.wins_insane ? uhc.wins_insane : 0;
+                  var insaneKills = uhc.kills_insane ? uhc.kills_insane : 0;
+                  var insaneGames = uhc.games_insane ? uhc.games_insane : 0;
+                  var insaneLosses = uhc.losses_insane ? uhc.losses_insane : 0;
+                  var insaneDeaths = uhc.deaths_insane ? uhc.deaths_insane : 0;
+                  var insaneAssists = uhc.assists_insane ? uhc.assists_insane :0;
+                  var insaneKdr = isNaN(Math.round((insaneKills / insaneDeaths) * 100) / 100) ? "0.00" : Math.round((insaneKills / insaneDeaths) * 100) / 100;
+                  var insaneWlr = isNaN(Math.round((insaneWins / insaneLosses) * 100) / 100) ? "0.00" : Math.round((insaneWins / insaneLosses) * 100) / 100;
+                  
+                  var soloKillstreak = uhc.killstreak_solo ? uhc.killstreak_solo : 0;
+                  var soloWinstreak = uhc.winstreak_solo ? uhc.winstreak_solo: 0;
+                  var soloKills = uhc.kills_solo ? uhc.kills_solo : 0;
+                  var soloWins = uhc.wins_solo ? uhc.wins_solo : 0;
+                  var soloDeaths = uhc.deaths_solo ? uhc.deaths_solo : 0;
+                  var soloLosses = uhc.losses_solo ? uhc.losses_solo : 0;
+                  var soloAssists = uhc.assists_solo ? uhc.assists_solo : 0;
+                  var soloGames = uhc.games_solo ? uhc.games_solo : 0;
+                  var soloKdr = isNaN(Math.round((soloKills / soloDeaths) * 100) / 100) ? "0.00" : Math.round((soloKills / soloDeaths) * 100) / 100;
+                  var soloWlr = isNaN(Math.round((soloWins / soloLosses) * 100) / 100) ? "0.00" : Math.round((soloWins / soloLosses) * 100) / 100;
+                  
+                  var teamDeaths = uhc.deaths_team ? uhc.deaths_team : 0;
+                  var teamKills = uhc.kills_team ? uhc.kills_team : 0;
+                  var teamLosses = uhc.losses_team ? uhc.losses_team : 0;
+                  var teamGames = uhc.games_team ? uhc.games_team : 0;
+                  var teamWinstreak = uhc.winstreak_team ? uhc.winstreak_team : 0;
+                  var teamWins = uhc.wins_team ? uhc.wins_team : 0;
+                  var teamKillstreak = uhc.killstreak_team ? uhc.killstreak_team : 0;
+                  var teamAssists = uhc.assists_team ? uhc.assists_team : 0;
+                  var teamKdr = isNaN(Math.round((teamKills / teamDeaths) * 100) / 100) ? "0.00" : Math.round((teamKills / teamDeaths) * 100) / 100;
+                  var teamWlr = isNaN(Math.round((teamWins / teamLosses) * 100) / 100) ? "0.00" : Math.round((teamWins / teamLosses) * 100) / 100;
+                  
+                  var soloNormalKills = uhc.kills_solo_normal ? uhc.kills_solo_normal : 0;
+                  var soloNormalWins = uhc.wins_solo_normal ? uhc.wins_solo_normal : 0;
+                  var soloNormalLosses = uhc.losses_solo_normal ? uhc.losses_solo_normal : 0;
+                  var soloNormalDeaths = uhc.deaths_solo_normal ? uhc.deaths_solo_normal : 0;
+                  var soloNormalKdr = isNaN(Math.round((soloNormalKills / soloNormalDeaths) * 100) / 100) ? "0.00" : Math.round((soloNormalKills / soloNormalDeaths) * 100) / 100;
+                  var soloNormalWlr = isNaN(Math.round((soloNormalWins / soloNormalLosses) * 100) / 100) ? "0.00" : Math.round((soloNormalWins / soloNormalLosses) * 100) / 100;
+                  
+                  var soloInsaneKills = uhc.kills_solo_insane ? uhc.kills_solo_insane : 0;
+                  var soloInsaneWins = uhc.wins_solo_insane ? uhc.wins_solo_insane : 0;
+                  var soloInsaneDeaths = uhc.deaths_solo_insane ? uhc.deaths_solo_insane : 0;
+                  var soloInsaneLosses = uhc.losses_solo_insane ? uhc.losses_solo_insane : 0;
+                  var soloInsaneKdr = isNaN(Math.round((soloInsaneKills / soloInsaneDeaths) * 100) / 100) ? "0.00" : Math.round((soloInsaneKills / soloInsaneDeaths) * 100) / 100;
+                  var soloInsaneWlr = isNaN(Math.round((soloInsaneWins / soloInsaneLosses) * 100) / 100) ? "0.00" : Math.round((soloInsaneWins / soloInsaneLosses) * 100) / 100;
+                  
+                  var teamNormalDeaths = uhc.deaths_team_normal ? uhc.deaths_team_normal : 0;
+                  var teamNormalKills = uhc.kills_team_normal ? uhc.kills_team_normal : 0;
+                  var teamNormalLosses = uhc.losses_team_normal ? uhc.losses_team_normal : 0;
+                  var teamNormalWins = uhc.wins_team_normal ? uhc.wins_team_normal : 0;
+                  var teamNormalKdr = isNaN(Math.round((teamNormalKills / teamNormalDeaths) * 100) / 100) ? "0.00" : Math.round((teamNormalKills / teamNormalDeaths) * 100) / 100;
+                  var teamNormalWlr = isNaN(Math.round((teamNormalWins / teamNormalLosses) * 100) / 100) ? "0.00" : Math.round((teamNormalWins / teamNormalLosses) * 100) / 100;
+                  
+                  var teamInsaneDeaths = uhc.deaths_team_insane ? uhc.deaths_team_insane : 0;
+                  var teamInsaneWins = uhc.wins_team_insane ? uhc.wins_team_insane : 0;
+                  var teamInsaneKills = uhc.kills_team_insane ? uhc.kills_team_insane : 0;
+                  var teamInsaneLosses = uhc.losses_team_insane ? uhc.losses_team_insane : 0;
+                  var teamInsaneKdr = isNaN(Math.round((teamInsaneKills / teamInsaneDeaths) * 100) / 100) ? "0.00" : Math.round((teamInsaneKills / teamInsaneDeaths) * 100) / 100;
+                  var teamInsaneWlr = isNaN(Math.round((teamInsaneWins / teamInsaneLosses) * 100) / 100) ? "0.00" : Math.round((teamInsaneWins / teamInsaneLosses) * 100) / 100;
+                  
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Speed UHC - **Overall**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSpeedUHC.png?v=1579257360894")
+                  .addField("Coins", numberWithCommas(coins))
+                  
+                  .addField("Games Played", games, true)
+                  .addField("Highest Winstreak", highestWinstreak, true)
+                  .addField("Highest Killstreak", highestKillstreak, true)
+                  
+                  .addField("Quits", quits, true)
+                  .addField("Winstreak", winstreak, true)
+                  .addField("Killstreak", killstreak, true)
+                  
+                  .addField("Assists", assists, true)
+                  .addField("Arrows Shot", arrows, true)
+                  .addField("Arrow Hits", arrowHits, true)
+                  
+                  .addField("Kills", kills, true)
+                  .addField("Deaths", deaths, true)
+                  .addField("KDR", kdr, true)
+                  
+                  .addField("Wins", wins, true)
+                  .addField("Losses", losses, true)
+                  .addField("WLR", wlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed1 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Speed UHC - **Normal**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSpeedUHC.png?v=1579257360894")
+                  .addField("Games Played", normalGames)
+                  
+                  .addField("Assists", normalAssists, true)
+                  .addField("Winstreak", normalWinstreak, true)
+                  .addField("Killstreak", normalKillstreak, true)
+                  
+                  .addField("Kills", normalKills, true)
+                  .addField("Deaths", normalDeaths, true)
+                  .addField("KDR", normalKdr, true)
+                  
+                  .addField("Wins", normalWins, true)
+                  .addField("Losses", normalLosses, true)
+                  .addField("WLR", normalWlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed2 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Speed UHC - **Insane**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSpeedUHC.png?v=1579257360894")
+                  .addField("Games Played", insaneGames)
+                  
+                  .addField("Assists", insaneAssists, true)
+                  .addField("Winstreak", insaneWinstreak, true)
+                  .addField("Killstreak", insaneKillstreak, true)
+                  
+                  .addField("Kills", insaneKills, true)
+                  .addField("Deaths", insaneDeaths, true)
+                  .addField("KDR", insaneKdr, true)
+                  
+                  .addField("Wins", insaneWins, true)
+                  .addField("Losses", insaneLosses, true)
+                  .addField("WLR", insaneWlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed3 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Speed UHC - **Solo**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSpeedUHC.png?v=1579257360894")
+                  .addField("Games Played", soloGames)
+                  
+                  .addField("Assists", soloAssists, true)
+                  .addField("Winstreak", soloWinstreak, true)
+                  .addField("Killstreak", soloKillstreak, true)
+                  
+                  .addField("Kills", soloKills, true)
+                  .addField("Deaths", soloDeaths, true)
+                  .addField("KDR", soloKdr, true)
+                  
+                  .addField("Wins", soloWins, true)
+                  .addField("Losses", soloLosses, true)
+                  .addField("WLR", soloWlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed4 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Speed UHC - **Team**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSpeedUHC.png?v=1579257360894")
+                  .addField("Games Played", teamGames)
+                  
+                  .addField("Assists", teamAssists, true)
+                  .addField("Winstreak", teamWinstreak, true)
+                  .addField("Killstreak", teamKillstreak, true)
+                  
+                  .addField("Kills", teamKills, true)
+                  .addField("Deaths", teamDeaths, true)
+                  .addField("KDR", teamKdr, true)
+                  
+                  .addField("Wins", teamWins, true)
+                  .addField("Losses", teamLosses, true)
+                  .addField("WLR", teamWlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed5 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Speed UHC - **Solo Normal**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSpeedUHC.png?v=1579257360894")
+                  .addField("Kills", soloNormalKills, true)
+                  .addField("Deaths", soloNormalDeaths, true)
+                  .addField("KDR", soloNormalKdr, true)
+                  
+                  .addField("Wins", soloNormalWins, true)
+                  .addField("Losses", soloNormalLosses, true)
+                  .addField("WLR", soloNormalWlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed6 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Speed UHC - **Solo Insane**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSpeedUHC.png?v=1579257360894")
+                  .addField("Kills", soloInsaneKills, true)
+                  .addField("Deaths", soloInsaneDeaths, true)
+                  .addField("KDR", soloInsaneKdr, true)
+                  
+                  .addField("Wins", soloInsaneWins, true)
+                  .addField("Losses", soloInsaneLosses, true)
+                  .addField("WLR", soloInsaneWlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed7 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Speed UHC - **Team Normal**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSpeedUHC.png?v=1579257360894")
+                  .addField("Kills", teamNormalKills, true)
+                  .addField("Deaths", teamNormalDeaths, true)
+                  .addField("KDR", teamNormalKdr, true)
+                  
+                  .addField("Wins", teamNormalWins, true)
+                  .addField("Losses", teamNormalLosses, true)
+                  .addField("WLR", teamNormalWlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed8 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Speed UHC - **Team Insane**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FSpeedUHC.png?v=1579257360894")
+                  .addField("Kills", teamInsaneKills, true)
+                  .addField("Deaths", teamInsaneDeaths, true)
+                  .addField("KDR", teamInsaneKdr, true)
+                  
+                  .addField("Wins", teamInsaneWins, true)
+                  .addField("Losses", teamInsaneLosses, true)
+                  .addField("WLR", teamInsaneWlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  var allEmbeds = [Embed, Embed1, Embed2, Embed3, Embed4, Embed5, Embed6, Embed7, Embed8];
+                  var s = 0;
+                  var msg = await message.channel.send(allEmbeds[0]);
+
+                  await msg.react("⏮");
+                  await msg.react("◀");
+                  await msg.react("▶");
+                  await msg.react("⏭");
+                  await msg.react("⏹");
+                  var collector = await msg.createReactionCollector(filter, {
+                    idle: 60000,
+                    errors: ["time"]
+                  });
+
+                  collector.on("collect", function(reaction, user) {
+                    reaction.users.remove(user.id);
+                    switch (reaction.emoji.name) {
+                      case "⏮":
+                        s = 0;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "◀":
+                        s -= 1;
+                        if (s < 0) {
+                          s = allEmbeds.length - 1;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "▶":
+                        s += 1;
+                        if (s > allEmbeds.length - 1) {
+                          s = 0;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏭":
+                        s = allEmbeds.length - 1;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏹":
+                        collector.emit("end");
+                        break;
+                    }
+                  });
+                  collector.on("end", function() {
+                    msg.reactions.removeAll().catch(console.error);
+                  });
+                } else if(args[0] === "arena" || args[0] === "are") {
+                  var ar = body.player.stats.Arena;
+                  
+                  var coins = ar.coins ? ar.coins : 0;
+                  var dmg2 = ar.damage_2v2 ? ar.damage_2v2 : 0;
+                  var dmg4 = ar.damage_4v4 ? ar.damage_4v4 : 0;
+                  var dmg1 = ar.damage_ffa ? ar.damage_ffa: 0;
+                  var deaths2 = ar.deaths_2v2? ar.deaths_2v2 : 0;
+                  var deaths4 = ar.deaths_4v4 ? ar.deaths_4v4 :0;
+                  var deaths1 = ar.deaths_ffa ?ar.deaths_ffa : 0;
+                  var games2 = ar.games_2v2 ? ar.games_2v2 : 0;
+                  var games4 = ar.games_4v4 ? ar.games_4v4 : 0;
+                  var games1 = ar.games_ffa ? ar.games_ffa  :0;
+                  var heal2 = ar.healed_2v2 ? ar.healed_2v2 : 0;
+                  var heal4 = ar.healed_4v4 ? ar.healed_4v4 : 0;
+                  var heal1 = ar.healed_ffa ? ar.healed_ffa : 0;
+                  var kills2 = ar.kills_2v2 ? ar.kills_2v2 : 0;
+                  var kills4 = ar.kills_4v4 ? ar.kills_4v4  :0;
+                  var kills1 = ar.kills_ffa ? ar.kills_ffa : 0;
+                  var losses2 = ar.losses_2v2 ? ar.losses_2v2 : 0;
+                  var losses4 = ar.losses_4v4 ? ar.losses_4v4 : 0;
+                  var losses1 = ar.losses_ffa ? ar.losses_ffa : 0;
+                  var winstreak2 = ar.win_streaks_2v2 ? ar.win_streaks_2v2 : 0;
+                  var winstreak4 = ar.win_streaks_4v4 ? ar.win_streaks_4v4 : 0;
+                  var winstreak1 = ar.win_streaks_ffa ? ar.win_streaks_ffa : 0;
+                  var wins2 = ar.wins_2v2 ? ar.wins_2v2: 0;
+                  var wins4 = ar.wins_4v4 ? ar.wins_4v4 : 0;
+                  var wins1 = ar.wins_ffa ? ar.wins_ffa : 0;
+                  
+                  
+                  var kdr1 = isNaN(Math.round((kills1 / deaths1) * 100) / 100) ? "0.00" : Math.round((kills1 / deaths1) * 100) / 100;
+                  var wlr1 = isNaN(Math.round((wins1 / losses1) * 100) / 100) ? "0.00" : Math.round((wins1 / losses1) * 100) / 100;
+                  var kdr2 = isNaN(Math.round((kills2 / deaths2) * 100) / 100) ? "0.00" : Math.round((kills2 / deaths2) * 100) / 100;
+                  var wlr2 = isNaN(Math.round((wins2 / losses2) * 100) / 100) ? "0.00" : Math.round((wins2 / losses2) * 100) / 100;
+                  var kdr4 = isNaN(Math.round((kills4 / deaths4) * 100) / 100) ? "0.00" : Math.round((kills4 / deaths4) * 100) / 100;
+                  var wlr4 = isNaN(Math.round((wins4 / losses4) * 100) / 100) ? "0.00" : Math.round((wins4 / losses4) * 100) / 100;
+                  
+                  var wins = ar.wins? ar.wins : 0;
+                  var dmg = dmg1 + dmg2 + dmg4;
+                  var deaths = deaths1 + deaths2 + deaths4;
+                  var games = games1 + games2 + games4;
+                  var heal = heal1 + heal2 + heal4;
+                  var kills = kills1 + kills2 + kills4;
+                  var losses = losses1 + losses2 + losses4;
+                  var kdr = isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100;
+                  var wlr = isNaN(Math.round((wins / losses) * 100) / 100) ? "0.00" : Math.round((wins / losses) * 100) / 100;
+                  
+                  
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Arena - **Overall**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FArena.png?v=1579257358097")
+                  .addField("Coins", numberWithCommas(coins))
+                  
+                  .addField("Games Played", games, true)
+                  .addField("Damage", dmg, true)
+                  .addField("Healed", heal, true)
+                  
+                  .addField("Kills", kills, true)
+                  .addField("Deaths", deaths, true)
+                  .addField("KDR", kdr, true)
+                  
+                  .addField("Wins", wins, true)
+                  .addField("Losses", losses, true)
+                  .addField("WLR", wlr, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed1 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Arena - **1v1**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FArena.png?v=1579257358097")
+                  .addField("Winstreak", winstreak1)
+                  
+                  .addField("Games Played", games1, true)
+                  .addField("Damage", dmg1, true)
+                  .addField("Healed", heal1, true)
+                  
+                  .addField("Kills", kills1, true)
+                  .addField("Deaths", deaths1, true)
+                  .addField("KDR", kdr1, true)
+                  
+                  .addField("Wins", wins1, true)
+                  .addField("Losses", losses1, true)
+                  .addField("WLR", wlr1, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  const Embed2 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Arena - **2v2**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FArena.png?v=1579257358097")
+                  .addField("Winstreak", winstreak2)
+                  
+                  .addField("Games Played", games2, true)
+                  .addField("Damage", dmg2, true)
+                  .addField("Healed", heal2, true)
+                  
+                  .addField("Kills", kills2, true)
+                  .addField("Deaths", deaths2, true)
+                  .addField("KDR", kdr2, true)
+                  
+                  .addField("Wins", wins2, true)
+                  .addField("Losses", losses2, true)
+                  .addField("WLR", wlr2, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  const Embed4 = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Arena - **4v4**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FArena.png?v=1579257358097")
+                  .addField("Winstreak", winstreak4)
+                  
+                  .addField("Games Played", games4, true)
+                  .addField("Damage", dmg4, true)
+                  .addField("Healed", heal4, true)
+                  
+                  .addField("Kills", kills4, true)
+                  .addField("Deaths", deaths4, true)
+                  .addField("KDR", kdr4, true)
+                  
+                  .addField("Wins", wins4, true)
+                  .addField("Losses", losses4, true)
+                  .addField("WLR", wlr4, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  var allEmbeds = [Embed, Embed1, Embed2, Embed4];
+                  var s = 0;
+                  var msg = await message.channel.send(allEmbeds[0]);
+
+                  await msg.react("⏮");
+                  await msg.react("◀");
+                  await msg.react("▶");
+                  await msg.react("⏭");
+                  await msg.react("⏹");
+                  var collector = await msg.createReactionCollector(filter, {
+                    idle: 60000,
+                    errors: ["time"]
+                  });
+
+                  collector.on("collect", function(reaction, user) {
+                    reaction.users.remove(user.id);
+                    switch (reaction.emoji.name) {
+                      case "⏮":
+                        s = 0;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "◀":
+                        s -= 1;
+                        if (s < 0) {
+                          s = allEmbeds.length - 1;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "▶":
+                        s += 1;
+                        if (s > allEmbeds.length - 1) {
+                          s = 0;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏭":
+                        s = allEmbeds.length - 1;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏹":
+                        collector.emit("end");
+                        break;
+                    }
+                  });
+                  collector.on("end", function() {
+                    msg.reactions.removeAll().catch(console.error);
+                  });
+                } else if(args[0] === "pit" || args[0] === "p") {
+                  var pit = body.player.stats.Pit.pit_stats_ptl;
+                  
+                  var deaths = pit.deaths ? pit.deaths : 0;
+                  var melee = pit.melee_damage_dealt? pit.melee_damage_dealt : 0;
+                  var earned = pit.cash_earned ? pit.cash_earned : 0;
+                  var joins = pit.joins ? pit.joins : 0;
+                  var playtime = pit.playtime_minutes ? pit.playtime_minutes: 0;
+                  var bowDmgTaken = pit.bow_damage_received ? pit.bow_damage_received : 0;
+                  var kills = pit.kills ? pit.kills : 0;
+                  var dmgTaken = pit.damage_received ? pit.damage_received : 0;
+                  var jumped = pit.jumped_into_pit ? pit.jumped_into_pit : 0;
+                  var meleeDmgTaken = pit.melee_damage_received ? pit.melee_damage_received : 0;
+                  var leftClicks = pit.left_clicks ? pit.left_clicks : 0;
+                  var dmg = pit.damage_dealt ? pit.damage_dealt : 0;
+                  var assists = pit.assists ? pit.assists : 0;
+                  var arrows = pit.arrows_fired ? pit.arrows_fired : 0;
+                  var bow = pit.bow_damage_dealt ? pit.bow_damage_dealt : 0;
+                  var arrowHits = pit.arrow_hits ? pit.arrow_hits : 0;
+                  var maxStreak = pit.max_streak ? pit.max_streak : 0;
+                  var kdr = isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100;
+                  
+                  const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("Pit - **Overall**")
+                  .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FPrototype-64.png?v=1584789055700")
+                  .addField("Left Clicks", leftClicks)
+                  
+                  .addField("Joins", joins, true)
+                  .addField("Jumped into Pit", jumped, true)
+                  .addField("Playtime (Minutes)", playtime, true)
+                  
+                  .addField("Kills", kills, true)
+                  .addField("Deaths", deaths, true)
+                  .addField("KDR", kdr, true)
+                  
+                  .addField("Damage Dealt", dmg , true)
+                  .addField("Melee Damage Dealt", melee, true)
+                  .addField("Bow Damage Dealt", bow, true)
+                  
+                  .addField("Damage Taken", dmgTaken, true)
+                  .addField("Melee Damage Taken", meleeDmgTaken, true)
+                  .addField("Bow Damage Taken", bowDmgTaken, true)
+                  
+                  .addField("Cash Earned", earned, true)
+                  .addField("Max Streak", maxStreak, true)
+                  .addField("Assists", assists, true)
+                  
+                  .addField("Arrows Fired", arrows, true)
+                  .addField("Arrow Hits", arrowHits, true)
+                  
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                  
+                  message.channel.send(Embed);
+                  
+                } else if (args[0] === "skyblock" || args[0] === "sb") {
+                  var sb = body.player.stats.SkyBlock;
+                  
+                 var allEmbeds = [];
+                  
+                  var magmaBoss = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bosstimer/magma/estimatedSpawn").then(resp => resp.json());
+                  var estimate = (magmaBoss.estimate - Date.now());
+                  
+                  var sec = estimate / 1000;
+        var dh = Math.floor((sec % 86400) / 3600);
+        var dm = Math.floor(((sec % 86400) % 3600) / 60);
+        var ds = Math.floor(((sec % 86400) % 3600) % 60);
+        var dmi = Math.floor(
+          time - estimate - dh * 3600000 - dm * 60000 - ds * 1000
+        );
+        var h = "";
+        var m = "";
+        var s = "";
+        var mi = "";
+        if (dh !== 0) {
+          h = " " + dh + " hours";
+        }
+        if (dm !== 0) {
+          m = " " + dm + " minutes";
+        }
+        if (ds !== 0) {
+          s = " " + ds + " seconds";
+        }
+        if (dmi !== 0) {
+          mi = " " + dmi + " milliseconds";
+        }
+                  var currentDate = new Date();
+                  var year = currentDate.getFullYear();
+                  var month = currentDate.getMonth();
+                  var date = currentDate.getDate();
+                  var hour = currentDate.getHours();
+                  var minutes = currentDate.getMinutes();
+                  
+                  if(minutes > 55) hour += 1;
+                  var da = (new Date(year, month, date, hour, 55)).getTime();
+                  var dark = da - Date.now();
+                  
+                  var sec = dark / 1000;
+        var ah = Math.floor((sec % 86400) / 3600);
+        var am = Math.floor(((sec % 86400) % 3600) / 60);
+        var as = Math.floor(((sec % 86400) % 3600) % 60);
+        var ami = Math.floor(
+          time - dark - dh * 3600000 - dm * 60000 - ds * 1000
+        );
+        var dah = "";
+        var dam = "";
+        var das = "";
+        var dami = "";
+        if (ah !== 0) {
+          dah = " " + ah + " hours";
+        }
+        if (am !== 0) {
+          dam = " " + am + " minutes";
+        }
+        if (as !== 0) {
+          das = " " + as + " seconds";
+        }
+        if (ami !== 0) {
+          dami = " " + ami + " milliseconds";
+        }
+                  
+                  var profiles = Object.values(sb.profiles);
+                  for(const profile of profiles) {
+                    var skyblock = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${res[0].id}/${profile.profile_id}`).then(resp => resp.json());
+                    
+                    var memberCount = Object.keys(skyblock.members).length;
+                    var members = Object.values(skyblock.members);
+                    var memberName = [];
+                    for(const member of members) {
+                      memberName.push(member.player.username);
+                    }
+                    
+                    var user = skyblock.members[res[0].id];
+                    var armors = user.armor;
+                    var armorName = [];
+                    
+                    for(var i = 3; i > -1; i--) {
+                      var armor = armors[i];
+                      if(armor.name)
+                      armorName.push(armor.name.slice(2));
+                      else armorName.push("None");
+                    }
+                    var purse = user.coin_purse;
+                    var kills = user.stats.total_kills;
+                    var deaths = user.stats.total_deaths;
+                    var auction = user.stats.auctions;
+                    var sold = auction.sold;
+                    var bought = auction.bought;
+                    
+                    const Embed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setTitle(rank + res[0].name)
+                    .setURL("https://hypixel.net/player/" + res[0].name)
+                    .setDescription("SkyBlock - **" + profile.cute_name + "**\n" + `Members [${memberCount}]: ${memberName.join(", ")}` + "\n\n**Magma Boss** spawning in **" + h + m + s + "**\n**Dark Auction** in **" + dah + dam + das + "**")
+                    .addField("Purse", numberWithCommas(purse), true)
+                    .addField("Total Kills", numberWithCommas(kills), true)
+                    .addField("Total Deaths", numberWithCommas(deaths), true)
+                    .addField("Armors", `\`${armorName.join("`\n`")}\``)
+                    .addField("Auctions", `Created: ${numberWithCommas(auction.created)}\nCompleted: ${numberWithCommas(auction.completed)}\nNo Bids: ${numberWithCommas(auction.no_bids)}\nWon: ${numberWithCommas(auction.won)}\nBids: ${numberWithCommas(auction.bids)}\nHighest Bid: ${numberWithCommas(auction.highest_bid)}\nTotal Fee: ${numberWithCommas(auction.total_fees)}\nGold Earned: ${numberWithCommas(auction.gold_earned)}\nGold Spent: ${numberWithCommas(auction.gold_spent)}`)
+                    .addField("Sold", `Common: ${isNaN(sold.common) ? 0 : sold.common}\nUncommon: ${isNaN(sold.uncommon) ? 0 : sold.uncommon}\nRare: ${isNaN(sold.rare) ? 0 : sold.rare}\nEpic: ${isNaN(sold.epic) ? 0 : sold.epic}\nLegendary: ${isNaN(sold.legendary) ? 0 : sold.legendary}`, true)
+                    .addField("Bought", `Common: ${isNaN(bought.common) ? 0 : bought.common}\nUncommon: ${isNaN(bought.uncommon) ? 0 : bought.uncommon}\nRare: ${isNaN(bought.rare) ? 0 : bought.rare}\nEpic: ${isNaN(bought.epic) ? 0 : bought.epic}\nLegendary: ${isNaN(bought.legendary) ? 0 : bought.legendary}`, true)
+                  .setTimestamp()
+                    .setFooter(
+                      "Have a nice day! :)",
+                      message.client.user.displayAvatarURL()
+                    );
+                    
+                    allEmbeds.push(Embed);
+                  }
+                  
+                  
+                  var s = 0;
+                  var msg = await message.channel.send(allEmbeds[0]);
+
+                  await msg.react("⏮");
+                  await msg.react("◀");
+                  await msg.react("▶");
+                  await msg.react("⏭");
+                  await msg.react("⏹");
+                  var collector = await msg.createReactionCollector(filter, {
+                    idle: 60000,
+                    errors: ["time"]
+                  });
+
+                  collector.on("collect", function(reaction, user) {
+                    reaction.users.remove(user.id);
+                    switch (reaction.emoji.name) {
+                      case "⏮":
+                        s = 0;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "◀":
+                        s -= 1;
+                        if (s < 0) {
+                          s = allEmbeds.length - 1;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "▶":
+                        s += 1;
+                        if (s > allEmbeds.length - 1) {
+                          s = 0;
+                        }
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏭":
+                        s = allEmbeds.length - 1;
+                        msg.edit(allEmbeds[s]);
+                        break;
+                      case "⏹":
+                        collector.emit("end");
+                        break;
+                    }
+                  });
+                  collector.on("end", function() {
+                    msg.reactions.removeAll().catch(console.error);
+                  });
                 }
               }
             }

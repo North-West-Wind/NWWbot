@@ -9,7 +9,7 @@ app.get("/news", (request, response) => {
 });
 app.get("/about", (request, response) => {
   response.sendFile(__dirname + "/views/about.html");
-})
+});
 app.listen(process.env.PORT);
 setInterval(() => {
   http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
@@ -71,6 +71,21 @@ client.once("ready", () => {
   client.user.setActivity("Hello there!", { type: "WATCHING" });
   pool.getConnection(function(err, con) {
     if (err) return console.error(err);
+    con.query("SELECT id, queue FROM servers", function(err, results) {
+      if(err) return console.error(err);
+      const { setQueue } = require("./musics/main.js");
+      var count = 0;
+      results.forEach(result => {
+        if(result.queue === null) {
+          
+        } else {
+        var queue = JSON.parse(unescape(result.queue));
+        setQueue(result.id, queue);
+          count += 1;
+        }
+      });
+      console.log("Set " + count + " queues");
+    })
     con.query("SELECT * FROM giveaways ORDER BY endAt ASC", function(
       err,
       results,
@@ -305,14 +320,49 @@ client.login(process.env.TOKEN);
 
 client.on("guildMemberAdd", member => {
   const guild = member.guild;
+  if (guild.id === "677780367188557824")
+    setTimeout(async () => {
+      var role = await guild.roles.fetch("677785442099396608");
+      member.roles.add(role);
+    }, 60000);
   console.log(member.user.username + " has joined " + guild.name);
-  if(member.user.bot) return;
+  if (member.user.bot) return;
   pool.getConnection(function(err, con) {
+    if (err) return console.error(err);
     con.query(
       "SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id=" +
         guild.id,
       async function(err, result, fields) {
-        if (result[0].wel_channel === null || result[0] === undefined) {
+        if (result[0] === undefined || result[0].wel_channel === null) {
+          if (result[0] === undefined) {
+            pool.getConnection(function(err, con) {
+              if (err) return console.error(err);
+              con.query(
+                "SELECT * FROM servers WHERE id = " + guild.id,
+                function(err, result, fields) {
+                  if (err) return console.error(err);
+                  if (result.length > 0) {
+                    console.log(
+                      "Found row inserted for this server before. Cancelling row insert..."
+                    );
+                  } else {
+                    con.query(
+                      "INSERT INTO servers (id, autorole, giveaway) VALUES (" +
+                        guild.id +
+                        ", '[]', '🎉')",
+                      function(err, result) {
+                        if (err) return console.error(err);
+                        console.log("Inserted record for " + guild.name);
+                      }
+                    );
+                  }
+                }
+              );
+
+              if (err) return console.error(err);
+              con.release();
+            });
+          }
         } else {
           //get channel
           const channel = guild.channels.resolve(result[0].wel_channel);
@@ -583,14 +633,44 @@ client.on("guildMemberAdd", member => {
 client.on("guildMemberRemove", member => {
   const guild = member.guild;
   pool.getConnection(function(err, con) {
+    if (err) return console.error(err);
     con.query(
       "SELECT leave_msg, leave_channel FROM servers WHERE id=" + guild.id,
       function(err, result, fields) {
         if (
+          result[0] === undefined ||
           result[0].leave_msg === null ||
-          result[0].leave_channel === null ||
-          result[0] === undefined
+          result[0].leave_channel === null
         ) {
+          if (result[0] === undefined) {
+            pool.getConnection(function(err, con) {
+              if (err) return console.error(err);
+              con.query(
+                "SELECT * FROM servers WHERE id = " + guild.id,
+                function(err, result, fields) {
+                  if (err) return console.error(err);
+                  if (result.length > 0) {
+                    console.log(
+                      "Found row inserted for this server before. Cancelling row insert..."
+                    );
+                  } else {
+                    con.query(
+                      "INSERT INTO servers (id, autorole, giveaway) VALUES (" +
+                        guild.id +
+                        ", '[]', '🎉')",
+                      function(err, result) {
+                        if (err) return console.error(err);
+                        console.log("Inserted record for " + guild.name);
+                      }
+                    );
+                  }
+                }
+              );
+
+              if (err) return console.error(err);
+              con.release();
+            });
+          }
         } else {
           const channel = guild.channels.resolve(result[0].leave_channel);
           const splitMessage = result[0].leave_msg.split(" ");
@@ -684,6 +764,7 @@ client.on("guildCreate", guild => {
   console.log("Joined a new guild: " + guild.name);
 
   pool.getConnection(function(err, con) {
+    if (err) return console.error(err);
     con.query("SELECT * FROM servers WHERE id = " + guild.id, function(
       err,
       result,
@@ -718,6 +799,7 @@ client.on("guildCreate", guild => {
 client.on("guildDelete", guild => {
   console.log("Left a guild: " + guild.name);
   pool.getConnection(function(err, con) {
+    if (err) return console.error(err);
     con.query("DELETE FROM servers WHERE id=" + guild.id, function(
       err,
       result
@@ -735,7 +817,6 @@ client.on("guildDelete", guild => {
 var exit = new Map();
 
 client.on("voiceStateUpdate", async (oldState, newState) => {
-  
   const guild = oldState.guild || newState.guild;
   let newUserChannel = newState.channel;
   let oldUserChannel = oldState.channel;
@@ -745,10 +826,10 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
     exit.set(guild.id, false);
   } else if (newUserChannel === null) {
     try {
-    if (oldUserChannel.id !== guild.me.voice.channelID) return;
-    } catch(err) {
+      if (oldUserChannel.id !== guild.me.voice.channelID) return;
+    } catch (err) {
       console.log(guild.name);
-      return console.error(err);
+      return;
     }
     // User leaves a voice channel
 
@@ -759,7 +840,7 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
 
       exit.set(guild.id, true);
 
-      console.log("Pending exit.");
+      console.log("Pending exit in " + guild.name);
 
       setTimeout(async function() {
         var shouldExit = await exit.get(guild.id);
@@ -774,7 +855,7 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
 });
 
 var hypixelQueries = 0;
-setInterval(() => hypixelQueries = 0, 60000);
+setInterval(() => (hypixelQueries = 0), 60000);
 
 client.on("message", async message => {
   // client.on('message', message => {

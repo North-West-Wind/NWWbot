@@ -8,8 +8,8 @@ module.exports = {
     
     if(!serverQueue) return message.channel.send("There is nothing playing.");
 
-  if (serverQueue.playing === true) {
-    serverQueue.playing = false;
+  if (serverQueue.paused === false) {
+    serverQueue.paused = true;
     if(serverQueue.connection.dispatcher)
     serverQueue.connection.dispatcher.pause(true);
     return message.channel.send("The song playback has been stopped.");

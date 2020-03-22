@@ -22,16 +22,20 @@ module.exports = {
     }
     
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
-    if(isNaN(parseInt(roleID))) {
-      var role = await message.guild.roles.cache.find(x => x.name === `${args[0]}`);
-      if(role === null) {
-      return message.channel.send("No role was found with the name " + args[0])
-    }
+    if (isNaN(parseInt(roleID))) {
+      var role = await message.guild.roles.cache.find(
+        x => x.name.toLowerCase() === `${args[0].toLowerCase()}`
+      );
+      if (role === null) {
+        return message.channel.send(
+          "No role was found with the name " + args[0]
+        );
+      }
     } else {
       var role = await message.guild.roles.cache.get(roleID);
-      if(role === null) {
-      return message.channel.send("No role was found!");
-    }
+      if (role === null) {
+        return message.channel.send("No role was found!");
+      }
     }
     
     role.delete().then(role => {

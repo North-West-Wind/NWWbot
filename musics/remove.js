@@ -19,6 +19,10 @@ module.exports = {
     return message.channel.send(
       `You cannot remove the song that is now playing. To remove it, use skip command instead.`
     );
+    if (deleteIndex >= serverQueue.songs.length - 1)
+    return message.channel.send(
+      `You cannot remove the song that doesn't exist.`
+    );
     var title = serverQueue.songs[deleteIndex].title;
   var removed = await serverQueue.songs.splice(deleteIndex, 1);
     pool.getConnection(function(err, con) {

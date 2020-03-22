@@ -45,6 +45,37 @@ module.exports = {
           return message.reply("there was an error trying to execute that command!");
           
           }
+        if(result[0] === undefined) {
+          pool.getConnection(function(err, con) {
+    if(err) return console.error(err);
+    con.query("SELECT * FROM servers WHERE id = " + guild.id, function(
+      err,
+      result,
+      fields
+    ) {
+      if (err) return console.error(err);
+      if (result.length > 0) {
+        console.log(
+          "Found row inserted for this server before. Cancelling row insert..."
+        );
+      } else {
+        con.query(
+          "INSERT INTO servers (id, autorole, giveaway) VALUES (" +
+            guild.id +
+            ", '[]', '🎉')",
+          function(err, result) {
+            if (err) return console.error(err);
+            console.log("Inserted record for " + guild.name);
+          }
+        );
+      }
+    });
+
+    if (err) return console.error(err);
+    con.release();
+  });
+          return message.channel.send("I was fixing something. Mind try it again?")
+        }
         if (result[0].token !== null) {
           return message.author.send(
             "Token was created for **" +

@@ -110,66 +110,36 @@ module.exports = {
     }
 
     if (!args[1]) {
-      pool.getConnection(function(err, con) {
-        if (err)
-          return message.reply(
-            "there was an error trying to execute that command!"
-          );
-        con.query(
-          "SELECT queue FROM servers WHERE id = " + message.guild.id,
-          async function(err, result, fields) {
-            if (err)
-              return message.reply(
-                "there was an error trying to execute that command!"
-              );
-            if (
-              result.length == 0 ||
-              result[0] == undefined ||
-              result[0].queue == null
-            ) {
-              return message.channel.send(
-                "No song queue found for this server! Please provide a link or keywords to get a music played!"
-              );
-            }
-            var storedQueue = JSON.parse(unescape(result[0].queue));
-            if (!serverQueue) {
-              var queueContruct = {
-                textChannel: message.channel,
-                voiceChannel: voiceChannel,
-                connection: null,
-                songs: storedQueue,
-                volume: 5,
-                playing: true
-              };
-              if (!message.guild.me.voice.channel) {
-                var connection = await voiceChannel.join();
-              } else {
-                var connection = message.guild.me.voice.connection;
-              }
-              queueContruct.connection = connection;
-              queue.set(message.guild.id, queueContruct);
-              play(message.guild, queueContruct.songs[0], looping, queue, pool);
-              var song = storedQueue[0];
-              const Embed = new Discord.MessageEmbed()
-                .setColor(color)
-                .setTitle("Now playing:")
-                .setThumbnail(
-                  `https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`
-                )
-                .setDescription(`**[${song.title}](${song.url})**`)
-                .setTimestamp()
-                .setFooter(
-                  "Have a nice day! :)",
-                  message.client.user.displayAvatarURL()
-                );
-              message.channel.send(Embed);
-            } else {
-              return message.channel.send("Music is already playing.");
-            }
-          }
+      if (!serverQueue)
+        return message.channel.send(
+          "No song queue found for this server! Please provide a link or keywords to get a music played!"
         );
-        con.release();
-      });
+      if (serverQueue.playing === true)
+        return message.channel.send("Music is already playing!");
+
+      if (!message.guild.me.voice.channel) {
+        var connection = await voiceChannel.join();
+      } else {
+        var connection = message.guild.me.voice.connection;
+      }
+      serverQueue.voiceChannel = voiceChannel;
+      serverQueue.connection = connection;
+      serverQueue.playing = true;
+      queue.set(message.guild.id, serverQueue);
+      play(message.guild, serverQueue.songs[0], looping, queue, pool);
+      var song = serverQueue.songs[0];
+      const Embed = new Discord.MessageEmbed()
+        .setColor(color)
+        .setTitle("Now playing:")
+        .setThumbnail(`https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`)
+        .setDescription(`**[${song.title}](${song.url})**`)
+        .setTimestamp()
+        .setFooter(
+          "Have a nice day! :)",
+          message.client.user.displayAvatarURL()
+        );
+      message.channel.send(Embed);
+
       return;
     }
 
@@ -178,9 +148,9 @@ module.exports = {
     if (checkURL === true) {
       if (validYTURL(args[1]) === false) {
         //if (validSPURL(args[1]) === false)
-          return message.channel.send(
-            "We only support YouTube video links, sorry!"
-          );
+        return message.channel.send(
+          "We only support YouTube video links, sorry!"
+        );
 
         var d = await spotifyApi.clientCredentialsGrant();
 
@@ -210,18 +180,18 @@ module.exports = {
               while (success === false) {
                 try {
                   success = true;
-                var results = await youtube.search(
-                musics.body.tracks.items[i].track.artists[0].name +
-                  " - " +
-                  musics.body.tracks.items[i].track.name,
-                100
-              );
-                } catch(err) {
+                  var results = await youtube.search(
+                    musics.body.tracks.items[i].track.artists[0].name +
+                      " - " +
+                      musics.body.tracks.items[i].track.name,
+                    100
+                  );
+                } catch (err) {
                   success = false;
-                  youtube = new YouTube(process.env.YT2)
+                  youtube = new YouTube(process.env.YT2);
                 }
               }
-              
+
               for (var s = 0; s < results.length; s++) {
                 if (isGoodMusicVideoContent(results[s])) {
                   matched = {
@@ -268,14 +238,13 @@ module.exports = {
               while (success === false) {
                 try {
                   success = true;
-                var results = await youtube
-                  .search(
+                  var results = await youtube.search(
                     tracks[i].artists[0].name + " - " + tracks[i].name,
                     100
                   );
-                } catch(err) {
+                } catch (err) {
                   success = false;
-                  youtube = new YouTube(process.env.YT2)
+                  youtube = new YouTube(process.env.YT2);
                 }
               }
               for (var s = 0; s < results.length; s++) {
@@ -330,7 +299,8 @@ module.exports = {
           connection: null,
           songs: [],
           volume: 5,
-          playing: true
+          playing: true,
+          paused: false
         };
 
         queue.set(message.guild.id, queueContruct);
@@ -405,6 +375,13 @@ module.exports = {
           con.release();
         });
 
+        if (!message.guild.me.voice.channel) {
+          var connection = await voiceChannel.join();
+          serverQueue.voiceChannel = voiceChannel;
+          serverQueue.connection = connection;
+          serverQueue.playing = true;
+          play(message.guild, serverQueue.songs[0], looping, queue, pool);
+        }
         var Embed = new Discord.MessageEmbed()
           .setColor(color)
           .setTitle("New song added:")
@@ -440,15 +417,15 @@ module.exports = {
       var saved = [];
       var success = false;
 
-              while (success === false) {
-                try {
-                  success = true;
-                var video = await youtube.search(args.slice(1).join(" "), 10);
-                } catch(err) {
-                  success = false;
-                  youtube = new YouTube(process.env.YT2)
-                }
-              }
+      while (success === false) {
+        try {
+          success = true;
+          var video = await youtube.search(args.slice(1).join(" "), 10);
+        } catch (err) {
+          success = false;
+          youtube = new YouTube(process.env.YT2);
+        }
+      }
       var num = 0;
       for (let i = 0; i < video.length; i++) {
         try {
@@ -624,7 +601,8 @@ module.exports = {
                   connection: null,
                   songs: [],
                   volume: 5,
-                  playing: true
+                  playing: true,
+                  paused: false
                 };
 
                 queue.set(message.guild.id, queueContruct);
@@ -697,6 +675,19 @@ module.exports = {
                   );
                   con.release();
                 });
+                if (!message.guild.me.voice.channel) {
+                  var connection = await voiceChannel.join();
+                  serverQueue.voiceChannel = voiceChannel;
+                  serverQueue.connection = connection;
+                  serverQueue.playing = true;
+                  play(
+                    message.guild,
+                    serverQueue.songs[0],
+                    looping,
+                    queue,
+                    pool
+                  );
+                }
                 const Embed = new Discord.MessageEmbed()
                   .setColor(color)
                   .setTitle("New song added:")

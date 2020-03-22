@@ -22,9 +22,21 @@ module.exports = {
   stop(guild) {
     const serverQueue = queue.get(guild.id);
     if(!serverQueue) return;
-    serverQueue.songs = [];
+    if(serverQueue.connection.dispatcher)
   serverQueue.connection.dispatcher.destroy();
   guild.me.voice.channel.leave();
-  queue.delete(guild.id)
+  },
+  setQueue(guild, songs) {
+    const queueContruct = {
+          textChannel: null,
+          voiceChannel: null,
+          connection: null,
+          songs: songs,
+          volume: 5,
+          playing: false,
+          paused: false
+        };
+    
+    queue.set(guild, queueContruct);
   }
 }

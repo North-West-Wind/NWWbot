@@ -13,21 +13,11 @@ module.exports = {
       return message.channel.send("There is nothing playing.")
     }
 
-  serverQueue.songs = [];
     if(serverQueue.connection.dispatcher)
   serverQueue.connection.dispatcher.destroy();
+    serverQueue.playing = false;
+    serverQueue.connection = null;
   message.guild.me.voice.channel.leave();
-  queue.delete(message.guild.id);
-    pool.getConnection(function(err, con) {
-        con.query(
-          "UPDATE servers SET queue = NULL WHERE id = " + guild.id,
-          function(err, result) {
-            if (err) return message.reply("there was an error trying to execute that command!");
-            console.log("Updated song queue of " + guild.name);
-          }
-        );
-        con.release();
-      });
   message.channel.send(":wave:");
   }
 }
