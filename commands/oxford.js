@@ -13,7 +13,7 @@ var { prefix } = require("../config.json")
 
 module.exports = {
   name: "oxford",
-  description: "Search the Oxford Dictionary.",
+  description: "Search definitions of words from Oxford Dictionary. If it cannot search, use \"urban\" instead.",
   usage: "<keywords>",
   aliases: ["ox"],
   async execute(message, args) {
