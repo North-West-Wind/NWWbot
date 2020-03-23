@@ -1,4 +1,5 @@
-const { findMember } = require("../function.js")
+const { findMember } = require("../function.js");
+const { prefix } = require("../config.json")
 
 module.exports = {
 	name: 'unrole',
@@ -11,8 +12,8 @@ module.exports = {
       return;
     }
     
-    if(!args[0]) return message.channel.send("Please mention an user!");
-    if(!args[1]) return message.channel.send("Please mention a role!");
+    if(!args[0]) return message.channel.send("Please mention an user!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
+    if(!args[1]) return message.channel.send("Please mention a role!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
     
 		 var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {

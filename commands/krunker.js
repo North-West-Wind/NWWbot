@@ -2,6 +2,8 @@ const KrunkerJS = require("krunker.js");
 const krunker = new KrunkerJS();
 const Discord = require("discord.js")
 var color = Math.floor(Math.random() * 16777214) + 1;
+const { prefix } = require("../config.json")
+
 module.exports = {
   name: "krunker",
   description: "Connect to the Krunker.io API and display stats.",
@@ -10,7 +12,7 @@ module.exports = {
   args: true,
   execute(message, args) {
     if(!args[0]) {
-      return message.channel.send("No username provided!")
+      return message.channel.send("No username provided!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
     }
     krunker.getUser(args[0]).then(data => {
       const sim = data.simplified;

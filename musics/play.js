@@ -147,9 +147,9 @@ module.exports = {
 
     if (checkURL === true) {
       if (validYTURL(args[1]) === false) {
-        //if (validSPURL(args[1]) === false)
+        if (validSPURL(args[1]) === false)
         return message.channel.send(
-          "We only support YouTube video links, sorry!"
+          "We only support YouTube/Spotify video/track links, sorry!"
         );
 
         var d = await spotifyApi.clientCredentialsGrant();
@@ -168,15 +168,21 @@ module.exports = {
 
         var url_array = args[1].replace("https://", "").split("/");
         var musicID = url_array[2].split("?")[0];
+        
+        if(url_array[2].split("?")[1] !== undefined)
+        var highlight = url_array[2].split("?")[1].split("=")[0] === "highlight";
+        else var highlight = false;
+        
+        if(highlight) musicID = url_array[2].split("?")[1].split("=")[1].split(":")[2];
         var type = url_array[1];
         var songs = [];
         switch (type) {
           case "playlist":
-            var musics = await spotifyApi.getPlaylist(musicID);
+            var musics = await spotifyApi.getPlaylist(musicID, { limit: 30});
             for (var i = 0; i < musics.body.tracks.items.length; i++) {
               var matched;
               var success = false;
-
+              var retries = 1;
               while (success === false) {
                 try {
                   success = true;
@@ -187,8 +193,14 @@ module.exports = {
                     100
                   );
                 } catch (err) {
+                  if (retries > 2)
+                    return message.channel.send(
+                      "Oops. I ran out of searching quota. You can only play music with YouTube links now."
+                    );
                   success = false;
-                  youtube = new YouTube(process.env.YT2);
+                  var token = "YT" + (retries + 1);
+                  retries++;
+                  youtube = new YouTube(process.env[token]);
                 }
               }
 
@@ -205,7 +217,7 @@ module.exports = {
                       musics.body.tracks.items[i].track.album.images[0].url
                   };
                   songs.push(matched);
-                  return;
+                  break;
                 }
                 if (s + 1 == results.length) {
                   matched = {
@@ -224,27 +236,47 @@ module.exports = {
             }
             break;
           case "album":
+            if(highlight === false) {
+              var album = await spotifyApi
+              .getAlbums([musicID])
+              .catch(err => console.log("Something went wrong!", err));
+              var image = album.albums[0].images[0].url;
             var data = await spotifyApi
               .getAlbumTracks(musicID, {
-                limit: 50
+                limit: 30
               })
               .catch(err => console.log("Something went wrong!", err));
+            
             var tracks = data.body.items;
+            } else {
+              var data = await spotifyApi.getTracks(musicID)
+              .catch(err => console.log("Something went wrong!", err));
+              
+              var tracks = data.body.tracks;
+            }
 
             for (var i = 0; i < tracks.length; i++) {
               var matched;
               var success = false;
-
+              var retries = 1;
               while (success === false) {
                 try {
                   success = true;
                   var results = await youtube.search(
-                    tracks[i].artists[0].name + " - " + tracks[i].name,
+                    tracks[i].artists[0].name +
+                      " - " +
+                      tracks[i].name,
                     100
                   );
                 } catch (err) {
+                  if (retries > 2)
+                    return message.channel.send(
+                      "Oops. I ran out of searching quota. You can only play music with YouTube links now."
+                    );
                   success = false;
-                  youtube = new YouTube(process.env.YT2);
+                  var token = "YT" + (retries + 1);
+                  retries++;
+                  youtube = new YouTube(process.env[token]);
                 }
               }
               for (var s = 0; s < results.length; s++) {
@@ -255,7 +287,7 @@ module.exports = {
                     url: `https://www.youtube.com/watch?v=${results[s].id}`,
                     type: 1,
                     spot: tracks[i].external_urls.spotify,
-                    thumbnail: undefined
+                    thumbnail: highlight ? tracks[i].album.images[0].url : image
                   };
                   songs.push(matched);
                   break;
@@ -267,7 +299,7 @@ module.exports = {
                     url: `https://www.youtube.com/watch?v=${results[0].id}`,
                     type: 1,
                     spot: tracks[i].external_urls.spotify,
-                    thumbnail: undefined
+                    thumbnail: highlight ? tracks[i].album.images[0].url : image
                   };
                   songs.push(matched);
                 }
@@ -275,6 +307,62 @@ module.exports = {
             }
 
             break;
+          case "track":
+            var data = await spotifyApi.getTracks([musicID]);
+            var tracks = data.body.tracks;
+            
+
+            for (var i = 0; i < tracks.length; i++) {
+              var matched;
+              var success = false;
+              var retries = 1;
+              while (success === false) {
+                try {
+                  success = true;
+                  var results = await youtube.search(
+                    tracks[i].artists[0].name +
+                      " - " +
+                      tracks[i].name,
+                    100
+                  );
+                } catch (err) {
+                  if (retries > 2)
+                    return message.channel.send(
+                      "Oops. I ran out of searching quota. You can only play music with YouTube links now."
+                    );
+                  success = false;
+                  var token = "YT" + (retries + 1);
+                  retries++;
+                  youtube = new YouTube(process.env[token]);
+                }
+              }
+              for (var s = 0; s < results.length; s++) {
+                if (isGoodMusicVideoContent(results[s])) {
+                  matched = {
+                    id: results[s].id,
+                    title: tracks[i].name,
+                    url: `https://www.youtube.com/watch?v=${results[s].id}`,
+                    type: 1,
+                    spot: tracks[i].external_urls.spotify,
+                    thumbnail: tracks[i].album.images[0].url
+                  };
+                  songs.push(matched);
+                  break;
+                }
+                if (s + 1 == results.length) {
+                  matched = {
+                    id: results[0].id,
+                    title: tracks[i].name,
+                    url: `https://www.youtube.com/watch?v=${results[0].id}`,
+                    type: 1,
+                    spot: tracks[i].external_urls.spotify,
+                    thumbnail: tracks[i].album.images[0].url
+                  };
+                  songs.push(matched);
+                }
+        }
+              break;
+            }
         }
       } else {
         try {
@@ -416,14 +504,20 @@ module.exports = {
       const results = [];
       var saved = [];
       var success = false;
-
+      var retries = 1;
       while (success === false) {
         try {
           success = true;
           var video = await youtube.search(args.slice(1).join(" "), 10);
         } catch (err) {
+          if (retries > 2)
+            return message.channel.send(
+              "Oops. I ran out of searching quota. You can only play music with YouTube links now."
+            );
           success = false;
-          youtube = new YouTube(process.env.YT2);
+          var token = "YT" + (retries + 1);
+          retries++;
+          youtube = new YouTube(process.env[token]);
         }
       }
       var num = 0;

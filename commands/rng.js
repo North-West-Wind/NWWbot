@@ -1,4 +1,5 @@
-const { getRandomNumber } = require("../function.js")
+const { getRandomNumber } = require("../function.js");
+const { prefix } = require("../config.json");
 
 module.exports = {
   name: "rng",
@@ -8,10 +9,10 @@ module.exports = {
   execute(message, args) {
     
     if(!args[0]) {
-      return message.channel.send("You didn't provide the minimum number!");
+      return message.channel.send("You didn't provide the minimum number!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
     }
     if(!args[1]) {
-      return message.channel.send("You didn't provide the maximum number!")
+      return message.channel.send("You didn't provide the maximum number!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
     }
     
     if(isNaN(Number(args[0])) || isNaN(Number(args[1]))) return message.channel.send("Discovered non-number objects!");

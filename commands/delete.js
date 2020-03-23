@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const { prefix } = require("../config.json")
 
 module.exports = {
   name: "delete",
@@ -25,7 +26,7 @@ module.exports = {
       return;
     }
     if (!args[0]) {
-      return message.channel.send("You didn't provide any number!");
+      return message.channel.send("You didn't provide any number!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
     }
 
     const amount = parseInt(args[0]);

@@ -2,6 +2,7 @@ const Discord = require("discord.js");
 const smm = require("smm-api");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits } = require("../function.js");
+const { prefix } = require("../config.json");
 
 module.exports = {
   name: "smm",
@@ -9,7 +10,7 @@ module.exports = {
   aliases: ["supermariomaker"],
   async execute(message, args) {
     if (!args[0])
-      return message.channel.send("Please provide a query for searching!");
+      return message.channel.send("Please provide a query for searching!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
     smm.searchCourses(
       {
         title: args.join(" ")

@@ -68,7 +68,7 @@ module.exports = {
     .setTitle(message.client.user.tag)
     .setColor(color)
     .setThumbnail(message.client.user.displayAvatarURL())
-    .setDescription("Made by NorthWestWind!\nVersion: **" + version + "**\n\nRunning on **" + message.client.guilds.cache.size + " servers**\nLast restart: **" + lastReady + "**\nUptime: **" + d + h + m + s + mi + "**")
+    .setDescription("Made by NorthWestWind!\nVersion: **[" + version + "](https://www.nwws.ml)**\n\nRunning on **" + message.client.guilds.cache.size + " servers**\nLast restart: **" + lastReady + "**\nUptime: **" + d + h + m + s + mi + "**")
     .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     
     message.channel.send(infoEmbed);

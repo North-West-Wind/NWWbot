@@ -1,5 +1,6 @@
 const { Set } = require("discord-set");
 const set = new Set();
+const { prefix } = require("../config.json");
 
 module.exports = {
   name: "chat",
@@ -7,7 +8,7 @@ module.exports = {
   usage: "<message>",
   execute(message, args) {
     if(!args[0]) {
-      return message.channel.send("What are we gonna talk about?")
+      return message.channel.send("What are we gonna talk about?" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
     }
     set.chat(args.join(" ")).then(reply => {
             return message.channel.send(reply);
