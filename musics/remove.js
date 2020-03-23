@@ -9,7 +9,7 @@ module.exports = {
     
     if (!message.member.voice.channel)
     return message.channel.send("You are not in a voice channel!");
-    if(!args[0]) return message.channel.send("You did not provide any index.")
+    if(!args[0]) return message.channel.send("You did not provide any index." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
     var queueIndex = parseInt(args[0]);
   if (typeof queueIndex !== "number")
     return message.channel.send("The query provided is not a number.");

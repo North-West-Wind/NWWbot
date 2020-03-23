@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-
+const { prefix } = require("../config.json")
 const client = new Discord.Client();
 
 module.exports = {
@@ -9,10 +9,10 @@ module.exports = {
   usage: "<channel | channel ID> <announcement>",
 	async execute(message, args) {
    if(!args[0]) {
-     return message.reply("please tell me the channel to announce.")
+     return message.channel.send("Please tell me the channel to announce." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
    }
     if(!args[1]) {
-      return message.reply("please provide the message to announce.")
+      return message.reply("please provide the message to announce." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
     }
     
     var channel = await message.guild.channels.resolve(args[0].replace(/<#/g, "").replace(/>/g, ""))

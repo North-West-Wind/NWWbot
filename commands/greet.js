@@ -1,5 +1,6 @@
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { findUser } = require("../function.js")
+const { findUser } = require("../function.js");
+const { prefix } = require("../config.json");
 
 module.exports = {
 	name: 'greet',
@@ -7,7 +8,7 @@ module.exports = {
   usage: "<user | user ID>",
 	async execute(message, args) {
 		if (!args[0]) {
-            return message.channel.send('Who am I greeting?');
+            return message.channel.send('Who am I greeting?' + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
         }
     
 

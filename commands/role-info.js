@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const { Permissions } = require('discord.js');
+const { prefix } = require("../config.json")
 
 module.exports = {
   name: "role-info",
@@ -9,7 +10,7 @@ module.exports = {
   usage: "<role | role ID | role name>",
   async execute(message, args) {
     if(!args[0]) {
-      return message.channel.send("Please mention a role/role ID/role name.");
+      return message.channel.send("Please mention a role/role ID/role name." + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
     }
     
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");

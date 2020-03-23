@@ -7,6 +7,7 @@ const fetch = require("node-fetch");
 const contains = (string, content) => {
   return !!~(string || "").indexOf(content);
 };
+const { prefix } = require("../config.json");
 
 module.exports = {
   name: "hypixel",
@@ -47,7 +48,7 @@ module.exports = {
     if (hypixelQueries > 90) return message.channel.send("Hey! Slow down!");
     if (!args[0]) {
       return message.channel.send(
-        "Please use one of the subcommands or enter an username for profile!"
+        "Please use one of the subcommands or enter an username for profile!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``
       );
     }
 

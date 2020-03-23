@@ -1,10 +1,12 @@
-const { play } = require("./play.js")
+const { play } = require("./play.js");
+const { prefix } = require("../config.json");
 
 module.exports = {
   name: "skip",
   description: "Skip a music in the song queue.",
-  usage: " ",
+  usage: "[amount]",
   music(message, serverQueue, looping, queue, pool) {
+  const args = message.content.slice(prefix.length).split(/ +/);
     const guild = message.guild;
   if (!message.member.voice.channel)
     return message.channel.send(
@@ -22,7 +24,16 @@ module.exports = {
         guildLoopStatus === false
       ) {
         console.log("Music ended! In " + guild.name);
+    if(args[1]) {
+      if(isNaN(parseInt(args[1]))) {
+        message.channel.send(`**${args[1]}** is not a integer. Will skip 1 song instead.`);
         serverQueue.songs.shift();
+      } else {
+        for(var i = 0; i < parseInt(args[1]); i++) {
+          serverQueue.songs.shift();
+        }
+      }
+    }
     pool.getConnection(function(err, con) {
             con.query(
               "UPDATE servers SET queue = '" +
@@ -39,9 +50,22 @@ module.exports = {
         play(guild, serverQueue.songs[0], looping, queue, pool);
       } else {
         console.log("Music ended! In " + guild.name);
+        
+        
+    if(args[1]) {
+      if(isNaN(parseInt(args[1]))) {
+        message.channel.send(`**${args[1]}** is not a integer. Will skip 1 song instead.`);
         var song = serverQueue.songs[0];
         serverQueue.songs.push(song);
         serverQueue.songs.shift();
+      } else {
+        for(var i = 0; i < parseInt(args[1]); i++) {
+          var song = serverQueue.songs[0];
+        serverQueue.songs.push(song);
+          serverQueue.songs.shift();
+        }
+      }
+    }
         pool.getConnection(function(err, con) {
             con.query(
               "UPDATE servers SET queue = '" +

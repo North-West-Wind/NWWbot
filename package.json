@@ -16,7 +16,7 @@
     "discord.js": "discordjs/discord.js",
     "express": "^4.17.1",
     "express.js": "^1.0.0",
-    "ytdl-core": "github:fent/node-ytdl-core#master",
+    "ytdl-core": "^2.0.1",
     "mojang-api": "^0.0.2",
     "ms": "^2.1.2",
     "aki-api": "^3.2.1",
@@ -28,7 +28,7 @@
     "krunker.js": "^1.2.4",
     "canvas": "^2.6.1",
     "random-words": "^1.1.0",
-    "ytdl-core-discord": "github:amishshah/ytdl-core-discord#master",
+    "ytdl-core-discord": "^1.1.0",
     "prism-media": "^1.2.0",
     "ffmpeg-static": "^4.0.1",
     "@discordjs/opus": "^0.1.0",
@@ -41,6 +41,8 @@
     "serp": "^2.0.7",
     "node-spotify-webhelper": "^0.0.6",
     "spotify-web-api-node": "^4.0.0",
-    "youtube-search": "^1.1.4"
+    "youtube-search": "^1.1.4",
+    "spotify-track-stream": "^1.0.0",
+    "oxford-dictionary": "^1.5.1"
   }
 }

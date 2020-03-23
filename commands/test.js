@@ -36,5 +36,24 @@ module.exports = {
     for(const guild of guilds.cache.values()) {
       console.log(guild.id + " - " + guild.name);
     }
+    var d = await spotifyApi.clientCredentialsGrant();
+
+        await spotifyApi.setAccessToken(d.body.access_token);
+        await spotifyApi.setRefreshToken(process.env.SPOTREFRESH);
+
+        var refreshed = await spotifyApi
+          .refreshAccessToken()
+          .catch(console.error);
+
+        console.log("The access token has been refreshed!");
+
+        // Save the access token so that it's used in future calls
+        await spotifyApi.setAccessToken(refreshed.body.access_token);
+    
+    var data = await spotifyApi
+              .getAlbums(["3Gt7rOjcZQoHCfnKl5AkK7"])
+              .catch(err => console.log("Something went wrong!", err));
+    
+    console.log(data.body);
   }
 };

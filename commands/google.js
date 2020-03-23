@@ -1,6 +1,7 @@
 const serp = require("serp");
 const Discord = require("discord.js")
 var color = Math.floor(Math.random() * 16777214) + 1;
+const { prefix } = require("../config.json")
 
 module.exports = {
   name: "google",
@@ -10,7 +11,7 @@ module.exports = {
   async execute(message, args) {
     
     if(args.length < 1) {
-      return message.channel.send("Please provide a query for searching!");
+      return message.channel.send("Please provide a query for searching!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
     }
     
     var options = {

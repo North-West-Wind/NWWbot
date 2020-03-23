@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const { findUser } = require("../function.js");
+const { prefix } = require("../config.json");
 
 module.exports = {
   name: "unban",
@@ -17,6 +18,10 @@ module.exports = {
 
     if (!message.guild) return;
 
+    if(!args[0]) {
+      return message.channel.send("You didn't mention any user!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+    }
+    
     message.delete();
     
     findUser(message, args[0])

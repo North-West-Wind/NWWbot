@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
+const { prefix } = require("../config.json");
 
 module.exports = {
   name: "addrole",
@@ -16,7 +17,7 @@ module.exports = {
       return;
     }
     if(!args[0]) {
-      return message.channel.send("You didn't tell me the role name!");
+      return message.channel.send("You didn't tell me the role name!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
     }
     if(!args[1]) {
       message.guild

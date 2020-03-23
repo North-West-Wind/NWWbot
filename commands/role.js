@@ -1,4 +1,5 @@
-const { findMember } = require("../function.js")
+const { findMember } = require("../function.js");
+const { prefix } = require("../config.json")
 
 module.exports = {
 	name: 'role',
@@ -11,10 +12,10 @@ module.exports = {
       return;
     }
     if(!args[0]) {
-      return message.channel.send("Please mention at least 1 user.")
+      return message.channel.send("Please mention at least 1 user." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
     }
     if(!args[1]) {
-      return message.channel.send("Please enter the role you want the users to be.")
+      return message.channel.send("Please enter the role you want the users to be." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
     }
     
     

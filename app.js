@@ -19,6 +19,8 @@ const { twoDigits, setTimeout_ } = require("./function.js");
 
 const fs = require("fs");
 const Discord = require("discord.js");
+const { Set } = require("discord-set")
+const set = new Set();
 const { prefix } = require("./config.json");
 const { Image, createCanvas, loadImage } = require("canvas");
 const mysql = require("mysql");
@@ -859,7 +861,15 @@ setInterval(() => (hypixelQueries = 0), 60000);
 
 client.on("message", async message => {
   // client.on('message', message => {
-  if (!message.content.startsWith(prefix) || message.author.bot) return;
+  if (!message.content.startsWith(prefix) || message.author.bot) {
+    if(!message.author.bot) {
+      if(Math.floor(Math.random() * 100) === 69)
+    set.chat(message.content).then(reply => {
+            message.channel.send(reply);
+        });
+    }
+    return;
+  };
 
   const args = message.content.slice(prefix.length).split(/ +/);
   const commandName = args.shift().toLowerCase();
@@ -898,7 +908,7 @@ client.on("message", async message => {
       command.execute(message, args, pool, musicCommandsArray, hypixelQueries);
     } catch (error) {
       console.error(error);
-      message.reply("there was an error trying to execute that command!");
+      message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
     }
   }
 });

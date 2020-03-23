@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 var embedColor = Math.floor(Math.random() * 16777214) + 1;
-const { findUser } = require("../function.js")
+const { findUser } = require("../function.js");
+const { prefix } = require("../config.json");
 
 module.exports = {
   name: "unwarn",
@@ -11,7 +12,7 @@ module.exports = {
       
       
       if(!args[0]) {
-        return message.channel.send("Tell me who you are unwarning.");
+        return message.channel.send("Tell me who you are unwarning." + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
       }
       
       if (args[0] === "@everyone") {

@@ -1,12 +1,14 @@
 const Discord = require("discord.js");
 var Buffer = require("buffer").Buffer;
 var color = Math.floor(Math.random() * 16777214) + 1;
+const { prefix } = require("../config.json");
+
 module.exports = {
   name: "minecraft",
   description: "Connect to the Minecraft API and display information.",
   args: true,
   aliases: ["mc"],
-  usage: "<subcommand> <username | UUID | IP>",
+  usage: "[subcommand] <username | UUID | IP>",
   subcommands: ["profile", "server", "history"],
   execute(message, args) {
     const MojangAPI = require("mojang-api");
@@ -14,7 +16,7 @@ module.exports = {
     if (args[0] === "profile" || !args[1]) {
       if (!args[0]) {
         return message.channel.send(
-          "Please tell me the Minecraft username of that user or use a subcommand."
+          "Please tell me the Minecraft username of that user or use a subcommand." + ` Usage: \`${prefix}${this.name} ${this.usage}\``
         );
       }
       if(!args[1]) {
