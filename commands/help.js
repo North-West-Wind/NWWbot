@@ -47,7 +47,7 @@ module.exports = {
           "help\nserver\nping\navatar\nwelcome\nrole-info",
           true
         )
-        .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban", true)
+        .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban\noxford", true)
         .addField(
           "**Music**",
           "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nloop",
@@ -104,7 +104,8 @@ module.exports = {
       data.push(`**Subcommands:** ${command.subcommands.join(", ")}`);
     if (command.subaliases)
       data.push(`**Subcommands' Aliases:** ${command.subaliases.join(", ")}`);
-
+    if(command.regions)
+      data.push(`**Regions:** ${command.regions.join(", ")}`)
     if (command.subcommands)
       data.push(
         "\nIf you want to know how subcommands work, please refer to the manual."
