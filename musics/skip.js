@@ -33,6 +33,8 @@ module.exports = {
           serverQueue.songs.shift();
         }
       }
+    } else {
+      serverQueue.songs.shift();
     }
     pool.getConnection(function(err, con) {
             con.query(
@@ -65,6 +67,10 @@ module.exports = {
           serverQueue.songs.shift();
         }
       }
+    } else {
+        var song = serverQueue.songs[0];
+        serverQueue.songs.push(song);
+        serverQueue.songs.shift();
     }
         pool.getConnection(function(err, con) {
             con.query(

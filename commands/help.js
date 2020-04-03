@@ -14,7 +14,7 @@ module.exports = {
 
     if (!args.length) {
       const attachment = new Discord.MessageAttachment(
-        "https://cdn.glitch.com/3d575fe2-b6e6-45bb-9435-aec3db23fb8b%2Fmanual.pdf?v=1584842429794"
+        "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1585887836755", "manual.pdf"
       );
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
@@ -41,7 +41,7 @@ module.exports = {
           "giveaway\npoll\ngoogle\nspam\ntrade",
           true
         )
-        .addField("**NSFW**", "hentai", true)
+        .addField("**NSFW**", "hentai\nrule34\nporn", true)
         .addField(
           "**Information**",
           "help\nserver\nping\navatar\nwelcome\nrole-info",
@@ -61,16 +61,7 @@ module.exports = {
         );
 
       return message.author
-        .send({
-          embed: Embed,
-          files: [
-            {
-              attachment:
-                "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1583475715155",
-              name: "manual.pdf"
-            }
-          ]
-        })
+        .send([Embed, attachment])
         .then(() => {
           if (message.channel.type === "dm") return;
           message.reply("look at your DM!");

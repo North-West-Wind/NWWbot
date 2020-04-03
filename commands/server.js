@@ -59,7 +59,7 @@ module.exports = {
     .addField("Created", createdTime, true)
     .addField("Region", region, true)
     .addField("Owner", owner, true)
-    .addField(`Roles [${roleIDs.length}]`, `<@&${roleIDs.join("> <@&")}>`)
+    .addField(`Roles [${roleIDs.length}]`, (`<@&${roleIDs.join("> <@&")}>`).length < 1024 ? (`<@&${roleIDs.join("> <@&")}>`) : "Too many roles...")
     .setTimestamp()
     .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     

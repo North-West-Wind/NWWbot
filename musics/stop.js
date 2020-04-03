@@ -13,10 +13,11 @@ module.exports = {
       return message.channel.send("There is nothing playing.")
     }
 
-    if(serverQueue.connection.dispatcher)
+    if(serverQueue.connection != null && serverQueue.connection.dispatcher)
   serverQueue.connection.dispatcher.destroy();
     serverQueue.playing = false;
     serverQueue.connection = null;
+  if(message.guild.me.voice.channel)
   message.guild.me.voice.channel.leave();
   message.channel.send(":wave:");
   }

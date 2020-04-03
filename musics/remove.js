@@ -5,7 +5,7 @@ module.exports = {
   description: "Remove a music from the song queue.",
   usage: "<index>",
   async music(message, serverQueue, looping, queue, pool) {
-    const args = message.content.split(" ").slice(prefix.length);
+    const args = message.content.split(" ").slice(prefix.length).shift();
     
     if (!message.member.voice.channel)
     return message.channel.send("You are not in a voice channel!");
@@ -19,7 +19,7 @@ module.exports = {
     return message.channel.send(
       `You cannot remove the song that is now playing. To remove it, use skip command instead.`
     );
-    if (deleteIndex >= serverQueue.songs.length - 1)
+    if (deleteIndex > serverQueue.songs.length - 1)
     return message.channel.send(
       `You cannot remove the song that doesn't exist.`
     );
