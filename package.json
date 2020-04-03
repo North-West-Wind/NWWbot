@@ -1,6 +1,6 @@
 {
   "name": "nwwbot",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "NorthWestWind's bot!",
   "main": "app.js",
   "scripts": {
@@ -43,6 +43,11 @@
     "spotify-web-api-node": "^4.0.0",
     "youtube-search": "^1.1.4",
     "spotify-track-stream": "^1.0.0",
-    "oxford-dictionary": "^1.5.1"
+    "oxford-dictionary": "^1.5.1",
+    "booru": "^2.2.0",
+    "statuses": "^1.5.0",
+    "gfycat-sdk": "^1.4.18",
+    "pornhub.js": "^0.2.2",
+    "pornhub": "^0.0.5"
   }
 }

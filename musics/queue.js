@@ -11,7 +11,7 @@ module.exports = {
   var index = 0;
   var songArray = serverQueue.songs.map(song => {
     var str;
-    if(song.type === 0)
+    if(song.type === 0 || !song.type)
     str = `**${++index} - ** [**${song.title}**](${song.url})`;
     else if(song.type === 1)
       str = `**${++index} - ** [**${song.title}**](${song.spot})`;

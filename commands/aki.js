@@ -56,9 +56,6 @@ module.exports = {
    */
   async execute(message, args) {
     var ended = new Map();
-    if (args.length >= 1 && args[0].toLowerCase() === "help") {
-      return await message.channel.send(await this.help(prefix, message, args));
-    }
     if (args.length >= 1 && args[0].toLowerCase() === "region") {
       return await this.region(message, args);
     }

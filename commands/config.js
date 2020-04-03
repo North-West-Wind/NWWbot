@@ -377,7 +377,7 @@ module.exports = {
         
         const channelID = msgCollected.first().content.replace(/<#/g, "").replace(/>/g, "");
         msgCollected.first().delete()
-        const channel = msg.guild.channels.get(channelID);
+        const channel = msg.guild.channels.resolve(channelID);
         if(!channel || channel == undefined || channel == null) {
           panelEmbed.setDescription("**Welcome Message/Channel/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...").setFooter("Please wait patiently.", msg.client.user.displayAvatarURL())
           await msg.edit(panelEmbed)
@@ -705,7 +705,7 @@ module.exports = {
         
         const channelID = msgCollected.first().content.replace(/<#/g, "").replace(/>/g, "");
         msgCollected.first().delete()
-        const channel = msg.guild.channels.get(channelID);
+        const channel = msg.guild.channels.resolve(channelID);
         if(!channel || channel == undefined || channel == null) {
           panelEmbed.setDescription("**Leave Message/Channel/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...").setFooter("Please wait patiently.", msg.client.user.displayAvatarURL())
           await msg.edit(panelEmbed)

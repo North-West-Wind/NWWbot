@@ -1,21 +1,27 @@
 const http = require("http");
 const express = require("express");
+const request = require("request");
 const app = express();
-app.get("/", (request, response) => {
+app.get("/", (req, response) => {
   response.sendFile(__dirname + "/views/index.html");
 });
-app.get("/news", (request, response) => {
+app.get("/news", (req, response) => {
   response.sendFile(__dirname + "/views/news.html");
 });
-app.get("/about", (request, response) => {
+app.get("/about", (req, response) => {
   response.sendFile(__dirname + "/views/about.html");
 });
+app.get("/manual", (req, response) => {
+  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1584964856482").pipe(response);
+})
 app.listen(process.env.PORT);
 setInterval(() => {
   http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
 }, 280000);
 
 const { twoDigits, setTimeout_ } = require("./function.js");
+const log = console.log;
+log.error = console.error;
 
 const fs = require("fs");
 const Discord = require("discord.js");
@@ -68,9 +74,29 @@ for (const file of musicCommandFiles) {
 // when the client is ready, run this code
 // this event will only trigger one time after logging in
 client.once("ready", () => {
+  delete console["log"];
+  delete console["error"];
+console.log = async function(str) {
+  log(str);
+  try {
+    var logChannel = await client.channels.fetch("678847137391312917");
+  } catch(err) {
+    return log.error(err)
+  }
+    logChannel.send("`" + str + "`");
+}
+  console.error = async function(str) {
+    log.error(str);
+  try {
+    var logChannel = await client.channels.fetch("678847137391312917");
+  } catch(err) {
+    return log.error(err)
+  }
+    logChannel.send("`ERROR!`");
+  }
   console.log("Ready!");
 
-  client.user.setActivity("Hello there!", { type: "WATCHING" });
+  client.user.setActivity("You", { type: "WATCHING" });
   pool.getConnection(function(err, con) {
     if (err) return console.error(err);
     con.query("SELECT id, queue FROM servers", function(err, results) {
@@ -95,6 +121,7 @@ client.once("ready", () => {
     ) {
       console.log("Found " + results.length + " giveaways");
       results.forEach(async result => {
+        if(result.guild === "622311594654695434") return;
         var currentDate = new Date();
         var millisec = result.endAt - currentDate;
         if (err) return console.error(err);
@@ -130,7 +157,17 @@ client.once("ready", () => {
             var fetchUser = await client.users.fetch(result.author);
             var endReacted = [];
             var peopleReacted = await msg.reactions.cache.get(result.emoji);
-            await peopleReacted.users.fetch();
+            try {
+              await peopleReacted.users.fetch();
+            } catch(err) {
+              con.query("DELETE FROM giveaways WHERE id = " + msg.id, function(
+                err,
+                con
+              ) {
+                if (err) return console.error(err);
+                console.log("Deleted an ended giveaway record.");
+              });
+            }
             try {
               for (const user of peopleReacted.users.cache.values()) {
                 const data = user.id;
@@ -233,6 +270,7 @@ client.once("ready", () => {
       if (err) return console.error(err);
       console.log("Found " + results.length + " polls.");
       results.forEach(result => {
+        if(result.guild === "622311594654695434") return;
         var currentDate = new Date();
         var time = result.endAt - currentDate;
         setTimeout_(async function() {
@@ -283,7 +321,7 @@ client.once("ready", () => {
             var pollMsg = "⬆**Poll**⬇";
             const Ended = new Discord.MessageEmbed()
               .setColor(parseInt(result.color))
-              .setTitle(result.title)
+              .setTitle(unescape(result.title))
               .setDescription(
                 "Poll ended. Here are the results:\n\n\n" +
                   end
@@ -327,7 +365,6 @@ client.on("guildMemberAdd", member => {
       var role = await guild.roles.fetch("677785442099396608");
       member.roles.add(role);
     }, 60000);
-  console.log(member.user.username + " has joined " + guild.name);
   if (member.user.bot) return;
   pool.getConnection(function(err, con) {
     if (err) return console.error(err);
@@ -368,6 +405,7 @@ client.on("guildMemberAdd", member => {
         } else {
           //get channel
           const channel = guild.channels.resolve(result[0].wel_channel);
+          
 
           //convert message into array
           const splitMessage = result[0].welcome.split(" ");
@@ -447,9 +485,14 @@ client.on("guildMemberAdd", member => {
             .join(" ")
             .replace(/{user}/g, member);
 
+          if(result[0].welcome !== null) {
+          try {
           //send message only
           channel.send(welcomeMessage);
-
+          } catch(err) {
+            console.error(err);
+          }
+          }
           //check image link
           if (result[0].wel_img === null) {
           } else {
@@ -591,8 +634,12 @@ client.on("guildMemberAdd", member => {
                 "welcome-image.png"
               );
 
+              try{
               //send message
               channel.send("", attachment);
+              } catch(err) {
+                console.error(err);
+              }
             };
 
             //image url
@@ -616,8 +663,12 @@ client.on("guildMemberAdd", member => {
             } else {
               var role = await guild.roles.fetch(roleID);
             }
+            try {
             //loop array
             member.roles.add(role);
+            } catch(err) {
+              console.error(err);
+            }
           }
         }
 
@@ -750,7 +801,12 @@ client.on("guildMemberRemove", member => {
           const leaveMessage = messageArray
             .join(" ")
             .replace(/{user}/g, member);
+          
+          try {
           channel.send(leaveMessage);
+          } catch(err) {
+            console.error(err);
+          }
         }
 
         con.release();
@@ -863,7 +919,7 @@ client.on("message", async message => {
   // client.on('message', message => {
   if (!message.content.startsWith(prefix) || message.author.bot) {
     if(!message.author.bot) {
-      if(Math.floor(Math.random() * 100) === 69)
+      if(Math.floor(Math.random() * 1000) === 69)
     set.chat(message.content).then(reply => {
             message.channel.send(reply);
         });
@@ -905,7 +961,7 @@ client.on("message", async message => {
       }
     }
     try {
-      command.execute(message, args, pool, musicCommandsArray, hypixelQueries);
+      command.execute(message, args, pool, musicCommandsArray, hypixelQueries, log);
     } catch (error) {
       console.error(error);
       message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");

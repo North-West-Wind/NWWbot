@@ -12,16 +12,16 @@ module.exports = {
      return message.channel.send("Please tell me the channel to announce." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
    }
     if(!args[1]) {
-      return message.reply("please provide the message to announce." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("Please provide the message to announce." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
     }
     
     var channel = await message.guild.channels.resolve(args[0].replace(/<#/g, "").replace(/>/g, ""))
-    if(!channel || channel == undefined || channel == null) return message.reply("the channel is not valid!");
+    if(!channel || channel == undefined || channel == null) return message.channel.send("The channel is not valid!");
     
     var clientPermission = channel.permissionsFor(message.guild.me);
     var userPermission = channel.permissionsFor(message.member);
-    if(!clientPermission.has("SEND_MESSAGE")) return message.reply("I don't have the permission to send message in this channel!")
-    if(!userPermission.has("SEND_MESSAGE")) return message.reply("you don't have the permission to make me send message in this channel.")
+    if(!clientPermission.has("SEND_MESSAGES")) return message.channel.send("I don't have the permission to send message in this channel!")
+    if(!userPermission.has("SEND_MESSAGES")) return message.channel.send("You don't have the permission to make me send message in this channel.")
     
     channel.send(args.slice(1).join(" "));
     message.channel.send("Announcement made.");

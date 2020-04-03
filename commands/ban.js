@@ -95,7 +95,7 @@ module.exports = {
             });
         } else {
           // The mentioned user isn't in this guild
-          message.channel.send("that user doesn't exist!");
+          message.channel.send("That user doesn't exist!");
         }
       
     }).catch(err => {
