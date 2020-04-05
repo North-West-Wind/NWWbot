@@ -19,7 +19,7 @@ var spotifyApi = new SpotifyWebApi({
   redirectUri: "https://nwws.ml"
 });
 
-async function play(guild, song, looping, queue, pool) {
+async function play(guild, song, looping, queue, pool, repeat) {
   const serverQueue = queue.get(guild.id);
 
   if (!song) {
@@ -42,13 +42,16 @@ async function play(guild, song, looping, queue, pool) {
     .play(await ytdl(song.url, { highWaterMark: 1 << 28 }), { type: "opus" })
     .on("finish", async () => {
       const guildLoopStatus = looping.get(guild.id);
+      const guildRepeatStatus = repeat.get(guild.id);
       console.log("Music ended! In " + guild.name);
 
       if (guildLoopStatus === true) {
         await serverQueue.songs.push(song);
       }
+      if(guildRepeatStatus !== true) {
+        await serverQueue.songs.shift();
+      }
 
-      await serverQueue.songs.shift();
       pool.getConnection(function(err, con) {
         con.query(
           "UPDATE servers SET queue = '" +
@@ -62,7 +65,7 @@ async function play(guild, song, looping, queue, pool) {
         );
         con.release();
       });
-      play(guild, serverQueue.songs[0], looping, queue, pool);
+      play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
     })
     .on("error", error => {
       console.error(error);
@@ -76,7 +79,7 @@ module.exports = {
     "Play music with the link or keywords provided. Only support YouTube videos currently.",
   aliases: ["add"],
   usage: "<link | keywords>",
-  async music(message, serverQueue, looping, queue, pool) {
+  async music(message, serverQueue, looping, queue, pool, repeat) {
     const args = message.content.split(/ +/);
 
     const voiceChannel = message.member.voice.channel;
@@ -110,7 +113,7 @@ module.exports = {
       serverQueue.connection = connection;
       serverQueue.playing = true;
       await queue.set(message.guild.id, serverQueue);
-      play(message.guild, serverQueue.songs[0], looping, queue, pool);
+      play(message.guild, serverQueue.songs[0], looping, queue, pool, repeat);
       var song = serverQueue.songs[0];
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
@@ -121,7 +124,7 @@ module.exports = {
             : song.thumbnail
         )
         .setDescription(
-          `**[${song.title}](${song.type === 1 ? song.spot : song.url})**`
+          `**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**`
         )
         .setTimestamp()
         .setFooter(
@@ -202,6 +205,12 @@ module.exports = {
               for (var s = 0; s < results.length; s++) {
                 if (results.length == 0) break;
                 if (isGoodMusicVideoContent(results[s])) {
+                  var info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${results[s].id}`);
+                  var length = parseInt(info.length_seconds);
+                  var hour = Math.floor(length / 3600);
+                  var minute = Math.floor((length % 3600) / 60);
+                  var second = Math.floor((length % 3600) % 60);
+                  var songLength = (hour !== 0 ? hour + "h" : "") + (minute !== 0 ? minute + "m" : "") + (second !== 0 ? second + "s" : "");
                   matched = {
                     id: results[s].id,
                     title: musics.body.tracks.items[i].track.name,
@@ -210,12 +219,19 @@ module.exports = {
                     spot:
                       musics.body.tracks.items[i].track.external_urls.spotify,
                     thumbnail:
-                      musics.body.tracks.items[i].track.album.images[0].url
+                      musics.body.tracks.items[i].track.album.images[0].url,
+                    time: songLength
                   };
                   songs.push(matched);
                   break;
                 }
                 if (s + 1 == results.length) {
+                  var info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${results[0].id}`);
+                  var length = parseInt(info.length_seconds);
+                  var hour = Math.floor(length / 3600);
+                  var minute = Math.floor((length % 3600) / 60);
+                  var second = Math.floor((length % 3600) % 60);
+                  var songLength = (hour !== 0 ? hour + "h" : "") + (minute !== 0 ? minute + "m" : "") + (second !== 0 ? second + "s" : "");
                   matched = {
                     id: results[0].id,
                     title: musics.body.tracks.items[i].track.name,
@@ -224,7 +240,8 @@ module.exports = {
                     spot:
                       musics.body.tracks.items[i].track.external_urls.spotify,
                     thumbnail:
-                      musics.body.tracks.items[i].track.album.images[0].url
+                      musics.body.tracks.items[i].track.album.images[0].url,
+                    time: songLength
                   };
                   songs.push(matched);
                 }
@@ -277,25 +294,39 @@ module.exports = {
               for (var s = 0; s < results.length; s++) {
                 if (results.length == 0) break;
                 if (isGoodMusicVideoContent(results[s])) {
+                  var info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${results[s].id}`);
+                  var length = parseInt(info.length_seconds);
+                  var hour = Math.floor(length / 3600);
+                  var minute = Math.floor((length % 3600) / 60);
+                  var second = Math.floor((length % 3600) % 60);
+                  var songLength = (hour !== 0 ? hour + "h" : "") + (minute !== 0 ? minute + "m" : "") + (second !== 0 ? second + "s" : "");
                   matched = {
                     id: results[s].id,
                     title: tracks[i].name,
                     url: `https://www.youtube.com/watch?v=${results[s].id}`,
                     type: 1,
                     spot: tracks[i].external_urls.spotify,
-                    thumbnail: highlight ? tracks[i].album.images[0].url : image
+                    thumbnail: highlight ? tracks[i].album.images[0].url : image,
+                    time: songLength
                   };
                   songs.push(matched);
                   break;
                 }
                 if (s + 1 == results.length) {
+                  var info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${results[0].id}`);
+                  var length = parseInt(info.length_seconds);
+                  var hour = Math.floor(length / 3600);
+                  var minute = Math.floor((length % 3600) / 60);
+                  var second = Math.floor((length % 3600) % 60);
+                  var songLength = (hour !== 0 ? hour + "h" : "") + (minute !== 0 ? minute + "m" : "") + (second !== 0 ? second + "s" : "");
                   matched = {
                     id: results[0].id,
                     title: tracks[i].name,
                     url: `https://www.youtube.com/watch?v=${results[0].id}`,
                     type: 1,
                     spot: tracks[i].external_urls.spotify,
-                    thumbnail: highlight ? tracks[i].album.images[0].url : image
+                    thumbnail: highlight ? tracks[i].album.images[0].url : image,
+                    time: songLength
                   };
                   songs.push(matched);
                 }
@@ -332,25 +363,39 @@ module.exports = {
               for (var s = 0; s < results.length; s++) {
                 if (results.length == 0) break;
                 if (isGoodMusicVideoContent(results[s])) {
+                  var info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${results[s].id}`);
+                  var length = parseInt(info.length_seconds);
+                  var hour = Math.floor(length / 3600);
+                  var minute = Math.floor((length % 3600) / 60);
+                  var second = Math.floor((length % 3600) % 60);
+                  var songLength = (hour !== 0 ? hour + "h" : "") + (minute !== 0 ? minute + "m" : "") + (second !== 0 ? second + "s" : "");
                   matched = {
                     id: results[s].id,
                     title: tracks[i].name,
                     url: `https://www.youtube.com/watch?v=${results[s].id}`,
                     type: 1,
                     spot: tracks[i].external_urls.spotify,
-                    thumbnail: tracks[i].album.images[0].url
+                    thumbnail: tracks[i].album.images[0].url,
+                    time: songLength
                   };
                   songs.push(matched);
                   break;
                 }
                 if (s + 1 == results.length) {
+                  var info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${results[0].id}`);
+                  var length = parseInt(info.length_seconds);
+                  var hour = Math.floor(length / 3600);
+                  var minute = Math.floor((length % 3600) / 60);
+                  var second = Math.floor((length % 3600) % 60);
+                  var songLength = (hour !== 0 ? hour + "h" : "") + (minute !== 0 ? minute + "m" : "") + (second !== 0 ? second + "s" : "");
                   matched = {
                     id: results[0].id,
                     title: tracks[i].name,
                     url: `https://www.youtube.com/watch?v=${results[0].id}`,
                     type: 1,
                     spot: tracks[i].external_urls.spotify,
-                    thumbnail: tracks[i].album.images[0].url
+                    thumbnail: tracks[i].album.images[0].url,
+                    time: songLength
                   };
                   songs.push(matched);
                 }
@@ -364,12 +409,18 @@ module.exports = {
         } catch (err) {
           return message.channel.send("No video was found!");
         }
+        var length = parseInt(songInfo.length_seconds);
+        var hour = Math.floor(length / 3600);
+        var minute = Math.floor((length % 3600) / 60);
+        var second = Math.floor((length % 3600) % 60);
+                  var songLength = (hour !== 0 ? hour + "h" : "") + (minute !== 0 ? minute + "m" : "") + (second !== 0 ? second + "s" : "");
         var songs = [
           {
             id: songInfo.video_id,
             title: decodeHtmlEntity(songInfo.title),
             url: songInfo.video_url,
-            type: 0
+            type: 0,
+            time: songLength
           }
         ];
       }
@@ -409,7 +460,7 @@ module.exports = {
           var connection = await voiceChannel.join();
           queueContruct.connection = connection;
 
-          play(message.guild, queueContruct.songs[0], looping, queue, pool);
+          play(message.guild, queueContruct.songs[0], looping, queue, pool, repeat);
 
           const Embed = new Discord.MessageEmbed()
             .setColor(color)
@@ -417,7 +468,7 @@ module.exports = {
             .setThumbnail(
               `https://img.youtube.com/vi/${songs[0].id}/maxresdefault.jpg`
             )
-            .setDescription(`**[${songs[0].title}](${songs[0].url})**`)
+            .setDescription(`**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`)
             .setTimestamp()
             .setFooter(
               "Have a nice day! :)",
@@ -429,7 +480,7 @@ module.exports = {
             ).setThumbnail(undefined);
           else if (songs[0].type === 1)
             Embed.setDescription(
-              `**[${songs[0].title}](${songs[0].spot})**`
+              `**[${songs[0].title}](${songs[0].spot})**\nLength: **${songs[0].time}**`
             ).setThumbnail(songs[0].thumbnail);
           message.channel.send(Embed);
         } catch (err) {
@@ -462,9 +513,9 @@ module.exports = {
           serverQueue.voiceChannel = voiceChannel;
           serverQueue.connection = connection;
           serverQueue.playing = true;
-          play(message.guild, serverQueue.songs[0], looping, queue, pool);
+          play(message.guild, serverQueue.songs[0], looping, queue, pool, repeat);
         } else if (serverQueue.playing === false) {
-          play(message.guild, serverQueue.songs[0], looping, queue, pool);
+          play(message.guild, serverQueue.songs[0], looping, queue, pool, repeat);
         }
         var Embed = new Discord.MessageEmbed()
           .setColor(color)
@@ -472,7 +523,7 @@ module.exports = {
           .setThumbnail(
             `https://img.youtube.com/vi/${songs[0].id}/maxresdefault.jpg`
           )
-          .setDescription(`**[${songs[0].title}](${songs[0].url})**`)
+          .setDescription(`**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`)
           .setTimestamp()
           .setFooter(
             "Have a nice day! :)",
@@ -484,7 +535,7 @@ module.exports = {
           ).setThumbnail(undefined);
         else if (songs[0].type === 1)
           Embed.setDescription(
-            `**[${songs[0].title}](${songs[0].spot})**`
+            `**[${songs[0].title}](${songs[0].spot})**\nLength: **${songs[0].time}**`
           ).setThumbnail(songs[0].thumbnail);
         return message.channel.send(Embed);
       }
@@ -674,12 +725,18 @@ module.exports = {
                   );
                 }
               });
-
+        var songInfo = await ytdl.getInfo(saved[s].url);
+        var length = parseInt(songInfo.length_seconds);
+        var hour = Math.floor(length / 3600);
+        var minute = Math.floor((length % 3600) / 60);
+        var second = Math.floor((length % 3600) % 60);
+                  var songLength = (hour !== 0 ? hour + "h" : "") + (minute !== 0 ? minute + "m" : "") + (second !== 0 ? second + "s" : "");
               var song = {
                 id: saved[s].id,
                 title: decodeHtmlEntity(saved[s].title),
                 url: saved[s].url,
-                type: 0
+                type: 0,
+                time: songLength
               };
 
               if (!serverQueue) {
@@ -723,7 +780,8 @@ module.exports = {
                     queueContruct.songs[0],
                     looping,
                     queue,
-                    pool
+                    pool,
+                    repeat
                   );
                   const Embed = new Discord.MessageEmbed()
                     .setColor(color)
@@ -731,7 +789,7 @@ module.exports = {
                     .setThumbnail(
                       `https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`
                     )
-                    .setDescription(`**[${song.title}](${song.url})**`)
+                    .setDescription(`**[${song.title}](${song.url})**\nLength: **${song.time}**`)
                     .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
@@ -777,7 +835,8 @@ module.exports = {
                     serverQueue.songs[0],
                     looping,
                     queue,
-                    pool
+                    pool,
+                    repeat
                   );
                 } else if (serverQueue.playing === false) {
                   play(
@@ -785,7 +844,8 @@ module.exports = {
                     serverQueue.songs[0],
                     looping,
                     queue,
-                    pool
+                    pool,
+                    repeat
                   );
                 }
                 const Embed = new Discord.MessageEmbed()
@@ -794,7 +854,7 @@ module.exports = {
                   .setThumbnail(
                     `https://img.youtube.com/vi/${song.id}/maxresdefault.jpg`
                   )
-                  .setDescription(`**[${song.title}](${song.url})**`)
+                  .setDescription(`**[${song.title}](${song.url})**\nLength: **${song.time}**`)
                   .setTimestamp()
                   .setFooter(
                     "Have a nice day! :)",
@@ -824,11 +884,14 @@ module.exports = {
         })
         .catch(err => {
           console.log("Failed to send Embed.");
+        if(err.message === "Missing Permissions") {
+          message.author.send("I cannot send my search results!");
+        }
           console.error(err);
         });
     }
   },
-  async play(guild, song, looping, queue, pool) {
+  async play(guild, song, looping, queue, pool, repeat) {
     const serverQueue = queue.get(guild.id);
 
     if (!song) {
@@ -851,13 +914,16 @@ module.exports = {
       .play(await ytdl(song.url, { highWaterMark: 1 << 27 }), { type: "opus" })
       .on("finish", async () => {
         const guildLoopStatus = looping.get(guild.id);
+        const guildRepeatStatus = repeat.get(guild.id);
         console.log("Music ended! In " + guild.name);
 
         if (guildLoopStatus === true) {
           await serverQueue.songs.push(song);
         }
+        if(guildRepeatStatus !== true) {
+          await serverQueue.songs.shift();
+        }
 
-        await serverQueue.songs.shift();
         pool.getConnection(function(err, con) {
           con.query(
             "UPDATE servers SET queue = '" +
@@ -871,7 +937,7 @@ module.exports = {
           );
           con.release();
         });
-        play(guild, serverQueue.songs[0], looping, queue, pool);
+        play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
       })
       .on("error", error => {
         console.error(error);

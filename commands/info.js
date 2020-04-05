@@ -22,7 +22,7 @@ module.exports = {
     } catch(err) {}
     
     if(dlcExist) {
-      var dlcData = await fetch("https://nww-dlc.glitch.me/").then(resp => resp.json());
+      var dlcData = await fetch("https://nww-dlc.glitch.me/api/status").then(resp => resp.json());
       var readyAt = new Date(dlcData.readyAt);
       var dlcUptime = dlcData.uptime;
       var dlcVersion = dlcData.version;

@@ -18,7 +18,7 @@ module.exports = {
           return message.channel.send("Fuck you " + message.author);
         } else if (args[0] === "@everyone") {
           return message.channel.send(
-            "Fuck you <@" + message.author.id + ">. I cannot warn everyone lol."
+            "I cannot warn everyone lol."
           );
         }
 

@@ -12,7 +12,7 @@ app.get("/about", (req, response) => {
   response.sendFile(__dirname + "/views/about.html");
 });
 app.get("/manual", (req, response) => {
-  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1584964856482").pipe(response);
+  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1586078678938").pipe(response);
 })
 app.listen(process.env.PORT);
 setInterval(() => {
@@ -20,8 +20,8 @@ setInterval(() => {
 }, 280000);
 
 const { twoDigits, setTimeout_ } = require("./function.js");
-const log = console.log;
-log.error = console.error;
+console.realLog = console.log;
+console.realError = console.error;
 
 const fs = require("fs");
 const Discord = require("discord.js");
@@ -77,43 +77,41 @@ client.once("ready", () => {
   delete console["log"];
   delete console["error"];
 console.log = async function(str) {
-  log(str);
+  console.realLog(str);
   try {
     var logChannel = await client.channels.fetch("678847137391312917");
   } catch(err) {
-    return log.error(err)
+    return console.realError(err)
   }
     logChannel.send("`" + str + "`");
 }
   console.error = async function(str) {
-    log.error(str);
+    console.realError(str);
   try {
     var logChannel = await client.channels.fetch("678847137391312917");
   } catch(err) {
-    return log.error(err)
+    return console.realError(err)
   }
-    logChannel.send("`ERROR!`");
+    logChannel.send("`ERROR!`\n`" + str.name + "`");
   }
   console.log("Ready!");
 
   client.user.setActivity("You", { type: "WATCHING" });
   pool.getConnection(function(err, con) {
     if (err) return console.error(err);
-    con.query("SELECT id, queue FROM servers", function(err, results) {
+    con.query("SELECT id, queue, looping, repeating FROM servers", function(err, results) {
       if(err) return console.error(err);
       const { setQueue } = require("./musics/main.js");
       var count = 0;
       results.forEach(result => {
-        if(result.queue === null) {
-          
-        } else {
-        var queue = JSON.parse(unescape(result.queue));
-        setQueue(result.id, queue);
+        if(result.queue !== null || result.looping !== null || result.repeating !== null) {
+        var queue = result.queue !== null ? JSON.parse(unescape(result.queue)) : [];
+        setQueue(result.id, queue, result.looping === 1 ? true : false, result.repeating === 1 ? true : false);
           count += 1;
         }
       });
       console.log("Set " + count + " queues");
-    })
+    });
     con.query("SELECT * FROM giveaways ORDER BY endAt ASC", function(
       err,
       results,
@@ -949,6 +947,8 @@ client.on("message", async message => {
   if (!command) {
     return;
   } else {
+    if(!message.channel.permissionsFor(message.guild.me).has(["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"])) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
+    console.log("Called command " + command.name + " in " + message.guild.name);
     if (musicCommandsArray.includes(command.name) == true) {
       const mainMusic = require("./musics/main.js");
       try {
@@ -961,7 +961,7 @@ client.on("message", async message => {
       }
     }
     try {
-      command.execute(message, args, pool, musicCommandsArray, hypixelQueries, log);
+      command.execute(message, args, pool, musicCommandsArray, hypixelQueries, console.realLog);
     } catch (error) {
       console.error(error);
       message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");

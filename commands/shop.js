@@ -13,7 +13,7 @@ module.exports = {
           "there was an error trying to execute that command!"
         );
       mainMenu();
-      function mainMenu(msg) {
+      function mainMenu(msg = undefined) {
       con.query(
         "SELECT * FROM currency WHERE user_id = " +
           message.author.id +
@@ -41,10 +41,13 @@ module.exports = {
             .setDescription("The staff waited too long and tells you to leave.")
             .setFooter("You have $" + cash, message.author.displayAvatarURL());
 
-          if(msg === undefined)
-          var msg = await message.channel.send(shop);
-          else
-          var msg = await msg.edit(shop);
+          if(msg === undefined) {
+            msg = await message.channel.send(shop);
+            console.log("Sent");
+          } else {
+            msg = await msg.edit(shop);
+            console.log("Edited");
+          }
           
           await msg.react("1️⃣");
           await msg.react("2️⃣");
@@ -72,7 +75,7 @@ module.exports = {
                   "there was an error trying to execute that command!"
                 );
               for (var i = 0; i < results.length; i++)
-                allItems.push(`**${results[i].id}.** ${results[i].name}`);
+                allItems.push(`**${results[i].id}.** ${results[i].name} - **\$${results[i].buy_price}**`);
 
               const menu = new Discord.MessageEmbed()
                 .setColor(color)
@@ -107,8 +110,58 @@ module.exports = {
                 msg.edit(menu);
                 return setTimeout(() => mainMenu(msg), 3000);
                }
+              viewItem(msg, index);
             });
           }
+          
+          async function viewItem(msg, id) {
+              con.query("SELECT * FROM shop WHERE id = " + id, async(err, result) => {
+                if(err) {
+                  console.error(err);
+                  return message.reply("there was an error trying to execute that command!");
+                }
+                if(result.length == 0) {
+                  var itemEmbed = new Discord.MessageEmbed()
+                .setColor(color)
+                .setTitle("No item found!")
+                .setDescription("Returning to main menu in 3 seconds...")
+                .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                  
+                  await msg.edit(itemEmbed);
+                  return setTimeout(() => mainMenu(msg), 3000)
+                } else {
+                var itemEmbed = new Discord.MessageEmbed()
+                .setColor(color)
+                .setTitle(result[0].name)
+                .setDescription("**$" + result[0].buy_price + "**\n" + result[0].description + "\n\n1️⃣ Buy\n2️⃣ Return")
+                .setFooter("Please answer within 30 seconds.", message.client.user.displayAvatarURL());
+                  
+                  await msg.edit(itemEmbed);
+                  await msg.react("1️⃣");
+                  await msg.react("2️⃣");
+                  
+                  var collected = await msg.awaitReactions(filter, { max: 1, idle: 30000, errors: ["time"]}).catch(async() => {
+                    itemEmbed.setTitle("Please leave if you are not buying stuff!").setDescription("Returning to main menu in 3 seconds...").setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                    await msg.edit(itemEmbed);
+                    setTimeout(() => mainMenu(msg), 3000);
+                  });
+                  
+          var reaction = collected.first();
+          msg.reactions.removeAll().catch(console.error);
+                  
+                  if (reaction.emoji.name === "1️⃣") {
+                    
+                } else if (reaction.emoji.name === "2️⃣") {
+                    itemEmbed.setTitle("You want to look at the menu again.").setDescription("Returning to main menu in 3 seconds...").setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                    await msg.edit(itemEmbed);
+                    setTimeout(() => mainMenu(msg), 3000);
+                }
+                  
+                  
+                }
+              });
+          }
+          
 
           const manualLeave = new Discord.MessageEmbed()
             .setColor(color)
@@ -116,6 +169,8 @@ module.exports = {
             .setDescription("said the staff.")
             .setFooter("You have $" + cash, message.author.displayAvatarURL());
 
+          if(reaction === undefined) return msg.edit(leave);
+          
           if (reaction.emoji.name === "1️⃣") {
             shopMenu();
           } else if (reaction.emoji.name === "2️⃣") {
