@@ -19,7 +19,7 @@ var redditConn = new RedditAPI({
 
 module.exports = {
   name: "porn",
-  description: "Fetch porn images from Reddit.",
+  description: "Returns real porn images from Reddit. Require NSFW channel.",
   usage: "[tag]",
   
   //age
@@ -2044,14 +2044,22 @@ module.exports = {
         subs = [this.college[0], this.milf[0], this.mature[0], this.teen[0], this.amateur[0], this.selfShots[0], this.appearance[0], this.appearanceModification[0], this.piercings[0], this.tattoos[0], this.clothing[0], this.bodypartsThroughClothes[0], this.bottomless[0], this.clothedNakedPair[0], this.dresses[0], this.shoes[0], this.stockings[0], this.swimwear[0], this.tightClothing[0], this.topless[0], this.underwear[0], this.panties[0], this.thongs[0], this.uniformsOutfits[0], this.cosplay[0], this.expressions[0], this.pose[0], this.wetNmessy[0], this.hair[0], this.blonde[0], this.brunette[0], this.dyed[0], this.hairstyle[0], this.redhead[0], this.lipsMouth[0], this.lowerBody[0], this.ass[0], this.large[0], this.asshole[0], this.feet[0], this.gap[0], this.penis[0], this.penisLarge[0], this.penisSmall[0], this.vulva[0], this.vulvaHair[0], this.vulvaLabia[0], this.hips[0], this.legs[0], this.upperBody[0], this.breasts[0], this.fromAnAngle[0], this.implants[0], this.breastLarge[0], this.nipples[0], this.breastSmall[0], this.freckles[0], this.lightSkin[0], this.tan[0], this.traits[0], this.flexible[0], this.pregnant[0], this.bbw[0], this.chubby[0], this.curvy[0], this.petite[0], this.skinnyThin[0], this.classicVintage[0], this.cum[0], this.creampie[0], this.cumShot[0], this.bukkake[0], this.facial[0], this.swallowing[0], this.female[0], this.ethnicity[0], this.asian[0], this.black[0], this.euro[0], this.indian[0], this.japanese[0], this.exhibition[0], this.gonewild[0], this.public[0], this.fetish[0], this.bdsm[0], this.bondage[0], this.dominationSubmission[0], this.femdom[0], this.drugs[0], this.roleEnactment[0], this.agePlay[0], this.furry[0], this.petPlay[0], this.rapeAbuse[0], this.watersports[0], this.generalCategories[0], this.gifs[0], this.humorous[0], this.pov[0], this.passionate[0], this.pornForWomen[0], this.videos[0], this.groups[0], this.alt[0], this.athlete[0], this.camgirl[0], this.celebrity[0], this.country[0], this.nerd[0], this.pornstar[0], this.pornstarLookalike[0], this.religious[0], this.specificPersonality[0], this.bisexual[0], this.crossdressing[0], this.gay[0], this.lesbian[0], this.transgender[0], this.transsexual[0], this.literary[0], this.manMade[0], this.nature[0], this.beach[0], this.sex[0], this.anal[0], this.gaping[0], this.rimming[0], this.sexBreasts[0], this.fisting[0], this.sexGroup[0], this.largeGroup[0], this.swinging[0], this.threesome[0], this.insertion[0], this.interracial[0], this.masturbation[0], this.oral[0], this.orgasm[0], this.toys[0], this.specificActorActress[0], this.specificCompany[0], this.wtf[0]]
         break;
     }
+    if(this[args[0]] !== undefined) {
+      for(var i = 0; i < this[args[0]].length; i++) {
+          var s = this[args[0]].length - 1;
+          while(s > 0) {
+            subs.push(this[args[0]][i]);
+            s--;
+           }
+        }
+    }
     
     var picked = subs[Math.floor(Math.random() * subs.length)];
     
-    var response = await redditConn.api.get("/r/" + picked + "/random")
-    if(response[1][0] === undefined) return await this.execute(message, args);
-    var data = response[1][0].data.children[0].data;
-    
-    if(data.url === undefined) return await this.execute(message, args);
+    var response = await redditConn.api.get("/r/" + picked + "/hot").catch(err => console.error(err));
+    if(response[1] === undefined) return await this.execute(message, args);
+    if(response[1].data === undefined || response[1].data.children[0] === undefined || response[1].data.children[0].data === undefined || response[1].data.children[0].data.url === undefined) return await this.execute(message, args);
+    var data = response[1].data.children[0].data;
     
         const em = new Discord.MessageEmbed()
           .setTitle(`${data.title.substring(0, 256)}`)

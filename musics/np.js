@@ -11,7 +11,7 @@ module.exports = {
     .setColor(Math.floor(Math.random() * 16777214) + 1)
     .setTitle("Now playing:")
     .setDescription(
-      `[**${serverQueue.songs[0].title}**](${serverQueue.songs[0].url})`
+      `[**${serverQueue.songs[0].title}**](${serverQueue.songs[0].url})\nLength: **${serverQueue.songs[0].time}**`
     )
     .setTimestamp()
     .setThumbnail(`https://img.youtube.com/vi/${serverQueue.songs[0].id}/maxresdefault.jpg`)
