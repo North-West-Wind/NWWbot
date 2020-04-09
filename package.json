@@ -30,7 +30,7 @@
     "random-words": "^1.1.0",
     "ytdl-core-discord": "^1.1.0",
     "prism-media": "^1.2.0",
-    "ffmpeg-static": "^4.0.1",
+    "ffmpeg-static": "^4.1.0",
     "@discordjs/opus": "^0.1.0",
     "reddit": "^1.0.3",
     "reddit-wrapper-v2": "^1.1.6",
@@ -49,6 +49,8 @@
     "gfycat-sdk": "^1.4.18",
     "pornhub.js": "^0.2.2",
     "pornhub": "^0.0.5",
-    "es6-booru": "^0.4.4"
+    "es6-booru": "^0.4.4",
+    "express-device": "^0.4.2",
+    "cleverbot-free": "^1.0.2"
   }
 }

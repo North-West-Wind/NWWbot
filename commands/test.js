@@ -67,17 +67,7 @@ module.exports = {
       'allowfullscreen="true"&gt;&lt;/iframe&gt;'`).split("&").find(x => x.startsWith("image"));
       var arr = unescape(image).split("/");
     var id = arr[arr.length - 1].split("-")[0]; */
-    var results = await youtube.search("Surviv Tavern Music", 1);
-    log(results[0].url);
-        var songInfo = await ytdl.getInfo(results[0].url);
-    log(songInfo.length_seconds)
-        var length = parseInt(songInfo.length_seconds);
-        var hour = Math.floor(length / 3600);
-        var minute = Math.floor((length % 3600) / 60);
-        var second = Math.floor((length % 3600) % 60);
-    log(hour, minute, second)
-                  var songLength = (hour !== 0 ? hour + "h" : "") + (minute !== 0 ? minute + "m" : "") + (second !== 0 ? second + "s" : "");
-    log(songLength);
+    log(50.00 > 100.00)
 
   }
 };

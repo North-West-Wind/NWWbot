@@ -30,9 +30,7 @@ module.exports = {
     pool.getConnection(function(err, con) {
       con.query(
         "SELECT * FROM currency WHERE user_id = " +
-          message.author.id +
-          " AND guild = " +
-          message.guild.id,
+          message.author.id,
         async function(err, results, fields) {
           if (results.length == 0) {
             var gain =
@@ -43,7 +41,7 @@ module.exports = {
             var userID = message.author.id;
 
             con.query(
-              "INSERT INTO currency (user_id, currency, worked, last_worked, guild, bank) VALUES(" +
+              "INSERT INTO currency (user_id, currency, worked, last_worked, bank) VALUES(" +
                 userID +
                 ", " +
                 gain +
@@ -51,9 +49,7 @@ module.exports = {
                 worked +
                 ", '" +
                 currentDateSql +
-                "', " +
-                message.guild.id +
-                ", 0.00)",
+                "', 0.00)",
               function(err, result) {
                 if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
@@ -260,7 +256,7 @@ module.exports = {
               "UPDATE currency SET last_worked = '" +
                 currentDateSql +
                 "' WHERE user_id = " +
-                message.author.id + " AND guild = " + message.guild.id,
+                message.author.id,
               function(err, result) {
                 if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
@@ -281,7 +277,7 @@ module.exports = {
               "UPDATE currency SET last_worked = '" +
                 currentDateSql +
                 "' WHERE user_id = " +
-                message.author.id + " AND guild = " + message.guild.id,
+                message.author.id,
               function(err, result) {
                 if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
@@ -332,7 +328,7 @@ module.exports = {
               "UPDATE currency SET last_worked = '" +
                 currentDateSql +
                 "' WHERE user_id = " +
-                message.author.id + " AND guild = " + message.guild.id,
+                message.author.id,
               function(err, result) {
                 if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
@@ -352,7 +348,7 @@ module.exports = {
               "UPDATE currency SET last_worked = '" +
                 currentDateSql +
                 "' WHERE user_id = " +
-                message.author.id + " AND guild = " + message.guild.id,
+                message.author.id,
               function(err, result) {
                 if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
@@ -370,6 +366,36 @@ module.exports = {
             worked += 1;
             var userID = message.author.id;
             var currency = results[0].currency;
+            
+            if(results[0].doubling !== null) {
+              if((results[0].doubling - Date.now()) > 0) {
+                gain *= 2;
+                var doubling = true;
+              } else {
+                var endDoubling = 1;
+              }
+            }
+            
+            var doubleDate = new Date();
+            var date = doubleDate.getDate();
+            var month = doubleDate.getMonth();
+            var year = doubleDate.getFullYear();
+            var hour = doubleDate.getHours();
+            var minute = doubleDate.getMinutes();
+            var second = doubleDate.getSeconds();
+            var doubleDateSql =
+              year +
+              "-" +
+              twoDigits(month + 1) +
+              "-" +
+              twoDigits(date) +
+              " " +
+              twoDigits(hour) +
+              ":" +
+              twoDigits(minute) +
+              ":" +
+              twoDigits(second);
+            
             var newCurrency =
               Math.round((parseInt(currency) + gain + Number.EPSILON) * 100) /
               100;
@@ -380,9 +406,9 @@ module.exports = {
                 "', worked = " +
                 worked +
                 ", last_worked = '" +
-                currentDateSql +
+                currentDateSql + (endDoubling ? `, doubling = NULL` : "") +
                 "' WHERE user_id = " +
-                message.author.id + " AND guild = " + message.guild.id,
+                message.author.id,
               function(err, result) {
                 if (err) return message.reply("there was an error trying to execute that command!");
                 console.log(
@@ -396,7 +422,7 @@ module.exports = {
             );
             msg.delete()
             message.channel.send("<@" +
-              message.author.id + "> worked and gained **$" + gain + "**!"
+              message.author.id + "> worked and gained **$" + gain + "**!" + (doubling ? " The money you gained is doubled!" : "")
             );
           }
         }
