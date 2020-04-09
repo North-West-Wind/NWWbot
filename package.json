@@ -1,6 +1,6 @@
 {
   "name": "nwwbot",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "NorthWestWind's bot!",
   "main": "app.js",
   "scripts": {
@@ -15,7 +15,6 @@
   "dependencies": {
     "discord.js": "discordjs/discord.js",
     "express": "^4.17.1",
-    "express.js": "^1.0.0",
     "ytdl-core": "^2.0.1",
     "mojang-api": "^0.0.2",
     "ms": "^2.1.2",
@@ -23,7 +22,6 @@
     "mysql": "^2.18.1",
     "request-promise": "^4.2.5",
     "node-fetch": "^2.6.0",
-    "algebra.js": "^0.2.6",
     "simple-youtube-api": "^5.2.1",
     "krunker.js": "^1.2.4",
     "canvas": "^2.6.1",
@@ -32,25 +30,17 @@
     "prism-media": "^1.2.0",
     "ffmpeg-static": "^4.1.0",
     "@discordjs/opus": "^0.1.0",
-    "reddit": "^1.0.3",
     "reddit-wrapper-v2": "^1.1.6",
-    "discord-set": "^0.0.2",
     "smm-api": "^2.1.2",
     "akaneko": "^2.1.1",
-    "apiai": "^4.0.3",
     "serp": "^2.0.7",
-    "node-spotify-webhelper": "^0.0.6",
     "spotify-web-api-node": "^4.0.0",
     "youtube-search": "^1.1.4",
-    "spotify-track-stream": "^1.0.0",
     "oxford-dictionary": "^1.5.1",
     "booru": "^2.2.0",
     "statuses": "^1.5.0",
     "gfycat-sdk": "^1.4.18",
-    "pornhub.js": "^0.2.2",
-    "pornhub": "^0.0.5",
-    "es6-booru": "^0.4.4",
-    "express-device": "^0.4.2",
-    "cleverbot-free": "^1.0.2"
+    "cleverbot-free": "^1.0.2",
+    "express-device": "^0.4.2"
   }
 }

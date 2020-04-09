@@ -3,6 +3,12 @@
     <title>N0rthWestW1nd</title>
     <link rel="stylesheet" href="/style.css" />
     <style>
+      li {
+        font-size: 30px;
+      }
+      ul {
+        margin-left: 5%;
+      }
       #grad {
         background-image: linear-gradient(to bottom, #34eb67, #37B9E9);
         font-family: Comic Sans MS;
@@ -25,18 +31,18 @@
         display: block;
         margin-left: auto;
         margin-right: auto;
-        width: 15%;
+        width: 50%;
         border: 10px solid #fcba03;
       }
       .button {
         background-color: #7289DA;
         border: none;
         color: white;
-        padding: 20px 40px;
+        padding: 30px 50px;
         text-align: center;
         text-decoration: none;
         display: inline-block;
-        font-size: 50px;
+        font-size: 100px;
         margin-top: 20px;
         border-radius: 5%;
       }
@@ -81,16 +87,6 @@
       }
       .placeholder {
         height: 15%;
-      }
-      li {
-        font-size: 30px;
-      }
-      ul {
-        margin-left: 5%;
-      }
-      p.updates {
-        font-size: 20px;
-        color: #5a5a5a;
       }
       .sidenav {
   height: 100%; /* 100% Full-height */
@@ -186,76 +182,46 @@ function closeNav() {
 }
     </script>
     </div>
-    <div class="placeholder"></div>
-    <h1>
-      News
-    </h1>
-    <div width="100%">
-      <ul>
-        <li>1.0.8 Commercial District (7/4/2020)</li>
-        <p class="updates">
-          Finished command "shop". Check the manual for the usage.<br>
-          Added command "inventory". Check the manual for the usage.<br>
-          Added interesting items for "shop". Any suggestions will be welcomed on the support server.
-        </p>
-        <li>1.0.7 Music Brainwash (5/4/2020)</li>
-        <p class="updates">
-          Added command "repeat". Check the manual for the usage.<br>
-          Music commands will now show the length of music.
-        </p>
-        <li>1.0.6 Pollute Your Eyes and Mind (3/4/2020)</li>
-        <p class="updates">
-          Added command "rule34". Check the manual for the usage.<br>
-          Added command "porn". Check the manual for the usage<br>
-          Minor bug fixes.
-        </p>
-        <li>1.0.5 Spotify Enters the Battle (31/3/2020)</li>
-        <p class="updates">
-          Fixed command "remove" not allowing user to remove last song/music.<br>
-          Fixed command "skip" not skipping.<br>
-          Added Spotify support to the bot (which can be very buggy).
-        </p>
-        <li>1.0.4 Randomness (29/3/2020)</li>
-        <p class="updates">
-          The bot now have 0.1% of chance to respond to your message.<br>
-          Command "meme" is changed to command "reddit". The usage remains the same.<br>
-          Added command "oxford" which will provide dictionary search from Oxford Dictionary. Check the manual for the usage.<br>
-          Subcommands "auctionhouse" and "bazaar" of command "hypixel" react faster now.<br>
-          Fixed the manual.<br>
-          Minor bug fixes for giveaways.
-        </p>
-        <li>1.0.3 Big Brain Stores Musics (22/3/2020)</li>
-        <p class="updates">
-          Command "stop" will now store song queue instead of deleting it.<br>
-          Command "play" parameters become optional if there is stored queue for the server.<br>
-          Added command "clear" to clear the song queue. Check the manual for the usage.
-        </p>
-        <li>1.0.2 Hi, Hypixel (22/3/2020)</li>
-        <p class="updates">
-          Finished command "hypixel". Now you can check player stats and SkyBlock item prices (from both Auction and Bazaar). Check the manual for new subcommand usage.
-        </p>
-        <li>1.0.1 New Born Commands (20/3/2020)</li>
-        <p class="updates">
-          Added command "role-info", which will display information of a role. Check the manual for the usage.<br>
-          Updated command "hypixel". Now included auctions and more stats of games.<br>
-          Added more details to command "info" and "server".<br>
-          Minor bug fixes in command "poll".
-        </p>
-        <li>1.0.0 But I'm Not Done Yet (16/3/2020)</li>
-        <p class="updates">
-          The bot is out for everyone to use!<br>
-          Added the bot to Discord Bot List.
-        </p>
-      </ul>
-      <h2>
-        Future Plans
-      </h2>
-        <ul>
-          <li>Add languages.</li>
-          <li>Maybe more?</li>
-        </ul>
+    <div class="placeholder">
+      
     </div>
-    <div class="placeholder"></div>
+    <h1>
+      About
+    </h1>
+    <ul>
+      <li>What is N0rthWestW1nd?</li>
+      <p>
+        N0rthWestW1nd is a Discord bot coded by NorthWestWind#1885 with the npm module "discord.js".<br>
+        The bot contains a ton of commands. From the basic ones like "role", "kick" and "ban", to gaming APIs like "minecraft".<br><br>
+        The name of the bot simply comes from the author's name, but replaced "o" to "0" and "i" to "1".
+      </p>
+      <li>How to use the commands?</li>
+      <p>
+        Since there are a lot of commands, I wrote a manual to help you out!<br><br>
+        To get the manual, simply invite N0rthWestW1nd to your server.<br>
+        Then, type "?help" in any channel and you will received a copy of the manual!<br>
+        How convenient!<br><br>
+        Some of the commands have their very own subcommands.<br>
+        For any question about subcommands, please refer to the manual.
+      </p>
+      <li>DLC</li>
+      <p>
+        There is actally a DLC for N0rthWestW1nd!<br>
+        (Don't worry. It's completely free!)<br><br>
+        What the DLC do is add a leveling system to your server!<br>
+        The idea was inspired by MEE6.<br><br>
+        All datas are stored in a SQL database and we constantly get backups for it.<br>
+        So, don't worry about data loss!
+      </p>
+      <li>Suggestions</li>
+      <p>
+        If you got any new idea about the bot, feel free to put it to the <a href="https://discord.gg/S44PNSh" class="text-a">support server</a>!<br>
+        I will read them for sure, and they might even get into the bot!
+      </p>
+    </ul>
+    <div class="placeholder">
+      
+    </div>
     <div class="footer">
       <p>
         If you encounter any bugs or issues, please report them in the
