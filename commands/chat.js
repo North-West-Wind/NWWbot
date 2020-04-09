@@ -1,6 +1,6 @@
-const { Set } = require("discord-set");
-const set = new Set();
 const { prefix } = require("../config.json");
+const cleverbot = require("cleverbot-free");
+const log = new Map();
 
 module.exports = {
   name: "chat",
@@ -10,8 +10,16 @@ module.exports = {
     if(!args[0]) {
       return message.channel.send("What are we gonna talk about?" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
     }
-    set.chat(args.join(" ")).then(reply => {
-            return message.channel.send(reply);
-        });
+    var passMessages = log.get(message.author.id);
+    if(!passMessages) {
+      log.set(message.author.id, []);
+      passMessages = log.get(message.author.id);
+    }
+    cleverbot(args.join(" "), passMessages).then(response => {
+      passMessages.push(args.join(" "));
+      passMessages.push(response);
+      log.set(message.author.id, passMessages);
+      message.channel.send(response);
+    });
   }
 }

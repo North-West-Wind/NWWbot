@@ -1,15 +1,26 @@
 const http = require("http");
 const express = require("express");
+const device = require("express-device");
 const request = require("request");
 const app = express();
+app.use(device.capture());
 app.get("/", (req, response) => {
-  response.sendFile(__dirname + "/views/index.html");
+  if(req.device.type === "phone")
+    response.sendFile(__dirname + "/views/mobile/index.html");
+  else
+    response.sendFile(__dirname + "/views/index.html");
 });
 app.get("/news", (req, response) => {
-  response.sendFile(__dirname + "/views/news.html");
+  if(req.device.type === "phone")
+    response.sendFile(__dirname + "/views/mobile/news.html");
+  else
+    response.sendFile(__dirname + "/views/news.html");
 });
 app.get("/about", (req, response) => {
-  response.sendFile(__dirname + "/views/about.html");
+  if(req.device.type === "phone")
+    response.sendFile(__dirname + "/views/mobile/about.html");
+  else
+    response.sendFile(__dirname + "/views/about.html");
 });
 app.get("/manual", (req, response) => {
   request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1586078678938").pipe(response);
@@ -25,8 +36,7 @@ console.realError = console.error;
 
 const fs = require("fs");
 const Discord = require("discord.js");
-const { Set } = require("discord-set")
-const set = new Set();
+const cleverbot = require("cleverbot-free");
 const { prefix } = require("./config.json");
 const { Image, createCanvas, loadImage } = require("canvas");
 const mysql = require("mysql");
@@ -49,6 +59,7 @@ var pool = mysql.createPool(mysql_config);
 const client = new Discord.Client();
 
 client.commands = new Discord.Collection();
+client.items = new Discord.Collection();
 
 const commandFiles = fs
   .readdirSync("./commands")
@@ -57,6 +68,15 @@ const commandFiles = fs
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
   client.commands.set(command.name, command);
+}
+
+const itemFiles = fs
+  .readdirSync("./items")
+  .filter(file => file.endsWith(".js"));
+
+for (const file of itemFiles) {
+  const item = require(`./items/${file}`);
+  client.items.set(item.name.toLowerCase(), item);
 }
 
 var musicCommandsArray = [];
@@ -884,7 +904,6 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
     try {
       if (oldUserChannel.id !== guild.me.voice.channelID) return;
     } catch (err) {
-      console.log(guild.name);
       return;
     }
     // User leaves a voice channel
@@ -917,10 +936,9 @@ client.on("message", async message => {
   // client.on('message', message => {
   if (!message.content.startsWith(prefix) || message.author.bot) {
     if(!message.author.bot) {
-      if(Math.floor(Math.random() * 1000) === 69)
-    set.chat(message.content).then(reply => {
-            message.channel.send(reply);
-        });
+      if(Math.floor(Math.random() * 1000) === 69) {
+        cleverbot(message.content).then(response => message.channel.send(response));
+      }
     }
     return;
   };
@@ -947,7 +965,9 @@ client.on("message", async message => {
   if (!command) {
     return;
   } else {
-    if(!message.channel.permissionsFor(message.guild.me).has(["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"])) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
+    if(message.guild !== null) {
+      if(!message.channel.permissionsFor(message.guild.me).has(["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"])) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
+    }
     console.log("Called command " + command.name + " in " + message.guild.name);
     if (musicCommandsArray.includes(command.name) == true) {
       const mainMusic = require("./musics/main.js");

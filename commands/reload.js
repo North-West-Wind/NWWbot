@@ -13,7 +13,21 @@ module.exports = {
 
 
 		if (!command) {
-			return message.channel.send(`There is no command with name or alias \`${commandName}\`, ${message.author}!`);
+      const item = message.client.items.get(commandName);
+      
+      if(!item)
+			return message.channel.send(`There is no command/item with name or alias \`${commandName}\`, ${message.author}!`);
+      
+      commandName = item.name;
+      delete require.cache[require.resolve(`../items/${commandName}.js`)];
+      try {
+			  const newCommand = require(`../items/${commandName}.js`);
+			  message.client.items.set(newCommand.name.toLowerCase(), newCommand);
+		  } catch (error) {
+		  	console.log(error);
+		  	return message.channel.send(`There was an error while reloading a command \`${commandName}\`:\n\`${error.message}\``);
+		  }
+		  return message.channel.send(`Item \`${commandName}\` was reloaded!`);
 		}
     
     commandName = command.name;

@@ -3,10 +3,9 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "shop",
-  description: "Spend your money here!",
+  description: "Spend the money you gained from work or lottery.",
   usage: " ",
   execute(message, args, pool) {
-    if(message.author.id !== process.env.DC) return message.channel.send("This command is not finished. Please be patient...")
     pool.getConnection(function(err, con) {
       if (err)
         return message.reply(
@@ -14,11 +13,10 @@ module.exports = {
         );
       mainMenu();
       function mainMenu(msg = undefined) {
+        var mesg = msg;
       con.query(
         "SELECT * FROM currency WHERE user_id = " +
-          message.author.id +
-          " AND guild = " +
-          message.guild.id,
+          message.author.id,
         async function(err, results, fields) {
           if (err)
             return message.reply(
@@ -30,23 +28,23 @@ module.exports = {
             var cash = results[0].currency;
           }
           const shop = new Discord.MessageEmbed()
+              .setTimestamp()
             .setColor(color)
             .setTitle("Welcome to the shop!")
             .setDescription("Choose an action:\n\n1️⃣ Shop\n2️⃣ Leave")
             .setFooter("You have $" + cash, message.author.displayAvatarURL());
 
           const leave = new Discord.MessageEmbed()
+              .setTimestamp()
             .setColor(color)
             .setTitle("You were told to leave.")
             .setDescription("The staff waited too long and tells you to leave.")
             .setFooter("You have $" + cash, message.author.displayAvatarURL());
 
-          if(msg === undefined) {
-            msg = await message.channel.send(shop);
-            console.log("Sent");
+          if(mesg === undefined) {
+            var msg = await message.channel.send(shop);
           } else {
-            msg = await msg.edit(shop);
-            console.log("Edited");
+            var msg = await mesg.edit(shop);
           }
           
           await msg.react("1️⃣");
@@ -122,6 +120,7 @@ module.exports = {
                 }
                 if(result.length == 0) {
                   var itemEmbed = new Discord.MessageEmbed()
+              .setTimestamp()
                 .setColor(color)
                 .setTitle("No item found!")
                 .setDescription("Returning to main menu in 3 seconds...")
@@ -131,9 +130,10 @@ module.exports = {
                   return setTimeout(() => mainMenu(msg), 3000)
                 } else {
                 var itemEmbed = new Discord.MessageEmbed()
+              .setTimestamp()
                 .setColor(color)
                 .setTitle(result[0].name)
-                .setDescription("**$" + result[0].buy_price + "**\n" + result[0].description + "\n\n1️⃣ Buy\n2️⃣ Return")
+                .setDescription("Buy Price: **$" + result[0].buy_price + "**\n" + result[0].description + "\n\n1️⃣ Buy\n2️⃣ Return")
                 .setFooter("Please answer within 30 seconds.", message.client.user.displayAvatarURL());
                   
                   await msg.edit(itemEmbed);
@@ -150,7 +150,44 @@ module.exports = {
           msg.reactions.removeAll().catch(console.error);
                   
                   if (reaction.emoji.name === "1️⃣") {
-                    
+                    if(Number(cash) < Number(result[0].buy_price)) {
+                      itemEmbed.setTitle("You don't have enough money to buy " + result[0].name + "!").setDescription("Returning to main menu in 3 seconds...").setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                      await msg.edit(itemEmbed);
+                      setTimeout(() => mainMenu(msg), 3000);
+                    } else {
+                      itemEmbed.setTitle("You bought " + result[0].name + "!").setDescription("Returning to main menu in 3 seconds...").setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                      var paid = (cash - result[0].buy_price);
+                      con.query("UPDATE currency SET currency = " + paid + " WHERE user_id = '" + message.author.id + "'", async function(err) {
+                        if(err) itemEmbed.setTitle("Failed to purchase!");
+                        con.query("SELECT * FROM inventory WHERE id = '" + message.author.id + "'", function(err, IResult) {
+                          if(err) itemEmbed.setTitle("Failed to purchase!");
+                          var itemObject = {
+                            "1": 0,
+                            "2": 0
+                          }
+                          if(IResult.length === 0) {
+                            itemObject[result[0].id.toString()] += 1;
+                            con.query(`INSERT INTO inventory VALUES('${message.author.id}', '${escape(JSON.stringify(itemObject))}')`, async function(err) {
+                              if(err) itemEmbed.setTitle("Failed to purchase!");
+                              await msg.edit(itemEmbed);
+                              setTimeout(() => mainMenu(msg), 3000);
+                            });
+                          } else {
+                            var oldItems = JSON.parse(unescape(IResult[0].items));
+                            for(var i = 1; i <= Object.values(itemObject).length; i++) {
+                              var id = i.toString();
+                              itemObject[id] = (oldItems[id] === undefined ? 0 : oldItems[id]);
+                            }
+                            itemObject[result[0].id.toString()] += 1;
+                            con.query(`UPDATE inventory SET items = '${escape(JSON.stringify(itemObject))}' WHERE id = '${message.author.id}'`, async function(err) {
+                              if(err) itemEmbed.setTitle("Failed to purchase!");
+                              await msg.edit(itemEmbed);
+                              setTimeout(() => mainMenu(msg), 3000);
+                            });
+                          }
+                        });
+                      });
+                    }
                 } else if (reaction.emoji.name === "2️⃣") {
                     itemEmbed.setTitle("You want to look at the menu again.").setDescription("Returning to main menu in 3 seconds...").setFooter("Please be patient.", message.client.user.displayAvatarURL());
                     await msg.edit(itemEmbed);
@@ -164,6 +201,7 @@ module.exports = {
           
 
           const manualLeave = new Discord.MessageEmbed()
+              .setTimestamp()
             .setColor(color)
             .setTitle("Goodbye!")
             .setDescription("said the staff.")
