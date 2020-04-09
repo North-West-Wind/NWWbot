@@ -2,17 +2,12 @@ dependencies:
   '@discordjs/opus': 0.1.0
   akaneko: 2.1.1
   aki-api: 3.2.1
-  algebra.js: 0.2.6
-  apiai: 4.0.3
   booru: 2.2.1
   canvas: 2.6.1
   cleverbot-free: 1.0.3
-  discord-set: 0.0.2
   discord.js: github.com/discordjs/discord.js/828640ca263db2c95ed21e7353a2746fe6ac9fb8
-  es6-booru: 0.4.4
   express: 4.17.1
   express-device: 0.4.2
-  express.js: 1.0.0
   ffmpeg-static: 4.1.0
   gfycat-sdk: 1.4.18
   krunker.js: 1.2.5
@@ -20,19 +15,14 @@ dependencies:
   ms: 2.1.2
   mysql: 2.18.1
   node-fetch: 2.6.0
-  node-spotify-webhelper: 0.0.6
   oxford-dictionary: 1.6.0
-  pornhub: 0.0.5
-  pornhub.js: 0.2.2
   prism-media: 1.2.1
   random-words: 1.1.1
-  reddit: 1.0.3
   reddit-wrapper-v2: 1.1.6
   request-promise: 4.2.5
   serp: 2.0.7
   simple-youtube-api: 5.2.1
   smm-api: 2.1.2
-  spotify-track-stream: 1.0.0
   spotify-web-api-node: 4.0.0
   statuses: 1.5.0
   youtube-search: 1.1.4
@@ -62,29 +52,14 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-VWsrsgqSktxOEHx9SFcnOWJhYQOsyzaW3JVN73LDSzKrycEjtRIS+axlm4qeMGx60u6RH1SY15b3pl5G4+Y+gA==
-  /@types/node/10.17.18:
+  /@types/node/10.17.19:
     dev: false
     resolution:
-      integrity: sha512-DQ2hl/Jl3g33KuAUOcMrcAOtsbzb+y/ufakzAdeK9z/H/xsvkpbETZZbPNMIiQuk24f5ZRMCcZIViAwyFIiKmg==
-  /@types/node/13.11.0:
+      integrity: sha512-46/xThm3zvvc9t9/7M3AaLEqtOpqlYYYcCZbpYVAQHG20+oMZBkae/VMrn4BTi6AJ8cpack0mEXhGiKmDNbLrQ==
+  /@types/node/13.11.1:
     dev: false
     resolution:
-      integrity: sha512-uM4mnmsIIPK/yeO+42F2RQhGUIs39K2RFmugcJANppXe6J1nvH87PvzPZYpza7Xhhs8Yn9yIAVdLZ84z61+0xQ==
-  /CSSselect/0.7.0:
-    dependencies:
-      CSSwhat: 0.4.7
-      boolbase: 1.0.0
-      domutils: 1.4.3
-      nth-check: 1.0.2
-    deprecated: the module is now available as 'css-select'
-    dev: false
-    resolution:
-      integrity: sha1-5AVMZ7RnRl88lQDA2gqnh4xLq9I=
-  /CSSwhat/0.4.7:
-    deprecated: the module is now available as 'css-what'
-    dev: false
-    resolution:
-      integrity: sha1-hn2g/zn3eGEyQsRM/qg/CqTr35s=
+      integrity: sha512-eWQGP3qtxwL8FGneRrC5DwrJLGN4/dH1clNTuLfN81HCrxVtxRjygDTUoZJ5ASlDEeo0ppYFQjQIlXhtXpOn6g==
   /abbrev/1.1.1:
     dev: false
     resolution:
@@ -126,10 +101,6 @@ packages:
     dev: false
     resolution:
       integrity: sha512-T/9+GO82BeUf5frAObwAqR+8k70M699m7wt1JGOjhZvJfqGOiHYbvYlLMSvh1xn2LlK92d2gJYRowihw4BWx4Q==
-  /algebra.js/0.2.6:
-    dev: false
-    resolution:
-      integrity: sha1-I6rMhvhjTkwgbVbIB37yIKYiHHQ=
   /ansi-colors/3.2.3:
     dev: false
     engines:
@@ -171,10 +142,6 @@ packages:
       node: '>= 8'
     resolution:
       integrity: sha512-mM8522psRCqzV+6LhomX5wgp25YVibjh8Wj23I5RPkPppSVSjyKD2A2mBJmWGa+KN7f2D6LNh9jkBCeyLktzjg==
-  /apiai/4.0.3:
-    dev: false
-    resolution:
-      integrity: sha1-LRqjutH9lBjeqtpQk2noTgEe+vg=
   /aproba/1.2.0:
     dev: false
     resolution:
@@ -216,10 +183,6 @@ packages:
     dev: false
     resolution:
       integrity: sha512-csOlWGAcRFJaI6m+F2WKdnMKr4HhdhFVBk0H/QbJFMCr+uO2kwohwXQPxw/9OCxp05r5ghVBFSyioixx3gfkNQ==
-  /async/3.2.0:
-    dev: false
-    resolution:
-      integrity: sha512-TR2mEZFVOj2pLStYxLht7TyfuRzaydfpxr3k9RpHIzMgw7A64dzsdqCxH1WJyQdoe8T10nDXd9wnEigmiuHIZw==
   /asynckit/0.4.0:
     dev: false
     resolution:
@@ -393,25 +356,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-V00xLt2Iu13YkS6Sht1sCu1KrII=
-  /cheerio-select/0.0.3:
-    dependencies:
-      CSSselect: 0.7.0
-    dev: false
-    engines:
-      node: '>= 0.4.7'
-    resolution:
-      integrity: sha1-PyQgEU88ywsbB1wkXM+q5dYXo4g=
-  /cheerio/0.10.8:
-    dependencies:
-      cheerio-select: 0.0.3
-      entities: 0.5.0
-      htmlparser2: 2.6.0
-      underscore: 1.4.4
-    dev: false
-    engines:
-      node: '>= 0.6'
-    resolution:
-      integrity: sha1-7OWtDIuqm5rchzlLvbHGi8RVK6A=
   /cheerio/0.22.0:
     dependencies:
       css-select: 1.2.0
@@ -435,19 +379,6 @@ packages:
       node: '>= 0.6'
     resolution:
       integrity: sha1-qbqoYKP5tZWmuBsahocxIe06Jp4=
-  /cheerio/1.0.0-rc.3:
-    dependencies:
-      css-select: 1.2.0
-      dom-serializer: 0.1.1
-      entities: 1.1.2
-      htmlparser2: 3.10.1
-      lodash: 4.17.15
-      parse5: 3.0.3
-    dev: false
-    engines:
-      node: '>= 0.6'
-    resolution:
-      integrity: sha512-0td5ijfUPuubwLUu0OBoe98gZj8C/AA+RW3v67GPlGOrvxWjZmBXiBCRU+I8VEiNyJzjth40POfHiz2RB3gImA==
   /chokidar/3.3.0:
     dependencies:
       anymatch: 3.1.1
@@ -720,13 +651,6 @@ packages:
       node: '>=0.3.1'
     resolution:
       integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==
-  /discord-set/0.0.2:
-    dependencies:
-      embedcord: 2.0.0
-      node-fetch: 2.6.0
-    dev: false
-    resolution:
-      integrity: sha512-XGHySc8j7Fbk02pcxTUwU0yCvEf78OgE3nZFeukRSWgplzrjEY9eJsJsisxrxrVjiAB5wqwj+Q7fHLC5nD48Zg==
   /dom-serializer/0.1.1:
     dependencies:
       domelementtype: 1.3.1
@@ -749,30 +673,12 @@ packages:
     dev: false
     resolution:
       integrity: sha512-5HOHUDsYZWV8FGWN0Njbr/Rn7f/eWSQi1v7+HsUVwXgn8nWWlL64zKDkS0n8ZmQ3mlWOMuXOnR+7Nx/5tMO5AQ==
-  /domhandler/2.0.3:
-    dependencies:
-      domelementtype: 1.3.1
-    dev: false
-    resolution:
-      integrity: sha1-iJ+N9iZAOvB4jinWbV1cb36/D9Y=
   /domhandler/2.4.2:
     dependencies:
       domelementtype: 1.3.1
     dev: false
     resolution:
       integrity: sha512-JiK04h0Ht5u/80fdLMCEmV4zkNh2BcoMFBmZ/91WtYZ8qVXSKjiw7fXMgFPnHcSZgOo3XdinHvmnDUeMf5R4wA==
-  /domutils/1.0.1:
-    dependencies:
-      domelementtype: 1.3.1
-    dev: false
-    resolution:
-      integrity: sha1-WLWNd0d0kRVWwWuLAtmcYJ2YeGk=
-  /domutils/1.4.3:
-    dependencies:
-      domelementtype: 1.3.1
-    dev: false
-    resolution:
-      integrity: sha1-CGVRN5bGswYDGFDhdVFrr4C3Km8=
   /domutils/1.5.1:
     dependencies:
       dom-serializer: 0.2.2
@@ -808,10 +714,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=
-  /embedcord/2.0.0:
-    dev: false
-    resolution:
-      integrity: sha512-DfXFmmD7Bv6CXsW0jxtpLWqAGgorbnZJR+EKyn/tui+QNXWVPo9XcPIm2IkLYTsRcujbVyqlKXZeeVREls682g==
   /emoji-regex/7.0.3:
     dev: false
     resolution:
@@ -822,10 +724,6 @@ packages:
       node: '>= 0.8'
     resolution:
       integrity: sha1-rT/0yG7C0CkyL1oCw6mmBslbP1k=
-  /entities/0.5.0:
-    dev: false
-    resolution:
-      integrity: sha1-9hHLWuIhBQ4AEsZpeVA/164ZzEk=
   /entities/1.1.2:
     dev: false
     resolution:
@@ -868,13 +766,6 @@ packages:
       node: '>= 0.4'
     resolution:
       integrity: sha512-QCOllgZJtaUo9miYBcLChTUaHNjJF3PYs1VidD7AwiEj1kYxKeQTctLAezAOH5ZKRH0g2IgPn6KwB4IT8iRpvA==
-  /es6-booru/0.4.4:
-    dependencies:
-      node-fetch: 2.6.0
-      xml2js: 0.4.23
-    dev: false
-    resolution:
-      integrity: sha512-aiV6eZ4icZftv0smFWntRNPRO55fVaZhYTTlvU3JVvgk9nD844IkDNlktsT/JNYMxeVK6jp+8gt85Ij9/fyMcw==
   /escape-html/1.0.3:
     dev: false
     resolution:
@@ -908,10 +799,6 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==
-  /eventemitter3/4.0.0:
-    dev: false
-    resolution:
-      integrity: sha512-qerSRB0p+UDEssxTtm6EDKcE7W4OaoisfIMl4CngyEhjpYglocpNg6UEqCvemdGhosAsg4sO2dXJOdyBifPGCg==
   /express-device/0.4.2:
     dependencies:
       device: 0.3.10
@@ -925,12 +812,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-iLnEAWSv2aVSeGKbKUjmrOe/9F8=
-  /express.js/1.0.0:
-    dependencies:
-      express: 4.17.1
-    dev: false
-    resolution:
-      integrity: sha1-41ueXrBNEsRGp+/eCbqnhcKVJCQ=
   /express/4.17.1:
     dependencies:
       accepts: 1.3.7
@@ -1263,14 +1144,6 @@ packages:
       '0': node >= 0.4.0
     resolution:
       integrity: sha1-DfKTUfByEWNRXfueVUPl9u7VFi8=
-  /htmlparser2/2.6.0:
-    dependencies:
-      domelementtype: 1.3.1
-      domhandler: 2.0.3
-      domutils: 1.0.1
-    dev: false
-    resolution:
-      integrity: sha1-soVk6p0bpWoQSs5qew/dovMVg28=
   /htmlparser2/3.10.1:
     dependencies:
       domelementtype: 1.3.1
@@ -1308,7 +1181,7 @@ packages:
       integrity: sha512-ZTTX0MWrsQ2ZAhA1cejAwDLycFsd7I7nVtnkT3Ol0aqodaKW+0CTZDQ1uBv5whptCnc8e8HeRRJxRs0kmm/Qfw==
   /http-response-object/3.0.2:
     dependencies:
-      '@types/node': 10.17.18
+      '@types/node': 10.17.19
     dev: false
     resolution:
       integrity: sha512-bqX0XTF6fnXSQcEJ2Iuyr75yVakyjIDCqroJQ/aHfSdlM743Cwqoi2nDYMzLGWUcuTWGWy8AAvOKXTfiv6q9RA==
@@ -1578,10 +1451,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-G7nzFO9ri63tE7VJFpsqlF62jk0=
-  /lodash/3.10.1:
-    dev: false
-    resolution:
-      integrity: sha1-W/Rejkm6QYnhfUgnid/RW9FAt7Y=
   /lodash/4.17.15:
     dev: false
     resolution:
@@ -1891,13 +1760,6 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-+CvDC7ZttU/sSt9rFjix/P05iS43qHCOOGzcr3Ry99bXG7VX953+vFyEuph/tfqoYu8dttBkE86JSKBO2OzcxA==
-  /node-spotify-webhelper/0.0.6:
-    dependencies:
-      request: 2.88.2
-      wintools: 0.1.0
-    dev: false
-    resolution:
-      integrity: sha1-UuiJ5WFRfzOhP7jXQaM/VlpWAZ0=
   /nopt/4.0.3:
     dependencies:
       abbrev: 1.1.1
@@ -2191,12 +2053,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-juqz5U+laSD+Fro493+iGqzC104=
-  /parse5/3.0.3:
-    dependencies:
-      '@types/node': 13.11.0
-    dev: false
-    resolution:
-      integrity: sha512-rgO9Zg5LLLkfJF9E6CCmXlSE4UVceloys8JrFqCcHloC3usd/kJCyPDwH2SOlzix2j3xaP9sUX3e8+kvkuleAA==
   /parseurl/1.3.3:
     dev: false
     engines:
@@ -2233,24 +2089,6 @@ packages:
       node: '>=8.6'
     resolution:
       integrity: sha512-q0M/9eZHzmr0AulXyPwNfZjtwZ/RBZlbN3K3CErVrk50T2ASYI7Bye0EvekFY3IP1Nt2DHu0re+V2ZHIpMkuWg==
-  /pornhub.js/0.2.2:
-    dependencies:
-      cheerio: 1.0.0-rc.3
-      eventemitter3: 4.0.0
-      node-fetch: 2.6.0
-      semantic-api: 1.2.1
-    dev: false
-    resolution:
-      integrity: sha512-38cd5ZUq6ED6hag5CHWL1c+mBBqJarh7Vh6r9rIfQWYXHKSpu7lMrJs1LAMewjnsdd/xG+VixTSNCZyVGIj5oA==
-  /pornhub/0.0.5:
-    dependencies:
-      cheerio: 0.10.8
-      html-entities: 1.2.1
-      lodash: 3.10.1
-      request: 2.88.2
-    dev: false
-    resolution:
-      integrity: sha1-pn4UjZJOJESQbSUr2QqGZxjeEwU=
   /prism-media/1.2.1:
     dev: false
     peerDependencies:
@@ -2388,13 +2226,6 @@ packages:
     dev: false
     resolution:
       integrity: sha512-lpgW7u9RaujEKSEzEd4uen2ns3Yd7tXRwEa1aUzGizVTuonqqVvx1K2T6t1asOJ2bEGqFynv9VxLp5zataspOw==
-  /reddit/1.0.3:
-    dependencies:
-      debug: 4.1.1
-      simple-get: 3.1.0
-    dev: false
-    resolution:
-      integrity: sha512-Vo6KS68KECwOObpT4gz4110pkjox7V6n6XeaF0+A6flFgP0De1TpMy9VynYQVP4vRLBiaYdfHpijtPR+7I6pew==
   /regenerator-runtime/0.11.1:
     dev: false
     resolution:
@@ -2548,10 +2379,6 @@ packages:
     dev: false
     resolution:
       integrity: sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
-  /semantic-api/1.2.1:
-    dev: false
-    resolution:
-      integrity: sha512-b/vpBLc5sDTPY/Tt2IVE4UZFjFSpreAd6J4DfvVAFVXW2yrhGT8xCEecNoT9n0E4Msbbv+iux1qOxMIdVNmthg==
   /semver/5.7.1:
     dev: false
     hasBin: true
@@ -2642,12 +2469,6 @@ packages:
     dev: false
     resolution:
       integrity: sha512-UoYK3eOGvZiDldKO8HtkpBYmvgS/YCjHWgXRTNG2ddcCSah1nrwukWmMa60kAFbPyS6muCYx2ZN6qOw7a42fog==
-  /spotify-track-stream/1.0.0:
-    dependencies:
-      debug: 2.6.9
-    dev: false
-    resolution:
-      integrity: sha1-hPheaFeytC72fKpvLDuIoYAqoOE=
   /spotify-web-api-node/4.0.0:
     dependencies:
       superagent: 3.8.3
@@ -2927,10 +2748,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
-  /underscore/1.4.4:
-    dev: false
-    resolution:
-      integrity: sha1-YaajIBBiKvoHljvzJSA88SI51gQ=
   /unpipe/1.0.0:
     dev: false
     engines:
@@ -2998,12 +2815,6 @@ packages:
     dev: false
     resolution:
       integrity: sha512-QGkOQc8XL6Bt5PwnsExKBPuMKBxnGxWWW3fU55Xt4feHozMUhdUMaBCk290qpm/wG5u/RSKzwdAC4i51YigihA==
-  /wintools/0.1.0:
-    dependencies:
-      async: 3.2.0
-    dev: false
-    resolution:
-      integrity: sha1-V1fLo9CischdDMhcnKdKCVSxrZw=
   /wrap-ansi/5.1.0:
     dependencies:
       ansi-styles: 3.2.1
@@ -3039,21 +2850,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-m4FpCTFjH/CdGVdUn69U9PmAs8I=
-  /xml2js/0.4.23:
-    dependencies:
-      sax: 1.2.4
-      xmlbuilder: 11.0.1
-    dev: false
-    engines:
-      node: '>=4.0.0'
-    resolution:
-      integrity: sha512-ySPiMjM0+pLDftHgXY4By0uswI3SPKLDw/i3UXbnO8M/p28zqexCUoPmQFrYD+/1BzhGJSs2i1ERWKJAtiLrug==
-  /xmlbuilder/11.0.1:
-    dev: false
-    engines:
-      node: '>=4.0'
-    resolution:
-      integrity: sha512-fDlsI/kFEx7gLvbecc0/ohLG50fugQp8ryHzMTuW9vSa1GJ0XYWKnhsUx7oie3G98+r56aTQIUB4kht42R3JvA==
   /y18n/4.0.0:
     dev: false
     resolution:
@@ -3111,7 +2907,7 @@ packages:
       integrity: sha512-eS3VAqm2avF094d/zu/iKjxMWIAPZ9GZ2V4qVYlznUwt2gEfQRG64o4rRHmeG60GGPCRNoPIJfbjilbfGSMfVA==
   /ytdl-core-discord/1.1.0:
     dependencies:
-      '@types/node': 13.11.0
+      '@types/node': 13.11.1
       prism-media: 1.2.1
       ytdl-core: 1.0.9
     dev: false
@@ -3171,17 +2967,12 @@ specifiers:
   '@discordjs/opus': ^0.1.0
   akaneko: ^2.1.1
   aki-api: ^3.2.1
-  algebra.js: ^0.2.6
-  apiai: ^4.0.3
   booru: ^2.2.0
   canvas: ^2.6.1
   cleverbot-free: ^1.0.2
-  discord-set: ^0.0.2
   discord.js: 'github:discordjs/discord.js'
-  es6-booru: ^0.4.4
   express: ^4.17.1
   express-device: ^0.4.2
-  express.js: ^1.0.0
   ffmpeg-static: ^4.1.0
   gfycat-sdk: ^1.4.18
   krunker.js: ^1.2.4
@@ -3189,19 +2980,14 @@ specifiers:
   ms: ^2.1.2
   mysql: ^2.18.1
   node-fetch: ^2.6.0
-  node-spotify-webhelper: ^0.0.6
   oxford-dictionary: ^1.5.1
-  pornhub: ^0.0.5
-  pornhub.js: ^0.2.2
   prism-media: ^1.2.0
   random-words: ^1.1.0
-  reddit: ^1.0.3
   reddit-wrapper-v2: ^1.1.6
   request-promise: ^4.2.5
   serp: ^2.0.7
   simple-youtube-api: ^5.2.1
   smm-api: ^2.1.2
-  spotify-track-stream: ^1.0.0
   spotify-web-api-node: ^4.0.0
   statuses: ^1.5.0
   youtube-search: ^1.1.4

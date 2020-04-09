@@ -1,7 +1,7 @@
 const http = require("http");
 const express = require("express");
-const device = require("express-device");
 const request = require("request");
+const device = require("express-device");
 const app = express();
 app.use(device.capture());
 app.get("/", (req, response) => {
@@ -23,7 +23,7 @@ app.get("/about", (req, response) => {
     response.sendFile(__dirname + "/views/about.html");
 });
 app.get("/manual", (req, response) => {
-  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1586078678938").pipe(response);
+  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1586432854839").pipe(response);
 })
 app.listen(process.env.PORT);
 setInterval(() => {
@@ -818,7 +818,7 @@ client.on("guildMemberRemove", member => {
 
           const leaveMessage = messageArray
             .join(" ")
-            .replace(/{user}/g, member);
+            .replace(/{user}/g, `**${member.user.tag}**`);
           
           try {
           channel.send(leaveMessage);
@@ -968,7 +968,6 @@ client.on("message", async message => {
     if(message.guild !== null) {
       if(!message.channel.permissionsFor(message.guild.me).has(["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"])) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
     }
-    console.log("Called command " + command.name + " in " + message.guild.name);
     if (musicCommandsArray.includes(command.name) == true) {
       const mainMusic = require("./musics/main.js");
       try {

@@ -15,9 +15,6 @@ var search = require('youtube-search');
 const Booru = require("booru");
 const Gfycat = require('gfycat-sdk');
 var gfycat = new Gfycat({clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET});
-const PornHub = require('pornhub.js')
-const pornhub = new PornHub();
-const ph = require("pornhub");
  
 var opts = {
   maxResults: 1,

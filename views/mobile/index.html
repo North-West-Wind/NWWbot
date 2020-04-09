@@ -96,14 +96,20 @@
 }
 
 /* The navigation menu links */
-.sidenav a {
+.sidenav a.link {
   padding: 16px 16px 16px 32px;
   text-decoration: none;
-  font-size: 100px;
+  font-size: 75px;
   color: #818181;
   display: block;
   transition: 0.3s;
+  margin-top: 10%;
 }
+      .closebtn {
+  color: #818181;
+        font-size: 75px;
+        padding: 10px;
+      }
 
 /* When you mouse over the navigation links, change their color */
 .sidenav a:hover {
@@ -117,6 +123,7 @@
   right: 25px;
   font-size: 100px;
   margin-left: 50px;
+  text-decoration: none;
 }
 
 /* Style page content - use this if you want to push the page content to the right when you open the side navigation */
@@ -151,12 +158,12 @@
       
     <div id="mySidenav" class="sidenav">
       <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-      <a href="/">Home</a>
-      <a href="news">News</a>
-      <a href="about">About</a>
-      <a href="manual">Help</a>
+      <a href="/" class="link">Home</a>
+      <a href="news" class="link">News</a>
+      <a href="about" class="link">About</a>
+      <a href="manual" class="link">Help</a>
     </div>
-    <span onclick="openNav()" class="menu">Menu</span>
+    <span onclick="openNav()" class="menu">☰ Menu</span>
     <script>
       /* Open the sidenav */
 function openNav() {
