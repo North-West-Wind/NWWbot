@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 var embedColor = Math.floor(Math.random() * 16777214) + 1;
-const {findUser} = require("../function.js");
+const { findUser } = require("../function.js");
 const { prefix } = require("../config.json");
 
 module.exports = {
@@ -10,27 +10,31 @@ module.exports = {
   usage: "<user | user ID> [reason]",
   execute(message, args, pool) {
     pool.getConnection(async function(err, con) {
-      if (!args[0]) {
-        return message.channel.send("Tell me who you are warning." + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
+      if (err) {
+        console.error(err);
+        return message.reply(
+          "there was an error trying to execute that command!"
+        );
       }
-      
-      if (args[0] === "me") {
-          return message.channel.send("Fuck you " + message.author);
-        } else if (args[0] === "@everyone") {
-          return message.channel.send(
-            "I cannot warn everyone lol."
-          );
-        }
+      if (!args[0]) {
+        return message.channel.send(
+          "Tell me who you are warning." +
+            ` Usage: \`${prefix}${this.name} ${this.usage}\``
+        );
+      }
 
-      
+      if (args[0] === "me") {
+        return message.channel.send("Fuck you " + message.author);
+      } else if (args[0] === "@everyone") {
+        return message.channel.send("I cannot warn everyone lol.");
+      }
 
       // Assuming we mention someone in the message, this will return the user
       // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
 
       const user = await findUser(message, args[0]);
 
-
-      if(!user) return;
+      if (!user) return;
       if (!message.member.permissions.has("BAN_MEMBERS"))
         return message.channel.send(
           "You don't have the permission to use this command!"
@@ -81,7 +85,12 @@ module.exports = {
           reason.replace(/'/g, /\\'/).replace(/"/g, /\\"/) +
           "')",
         function(err, result) {
-          if (err) return message.reply("there was an error trying to execute that command!");
+          if (err) {
+            console.error(err);
+            return message.reply(
+              "there was an error trying to execute that command!"
+            );
+          }
           console.log("Inserted warning record successfully.");
         }
       );
@@ -91,7 +100,12 @@ module.exports = {
           " AND user = " +
           user.id,
         async function(err, results, fields) {
-          if (err) return message.reply("there was an error trying to execute that command!");
+          if (err) {
+            console.error(err);
+            return message.reply(
+              "there was an error trying to execute that command!"
+            );
+          }
           if (results.length >= 3) {
             message.guild.ban(user);
             var banEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
@@ -104,8 +118,8 @@ module.exports = {
                 "Banned by " + message.author.tag,
                 message.author.displayAvatarURL()
               );
-            user.kicked = new Discord.Collection()
-           await user.kicked.set(message.guild.id, true)
+            user.kicked = new Discord.Collection();
+            await user.kicked.set(message.guild.id, true);
             var banSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
               .setColor(embedColor)
               .setTitle("User Banned!")
@@ -124,7 +138,12 @@ module.exports = {
                 " AND user = " +
                 user.id,
               function(err, result) {
-                if (err) return message.reply("there was an error trying to execute that command!");
+                if (err) {
+                  console.error(err);
+                  return message.reply(
+                    "there was an error trying to execute that command!"
+                  );
+                }
                 console.log(
                   "Deleted all warnings for " +
                     user.username +

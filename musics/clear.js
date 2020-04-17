@@ -4,10 +4,6 @@ module.exports = {
   usage: " ",
   music(message, serverQueue, looping, queue, pool) {
     const guild = message.guild;
-    if (!message.member.voice.channel)
-      return message.channel.send(
-        "You have to be in a voice channel to clear the queue!"
-      );
     if (serverQueue.playing) {
       return message.channel.send("The music must be stopped first.");
     }

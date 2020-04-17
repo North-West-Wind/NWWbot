@@ -14,13 +14,13 @@ module.exports = {
     }
     
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
-    if (isNaN(parseInt(roleID))) {
+    if (isNaN(parseInt(roleID)) || args.length > 1) {
       var role = await message.guild.roles.cache.find(
-        x => x.name.toLowerCase() === `${args[0].toLowerCase()}`
+        x => x.name.toLowerCase() === `${args.join(" ").toLowerCase()}`
       );
       if (role === null) {
         return message.channel.send(
-          "No role was found with the name " + args[0]
+          "No role was found with the name " + args.join(" ")
         );
       }
     } else {

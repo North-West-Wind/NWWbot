@@ -86,6 +86,11 @@ module.exports = {
         `https://api.slothpixel.me/api/skyblock/auctions?id=${id}&limit=1000`
       ).then(response => response.json());
       
+      if(auctionsAPI.error) {
+        console.error(auctionsAPI.error);
+        return message.reply("there was an error trying to get auctions from the API!");
+      }
+      
       var auctions = auctionsAPI;
       
       if (auctions.length == 0)
@@ -145,7 +150,7 @@ module.exports = {
             auctions[0].item_name
           }**\nAverage: \$${numberWithCommas(
             Math.round(average)
-          )}\nMedian: \$${numberWithCommas(median)}`
+          )}\nMedian: \$${numberWithCommas(Math.round(median))}`
         )
         .setTimestamp()
         .setFooter(

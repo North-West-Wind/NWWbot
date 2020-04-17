@@ -1,7 +1,8 @@
 const serp = require("serp");
 const Discord = require("discord.js")
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json")
+const { prefix } = require("../config.json");
+const googleIt = require("google-it");
 
 module.exports = {
   name: "google",
@@ -9,24 +10,18 @@ module.exports = {
   usage: "<query>",
   args: true,
   async execute(message, args) {
-    
+    if(message.author.id !== process.env.DC) return message.channel.send("The command is currently broken. Sorry for the inconvenience :/");
     if(args.length < 1) {
       return message.channel.send("Please provide a query for searching!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
     }
     
-    var options = {
-      qs: {
-        q: args.join(" ")
-      },
-      num: 10
-    }
     var results = [];
     
-    var links = await serp.search(options)
-
+    var links = await googleIt({ query: args.join(" ") });
+    links.slice(0, 10);
     var num = 0;
     for(var i = 0; i < links.length; i++) {
-      try {results.push(`${++num}. **[${links[i].title}](${links[i].url})**`);}
+      try {results.push(`${++num}. **[${links[i].title}](${links[i].link})**`);}
       catch(err) {
         --num
       }

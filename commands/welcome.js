@@ -8,21 +8,30 @@ module.exports = {
   execute(message, args, pool) {
     const member = message.author;
     const guild = message.guild;
-    try {
-      message.client.emit("guildMemberAdd")
-    } catch(error) {
-      pool.getConnection(function(err, con) {
-          if(err) return message.reply("there was an error executing that command!");
+    pool.getConnection(function(err, con) {
+      if (err) {
+        console.error(err);
+        return message.reply(
+          "there was an error trying to execute that command!"
+        );
+      }
       con.query(
         "SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id=" +
           guild.id,
         function(err, result, fields) {
-          if(err) return message.reply("there was an error executing that command!");
-          if (result[0].wel_channel === null || result[0] === undefined || result[0].welcome === null) {
+          if (err) {
+            console.error(err);
+            return message.reply(
+              "there was an error trying to execute that command!"
+            );
+          }
+          if (
+            result[0].wel_channel === null ||
+            result[0] === undefined ||
+            result[0].welcome === null
+          ) {
             return message.channel.send("No welcome message configured.");
           } else {
-            
-
             //convert message into array
             const splitMessage = result[0].welcome.split(" ");
             const messageArray = [];
@@ -169,7 +178,9 @@ module.exports = {
                 const image = await loadImage(url);
 
                 //fetch user avatar
-                const avatar = await loadImage(message.author.displayAvatarURL({ format: 'png' }));
+                const avatar = await loadImage(
+                  message.author.displayAvatarURL({ format: "png" })
+                );
 
                 //draw background
                 ctx.drawImage(image, 0, 0, width, height);
@@ -260,16 +271,17 @@ module.exports = {
             }
           }
 
-          
-
           //release SQL
           con.release();
 
-          if (err) return message.reply("there was an error trying to execute that command!");
+          if (err) {
+            console.error(err);
+            return message.reply(
+              "there was an error trying to execute that command!"
+            );
+          }
         }
       );
     });
-    }
-    
   }
 };

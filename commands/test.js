@@ -15,7 +15,14 @@ var search = require('youtube-search');
 const Booru = require("booru");
 const Gfycat = require('gfycat-sdk');
 var gfycat = new Gfycat({clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET});
- 
+const mm = require("music-metadata");
+var request = require("request");
+const ytsr = require("ytsr");
+const ytpl = require("ytpl");
+const moment = require("moment");
+const formatSetup = require("moment-duration-format");
+formatSetup(moment);
+
 var opts = {
   maxResults: 1,
   key: process.env.YT2
@@ -64,7 +71,5 @@ module.exports = {
       'allowfullscreen="true"&gt;&lt;/iframe&gt;'`).split("&").find(x => x.startsWith("image"));
       var arr = unescape(image).split("/");
     var id = arr[arr.length - 1].split("-")[0]; */
-    log(50.00 > 100.00)
-
-  }
+    }
 };

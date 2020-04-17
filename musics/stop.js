@@ -17,6 +17,8 @@ module.exports = {
   serverQueue.connection.dispatcher.destroy();
     serverQueue.playing = false;
     serverQueue.connection = null;
+    serverQueue.voiceChannel = null;
+    serverQueue.textChannel = null;
   if(message.guild.me.voice.channel)
   message.guild.me.voice.channel.leave();
   message.channel.send(":wave:");

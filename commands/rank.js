@@ -4,28 +4,35 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "rank",
-  description: "Display your rank in the server. However, this command requires a DLC to work. Leveling system was inspired by MEE6.",
+  description:
+    "Display your rank in the server. However, this command requires a DLC to work. Leveling system was inspired by MEE6.",
   async execute(message, args, pool) {
     try {
-    var dlc = await message.guild.members.fetch("684639278944223277");
-    } catch(err) {
-      return message.channel.send("You didn't install the DLC for leveling! Please install it with the following link:\nhttps://discordapp.com/api/oauth2/authorize?client_id=684639278944223277&permissions=1024&scope=bot")
+      var dlc = await message.guild.members.fetch("684639278944223277");
+    } catch (err) {
+      return message.channel.send(
+        "You didn't install the DLC for leveling! Please install it with the following link:\nhttps://discordapp.com/api/oauth2/authorize?client_id=684639278944223277&permissions=1024&scope=bot"
+      );
     }
     pool.getConnection(function(err, con) {
-      if (err)
+      if (err) {
+        console.error(err);
         return message.reply(
           "there was an error trying to execute that command!"
         );
+      }
       con.query(
         "SELECT * FROM leveling WHERE user = " +
           message.author.id +
           " AND guild = " +
           message.guild.id,
         function(err, results, fields) {
-          if (err)
+          if (err) {
+            console.error(err);
             return message.reply(
               "there was an error trying to execute that command!"
             );
+          }
           var expBackup = parseInt(results[0].exp);
           var exp = parseInt(results[0].exp);
           var cost = 50;
@@ -40,61 +47,73 @@ module.exports = {
 
           costs.push(cost);
           con.query(
-            "SELECT id FROM leveling WHERE guild = " + message.guild.id + " ORDER BY exp",
+            "SELECT id FROM leveling WHERE guild = " +
+              message.guild.id +
+              " ORDER BY exp DESC",
             function(err, result, fields) {
-              if (err)
+              if (err) {
+                console.error(err);
                 return message.reply(
                   "there was an error trying to execute that command!"
                 );
-              
+              }
+
               var everyone = [];
-              
-              for(var i = 0; i < result.length; i++) {
-                everyone.push(result[i].id)
-              };
-              
+
+              for (var i = 0; i < result.length; i++) {
+                everyone.push(result[i].id);
+              }
+
               var dashes = [];
-              
-              for(var i = 0; i < 20; i++) {
+
+              for (var i = 0; i < 20; i++) {
                 dashes.push("=");
               }
-              
-              var percentage = Math.floor(expBackup / costs.reduce((a, b) => a + b) * 100);
+
+              var percentage = Math.floor((exp / cost) * 100);
               var progress = Math.round(percentage / 5);
-              dashes.splice(progress - 1, 1, "+");
+              dashes.splice(progress, 1, "+");
               var rank = everyone.indexOf(results[0].id) + 1;
               const rankEmbed = new Discord.MessageEmbed()
-            .setColor(color)
-            .setTitle(
-              "Rank of **" +
-                message.author.tag +
-                "** in **" +
-                message.guild.name +
-                "**"
-            )
-            .setDescription(
-              "Rank: **" +
-                rank +
-                "**\nLevel: **" +
-                level +
-                "**\n\nProgress to Next Level: \n**" +
-                expBackup +
-                "** / **" +
-                costs.reduce((a, b) => a + b) +
-                "** - **" + percentage + "%**\n" + level + " **" + 
-              dashes.join("") + "** " + (level + 1)
-            )
-            .setFooter(
-              "Every level requires 50 XP more to level up.",
-              message.client.user.displayAvatarURL()
-            )
-            .setTimestamp();
+                .setColor(color)
+                .setTitle(
+                  "Rank of **" +
+                    message.author.tag +
+                    "** in **" +
+                    message.guild.name +
+                    "**"
+                )
+                .setDescription(
+                  "Rank: **" +
+                    rank +
+                    "**\nLevel: **" +
+                    level +
+                    "**\nOverall Progress: **" +
+                    expBackup +
+                    "** / **" +
+                    costs.reduce((a, b) => a + b) +
+                    "**\n\nProgress to Next Level: \n**" +
+                    exp +
+                    "** / **" +
+                    cost +
+                    "** - **" +
+                    percentage +
+                    "%**\n" +
+                    level +
+                    " **" +
+                    dashes.join("") +
+                    "** " +
+                    (level + 1)
+                )
+                .setFooter(
+                  "Every level requires 50 XP more to level up.",
+                  message.client.user.displayAvatarURL()
+                )
+                .setTimestamp();
 
-          message.channel.send(rankEmbed);
+              message.channel.send(rankEmbed);
             }
           );
-
-          
         }
       );
       con.release();
