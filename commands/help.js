@@ -14,7 +14,7 @@ module.exports = {
 
     if (!args.length) {
       const attachment = new Discord.MessageAttachment(
-        "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1586432854839", "manual.pdf"
+        "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1586578594554", "manual.pdf"
       );
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
@@ -47,7 +47,7 @@ module.exports = {
           "help\nserver\nping\navatar\nwelcome\nrole-info",
           true
         )
-        .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban\noxford", true)
+        .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban\noxford\nspeedrun", true)
         .addField(
           "**Music**",
           "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nloop",

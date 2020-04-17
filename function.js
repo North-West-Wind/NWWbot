@@ -215,15 +215,15 @@ module.exports = {
     return !!~(string || "").indexOf(content);
   }
     return (
-      contains(videoSearchResultItem.raw.snippet.channelTitle, "VEVO") ||
+      contains(videoSearchResultItem.author ? videoSearchResultItem.author.name : undefined, "VEVO") ||
       contains(
-        videoSearchResultItem.raw.snippet.channelTitle.toLowerCase(),
+        videoSearchResultItem.author ? videoSearchResultItem.author.name.toLowerCase() : undefined,
         "official"
       ) ||
       contains(
-        videoSearchResultItem.raw.snippet.title.toLowerCase(),
+        videoSearchResultItem.title.toLowerCase(),
         "official"
-      )
+      ) || !contains(videoSearchResultItem.title.toLowerCase(), "extended")
     );
   },
   elegantPair(x, y) {

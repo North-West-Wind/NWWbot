@@ -6,9 +6,6 @@ module.exports = {
   usage: "<index>",
   async music(message, serverQueue, looping, queue, pool) {
     const args = message.content.split(" ").slice(prefix.length).shift();
-    
-    if (!message.member.voice.channel)
-    return message.channel.send("You are not in a voice channel!");
     if(!args[0]) return message.channel.send("You did not provide any index." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
     var queueIndex = parseInt(args[0]);
   if (typeof queueIndex !== "number")

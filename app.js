@@ -23,7 +23,7 @@ app.get("/about", (req, response) => {
     response.sendFile(__dirname + "/views/about.html");
 });
 app.get("/manual", (req, response) => {
-  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1586432854839").pipe(response);
+  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1586578594554").pipe(response);
 })
 app.listen(process.env.PORT);
 setInterval(() => {
@@ -37,13 +37,14 @@ console.realError = console.error;
 const fs = require("fs");
 const Discord = require("discord.js");
 const cleverbot = require("cleverbot-free");
+const { exec } = require("child_process");
 const { prefix } = require("./config.json");
 const { Image, createCanvas, loadImage } = require("canvas");
 const mysql = require("mysql");
 const mysql_config = {
-  connectTimeout: 30000,
-  acquireTimeout: 30000,
-  timeout: 30000,
+  connectTimeout: 60 * 60 * 1000,
+  acquireTimeout: 60 * 60 * 1000,
+  timeout: 60 * 60 * 1000,
   connectionLimit: 10,
   host: process.env.DBHOST,
   user: process.env.DBUSER,
@@ -94,6 +95,17 @@ for (const file of musicCommandFiles) {
 // when the client is ready, run this code
 // this event will only trigger one time after logging in
 client.once("ready", () => {
+  exec("rm -rf .cache", (error, stdout, stderr) => {
+    if (error) {
+        console.log(`error: ${error.message}`);
+        return;
+    }
+    if (stderr) {
+        console.log(`stderr: ${stderr}`);
+        return;
+    }
+    console.log("Cleared cache");
+  });
   delete console["log"];
   delete console["error"];
 console.log = async function(str) {
@@ -701,21 +713,19 @@ client.on("guildMemberAdd", member => {
 
 //someone left
 
-client.on("guildMemberRemove", member => {
+client.on("guildMemberRemove", async member => {
   const guild = member.guild;
   pool.getConnection(function(err, con) {
     if (err) return console.error(err);
     con.query(
       "SELECT leave_msg, leave_channel FROM servers WHERE id=" + guild.id,
-      function(err, result, fields) {
+      async function(err, result, fields) {
         if (
           result[0] === undefined ||
           result[0].leave_msg === null ||
           result[0].leave_channel === null
         ) {
           if (result[0] === undefined) {
-            pool.getConnection(function(err, con) {
-              if (err) return console.error(err);
               con.query(
                 "SELECT * FROM servers WHERE id = " + guild.id,
                 function(err, result, fields) {
@@ -739,10 +749,18 @@ client.on("guildMemberRemove", member => {
               );
 
               if (err) return console.error(err);
-              con.release();
-            });
           }
         } else {
+          if(guild.me.hasPermission("VIEW_AUDIT_LOGS")) {
+            const fetchedLogs = await guild.fetchAuditLogs({
+		          limit: 1,
+		          type: 'MEMBER_KICK',
+	          });
+	          const kickLog = fetchedLogs.entries.first();
+	          if (kickLog) return;
+          } else {
+            console.log("Can't view audit logs of " + guild.name);
+          }
           const channel = guild.channels.resolve(result[0].leave_channel);
           const splitMessage = result[0].leave_msg.split(" ");
           const messageArray = [];
@@ -929,16 +947,32 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
   }
 });
 
+client.on("guildMemberUpdate", (oldMember, newMember) => {
+  if(oldMember.premiumSinceTimestamp !== null || newMember.premiumSinceTimestamp === null) return;
+  pool.getConnection(function(err, con) {
+    if(err) return console.error(err);
+    con.query("SELECT boost_msg, boost_channel FROM servers WHERE id = '" + newMember.guild.id + "'", async function(err, result) {
+      if(err) return console.error(err);
+      if(result[0] === undefined || result[0].boost_msg === null || result[0].boost_channel === null) return;
+      try {
+        var channel = await client.channels.fetch(result[0].boost_channel);
+      } catch(err) {
+        return console.error(err);
+      }
+      channel.send(result[0].boost_msg.replace(/{user}/g, `<@${newMember.id}>`));
+    });
+    con.release();
+  });
+});
+
 var hypixelQueries = 0;
 setInterval(() => (hypixelQueries = 0), 60000);
-
 client.on("message", async message => {
   // client.on('message', message => {
   if (!message.content.startsWith(prefix) || message.author.bot) {
     if(!message.author.bot) {
-      if(Math.floor(Math.random() * 1000) === 69) {
+      if(Math.floor(Math.random() * 1000) === 69) 
         cleverbot(message.content).then(response => message.channel.send(response));
-      }
     }
     return;
   };

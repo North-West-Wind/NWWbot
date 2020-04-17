@@ -24,10 +24,10 @@ module.exports = {
   var index = 0;
   var songArray = serverQueue.songs.map(song => {
     var str;
-    if(song.type === 0 || !song.type)
-    str = `**${++index} - ** [**${song.title}**](${song.url}) : **${song.time}**`;
+    if(song.type === 0 || song.type === 2 || !song.type)
+    str = `**${++index} - ** **[${song.title}](${song.url})** : **${song.time}**`;
     else if(song.type === 1)
-      str = `**${++index} - ** [**${song.title}**](${song.spot}) : **${song.time}**`;
+      str = `**${++index} - ** **[${song.title}](${song.spot})** : **${song.time}**`;
     
     return str;
   });
@@ -35,7 +35,7 @@ module.exports = {
     var all;
     
     if(songArray.join("\n").length > 2000) {
-      all = songArray.slice(0, 20).join("\n") + "\nToo many songs...";
+      all = songArray.slice(0, 20).join("\n") + "\nToo many tracks...";
     } else {
       all = songArray.join("\n");
     }
@@ -44,9 +44,9 @@ module.exports = {
   var queueEmbed = new Discord.MessageEmbed()
   .setColor(color)
   .setTitle("Song queue for " + message.guild.name)
-  .setDescription("There are " + songArray.length + " songs in total.\n\n" + all)
+  .setDescription("There are " + songArray.length + " tracks in total.\n\n" + all)
   .setTimestamp()
-  .setFooter("Now playing: " + serverQueue.songs[0].title, message.client.user.displayAvatarURL());
+  .setFooter("Now playing: " + (serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing"), message.client.user.displayAvatarURL());
   message.channel.send(queueEmbed);
   },
   save(message, serverQueue, pool, args) {
@@ -139,7 +139,7 @@ module.exports = {
         var num = 0;
         for(const result of results) {
           var queue = JSON.parse(unescape(result.queue));
-          queues.push(`${++num}. **${result.name}** : **${queue.length} musics/songs**`);
+          queues.push(`${++num}. **${result.name}** : **${queue.length} tracks**`);
         }
         const em = new Discord.MessageEmbed()
         .setColor(color)

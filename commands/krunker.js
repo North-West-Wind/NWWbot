@@ -1,8 +1,8 @@
-const KrunkerJS = require("krunker.js");
-const krunker = new KrunkerJS();
 const Discord = require("discord.js")
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json")
+const { prefix } = require("../config.json");
+const { Krunker: Api, OrderBy, UserNotFoundError } = require("@fasetto/krunker.io");
+const Krunker = new Api();
 
 module.exports = {
   name: "krunker",
@@ -10,41 +10,46 @@ module.exports = {
   aliases: ["kr"],
   usage: "<username>",
   args: true,
-  execute(message, args) {
+  async execute(message, args) {
     if(!args[0]) {
       return message.channel.send("No username provided!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
     }
-    krunker.getUser(args[0]).then(data => {
-      const sim = data.simplified;
-      const name = sim.name;
-      const score = sim.score;
-      const level = sim.level;
-      const kills = sim.kills;
-      const deaths = sim.deaths;
-      const playTime = krunker.getPlayTime(data);
-      // Get user KDR
-      const kdr = krunker.getKDR(data);
-      // Get W/L
-      const wlr = krunker.getWL(data);
-      // Get SPK
-      const spk = krunker.getSPK(data);
-      const wins = sim.wins;
-      const loses = sim.loses;
-      const played = sim.totalGamesPlayed;
-      const kr = sim.krunkies;
-      const clan = sim.clan
-      if(sim.featured === 1) {
-      var featured = "Yes"
-      } else {
-      var featured = "No"
-      }
-      if(sim.hacker === 1) {
-        var hacker = "Yes"
-      } else {
-        var hacker = "No"
-      }
-      
-      const Embed = new Discord.MessageEmbed()
+    try {
+      var user = await Krunker.GetProfile(args.join(" "));
+    } catch(e) {
+      if (e instanceof UserNotFoundError)
+        console.log("Sorry ):\nWe couldn't find that user!");
+      else
+        console.log(e.message);
+    }
+    
+    var level = user.level;
+    var name = user.name;
+    var kills = user.kills;
+    var deaths = user.deaths;
+    var score = user.score;
+    var kdr = user.kdr;
+    var wins = user.wins;
+    var loses = user.loses;
+    var wlr = user.wl;
+    var clan = user.clan;
+    var playTime = user.playTime;
+    var featured = user.featured;
+    var hacker = user.hacker ? "Yes" : "No";
+    var spk = user.spk;
+    var played = user.totalGamesPlayed;
+    var kr = user.funds;
+    
+    var kpg = user.kpg;
+    var following = user.following;
+    var followers = user.followers;
+    var shots = user.shots;
+    var hits = user.hits;
+    var nukes = user.nukes;
+    var melee = user.meleeKills;
+    var lastClass = user.lastPlayedClass;
+    
+    const Embed = new Discord.MessageEmbed()
       .setTitle(name)
       .setDescription("Krunker stats")
       .setColor(color)
@@ -52,26 +57,35 @@ module.exports = {
       .addField("Level", level, true)
       .addField("Krunkies", kr, true)
       .addField("Scores", score, true)
+    
       .addField("Kills", kills, true)
       .addField("Deaths", deaths, true)
       .addField("KDR", kdr, true)
+    
       .addField("Wins", wins, true)
       .addField("Loses", loses, true)
       .addField("WLR", wlr, true)
+    
+      .addField("Shots", shots, true)
+      .addField("Hits", hits, true)
       .addField("Clan", clan, true)
+    
+      .addField("Nukes", nukes, true)
+      .addField("Melee Kills", melee, true)
+      .addField("Score/Kill", spk, true)
+    
       .addField("Time played", playTime, true)
       .addField("Games played", played, true)
-      .addField("Score/Kill", spk, true)
+      .addField("Kills/Game", kpg, true)
+    
+      .addField("Following", following, true)
+      .addField("Followers", followers, true)
+      .addField("Last Played Class", lastClass, true)
+    
       .addField("Featured?", featured, true)
       .addField("Hacker?", hacker, true)
       .setTimestamp()
       .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     message.channel.send(Embed);
-      
-      
-      
-    }).catch(err => {
-      message.channel.send("User not found.")
-    });
   }
 };

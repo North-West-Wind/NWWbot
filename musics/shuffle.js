@@ -7,8 +7,6 @@ module.exports = {
   description: "Shuffle the song queue.",
   usage: " ",
   async music(message, serverQueue, pool) {
-    if (!message.member.voice.channel)
-      return message.channel.send("You are not in a voice channel!");
 
     if (!serverQueue) return message.channel.send("There is nothing playing.");
     await shuffleArray(serverQueue.songs);

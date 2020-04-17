@@ -1,11 +1,12 @@
 const randomWords = require("random-words");
 const Canvas = require("canvas");
-const Discord = require("discord.js")
-const { twoDigits, getRandomNumber, applyText } = require("../function.js")
+const Discord = require("discord.js");
+const { twoDigits, getRandomNumber, applyText } = require("../function.js");
 
 module.exports = {
   name: "work",
-  description: "Work in the server and gain virtual money. By working more, you will gain experience and level up. That can make you gain more.",
+  description:
+    "Work in the server and gain virtual money. By working more, you will gain experience and level up. That can make you gain more.",
   usage: " ",
   execute(message, args, pool) {
     var currentDate = new Date();
@@ -28,9 +29,14 @@ module.exports = {
       ":" +
       twoDigits(second);
     pool.getConnection(function(err, con) {
+      if (err) {
+        console.error(err);
+        return message.reply(
+          "there was an error trying to execute that command!"
+        );
+      }
       con.query(
-        "SELECT * FROM currency WHERE user_id = " +
-          message.author.id,
+        "SELECT * FROM currency WHERE user_id = " + message.author.id,
         async function(err, results, fields) {
           if (results.length == 0) {
             var gain =
@@ -51,7 +57,12 @@ module.exports = {
                 currentDateSql +
                 "', 0.00)",
               function(err, result) {
-                if (err) return message.reply("there was an error trying to execute that command!");
+                if (err) {
+                  console.error(err);
+                  return message.reply(
+                    "there was an error trying to execute that command!"
+                  );
+                }
                 console.log(
                   message.author.username +
                     " worked in server " +
@@ -62,8 +73,12 @@ module.exports = {
                 );
               }
             );
-            return message.channel.send("<@" +
-              message.author.id + "> worked and gained $" + gain + "!\nBut next time, you will need to do something to gain!"
+            return message.channel.send(
+              "<@" +
+                message.author.id +
+                "> worked and gained $" +
+                gain +
+                "!\nBut next time, you will need to do something to gain!"
             );
           } else {
             var lastDate = results[0].last_worked;
@@ -77,7 +92,6 @@ module.exports = {
                 Math.round((getRandomNumber(1, 1.2) + Number.EPSILON) * 100) /
                 100;
               var words = await randomWords(5);
-              
             } else if (worked <= 60) {
               var gain =
                 Math.round((getRandomNumber(2, 2.4) + Number.EPSILON) * 100) /
@@ -133,13 +147,13 @@ module.exports = {
                   (getRandomNumber(10946, 13135.2) + Number.EPSILON) * 100
                 ) / 100;
               var words = await randomWords(55);
-            } else if(worked <= 1560){
+            } else if (worked <= 1560) {
               var gain =
                 Math.round(
                   (getRandomNumber(28657, 34388.4) + Number.EPSILON) * 100
                 ) / 100;
               var words = await randomWords(60);
-            } else if(worked <= 1820) {
+            } else if (worked <= 1820) {
               var gain =
                 Math.round(
                   (getRandomNumber(75025, 90030) + Number.EPSILON) * 100
@@ -151,13 +165,13 @@ module.exports = {
                   (getRandomNumber(196418, 235701.6) + Number.EPSILON) * 100
                 ) / 100;
               var words = await randomWords(70);
-            } else if(worked <= 2400) {
+            } else if (worked <= 2400) {
               var gain =
                 Math.round(
                   (getRandomNumber(514229, 617074.8) + Number.EPSILON) * 100
                 ) / 100;
               var words = await randomWords(75);
-            } else if(worked <= 2720) {
+            } else if (worked <= 2720) {
               var gain =
                 Math.round(
                   (getRandomNumber(1346269, 1615522.8) + Number.EPSILON) * 100
@@ -169,136 +183,161 @@ module.exports = {
                   (getRandomNumber(3524578, 4229493.6) + Number.EPSILON) * 100
                 ) / 100;
               var words = await randomWords(85);
-            } else if(worked <= 3420) {
+            } else if (worked <= 3420) {
               var gain =
                 Math.round(
                   (getRandomNumber(9227465, 11072958) + Number.EPSILON) * 100
                 ) / 100;
               var words = await randomWords(90);
-            } else if(worked <= 3800) {
+            } else if (worked <= 3800) {
               var gain =
                 Math.round(
                   (getRandomNumber(24157817, 28989380.4) + Number.EPSILON) * 100
                 ) / 100;
               var words = await randomWords(95);
-            } else if(worked <= 4200) {
+            } else if (worked <= 4200) {
               var gain =
                 Math.round(
                   (getRandomNumber(63245986, 75895183.2) + Number.EPSILON) * 100
                 ) / 100;
               var words = await randomWords(100);
-            } else if(worked <= 4620) {
+            } else if (worked <= 4620) {
               var gain =
                 Math.round(
-                  (getRandomNumber(165580141, 198696169.2) + Number.EPSILON) * 100
+                  (getRandomNumber(165580141, 198696169.2) + Number.EPSILON) *
+                    100
                 ) / 100;
               var words = await randomWords(105);
-            } else if(worked <= 5060) {
+            } else if (worked <= 5060) {
               var gain =
                 Math.round(
-                  (getRandomNumber(433494437, 520193324.4) + Number.EPSILON) * 100
+                  (getRandomNumber(433494437, 520193324.4) + Number.EPSILON) *
+                    100
                 ) / 100;
               var words = await randomWords(110);
-            } else if(worked <= 5520) {
+            } else if (worked <= 5520) {
               var gain =
                 Math.round(
-                  (getRandomNumber(1134903170, 1361883804) + Number.EPSILON) * 100
+                  (getRandomNumber(1134903170, 1361883804) + Number.EPSILON) *
+                    100
                 ) / 100;
               var words = await randomWords(115);
-            } else if(worked <= 6000) {
+            } else if (worked <= 6000) {
               var gain =
                 Math.round(
-                  (getRandomNumber(2971215073, 3565458087.6) + Number.EPSILON) * 100
+                  (getRandomNumber(2971215073, 3565458087.6) + Number.EPSILON) *
+                    100
                 ) / 100;
               var words = await randomWords(120);
             } else {
               var gain =
                 Math.round(
-                  (getRandomNumber(7778742049, 9334490458.8) + Number.EPSILON) * 100
+                  (getRandomNumber(7778742049, 9334490458.8) + Number.EPSILON) *
+                    100
                 ) / 100;
               var words = await randomWords(125);
             }
 
-            
             var wordCanvas = await Canvas.createCanvas(720, 360);
-            const ctx = await wordCanvas.getContext('2d');
-            
-            
-            
+            const ctx = await wordCanvas.getContext("2d");
+
             var txt = words[0];
 
-              //draw font
-              ctx.font = applyText(wordCanvas, txt);
-              ctx.strokeStyle = "black";
-              ctx.lineWidth = wordCanvas.width / 102.4;
-              ctx.strokeText(
-                txt,
-                wordCanvas.width / 2 - ctx.measureText(txt).width / 2,
-                (wordCanvas.height) / 2
-              );
-              ctx.fillStyle = "#ffffff";
-              ctx.fillText(
-                txt,
-                wordCanvas.width / 2 - ctx.measureText(txt).width / 2,
-                (wordCanvas.height) / 2
-              );
-            
-            
+            //draw font
+            ctx.font = applyText(wordCanvas, txt);
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = wordCanvas.width / 102.4;
+            ctx.strokeText(
+              txt,
+              wordCanvas.width / 2 - ctx.measureText(txt).width / 2,
+              wordCanvas.height / 2
+            );
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(
+              txt,
+              wordCanvas.width / 2 - ctx.measureText(txt).width / 2,
+              wordCanvas.height / 2
+            );
+
             var attachment = new Discord.MessageAttachment(
-                wordCanvas.toBuffer(),
-                "word-image.png"
-              );
-            
-            var msg = await message.channel.send("Type the following words within 60 seconds:\n**Word 1:**", attachment);
-              var collected = await message.channel.awaitMessages(filter, { time: 60000, max: 1, error: ["time"]});
-            if(collected.first() === undefined || collected.first() === null || !collected.first()) {
+              wordCanvas.toBuffer(),
+              "word-image.png"
+            );
+
+            var msg = await message.channel.send(
+              "Type the following words within 60 seconds:\n**Word 1:**",
+              attachment
+            );
+            var collected = await message.channel.awaitMessages(filter, {
+              time: 60000,
+              max: 1,
+              error: ["time"]
+            });
+            if (
+              collected.first() === undefined ||
+              collected.first() === null ||
+              !collected.first()
+            ) {
               con.query(
-              "UPDATE currency SET last_worked = '" +
-                currentDateSql +
-                "' WHERE user_id = " +
-                message.author.id,
-              function(err, result) {
-                if (err) return message.reply("there was an error trying to execute that command!");
-                console.log(
-                  message.author.username +
-                    " worked in server " + message.guild.name + " but failed their job."
-                    
-                );
-              }
-            );
-                  msg.delete()
-              return message.channel.send("You didn't type the word within 60 seconds and failed your job. Better luck next time!");
+                "UPDATE currency SET last_worked = '" +
+                  currentDateSql +
+                  "' WHERE user_id = " +
+                  message.author.id,
+                function(err, result) {
+                  if (err) {
+                    console.error(err);
+                    return message.reply(
+                      "there was an error trying to execute that command!"
+                    );
+                  }
+                  console.log(
+                    message.author.username +
+                      " worked in server " +
+                      message.guild.name +
+                      " but failed their job."
+                  );
+                }
+              );
+              msg.delete();
+              return message.channel.send(
+                "You didn't type the word within 60 seconds and failed your job. Better luck next time!"
+              );
             }
-            
+
             collected.first().delete();
-              if(collected.first().content !== words[0]) {
-                
-                con.query(
-              "UPDATE currency SET last_worked = '" +
-                currentDateSql +
-                "' WHERE user_id = " +
-                message.author.id,
-              function(err, result) {
-                if (err) return message.reply("there was an error trying to execute that command!");
-                console.log(
-                  message.author.username +
-                    " worked in server " + message.guild.name + " but failed their job."
-                    
-                );
-              }
-            );
-                  msg.delete();
-                return message.channel.send("You failed your job. Better luck next time!")
-              }
-              
-              var num = 1;
-              for(var i = 1; i < (words.length); i++) {
-                var wordCanvas = await Canvas.createCanvas(720, 360);
-            const ctx = await wordCanvas.getContext('2d');
-            
-            
-                
-                var txt = words[i];
+            if (collected.first().content !== words[0]) {
+              con.query(
+                "UPDATE currency SET last_worked = '" +
+                  currentDateSql +
+                  "' WHERE user_id = " +
+                  message.author.id,
+                function(err, result) {
+                  if (err) {
+                    console.error(err);
+                    return message.reply(
+                      "there was an error trying to execute that command!"
+                    );
+                  }
+                  console.log(
+                    message.author.username +
+                      " worked in server " +
+                      message.guild.name +
+                      " but failed their job."
+                  );
+                }
+              );
+              msg.delete();
+              return message.channel.send(
+                "You failed your job. Better luck next time!"
+              );
+            }
+
+            var num = 1;
+            for (var i = 1; i < words.length; i++) {
+              var wordCanvas = await Canvas.createCanvas(720, 360);
+              const ctx = await wordCanvas.getContext("2d");
+
+              var txt = words[i];
 
               //draw font
               ctx.font = applyText(wordCanvas, txt);
@@ -307,75 +346,103 @@ module.exports = {
               ctx.strokeText(
                 txt,
                 wordCanvas.width / 2 - ctx.measureText(txt).width / 2,
-                (wordCanvas.height) / 2
+                wordCanvas.height / 2
               );
               ctx.fillStyle = "#ffffff";
               ctx.fillText(
                 txt,
                 wordCanvas.width / 2 - ctx.measureText(txt).width / 2,
-                (wordCanvas.height) / 2
+                wordCanvas.height / 2
               );
-            
-            var attachment = new Discord.MessageAttachment(
+
+              var attachment = new Discord.MessageAttachment(
                 wordCanvas.toBuffer(),
                 "word-image.png"
               );
+              msg.delete();
+              var msg = await message.channel.send(
+                "Type the following words within 60 seconds:\n**Word " +
+                  ++num +
+                  ":**",
+                attachment
+              );
+              var collected2 = await message.channel.awaitMessages(filter, {
+                time: 60000,
+                max: 1,
+                error: ["time"]
+              });
+              if (
+                collected2.first() === undefined ||
+                collected2.first() === null ||
+                !collected2.first()
+              ) {
+                con.query(
+                  "UPDATE currency SET last_worked = '" +
+                    currentDateSql +
+                    "' WHERE user_id = " +
+                    message.author.id,
+                  function(err, result) {
+                    if (err) {
+                      console.error(err);
+                      return message.reply(
+                        "there was an error trying to execute that command!"
+                      );
+                    }
+                    console.log(
+                      message.author.username +
+                        " worked in server " +
+                        message.guild.name +
+                        " but failed their job."
+                    );
+                  }
+                );
                 msg.delete();
-                var msg = await message.channel.send("Type the following words within 60 seconds:\n**Word " + ++num + ":**", attachment);
-                var collected2 = await message.channel.awaitMessages(filter, { time: 60000, max: 1, error: ["time"]});
-                if(collected2.first() === undefined || collected2.first() === null || !collected2.first()) {
-              con.query(
-              "UPDATE currency SET last_worked = '" +
-                currentDateSql +
-                "' WHERE user_id = " +
-                message.author.id,
-              function(err, result) {
-                if (err) return message.reply("there was an error trying to execute that command!");
-                console.log(
-                  message.author.username +
-                    " worked in server " + message.guild.name + " but failed their job."
-                    
+                return message.channel.send(
+                  "You didn't type the word within 60 seconds and failed your job. Better luck next time!"
                 );
               }
-            );
-                  msg.delete();
-              return message.channel.send("You didn't type the word within 60 seconds and failed your job. Better luck next time!");
+
+              collected2.first().delete();
+              if (collected2.first().content !== words[i]) {
+                con.query(
+                  "UPDATE currency SET last_worked = '" +
+                    currentDateSql +
+                    "' WHERE user_id = " +
+                    message.author.id,
+                  function(err, result) {
+                    if (err) {
+                      console.error(err);
+                      return message.reply(
+                        "there was an error trying to execute that command!"
+                      );
+                    }
+                    console.log(
+                      message.author.username +
+                        " worked in server " +
+                        message.guild.name +
+                        " but failed their job."
+                    );
+                  }
+                );
+                msg.delete();
+                return message.channel.send(
+                  "You failed your job. Better luck next time!"
+                );
+              }
             }
-                
-                collected2.first().delete();
-                if(collected2.first().content !== words[i]) {
-                  con.query(
-              "UPDATE currency SET last_worked = '" +
-                currentDateSql +
-                "' WHERE user_id = " +
-                message.author.id,
-              function(err, result) {
-                if (err) return message.reply("there was an error trying to execute that command!");
-                console.log(
-                  message.author.username +
-                    " worked in server " + message.guild.name + " but failed their job."
-                    
-                );
-              }
-            );
-                  msg.delete();
-                return message.channel.send("You failed your job. Better luck next time!");
-              }
-               
-              }
             worked += 1;
             var userID = message.author.id;
             var currency = results[0].currency;
-            
-            if(results[0].doubling !== null) {
-              if((results[0].doubling - Date.now()) > 0) {
+
+            if (results[0].doubling !== null) {
+              if (results[0].doubling - Date.now() > 0) {
                 gain *= 2;
                 var doubling = true;
               } else {
                 var endDoubling = 1;
               }
             }
-            
+
             var doubleDate = new Date();
             var date = doubleDate.getDate();
             var month = doubleDate.getMonth();
@@ -395,7 +462,7 @@ module.exports = {
               twoDigits(minute) +
               ":" +
               twoDigits(second);
-            
+
             var newCurrency =
               Math.round((parseInt(currency) + gain + Number.EPSILON) * 100) /
               100;
@@ -406,11 +473,17 @@ module.exports = {
                 "', worked = " +
                 worked +
                 ", last_worked = '" +
-                currentDateSql + (endDoubling ? `, doubling = NULL` : "") +
-                "' WHERE user_id = " +
+                currentDateSql +
+                (endDoubling ? `', doubling = NULL WHERE` : "' WHERE") +
+                " user_id = " +
                 message.author.id,
               function(err, result) {
-                if (err) return message.reply("there was an error trying to execute that command!");
+                if (err) {
+                  console.error(err);
+                  return message.reply(
+                    "there was an error trying to execute that command!"
+                  );
+                }
                 console.log(
                   message.author.username +
                     " worked in server " +
@@ -420,14 +493,18 @@ module.exports = {
                 );
               }
             );
-            msg.delete()
-            message.channel.send("<@" +
-              message.author.id + "> worked and gained **$" + gain + "**!" + (doubling ? " The money you gained is doubled!" : "")
+            msg.delete();
+            message.channel.send(
+              "<@" +
+                message.author.id +
+                "> worked and gained **$" +
+                gain +
+                "**!" +
+                (doubling ? " The money you gained is doubled!" : "")
             );
           }
         }
       );
-      if (err) return message.reply("there was an error trying to execute that command!");
       con.release();
     });
   }
