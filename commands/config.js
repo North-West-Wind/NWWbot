@@ -350,7 +350,7 @@ module.exports = {
         var msgCollected = await msg.channel
           .awaitMessages(msgFilter, { idle: 120000, max: 1, error: ["time"] })
           .catch(err => timedOut(msg, panelEmbed));
-
+        if(msgCollected === undefined) return await timedOut(msg, panelEmbed);
         const contents = msgCollected.first().content.replace(/'/g, "\\'");
 
         msgCollected.first().delete();
@@ -460,6 +460,7 @@ module.exports = {
         var msgCollected = await msg.channel
           .awaitMessages(msgFilter, { idle: 60000, max: 1, error: ["time"] })
           .catch(err => timedOut(msg, panelEmbed));
+        if(msgCollected.first() === undefined) return await timedOut(msg, panelEmbed);
 
         const channelID = msgCollected
           .first()

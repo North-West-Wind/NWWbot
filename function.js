@@ -40,8 +40,12 @@ module.exports = {
   },
   validYTURL(str) {
     var pattern = new RegExp(
-      "^(http(s)?://)?((w){3}.)?youtu(be|.be)?(.com)?/.+"
+      /^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/.+/
     ); // fragment locator
+    return !!pattern.test(str);
+  },
+  validYTPlaylistURL(str) {
+    var pattern = new RegExp(/^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/playlist\?list=\w+/);
     return !!pattern.test(str);
   },
   validSPURL(str) {

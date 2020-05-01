@@ -1,6 +1,6 @@
 {
   "name": "nwwbot",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "NorthWestWind's bot!",
   "main": "app.js",
   "scripts": {
@@ -13,9 +13,9 @@
   "author": "NorthWestWind",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^12.1.1",
+    "discord.js": "^12.2.0",
     "express": "^4.17.1",
-    "ytdl-core": "^2.1.0",
+    "ytdl-core": "^2.1.1",
     "mojang-api": "^0.0.2",
     "ms": "^2.1.2",
     "aki-api": "^3.2.1",
@@ -28,8 +28,8 @@
     "random-words": "^1.1.0",
     "ytdl-core-discord": "^1.2.0",
     "prism-media": "^1.2.0",
-    "ffmpeg-static": "^4.1.1",
-    "@discordjs/opus": "^0.1.0",
+    "ffmpeg-static": "^4.2.0",
+    "@discordjs/opus": "^0.2.1",
     "reddit-wrapper-v2": "^1.1.6",
     "smm-api": "^2.1.2",
     "akaneko": "^2.1.1",
@@ -38,17 +38,20 @@
     "youtube-search": "^1.1.4",
     "oxford-dictionary": "^1.5.1",
     "booru": "^2.2.3",
-    "statuses": "^1.5.0",
+    "statuses": "^2.0.0",
     "gfycat-sdk": "^1.4.18",
     "cleverbot-free": "^1.0.2",
     "express-device": "^0.4.2",
     "@fasetto/krunker.io": "^0.4.2",
     "music-metadata": "^6.3.5",
     "request-stream": "^1.2.2",
-    "ytsr": "^0.1.12",
+    "ytsr": "^0.1.13",
     "ytpl": "^0.1.20",
     "moment": "^2.24.0",
     "moment-duration-format": "^2.2.2",
-    "google-it": "^1.5.0"
+    "google-it": "^1.5.0",
+    "wikijs": "^6.0.0",
+    "js-video-url-parser": "^0.4.1",
+    "array-move": "^2.2.0"
   }
 }

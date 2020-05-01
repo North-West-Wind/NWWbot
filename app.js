@@ -23,7 +23,7 @@ app.get("/about", (req, response) => {
     response.sendFile(__dirname + "/views/about.html");
 });
 app.get("/manual", (req, response) => {
-  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1586578594554").pipe(response);
+  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1588168997714").pipe(response);
 })
 app.listen(process.env.PORT);
 setInterval(() => {
@@ -45,7 +45,7 @@ const mysql_config = {
   connectTimeout: 60 * 60 * 1000,
   acquireTimeout: 60 * 60 * 1000,
   timeout: 60 * 60 * 1000,
-  connectionLimit: 10,
+  connectionLimit: 1000,
   host: process.env.DBHOST,
   user: process.env.DBUSER,
   password: process.env.DBPW,
@@ -124,7 +124,7 @@ console.log = async function(str) {
   } catch(err) {
     return console.realError(err)
   }
-    logChannel.send("`ERROR!`\n`" + str.name + "`");
+    logChannel.send("`ERROR!`\n`" + str.message + "`");
   }
   console.log("Ready!");
 
@@ -696,6 +696,7 @@ client.on("guildMemberAdd", member => {
             try {
             //loop array
             member.roles.add(role);
+              console.log(`Added ${member.displayName} to ${role.name}`)
             } catch(err) {
               console.error(err);
             }
@@ -1009,7 +1010,7 @@ client.on("message", async message => {
       } catch (error) {
         console.error(error);
         return await message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server."
         );
       }
     }

@@ -10,7 +10,7 @@ const neko = require("akaneko");
 const { Image, createCanvas, loadImage } = require("canvas");
 var fs = require("fs");
 var SpotifyWebApi = require("spotify-web-api-node");
-const { isGoodMusicVideoContent, validSPURL, validURL, decodeHtmlEntity, validImgurURL } = require("../function.js");
+const { isGoodMusicVideoContent, validSPURL, validURL, decodeHtmlEntity, validImgurURL, validYTPlaylistURL } = require("../function.js");
 var search = require('youtube-search');
 const Booru = require("booru");
 const Gfycat = require('gfycat-sdk');
@@ -22,6 +22,7 @@ const ytpl = require("ytpl");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
+const urlParser = require("js-video-url-parser");
 
 var opts = {
   maxResults: 1,
@@ -71,5 +72,11 @@ module.exports = {
       'allowfullscreen="true"&gt;&lt;/iframe&gt;'`).split("&").find(x => x.startsWith("image"));
       var arr = unescape(image).split("/");
     var id = arr[arr.length - 1].split("-")[0]; */
+    
+    ytdl.getInfo("https://www.youtube.com/watch?v=iIcdlGW2CKU").then(async(info, err) => {
+      let format = await ytdl.filterFormats(info.formats, "audioandvideo");
+      console.realLog(format);
+    })
+    
     }
 };

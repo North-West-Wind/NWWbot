@@ -489,6 +489,7 @@ module.exports = {
               "there was an error trying to execute that command!"
             );
           }
+          message.channel.send("Ended a poll!");
           console.log("Deleted an ended poll.");
         });
       });
