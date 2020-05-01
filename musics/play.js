@@ -5,7 +5,8 @@ const {
   validSPURL,
   isGoodMusicVideoContent,
   decodeHtmlEntity,
-  encodeHtmlEntity
+  encodeHtmlEntity,
+  validYTPlaylistURL
 } = require("../function.js");
 const ytdl = require("ytdl-core-discord");
 const YouTube = require("simple-youtube-api");
@@ -22,6 +23,7 @@ const fs = require("fs");
 const request = require("request-stream");
 const mm = require("music-metadata");
 const ytsr = require("ytsr");
+const ytpl = require("ytpl");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
@@ -57,7 +59,7 @@ async function play(guild, song, looping, queue, pool, repeat) {
           const guildLoopStatus = looping.get(guild.id);
           const guildRepeatStatus = repeat.get(guild.id);
           console.log("Music ended! In " + guild.name);
-          
+
           if (guildLoopStatus === true) {
             await serverQueue.songs.push(song);
           }
@@ -130,8 +132,8 @@ module.exports = {
   name: "play",
   description:
     "Play music with the link or keywords provided. Only support YouTube videos currently.",
-  aliases: ["add"],
-  usage: "<link | keywords>",
+  aliases: ["add", "p"],
+  usage: "[link | keywords | attachment]",
   async music(message, serverQueue, looping, queue, pool, repeat) {
     const args = message.content.split(/ +/);
 
@@ -267,7 +269,11 @@ module.exports = {
               return console.error(err);
             }
           } else {
-            serverQueue.songs.push(song);
+              if (!message.guild.me.voice.channel || serverQueue.playing === false) {
+                serverQueue.songs.unshift(song);
+              } else {
+                serverQueue.songs.push(song);
+              }
 
             pool.getConnection(function(err, con) {
               con.query(
@@ -429,7 +435,11 @@ module.exports = {
                 return console.error(err);
               }
             } else {
-              serverQueue.songs.push(song);
+              if (!message.guild.me.voice.channel || serverQueue.playing === false) {
+                serverQueue.songs.unshift(song);
+              } else {
+                serverQueue.songs.push(song);
+              }
 
               pool.getConnection(function(err, con) {
                 con.query(
@@ -688,22 +698,48 @@ module.exports = {
             }
         }
       } else {
-        try {
-          var songInfo = await ytdl.getInfo(args[1]);
-        } catch (err) {
-          return message.channel.send("No video was found!");
-        }
-        var length = parseInt(songInfo.length_seconds);
-        var songLength = moment.duration(length, "seconds").format();
-        var songs = [
-          {
-            title: decodeHtmlEntity(songInfo.title),
-            url: songInfo.video_url,
-            type: 0,
-            time: songLength,
-            thumbnail: `https://img.youtube.com/vi/${songInfo.video_id}/maxresdefault.jpg`
+        if (validYTPlaylistURL(args[1])) {
+          try {
+            var playlistInfo = await ytpl(args[1]);
+          } catch (err) {
+            if (err.message === "This playlist is private.") {
+              return message.channel.send("The playlist is private!");
+            } else {
+              return message.channel.send(
+                "An unexpected error has occured while fetching your playlist!"
+              );
+            }
           }
-        ];
+          var videos = playlistInfo.items;
+          var songs = [];
+          for (const video of videos) {
+            var info = {
+              title: video.title,
+              url: video.url_simple,
+              type: 0,
+              time: video.duration,
+              thumbnail: video.thumbnail
+            };
+            songs.push(info);
+          }
+        } else {
+          try {
+            var songInfo = await ytdl.getInfo(args[1]);
+          } catch (err) {
+            return message.channel.send("No video was found!");
+          }
+          var length = parseInt(songInfo.length_seconds);
+          var songLength = moment.duration(length, "seconds").format();
+          var songs = [
+            {
+              title: decodeHtmlEntity(songInfo.title),
+              url: songInfo.video_url,
+              type: 0,
+              time: songLength,
+              thumbnail: `https://img.youtube.com/vi/${songInfo.video_id}/maxresdefault.jpg`
+            }
+          ];
+        }
       }
 
       if (!serverQueue) {
@@ -777,7 +813,11 @@ module.exports = {
           return message.channel.send(err);
         }
       } else {
-        for (var i = 0; i < songs.length; i++) serverQueue.songs.push(songs[i]);
+        if (!message.guild.me.voice.channel || serverQueue.playing === false) {
+          for(var i = songs.length; i > 0; i--) serverQueue.songs.unshift(songs[i - 1]);
+        } else {
+          for (var i = 0; i < songs.length; i++) serverQueue.songs.push(songs[i]);
+        }
 
         pool.getConnection(function(err, con) {
           con.query(
@@ -848,7 +888,7 @@ module.exports = {
         .setColor(color)
         .setTimestamp()
         .setFooter(
-          "Choose your song, or ⏹ to cancel.",
+          "Choose your song by typing the number, or type anything else to cancel.",
           message.client.user.displayAvatarURL()
         );
       const results = [];
@@ -870,7 +910,9 @@ module.exports = {
               decodeHtmlEntity(video[i].title) +
               "](" +
               video[i].link +
-              ")**"
+              ")** : **" +
+              video[i].duration +
+              "**"
           );
         } catch {
           --num;
@@ -880,6 +922,7 @@ module.exports = {
       message.channel
         .send(Embed)
         .then(async msg => {
+        /*
           if (results[0]) {
             await msg.react("1️⃣");
           }
@@ -910,8 +953,10 @@ module.exports = {
           if (results[9]) {
             await msg.react("🔟");
           }
+          
 
           await msg.react("⏹");
+          ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "⏹"];
 
           const filter = (reaction, user) => {
             return (
@@ -930,19 +975,16 @@ module.exports = {
               ].includes(reaction.emoji.name) && user.id === message.author.id
             );
           };
+          */
 
-          msg
-            .awaitReactions(filter, { max: 1, time: 30000, error: ["time"] })
+        var filter = x => x.author.id === message.author.id;
+        
+          msg.channel
+            .awaitMessages(filter, { max: 1, time: 30000, error: ["time"] })
             .then(async collected => {
-              const reaction = collected.first();
-              if (reaction.emoji.name === "⏹") {
-                msg.reactions.removeAll().catch(err => {
-                  if (err.message == "Missing Permissions") {
-                    msg.channel.send(
-                      "Failed to remove reaction of my message due to missing permission."
-                    );
-                  }
-                });
+              const content = collected.first().content;
+            collected.first().delete();
+              if (isNaN(parseInt(content)) || (parseInt(content) < 1 && parseInt(content) > results.length)) {
                 const cancelled = new Discord.MessageEmbed()
                   .setColor(color)
                   .setTitle("Action cancelled.")
@@ -955,52 +997,14 @@ module.exports = {
                 return msg.edit(cancelled);
               }
 
-              if (reaction.emoji.name === "1️⃣") {
-                var s = 0;
-              }
-
-              if (reaction.emoji.name === "2️⃣") {
-                var s = 1;
-              }
-
-              if (reaction.emoji.name === "3️⃣") {
-                var s = 2;
-              }
-
-              if (reaction.emoji.name === "4️⃣") {
-                var s = 3;
-              }
-
-              if (reaction.emoji.name === "5️⃣") {
-                var s = 4;
-              }
-
-              if (reaction.emoji.name === "6️⃣") {
-                var s = 5;
-              }
-
-              if (reaction.emoji.name === "7️⃣") {
-                var s = 6;
-              }
-
-              if (reaction.emoji.name === "8️⃣") {
-                var s = 7;
-              }
-
-              if (reaction.emoji.name === "9️⃣") {
-                var s = 8;
-              }
-
-              if (reaction.emoji.name === "🔟") {
-                var s = 9;
-              }
+            var s = parseInt(content) - 1;
 
               const chosenEmbed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle("Music chosen:")
                 .setThumbnail(saved[s].thumbnail)
                 .setDescription(
-                  `**[${decodeHtmlEntity(saved[s].title)}](${saved[s].link})**`
+                  `**[${decodeHtmlEntity(saved[s].title)}](${saved[s].link})** : **${saved[s].duration}**`
                 )
                 .setTimestamp()
                 .setFooter(
@@ -1009,13 +1013,6 @@ module.exports = {
                 );
 
               msg.edit(chosenEmbed);
-              msg.reactions.removeAll().catch(err => {
-                if (err.message == "Missing Permissions") {
-                  msg.channel.send(
-                    "Failed to remove reaction of my message due to missing permission."
-                  );
-                }
-              });
               var length = saved[s].duration;
               var song = {
                 title: decodeHtmlEntity(saved[s].title),
@@ -1088,7 +1085,11 @@ module.exports = {
                   return console.error(err);
                 }
               } else {
-                await serverQueue.songs.push(song);
+              if (!message.guild.me.voice.channel || serverQueue.playing === false) {
+                serverQueue.songs.unshift(song);
+              } else {
+                serverQueue.songs.push(song);
+              }
                 pool.getConnection(function(err, con) {
                   if (err)
                     return message.reply(
@@ -1153,20 +1154,13 @@ module.exports = {
             .catch(err => {
               const Ended = new Discord.MessageEmbed()
                 .setColor(color)
-                .setTitle("Action cancelled.")
+                .setTitle("Timed out.")
                 .setTimestamp()
                 .setFooter(
                   "Have a nice day! :)",
                   message.client.user.displayAvatarURL()
                 );
               msg.edit(Ended);
-              msg.reactions.removeAll().catch(err => {
-                if (err.message == "Missing Permissions") {
-                  msg.channel.send(
-                    "Failed to remove reaction of my message due to missing permission."
-                  );
-                }
-              });
             });
         })
         .catch(err => {
@@ -1250,7 +1244,7 @@ module.exports = {
           const guildLoopStatus = looping.get(guild.id);
           const guildRepeatStatus = repeat.get(guild.id);
           console.log("Music ended! In " + guild.name);
-          
+
           if (guildLoopStatus === true) {
             await serverQueue.songs.push(song);
           }

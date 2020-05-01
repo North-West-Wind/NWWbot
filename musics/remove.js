@@ -1,10 +1,11 @@
-const { prefix } = require("../config.json")
+const { prefix } = require("../config.json");
+const { play } = require("./play.js");
 
 module.exports = {
   name: "remove",
   description: "Remove a music from the song queue.",
   usage: "<index>",
-  async music(message, serverQueue, looping, queue, pool) {
+  async music(message, serverQueue, looping, queue, pool, repeat) {
     const args = message.content.split(" ").slice(prefix.length).shift();
     if(!args[0]) return message.channel.send("You did not provide any index." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
     var queueIndex = parseInt(args[0]);
@@ -12,10 +13,11 @@ module.exports = {
     return message.channel.send("The query provided is not a number.");
   if (!serverQueue) return message.channel.send("There is nothing playing.");
   var deleteIndex = queueIndex - 1;
-  if (deleteIndex === 0)
-    return message.channel.send(
-      `You cannot remove the song that is now playing. To remove it, use skip command instead.`
-    );
+  if (deleteIndex === 0) {
+    if(serverQueue.connection && serverQueue.connection.dispatcher) {
+      serverQueue.connection.dispatcher.destroy();
+    }
+  }
     if (deleteIndex > serverQueue.songs.length - 1)
     return message.channel.send(
       `You cannot remove the song that doesn't exist.`
@@ -39,5 +41,8 @@ module.exports = {
   message.channel.send(
     `**${title}** has been removed from the queue.`
   );
+    if(deleteIndex === 0) {
+      play(message.guild, serverQueue.songs[0], looping, queue, pool, repeat);
+    }
   }
 }

@@ -47,7 +47,7 @@ module.exports = {
         message.author.send("Admin power forbids this >:)").catch(err => i = time);
       } else {
         taggedUser.send(`\`[${message.guild.name} : ${message.author.tag}]\` ${msg}`).catch(err => {
-          message.author.send(`Failed to spam ${taggedUser.tag} for ${i + 1} time(s) due to \`${err.message}\`.`).catch(err => i = time);
+          if(message.author.id !== process.env.DC) message.author.send(`Failed to spam ${taggedUser.tag} for ${i + 1} time(s) due to \`${err.message}\`.`).catch(err => i = time);
         });
       }
       i++;

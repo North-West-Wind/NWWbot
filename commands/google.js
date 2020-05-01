@@ -10,7 +10,6 @@ module.exports = {
   usage: "<query>",
   args: true,
   async execute(message, args) {
-    if(message.author.id !== process.env.DC) return message.channel.send("The command is currently broken. Sorry for the inconvenience :/");
     if(args.length < 1) {
       return message.channel.send("Please provide a query for searching!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
     }

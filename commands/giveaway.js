@@ -1158,6 +1158,7 @@ module.exports = {
                 con
               ) {
                 if (err) return console.log(err);
+                message.channel.send("Ended a giveaway!");
                 console.log("Deleted an ended giveaway record.");
               });
             }

@@ -1,6 +1,7 @@
 var RedditAPI = require("reddit-wrapper-v2");
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
+const { validImgurURL } = require("../function.js")
 
 var redditConn = new RedditAPI({
   // Options for Reddit Wrapper
@@ -19,7 +20,7 @@ module.exports = {
   description: "Fetch memes from Reddit.",
   usage: "[subreddits]",
   aliases: ["meme"],
-  execute(message, args, useless, alsoUseless, stillUseless, log) {
+  async execute(message, args) {
     var subreddits;
     var def = ["memes", "dankmemes", "meme"];
     
@@ -30,26 +31,24 @@ module.exports = {
     
     var chosen = subreddits[Math.floor(Math.random() * subreddits.length)];
     
-    redditConn.api
-      .get("/r/" + chosen + "/random")
-      .then(function(response) {
-        var data = response[1][0].data.children[0].data;
-      log(data.url)
-        const em = new Discord.MessageEmbed()
-          .setTitle(`${data.title.substring(0, 256)}`)
-          .setURL(`https://reddit.com${data.permalink}`)
-          .setImage(data.url)
-          .setColor(color)
-          .setFooter(
-            `${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`
-          )
-          .setTimestamp();
-
-        message.channel.send(em);
-      })
-      .catch(function(err) {
-      message.reply("there was an error trying to execute that command!")
-        return console.error("api request failed: " + err);
-      });
+    var response = await redditConn.api.get(`/r/${chosen}/hot`, { limit: 100 }).catch(err => {
+      message.channel.send("there was an error trying to execute that command!");
+      return console.error(err);
+    });
+    if(response[1] === undefined) return await this.execute(message, args);
+    if(response[1].data === undefined || response[1].data.children[0] === undefined || response[1].data.children[0].data === undefined || response[1].data.children[0].data.url === undefined) return await this.execute(message, args);
+    var data = response[1].data.children[Math.floor(Math.random() * response[1].data.children.length)].data;
+    if(data.url === undefined || (!data.url.endsWith(".jpg") && !data.url.endsWith(".png") && !data.url.endsWith(".gif") && !validImgurURL(data.url))) return await this.execute(message, args);
+    
+      const em = new Discord.MessageEmbed()
+        .setTitle(`${data.title.substring(0, 256)}`)
+        .setURL(`https://reddit.com${data.permalink}`)
+        .setImage(data.url)
+        .setColor(color)
+        .setFooter(
+          `${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`
+        )
+        .setTimestamp();
+      message.channel.send(em);
   }
 };
