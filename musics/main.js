@@ -36,6 +36,7 @@ module.exports = {
           volume: 5,
           playing: false,
           paused: false,
+          startTime: 0
         };
     repeat.set(guild, repeatStatus);
     looping.set(guild, loopStatus);

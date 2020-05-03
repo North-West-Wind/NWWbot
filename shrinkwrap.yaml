@@ -16,12 +16,13 @@ dependencies:
   js-video-url-parser: 0.4.1
   krunker.js: 1.2.5
   mojang-api: 0.0.2
-  moment: 2.24.0
+  moment: 2.25.0
   moment-duration-format: 2.3.2
   ms: 2.1.2
   music-metadata: 6.3.7
   mysql: 2.18.1
   node-fetch: 2.6.0
+  node-scdl: 1.0.2
   oxford-dictionary: 1.6.0
   prism-media: 1.2.1
   random-words: 1.1.1
@@ -443,7 +444,7 @@ packages:
     hasBin: true
     optionalDependencies:
       dtrace-provider: 0.8.8
-      moment: 2.24.0
+      moment: 2.25.0
       mv: 2.1.1
       safe-json-stringify: 1.2.0
     resolution:
@@ -497,6 +498,10 @@ packages:
     dev: false
     resolution:
       integrity: sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
+  /centra/2.4.0:
+    dev: false
+    resolution:
+      integrity: sha512-AWmF3EHNe/noJHviynZOrdnUuQzT5AMgl9nJPXGvnzGXrI2ZvNDrEcdqskc4EtQwt2Q1IggXb0OXy7zZ1Xvvew==
   /chai/4.2.0:
     dependencies:
       assertion-error: 1.1.0
@@ -2366,10 +2371,10 @@ packages:
     dev: false
     resolution:
       integrity: sha512-cBMXjSW+fjOb4tyaVHuaVE/A5TqkukDWiOfxxAjY+PEqmmBQlLwn+8OzwPiG3brouXKY5Un4pBjAeB6UToXHaQ==
-  /moment/2.24.0:
+  /moment/2.25.0:
     dev: false
     resolution:
-      integrity: sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
+      integrity: sha512-vbrf6kJGpevOxmDRvCCvGuCSXvRj93264WcFzjm3Z3pV4lfjrXll8rvSP+EbmCte64udj1LkJMILxQnjXAQBzg==
   /ms/2.0.0:
     dev: false
     resolution:
@@ -2545,6 +2550,12 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-+CvDC7ZttU/sSt9rFjix/P05iS43qHCOOGzcr3Ry99bXG7VX953+vFyEuph/tfqoYu8dttBkE86JSKBO2OzcxA==
+  /node-scdl/1.0.2:
+    dependencies:
+      phin: 3.4.1
+    dev: false
+    resolution:
+      integrity: sha512-36/bWeHSFNwdCcVmtSsdRRNHPKymm3+4lxvVF2M2Bg7qXh5q92QAiPh/ir5uVmNYAt8TcXCF4TK0sx5cLZw8Tw==
   /nopt/4.0.3:
     dependencies:
       abbrev: 1.1.1
@@ -2964,6 +2975,14 @@ packages:
     dev: false
     resolution:
       integrity: sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
+  /phin/3.4.1:
+    dependencies:
+      centra: 2.4.0
+    dev: false
+    engines:
+      node: '>= 8'
+    resolution:
+      integrity: sha512-NkBCNRPxeyrgaPlWx4DHTAdca3s2LkvIBiiG6RoSbykcOtW/pA/7rUP/67FPIinvbo7h+HENST/vJ17LdRNUdw==
   /picomatch/2.2.2:
     dev: false
     engines:
@@ -4153,12 +4172,13 @@ specifiers:
   js-video-url-parser: ^0.4.1
   krunker.js: ^1.2.4
   mojang-api: ^0.0.2
-  moment: ^2.24.0
+  moment: ^2.25.0
   moment-duration-format: ^2.2.2
   ms: ^2.1.2
   music-metadata: ^6.3.5
   mysql: ^2.18.1
   node-fetch: ^2.6.0
+  node-scdl: ^1.0.2
   oxford-dictionary: ^1.5.1
   prism-media: ^1.2.0
   random-words: ^1.1.0

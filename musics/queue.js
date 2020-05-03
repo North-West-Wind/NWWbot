@@ -29,7 +29,7 @@ module.exports = {
     var index = 0;
     var songArray = serverQueue.songs.map(song => {
       var str;
-      if (song.type === 0 || song.type === 2 || !song.type)
+      if (song.type === 0 || song.type === 2 || song.type === 3 || !song.type)
         str = `**${++index} - ** **[${song.title}](${song.url})** : **${
           song.time
         }**`;

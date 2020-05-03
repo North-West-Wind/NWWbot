@@ -10,19 +10,33 @@ const neko = require("akaneko");
 const { Image, createCanvas, loadImage } = require("canvas");
 var fs = require("fs");
 var SpotifyWebApi = require("spotify-web-api-node");
-const { isGoodMusicVideoContent, validSPURL, validURL, decodeHtmlEntity, validImgurURL, validYTPlaylistURL } = require("../function.js");
-var search = require('youtube-search');
+const {
+  isGoodMusicVideoContent,
+  validSPURL,
+  validURL,
+  decodeHtmlEntity,
+  validImgurURL,
+  validYTPlaylistURL,
+  validSCURL
+} = require("../function.js");
+var search = require("youtube-search");
 const Booru = require("booru");
-const Gfycat = require('gfycat-sdk');
-var gfycat = new Gfycat({clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET});
+const Gfycat = require("gfycat-sdk");
+var gfycat = new Gfycat({
+  clientId: process.env.GFYID,
+  clientSecret: process.env.GFYSECRET
+});
 const mm = require("music-metadata");
-var request = require("request");
+var request = require("request-stream");
 const ytsr = require("ytsr");
 const ytpl = require("ytpl");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const urlParser = require("js-video-url-parser");
+const fetch = require("node-fetch");
+const SCDL = require("node-scdl");
+const scdl = new SCDL(process.env.SCID);
 
 var opts = {
   maxResults: 1,
@@ -42,7 +56,8 @@ module.exports = {
   name: "test",
   description: "For test, really.",
   async execute(message, args, pool, useless, hypixel, log) {
-    if(message.author.id !== process.env.DC) return message.channel.send("You can't use this.");
+    if (message.author.id !== process.env.DC)
+      return message.channel.send("You can't use this.");
     /*
     var guilds = message.client.guilds;
     for(const guild of guilds.cache.values()) {
@@ -63,7 +78,7 @@ module.exports = {
         // Save the access token so that it's used in future calls
         await spotifyApi.setAccessToken(refreshed.body.access_token);
     */
-    
+
     /*
     var image = decodeHtmlEntity(`'&lt;iframe class="embedly-embed" ' +
       'src="https://cdn.embedly.com/widgets/media.html?src=https%3A%2F%2Fgfycat.com%2Fifr%2Facclaimedcornyglassfrog&amp;display_name=Gfycat&amp;url=https%3A%2F%2Fgfycat.com%2Facclaimedcornyglassfrog&amp;image=https%3A%2F%2Fthumbs.gfycat.com%2FAcclaimedCornyGlassfrog-size_restricted.gif&amp;key=ed8fa8699ce04833838e66ce79ba05f1&amp;type=text%2Fhtml&amp;schema=gfycat" ' +
@@ -72,11 +87,13 @@ module.exports = {
       'allowfullscreen="true"&gt;&lt;/iframe&gt;'`).split("&").find(x => x.startsWith("image"));
       var arr = unescape(image).split("/");
     var id = arr[arr.length - 1].split("-")[0]; */
-    
-    ytdl.getInfo("https://www.youtube.com/watch?v=iIcdlGW2CKU").then(async(info, err) => {
-      let format = await ytdl.filterFormats(info.formats, "audioandvideo");
-      console.realLog(format);
-    })
-    
+    const requestStream = (url) => {
+      return new Promise(resolve => {
+        request(url, (err, res) => resolve(res));
+      });
     }
+    var stream = await requestStream("https://cdn.discordapp.com/attachments/673095087332524033/699618402087469116/Warios_Gold_Mine_Theme_Mashup_MKWiiMK8MS_London_2012.mp3");
+    var metadata = await mm.parseStream(stream).catch(console.error);
+    console.realLog(metadata);
+  }
 };
