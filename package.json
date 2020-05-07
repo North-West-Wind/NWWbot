@@ -46,7 +46,7 @@
     "music-metadata": "^6.3.5",
     "request-stream": "^1.2.2",
     "ytsr": "^0.1.13",
-    "ytpl": "^0.1.20",
+    "ytpl": "^0.1.21",
     "moment": "^2.25.3",
     "moment-duration-format": "^2.2.2",
     "google-it": "^1.5.0",
@@ -54,6 +54,7 @@
     "js-video-url-parser": "^0.4.1",
     "array-move": "^2.2.0",
     "node-scdl": "^1.0.2",
-    "follow-redirects": "^1.11.0"
+    "follow-redirects": "^1.11.0",
+    "fetch-retry": "^3.1.0"
   }
 }
