@@ -1,11 +1,12 @@
 const { prefix } = require("../config.json");
 const arrayMove = require('array-move');
+const { play } = require("./play.js")
 
 module.exports = {
   name: "move",
   description: "Move a music to a specific position of the song queue.",
   usage: "<target> <destination>",
-  async music(message, serverQueue, looping, queue, pool) {
+  async music(message, serverQueue, looping, queue, pool, repeat) {
     const args = message.content.split(" ");
     if(!args[1]) return message.channel.send("You did not provide any target." + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
     if(!args[2]) return message.channel.send("You did not provide any destination." + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
@@ -18,10 +19,13 @@ module.exports = {
   if (!serverQueue) return message.channel.send("There is nothing playing.");
   var targetIndex = queueIndex - 1;
   var destIndex = dest - 1;
-  if (targetIndex === 0)
-    return message.channel.send(
-      `You cannot move the song that is now playing. To move it, stop the playback first.`
-    );
+  if (targetIndex === 0 || destIndex === 0) {
+    if(serverQueue.playing) {
+      if(serverQueue.connection && serverQueue.connection.dispatcher) {
+        serverQueue.connection.dispatcher.destroy();
+      }
+    }
+  }
     if (targetIndex > serverQueue.songs.length - 1)
     return message.channel.send(
       `You cannot move the song that doesn't exist.`
@@ -45,5 +49,10 @@ module.exports = {
   message.channel.send(
     `**${title}** has been moved from **#${queueIndex}** to **#${dest}**.`
   );
+    if(targetIndex === 0 || destIndex === 0) {
+      if(serverQueue.playing) {
+        play(message.guild, serverQueue.songs[0], looping, queue, pool, repeat);
+      }
+    }
   }
 }

@@ -1,6 +1,6 @@
 module.exports = {
   name: "clear",
-  description: "Clear the song queue.",
+  description: "Clear the song queue. Also resets the volume to 100%.",
   usage: " ",
   music(message, serverQueue, looping, queue, pool) {
     const guild = message.guild;

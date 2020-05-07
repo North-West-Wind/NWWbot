@@ -3,7 +3,7 @@ const { prefix } = require("../config.json");
 
 module.exports = {
   name: "autorole",
-  description: 'This has nothing to do with the auto-role when a user joins the server. The command is very similar to the “?role” command, but it can assign a single to multiple users at once.',
+  description: 'This has nothing to do with the auto-role when a user joins the server. The command is very similar to the “?role” command, but it can assign a single role to multiple users at once.',
   args: true,
   usage: "<role | role ID | role name> <user | user ID>",
   async execute(message, args) {

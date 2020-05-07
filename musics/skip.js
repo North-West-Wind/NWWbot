@@ -7,6 +7,7 @@ module.exports = {
   usage: "[amount]",
   music(message, serverQueue, looping, queue, pool, repeat) {
   const args = message.content.slice(prefix.length).split(/ +/);
+    var skipped = 1;
     const guild = message.guild;
   if (!message.member.voice.channel)
     return message.channel.send(
@@ -19,7 +20,7 @@ module.exports = {
     if(serverQueue.playing === false) return message.channel.send("No music is being played.")
   serverQueue.connection.dispatcher.destroy();
     if(guildRepeatStatus === true) {
-    
+    skipped = 0;
        } else if(guildLoopStatus === true) {
       if(args[1]) {
       if(isNaN(parseInt(args[1]))) {
@@ -28,6 +29,7 @@ module.exports = {
         serverQueue.songs.push(song);
         serverQueue.songs.shift();
       } else {
+        skipped = parseInt(args[1]);
         for(var i = 0; i < parseInt(args[1]); i++) {
           var song = serverQueue.songs[0];
         serverQueue.songs.push(song);
@@ -45,6 +47,7 @@ module.exports = {
         message.channel.send(`**${args[1]}** is not a integer. Will skip 1 song instead.`);
         serverQueue.songs.shift();
       } else {
+        skipped = parseInt(args[1]);
         for(var i = 0; i < parseInt(args[1]); i++) {
           serverQueue.songs.shift();
         }
@@ -66,8 +69,8 @@ module.exports = {
             );
             con.release();
           });
-        play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+    message.channel.send(`Skipped **${skipped}** track${skipped > 1 ? "s" : ""}!`);
+    play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
       
-  message.channel.send("Skipped!");
   }
 }

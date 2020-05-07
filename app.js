@@ -23,7 +23,7 @@ app.get("/about", (req, response) => {
     response.sendFile(__dirname + "/views/about.html");
 });
 app.get("/manual", (req, response) => {
-  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1588168997714").pipe(response);
+  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1588603370636").pipe(response);
 })
 app.listen(process.env.PORT);
 setInterval(() => {
@@ -94,6 +94,7 @@ for (const file of musicCommandFiles) {
 
 // when the client is ready, run this code
 // this event will only trigger one time after logging in
+var rm = [];
 client.once("ready", () => {
   exec("rm -rf .cache", (error, stdout, stderr) => {
     if (error) {
@@ -143,6 +144,38 @@ console.log = async function(str) {
         }
       });
       console.log("Set " + count + " queues");
+    });
+    con.query("SELECT * FROM rolemsg ORDER BY expiration", (err, res) => {
+      console.log("Found " + res.length + " role messages.");
+      res.forEach(async result => {
+        if(result.guild === "622311594654695434") return;
+        rm.push(result);
+        var channel = await client.channels.fetch(result.channel);
+        var msg = await channel.messages.fetch(result.id);
+        
+        var currentDate = new Date();
+        var millisec = result.expiration - currentDate;
+        async function expire(length) {
+          setTimeout_(() => {
+            con.query(`SELECT expiration FROM rolemsg WHERE id = '${result.id}'`, (err, results) => {
+              if(results.length == 0) return;
+              var date = new Date();
+              if(results[0].expiration - date <= 0) {
+                con.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`, async(err) => {
+                  if(err) return console.error(err);
+                  var channel = await client.channels.fetch(results[0].channel);
+                  var msg = await channel.messages.fetch(results[0].id);
+                  console.log("Deleted an expired role-message.");
+                  msg.reactions.removeAll().catch(err => console.error("Failed to remove reactions but nevermind."));
+                });
+              } else {
+                expire(results[0].expiration - date);
+              }
+            });
+          }, length);
+        }
+        expire(millisec);
+      });
     });
     con.query("SELECT * FROM giveaways ORDER BY endAt ASC", function(
       err,
@@ -719,7 +752,7 @@ client.on("guildMemberRemove", async member => {
   pool.getConnection(function(err, con) {
     if (err) return console.error(err);
     con.query(
-      "SELECT leave_msg, leave_channel FROM servers WHERE id=" + guild.id,
+      "SELECT leave_msg, leave_channel FROM servers WHERE id='" + guild.id + "'",
       async function(err, result, fields) {
         if (
           result[0] === undefined ||
@@ -758,7 +791,7 @@ client.on("guildMemberRemove", async member => {
 		          type: 'MEMBER_KICK',
 	          });
 	          const kickLog = fetchedLogs.entries.first();
-	          if (kickLog) return;
+	          if (kickLog && kickLog.target.id === member.user.id && kickLog.executor.id !== kickLog.target.id) return;
           } else {
             console.log("Can't view audit logs of " + guild.name);
           }
@@ -846,11 +879,10 @@ client.on("guildMemberRemove", async member => {
           }
         }
 
-        con.release();
-
         if (err) return console.error(err);
       }
     );
+    con.release();
   });
 });
 
@@ -909,43 +941,30 @@ client.on("guildDelete", guild => {
   //remove from guildArray
 });
 
-var exit = new Map();
+
+var exit = [];
 
 client.on("voiceStateUpdate", async (oldState, newState) => {
   const guild = oldState.guild || newState.guild;
-  let newUserChannel = newState.channel;
-  let oldUserChannel = oldState.channel;
-  if (oldUserChannel === null && newUserChannel !== null) {
-    if (newUserChannel.id !== guild.me.voice.channelID) return;
-    // User Joins a voice channel
-    exit.set(guild.id, false);
-  } else if (newUserChannel === null) {
-    try {
-      if (oldUserChannel.id !== guild.me.voice.channelID) return;
-    } catch (err) {
-      return;
-    }
-    // User leaves a voice channel
-
+  const oldChannel = oldState.channel;
+  let newChannel = newState.channel || oldState.channel;
+  if(!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
     if (guild.me.voice.channel.members.size <= 1) {
-      var pendingExit = await exit.get(guild.id);
-
-      if (pendingExit == true) return;
-
-      exit.set(guild.id, true);
-
-      console.log("Pending exit in " + guild.name);
-
+      var pendingExit = await exit.find(x => x === guild.id);
+      if (pendingExit) return; 
+      exit.push(guild.id);
       setTimeout(async function() {
-        var shouldExit = await exit.get(guild.id);
-
-        if (!shouldExit || shouldExit == false) return;
-
+        var shouldExit = exit.find(x => x === guild.id);
+        if (!shouldExit) return;
         const mainMusic = require("./musics/main.js");
         return await mainMusic.stop(guild);
       }, 30000);
+    } else {
+      var index = exit.indexOf(guild.id);
+      if(index !== -1) {
+        exit.splice(index, 1);
+      }
     }
-  }
 });
 
 client.on("guildMemberUpdate", (oldMember, newMember) => {
@@ -961,6 +980,40 @@ client.on("guildMemberUpdate", (oldMember, newMember) => {
         return console.error(err);
       }
       channel.send(result[0].boost_msg.replace(/{user}/g, `<@${newMember.id}>`));
+    });
+    con.release();
+  });
+});
+
+client.on("messageReactionAdd", async(r, user) => {
+  var roleMessage = rm.find(x => x.id === r.message.id);
+  if(!roleMessage) return;
+  var emojis = JSON.parse(roleMessage.emojis);
+  if(!emojis.includes(r.emoji.name)) return;
+  var index = emojis.indexOf(r.emoji.name);
+  var guild = await client.guilds.cache.get(roleMessage.guild);
+  var member = await guild.members.fetch(user);
+  member.roles.add([JSON.parse(roleMessage.roles)[index]]).catch(console.error);
+});
+
+client.on("messageReactionRemove", async(r, user) => {
+  var roleMessage = rm.find(x => x.id === r.message.id);
+  if(!roleMessage) return;
+  var emojis = JSON.parse(roleMessage.emojis);
+  if(!emojis.includes(r.emoji.name)) return;
+  var index = emojis.indexOf(r.emoji.name);
+  var guild = await client.guilds.cache.get(roleMessage.guild);
+  var member = await guild.members.fetch(user);
+  member.roles.remove([JSON.parse(roleMessage.roles)[index]]).catch(console.error);
+});
+
+client.on("messageDelete", (message) => {
+  var roleMessage = rm.find(x => x.id === message.id);
+  if(!roleMessage) return;
+  rm.splice(rm.indexOf(roleMessage), 1);
+  pool.getConnection((err, con) => {
+    con.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`, (err) => {
+      if(err) return console.error(err);
     });
     con.release();
   });
@@ -1006,7 +1059,7 @@ client.on("message", async message => {
     if (musicCommandsArray.includes(command.name) == true) {
       const mainMusic = require("./musics/main.js");
       try {
-        return await mainMusic.music(message, commandName, pool);
+        return await mainMusic.music(message, commandName, pool, exit);
       } catch (error) {
         console.error(error);
         return await message.reply(
@@ -1015,7 +1068,7 @@ client.on("message", async message => {
       }
     }
     try {
-      command.execute(message, args, pool, musicCommandsArray, hypixelQueries, console.realLog);
+      command.execute(message, args, pool, musicCommandsArray, hypixelQueries, rm);
     } catch (error) {
       console.error(error);
       message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");

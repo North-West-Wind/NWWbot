@@ -6,9 +6,9 @@ module.exports = {
   description: "Remove a music from the song queue.",
   usage: "<index>",
   async music(message, serverQueue, looping, queue, pool, repeat) {
-    const args = message.content.split(" ").slice(prefix.length).shift();
-    if(!args[0]) return message.channel.send("You did not provide any index." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
-    var queueIndex = parseInt(args[0]);
+    const args = message.content.split(" ")
+    if(!args[1]) return message.channel.send("You did not provide any index." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+    var queueIndex = parseInt(args[1]);
   if (typeof queueIndex !== "number")
     return message.channel.send("The query provided is not a number.");
   if (!serverQueue) return message.channel.send("There is nothing playing.");

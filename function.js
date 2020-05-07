@@ -30,11 +30,11 @@ module.exports = {
       "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
       "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
       "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
-      "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
+      "(\\?.*)?" + // query string
         "(\\#[-a-z\\d_]*)?$",
       "i"
     ); // fragment locator
-    if(str.slice(8).search("open.spotify.com") === 0 || !!pattern.test(str))
+    if(!!pattern.test(str))
     return true;
     else return false;
   },
@@ -88,6 +88,10 @@ module.exports = {
   },
   validRedGifURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?redgifs.com\/(\w*\/)?(\w*\w*)$/;
+    return !!pattern.test(str);
+  },
+  validSCURL(str) {
+    var pattern = /^http(s)?:\/\/(soundcloud\.com|snd\.sc)\/(.+)?/;
     return !!pattern.test(str);
   },
   decodeHtmlEntity(str) {

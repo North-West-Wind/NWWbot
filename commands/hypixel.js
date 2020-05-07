@@ -677,8 +677,8 @@ module.exports = {
                                 twoDigits(hypixelDate.getDate());
                               var member = guBody.guild.members;
                               function compare(a, b) {
-                                var first = a.expHistory[guildDate];
-                                var second = b.expHistory[guildDate];
+                                var first = a.expHistory[Object.keys(a.expHistory)[0]];
+                                var second = b.expHistory[Object.keys(b.expHistory)[0]];
                                 if (first < second) {
                                   return 1;
                                 }
@@ -687,32 +687,18 @@ module.exports = {
                                 }
                                 return 0;
                               }
-                              var members = [];
-                              member.forEach(aMember => {
-                                members.push(aMember);
+                              var members = member.sort(compare).map(x => {
+                                return {
+                                  uuid: x.uuid,
+                                  name: null,
+                                  exp: x.expHistory[Object.keys(x.expHistory)[0]]
+                                };
                               });
 
-                              await members.sort(compare);
-
-                              var GEXPs = [];
-                              var players = [];
                               for (var i = 0; i < 10; i++) {
-                                var gexp = members[i].expHistory[guildDate];
-                                GEXPs.push(gexp);
-                                request(
-                                  {
-                                    url: `https://api.minetools.eu/uuid/${members[i].uuid}`,
-                                    json: true
-                                  },
-                                  function(err, expResponse, result) {
-                                    if (err) console.error(err);
-                                    else {
-                                      var username = result.name;
-
-                                      players.push(username);
-                                    }
-                                  }
-                                );
+                                var result = await fetch(`https://api.minetools.eu/uuid/${members[i].uuid}`).then(res => res.json());
+                                var username = result.name;
+                                members[i].name = username;
                               }
 
                               const Embed = new Discord.MessageEmbed()
@@ -750,12 +736,9 @@ module.exports = {
                                   "Have a nice day! :)",
                                   message.client.user.displayAvatarURL()
                                 );
-
-                              setTimeout(function() {
-                                for (var i = 0; i < GEXPs.length; i++) {
-                                  topPlayer.addField(players[i], GEXPs[i]);
+                                for (var i = 0; i < 10; i++) {
+                                  topPlayer.addField(members[i].name, members[i].exp);
                                 }
-                              }, 1500);
 
                               const filter = (reaction, user) => {
                                 return (
@@ -5634,6 +5617,18 @@ module.exports = {
                     var auction = user.stats.auctions;
                     var sold = auction.sold;
                     var bought = auction.bought;
+                    var skills = user.skills;
+                    var slayer = user.slayer;
+                    var skillArr = [];
+                    
+                    for(let i = 0; i < Object.keys(skills).length; i++) {
+                      let skillName = Object.keys(skills)[i].slice(0, 1).toUpperCase() + Object.keys(skills)[i].slice(1);
+                      let xp = Object.values(skills)[i].xpCurrent;
+                      let xpNext = Object.values(skills)[i].xpForNext;
+                      let level = Object.values(skills)[i].level;
+                      let str = `**${skillName}**: Level: **${level}** | Next Level: **${xp}/${xpNext}**`;
+                      skillArr.push(str)
+                    }
                     
                     const Embed = new Discord.MessageEmbed()
                     .setColor(color)
@@ -5647,11 +5642,28 @@ module.exports = {
                     .addField("Auctions", `Created: ${numberWithCommas(auction.created)}\nCompleted: ${numberWithCommas(auction.completed)}\nNo Bids: ${numberWithCommas(auction.no_bids)}\nWon: ${numberWithCommas(auction.won)}\nBids: ${numberWithCommas(auction.bids)}\nHighest Bid: ${numberWithCommas(auction.highest_bid)}\nTotal Fee: ${numberWithCommas(auction.total_fees)}\nGold Earned: ${numberWithCommas(auction.gold_earned)}\nGold Spent: ${numberWithCommas(auction.gold_spent)}`)
                     .addField("Sold", `Common: ${isNaN(sold.common) ? 0 : sold.common}\nUncommon: ${isNaN(sold.uncommon) ? 0 : sold.uncommon}\nRare: ${isNaN(sold.rare) ? 0 : sold.rare}\nEpic: ${isNaN(sold.epic) ? 0 : sold.epic}\nLegendary: ${isNaN(sold.legendary) ? 0 : sold.legendary}`, true)
                     .addField("Bought", `Common: ${isNaN(bought.common) ? 0 : bought.common}\nUncommon: ${isNaN(bought.uncommon) ? 0 : bought.uncommon}\nRare: ${isNaN(bought.rare) ? 0 : bought.rare}\nEpic: ${isNaN(bought.epic) ? 0 : bought.epic}\nLegendary: ${isNaN(bought.legendary) ? 0 : bought.legendary}`, true)
+                    .addField("Skills", skillArr.join("\n"))
                   .setTimestamp()
                     .setFooter(
                       "Have a nice day! :)",
                       message.client.user.displayAvatarURL()
                     );
+                    
+                    for(let i = 0; i < Object.keys(slayer).length; i++) {
+                      let slayerName = Object.keys(slayer)[i].slice(0, 1).toUpperCase() + Object.keys(slayer)[i].slice(1);
+                      let level = Object.values(slayer)[i].claimed_levels;
+                      let xp = Object.values(slayer)[i].xp;
+                      let killsTier = Object.values(slayer)[i].kills_tier;
+                      let bossKills = [];
+                      for(let s = 0; s < Object.keys(killsTier).length; s++) {
+                        let bossLevel = Object.keys(killsTier)[s];
+                        let levelKills = Object.values(killsTier)[s];
+                        let str = `**Level ${bossLevel}**: ${levelKills}`;
+                        bossKills.push(str);
+                      }
+                      let str = `**Claimed Level:** ${level}\n**XP:** ${xp}\n**Boss Killed:**\n${bossKills.join("\n")}\n`;
+                      Embed.addField(`${slayerName} Slayer`, str, true)
+                    }
                     
                     allEmbeds.push(Embed);
                   }

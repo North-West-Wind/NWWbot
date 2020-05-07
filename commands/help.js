@@ -14,7 +14,7 @@ module.exports = {
 
     if (!args.length) {
       const attachment = new Discord.MessageAttachment(
-        "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1588168997714", "manual.pdf"
+        "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1588603370636", "manual.pdf"
       );
       const Embed = new Discord.MessageEmbed()
         .setColor(color)

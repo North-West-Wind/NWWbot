@@ -6,7 +6,8 @@ const {
   isGoodMusicVideoContent,
   decodeHtmlEntity,
   encodeHtmlEntity,
-  validYTPlaylistURL
+  validYTPlaylistURL,
+  validSCURL
 } = require("../function.js");
 const ytdl = require("ytdl-core-discord");
 const YouTube = require("simple-youtube-api");
@@ -19,6 +20,8 @@ var spotifyApi = new SpotifyWebApi({
   clientSecret: process.env.SPOTSECRET,
   redirectUri: "https://nwws.ml"
 });
+const SCDL = require("node-scdl");
+const fetch = require("node-fetch");
 const fs = require("fs");
 const request = require("request-stream");
 const mm = require("music-metadata");
@@ -27,10 +30,25 @@ const ytpl = require("ytpl");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
+const scdl = new SCDL(process.env.SCID);
+const { PassThrough } = require("stream");
+const { music } = require("./migrate.js");
+const { http, https } = require("follow-redirects");
 
-async function play(guild, song, looping, queue, pool, repeat) {
+const requestStream = url => {
+  return new Promise(resolve => {
+    request(url, (err, res) => resolve(res));
+  });
+};
+const GET = url => {
+  return new Promise(resolve => {
+    http.get(url, res => resolve(res));
+  });
+}
+
+async function play(guild, song, looping, queue, pool, repeat, begin) {
   const serverQueue = queue.get(guild.id);
-
+  if(!begin) var begin = 0;
   if (!song) {
     guild.me.voice.channel.leave();
     queue.delete(guild.id);
@@ -47,85 +65,80 @@ async function play(guild, song, looping, queue, pool, repeat) {
     return;
   }
 
+  if (serverQueue.textChannel) {
+    const Embed = new Discord.MessageEmbed()
+      .setColor(color)
+      .setTitle("Now playing:")
+      .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
+      .setDescription(
+        `**[${song.title}](${song.url})**\nLength: **${song.time}**`
+      )
+      .setTimestamp()
+      .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
+    if (song.type === 1)
+      Embed.setDescription(
+        `**[${song.title}](${song.spot})**\nLength: **${song.time}**`
+      ).setThumbnail(song.thumbnail);
+    serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000}));
+  }
+
   if (serverQueue.connection === null) return;
+  if (serverQueue.connection.dispatcher)
+    serverQueue.startTime = serverQueue.connection.dispatcher.streamTime;
 
   var dispatcher;
   if (song.type === 2) {
-    await request(song.url, (err, res) => {
-      dispatcher = serverQueue.connection.play(res, { highWaterMark: 1 << 28 });
-      dispatcher
-        .on("finish", async () => {
-          dispatcher = null;
-          const guildLoopStatus = looping.get(guild.id);
-          const guildRepeatStatus = repeat.get(guild.id);
-          console.log("Music ended! In " + guild.name);
-
-          if (guildLoopStatus === true) {
-            await serverQueue.songs.push(song);
-          }
-          if (guildRepeatStatus !== true) {
-            await serverQueue.songs.shift();
-          }
-
-          pool.getConnection(function(err, con) {
-            con.query(
-              "UPDATE servers SET queue = '" +
-                escape(JSON.stringify(serverQueue.songs)) +
-                "' WHERE id = " +
-                guild.id,
-              function(err, result) {
-                if (err) throw err;
-                console.log("Updated song queue of " + guild.name);
-              }
-            );
-            con.release();
-          });
-          play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
-        })
-        .on("error", error => {
-          console.error(error);
-        });
-      dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
+    var stream = await requestStream(song.url);
+    dispatcher = serverQueue.connection.play(stream, {
+      type: "unknown",
+      highWaterMark: 1 << 29,
+      seek: begin
     });
-  } else {
-    dispatcher = serverQueue.connection.play(
-      await ytdl(song.url, { highWaterMark: 1 << 28 }),
-      { type: "opus" }
-    );
-    dispatcher
-      .on("finish", async () => {
-        dispatcher = null;
-        const guildLoopStatus = looping.get(guild.id);
-        const guildRepeatStatus = repeat.get(guild.id);
-        console.log("Music ended! In " + guild.name);
-
-        if (guildLoopStatus === true) {
-          await serverQueue.songs.push(song);
-        }
-        if (guildRepeatStatus !== true) {
-          await serverQueue.songs.shift();
-        }
-
-        pool.getConnection(function(err, con) {
-          con.query(
-            "UPDATE servers SET queue = '" +
-              escape(JSON.stringify(serverQueue.songs)) +
-              "' WHERE id = " +
-              guild.id,
-            function(err, result) {
-              if (err) throw err;
-              console.log("Updated song queue of " + guild.name);
-            }
-          );
-          con.release();
-        });
-        play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
-      })
-      .on("error", error => {
-        console.error(error);
+  } else if (song.type === 3) {
+    var res = await GET(`http://api.soundcloud.com/tracks/${song.id}/stream?client_id=${process.env.SCID}`);
+    var stream = await requestStream(res.responseUrl);
+      dispatcher = serverQueue.connection.play(stream, {
+        seek: begin
       });
-    dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
+  } else {
+    var stream = await ytdl(song.url, { highWaterMark: 1 << 28, begin: begin });
+    dispatcher = serverQueue.connection.play(stream, {
+      type: "opus"
+    });
   }
+  dispatcher
+    .on("finish", async () => {
+      dispatcher = null;
+      const guildLoopStatus = looping.get(guild.id);
+      const guildRepeatStatus = repeat.get(guild.id);
+      console.log("Music ended! In " + guild.name);
+
+      if (guildLoopStatus === true) {
+        await serverQueue.songs.push(song);
+      }
+      if (guildRepeatStatus !== true) {
+        await serverQueue.songs.shift();
+      }
+
+      pool.getConnection(function(err, con) {
+        con.query(
+          "UPDATE servers SET queue = '" +
+            escape(JSON.stringify(serverQueue.songs)) +
+            "' WHERE id = " +
+            guild.id,
+          function(err, result) {
+            if (err) throw err;
+            console.log("Updated song queue of " + guild.name);
+          }
+        );
+        con.release();
+      });
+      play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+    })
+    .on("error", error => {
+      console.error(error);
+    });
+  dispatcher.setVolume(serverQueue.volume);
 }
 
 module.exports = {
@@ -134,7 +147,7 @@ module.exports = {
     "Play music with the link or keywords provided. Only support YouTube videos currently.",
   aliases: ["add", "p"],
   usage: "[link | keywords | attachment]",
-  async music(message, serverQueue, looping, queue, pool, repeat) {
+  async music(message, serverQueue, looping, queue, pool, repeat, exit, migrating) {
     const args = message.content.split(/ +/);
 
     const voiceChannel = message.member.voice.channel;
@@ -153,8 +166,9 @@ module.exports = {
           return message.channel.send(
             "No song queue found for this server! Please provide a link or keywords to get a music played!"
           );
-        if (serverQueue.playing === true)
-          return message.channel.send("Music is already playing!");
+        if (serverQueue.playing === true || migrating.find(x => x === message.guild.id)) {
+          return await music(message, serverQueue, looping, queue, pool, repeat, exit, migrating);
+        }
 
         if (
           !message.guild.me.voice.channel ||
@@ -171,531 +185,351 @@ module.exports = {
         serverQueue.textChannel = message.channel;
         await queue.set(message.guild.id, serverQueue);
         play(message.guild, serverQueue.songs[0], looping, queue, pool, repeat);
-        var song = serverQueue.songs[0];
-        const Embed = new Discord.MessageEmbed()
-          .setColor(color)
-          .setTitle("Now playing:")
-          .setThumbnail(song.type === 2 ? song.thumbnail : undefined)
-          .setDescription(
-            `**[${song.title}](${
-              song.type === 1 ? song.spot : song.url
-            })**\nLength: **${song.time}**`
-          )
-          .setTimestamp()
-          .setFooter(
-            "Have a nice day! :)",
-            message.client.user.displayAvatarURL()
-          );
-        message.channel.send(Embed);
+        return;
       } else {
-        var file = message.attachments.first();
-        if (!file.url.endsWith(".mp3"))
-          return message.channel.send(
-            "The attachment you sent is not an audio file!"
-          );
-        request(file.url, async (err, res) => {
-          if (err)
-            return message.reply(
-              "there was an error trying to execute that command!"
-            );
-          var metadata = await mm.parseStream(res).catch(console.error);
+        var files = message.attachments;
+        var songs = [];
+        for (const file of files.values()) {
+          var stream = await requestStream(file.url);
+          try {
+            var metadata = await mm.parseStream(stream);
+          } catch (err) {
+            return message.channel.send("The audio format is not supported!");
+          }
           if (metadata === undefined)
             return message.channel.send(
-              "An error occured while parsing the mp3 file into stream! Maybe it is not link to the file?"
+              "An error occured while parsing the audio file into stream! Maybe it is not link to the file?"
             );
           var length = Math.round(metadata.format.duration);
           var songLength = moment.duration(length, "seconds").format();
           var song = {
-            title: file.name.slice(0, -4).replace(/_/g, " "),
+            title: file.name.split(".")[0].replace(/_/g, " "),
             url: file.url,
             type: 2,
             time: songLength
           };
-          if (!serverQueue) {
-            const queueContruct = {
-              textChannel: message.channel,
-              voiceChannel: voiceChannel,
-              connection: null,
-              songs: [song],
-              volume: 5,
-              playing: true,
-              paused: false
-            };
-
-            queue.set(message.guild.id, queueContruct);
-            try {
-              pool.getConnection(function(err, con) {
-                con.query(
-                  "UPDATE servers SET queue = '" +
-                    escape(JSON.stringify(queueContruct.songs)) +
-                    "' WHERE id = " +
-                    message.guild.id,
-                  function(err, result) {
-                    if (err)
-                      return message.reply(
-                        "there was an error trying to execute that command!"
-                      );
-                    console.log("Updated song queue of " + message.guild.name);
-                  }
-                );
-                con.release();
-              });
-              var connection = await voiceChannel.join();
-              queueContruct.connection = connection;
-
-              play(
-                message.guild,
-                queueContruct.songs[0],
-                looping,
-                queue,
-                pool,
-                repeat
-              );
-
-              const Embed = new Discord.MessageEmbed()
-                .setColor(color)
-                .setTitle("Now playing:")
-                .setDescription(
-                  `**[${song.title}](${song.url})**\nLength: **${song.time}**`
-                )
-                .setTimestamp()
-                .setFooter(
-                  "Have a nice day! :)",
-                  message.client.user.displayAvatarURL()
-                );
-              return message.channel.send(Embed);
-            } catch (err) {
-              queue.delete(message.guild.id);
-              return console.error(err);
-            }
-          } else {
-              if (!message.guild.me.voice.channel || serverQueue.playing === false) {
-                serverQueue.songs.unshift(song);
-              } else {
-                serverQueue.songs.push(song);
-              }
-
-            pool.getConnection(function(err, con) {
-              con.query(
-                "UPDATE servers SET queue = '" +
-                  escape(JSON.stringify(serverQueue.songs)) +
-                  "' WHERE id = " +
-                  message.guild.id,
-                function(err, result) {
-                  if (err)
-                    return message.reply(
-                      "there was an error trying to execute that command!"
-                    );
-                  console.log("Updated song queue of " + message.guild.name);
-                }
-              );
-              con.release();
-            });
-            if (!message.guild.me.voice.channel) {
-              var connection = await voiceChannel.join();
-              serverQueue.voiceChannel = voiceChannel;
-              serverQueue.connection = connection;
-              serverQueue.playing = true;
-              serverQueue.textChannel = message.channel;
-              play(
-                message.guild,
-                serverQueue.songs[0],
-                looping,
-                queue,
-                pool,
-                repeat
-              );
-            } else if (serverQueue.playing === false) {
-              play(
-                message.guild,
-                serverQueue.songs[0],
-                looping,
-                queue,
-                pool,
-                repeat
-              );
-            }
-            var Embed = new Discord.MessageEmbed()
-              .setColor(color)
-              .setTitle("New track added:")
-              .setDescription(
-                `**[${song.title}](${song.url})**\nLength: **${song.time}**`
-              )
-              .setTimestamp()
-              .setFooter(
-                "Have a nice day! :)",
-                message.client.user.displayAvatarURL()
-              );
-            return message.channel.send(Embed);
-          }
-        });
+          songs.push(song);
+        }
       }
-
-      return;
     }
 
-    const checkURL = validURL(args[1]);
+    const checkURL = message.attachments.size > 0 || validURL(args[1]);
 
     if (checkURL === true) {
       if (validYTURL(args[1]) === false) {
         if (validSPURL(args[1]) === false) {
-          if (!args[1].endsWith(".mp3"))
-            return message.channel.send(
-              "We only support YouTube/Spotify video/track/direct links (.mp3)/attached files (.mp3), sorry!"
-            );
-          var linkArr = args[1].split("/");
-          if (
-            linkArr[linkArr.length - 1].endsWith(".mp3") &&
-            linkArr[linkArr.length - 1].split("?").length == 1
-          ) {
-            var title = linkArr[linkArr.length - 1]
-              .slice(0, -4)
-              .replace(/_/g, " ");
-          } else {
-            linkArr = args[1].split("?");
-            var title = linkArr[linkArr.length - 1]
-              .slice(0, -4)
-              .replace(/_/g, " ");
-          }
-          request(args[1], async (err, res) => {
-            if (err)
-              return message.reply(
-                "there was an error trying to execute that command!"
-              );
-            var metadata = await mm.parseStream(res).catch(console.error);
-            if (metadata === undefined)
-              return message.channel.send(
-                "An error occured while parsing the mp3 file into stream! Maybe it is not link to the file?"
-              );
-            var length = Math.round(metadata.format.duration);
-            var songLength = moment.duration(length, "seconds").format();
-            var song = {
-              title: title,
-              url: args[1],
-              type: 2,
-              time: songLength
-            };
-            if (!serverQueue) {
-              const queueContruct = {
-                textChannel: message.channel,
-                voiceChannel: voiceChannel,
-                connection: null,
-                songs: [song],
-                volume: 5,
-                playing: true,
-                paused: false
-              };
-
-              queue.set(message.guild.id, queueContruct);
-              try {
-                pool.getConnection(function(err, con) {
-                  con.query(
-                    "UPDATE servers SET queue = '" +
-                      escape(JSON.stringify(queueContruct.songs)) +
-                      "' WHERE id = " +
-                      message.guild.id,
-                    function(err, result) {
-                      if (err)
-                        return message.reply(
-                          "there was an error trying to execute that command!"
-                        );
-                      console.log(
-                        "Updated song queue of " + message.guild.name
-                      );
-                    }
-                  );
-                  con.release();
-                });
-                var connection = await voiceChannel.join();
-                queueContruct.connection = connection;
-
-                play(
-                  message.guild,
-                  queueContruct.songs[0],
-                  looping,
-                  queue,
-                  pool,
-                  repeat
-                );
-
-                const Embed = new Discord.MessageEmbed()
-                  .setColor(color)
-                  .setTitle("Now playing:")
-                  .setDescription(
-                    `**[${song.title}](${song.url})**\nLength: **${song.time}**`
-                  )
-                  .setTimestamp()
-                  .setFooter(
-                    "Have a nice day! :)",
-                    message.client.user.displayAvatarURL()
-                  );
-                return message.channel.send(Embed);
-              } catch (err) {
-                queue.delete(message.guild.id);
-                return console.error(err);
-              }
-            } else {
-              if (!message.guild.me.voice.channel || serverQueue.playing === false) {
-                serverQueue.songs.unshift(song);
+          if (validSCURL(args[1]) === false) {
+            if (message.attachments.size < 1) {
+              var linkArr = args[1].split("/");
+              if (linkArr[linkArr.length - 1].split("?").length == 1) {
+                var title = linkArr[linkArr.length - 1]
+                  .split(".")[0]
+                  .replace(/_/g, " ");
               } else {
-                serverQueue.songs.push(song);
+                linkArr = args[1].split("?");
+                var title = linkArr[linkArr.length - 1]
+                  .split(".")[0]
+                  .replace(/_/g, " ");
               }
-
-              pool.getConnection(function(err, con) {
-                con.query(
-                  "UPDATE servers SET queue = '" +
-                    escape(JSON.stringify(serverQueue.songs)) +
-                    "' WHERE id = " +
-                    message.guild.id,
-                  function(err, result) {
-                    if (err)
-                      return message.reply(
-                        "there was an error trying to execute that command!"
-                      );
-                    console.log("Updated song queue of " + message.guild.name);
-                  }
-                );
-                con.release();
-              });
-              if (!message.guild.me.voice.channel) {
-                var connection = await voiceChannel.join();
-                serverQueue.voiceChannel = voiceChannel;
-                serverQueue.connection = connection;
-                serverQueue.playing = true;
-                serverQueue.textChannel = message.channel;
-                play(
-                  message.guild,
-                  serverQueue.songs[0],
-                  looping,
-                  queue,
-                  pool,
-                  repeat
-                );
-              } else if (serverQueue.playing === false) {
-                play(
-                  message.guild,
-                  serverQueue.songs[0],
-                  looping,
-                  queue,
-                  pool,
-                  repeat
-                );
-              }
-              var Embed = new Discord.MessageEmbed()
-                .setColor(color)
-                .setTitle("New track added:")
-                .setDescription(
-                  `**[${song.title}](${song.url})**\nLength: **${song.time}**`
-                )
-                .setTimestamp()
-                .setFooter(
-                  "Have a nice day! :)",
-                  message.client.user.displayAvatarURL()
-                );
-              return message.channel.send(Embed);
-            }
-          });
-          return;
-        }
-
-        var d = await spotifyApi.clientCredentialsGrant();
-
-        await spotifyApi.setAccessToken(d.body.access_token);
-        await spotifyApi.setRefreshToken(process.env.SPOTREFRESH);
-
-        var refreshed = await spotifyApi
-          .refreshAccessToken()
-          .catch(console.error);
-
-        console.log("The access token has been refreshed!");
-
-        // Save the access token so that it's used in future calls
-        await spotifyApi.setAccessToken(refreshed.body.access_token);
-
-        var url_array = args[1].replace("https://", "").split("/");
-        var musicID = url_array[2].split("?")[0];
-
-        if (url_array[2].split("?")[1] !== undefined)
-          var highlight =
-            url_array[2].split("?")[1].split("=")[0] === "highlight";
-        else var highlight = false;
-
-        if (highlight)
-          musicID = url_array[2]
-            .split("?")[1]
-            .split("=")[1]
-            .split(":")[2];
-        var type = url_array[1];
-        var songs = [];
-        switch (type) {
-          case "playlist":
-            var musics = await spotifyApi.getPlaylist(musicID, { limit: 30 });
-            for (var i = 0; i < musics.body.tracks.items.length; i++) {
-              var matched;
+              var stream = await requestStream(args[1]);
               try {
-                var searched = await ytsr(
-                  musics.body.tracks.items[i].track.artists[0].name +
-                    " - " +
-                    musics.body.tracks.items[i].track.name,
-                  { limit: 100 }
-                );
-                var results = searched.items.filter(
-                  x => x.type === "video" && x.duration.split(":").length < 3
-                );
+                var metadata = await mm.parseStream(stream);
               } catch (err) {
-                return console.error(err);
+                return message.channel.send(
+                  "The audio format is not supported!"
+                );
               }
-
-              for (var s = 0; s < results.length; s++) {
-                if (results.length == 0) break;
-                if (isGoodMusicVideoContent(results[s])) {
-                  var songLength = results[s].duration;
-                  matched = {
-                    title: musics.body.tracks.items[i].track.name,
-                    url: results[s].link,
-                    type: 1,
-                    spot:
-                      musics.body.tracks.items[i].track.external_urls.spotify,
-                    thumbnail:
-                      musics.body.tracks.items[i].track.album.images[0].url,
-                    time: songLength
-                  };
-                  songs.push(matched);
-                  break;
-                }
-                if (s + 1 == results.length) {
-                  var songLength = results[0].duration;
-                  matched = {
-                    title: musics.body.tracks.items[i].track.name,
-                    url: results[0].link,
-                    type: 1,
-                    spot:
-                      musics.body.tracks.items[i].track.external_urls.spotify,
-                    thumbnail:
-                      musics.body.tracks.items[i].track.album.images[0].url,
-                    time: songLength
-                  };
-                  songs.push(matched);
-                }
-              }
+              if (metadata === undefined)
+                return message.channel.send(
+                  "An error occured while parsing the audio file into stream! Maybe it is not link to the file?"
+                );
+              var length = Math.round(metadata.format.duration);
+              var songLength = moment.duration(length, "seconds").format();
+              var song = {
+                title: title,
+                url: args[1],
+                type: 2,
+                time: songLength
+              };
+              var songs = [song];
             }
-            break;
-          case "album":
-            if (highlight === false) {
-              var album = await spotifyApi
-                .getAlbums([musicID])
-                .catch(err => console.log("Something went wrong!", err));
-              var image = album.albums[0].images[0].url;
-              var data = await spotifyApi
-                .getAlbumTracks(musicID, {
-                  limit: 30
-                })
-                .catch(err => console.log("Something went wrong!", err));
-
-              var tracks = data.body.items;
+          } else {
+            var res = await fetch(
+              `https://api.soundcloud.com/resolve?url=${args[1]}&client_id=${
+                process.env.SCID
+              }`
+            );
+            if (res.status !== 200) {
+              return message.channel.send(
+                "A problem occured while fetching the track information! Status Code: " +
+                  res.status
+              );
+            }
+            var data = await res.json();
+            if (data.kind == "user") {
+              return message.channel.send(
+                "What do you think you can do with a user?"
+              );
+            }
+            if (data.kind == "playlist") {
+              var songs = [];
+              for (const track of data.tracks) {
+                var length = Math.round(track.duration / 1000);
+                var songLength = moment.duration(length, "seconds").format();
+                var song = {
+                  title: track.title,
+                  type: 3,
+                  id: track.id,
+                  time: songLength,
+                  thumbnail: track.artwork_url,
+                  url: track.permalink_url
+                };
+                songs.push(song);
+              }
             } else {
-              var data = await spotifyApi
-                .getTracks([musicID])
-                .catch(err => console.log("Something went wrong!", err));
-
-              var tracks = data.body.tracks;
+              var length = Math.round(data.duration / 1000);
+              var songLength = moment.duration(length, "seconds").format();
+              var songs = [
+                {
+                  title: data.title,
+                  type: 3,
+                  id: data.id,
+                  time: songLength,
+                  thumbnail: data.artwork_url,
+                  url: data.permalink_url
+                }
+              ];
             }
+          }
+        } else {
+          var d = await spotifyApi.clientCredentialsGrant();
 
-            for (var i = 0; i < tracks.length; i++) {
-              var matched;
-              try {
-                var searched = await ytsr(
-                  tracks[i].artists[0].name + " - " + tracks[i].name,
-                  { limit: 100 }
-                );
-                var results = searched.items.filter(
-                  x => x.type === "video" && x.duration.split(":").length < 3
-                );
-              } catch (err) {
-                return console.error(err);
-              }
-              for (var s = 0; s < results.length; s++) {
-                if (results.length == 0) break;
-                if (isGoodMusicVideoContent(results[s])) {
-                  var songLength = results[s].duration;
-                  matched = {
-                    title: tracks[i].name,
-                    url: results[s].link,
-                    type: 1,
-                    spot: tracks[i].external_urls.spotify,
-                    thumbnail: highlight
-                      ? tracks[i].album.images[0].url
-                      : image,
-                    time: songLength
-                  };
-                  songs.push(matched);
-                  break;
-                }
-                if (s + 1 == results.length) {
-                  var songLength = results[0].duration;
-                  matched = {
-                    title: tracks[i].name,
-                    url: results[0].link,
-                    type: 1,
-                    spot: tracks[i].external_urls.spotify,
-                    thumbnail: highlight
-                      ? tracks[i].album.images[0].url
-                      : image,
-                    time: songLength
-                  };
-                  songs.push(matched);
-                }
-              }
-            }
+          await spotifyApi.setAccessToken(d.body.access_token);
+          await spotifyApi.setRefreshToken(process.env.SPOTREFRESH);
 
-            break;
-          case "track":
-            var data = await spotifyApi.getTracks([musicID]);
-            var tracks = data.body.tracks;
+          var refreshed = await spotifyApi
+            .refreshAccessToken()
+            .catch(console.error);
 
-            for (var i = 0; i < tracks.length; i++) {
-              var matched;
-              try {
-                var searched = await ytsr(
-                  tracks[i].artists[0].name + " - " + tracks[i].name,
-                  { limit: 100 }
-                );
-                var results = searched.items.filter(
-                  x => x.type === "video" && x.duration.split(":").length < 3
-                );
-              } catch (err) {
-                return console.error(err);
-              }
-              for (var s = 0; s < results.length; s++) {
-                if (results.length == 0) break;
-                if (isGoodMusicVideoContent(results[s])) {
-                  var songLength = results[s].duration;
-                  matched = {
-                    title: tracks[i].name,
-                    url: results[s].link,
-                    type: 1,
-                    spot: tracks[i].external_urls.spotify,
-                    thumbnail: tracks[i].album.images[0].url,
-                    time: songLength
-                  };
-                  songs.push(matched);
-                  break;
+          console.log("The access token has been refreshed!");
+
+          // Save the access token so that it's used in future calls
+          await spotifyApi.setAccessToken(refreshed.body.access_token);
+
+          var url_array = args[1].replace("https://", "").split("/");
+          var musicID = url_array[2].split("?")[0];
+
+          if (url_array[2].split("?")[1] !== undefined)
+            var highlight =
+              url_array[2].split("?")[1].split("=")[0] === "highlight";
+          else var highlight = false;
+
+          if (highlight)
+            musicID = url_array[2]
+              .split("?")[1]
+              .split("=")[1]
+              .split(":")[2];
+          var type = url_array[1];
+          var songs = [];
+          switch (type) {
+            case "playlist":
+              var musics = await spotifyApi.getPlaylist(musicID, { limit: 50 });
+              var tracks = musics.body.tracks.items;
+                async function checkAll() {
+                  if(musics.body.tracks.next) {
+                    var offset = musics.body.tracks.offset + 50;
+                    musics = await spotifyApi.getPlaylist(musicID, {
+                      limit: 50,
+                      offset: offset
+                    });
+                    tracks = tracks.concat(musics.body.tracks.items);
+                    return await checkAll();
+                  }
                 }
-                if (s + 1 == results.length) {
-                  var songLength = results[0].duration;
-                  matched = {
-                    title: tracks[i].name,
-                    url: results[0].link,
-                    type: 1,
-                    spot: tracks[i].external_urls.spotify,
-                    thumbnail: tracks[i].album.images[0].url,
-                    time: songLength
-                  };
-                  songs.push(matched);
+              await checkAll();
+              var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);
+              for (var i = 0; i < tracks.length; i++) {
+                await mesg.edit(`Processing track: **${i+1}/${tracks.length}**`);
+                var matched;
+                try {
+                  var searched = await ytsr(
+                    tracks[i].track.artists[0].name +
+                      " - " +
+                      tracks[i].track.name,
+                    { limit: 20 }
+                  );
+                  var results = searched.items.filter(
+                    x => x.type === "video" && x.duration.split(":").length < 3
+                  );
+                } catch (err) {
+                  return console.error(err);
+                }
+
+                for (var s = 0; s < results.length; s++) {
+                  if (results.length == 0) break;
+                  if (isGoodMusicVideoContent(results[s])) {
+                    var songLength = results[s].duration;
+                    matched = {
+                      title: tracks[i].track.name,
+                      url: results[s].link,
+                      type: 1,
+                      spot:
+                        tracks[i].track.external_urls.spotify,
+                      thumbnail:
+                        tracks[i].track.album.images[0].url,
+                      time: songLength
+                    };
+                    songs.push(matched);
+                    break;
+                  }
+                  if (s + 1 == results.length) {
+                    var songLength = results[0].duration;
+                    matched = {
+                      title: tracks[i].track.name,
+                      url: results[0].link,
+                      type: 1,
+                      spot:
+                        tracks[i].track.external_urls.spotify,
+                      thumbnail:
+                        tracks[i].track.album.images[0].url,
+                      time: songLength
+                    };
+                    songs.push(matched);
+                  }
                 }
               }
+              mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }));
               break;
-            }
+            case "album":
+              if (highlight === false) {
+                var album = await spotifyApi
+                  .getAlbums([musicID])
+                  .catch(err => console.log("Something went wrong!", err));
+                var image = album.body.albums[0].images[0].url;
+                var data = await spotifyApi
+                  .getAlbumTracks(musicID, {
+                    limit: 50
+                  })
+                  .catch(err => console.log("Something went wrong!", err));
+
+                var tracks = data.body.items;
+                async function checkAll() {
+                  if(data.body.next) {
+                    var offset = data.body.offset + 50;
+                    data = await spotifyApi.getAlbumTracks(musicID, {
+                      limit: 50,
+                      offset: offset
+                    });
+                    tracks = tracks.concat(data.body.items);
+                    return await checkAll();
+                  }
+                }
+                await checkAll();
+              } else {
+                var data = await spotifyApi
+                  .getTracks([musicID])
+                  .catch(err => console.log("Something went wrong!", err));
+
+                var tracks = data.body.tracks;
+              }
+              var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);
+              for (var i = 0; i < tracks.length; i++) {
+                await mesg.edit(`Processing track: **${i+1}/${tracks.length}**`)
+                var matched;
+                try {
+                  var searched = await ytsr(
+                    tracks[i].artists[0].name + " - " + tracks[i].name,
+                    { limit: 20 }
+                  );
+                  var results = searched.items.filter(
+                    x => x.type === "video" && x.duration.split(":").length < 3
+                  );
+                } catch (err) {
+                  return console.error(err);
+                }
+                for (var s = 0; s < results.length; s++) {
+                  if (results.length == 0) break;
+                  if (isGoodMusicVideoContent(results[s])) {
+                    var songLength = results[s].duration;
+                    matched = {
+                      title: tracks[i].name,
+                      url: results[s].link,
+                      type: 1,
+                      spot: tracks[i].external_urls.spotify,
+                      thumbnail: highlight
+                        ? tracks[i].album.images[0].url
+                        : image,
+                      time: songLength
+                    };
+                    songs.push(matched);
+                    break;
+                  }
+                  if (s + 1 == results.length) {
+                    var songLength = results[0].duration;
+                    matched = {
+                      title: tracks[i].name,
+                      url: results[0].link,
+                      type: 1,
+                      spot: tracks[i].external_urls.spotify,
+                      thumbnail: highlight
+                        ? tracks[i].album.images[0].url
+                        : image,
+                      time: songLength
+                    };
+                    songs.push(matched);
+                  }
+                }
+              }
+              mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000}))
+              break;
+            case "track":
+              var data = await spotifyApi.getTracks([musicID]);
+              var tracks = data.body.tracks;
+
+              for (var i = 0; i < tracks.length; i++) {
+                var matched;
+                try {
+                  var searched = await ytsr(
+                    tracks[i].artists[0].name + " - " + tracks[i].name,
+                    { limit: 20 }
+                  );
+                  var results = searched.items.filter(
+                    x => x.type === "video" && x.duration.split(":").length < 3
+                  );
+                } catch (err) {
+                  return console.error(err);
+                }
+                for (var s = 0; s < results.length; s++) {
+                  if (results.length == 0) break;
+                  if (isGoodMusicVideoContent(results[s])) {
+                    var songLength = results[s].duration;
+                    matched = {
+                      title: tracks[i].name,
+                      url: results[s].link,
+                      type: 1,
+                      spot: tracks[i].external_urls.spotify,
+                      thumbnail: tracks[i].album.images[0].url,
+                      time: songLength
+                    };
+                    songs.push(matched);
+                    break;
+                  }
+                  if (s + 1 == results.length) {
+                    var songLength = results[0].duration;
+                    matched = {
+                      title: tracks[i].name,
+                      url: results[0].link,
+                      type: 1,
+                      spot: tracks[i].external_urls.spotify,
+                      thumbnail: tracks[i].album.images[0].url,
+                      time: songLength
+                    };
+                    songs.push(matched);
+                  }
+                }
+                break;
+              }
+          }
         }
       } else {
         if (validYTPlaylistURL(args[1])) {
@@ -748,9 +582,10 @@ module.exports = {
           voiceChannel: voiceChannel,
           connection: null,
           songs: [],
-          volume: 5,
+          volume: 1,
           playing: true,
-          paused: false
+          paused: false,
+          startTime: 0
         };
 
         queue.set(message.guild.id, queueContruct);
@@ -785,28 +620,26 @@ module.exports = {
             pool,
             repeat
           );
-
           const Embed = new Discord.MessageEmbed()
-            .setColor(color)
-            .setTitle("Now playing:")
-            .setThumbnail(songs[0].type === 2 ? undefined : songs[0].thumbnail)
-            .setDescription(
-              `**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`
-            )
-            .setTimestamp()
-            .setFooter(
-              "Have a nice day! :)",
-              message.client.user.displayAvatarURL()
-            );
-          if (songs.length > 1)
-            Embed.setDescription(
-              `**${songs.length}** tracks were added.`
-            ).setThumbnail(undefined);
-          else if (songs[0].type === 1)
-            Embed.setDescription(
-              `**[${songs[0].title}](${songs[0].spot})**\nLength: **${songs[0].time}**`
-            ).setThumbnail(songs[0].thumbnail);
-          message.channel.send(Embed);
+          .setColor(color)
+          .setTitle("New track added:")
+          .setThumbnail(songs[0].thumbnail)
+          .setDescription(
+            `**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`
+          )
+          .setTimestamp()
+          .setFooter(
+            "Have a nice day! :)",
+            message.client.user.displayAvatarURL()
+          );
+        if (songs.length > 1) {
+          Embed.setDescription(`**${songs.length}** tracks were added.`).setThumbnail(undefined);
+        }
+        return message.channel.send(Embed).then(msg => {
+          setTimeout(() => {
+            msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
+          }, 30000);
+        });
         } catch (err) {
           console.log(err);
           queue.delete(message.guild.id);
@@ -814,9 +647,11 @@ module.exports = {
         }
       } else {
         if (!message.guild.me.voice.channel || serverQueue.playing === false) {
-          for(var i = songs.length; i > 0; i--) serverQueue.songs.unshift(songs[i - 1]);
+          for (var i = songs.length; i > 0; i--)
+            serverQueue.songs.unshift(songs[i - 1]);
         } else {
-          for (var i = 0; i < songs.length; i++) serverQueue.songs.push(songs[i]);
+          for (var i = 0; i < songs.length; i++)
+            serverQueue.songs.push(songs[i]);
         }
 
         pool.getConnection(function(err, con) {
@@ -860,10 +695,10 @@ module.exports = {
             repeat
           );
         }
-        var Embed = new Discord.MessageEmbed()
+        const Embed = new Discord.MessageEmbed()
           .setColor(color)
           .setTitle("New track added:")
-          .setThumbnail(songs[0].type === 2 ? undefined : songs[0].thumbnail)
+          .setThumbnail(songs[0].thumbnail)
           .setDescription(
             `**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`
           )
@@ -872,15 +707,14 @@ module.exports = {
             "Have a nice day! :)",
             message.client.user.displayAvatarURL()
           );
-        if (songs.length > 1)
-          Embed.setDescription(
-            `**${songs.length}** tracks were added.`
-          ).setThumbnail(undefined);
-        else if (songs[0].type === 1)
-          Embed.setDescription(
-            `**[${songs[0].title}](${songs[0].spot})**\nLength: **${songs[0].time}**`
-          ).setThumbnail(songs[0].thumbnail);
-        return message.channel.send(Embed);
+        if (songs.length > 1) {
+          Embed.setDescription(`**${songs.length}** tracks were added.`).setThumbnail(undefined);
+        }
+        return message.channel.send(Embed).then(msg => {
+          setTimeout(() => {
+            msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
+          }, 30000);
+        });
       }
     } else {
       const Embed = new Discord.MessageEmbed()
@@ -922,7 +756,7 @@ module.exports = {
       message.channel
         .send(Embed)
         .then(async msg => {
-        /*
+          /*
           if (results[0]) {
             await msg.react("1️⃣");
           }
@@ -977,14 +811,17 @@ module.exports = {
           };
           */
 
-        var filter = x => x.author.id === message.author.id;
-        
+          var filter = x => x.author.id === message.author.id;
+
           msg.channel
             .awaitMessages(filter, { max: 1, time: 30000, error: ["time"] })
             .then(async collected => {
               const content = collected.first().content;
-            collected.first().delete();
-              if (isNaN(parseInt(content)) || (parseInt(content) < 1 && parseInt(content) > results.length)) {
+              collected.first().delete();
+              if (
+                isNaN(parseInt(content)) ||
+                (parseInt(content) < 1 && parseInt(content) > results.length)
+              ) {
                 const cancelled = new Discord.MessageEmbed()
                   .setColor(color)
                   .setTitle("Action cancelled.")
@@ -994,17 +831,19 @@ module.exports = {
                     message.client.user.displayAvatarURL()
                   );
 
-                return msg.edit(cancelled);
+                return msg.edit(cancelled).then(msg => msg.delete({ timeout: 10000}));
               }
 
-            var s = parseInt(content) - 1;
+              var s = parseInt(content) - 1;
 
               const chosenEmbed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle("Music chosen:")
                 .setThumbnail(saved[s].thumbnail)
                 .setDescription(
-                  `**[${decodeHtmlEntity(saved[s].title)}](${saved[s].link})** : **${saved[s].duration}**`
+                  `**[${decodeHtmlEntity(saved[s].title)}](${
+                    saved[s].link
+                  })** : **${saved[s].duration}**`
                 )
                 .setTimestamp()
                 .setFooter(
@@ -1028,9 +867,10 @@ module.exports = {
                   voiceChannel: voiceChannel,
                   connection: null,
                   songs: [],
-                  volume: 5,
+                  volume: 1,
                   playing: true,
-                  paused: false
+                  paused: false,
+                  startTime: 0
                 };
 
                 queue.set(message.guild.id, queueContruct);
@@ -1066,30 +906,25 @@ module.exports = {
                     pool,
                     repeat
                   );
-                  const Embed = new Discord.MessageEmbed()
-                    .setColor(color)
-                    .setTitle("Now playing:")
-                    .setThumbnail(song.thumbnail)
-                    .setDescription(
-                      `**[${song.title}](${song.url})**\nLength: **${song.time}**`
-                    )
-                    .setTimestamp()
-                    .setFooter(
-                      "Have a nice day! :)",
-                      message.client.user.displayAvatarURL()
-                    );
-                  msg.edit(Embed);
+                  msg.edit(Embed).then(msg => {
+                    setTimeout(() => {
+                      msg.edit({ embed: null, content: `**[Track: ${song.title}]**` });
+                    }, 30000);
+                  });
                 } catch (err) {
                   console.log(err);
                   queue.delete(message.guild.id);
                   return console.error(err);
                 }
               } else {
-              if (!message.guild.me.voice.channel || serverQueue.playing === false) {
-                serverQueue.songs.unshift(song);
-              } else {
-                serverQueue.songs.push(song);
-              }
+                if (
+                  !message.guild.me.voice.channel ||
+                  serverQueue.playing === false
+                ) {
+                  serverQueue.songs.unshift(song);
+                } else {
+                  serverQueue.songs.push(song);
+                }
                 pool.getConnection(function(err, con) {
                   if (err)
                     return message.reply(
@@ -1148,7 +983,11 @@ module.exports = {
                     "Have a nice day! :)",
                     message.client.user.displayAvatarURL()
                   );
-                return msg.edit(Embed);
+                return msg.edit(Embed).then(msg => {
+          setTimeout(() => {
+            msg.edit({ embed: null, content: `**[Track: ${song.title}]**` });
+          }, 30000);
+        });
               }
             })
             .catch(err => {
@@ -1160,7 +999,7 @@ module.exports = {
                   "Have a nice day! :)",
                   message.client.user.displayAvatarURL()
                 );
-              msg.edit(Ended);
+              msg.edit(Ended).then(msg => msg.delete({ timeout: 10000}));
             });
         })
         .catch(err => {
@@ -1172,9 +1011,9 @@ module.exports = {
         });
     }
   },
-  async play(guild, song, looping, queue, pool, repeat) {
+  async play(guild, song, looping, queue, pool, repeat, begin) {
     const serverQueue = queue.get(guild.id);
-
+    if(!begin) var begin = 0;
     if (!song) {
       guild.me.voice.channel.leave();
       queue.delete(guild.id);
@@ -1190,87 +1029,79 @@ module.exports = {
       });
       return;
     }
+    
+    if (serverQueue.textChannel) {
+    const Embed = new Discord.MessageEmbed()
+      .setColor(color)
+      .setTitle("Now playing:")
+      .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
+      .setDescription(
+        `**[${song.title}](${song.url})**\nLength: **${song.time}**`
+      )
+      .setTimestamp()
+      .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
+    if (song.type === 1)
+      Embed.setDescription(
+        `**[${song.title}](${song.spot})**\nLength: **${song.time}**`
+      ).setThumbnail(song.thumbnail);
+    serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000}));
+  }
 
     if (serverQueue.connection === null) return;
-
+    if (serverQueue.connection.dispatcher)
+      serverQueue.startTime = serverQueue.connection.dispatcher.streamTime;
     var dispatcher;
     if (song.type === 2) {
-      await request(song.url, (err, res) => {
-        dispatcher = serverQueue.connection.play(res, {
-          highWaterMark: 1 << 28
-        });
-        dispatcher
-          .on("finish", async () => {
-            dispatcher = null;
-            const guildLoopStatus = looping.get(guild.id);
-            const guildRepeatStatus = repeat.get(guild.id);
-            console.log("Music ended! In " + guild.name);
-
-            if (guildLoopStatus === true) {
-              await serverQueue.songs.push(song);
-            }
-            if (guildRepeatStatus !== true) {
-              await serverQueue.songs.shift();
-            }
-
-            pool.getConnection(function(err, con) {
-              con.query(
-                "UPDATE servers SET queue = '" +
-                  escape(JSON.stringify(serverQueue.songs)) +
-                  "' WHERE id = " +
-                  guild.id,
-                function(err, result) {
-                  if (err) throw err;
-                  console.log("Updated song queue of " + guild.name);
-                }
-              );
-              con.release();
-            });
-            play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
-          })
-          .on("error", error => {
-            console.error(error);
-          });
-        dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
+      var stream = await requestStream(song.url);
+      dispatcher = serverQueue.connection.play(stream, {
+        type: "unknown",
+        highWaterMark: 1 << 29,
+        seek: begin
+      });
+    } else if (song.type === 3) {
+    var res = await GET(`http://api.soundcloud.com/tracks/${song.id}/stream?client_id=${process.env.SCID}`);
+    var stream = await requestStream(res.responseUrl);
+      dispatcher = serverQueue.connection.play(stream, {
+        seek: begin
       });
     } else {
-      dispatcher = serverQueue.connection.play(
-        await ytdl(song.url, { highWaterMark: 1 << 28 }),
-        { type: "opus" }
-      );
-      dispatcher
-        .on("finish", async () => {
-          dispatcher = null;
-          const guildLoopStatus = looping.get(guild.id);
-          const guildRepeatStatus = repeat.get(guild.id);
-          console.log("Music ended! In " + guild.name);
-
-          if (guildLoopStatus === true) {
-            await serverQueue.songs.push(song);
-          }
-          if (guildRepeatStatus !== true) {
-            await serverQueue.songs.shift();
-          }
-
-          pool.getConnection(function(err, con) {
-            con.query(
-              "UPDATE servers SET queue = '" +
-                escape(JSON.stringify(serverQueue.songs)) +
-                "' WHERE id = " +
-                guild.id,
-              function(err, result) {
-                if (err) throw err;
-                console.log("Updated song queue of " + guild.name);
-              }
-            );
-            con.release();
-          });
-          play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
-        })
-        .on("error", error => {
-          console.error(error);
-        });
-      dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
+      var stream = await ytdl(song.url, { highWaterMark: 1 << 28, begin: begin });
+      dispatcher = serverQueue.connection.play(stream, {
+        type: "opus"
+      });
     }
+    dispatcher
+      .on("finish", async () => {
+        dispatcher = null;
+        const guildLoopStatus = looping.get(guild.id);
+        const guildRepeatStatus = repeat.get(guild.id);
+        console.log("Music ended! In " + guild.name);
+
+        if (guildLoopStatus === true) {
+          await serverQueue.songs.push(song);
+        }
+        if (guildRepeatStatus !== true) {
+          await serverQueue.songs.shift();
+        }
+
+        pool.getConnection(function(err, con) {
+          con.query(
+            "UPDATE servers SET queue = '" +
+              escape(JSON.stringify(serverQueue.songs)) +
+              "' WHERE id = " +
+              guild.id,
+            function(err, result) {
+              if (err) throw err;
+              console.log("Updated song queue of " + guild.name);
+            }
+          );
+          con.release();
+        });
+        play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+      })
+      .on("error", error => {
+        console.error(error);
+      });
+    dispatcher.setVolume(serverQueue.volume);
   }
 };
