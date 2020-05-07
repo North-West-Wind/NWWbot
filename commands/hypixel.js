@@ -3,7 +3,8 @@ var Buffer = require("buffer").Buffer;
 const http = require("http");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits, numberWithCommas } = require("../function.js");
-const fetch = require("node-fetch");
+const nodefetch = require("node-fetch");
+const fetch = require("fetch-retry")(nodefetch, { retries: 3, retryDelay: 1000 });
 const contains = (string, content) => {
   return !!~(string || "").indexOf(content);
 };
@@ -5529,66 +5530,53 @@ module.exports = {
                   
                  var allEmbeds = [];
                   
-                  var magmaBoss = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bosstimer/magma/estimatedSpawn").then(resp => resp.json());
-                  var estimate = (magmaBoss.estimate - Date.now());
+                  var magmaBoss = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bosstimer/magma/estimatedSpawn").then(resp => resp.json().catch(console.error));
+                  var darkAuction = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/darkauction/estimate").then(resp => resp.json().catch(console.error));
+                  var bankInterest = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bank/interest/estimate").then(resp => resp.json().catch(console.error));
+                  var newYear = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/newyear/estimate").then(resp => resp.json().catch(console.error));
+                  var travelZoo = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/zoo/estimate").then(resp => resp.json().catch(console.error));
+                  var spookyFest = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/spookyFestival/estimate").then(resp => resp.json().catch(console.error));
+                  var winterEvent = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/winter/estimate").then(resp => resp.json().catch(console.error));
+                  var jerryWorkshop = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/jerryWorkshop/estimate").then(resp => resp.json().catch(console.error));
                   
-                  var sec = estimate / 1000;
-        var dh = Math.floor((sec % 86400) / 3600);
-        var dm = Math.floor(((sec % 86400) % 3600) / 60);
-        var ds = Math.floor(((sec % 86400) % 3600) % 60);
-        var dmi = Math.floor(
-          time - estimate - dh * 3600000 - dm * 60000 - ds * 1000
-        );
-        var h = "";
-        var m = "";
-        var s = "";
-        var mi = "";
-        if (dh !== 0) {
-          h = " " + dh + " hours";
-        }
-        if (dm !== 0) {
-          m = " " + dm + " minutes";
-        }
-        if (ds !== 0) {
-          s = " " + ds + " seconds";
-        }
-        if (dmi !== 0) {
-          mi = " " + dmi + " milliseconds";
-        }
-                  var currentDate = new Date();
-                  var year = currentDate.getFullYear();
-                  var month = currentDate.getMonth();
-                  var date = currentDate.getDate();
-                  var hour = currentDate.getHours();
-                  var minutes = currentDate.getMinutes();
+                  var magmaEstimate = (magmaBoss.estimate - Date.now());
+                  var darkEstimate = (darkAuction.estimate - Date.now());
+                  var bankEstimate = (bankInterest.estimate - Date.now());
+                  var yearEstimate = (newYear.estimate - Date.now());
+                  var zooEstimate = (travelZoo.estimate - Date.now());
+                  var spookEstimate = (spookyFest.estimate - Date.now());
+                  var winterEstimate = (winterEvent.estimate - Date.now());
+                  var jerryEstimate = (jerryWorkshop.estimate - Date.now());
                   
-                  if(minutes > 55) hour += 1;
-                  var da = (new Date(year, month, date, hour, 55)).getTime();
-                  var dark = da - Date.now();
+                  function estimateStringify(estimate) {
+                    var sec = estimate / 1000;
+                    var dh = Math.floor((sec % 86400) / 3600);
+                    var dm = Math.floor(((sec % 86400) % 3600) / 60);
+                    var ds = Math.floor(((sec % 86400) % 3600) % 60);
+                    var h = "";
+                    var m = "";
+                    var s = "";
+                    if (dh !== 0) {
+                      h = " " + dh + " hours";
+                    }
+                    if (dm !== 0) {
+                      m = " " + dm + " minutes";
+                    }
+                    if (ds !== 0) {
+                      s = " " + ds + " seconds";
+                    }
+                    var str = h + m + s;
+                    return str;
+                  }
                   
-                  var sec = dark / 1000;
-        var ah = Math.floor((sec % 86400) / 3600);
-        var am = Math.floor(((sec % 86400) % 3600) / 60);
-        var as = Math.floor(((sec % 86400) % 3600) % 60);
-        var ami = Math.floor(
-          time - dark - dh * 3600000 - dm * 60000 - ds * 1000
-        );
-        var dah = "";
-        var dam = "";
-        var das = "";
-        var dami = "";
-        if (ah !== 0) {
-          dah = " " + ah + " hours";
-        }
-        if (am !== 0) {
-          dam = " " + am + " minutes";
-        }
-        if (as !== 0) {
-          das = " " + as + " seconds";
-        }
-        if (ami !== 0) {
-          dami = " " + ami + " milliseconds";
-        }
+                  var magmaStr = estimateStringify(magmaEstimate);
+                  var darkStr = estimateStringify(darkEstimate);
+                  var bankStr = estimateStringify(bankEstimate);
+                  var yearStr = estimateStringify(yearEstimate);
+                  var zooStr = estimateStringify(zooEstimate);
+                  var spookStr = estimateStringify(spookEstimate);
+                  var winterStr = estimateStringify(winterEstimate);
+                  var jerryStr = estimateStringify(jerryEstimate);
                   
                   var profiles = Object.values(sb.profiles);
                   for(const profile of profiles) {
@@ -5605,11 +5593,15 @@ module.exports = {
                     var armors = user.armor;
                     var armorName = [];
                     
-                    for(var i = 3; i > -1; i--) {
-                      var armor = armors[i];
-                      if(armor.name)
-                      armorName.push(armor.name.slice(2));
-                      else armorName.push("None");
+                    if(!armors) {
+                      armorName = ["None", "None", "None", "None"]
+                    } else {
+                      for(var i = 3; i > -1; i--) {
+                        var armor = armors[i];
+                        if(armor && armor.name)
+                        armorName.push(armor.name.slice(2));
+                        else armorName.push("None");
+                      }
                     }
                     var purse = user.coin_purse;
                     var kills = user.stats.total_kills;
@@ -5634,7 +5626,7 @@ module.exports = {
                     .setColor(color)
                     .setTitle(rank + res[0].name)
                     .setURL("https://hypixel.net/player/" + res[0].name)
-                    .setDescription("SkyBlock - **" + profile.cute_name + "**\n" + `Members [${memberCount}]: ${memberName.join(", ")}` + "\n\n**Magma Boss** spawning in **" + h + m + s + "**\n**Dark Auction** in **" + dah + dam + das + "**")
+                    .setDescription("SkyBlock - **" + profile.cute_name + "**\n" + `Members [${memberCount}]: ${memberName.join(", ")}\n\n**Magma Boss** in **${magmaStr}**\n**Dark Auction** in **${darkStr}**\n**Bank Interest** in **${bankStr}**\n**New Year** in **${yearStr}**\n**Travelling Zoo** in **${zooStr}**\n**Spooky Festival** in **${spookStr}**\n**Winter Event** in **${winterStr}**\n**Jerry Workshop** in **${jerryStr}**`)
                     .addField("Purse", numberWithCommas(purse), true)
                     .addField("Total Kills", numberWithCommas(kills), true)
                     .addField("Total Deaths", numberWithCommas(deaths), true)
