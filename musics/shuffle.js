@@ -28,27 +28,6 @@ module.exports = {
       con.release();
     });
     */
-    var index = 0;
-    var songArray = serverQueue.songs.map(song => {
-    if(song.type === 0)
-    return `**${++index} - ** [**${song.title}**](${song.url})`;
-    else if(song.type === 1)
-      return `**${++index} - ** [**${song.title}**](${song.spot})`
-  });
-    var queueEmbed = new Discord.MessageEmbed()
-      .setColor(color)
-      .setTitle("Song queue for " + message.guild.name)
-      .setDescription(
-        "There are " +
-          songArray.length +
-          " songs in total.\n\n" +
-          songArray.join("\n")
-      )
-      .setTimestamp()
-      .setFooter(
-        "Now playing: " + serverQueue.songs[0].title,
-        message.client.user.displayAvatarURL()
-      );
-    message.channel.send("Song queue has been shuffled.", queueEmbed);
+    message.channel.send("Song queue has been shuffled.");
   }
 };

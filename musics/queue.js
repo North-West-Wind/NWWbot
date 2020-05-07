@@ -76,7 +76,11 @@ module.exports = {
       }
 
     if (allEmbeds.length == 1) {
-      message.channel.send(allEmbeds[0]);
+      message.channel.send(allEmbeds[0]).then(msg => {
+        setTimeout(() => {
+          msg.edit({ embed: null, content: "**[Insert Queue Information Here]**" })
+        }, 60000);
+      });
     } else {
       var s = 0;
       var msg = await message.channel.send(allEmbeds[0]);
@@ -123,6 +127,9 @@ module.exports = {
       });
       collector.on("end", function() {
         msg.reactions.removeAll().catch(console.error);
+        setTimeout(() => {
+          msg.edit({ embed: null, content: "**[Insert Queue Information Here]**" })
+        }, 60000);
       });
     }
   },
@@ -192,6 +199,9 @@ module.exports = {
     });
   },
   load(message, serverQueue, pool, args, queue) {
+    if(serverQueue && serverQueue.playing) {
+      return message.channel.send("Someone is listening to the music. Don't ruin their day.");
+    }
     if (!args[2]) {
       return message.channel.send("Please provide the name of the queue.");
     }
@@ -228,9 +238,10 @@ module.exports = {
               voiceChannel: voiceChannel,
               connection: null,
               songs: JSON.parse(unescape(results[0].queue)),
-              volume: 5,
+              volume: 1,
               playing: true,
-              paused: false
+              paused: false,
+              startTime: 0
             };
             queue.set(message.guild.id, queueContruct);
           } else serverQueue.songs = JSON.parse(unescape(results[0].queue));

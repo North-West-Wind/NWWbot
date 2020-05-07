@@ -37,7 +37,7 @@ module.exports = {
     }
     var songLength = moment.duration(length, "seconds").format();
     var positionTime = moment.duration(Math.round(position / 1000), "seconds").format();
-    if(position === 0)
+    if(position === 0 || isNaN(position))
       positionTime = "0:00";
     var totalLength = Math.round(length * 1000);
     progress = Math.floor((position / totalLength) * processBar.length);
@@ -50,10 +50,14 @@ module.exports = {
     .setTimestamp()
     .setTimestamp()
     .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-    if(serverQueue.songs[0].type === 0) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
+    if(serverQueue.songs[0].type === 0 || serverQueue.songs[0].type === 3) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
     if(serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
     if(serverQueue.songs[0].type === 2) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`];
     embed.setDescription(`${info[0]}\n\n${positionTime} **${processBar.join("")}** ${songLength}`).setThumbnail(info[1]);
-  return message.channel.send(embed);
+  return message.channel.send(embed).then(msg => {
+    setTimeout(() => {
+      msg.edit({ embed: null, content: "**[Insert Displayed Information Here]**" });
+    }, 30000);
+  });
   }
 }

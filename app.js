@@ -23,7 +23,7 @@ app.get("/about", (req, response) => {
     response.sendFile(__dirname + "/views/about.html");
 });
 app.get("/manual", (req, response) => {
-  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1588168997714").pipe(response);
+  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1588603370636").pipe(response);
 })
 app.listen(process.env.PORT);
 setInterval(() => {
@@ -948,22 +948,21 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
   const guild = oldState.guild || newState.guild;
   const oldChannel = oldState.channel;
   let newChannel = newState.channel || oldState.channel;
-  if(!guild.me.voice || !guild.me.voice.channel || (newChannel.id !== guild.me.voice.channelID && oldChannel.id !== guild.me.voice.channelID)) return;
+  if(!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
     if (guild.me.voice.channel.members.size <= 1) {
       var pendingExit = await exit.find(x => x === guild.id);
-      if (pendingExit) exit.push(guild.id);
-      console.log("Will exit after 30 seconds in " + guild.name);
+      if (pendingExit) return; 
+      exit.push(guild.id);
       setTimeout(async function() {
         var shouldExit = exit.find(x => x === guild.id);
-        if (!shouldExit || shouldExit === undefined) return;
+        if (!shouldExit) return;
         const mainMusic = require("./musics/main.js");
         return await mainMusic.stop(guild);
       }, 30000);
-    } else if(guild.me.voice.channel.members.size > 1) {
+    } else {
       var index = exit.indexOf(guild.id);
       if(index !== -1) {
         exit.splice(index, 1);
-        console.log("Cancelled exiting in " + guild.name);
       }
     }
 });
@@ -1060,7 +1059,7 @@ client.on("message", async message => {
     if (musicCommandsArray.includes(command.name) == true) {
       const mainMusic = require("./musics/main.js");
       try {
-        return await mainMusic.music(message, commandName, pool);
+        return await mainMusic.music(message, commandName, pool, exit);
       } catch (error) {
         console.error(error);
         return await message.reply(

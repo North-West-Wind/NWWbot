@@ -37,6 +37,20 @@ const urlParser = require("js-video-url-parser");
 const fetch = require("node-fetch");
 const SCDL = require("node-scdl");
 const scdl = new SCDL(process.env.SCID);
+const Buffer = require("buffer");
+const { http, https } = require("follow-redirects");
+
+const requestStream = url => {
+  return new Promise(resolve => {
+    request(url, (err, res) => resolve(res));
+  });
+};
+
+const GET = url => {
+  return new Promise(resolve => {
+    http.get(url, res => resolve(res));
+  });
+};
 
 var opts = {
   maxResults: 1,
@@ -87,6 +101,8 @@ module.exports = {
       'allowfullscreen="true"&gt;&lt;/iframe&gt;'`).split("&").find(x => x.startsWith("image"));
       var arr = unescape(image).split("/");
     var id = arr[arr.length - 1].split("-")[0]; */
+
+    /*
     const requestStream = (url) => {
       return new Promise(resolve => {
         request(url, (err, res) => resolve(res));
@@ -95,5 +111,7 @@ module.exports = {
     var stream = await requestStream("https://cdn.discordapp.com/attachments/673095087332524033/699618402087469116/Warios_Gold_Mine_Theme_Mashup_MKWiiMK8MS_London_2012.mp3");
     var metadata = await mm.parseStream(stream).catch(console.error);
     console.realLog(metadata);
+    */
+    console.log(message);
   }
 };

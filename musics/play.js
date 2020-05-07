@@ -31,16 +31,24 @@ const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const scdl = new SCDL(process.env.SCID);
+const { PassThrough } = require("stream");
+const { music } = require("./migrate.js");
+const { http, https } = require("follow-redirects");
 
 const requestStream = url => {
   return new Promise(resolve => {
     request(url, (err, res) => resolve(res));
   });
 };
+const GET = url => {
+  return new Promise(resolve => {
+    http.get(url, res => resolve(res));
+  });
+}
 
-async function play(guild, song, looping, queue, pool, repeat, begin = 0) {
+async function play(guild, song, looping, queue, pool, repeat, begin) {
   const serverQueue = queue.get(guild.id);
-
+  if(!begin) var begin = 0;
   if (!song) {
     guild.me.voice.channel.leave();
     queue.delete(guild.id);
@@ -57,29 +65,45 @@ async function play(guild, song, looping, queue, pool, repeat, begin = 0) {
     return;
   }
 
+  if (serverQueue.textChannel) {
+    const Embed = new Discord.MessageEmbed()
+      .setColor(color)
+      .setTitle("Now playing:")
+      .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
+      .setDescription(
+        `**[${song.title}](${song.url})**\nLength: **${song.time}**`
+      )
+      .setTimestamp()
+      .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
+    if (song.type === 1)
+      Embed.setDescription(
+        `**[${song.title}](${song.spot})**\nLength: **${song.time}**`
+      ).setThumbnail(song.thumbnail);
+    serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000}));
+  }
+
   if (serverQueue.connection === null) return;
-  if(serverQueue.connection.dispatcher)
-  serverQueue.startTime = serverQueue.connection.dispatcher.streamTime;
+  if (serverQueue.connection.dispatcher)
+    serverQueue.startTime = serverQueue.connection.dispatcher.streamTime;
 
   var dispatcher;
   if (song.type === 2) {
     var stream = await requestStream(song.url);
     dispatcher = serverQueue.connection.play(stream, {
+      type: "unknown",
       highWaterMark: 1 << 29,
       seek: begin
     });
   } else if (song.type === 3) {
-    scdl.getStream(song.id, async (err, stream) => {
+    var res = await GET(`http://api.soundcloud.com/tracks/${song.id}/stream?client_id=${process.env.SCID}`);
+    var stream = await requestStream(res.responseUrl);
       dispatcher = serverQueue.connection.play(stream, {
-        type: "opus",
         seek: begin
       });
-    });
   } else {
-    var stream = await ytdl(song.url, { highWaterMark: 1 << 28 });
+    var stream = await ytdl(song.url, { highWaterMark: 1 << 28, begin: begin });
     dispatcher = serverQueue.connection.play(stream, {
-      type: "opus",
-      seek: begin
+      type: "opus"
     });
   }
   dispatcher
@@ -114,7 +138,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin = 0) {
     .on("error", error => {
       console.error(error);
     });
-  dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
+  dispatcher.setVolume(serverQueue.volume);
 }
 
 module.exports = {
@@ -123,7 +147,7 @@ module.exports = {
     "Play music with the link or keywords provided. Only support YouTube videos currently.",
   aliases: ["add", "p"],
   usage: "[link | keywords | attachment]",
-  async music(message, serverQueue, looping, queue, pool, repeat) {
+  async music(message, serverQueue, looping, queue, pool, repeat, exit, migrating) {
     const args = message.content.split(/ +/);
 
     const voiceChannel = message.member.voice.channel;
@@ -142,8 +166,9 @@ module.exports = {
           return message.channel.send(
             "No song queue found for this server! Please provide a link or keywords to get a music played!"
           );
-        if (serverQueue.playing === true)
-          return message.channel.send("Music is already playing!");
+        if (serverQueue.playing === true || migrating.find(x => x === message.guild.id)) {
+          return await music(message, serverQueue, looping, queue, pool, repeat, exit, migrating);
+        }
 
         if (
           !message.guild.me.voice.channel ||
@@ -160,22 +185,6 @@ module.exports = {
         serverQueue.textChannel = message.channel;
         await queue.set(message.guild.id, serverQueue);
         play(message.guild, serverQueue.songs[0], looping, queue, pool, repeat);
-        var song = serverQueue.songs[0];
-        const Embed = new Discord.MessageEmbed()
-          .setColor(color)
-          .setTitle("Now playing:")
-          .setThumbnail(song.type === 2 ? song.thumbnail : undefined)
-          .setDescription(
-            `**[${song.title}](${
-              song.type === 1 ? song.spot : song.url
-            })**\nLength: **${song.time}**`
-          )
-          .setTimestamp()
-          .setFooter(
-            "Have a nice day! :)",
-            message.client.user.displayAvatarURL()
-          );
-        message.channel.send(Embed);
         return;
       } else {
         var files = message.attachments;
@@ -245,11 +254,8 @@ module.exports = {
               var songs = [song];
             }
           } else {
-            return message.channel.send(
-              "The developer is finding a way to play Soundcloud music here, but it is not finished yet..."
-            );
             var res = await fetch(
-              `https://api-v2.soundcloud.com/resolve?url=${args[1]}&client_id=${
+              `https://api.soundcloud.com/resolve?url=${args[1]}&client_id=${
                 process.env.SCID
               }`
             );
@@ -327,15 +333,30 @@ module.exports = {
           var songs = [];
           switch (type) {
             case "playlist":
-              var musics = await spotifyApi.getPlaylist(musicID, { limit: 30 });
-              for (var i = 0; i < musics.body.tracks.items.length; i++) {
+              var musics = await spotifyApi.getPlaylist(musicID, { limit: 50 });
+              var tracks = musics.body.tracks.items;
+                async function checkAll() {
+                  if(musics.body.tracks.next) {
+                    var offset = musics.body.tracks.offset + 50;
+                    musics = await spotifyApi.getPlaylist(musicID, {
+                      limit: 50,
+                      offset: offset
+                    });
+                    tracks = tracks.concat(musics.body.tracks.items);
+                    return await checkAll();
+                  }
+                }
+              await checkAll();
+              var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);
+              for (var i = 0; i < tracks.length; i++) {
+                await mesg.edit(`Processing track: **${i+1}/${tracks.length}**`);
                 var matched;
                 try {
                   var searched = await ytsr(
-                    musics.body.tracks.items[i].track.artists[0].name +
+                    tracks[i].track.artists[0].name +
                       " - " +
-                      musics.body.tracks.items[i].track.name,
-                    { limit: 100 }
+                      tracks[i].track.name,
+                    { limit: 20 }
                   );
                   var results = searched.items.filter(
                     x => x.type === "video" && x.duration.split(":").length < 3
@@ -349,13 +370,13 @@ module.exports = {
                   if (isGoodMusicVideoContent(results[s])) {
                     var songLength = results[s].duration;
                     matched = {
-                      title: musics.body.tracks.items[i].track.name,
+                      title: tracks[i].track.name,
                       url: results[s].link,
                       type: 1,
                       spot:
-                        musics.body.tracks.items[i].track.external_urls.spotify,
+                        tracks[i].track.external_urls.spotify,
                       thumbnail:
-                        musics.body.tracks.items[i].track.album.images[0].url,
+                        tracks[i].track.album.images[0].url,
                       time: songLength
                     };
                     songs.push(matched);
@@ -364,33 +385,46 @@ module.exports = {
                   if (s + 1 == results.length) {
                     var songLength = results[0].duration;
                     matched = {
-                      title: musics.body.tracks.items[i].track.name,
+                      title: tracks[i].track.name,
                       url: results[0].link,
                       type: 1,
                       spot:
-                        musics.body.tracks.items[i].track.external_urls.spotify,
+                        tracks[i].track.external_urls.spotify,
                       thumbnail:
-                        musics.body.tracks.items[i].track.album.images[0].url,
+                        tracks[i].track.album.images[0].url,
                       time: songLength
                     };
                     songs.push(matched);
                   }
                 }
               }
+              mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }));
               break;
             case "album":
               if (highlight === false) {
                 var album = await spotifyApi
                   .getAlbums([musicID])
                   .catch(err => console.log("Something went wrong!", err));
-                var image = album.albums[0].images[0].url;
+                var image = album.body.albums[0].images[0].url;
                 var data = await spotifyApi
                   .getAlbumTracks(musicID, {
-                    limit: 30
+                    limit: 50
                   })
                   .catch(err => console.log("Something went wrong!", err));
 
                 var tracks = data.body.items;
+                async function checkAll() {
+                  if(data.body.next) {
+                    var offset = data.body.offset + 50;
+                    data = await spotifyApi.getAlbumTracks(musicID, {
+                      limit: 50,
+                      offset: offset
+                    });
+                    tracks = tracks.concat(data.body.items);
+                    return await checkAll();
+                  }
+                }
+                await checkAll();
               } else {
                 var data = await spotifyApi
                   .getTracks([musicID])
@@ -398,13 +432,14 @@ module.exports = {
 
                 var tracks = data.body.tracks;
               }
-
+              var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);
               for (var i = 0; i < tracks.length; i++) {
+                await mesg.edit(`Processing track: **${i+1}/${tracks.length}**`)
                 var matched;
                 try {
                   var searched = await ytsr(
                     tracks[i].artists[0].name + " - " + tracks[i].name,
-                    { limit: 100 }
+                    { limit: 20 }
                   );
                   var results = searched.items.filter(
                     x => x.type === "video" && x.duration.split(":").length < 3
@@ -445,7 +480,7 @@ module.exports = {
                   }
                 }
               }
-
+              mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000}))
               break;
             case "track":
               var data = await spotifyApi.getTracks([musicID]);
@@ -456,7 +491,7 @@ module.exports = {
                 try {
                   var searched = await ytsr(
                     tracks[i].artists[0].name + " - " + tracks[i].name,
-                    { limit: 100 }
+                    { limit: 20 }
                   );
                   var results = searched.items.filter(
                     x => x.type === "video" && x.duration.split(":").length < 3
@@ -547,7 +582,7 @@ module.exports = {
           voiceChannel: voiceChannel,
           connection: null,
           songs: [],
-          volume: 5,
+          volume: 1,
           playing: true,
           paused: false,
           startTime: 0
@@ -585,28 +620,26 @@ module.exports = {
             pool,
             repeat
           );
-
           const Embed = new Discord.MessageEmbed()
-            .setColor(color)
-            .setTitle("Now playing:")
-            .setThumbnail(songs[0].type === 2 ? undefined : songs[0].thumbnail)
-            .setDescription(
-              `**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`
-            )
-            .setTimestamp()
-            .setFooter(
-              "Have a nice day! :)",
-              message.client.user.displayAvatarURL()
-            );
-          if (songs.length > 1)
-            Embed.setDescription(
-              `**${songs.length}** tracks were added.`
-            ).setThumbnail(undefined);
-          else if (songs[0].type === 1)
-            Embed.setDescription(
-              `**[${songs[0].title}](${songs[0].spot})**\nLength: **${songs[0].time}**`
-            ).setThumbnail(songs[0].thumbnail);
-          message.channel.send(Embed);
+          .setColor(color)
+          .setTitle("New track added:")
+          .setThumbnail(songs[0].thumbnail)
+          .setDescription(
+            `**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`
+          )
+          .setTimestamp()
+          .setFooter(
+            "Have a nice day! :)",
+            message.client.user.displayAvatarURL()
+          );
+        if (songs.length > 1) {
+          Embed.setDescription(`**${songs.length}** tracks were added.`).setThumbnail(undefined);
+        }
+        return message.channel.send(Embed).then(msg => {
+          setTimeout(() => {
+            msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
+          }, 30000);
+        });
         } catch (err) {
           console.log(err);
           queue.delete(message.guild.id);
@@ -662,10 +695,10 @@ module.exports = {
             repeat
           );
         }
-        var Embed = new Discord.MessageEmbed()
+        const Embed = new Discord.MessageEmbed()
           .setColor(color)
           .setTitle("New track added:")
-          .setThumbnail(songs[0].type === 2 ? undefined : songs[0].thumbnail)
+          .setThumbnail(songs[0].thumbnail)
           .setDescription(
             `**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`
           )
@@ -674,15 +707,14 @@ module.exports = {
             "Have a nice day! :)",
             message.client.user.displayAvatarURL()
           );
-        if (songs.length > 1)
-          Embed.setDescription(
-            `**${songs.length}** tracks were added.`
-          ).setThumbnail(undefined);
-        else if (songs[0].type === 1)
-          Embed.setDescription(
-            `**[${songs[0].title}](${songs[0].spot})**\nLength: **${songs[0].time}**`
-          ).setThumbnail(songs[0].thumbnail);
-        return message.channel.send(Embed);
+        if (songs.length > 1) {
+          Embed.setDescription(`**${songs.length}** tracks were added.`).setThumbnail(undefined);
+        }
+        return message.channel.send(Embed).then(msg => {
+          setTimeout(() => {
+            msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
+          }, 30000);
+        });
       }
     } else {
       const Embed = new Discord.MessageEmbed()
@@ -799,7 +831,7 @@ module.exports = {
                     message.client.user.displayAvatarURL()
                   );
 
-                return msg.edit(cancelled);
+                return msg.edit(cancelled).then(msg => msg.delete({ timeout: 10000}));
               }
 
               var s = parseInt(content) - 1;
@@ -835,7 +867,7 @@ module.exports = {
                   voiceChannel: voiceChannel,
                   connection: null,
                   songs: [],
-                  volume: 5,
+                  volume: 1,
                   playing: true,
                   paused: false,
                   startTime: 0
@@ -874,19 +906,11 @@ module.exports = {
                     pool,
                     repeat
                   );
-                  const Embed = new Discord.MessageEmbed()
-                    .setColor(color)
-                    .setTitle("Now playing:")
-                    .setThumbnail(song.thumbnail)
-                    .setDescription(
-                      `**[${song.title}](${song.url})**\nLength: **${song.time}**`
-                    )
-                    .setTimestamp()
-                    .setFooter(
-                      "Have a nice day! :)",
-                      message.client.user.displayAvatarURL()
-                    );
-                  msg.edit(Embed);
+                  msg.edit(Embed).then(msg => {
+                    setTimeout(() => {
+                      msg.edit({ embed: null, content: `**[Track: ${song.title}]**` });
+                    }, 30000);
+                  });
                 } catch (err) {
                   console.log(err);
                   queue.delete(message.guild.id);
@@ -959,7 +983,11 @@ module.exports = {
                     "Have a nice day! :)",
                     message.client.user.displayAvatarURL()
                   );
-                return msg.edit(Embed);
+                return msg.edit(Embed).then(msg => {
+          setTimeout(() => {
+            msg.edit({ embed: null, content: `**[Track: ${song.title}]**` });
+          }, 30000);
+        });
               }
             })
             .catch(err => {
@@ -971,7 +999,7 @@ module.exports = {
                   "Have a nice day! :)",
                   message.client.user.displayAvatarURL()
                 );
-              msg.edit(Ended);
+              msg.edit(Ended).then(msg => msg.delete({ timeout: 10000}));
             });
         })
         .catch(err => {
@@ -983,9 +1011,9 @@ module.exports = {
         });
     }
   },
-  async play(guild, song, looping, queue, pool, repeat, begin = 0) {
+  async play(guild, song, looping, queue, pool, repeat, begin) {
     const serverQueue = queue.get(guild.id);
-
+    if(!begin) var begin = 0;
     if (!song) {
       guild.me.voice.channel.leave();
       queue.delete(guild.id);
@@ -1001,29 +1029,45 @@ module.exports = {
       });
       return;
     }
+    
+    if (serverQueue.textChannel) {
+    const Embed = new Discord.MessageEmbed()
+      .setColor(color)
+      .setTitle("Now playing:")
+      .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
+      .setDescription(
+        `**[${song.title}](${song.url})**\nLength: **${song.time}**`
+      )
+      .setTimestamp()
+      .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
+    if (song.type === 1)
+      Embed.setDescription(
+        `**[${song.title}](${song.spot})**\nLength: **${song.time}**`
+      ).setThumbnail(song.thumbnail);
+    serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000}));
+  }
 
     if (serverQueue.connection === null) return;
-    if(serverQueue.connection.dispatcher)
-    serverQueue.startTime = serverQueue.connection.dispatcher.streamTime;
+    if (serverQueue.connection.dispatcher)
+      serverQueue.startTime = serverQueue.connection.dispatcher.streamTime;
     var dispatcher;
     if (song.type === 2) {
       var stream = await requestStream(song.url);
       dispatcher = serverQueue.connection.play(stream, {
+        type: "unknown",
         highWaterMark: 1 << 29,
         seek: begin
       });
     } else if (song.type === 3) {
-      scdl.getStream(song.id, async (err, stream) => {
-        dispatcher = serverQueue.connection.play(stream, {
-          type: "opus",
-          seek: begin
-        });
+    var res = await GET(`http://api.soundcloud.com/tracks/${song.id}/stream?client_id=${process.env.SCID}`);
+    var stream = await requestStream(res.responseUrl);
+      dispatcher = serverQueue.connection.play(stream, {
+        seek: begin
       });
     } else {
-      var stream = await ytdl(song.url, { highWaterMark: 1 << 28 });
+      var stream = await ytdl(song.url, { highWaterMark: 1 << 28, begin: begin });
       dispatcher = serverQueue.connection.play(stream, {
-        type: "opus",
-        seek: begin
+        type: "opus"
       });
     }
     dispatcher
@@ -1058,6 +1102,6 @@ module.exports = {
       .on("error", error => {
         console.error(error);
       });
-    dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
+    dispatcher.setVolume(serverQueue.volume);
   }
 };

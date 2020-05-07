@@ -48,6 +48,8 @@ module.exports = {
       collected2.first().delete();
       return msg.edit(channelID + " isn't a valid channel!");
     }
+    if(!channel.permissionsFor(message.guild.me).has(10240)) return msg.edit("I don't have the permission to send in this channel!");
+    if(!channel.permissionsFor(message.member).has(10240)) return msg.edit("You don't have the permission to send in this channel!");
     await collected2.first().delete();
     await msg.edit(`Great! The channel will be <#${channel.id}>.\n\nAfter that, can you tell me what role you are giving the users? Please break a line for each role.`);
     var collected3 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 60000, max: 1, errors: ["time"] }).catch(console.error);
@@ -72,15 +74,25 @@ module.exports = {
           x => x.name.toLowerCase() === `${str.toLowerCase()}`
         );
         if (role === null) {
-          return message.channel.send(
+          return msg.edit(
             "No role was found with the name " + str
           );
         }
       } else {
         var role = await message.guild.roles.cache.get(roleID);
         if (role === null) {
-          return message.channel.send("No role was found!");
+          return msg.edit("No role was found!");
         }
+      }
+      if(!message.guild.me.permissions.has(268435456)) {
+        return msg.edit("I don't have the permissions to add member to roles.");
+      }
+      if(!message.member.permissions.has(268435456)) {
+        return msg.edit("You don't have the permissions to use this.");
+      }
+      var highest = message.guild.me.roles.highest.position;
+      if(role.position > highest) {
+        return msg.edit("I cannot assign this role to users.");
       }
       roles.push(role.id);
     }
@@ -114,6 +126,26 @@ module.exports = {
       con.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${message.author.id}', '${moment(now.getTime() + (7 * 24 * 3600 * 1000)).format("YYYY-MM-DD HH:mm:ss")}', '${JSON.stringify(roles)}', '${JSON.stringify(emojis)}')`, (err, result) => {
         if(err) return message.reply("there was an error while inserting the data into the database!");
         message.channel.send("Successfully created record for message. The message will expire after 7 days.");
+        async function expire(length) {
+          setTimeout(() => {
+            con.query(`SELECT expiration FROM rolemsg WHERE id = '${result.id}'`, (err, results) => {
+              if(results.length == 0) return;
+              var date = new Date();
+              if(results[0].expiration - date <= 0) {
+                con.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`, async(err) => {
+                  if(err) return console.error(err);
+                  var channel = await message.client.channels.fetch(results[0].channel);
+                  var msg = await channel.messages.fetch(results[0].id);
+                  console.log("Deleted an expired role-message.");
+                  msg.reactions.removeAll().catch(err => console.error("Failed to remove reactions but nevermind."));
+                });
+              } else {
+                expire(results[0].expiration - date);
+              }
+            });
+          }, length);
+        }
+        expire(7 * 24 * 3600 * 1000);
       });
       con.release();
     });
