@@ -25,7 +25,7 @@ module.exports = {
     if (args[1] !== undefined && (args[1].toLowerCase() === "list" || args[1].toLowerCase() === "li")) {
       return await this.list(message, pool);
     }
-    if (!serverQueue) return message.channel.send("There is nothing playing.");
+    if (!serverQueue || serverQueue.songs.length < 1) return message.channel.send("There is nothing playing.");
     var index = 0;
     var songArray = serverQueue.songs.map(song => {
       var str;
