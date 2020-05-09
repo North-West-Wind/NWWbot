@@ -18,6 +18,7 @@ module.exports = {
   usage: " ",
   async music(message, serverQueue) {
     if (!serverQueue) return message.channel.send("There is nothing playing.");
+    if(serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");
     var position = 0;
     if(serverQueue.connection && serverQueue.connection.dispatcher) position = (serverQueue.connection.dispatcher.streamTime - serverQueue.startTime);
     var processBar = [];

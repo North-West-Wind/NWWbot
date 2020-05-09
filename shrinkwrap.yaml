@@ -38,8 +38,8 @@ dependencies:
   statuses: 2.0.0
   wikijs: 6.0.1
   youtube-search: 1.1.4
-  ytdl-core: 2.1.1
-  ytdl-core-discord: github.com/North-West-Wind/ytdl-core-discord/4c1f046cd9387112a70e2e40bddd9f9d7b21e14f
+  ytdl-core: 2.1.2
+  ytdl-core-discord: 1.2.0
   ytpl: 0.1.21
   ytsr: 0.1.13
 packages:
@@ -3414,7 +3414,15 @@ packages:
     dev: false
     resolution:
       integrity: sha512-eS3VAqm2avF094d/zu/iKjxMWIAPZ9GZ2V4qVYlznUwt2gEfQRG64o4rRHmeG60GGPCRNoPIJfbjilbfGSMfVA==
-  /ytdl-core/2.1.1:
+  /ytdl-core-discord/1.2.0:
+    dependencies:
+      '@types/node': 13.13.5
+      prism-media: 1.2.2
+      ytdl-core: 2.1.2
+    dev: false
+    resolution:
+      integrity: sha512-BTE0eslSZzovThOAXbT9KZjsh2spu9y0nl9ZNrGNn4rLip8xocmYpDUEN8X03tTcGUybpzyN8J7wwM2/gNLRiA==
+  /ytdl-core/2.1.2:
     dependencies:
       html-entities: 1.3.1
       m3u8stream: 0.6.5
@@ -3424,7 +3432,7 @@ packages:
     engines:
       node: '>=10'
     resolution:
-      integrity: sha512-rg1h6enMeBzShy4ZMam8k28VQfpSdxwZprCy3t38VvHn9DHzYqVk5Lvevy4QGkASScoYr1sIKGkNo0hh7NGRnA==
+      integrity: sha512-/tOT9Pka6nX+LuvzNLBU8AbVHe8XELn3aZ69mvCxzvwO/ty9k8cRvF6jXqti7l5M+0hf+UPpP9jYPSAFAuoBUA==
   /ytpl/0.1.21:
     dependencies:
       html-entities: 1.3.1
@@ -3441,17 +3449,6 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-cZKwLlVkWo/K03/z8acGoRupzHjkTsl/ohrZtFjNjjKu0/x012YMvmoLd5XPhj0H8YQ6RskMkx3ikIXEhshhsg==
-  github.com/North-West-Wind/ytdl-core-discord/4c1f046cd9387112a70e2e40bddd9f9d7b21e14f:
-    dependencies:
-      '@types/node': 13.13.5
-      prism-media: 1.2.2
-      ytdl-core: 2.1.1
-    dev: false
-    name: ytdl-core-discord
-    resolution:
-      registry: 'https://registry.npmjs.org/'
-      tarball: 'https://codeload.github.com/North-West-Wind/ytdl-core-discord/tar.gz/4c1f046cd9387112a70e2e40bddd9f9d7b21e14f'
-    version: 1.2.0
 registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
@@ -3495,7 +3492,7 @@ specifiers:
   statuses: ^2.0.0
   wikijs: ^6.0.0
   youtube-search: ^1.1.4
-  ytdl-core: ^2.1.1
-  ytdl-core-discord: 'github:North-West-Wind/ytdl-core-discord'
+  ytdl-core: ^2.1.2
+  ytdl-core-discord: ^1.2.0
   ytpl: ^0.1.21
   ytsr: ^0.1.13
