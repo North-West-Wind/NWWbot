@@ -213,7 +213,9 @@ module.exports = {
         return;
       }
       nores = 0;
+      let i = -1;
       for (const [key, player] of players) {
+        i++;
         let top = await uno.get(nano).card;
         if(skip) {
           let skipEm = new Discord.MessageEmbed()
@@ -389,8 +391,10 @@ module.exports = {
           .setTimestamp()
           .setFooter(`Placed by ${player.user.tag}`, message.client.user.displayAvatarURL());
           mesg.edit(placed);
+          let reversing = false;
           switch(placedCard.number) {
             case 10:
+              reversing = true;
               break;
             case 11:
               skip = true;
@@ -400,8 +404,6 @@ module.exports = {
               break;
             case 13:
               drawCard += 4;
-              break;
-            case 14:
               break;
           }
           if(player.card.length === 0) {
@@ -417,6 +419,19 @@ module.exports = {
             uno.delete(nano);
             break;
           } else {
+            if(reversing) {
+              let playerKeys = Array.from(players.keys());
+              let playerValues = Array.from(players.values());
+              let keySliced = playerKeys.slice(0, i);
+              let valueSliced = playerValues.slice(0, i);
+              playerKeys = playerKeys.slice(i).concat(keySliced).reverse();
+              playerValues = playerValues.slice(i).concat(valueSliced).reverse();
+              await players.clear();
+              for(let s = 0; s < playerKeys.length; s++) {
+                players.set(playerKeys[s], playerValues[s]);
+              }
+              break;
+            }
             continue;
           }
         } else {

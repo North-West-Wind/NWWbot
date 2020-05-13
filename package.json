@@ -57,6 +57,7 @@
     "ytpl": "^0.1.21",
     "ytsr": "^0.1.13",
     "solenolyrics": "^5.0.0",
-    "number-to-words": "^1.2.4"
+    "number-to-words": "^1.2.4",
+    "adm-zip": "^0.4.14"
   }
 }
