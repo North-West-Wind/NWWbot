@@ -61,6 +61,16 @@ const client = new Discord.Client();
 
 client.commands = new Discord.Collection();
 client.items = new Discord.Collection();
+client.card = new Discord.Collection();
+client.uno = new Discord.Collection();
+
+for(let i = 0; i < 4; i++) {
+  for(let s = 0; s < 13; s++) {
+    client.card.set(twoDigits(i) + twoDigits(s), { color: i, number: s});
+  }
+}
+client.card.set("0400", { color: 4, number: 13 });
+client.card.set("0401", { color: 4, number: 14 });
 
 const commandFiles = fs
   .readdirSync("./commands")
@@ -157,15 +167,22 @@ console.log = async function(str) {
         var millisec = result.expiration - currentDate;
         async function expire(length) {
           setTimeout_(() => {
-            con.query(`SELECT expiration FROM rolemsg WHERE id = '${result.id}'`, (err, results) => {
+            con.query(`SELECT id, expiration FROM rolemsg WHERE id = '${result.id}'`, async(err, results) => {
+              if(err) return console.error(err);
               if(results.length == 0) return;
               var date = new Date();
+              var deleted = false;
+              try {
+                var channel = await client.channels.fetch(results[0].channel);
+                var msg = await channel.messages.fetch(results[0].id);
+              } catch(err) {
+                var deleted = true;
+              }
               if(results[0].expiration - date <= 0) {
                 con.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`, async(err) => {
                   if(err) return console.error(err);
-                  var channel = await client.channels.fetch(results[0].channel);
-                  var msg = await channel.messages.fetch(results[0].id);
                   console.log("Deleted an expired role-message.");
+                  if(!deleted)
                   msg.reactions.removeAll().catch(err => console.error("Failed to remove reactions but nevermind."));
                 });
               } else {

@@ -112,6 +112,19 @@ module.exports = {
     var metadata = await mm.parseStream(stream).catch(console.error);
     console.realLog(metadata);
     */
-    console.log(message);
+    var test = new Discord.Collection();
+    test.set(1, 1);
+    test.set(2, 2);
+    test.set(3, 3);
+    console.realLog(test);
+    var testkeys = Array.from(test.keys());
+    var testarr = Array.from(test.values());
+    testkeys.reverse();
+    testarr.reverse();
+    test.clear();
+    for(var i = 0; i < testkeys.length; i++) {
+      test.set(testkeys[i], testarr[i]);
+    }
+    console.realLog(test);
   }
 };

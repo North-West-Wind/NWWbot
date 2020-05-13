@@ -143,6 +143,9 @@ module.exports = {
     temp = [];
     return array;
   },
+  shuffle(array) {
+    array.sort(() => Math.random() - 0.5);
+  },
   async findUser(message, str) {
     if (isNaN(parseInt(str))) {
       if (!str.startsWith("<@")) {
@@ -218,6 +221,9 @@ module.exports = {
     while (pattern.test(x)) x = x.replace(pattern, "$1,$2");
     return x;
   },
+  contain(str, content) {
+    return !!~(str || "").indexOf(content);
+  },
   isGoodMusicVideoContent(videoSearchResultItem) {
    const contains = (string, content) => {
     return !!~(string || "").indexOf(content);
@@ -241,5 +247,8 @@ module.exports = {
     var sqrtz = Math.floor(Math.sqrt(z)),
     sqz = sqrtz * sqrtz;
     return ((z - sqz) >= sqrtz) ? [sqrtz, z - sqz - sqrtz] : [z - sqz, sqrtz];
+  },
+  sleep(x) {
+    return new Promise(resolve => setTimeout(resolve, x));
   }
 };

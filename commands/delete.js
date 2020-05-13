@@ -61,6 +61,16 @@ module.exports = {
       var channelID = parseInt(args[0].replace(/<#/g, "").replace(/>/g, ""));
       if(isNaN(channelID)) {
         if (args[0] == "all") {
+          if (!message.member.permissions.has("MANAGE_CHANNELS")) {
+              message.channel.send(
+                `You don\'t have the permission to use this command.`
+            );
+            return;
+          }
+          if (!message.guild.me.permissions.has("MANAGE_CHANNELS")) {
+            message.channel.send(`I don\'t have the permission to delete all messages.`);
+            return;
+          }
           message.author.send("Deleted all message in the channel **" + message.channel.name + "** of the server **" + message.guild.name + "**.");
           var name = message.channel.name;
           var type = message.channel.type;
@@ -73,7 +83,7 @@ module.exports = {
           
           message.guild.channels.create(name, { type: type, topic: topic, nsfw: nsfw, parent: parent, permssionOverwrites: permissionOverwrites, position: position, rateLimit: rateLimit });
           message.channel.delete();
-          
+          return;
         } else return message.channel.send("The query provided is not a number!");
       } else {
         var channel = await message.guild.channels.fetch(channelID);
@@ -82,7 +92,17 @@ module.exports = {
         amount = parseInt(args[1]);
         if(isNaN(amount)) {
           
-          if (args[1] == "all") {
+            if (args[1] == "all") {
+              if (!message.member.permissions.has("MANAGE_CHANNELS")) {
+                message.channel.send(
+                  `You don\'t have the permission to use this command.`
+              );
+              return;
+            }
+            if (!message.guild.me.permissions.has("MANAGE_CHANNELS")) {
+              message.channel.send(`I don\'t have the permission to delete all messages.`);
+              return;
+            }
             message.author.send("Deleted all message in the channel **" + message.channel.name + "** of the server **" + message.guild.name + "**.");
             var name = channel.name;
             var type = channel.type;
@@ -95,7 +115,7 @@ module.exports = {
           
             message.guild.channels.create(name, { type: type, topic: topic, nsfw: nsfw, parent: parent, permssionOverwrites: permissionOverwrites, position: position, rateLimit: rateLimit });
             channel.delete();
-          
+            return;
           } else return message.channel.send("The query provided is not a number!");
         }
         /*
