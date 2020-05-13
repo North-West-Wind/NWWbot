@@ -35,7 +35,7 @@
     "moment": "^2.25.3",
     "moment-duration-format": "^2.2.2",
     "ms": "^2.1.2",
-    "music-metadata": "^6.3.5",
+    "music-metadata": "^6.4.0",
     "mysql": "^2.18.1",
     "node-fetch": "^2.6.0",
     "node-scdl": "^1.0.2",
@@ -53,8 +53,10 @@
     "wikijs": "^6.0.0",
     "youtube-search": "^1.1.4",
     "ytdl-core": "^2.1.2",
-    "ytdl-core-discord": "^1.2.0",
+    "ytdl-core-discord": "North-West-Wind/temp-ytdl-core-discord",
     "ytpl": "^0.1.21",
-    "ytsr": "^0.1.13"
+    "ytsr": "^0.1.13",
+    "solenolyrics": "^5.0.0",
+    "number-to-words": "^1.2.4"
   }
 }
