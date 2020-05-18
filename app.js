@@ -23,7 +23,7 @@ app.get("/about", (req, response) => {
     response.sendFile(__dirname + "/views/about.html");
 });
 app.get("/manual", (req, response) => {
-  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1588603370636").pipe(response);
+  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1589543070522").pipe(response);
 })
 app.listen(process.env.PORT);
 setInterval(() => {

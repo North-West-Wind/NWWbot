@@ -144,7 +144,7 @@ module.exports = {
     return array;
   },
   shuffle(array) {
-    array.sort(() => Math.random() - 0.5);
+    return array.sort(() => Math.random() - 0.5);
   },
   async findUser(message, str) {
     if (isNaN(parseInt(str))) {

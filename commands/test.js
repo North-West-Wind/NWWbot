@@ -38,7 +38,6 @@ const fetch = require("node-fetch");
 const SCDL = require("node-scdl");
 const scdl = new SCDL(process.env.SCID);
 const { http, https } = require("follow-redirects");
-const Zip = require("adm-zip");
 
 const requestStream = url => {
   return new Promise(resolve => {
@@ -120,16 +119,7 @@ module.exports = {
     var metadata = await mm.parseStream(stream).catch(console.error);
     console.realLog(metadata);
     */
-    let unoZip = "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Funo.zip?v=1589369416648";
-    var body = await requestGet(unoZip);
-    var zip = new Zip(body);
-    var zipEntries = zip.getEntries();
-    for(let i = 0; i < zipEntries.length; i++) {
-      let entry = zipEntries[i];
-      var attachment;
-      if(entry.extra) attachment = new Discord.MessageAttachment(entry.getData(), entry.entryName, entry.extra);
-      else attachment = new Discord.MessageAttachment(entry.getData(), entry.entryName);
-      console.log(attachment);
-    }
+    let stuff = moment.duration(69420, "milliseconds").format();
+    console.log(stuff);
   }
 };

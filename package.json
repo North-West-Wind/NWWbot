@@ -1,6 +1,6 @@
 {
   "name": "nwwbot",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "description": "NorthWestWind's bot!",
   "main": "app.js",
   "scripts": {
@@ -53,11 +53,10 @@
     "wikijs": "^6.0.0",
     "youtube-search": "^1.1.4",
     "ytdl-core": "^2.1.2",
-    "ytdl-core-discord": "North-West-Wind/temp-ytdl-core-discord",
+    "ytdl-core-discord": "amishshah/ytdl-core-discord",
     "ytpl": "^0.1.21",
-    "ytsr": "^0.1.13",
+    "ytsr": "^0.1.14",
     "solenolyrics": "^5.0.0",
-    "number-to-words": "^1.2.4",
-    "adm-zip": "^0.4.14"
+    "number-to-words": "^1.2.4"
   }
 }

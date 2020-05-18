@@ -5,7 +5,7 @@ module.exports = {
   music(message, serverQueue, looping, queue, pool) {
     const guild = message.guild;
 
-    if(serverQueue.connection != null && serverQueue.connection.dispatcher)
+    if(serverQueue && serverQueue.connection != null && serverQueue.connection.dispatcher)
   serverQueue.connection.dispatcher.destroy();
   if(message.guild.me.voice.channel)
   message.guild.me.voice.channel.leave();
