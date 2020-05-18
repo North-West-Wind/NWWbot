@@ -32,7 +32,7 @@ const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const scdl = new SCDL(process.env.SCID);
 const { PassThrough } = require("stream");
-const { music } = require("./migrate.js");
+const migrate = require("./migrate.js");
 const { http, https } = require("follow-redirects");
 
 const requestStream = url => {
@@ -101,7 +101,36 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
         seek: begin
       });
   } else {
-    var stream = await ytdl(song.url, { highWaterMark: 1 << 28, begin: begin });
+    try {
+      var stream = await ytdl(song.url, { highWaterMark: 1 << 28, begin: begin });
+    } catch(err) {
+      console.error(err);
+      serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track...").then(msg => msg.delete({ timeout: 30000 }));
+      const guildLoopStatus = looping.get(guild.id);
+      const guildRepeatStatus = repeat.get(guild.id);
+
+      if (guildLoopStatus === true) {
+        await serverQueue.songs.push(song);
+      }
+      if (guildRepeatStatus !== true) {
+        await serverQueue.songs.shift();
+      }
+
+      pool.getConnection(function(err, con) {
+        con.query(
+          "UPDATE servers SET queue = '" +
+            escape(JSON.stringify(serverQueue.songs)) +
+            "' WHERE id = " +
+            guild.id,
+          function(err, result) {
+            if (err) throw err;
+            console.log("Updated song queue of " + guild.name);
+          }
+        );
+        con.release();
+      });
+      return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+    }
     dispatcher = serverQueue.connection.play(stream, {
       type: "opus"
     });
@@ -167,7 +196,7 @@ module.exports = {
             "No song queue found for this server! Please provide a link or keywords to get a music played!"
           );
         if (serverQueue.playing === true || migrating.find(x => x === message.guild.id)) {
-          return await music(message, serverQueue, looping, queue, pool, repeat, exit, migrating);
+          return await migrate.music(message, serverQueue, looping, queue, pool, repeat, exit, migrating);
         }
 
         if (
@@ -1065,7 +1094,36 @@ module.exports = {
         seek: begin
       });
     } else {
+    try {
       var stream = await ytdl(song.url, { highWaterMark: 1 << 28, begin: begin });
+    } catch(err) {
+      console.error(err);
+      serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track...").then(msg => msg.delete({ timeout: 30000 }));
+      const guildLoopStatus = looping.get(guild.id);
+      const guildRepeatStatus = repeat.get(guild.id);
+
+      if (guildLoopStatus === true) {
+        await serverQueue.songs.push(song);
+      }
+      if (guildRepeatStatus !== true) {
+        await serverQueue.songs.shift();
+      }
+
+      pool.getConnection(function(err, con) {
+        con.query(
+          "UPDATE servers SET queue = '" +
+            escape(JSON.stringify(serverQueue.songs)) +
+            "' WHERE id = " +
+            guild.id,
+          function(err, result) {
+            if (err) throw err;
+            console.log("Updated song queue of " + guild.name);
+          }
+        );
+        con.release();
+      });
+      return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+    }
       dispatcher = serverQueue.connection.play(stream, {
         type: "opus"
       });

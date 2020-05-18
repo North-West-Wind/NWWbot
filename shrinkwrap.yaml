@@ -1,7 +1,6 @@
 dependencies:
   '@discordjs/opus': 0.3.2
   '@fasetto/krunker.io': 0.4.2
-  adm-zip: 0.4.14
   akaneko: 2.1.1
   aki-api: 3.2.1
   array-move: 2.2.1
@@ -42,7 +41,7 @@ dependencies:
   wikijs: 6.0.1
   youtube-search: 1.1.4
   ytdl-core: 2.1.2
-  ytdl-core-discord: github.com/North-West-Wind/temp-ytdl-core-discord/e3c34a6698663f619af080d7ee4008c736d484b3
+  ytdl-core-discord: github.com/amishshah/ytdl-core-discord/4420ca1761970891de03e07956dfa9296757d382
   ytpl: 0.1.21
   ytsr: 0.1.13
 packages:
@@ -148,12 +147,6 @@ packages:
       node: '>= 0.6'
     resolution:
       integrity: sha512-Il80Qs2WjYlJIBNzNkK6KYqlVMTbZLXgHx2oT0pU/fjRHyEp+PEfEPY0R3WCwAGVOtauxh1hOxNgIf5bv7dQpA==
-  /adm-zip/0.4.14:
-    dev: false
-    engines:
-      node: '>=0.3.0'
-    resolution:
-      integrity: sha512-/9aQCnQHF+0IiCl0qhXoK7qs//SwYE7zX8lsr/DNk1BRAHYxeLZPL4pguwK29gUEqasYQjqPtEpDRSWEkdHn9g==
   /agent-base/6.0.0:
     dependencies:
       debug: 4.1.1
@@ -3464,7 +3457,7 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-cZKwLlVkWo/K03/z8acGoRupzHjkTsl/ohrZtFjNjjKu0/x012YMvmoLd5XPhj0H8YQ6RskMkx3ikIXEhshhsg==
-  github.com/North-West-Wind/temp-ytdl-core-discord/e3c34a6698663f619af080d7ee4008c736d484b3:
+  github.com/amishshah/ytdl-core-discord/4420ca1761970891de03e07956dfa9296757d382:
     dependencies:
       '@types/node': 13.13.6
       prism-media: 1.2.2
@@ -3472,8 +3465,7 @@ packages:
     dev: false
     name: ytdl-core-discord
     resolution:
-      registry: 'https://registry.npmjs.org/'
-      tarball: 'https://codeload.github.com/North-West-Wind/temp-ytdl-core-discord/tar.gz/e3c34a6698663f619af080d7ee4008c736d484b3'
+      tarball: 'https://codeload.github.com/amishshah/ytdl-core-discord/tar.gz/4420ca1761970891de03e07956dfa9296757d382'
     version: 1.2.0
 registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
@@ -3481,7 +3473,6 @@ shrinkwrapVersion: 3
 specifiers:
   '@discordjs/opus': ^0.3.2
   '@fasetto/krunker.io': ^0.4.2
-  adm-zip: ^0.4.14
   akaneko: ^2.1.1
   aki-api: ^3.2.1
   array-move: ^2.2.0
@@ -3522,6 +3513,6 @@ specifiers:
   wikijs: ^6.0.0
   youtube-search: ^1.1.4
   ytdl-core: ^2.1.2
-  ytdl-core-discord: 'github:North-West-Wind/temp-ytdl-core-discord'
+  ytdl-core-discord: 'github:amishshah/ytdl-core-discord'
   ytpl: ^0.1.21
   ytsr: ^0.1.13

@@ -1,14 +1,15 @@
 const moment = require("moment");
+const { prefix } = require("../config.json");
 module.exports = {
   name: "role-message",
-  description: "Send a message with reactions for user to join a role.",
+  description: "Allows you to create a message for users to react and join a role.",
   usage: "<subcommand>",
   subcommands: ["create", "refresh"],
   subaliases: ["cr", "re"],
   aliases: ["role-msg", "rm"],
   async execute(message, args, pool, useless, trash, rm) {
     if(!args[0]) {
-      return message.channel.send("Please use a subcommand!");
+      return message.channel.send("Please use a subcommand!" + ` Usage: ${prefix}${this.name}${this.usage}`);
     }
     if(args[0] === "create" || args[0] === "cr") {
       return await this.create(message, args, pool, rm);

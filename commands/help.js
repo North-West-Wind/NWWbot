@@ -14,7 +14,7 @@ module.exports = {
 
     if (!args.length) {
       const attachment = new Discord.MessageAttachment(
-        "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1588603370636", "manual.pdf"
+        "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1589543070522", "manual.pdf"
       );
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
@@ -34,7 +34,7 @@ module.exports = {
           true
         )
         .addField("**Economy**", "work\nbank\nshop", true)
-        .addField("**Fun**", "chat\nreddit\nrng\ngreet\nthx\nrank", true)
+        .addField("**Fun**", "chat\nreddit\nrng\ngreet\nthx\nrank\nuno", true)
 
         .addField(
           "**Miscellaneous**",
@@ -47,7 +47,7 @@ module.exports = {
           "help\nserver\nping\navatar\nwelcome\nrole-info",
           true
         )
-        .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban\noxford\nspeedrun\nwiki", true)
+        .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban\noxford\nspeedrun\nwiki\nlyrics", true)
         .addField(
           "**Music**",
           "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nmove\nloop\nrepeat\nmigrate\nvolume",
