@@ -3,8 +3,10 @@ const express = require("express");
 const request = require("request");
 const device = require("express-device");
 const app = express();
+const moment = require("moment");
 app.use(device.capture());
 app.get("/", (req, response) => {
+  console.log(`Pinged at ${moment().format("HH:mm:ss")}`);
   if(req.device.type === "phone")
     response.sendFile(__dirname + "/views/mobile/index.html");
   else
@@ -24,7 +26,10 @@ app.get("/about", (req, response) => {
 });
 app.get("/manual", (req, response) => {
   request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1589543070522").pipe(response);
-})
+});
+app.get("/ping", (req, response) => {
+  response.sendStatus(200);
+});
 app.listen(process.env.PORT);
 setInterval(() => {
   http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
@@ -33,6 +38,7 @@ setInterval(() => {
 const { twoDigits, setTimeout_ } = require("./function.js");
 console.realLog = console.log;
 console.realError = console.error;
+const wait = require("util").promisify(setTimeout);
 
 const fs = require("fs");
 const Discord = require("discord.js");
@@ -63,6 +69,8 @@ client.commands = new Discord.Collection();
 client.items = new Discord.Collection();
 client.card = new Discord.Collection();
 client.uno = new Discord.Collection();
+client.timers = new Discord.Collection();
+client.noLog = [];
 
 for(let i = 0; i < 4; i++) {
   for(let s = 0; s < 13; s++) {
@@ -105,6 +113,7 @@ for (const file of musicCommandFiles) {
 // when the client is ready, run this code
 // this event will only trigger one time after logging in
 var rm = [];
+client.invites = {};
 client.once("ready", () => {
   exec("rm -rf .cache", (error, stdout, stderr) => {
     if (error) {
@@ -432,7 +441,90 @@ console.log = async function(str) {
         }, time);
       });
     });
+    con.query("SELECT * FROM timer", (err, results) => {
+      console.log(`Found ${results.length} timers.`);
+      results.forEach(async result => {
+        let time = result.endAt - new Date();
+        let em = new Discord.MessageEmbed();
+        try {
+          var channel = await client.channels.fetch(result.channel);
+          var msg = await channel.messages.fetch(result.msg);
+          var author = await client.users.fetch(result.author);
+          var guild = await client.guilds.resolve(result.guild);
+        } catch(err) { return; }
+        if(!channel) time = 0;
+        if(!guild) time = 0;
+        if(!msg) time = 0;
+        else if(msg.author.id !== client.user.id) time = 0;
+        else if(msg.embeds.length !== 1) time = 0;
+        else if(!msg.embeds[0].color || !msg.embeds[0].title || !msg.embeds[0].timestamp || !msg.embeds[0].footer || !msg.embeds[0].description || msg.embeds[0].author || msg.embeds[0].fields.length !== 0 || msg.embeds[0].files.length !== 0 || msg.embeds[0].image || msg.embeds[0].thumbnail || msg.embeds[0].type != "rich") time = 0;
+        if(msg.embeds[0].color && msg.embeds[0].title && msg.embeds[0].footer && msg.embeds[0].timestamp) {
+          em.setTitle(msg.embeds[0].title).setColor(msg.embeds[0].color).setFooter(msg.embeds[0].footer.text, msg.embeds[0].footer.iconURL).setTimestamp(msg.embeds[0].timestamp);
+        }
+        let count = 0;
+        let id = setInterval(async() => {
+          time -= 1000;
+          if(time <= 0) {
+            clearInterval(id);
+          em.setDescription("The timer has ended.");
+          msg = await msg.edit(em);
+          author.send(`Your timer in **${guild.name}** has ended! https://discordapp.com/channels/${guild.id}/${channel.id}/${msg.id}`);
+            con.query(`SELECT * FROM timer WHERE guild = '${guild.id}' AND channel = '${channel.id}' AND author = '${author.id}' AND msg = '${msg.id}'`, (err, results) => {
+              if(err) return console.error(err);
+              if(results.length < 1) return;
+              con.query(`DELETE FROM timer WHERE guild = '${guild.id}' AND channel = '${channel.id}' AND author = '${author.id}' AND msg = '${msg.id}'`,(err) => {
+                if(err) return console.error(err);
+                console.log("Deleted a timed out timer from the database.");
+              });
+            });
+          
+          return;
+        }
+        if(count < 4) {
+          count++;
+          return;
+        }
+        let sec = Math.floor(time / 1000);
+        var dd = Math.floor(sec / 86400);
+        var dh = Math.floor((sec % 86400) / 3600);
+        var dm = Math.floor(((sec % 86400) % 3600) / 60);
+        var ds = Math.floor(((sec % 86400) % 3600) % 60);
+        var d = "";
+        var h = "";
+        var m = "";
+        var s = "";
+        if (dd !== 0) {
+          d = " " + dd + " days";
+        }
+        if (dh !== 0) {
+          h = " " + dh + " hours";
+        }
+        if (dm !== 0) {
+          m = " " + dm + " minutes";
+        }
+        if (ds !== 0) {
+          s = " " + ds + " seconds";
+        }
+        em.setDescription(`(The timer updates every **5 seconds**)\nThis is a timer and it will last for\n**${d+h+m+s}**`);
+        msg = await msg.edit(em);
+        count = 0;
+        }, 1000);
+        client.timers.set(result.msg, id);
+      });
+    });
+    con.query("SELECT * FROM nolog", (err, results) => {
+      if(err) return console.error(err);
+      results.forEach(result => {
+        client.noLog.push(result.id);
+      });
+    });
     con.release();
+  });
+  wait(1000);
+  client.guilds.cache.forEach(g => {
+    g.fetchInvites().then(guildInvites => {
+      client.invites[g.id] = guildInvites;
+    }).catch(err => {});
   });
 });
 // login to Discord with your app's token
@@ -440,6 +532,23 @@ client.login(process.env.TOKEN);
 
 client.on("guildMemberAdd", member => {
   const guild = member.guild;
+  guild.fetchInvites().then(async guildInvites => {
+    const ei = client.invites[member.guild.id];
+    client.invites[member.guild.id] = guildInvites;
+    const invite = await guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
+    if(!invite) return;
+    const inviter = await client.users.fetch(invite.inviter.id);
+    if(!inviter) return;
+    const allUserInvites = await guildInvites.filter(i => i.inviter.id === inviter.id && i.guild.id === guild.id);
+    const reducer = (a, b) => a+b;
+    const uses = await allUserInvites.map(i => i.uses ? i.uses : 0).reduce(reducer);
+    if(client.noLog.find(x => x === inviter.id)) return;
+    try {
+      inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${prefix}invites toggle\` to turn it off)`);
+    } catch(err) {
+      console.error("Failed to DM user.");
+    }
+  }).catch(err => {});
   if (guild.id === "677780367188557824")
     setTimeout(async () => {
       var role = await guild.roles.fetch("677785442099396608");
@@ -904,8 +1013,9 @@ client.on("guildMemberRemove", async member => {
 });
 
 //joined a server
-client.on("guildCreate", guild => {
+client.on("guildCreate", async guild => {
   console.log("Joined a new guild: " + guild.name);
+  client.invites[guild.id] = await guild.fetchInvites();
 
   pool.getConnection(function(err, con) {
     if (err) return console.error(err);
@@ -942,6 +1052,7 @@ client.on("guildCreate", guild => {
 //removed from a server
 client.on("guildDelete", guild => {
   console.log("Left a guild: " + guild.name);
+  delete client.invites[guild.id];
   pool.getConnection(function(err, con) {
     if (err) return console.error(err);
     con.query("DELETE FROM servers WHERE id=" + guild.id, function(
