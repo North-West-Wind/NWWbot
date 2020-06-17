@@ -1,3 +1,4 @@
+require("dotenv").config();
 const http = require("http");
 const express = require("express");
 const request = require("request");
@@ -6,7 +7,6 @@ const app = express();
 const moment = require("moment");
 app.use(device.capture());
 app.get("/", (req, response) => {
-  console.log(`Pinged at ${moment().format("HH:mm:ss")}`);
   if(req.device.type === "phone")
     response.sendFile(__dirname + "/views/mobile/index.html");
   else
@@ -28,12 +28,10 @@ app.get("/manual", (req, response) => {
   request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1589543070522").pipe(response);
 });
 app.get("/ping", (req, response) => {
+  console.log(`Pinged at ${moment().format("HH:mm:ss")}`);
   response.sendStatus(200);
 });
 app.listen(process.env.PORT);
-setInterval(() => {
-  http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
-}, 280000);
 
 const { twoDigits, setTimeout_ } = require("./function.js");
 console.realLog = console.log;
@@ -45,7 +43,7 @@ const Discord = require("discord.js");
 const cleverbot = require("cleverbot-free");
 const { exec } = require("child_process");
 const { prefix } = require("./config.json");
-const { Image, createCanvas, loadImage } = require("canvas");
+const { Image, createCanvas, loadImage, registerFont } = require("canvas");
 const mysql = require("mysql");
 const mysql_config = {
   connectTimeout: 60 * 60 * 1000,
@@ -60,6 +58,8 @@ const mysql_config = {
   bigNumberStrings: true,
   charset: "utf8mb4"
 };
+
+registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
 
 var pool = mysql.createPool(mysql_config);
 
