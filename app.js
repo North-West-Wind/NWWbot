@@ -707,7 +707,7 @@ client.on("guildMemberAdd", member => {
                 //reduce font size loop
                 do {
                   //reduce font size
-                  ctx.font = `${(fontSize -= 5)}px sans-serif`;
+                  ctx.font = `${(fontSize -= 5)}px "free-sans"`;
                   // Compare pixel width of the text to the canvas minus the approximate avatar size
                 } while (
                   ctx.measureText(text).width >
@@ -728,7 +728,7 @@ client.on("guildMemberAdd", member => {
                 //reduce font size loop
                 do {
                   //reduce font size
-                  ctx.font = `${(fontSize -= 5)}px sans-serif`;
+                  ctx.font = `${(fontSize -= 5)}px "free-sans"`;
                   // Compare pixel width of the text to the canvas minus the approximate avatar size
                 } while (
                   ctx.measureText(text).width >
