@@ -17,12 +17,12 @@ module.exports = {
     };
     var dlcExist = false;
     try {
-    var dlc = await message.guild.members.fetch("684639278944223277");
+      var dlc = await message.guild.members.fetch("684639278944223277");
+      var dlcData = await fetch("https://nwwdlc--northwestwind.repl.co/api/status").then(resp => resp.json());
       dlcExist = true;
     } catch(err) {}
     
     if(dlcExist) {
-      var dlcData = await fetch("https://nwwdlc--northwestwind.repl.co/api/status").then(resp => resp.json());
       var readyAt = new Date(dlcData.readyAt);
       var dlcUptime = dlcData.uptime;
       var dlcVersion = dlcData.version;

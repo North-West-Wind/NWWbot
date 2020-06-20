@@ -1,4 +1,6 @@
 require("dotenv").config();
+const log = require('simple-node-logger').createSimpleFileLogger('./logs/all.log');
+log.setLevel("all");
 const http = require("http");
 const express = require("express");
 const request = require("request");
@@ -128,18 +130,20 @@ client.once("ready", () => {
   });
   delete console["log"];
   delete console["error"];
-console.log = async function(str) {
-  console.realLog(str);
-  try {
-    var logChannel = await client.channels.fetch("678847137391312917");
-  } catch(err) {
-    return console.realError(err)
-  }
+	console.log = async function(str) {
+  	console.realLog(str);
+  	try {
+			log.info(str);
+    	var logChannel = await client.channels.fetch("678847137391312917");
+  	} catch(err) {
+    	return console.realError(err)
+  	}
     logChannel.send("`" + str + "`");
-}
+	}
   console.error = async function(str) {
     console.realError(str);
   try {
+		log.error(str);
     var logChannel = await client.channels.fetch("678847137391312917");
   } catch(err) {
     return console.realError(err)

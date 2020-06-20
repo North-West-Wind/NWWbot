@@ -203,10 +203,22 @@ module.exports = {
           !message.guild.me.voice.channel ||
           message.guild.me.voice.channelID !== voiceChannel.id
         ) {
-          var connection = await voiceChannel.join();
+          try {
+            var connection = await voiceChannel.join();
+          } catch(err) {
+            message.reply("there was an error trying to connect to the voice channel!");
+            await message.guild.me.voice.channel.leave();
+            return console.error(err);
+          }
         } else {
           await message.guild.me.voice.channel.leave();
-          var connection = await voiceChannel.join();
+          try {
+            var connection = await voiceChannel.join();
+          } catch(err) {
+            message.reply("there was an error trying to connect to the voice channel!");
+            await message.guild.me.voice.channel.leave();
+            return console.error(err);
+          }
         }
         serverQueue.voiceChannel = voiceChannel;
         serverQueue.connection = connection;
@@ -610,7 +622,7 @@ module.exports = {
           textChannel: message.channel,
           voiceChannel: voiceChannel,
           connection: null,
-          songs: [],
+          songs: songs,
           volume: 1,
           playing: true,
           paused: false,
@@ -618,8 +630,6 @@ module.exports = {
         };
 
         queue.set(message.guild.id, queueContruct);
-
-        queueContruct.songs = songs;
 
         try {
           pool.getConnection(function(err, con) {
@@ -638,7 +648,13 @@ module.exports = {
             );
             con.release();
           });
-          var connection = await voiceChannel.join();
+          try {
+            var connection = await voiceChannel.join();
+          } catch(err) {
+            message.reply("there was an error trying to connect to the voice channel!");
+            await message.guild.me.voice.channel.leave();
+            return console.error(err);
+          }
           queueContruct.connection = connection;
 
           play(
@@ -701,7 +717,13 @@ module.exports = {
         });
 
         if (!message.guild.me.voice.channel) {
-          var connection = await voiceChannel.join();
+          try {
+            var connection = await voiceChannel.join();
+          } catch(err) {
+            message.reply("there was an error trying to connect to the voice channel!");
+            await message.guild.me.voice.channel.leave();
+            return console.error(err);
+          }
           serverQueue.voiceChannel = voiceChannel;
           serverQueue.connection = connection;
           serverQueue.playing = true;
@@ -924,7 +946,13 @@ module.exports = {
                   con.release();
                 });
                 try {
-                  var connection = await voiceChannel.join();
+                  try {
+                    var connection = await voiceChannel.join();
+                  } catch(err) {
+                    message.reply("there was an error trying to connect to the voice channel!");
+                    await message.guild.me.voice.channel.leave();
+                    return console.error(err);
+                  }
                   queueContruct.connection = connection;
 
                   play(
@@ -977,7 +1005,13 @@ module.exports = {
                   con.release();
                 });
                 if (!message.guild.me.voice.channel) {
-                  var connection = await voiceChannel.join();
+          try {
+            var connection = await voiceChannel.join();
+          } catch(err) {
+            message.reply("there was an error trying to connect to the voice channel!");
+            await message.guild.me.voice.channel.leave();
+            return console.error(err);
+          }
                   serverQueue.voiceChannel = voiceChannel;
                   serverQueue.connection = connection;
                   serverQueue.playing = true;

@@ -4,7 +4,7 @@ const http = require("http");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits, numberWithCommas } = require("../function.js");
 const nodefetch = require("node-fetch");
-const fetch = require("fetch-retry")(nodefetch, { retries: 10, retryDelay: 1000 });
+const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: 1000 });
 const contains = (string, content) => {
   return !!~(string || "").indexOf(content);
 };
@@ -5527,17 +5527,41 @@ module.exports = {
                   
                 } else if (args[0] === "skyblock" || args[0] === "sb") {
                   var sb = body.player.stats.SkyBlock;
+                  let error = false;
+                  var allEmbeds = [];
                   
-                 var allEmbeds = [];
-                  
-                  var magmaBoss = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bosstimer/magma/estimatedSpawn").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var darkAuction = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/darkauction/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var bankInterest = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bank/interest/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var newYear = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/newyear/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var travelZoo = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/zoo/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var spookyFest = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/spookyFestival/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var winterEvent = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/winter/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var jerryWorkshop = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/jerryWorkshop/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
+                  var magmaBoss = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bosstimer/magma/estimatedSpawn").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var darkAuction = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/darkauction/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var bankInterest = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bank/interest/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var newYear = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/newyear/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var travelZoo = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/zoo/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var spookyFest = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/spookyFestival/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var winterEvent = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/winter/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var jerryWorkshop = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/jerryWorkshop/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
                   
                   function estimateStringify(estimateObj) {
                     var estimate = ((estimateObj ? estimateObj.estimate : 0) - Date.now());
@@ -5572,7 +5596,14 @@ module.exports = {
                   
                   var profiles = Object.values(sb.profiles);
                   for(const profile of profiles) {
-                    var skyblock = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${res[0].id}/${profile.profile_id}`).then(resp => resp.json());
+                    var skyblock = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${res[0].id}/${profile.profile_id}`).then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+
+                      if(error) {
+                        return message.channel.send("https://sky.lea.moe/stats/" + res[0].name);
+                      }
                     
                     var memberCount = Object.keys(skyblock.members).length;
                     var members = Object.values(skyblock.members);
