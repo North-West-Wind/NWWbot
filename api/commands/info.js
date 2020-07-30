@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits } = require("../function.js");
-const { version } = require("../package.json");
+const { version } = require("../../package.json");
 const fetch = require("node-fetch");
 
 module.exports = {
