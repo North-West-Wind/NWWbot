@@ -4,7 +4,8 @@
   "description": "NorthWestWind's bot!",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "vercel-build": "node app.js"
   },
   "engines": {
     "node": "12.x"
