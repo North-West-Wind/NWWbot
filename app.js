@@ -5,6 +5,7 @@ console.realLog = console.log;
 console.realError = console.error;
 const wait = require("util").promisify(setTimeout);
 
+const { exec } = require("child_process");
 exec("node server.js", (error, stdout, stderr) => {
   if (error) {
       console.log(`error: ${error.message}`);
@@ -20,7 +21,6 @@ exec("node server.js", (error, stdout, stderr) => {
 const fs = require("fs");
 const Discord = require("discord.js");
 const cleverbot = require("cleverbot-free");
-const { exec } = require("child_process");
 const { prefix } = require("./config.json");
 const { Image, createCanvas, loadImage, registerFont } = require("canvas");
 const mysql = require("mysql");
