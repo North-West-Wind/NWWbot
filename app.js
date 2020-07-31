@@ -5,6 +5,18 @@ console.realLog = console.log;
 console.realError = console.error;
 const wait = require("util").promisify(setTimeout);
 
+exec("node server.js", (error, stdout, stderr) => {
+  if (error) {
+      console.log(`error: ${error.message}`);
+      return;
+  }
+  if (stderr) {
+      console.log(`stderr: ${stderr}`);
+      return;
+  }
+  console.log("Launched Routes");
+});
+
 const fs = require("fs");
 const Discord = require("discord.js");
 const cleverbot = require("cleverbot-free");
@@ -82,17 +94,6 @@ for (const file of musicCommandFiles) {
 var rm = [];
 client.invites = {};
 client.once("ready", () => {
-  exec("rm -rf .cache", (error, stdout, stderr) => {
-    if (error) {
-        console.log(`error: ${error.message}`);
-        return;
-    }
-    if (stderr) {
-        console.log(`stderr: ${stderr}`);
-        return;
-    }
-    console.log("Cleared cache");
-  });
   delete console["log"];
   delete console["error"];
 	console.log = async function(str) {
