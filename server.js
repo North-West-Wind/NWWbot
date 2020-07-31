@@ -29,4 +29,4 @@ app.get("/ping", (req, response) => {
   console.log(`Pinged at ${moment().format("HH:mm:ss")}`);
   response.sendStatus(200);
 });
-app.listen(process.env.PORT);
+app.listen(process.env.PORT || 3000);
