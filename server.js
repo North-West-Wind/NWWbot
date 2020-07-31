@@ -1,3 +1,4 @@
+require("newrelic")
 const express = require("express");
 const request = require("request");
 const device = require("express-device");
