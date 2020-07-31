@@ -427,13 +427,6 @@ module.exports = {
                               message.client.user.displayAvatarURL()
                             );
                         }
-                        if (body.player.socialMedia.links.DISCORD) {
-                          Embed.addField(
-                            "Discord",
-                            "@" + body.player.socialMedia.links.DISCORD
-                          );
-                        } else {
-                        }
                         message.channel.send(Embed);
                       } else {
                         console.log(`${res[0].name}'s Hypixel Guild API`); // Print the json response

@@ -98,7 +98,6 @@ client.once("ready", () => {
 	console.log = async function(str) {
   	console.realLog(str);
   	try {
-			log.info(str);
     	var logChannel = await client.channels.fetch("678847137391312917");
   	} catch(err) {
     	return console.realError(err)
@@ -108,7 +107,6 @@ client.once("ready", () => {
   console.error = async function(str) {
     console.realError(str);
   try {
-		log.error(str);
     var logChannel = await client.channels.fetch("678847137391312917");
   } catch(err) {
     return console.realError(err)
