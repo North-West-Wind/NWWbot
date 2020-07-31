@@ -3,7 +3,7 @@ const request = require("request");
 const device = require("express-device");
 const app = express();
 const moment = require("moment");
-require("heroku-self-ping").default(process.env.APP_URL);
+//require("heroku-self-ping").default(process.env.APP_URL);
 app.use(device.capture());
 app.get("/", (req, response) => {
   if(req.device.type === "phone")
