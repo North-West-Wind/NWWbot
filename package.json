@@ -37,6 +37,7 @@
     "ms": "^2.1.2",
     "music-metadata": "^6.4.0",
     "mysql": "^2.18.1",
+    "newrelic": "^6.11.0",
     "node-fetch": "^2.6.0",
     "node-scdl": "^1.0.2",
     "number-to-words": "^1.2.4",
