@@ -3,7 +3,7 @@ const request = require("request");
 const device = require("express-device");
 const app = express();
 const moment = require("moment");
-const hsp = require("heroku-self-ping");
+require("heroku-self-ping").default(process.env.APP_URL);
 app.use(device.capture());
 app.get("/", (req, response) => {
   if(req.device.type === "phone")
@@ -31,5 +31,3 @@ app.get("/ping", (req, response) => {
   response.sendStatus(200);
 });
 app.listen(process.env.PORT || 3000);
-
-hsp(process.env.APP_URL)
