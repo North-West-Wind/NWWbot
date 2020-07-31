@@ -42,5 +42,8 @@ module.exports = {
     repeat.set(guild, repeatStatus);
     looping.set(guild, loopStatus);
     queue.set(guild, queueContruct);
+  },
+  checkQueue() {
+    return queue.size > 0;
   }
 }
