@@ -29,6 +29,7 @@
     "follow-redirects": "^1.11.0",
     "gfycat-sdk": "^1.4.18",
     "google-it": "^1.5.0",
+    "heroku-self-ping": "^2.0.1",
     "js-video-url-parser": "^0.4.1",
     "krunker.js": "^1.2.4",
     "mojang-api": "^0.0.2",
