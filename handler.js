@@ -19,7 +19,7 @@ var pool = mysql.createPool(mysql_config);
 const { setTimeout_ } = require("./function.js");
 const wait = require("util").promisify(setTimeout);
 module.exports = {
-    ready(client, id) {
+    async ready(client, id) {
         console.log(client.user.name + " Ready!");
         if (id === 1) {
             setInterval(async () => {
@@ -432,7 +432,7 @@ module.exports = {
             }).catch(err => { });
         });
     },
-    guildMemberAdd(member, client, id) {
+    async guildMemberAdd(member, client, id) {
         const guild = member.guild;
         guild.fetchInvites().then(async guildInvites => {
             const ei = console.invites[member.guild.id];
@@ -772,7 +772,7 @@ module.exports = {
             );
         });
     },
-    guildMemberRemove(member, client, id) {
+    async guildMemberRemove(member, client, id) {
         const guild = member.guild;
         pool.getConnection(function (err, con) {
             if (err) return console.error(err);
@@ -910,7 +910,7 @@ module.exports = {
             con.release();
         });
     },
-    guildCreate(guild) {
+    async guildCreate(guild) {
         console.log("Joined a new guild: " + guild.name);
         console.invites[guild.id] = await guild.fetchInvites();
 
@@ -942,7 +942,7 @@ module.exports = {
             con.release();
         });
     },
-    guildDelete(guild) {
+    async guildDelete(guild) {
         console.log("Left a guild: " + guild.name);
         delete console.invites[guild.id];
         pool.getConnection(function (err, con) {
@@ -957,7 +957,7 @@ module.exports = {
             con.release();
         });
     },
-    voiceStateUpdate(oldState, newState, client, exit) {
+    async voiceStateUpdate(oldState, newState, client, exit) {
         const guild = oldState.guild || newState.guild;
         if (!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
         if (guild.me.voice.channel.members.size <= 1) {
@@ -977,7 +977,7 @@ module.exports = {
             }
         }
     },
-    guildMemberUpdate(oldMember, newMember, client) {
+    async guildMemberUpdate(oldMember, newMember, client) {
         if (oldMember.premiumSinceTimestamp !== null || newMember.premiumSinceTimestamp === null) return;
         pool.getConnection(function (err, con) {
             if (err) return console.error(err);
@@ -994,7 +994,7 @@ module.exports = {
             con.release();
         });
     },
-    messageReactionAdd(r, user) {
+    async messageReactionAdd(r, user) {
         var roleMessage = console.rm.find(x => x.id === r.message.id);
         if (!roleMessage) return;
         var emojis = JSON.parse(roleMessage.emojis);
@@ -1004,7 +1004,7 @@ module.exports = {
         var member = await guild.members.fetch(user);
         member.roles.add([JSON.parse(roleMessage.roles)[index]]).catch(console.error);
     },
-    messageReactionRemove(r, user) {
+    async messageReactionRemove(r, user) {
         var roleMessage = console.rm.find(x => x.id === r.message.id);
         if (!roleMessage) return;
         var emojis = JSON.parse(roleMessage.emojis);
@@ -1014,7 +1014,7 @@ module.exports = {
         var member = await guild.members.fetch(user);
         member.roles.remove([JSON.parse(roleMessage.roles)[index]]).catch(console.error);
     },
-    messageDelete(message) {
+    async messageDelete(message) {
         var roleMessage = console.rm.find(x => x.id === message.id);
         if (!roleMessage) return;
         console.rm.splice(console.rm.indexOf(roleMessage), 1);
@@ -1025,7 +1025,7 @@ module.exports = {
             con.release();
         });
     },
-    message(message, hypixelQueries, client, id) {
+    async message(message, hypixelQueries, client, id) {
         if (!message.content.startsWith(client.prefix) || message.author.bot) {
             if(!message.author.bot) {
               if(Math.floor(Math.random() * 1000) === 69) 
