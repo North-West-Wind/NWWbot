@@ -11,7 +11,7 @@ module.exports = {
     if(message.channel.nsfw === false) {
       return message.channel.send("Please use an NSFW channel to use this command!")
     }
-    if(!args[0]) return message.channel.send("Please provide at least 1 tag!")
+    if(!args[0]) return message.channel.send("Please provide at least 1 tag!" + ` Usage: ${message.client.prefix}${this.name}${this.usage}`)
     async function pick() {
     var sites = ["rule34.paheal.net", "rule34.xxx"];
     var pickedSite = sites[Math.floor(Math.random() * sites.length)];

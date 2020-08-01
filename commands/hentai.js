@@ -1,7 +1,6 @@
 const Discord = require("discord.js");
 const neko = require("akaneko");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "hentai",

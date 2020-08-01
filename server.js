@@ -3,7 +3,6 @@ const request = require("request");
 const device = require("express-device");
 const app = express();
 const moment = require("moment");
-//require("heroku-self-ping").default(process.env.APP_URL);
 app.use(device.capture());
 app.get("/", (req, response) => {
   if(req.device.type === "phone")
@@ -25,6 +24,9 @@ app.get("/about", (req, response) => {
 });
 app.get("/manual", (req, response) => {
   request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1589543070522").pipe(response);
+});
+app.get("/style.css", (req, response) => {
+  response.sendFile(__dirname + "/views/style.css");
 });
 app.get("/ping", (req, response) => {
   console.log(`Pinged at ${moment().format("HH:mm:ss")}`);

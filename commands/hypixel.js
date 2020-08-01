@@ -8,7 +8,6 @@ const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: 1000 }
 const contains = (string, content) => {
   return !!~(string || "").indexOf(content);
 };
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "hypixel",
@@ -46,6 +45,7 @@ module.exports = {
   ],
   subaliases: ["g", "ach", "tnt", "bw", "du", "sw", "sg", "ar", "mm", "bb", "mcgo", "vz", "pb", "q", "uhc", "wa", "mw", "cw", "sh", "suhc", "are", "p", "sb", "ah", "ba"],
   async execute(message, args, pool, yeet, hypixelQueries) {
+    const prefix = message.client.prefix;
     if (hypixelQueries > 90) return message.channel.send("Hey! Slow down!");
     if (!args[0]) {
       return message.channel.send(

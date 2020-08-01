@@ -1,6 +1,6 @@
 module.exports = {
   name: "clear",
-  description: "Clear the song queue. Also resets the volume to 100%.",
+  description: "Clear the song queue and stop the playing soundtrack. Also resets the volume to 100%.",
   usage: " ",
   music(message, serverQueue, looping, queue, pool) {
     const guild = message.guild;
@@ -13,14 +13,14 @@ module.exports = {
     pool.getConnection((err, con) => {
       if (err)
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       con.query(
         "UPDATE servers SET queue = NULL WHERE id = '" + message.guild.id + "'",
         (err, result) => {
           if (err)
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to update the queue!"
             );
           message.channel.send("Cleared queue!");
         }

@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "kick",
@@ -24,7 +23,7 @@ module.exports = {
     if (!message.guild) return;
     
     if(!args[0]) {
-      return message.channel.send("You didn't mention any user!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("You didn't mention any user!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
     }
    
     if(isNaN(parseInt(args[0]))) {
@@ -57,8 +56,7 @@ module.exports = {
         
           user.kicked = new Discord.Collection()
            await user.kicked.set(message.guild.id, true)
-            // We let the message author know we were able to kick the person
-            var kickEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
+            var kickEmbed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle(`You've been kicked`)
                 .setDescription(`In **${message.guild.name}**`)
@@ -74,7 +72,7 @@ module.exports = {
                 console.log("Failed to send DM to " + user.username)
               });
 
-              var kickSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
+              var kickSuccessfulEmbed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle("User Kicked!")
                 .setDescription(
@@ -87,13 +85,8 @@ module.exports = {
               return message.author.send(kickSuccessfulEmbed);
           
       } else {
-        // The mentioned user isn't in this guild
         message.reply("That user doesn't exist!");
       }
-    })
-      // Now we get the member from the user
-      
-      // Otherwise, if no user was mentioned
-    
+    });
   }
 };

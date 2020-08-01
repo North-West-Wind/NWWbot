@@ -1,6 +1,4 @@
 var color = Math.floor(Math.random() * 16777214) + 1;
-
-const { prefix } = require("../config.json");
 const Discord = require("discord.js");
 module.exports = {
   name: "help",
@@ -10,7 +8,7 @@ module.exports = {
   cooldown: 5,
   execute(message, args) {
     const data = [];
-    const { commands } = message.client;
+    const { commands } = console;
 
     if (!args.length) {
       const attachment = new Discord.MessageAttachment(
@@ -20,7 +18,7 @@ module.exports = {
         .setColor(color)
         .setTitle("Command list is here!")
         .setDescription(
-          `You can send \`${prefix}help [command name]\` to get info on a specific command!\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`
+          `You can send \`${message.client.prefix}help [command name]\` to get info on a specific command!\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`
         )
         .setThumbnail(message.client.user.displayAvatarURL())
         .addField(
@@ -90,7 +88,7 @@ module.exports = {
     if (command.description)
       data.push(`**Description:** ${command.description}`);
     if (command.usage)
-      data.push(`**Usage:** ${prefix}${command.name} ${command.usage}`);
+      data.push(`**Usage:** ${message.client.prefix}${command.name} ${command.usage}`);
     if (command.subcommands)
       data.push(`**Subcommands:** ${command.subcommands.join(", ")}`);
     if (command.subaliases)

@@ -3,7 +3,7 @@ module.exports = {
   description: "disguise",
   aliases: ["say"],
   execute(message, args) {
-    if(message.author.id === "416227242264363008") {
+    if(message.author.id == process.env.DC) {
       message.delete();
       message.channel.send(args.join(" "))
     }

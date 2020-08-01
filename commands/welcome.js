@@ -12,17 +12,17 @@ module.exports = {
       if (err) {
         console.error(err);
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       }
       con.query(
         "SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id=" +
           guild.id,
-        function(err, result, fields) {
+        function(err, result) {
           if (err) {
             console.error(err);
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to fetch data from the database!"
             );
           }
           if (
@@ -270,18 +270,9 @@ module.exports = {
               img.src = url;
             }
           }
-
-          //release SQL
-          con.release();
-
-          if (err) {
-            console.error(err);
-            return message.reply(
-              "there was an error trying to execute that command!"
-            );
-          }
         }
       );
+      con.release();
     });
   }
 };

@@ -32,7 +32,7 @@ module.exports = {
       if (err) {
         console.error(err);
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       }
       con.query(
@@ -283,11 +283,11 @@ module.exports = {
                   currentDateSql +
                   "' WHERE user_id = " +
                   message.author.id,
-                function(err, result) {
+                function(err) {
                   if (err) {
                     console.error(err);
                     return message.reply(
-                      "there was an error trying to execute that command!"
+                      "there was an error trying to update your bank account!"
                     );
                   }
                   console.log(
@@ -311,11 +311,11 @@ module.exports = {
                   currentDateSql +
                   "' WHERE user_id = " +
                   message.author.id,
-                function(err, result) {
+                function(err) {
                   if (err) {
                     console.error(err);
                     return message.reply(
-                      "there was an error trying to execute that command!"
+                      "there was an error trying to update your bank account!"
                     );
                   }
                   console.log(
@@ -385,7 +385,7 @@ module.exports = {
                     if (err) {
                       console.error(err);
                       return message.reply(
-                        "there was an error trying to execute that command!"
+                        "there was an error trying to update your bank account!"
                       );
                     }
                     console.log(
@@ -413,7 +413,7 @@ module.exports = {
                     if (err) {
                       console.error(err);
                       return message.reply(
-                        "there was an error trying to execute that command!"
+                        "there was an error trying to update your bank account!"
                       );
                     }
                     console.log(
@@ -481,7 +481,7 @@ module.exports = {
                 if (err) {
                   console.error(err);
                   return message.reply(
-                    "there was an error trying to execute that command!"
+                    "there was an error trying to update your bank account!"
                   );
                 }
                 console.log(

@@ -14,15 +14,12 @@ const YouTube = require("simple-youtube-api");
 var youtube = new YouTube(process.env.YT);
 var color = Math.floor(Math.random() * 16777214) + 1;
 var SpotifyWebApi = require("spotify-web-api-node");
-// credentials are optional
 var spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTID,
   clientSecret: process.env.SPOTSECRET,
   redirectUri: "https://nwws.ml"
 });
-const SCDL = require("node-scdl");
 const fetch = require("node-fetch");
-const fs = require("fs");
 const request = require("request-stream");
 const mm = require("music-metadata");
 const ytsr = require("ytsr");
@@ -30,10 +27,9 @@ const ytpl = require("ytpl");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
-const scdl = new SCDL(process.env.SCID);
-const { PassThrough } = require("stream");
 const migrate = require("./migrate.js");
-const { http, https } = require("follow-redirects");
+const { http } = require("follow-redirects");
+const { message } = require("../handler.js");
 
 const requestStream = url => {
   return new Promise(resolve => {
@@ -53,10 +49,11 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
     guild.me.voice.channel.leave();
     queue.delete(guild.id);
     pool.getConnection(function(err, con) {
+      if(err) return console.error(err);
       con.query(
         "UPDATE servers SET queue = NULL WHERE id = " + guild.id,
-        function(err, result) {
-          if (err) throw err;
+        function(err) {
+          if(err) return console.error(err);
           console.log("Updated song queue of " + guild.name);
         }
       );
@@ -117,13 +114,14 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
       }
 
       pool.getConnection(function(err, con) {
+        if(err) return console.error(err);
         con.query(
           "UPDATE servers SET queue = '" +
             escape(JSON.stringify(serverQueue.songs)) +
             "' WHERE id = " +
             guild.id,
-          function(err, result) {
-            if (err) throw err;
+          function(err) {
+            if (err) console.error(err);
             console.log("Updated song queue of " + guild.name);
           }
         );
@@ -150,13 +148,14 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
       }
 
       pool.getConnection(function(err, con) {
+        if(err) return console.error(err);
         con.query(
           "UPDATE servers SET queue = '" +
             escape(JSON.stringify(serverQueue.songs)) +
             "' WHERE id = " +
             guild.id,
-          function(err, result) {
-            if (err) throw err;
+          function(err) {
+            if(err) return console.error(err);
             console.log("Updated song queue of " + guild.name);
           }
         );
@@ -237,7 +236,7 @@ module.exports = {
           } catch (err) {
             return message.channel.send("The audio format is not supported!");
           }
-          if (metadata === undefined)
+          if (!metadata)
             return message.channel.send(
               "An error occured while parsing the audio file into stream! Maybe it is not link to the file?"
             );
@@ -633,6 +632,7 @@ module.exports = {
 
         try {
           pool.getConnection(function(err, con) {
+            if(err) return message.reply("there was an error trying to connect to the database!");
             con.query(
               "UPDATE servers SET queue = '" +
                 escape(JSON.stringify(queueContruct.songs)) +
@@ -641,7 +641,7 @@ module.exports = {
               function(err, result) {
                 if (err)
                   return message.reply(
-                    "there was an error trying to execute that command!"
+                    "there was an error trying to update the queue!"
                   );
                 console.log("Updated song queue of " + message.guild.name);
               }
@@ -700,15 +700,16 @@ module.exports = {
         }
 
         pool.getConnection(function(err, con) {
+          if(err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET queue = '" +
               escape(JSON.stringify(serverQueue.songs)) +
               "' WHERE id = " +
               message.guild.id,
-            function(err, result) {
+            function(err) {
               if (err)
                 return message.reply(
-                  "there was an error trying to execute that command!"
+                  "there was an error trying to update the queue!"
                 );
               console.log("Updated song queue of " + message.guild.name);
             }
@@ -807,60 +808,6 @@ module.exports = {
       message.channel
         .send(Embed)
         .then(async msg => {
-          /*
-          if (results[0]) {
-            await msg.react("1️⃣");
-          }
-          if (results[1]) {
-            await msg.react("2️⃣");
-          }
-          if (results[2]) {
-            await msg.react("3️⃣");
-          }
-          if (results[3]) {
-            await msg.react("4️⃣");
-          }
-          if (results[4]) {
-            await msg.react("5️⃣");
-          }
-          if (results[5]) {
-            await msg.react("6️⃣");
-          }
-          if (results[6]) {
-            await msg.react("7️⃣");
-          }
-          if (results[7]) {
-            await msg.react("8️⃣");
-          }
-          if (results[8]) {
-            await msg.react("9️⃣");
-          }
-          if (results[9]) {
-            await msg.react("🔟");
-          }
-          
-
-          await msg.react("⏹");
-          ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "⏹"];
-
-          const filter = (reaction, user) => {
-            return (
-              [
-                "1️⃣",
-                "2️⃣",
-                "3️⃣",
-                "4️⃣",
-                "5️⃣",
-                "6️⃣",
-                "7️⃣",
-                "8️⃣",
-                "9️⃣",
-                "🔟",
-                "⏹"
-              ].includes(reaction.emoji.name) && user.id === message.author.id
-            );
-          };
-          */
 
           var filter = x => x.author.id === message.author.id;
 
@@ -983,19 +930,16 @@ module.exports = {
                   serverQueue.songs.push(song);
                 }
                 pool.getConnection(function(err, con) {
-                  if (err)
-                    return message.reply(
-                      "there was an error trying to execute that command!"
-                    );
+                  if(err) return message.reply("there was an error trying to connect to the database!");
                   con.query(
                     "UPDATE servers SET queue = '" +
                       escape(JSON.stringify(serverQueue.songs)) +
                       "' WHERE id = " +
                       message.guild.id,
-                    function(err, result) {
+                    function(err) {
                       if (err)
                         return message.reply(
-                          "there was an error trying to execute that command!"
+                          "there was an error trying to update the queue!"
                         );
                       console.log(
                         "Updated song queue of " + message.guild.name
@@ -1081,10 +1025,11 @@ module.exports = {
       guild.me.voice.channel.leave();
       queue.delete(guild.id);
       pool.getConnection(function(err, con) {
+        if(err) return console.error(err);
         con.query(
           "UPDATE servers SET queue = NULL WHERE id = " + guild.id,
-          function(err, result) {
-            if (err) throw err;
+          function(err) {
+            if(err) return console.error(err);
             console.log("Updated song queue of " + guild.name);
           }
         );
@@ -1144,13 +1089,14 @@ module.exports = {
       }
 
       pool.getConnection(function(err, con) {
+        if(err) return console.error(err);
         con.query(
           "UPDATE servers SET queue = '" +
             escape(JSON.stringify(serverQueue.songs)) +
             "' WHERE id = " +
             guild.id,
-          function(err, result) {
-            if (err) throw err;
+          function(err) {
+            if(err) return console.error(err);
             console.log("Updated song queue of " + guild.name);
           }
         );
@@ -1177,13 +1123,14 @@ module.exports = {
         }
 
         pool.getConnection(function(err, con) {
+          if(err) return console.error(err);
           con.query(
             "UPDATE servers SET queue = '" +
               escape(JSON.stringify(serverQueue.songs)) +
               "' WHERE id = " +
               guild.id,
-            function(err, result) {
-              if (err) throw err;
+            function(err) {
+              if(err) return console.error(err);
               console.log("Updated song queue of " + guild.name);
             }
           );

@@ -1,6 +1,5 @@
 var color = Math.floor(Math.random() * 16777214) + 1;
 const Discord = require("discord.js");
-const client = new Discord.Client();
 const { findUser, findMember, twoDigits } = require("../function.js");
 module.exports = {
   name: "profile",

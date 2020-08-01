@@ -1,7 +1,6 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const { findUser } = require("../function.js");
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "unban",
@@ -19,7 +18,7 @@ module.exports = {
     if (!message.guild) return;
 
     if(!args[0]) {
-      return message.channel.send("You didn't mention any user!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("You didn't mention any user!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
     }
     
     message.delete();
@@ -28,27 +27,16 @@ module.exports = {
       .then(user => {
       
       if(!user) return;
-        // Now we get the member from the user
         if (args[1]) {
           var reason = args.slice(1).join(" ");
           var member = message.guild.members.unban(user, reason);
         } else {
           var member = message.guild.members.unban(user);
         }
-        // If the member is in the guild
         if (member) {
-          /**
-           * Ban the member
-           * Make sure you run this on a member, not a user!
-           * There are big differences between a user and a member
-           * Read more about what ban options there are over at
-           * https://discord.js.org/#/docs/main/master/class/GuildMember?scrollTo=ban
-           */
           member
             .then(() => {
-              // We let the message author know we were able to ban the person
-
-              var unbanEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
+              var unbanEmbed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle(`You've been unbanned`)
                 .setDescription(`In **${message.guild.name}**`)
@@ -63,8 +51,7 @@ module.exports = {
               user.send(unbanEmbed).catch(err => {
                 console.log("Failed to send DM to " + user.username);
               });
-
-              var unbanSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
+              var unbanSuccessfulEmbed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle("User Unbanned!")
                 .setDescription(
@@ -77,14 +64,9 @@ module.exports = {
               return message.author.send(unbanSuccessfulEmbed);
             })
             .catch(err => {
-              // An error happened
-              // This is generally due to the bot not being able to ban the member,
-              // either due to missing permissions or role hierarchy
               message.channel.send("This member is not banned!");
-              // Log the error
             });
         } else {
-          // The mentioned user isn't in this guild
           message.channel.send("that user doesn't exist!");
         }
       })

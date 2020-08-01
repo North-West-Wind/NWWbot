@@ -1,3 +1,23 @@
+const cleverbot = require("cleverbot-free");
+const { Image, createCanvas, loadImage } = require("canvas");
+const Discord = require("discord.js");
+const mysql = require("mysql");
+const mysql_config = {
+  connectTimeout: 60 * 60 * 1000,
+  acquireTimeout: 60 * 60 * 1000,
+  timeout: 60 * 60 * 1000,
+  connectionLimit: 1000,
+  host: process.env.DBHOST,
+  user: process.env.DBUSER,
+  password: process.env.DBPW,
+  database: process.env.DBNAME,
+  supportBigNumbers: true,
+  bigNumberStrings: true,
+  charset: "utf8mb4"
+};
+var pool = mysql.createPool(mysql_config);
+const { setTimeout_ } = require("./function.js");
+const wait = require("util").promisify(setTimeout);
 module.exports = {
     ready(client, id) {
         console.log(client.user.name + " Ready!");
@@ -50,7 +70,7 @@ module.exports = {
                 res.forEach(async result => {
                     if (id === 0 && result.guild.id === "622311594654695434") return;
                     if (id === 1 && result.guild.id !== "622311594654695434" && result.guild.id !== "664716701991960577") return;
-                    rm.push(result);
+                    console.rm.push(result);
                     var channel = await client.channels.fetch(result.channel);
                     var msg = await channel.messages.fetch(result.id);
 
@@ -937,7 +957,7 @@ module.exports = {
             con.release();
         });
     },
-    voiceStateUpdate(oldState, newState, client) {
+    voiceStateUpdate(oldState, newState, client, exit) {
         const guild = oldState.guild || newState.guild;
         if (!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
         if (guild.me.voice.channel.members.size <= 1) {
@@ -973,5 +993,90 @@ module.exports = {
             });
             con.release();
         });
+    },
+    messageReactionAdd(r, user) {
+        var roleMessage = console.rm.find(x => x.id === r.message.id);
+        if (!roleMessage) return;
+        var emojis = JSON.parse(roleMessage.emojis);
+        if (!emojis.includes(r.emoji.name)) return;
+        var index = emojis.indexOf(r.emoji.name);
+        var guild = await client.guilds.cache.get(roleMessage.guild);
+        var member = await guild.members.fetch(user);
+        member.roles.add([JSON.parse(roleMessage.roles)[index]]).catch(console.error);
+    },
+    messageReactionRemove(r, user) {
+        var roleMessage = console.rm.find(x => x.id === r.message.id);
+        if (!roleMessage) return;
+        var emojis = JSON.parse(roleMessage.emojis);
+        if (!emojis.includes(r.emoji.name)) return;
+        var index = emojis.indexOf(r.emoji.name);
+        var guild = await client.guilds.cache.get(roleMessage.guild);
+        var member = await guild.members.fetch(user);
+        member.roles.remove([JSON.parse(roleMessage.roles)[index]]).catch(console.error);
+    },
+    messageDelete(message) {
+        var roleMessage = console.rm.find(x => x.id === message.id);
+        if (!roleMessage) return;
+        console.rm.splice(console.rm.indexOf(roleMessage), 1);
+        pool.getConnection((err, con) => {
+            con.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`, (err) => {
+                if (err) return console.error(err);
+            });
+            con.release();
+        });
+    },
+    message(message, hypixelQueries, client, id) {
+        if (!message.content.startsWith(client.prefix) || message.author.bot) {
+            if(!message.author.bot) {
+              if(Math.floor(Math.random() * 1000) === 69) 
+                cleverbot(message.content).then(response => message.channel.send(response));
+            }
+            return;
+          };
+        
+          const args = message.content.slice(client.prefix.length).split(/ +/);
+          const commandName = args.shift().toLowerCase();
+          if(commandName === "guild" && id === 0) return; 
+        
+          if (commandName.args && !args.length) {
+            let reply = `You didn't provide any arguments, <@${message.author}>!`;
+        
+            if (command.usage) {
+              reply += `\nThe proper usage would be: \`${client.prefix}${command.name} ${command.usage}\``;
+            }
+        
+            return message.channel.send(reply);
+          }
+        
+          const command =
+            console.commands.get(commandName) ||
+            console.commands.find(
+              cmd => cmd.aliases && cmd.aliases.includes(commandName)
+            );
+        
+          if (!command) {
+            return;
+          } else {
+            if(message.guild !== null) {
+              if(!message.channel.permissionsFor(message.guild.me).has(["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"])) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
+            }
+            if (musicCommandsArray.includes(command.name) == true) {
+              const mainMusic = require("./musics/main.js");
+              try {
+                return await mainMusic.music(message, commandName, pool, exit);
+              } catch (error) {
+                console.error(error);
+                return await message.reply(
+                  "there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server."
+                );
+              }
+            }
+            try {
+              command.execute(message, args, pool, musicCommandsArray, hypixelQueries, console.rm);
+            } catch (error) {
+              console.error(error);
+              message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
+            }
+          }
     }
 }

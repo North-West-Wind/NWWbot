@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-const { prefix } = require("../config.json")
 
 module.exports = {
   name: "delete",
@@ -26,36 +25,10 @@ module.exports = {
       return;
     }
     if (!args[0]) {
-      return message.channel.send("You didn't provide any amount!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("You didn't provide any amount!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
     }
 
     var amount = parseInt(args[0]);
-    /*
-    if(!args[1]) {
-      var msg = await message.channel.messages.fetch(amount).catch(console.error);
-      if(!msg) return message.channel.send("That is not a valid message!");
-      await message.channel.messages.fetch().catch(console.error);
-      var deleting = await message.channel.messages.fetch({ before: msg.id, limit: 100 });
-      if(deleting.size > 100) {
-        for(const mesg of deleting.values()) {
-          mesg.delete();
-        }
-      } else message.channel.bulkDelete(deleting).catch(console.error);
-      message.delete();
-    } else {
-      var msg = await message.channel.messages.fetch(args[0]);
-      var msg2 = await message.channel.messages.fetch(args[1]);
-      if(!msg) return message.channel.send("That is not a valid message!");
-      if(!msg2) return message.channel.send("That is not a valid message!");
-      var deleting = await message.channel.messages.cache.filter(x => x.id >= msg.id && x.id <= msg2.id && !x.deleted && x);
-      if(deleting.size > 100) {
-        for(const mesg of deleting.values()) {
-          mesg.delete();
-        }
-      } else message.channel.bulkDelete(deleting).catch(console.error);
-      message.delete();
-    }
-    */
 
     if (isNaN(amount)) {
       var channelID = parseInt(args[0].replace(/<#/g, "").replace(/>/g, ""));
@@ -88,7 +61,7 @@ module.exports = {
       } else {
         var channel = await message.guild.channels.fetch(channelID);
         if(!channel) return message.channel.send("The channel is not valid!");
-        if (!args[1]) return message.channel.send("You didn't provide any amount!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
+        if (!args[1]) return message.channel.send("You didn't provide any amount!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
         amount = parseInt(args[1]);
         if(isNaN(amount)) {
           
@@ -118,31 +91,6 @@ module.exports = {
             return;
           } else return message.channel.send("The query provided is not a number!");
         }
-        /*
-        if(!args[2]) {
-          var msg = await channel.messages.fetch(args[1]);
-          if(!msg) return message.channel.send("That is not a valid message!");
-          var deleting = await channel.messages.cache.filter(x => x.id >= msg.id && !x.deleted);
-          if(deleting.size > 100) {
-            for(const mesg of deleting.values()) {
-              mesg.delete();
-            }
-          } else channel.bulkDelete(deleting).catch(console.error);
-          message.delete();
-        } else {
-          var msg = await channel.messages.fetch(args[1]);
-          var msg2 = await channel.messages.fetch(args[2]);
-          if(!msg) return message.channel.send("That is not a valid message!");
-          if(!msg2) return message.channel.send("That is not a valid message!");
-          var deleting = await channel.messages.cache.filter(x => x.id >= msg.id && x.id <= msg2.id && !x.deleted);
-          if(deleting.size > 100) {
-            for(const mesg of deleting.values()) {
-              mesg.delete();
-            }
-          } else channel.bulkDelete(deleting).catch(console.error);
-          message.delete();
-        }
-        */
       }
     } else {
       

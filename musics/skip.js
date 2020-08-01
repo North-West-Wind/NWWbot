@@ -1,12 +1,11 @@
 const { play } = require("./play.js");
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "skip",
   description: "Skip a music in the song queue.",
   usage: "[amount]",
   music(message, serverQueue, looping, queue, pool, repeat) {
-  const args = message.content.slice(prefix.length).split(/ +/);
+  const args = message.content.slice(message.client.prefix.length).split(/ +/);
     var skipped = 1;
     const guild = message.guild;
   if (!message.member.voice.channel)
@@ -57,13 +56,14 @@ module.exports = {
     }
     }
         pool.getConnection(function(err, con) {
+          if(err) return message.reply("there was an error trying to connect to the database!");
             con.query(
               "UPDATE servers SET queue = '" +
                 escape(JSON.stringify(serverQueue.songs)) +
                 "' WHERE id = " +
                 guild.id,
-              function(err, result) {
-                if (err) return message.reply("there was an error trying to execute that command!");
+              function(err) {
+                if (err) return message.reply("there was an error trying to update the queue!");
                 console.log("Updated song queue of " + guild.name);
               }
             );
