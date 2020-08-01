@@ -3,17 +3,17 @@ const { Image, createCanvas, loadImage } = require("canvas");
 const Discord = require("discord.js");
 const mysql = require("mysql");
 const mysql_config = {
-  connectTimeout: 60 * 60 * 1000,
-  acquireTimeout: 60 * 60 * 1000,
-  timeout: 60 * 60 * 1000,
-  connectionLimit: 1000,
-  host: process.env.DBHOST,
-  user: process.env.DBUSER,
-  password: process.env.DBPW,
-  database: process.env.DBNAME,
-  supportBigNumbers: true,
-  bigNumberStrings: true,
-  charset: "utf8mb4"
+    connectTimeout: 60 * 60 * 1000,
+    acquireTimeout: 60 * 60 * 1000,
+    timeout: 60 * 60 * 1000,
+    connectionLimit: 1000,
+    host: process.env.DBHOST,
+    user: process.env.DBUSER,
+    password: process.env.DBPW,
+    database: process.env.DBNAME,
+    supportBigNumbers: true,
+    bigNumberStrings: true,
+    charset: "utf8mb4"
 };
 var pool = mysql.createPool(mysql_config);
 const { setTimeout_ } = require("./function.js");
@@ -50,8 +50,8 @@ module.exports = {
             client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         pool.getConnection(function (err, con) {
             if (err) return console.error(err);
-            const { setQueue, checkQueue } = require("./musics/main.js");
-            if (!checkQueue) {
+            const { setQueue } = require("./musics/main.js");
+            if (id === 0) {
                 con.query("SELECT id, queue, looping, repeating FROM servers", function (err, results) {
                     if (err) return console.error(err);
                     var count = 0;
@@ -1025,58 +1025,58 @@ module.exports = {
             con.release();
         });
     },
-    async message(message, hypixelQueries, client, id) {
+    async message(message, musicCommandsArray, hypixelQueries, client, id) {
         if (!message.content.startsWith(client.prefix) || message.author.bot) {
-            if(!message.author.bot) {
-              if(Math.floor(Math.random() * 1000) === 69) 
-                cleverbot(message.content).then(response => message.channel.send(response));
+            if (!message.author.bot) {
+                if (Math.floor(Math.random() * 1000) === 69)
+                    cleverbot(message.content).then(response => message.channel.send(response));
             }
             return;
-          };
-        
-          const args = message.content.slice(client.prefix.length).split(/ +/);
-          const commandName = args.shift().toLowerCase();
-          if(commandName === "guild" && id === 0) return; 
-        
-          if (commandName.args && !args.length) {
+        };
+
+        const args = message.content.slice(client.prefix.length).split(/ +/);
+        const commandName = args.shift().toLowerCase();
+        if (commandName === "guild" && id === 0) return;
+
+        if (commandName.args && !args.length) {
             let reply = `You didn't provide any arguments, <@${message.author}>!`;
-        
+
             if (command.usage) {
-              reply += `\nThe proper usage would be: \`${client.prefix}${command.name} ${command.usage}\``;
+                reply += `\nThe proper usage would be: \`${client.prefix}${command.name} ${command.usage}\``;
             }
-        
+
             return message.channel.send(reply);
-          }
-        
-          const command =
+        }
+
+        const command =
             console.commands.get(commandName) ||
             console.commands.find(
-              cmd => cmd.aliases && cmd.aliases.includes(commandName)
+                cmd => cmd.aliases && cmd.aliases.includes(commandName)
             );
-        
-          if (!command) {
+
+        if (!command) {
             return;
-          } else {
-            if(message.guild !== null) {
-              if(!message.channel.permissionsFor(message.guild.me).has(["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"])) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
+        } else {
+            if (message.guild !== null) {
+                if (!message.channel.permissionsFor(message.guild.me).has(["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"])) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
             }
             if (musicCommandsArray.includes(command.name) == true) {
-              const mainMusic = require("./musics/main.js");
-              try {
-                return await mainMusic.music(message, commandName, pool, exit);
-              } catch (error) {
-                console.error(error);
-                return await message.reply(
-                  "there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server."
-                );
-              }
+                const mainMusic = require("./musics/main.js");
+                try {
+                    return await mainMusic.music(message, commandName, pool, exit);
+                } catch (error) {
+                    console.error(error);
+                    return await message.reply(
+                        "there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server."
+                    );
+                }
             }
             try {
-              command.execute(message, args, pool, musicCommandsArray, hypixelQueries, console.rm);
+                command.execute(message, args, pool, musicCommandsArray, hypixelQueries, console.rm);
             } catch (error) {
-              console.error(error);
-              message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
+                console.error(error);
+                message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
             }
-          }
+        }
     }
 }

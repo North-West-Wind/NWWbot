@@ -99,7 +99,7 @@ client.on("guildMemberUpdate", (oldMember, newMember) => guildMemberUpdate(oldMe
 client.on("messageReactionAdd", async(r, user) => messageReactionAdd(r, user));
 client.on("messageReactionRemove", async(r, user) => messageReactionRemove(r, user));
 client.on("messageDelete", (message) => messageDelete(message));
-client.on("message", async msg => message(msg, hypixelQueries, client, 0));
+client.on("message", async msg => message(msg, musicCommandsArray, hypixelQueries, client, 0));
 
 alice.once("ready", () => ready(alice, 1));
 alice.login(process.env.TOKEN2);
@@ -112,4 +112,4 @@ alice.on("guildMemberUpdate", (oldMember, newMember) => guildMemberUpdate(oldMem
 alice.on("messageReactionAdd", async(r, user) => messageReactionAdd(r, user));
 alice.on("messageReactionRemove", async(r, user) => messageReactionRemove(r, user));
 alice.on("messageDelete", (message) => messageDelete(message));
-alice.on("message", async msg => message(msg, hypixelQueries, alice, 1));
+alice.on("message", async msg => message(msg, musicCommandsArray, hypixelQueries, alice, 1));
