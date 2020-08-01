@@ -152,8 +152,7 @@ module.exports = {
                                 await peopleReacted.users.fetch();
                             } catch (err) {
                                 con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
-                                    err,
-                                    con
+                                    err
                                 ) {
                                     if (err) return console.error(err);
                                     console.log("Deleted an ended giveaway record.");
@@ -168,15 +167,14 @@ module.exports = {
                                 return console.error(err);
                             }
 
-                            const remove = endReacted.indexOf(client.user.id);
+                            const remove = endReacted.indexOf(id === 0 ? "649611982428962819" : "653133256186789891");
                             if (remove > -1) {
                                 endReacted.splice(remove, 1);
                             }
 
                             if (endReacted.length === 0) {
                                 con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
-                                    err,
-                                    result
+                                    err
                                 ) {
                                     if (err) return console.error(err);
                                     console.log("Deleted an ended giveaway record.");
