@@ -3,7 +3,7 @@ module.exports = {
   description: "Stop the music and disconnect the bot from the voice channel.",
   aliases: ["end", "disconnect", "dis"],
   usage: " ",
-  music(message, serverQueue, looping, queue, pool) {
+  music(message, serverQueue) {
     const guild = message.guild;
     if (!message.member.voice.channel)
     return message.channel.send(

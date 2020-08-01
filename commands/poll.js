@@ -2,7 +2,6 @@ const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const client = new Discord.Client();
 const ms = require("ms");
-const { prefix } = require("../config.json");
 
 const { twoDigits, setTimeout_ } = require("../function.js");
 
@@ -14,7 +13,7 @@ module.exports = {
   async execute(message, args, pool) {
     if (!args[0]) {
       return message.channel.send(
-        `Proper usage: ${prefix}${this.name} ${
+        `Proper usage: ${message.client.prefix}${this.name} ${
           this.usage
         }\nSubcommands: \`${this.subcommands.join("`, `")}\``
       );
@@ -36,7 +35,7 @@ module.exports = {
       if (err) {
         console.error(err);
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       }
       var msg = await message.channel.send(
@@ -285,11 +284,11 @@ module.exports = {
           ", '" +
           escape(title) +
           "')",
-        function(err, result) {
+        function(err) {
           if (err) {
             console.error(err);
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to insert the record!"
             );
           }
           console.log(
@@ -311,9 +310,7 @@ module.exports = {
           ) {
             if (err) {
               console.error(err);
-              return message.reply(
-                "there was an error trying to execute that command!"
-              );
+              return;
             }
             console.log("Deleted an ended poll.");
           });
@@ -321,14 +318,11 @@ module.exports = {
         } else {
           con.query("SELECT * FROM poll WHERE id = " + msg.id, async function(
             err,
-            results,
-            fields
+            results
           ) {
             if (err) {
               console.error(err);
-              return message.reply(
-                "there was an error trying to execute that command!"
-              );
+              return;
             }
             if (results.length < 1) {
               return;
@@ -372,14 +366,11 @@ module.exports = {
                 console.error(err);
               });
               con.query("DELETE FROM poll WHERE id = " + msg.id, function(
-                err,
-                result
+                err
               ) {
                 if (err) {
                   console.error(err);
-                  return message.reply(
-                    "there was an error trying to execute that command!"
-                  );
+                  return;
                 }
                 console.log("Deleted an ended poll.");
               });
@@ -501,16 +492,16 @@ module.exports = {
       if (err) {
         console.error(err);
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       }
       con.query(
         "SELECT * FROM poll WHERE guild = " + message.guild.id,
-        function(err, results, fields) {
+        function(err, results) {
           if (err) {
             console.error(err);
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to fetch data from the database!"
             );
           }
           const Embed = new Discord.MessageEmbed()

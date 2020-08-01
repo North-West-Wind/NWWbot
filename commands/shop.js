@@ -10,7 +10,7 @@ module.exports = {
       if (err) {
         console.error(err);
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       }
       mainMenu();
@@ -18,11 +18,11 @@ module.exports = {
         var mesg = msg;
         con.query(
           "SELECT * FROM currency WHERE user_id = " + message.author.id,
-          async function(err, results, fields) {
+          async function(err, results) {
             if (err) {
               console.error(err);
               return message.reply(
-                "there was an error trying to execute that command!"
+                "there was an error trying to fetch data from the database!"
               );
             }
             if (results.length == 0) {
@@ -45,7 +45,7 @@ module.exports = {
               .setColor(color)
               .setTitle("You were told to leave.")
               .setDescription(
-                "The staff waited too long and tells you to leave."
+                "The staff waited too long and told you to leave."
               )
               .setFooter(
                 "You have $" + cash,
@@ -80,13 +80,12 @@ module.exports = {
               var allItems = [];
               con.query("SELECT * FROM shop", async function(
                 err,
-                results,
-                fields
+                results
               ) {
                 if (err) {
                   console.error(err);
                   return message.reply(
-                    "there was an error trying to execute that command!"
+                    "there was an error trying to fetch data from the database!"
                   );
                 }
                 for (var i = 0; i < results.length; i++)
@@ -162,7 +161,7 @@ module.exports = {
                   if (err) {
                     console.error(err);
                     return message.reply(
-                      "there was an error trying to execute that command!"
+                      "there was an error trying to fetch data from the database!"
                     );
                   }
                   if (result.length == 0) {

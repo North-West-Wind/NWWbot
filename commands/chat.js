@@ -1,4 +1,3 @@
-const { prefix } = require("../config.json");
 const cleverbot = require("cleverbot-free");
 const log = new Map();
 
@@ -8,7 +7,7 @@ module.exports = {
   usage: "<message>",
   execute(message, args) {
     if(!args[0]) {
-      return message.channel.send("What are we gonna talk about?" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("What are we gonna talk about?" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
     }
     var passMessages = log.get(message.author.id);
     if(!passMessages) {

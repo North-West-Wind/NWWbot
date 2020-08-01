@@ -10,8 +10,8 @@ module.exports = {
 
     if (!serverQueue) return message.channel.send("There is nothing playing.");
     await shuffleArray(serverQueue.songs);
-    /*
     pool.getConnection(function(err, con) {
+      if(err) return message.reply("there was an error trying to connect to the database!");
       con.query(
         "UPDATE servers SET queue = '" +
           escape(JSON.stringify(serverQueue.songs)) +
@@ -20,14 +20,13 @@ module.exports = {
         function(err, result) {
           if (err)
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to update the queue!"
             );
           console.log("Updated song queue of " + message.guild.name);
         }
       );
       con.release();
     });
-    */
     message.channel.send("Song queue has been shuffled.");
   }
 };

@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 const ms = require("ms");
-const { prefix } = require("../config.json");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const pSql = require("promise-mysql");
 const { jsDate2Mysql } = require("../function.js");
@@ -24,7 +23,7 @@ module.exports = {
   usage: "<subcommand>",
   subcommands: ["create", "edit", "delete"],
   async execute(message, args, pool) {
-    if(!args[0]) return message.channel.send(`Please choose a subcommand. **${this.subcommands.join(", ")}** Usage: ${prefix}${this.name} ${this.usage}`);
+    if(!args[0]) return message.channel.send(`Please choose a subcommand. **${this.subcommands.join(", ")}** Usage: ${message.client.prefix}${this.name} ${this.usage}`);
     if(!this.subcommands.includes(args[0])) return message.channel.send(`What is that subcommand? This are the subcommands: **${this.subcommands.join(", ")}**`);
     switch(args[0]) {
       case "create":
@@ -96,12 +95,12 @@ module.exports = {
         msg = await msg.edit(em);
         message.author.send(`Your timer in **${message.guild.name}** has ended! https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`);
         pool.getConnection((err, con) => {
-          if(err) return console.error(err);
+          if(err) return message.reply("there was an error trying to connect to the database!");
           con.query(`SELECT * FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`, (err, results) => {
-            if(err) return console.error(err);
+            if(err) return message.reply("there was an error trying to fetch data from the database!");
             if(results.length < 1) return;
             con.query(`DELETE FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`,(err) => {
-              if(err) return console.error(err);
+              if(err) return message.reply("there was an error trying to delete the timer!");
               console.log("Deleted a timed out timer from the database.");
             });
           });
@@ -147,7 +146,7 @@ module.exports = {
       message.client.timers.set(msg.id, id);
     } catch(err) {
       console.error(err);
-      return message.reply("there was an error while inserting the record of the timer to the database!");
+      return message.reply("there was an error trying to insert the record of the timer to the database!");
     }
   }
 }

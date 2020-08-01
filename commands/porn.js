@@ -2108,10 +2108,6 @@ module.exports = {
       }
       if(video.size > 8388119) {
         return await this.execute(message, args);
-        /*
-        em.setDescription(`Tags: \`${tags.length > 0 ? tags.join("->") : "`N/A`"}\`\n(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\nFrom r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).\nHowever, the video size is too large for uploading! Go to the link instead.`)
-      await message.channel.send(em);
-      */
       } else {
       await message.channel.send(em);
       message.channel.send(video);

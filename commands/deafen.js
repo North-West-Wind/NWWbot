@@ -1,7 +1,6 @@
 const Discord= require("discord.js");
 const { findMember } = require("../function.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json")
 
 module.exports = {
   name: "deafen",
@@ -25,7 +24,7 @@ module.exports = {
     if (!message.guild) return;
     
     if(!args[0]) {
-      return message.channel.send("You didn't mention any user!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("You didn't mention any user!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
     }
     
     
@@ -44,7 +43,7 @@ module.exports = {
         member.voice.setDeaf(true);
       }
       
-      var muteEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
+      var muteEmbed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle(`You've been deafened`)
                 .setDescription(`In **${message.guild.name}**`)
@@ -54,7 +53,7 @@ module.exports = {
                   message.author.displayAvatarURL()
                 );
       if(reason) muteEmbed.addField("Reason", reason);
-      var muteSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
+      var muteSuccessfulEmbed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle("User Successfully Deafened!")
                 .setDescription(
@@ -73,7 +72,7 @@ module.exports = {
       message.author.send(muteSuccessfulEmbed)
       
     } catch(error) {
-       var muteFailureEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
+       var muteFailureEmbed = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle("Failed to Deafen User!")
                 .setDescription(
@@ -85,8 +84,5 @@ module.exports = {
                 );
       message.author.send(muteFailureEmbed);
     }
-    
-    
-    
   }
 }

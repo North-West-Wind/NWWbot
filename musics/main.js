@@ -7,8 +7,8 @@ module.exports = {
   name: "main",
   music(message, commandName, pool, exit) {
     const command =
-    message.client.commands.get(commandName) ||
-    message.client.commands.find(
+    console.commands.get(commandName) ||
+    console.commands.find(
       cmd => cmd.aliases && cmd.aliases.includes(commandName)
     );
     
@@ -18,7 +18,7 @@ module.exports = {
       command.music(message, serverQueue, looping, queue, pool, repeat, exit, migrating);
     } catch(error) {
       console.error(error);
-        message.reply("there was an error trying to execute that command!");
+      message.reply("there was an error trying to execute that command!");
     }
   },
   stop(guild) {

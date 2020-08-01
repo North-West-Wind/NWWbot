@@ -141,14 +141,14 @@ module.exports = {
     pool.getConnection(function(err, con) {
       if (err)
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       con.query(
         "SELECT * FROM queue WHERE user = '" + message.author.id + "'",
         function(err, results) {
           if (err)
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to fetch data from the database!"
             );
           if (results.length >= 10) {
             return message.channel.send(
@@ -183,7 +183,7 @@ module.exports = {
             function(err) {
               if (err)
                 return message.reply(
-                  "there was an error trying to execute that command!"
+                  "there was an error trying to store the queue!"
                 );
               message.channel.send(
                 "The song queue has been stored with the name **" +
@@ -208,7 +208,7 @@ module.exports = {
     pool.getConnection(function(err, con) {
       if (err)
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       con.query(
         "SELECT * FROM queue WHERE LOWER(name) = '" +
@@ -222,7 +222,7 @@ module.exports = {
         function(err, results) {
           if (err)
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to fetch queues from the database!"
             );
           if (results.length == 0) {
             return message.channel.send("No queue was found!");
@@ -250,7 +250,7 @@ module.exports = {
             function(err) {
               if (err)
                 return message.reply(
-                  "there was an error trying to execute that command!"
+                  "there was an error trying to update the queue!"
                 );
               message.channel.send(
                 `The queue **${results[0].name}** has been loaded.`
@@ -269,7 +269,7 @@ module.exports = {
     pool.getConnection(function(err, con) {
       if (err)
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       con.query(
         "SELECT * FROM queue WHERE LOWER(name) = '" +
@@ -283,7 +283,7 @@ module.exports = {
         function(err, results) {
           if (err)
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to fetch queues from the database!"
             );
           if (results.length == 0) {
             return message.channel.send("No queue was found!");
@@ -293,7 +293,7 @@ module.exports = {
           ) {
             if (err)
               return message.reply(
-                "there was an error trying to execute that command!"
+                "there was an error trying to delete the queue!"
               );
             message.channel.send(
               `The stored queue **${results[0].name}** has been deleted.`
@@ -308,14 +308,14 @@ module.exports = {
     pool.getConnection(function(err, con) {
       if (err)
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       con.query(
         "SELECT * FROM queue WHERE user = '" + message.author.id + "'",
         function(err, results) {
           if (err)
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to fetch the queues from the database!"
             );
           var queues = [];
           var num = 0;

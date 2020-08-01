@@ -1,7 +1,6 @@
 const Discord= require("discord.js");
 const { findMember } = require("../function.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "mute",
@@ -24,7 +23,7 @@ module.exports = {
     if (!message.guild) return;
     
     if(!args[0]) {
-      return message.channel.send("You didn't mention any user!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("You didn't mention any user!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
     }
     
     

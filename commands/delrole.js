@@ -1,5 +1,4 @@
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "delrole",
@@ -19,7 +18,7 @@ module.exports = {
     }
     
     if(!args[0]) {
-      return message.channel.send("You didn't tell me the role to delete!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("You didn't tell me the role to delete!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
     }
     
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");

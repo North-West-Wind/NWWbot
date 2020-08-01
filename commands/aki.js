@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 const aki = require("aki-api");
-const { prefix } = require("../config.json");
 var color = Math.floor(Math.random() * 16777214) + 1;
 
 /**
@@ -45,15 +44,6 @@ module.exports = {
   probablyNot: "🚫",
   back: "⬅",
   stop: "⏹",
-
-  /**
-   * run for aki command
-   * @param bot the client
-   * @param prefix the prefix of the user
-   * @param message the message sent by the user
-   * @param args the arguments from the user
-   * @returns {Promise<Promise<Message|Message[]>|*>}
-   */
   async execute(message, args) {
     var ended = new Map();
     if (args.length >= 1 && args[0].toLowerCase() === "region") {
@@ -433,15 +423,6 @@ module.exports = {
       
     });
   },
-
-  /**
-   * shows help info.
-   * @param bot the discord bot.
-   * @param prefix the user's prefix.
-   * @param message the discord message.
-   * @param args the arguments parsed from the message.
-   * @returns {Promise<{embed: *}>}
-   */
   async help(prefix, message, args) {
     const helpEmbed = new Discord.MessageEmbed()
       .setTitle("Akinator")

@@ -3,7 +3,6 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 var color = Math.floor(Math.random() * 16777214) + 1;
 const mysql = require("mysql");
-const { prefix } = require("../config.json");
 
 const { twoDigits, setTimeout_ } = require("../function.js");
 
@@ -19,7 +18,7 @@ module.exports = {
 
     if (!args[0]) {
       return message.channel.send(
-        `Proper usage: ${prefix}${this.name} ${
+        `Proper usage: ${message.client.prefix}${this.name} ${
           this.usage
         }\nSubcommands: \`${this.subcommands.join("`, `")}\``
       );
@@ -308,7 +307,7 @@ module.exports = {
                             reacted.push(data);
                           }
 
-                          const remove = reacted.indexOf("649611982428962819");
+                          const remove = reacted.indexOf(message.client.user.id);
                           if (remove > -1) {
                             reacted.splice(remove, 1);
                           }
@@ -804,9 +803,7 @@ module.exports = {
                                                           reacted.push(data);
                                                         }
 
-                                                        const remove = reacted.indexOf(
-                                                          "649611982428962819"
-                                                        );
+                                                        const remove = reacted.indexOf(message.client.user.id);
                                                         if (remove > -1) {
                                                           reacted.splice(
                                                             remove,
@@ -1080,7 +1077,7 @@ module.exports = {
               return console.error(err);
             }
 
-            const remove = endReacted.indexOf("649611982428962819");
+            const remove = endReacted.indexOf(message.client.user.id);
             if (remove > -1) {
               endReacted.splice(remove, 1);
             }

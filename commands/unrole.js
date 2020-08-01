@@ -1,5 +1,4 @@
 const { findMember } = require("../function.js");
-const { prefix } = require("../config.json")
 
 module.exports = {
 	name: 'unrole',
@@ -12,8 +11,8 @@ module.exports = {
       return;
     }
     
-    if(!args[0]) return message.channel.send("Please mention an user!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
-    if(!args[1]) return message.channel.send("Please mention a role!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
+    if(!args[0]) return message.channel.send("Please mention an user!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+    if(!args[1]) return message.channel.send("Please mention a role!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
     
 		 var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
@@ -31,18 +30,12 @@ module.exports = {
         return message.channel.send("No role was found!");
       }
     }
-		// Let's pretend you mentioned the user you want to add a role to (!addrole @user Role Name):
 		let member = await findMember(message, args[0]);
-    
-
     if(!member) return;
-		// or the person who made the command: let member = message.member;
 
     if(!role) {
       return message.channel.send("The role is not valid!");
     }
-
-		// Remove a role!
     if(member.roles.cache.get(role.id)) {
         member.roles.remove(role).then(role => console.log(`Removed role ${role.name} from ${taggedUser.username}.`)).catch(console.error);
         const taggedUser = message.mentions.users.first();

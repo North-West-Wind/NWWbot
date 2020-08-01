@@ -1,7 +1,7 @@
 module.exports = {
 	name: 'thx',
 	description: 'Thanks the bot.',
-  usage: " ",
+	usage: " ",
 	execute(message) {
 		message.channel.send(`You're welcome, ${message.author}`);
 	},

@@ -36,7 +36,7 @@ module.exports = {
     serverQueue.connection = null;
     serverQueue.voiceChannel = null;
     serverQueue.textChannel = null;
-    if(message.guild.me.voice.channel) message.guild.me.voice.channel.leave();
+    if(message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
     
     var voiceChannel = message.member.voice.channel;
     var msg = await message.channel.send("Migrating in 3 seconds...");

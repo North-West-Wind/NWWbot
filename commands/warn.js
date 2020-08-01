@@ -1,7 +1,6 @@
 const Discord = require("discord.js");
 var embedColor = Math.floor(Math.random() * 16777214) + 1;
 const { findUser } = require("../function.js");
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "warn",
@@ -13,13 +12,13 @@ module.exports = {
       if (err) {
         console.error(err);
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       }
       if (!args[0]) {
         return message.channel.send(
           "Tell me who you are warning." +
-            ` Usage: \`${prefix}${this.name} ${this.usage}\``
+            ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``
         );
       }
 
@@ -29,23 +28,20 @@ module.exports = {
         return message.channel.send("I cannot warn everyone lol.");
       }
 
-      // Assuming we mention someone in the message, this will return the user
-      // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
-
       const user = await findUser(message, args[0]);
 
       if (!user) return;
       if (!message.member.permissions.has("BAN_MEMBERS"))
         return message.channel.send(
           "You don't have the permission to use this command!"
-        ); // Checks if the user has the permission
+        );
       if (!message.guild.me.permissions.has("BAN_MEMBERS"))
         return message.channel.send(
           "I don't have the permission to warn user!"
-        ); // Checks if the bot has the permission
+        );
 
       var reason = "";
-      var warningEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
+      var warningEmbed = new Discord.MessageEmbed()
         .setColor(embedColor)
         .setTitle(`You've been warned`)
         .setDescription(`In **${message.guild.name}**`)
@@ -56,14 +52,13 @@ module.exports = {
         );
 
       if (!args[1]) {
-        user.send(warningEmbed); // DMs the user the above embed!
+        user.send(warningEmbed);
       } else {
-        // Triggers if the user dosn't provide a reason for the warning
         reason = args.slice(1).join(" ");
         warningEmbed.addField("Reason", reason);
-        user.send(warningEmbed); // DMs the user the above embed!
+        user.send(warningEmbed);
       }
-      var warnSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
+      var warnSuccessfulEmbed = new Discord.MessageEmbed()
         .setColor(embedColor)
         .setTitle("User Successfully Warned!")
         .setDescription(
@@ -73,7 +68,7 @@ module.exports = {
             message.guild.name +
             "**."
         );
-      message.author.send(warnSuccessfulEmbed); // Sends the warn successful embed
+      message.author.send(warnSuccessfulEmbed);
       message.delete();
 
       con.query(
@@ -88,7 +83,7 @@ module.exports = {
           if (err) {
             console.error(err);
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to record the warnings!"
             );
           }
           console.log("Inserted warning record successfully.");
@@ -103,7 +98,7 @@ module.exports = {
           if (err) {
             console.error(err);
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to fetch data from the database!"
             );
           }
           if (results.length >= 3) {
@@ -141,7 +136,7 @@ module.exports = {
                 if (err) {
                   console.error(err);
                   return message.reply(
-                    "there was an error trying to execute that command!"
+                    "there was an error trying to delete all warnings!"
                   );
                 }
                 console.log(
