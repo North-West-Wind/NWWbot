@@ -20,7 +20,7 @@ const { setTimeout_ } = require("./function.js");
 const wait = require("util").promisify(setTimeout);
 module.exports = {
     async ready(client, id) {
-        console.log(client.user.name + " Ready!");
+        console.log(`[${id}] Ready!`);
         if (id === 1) {
             setInterval(async () => {
                 const guild = await client.guilds.resolve("622311594654695434");
@@ -1025,7 +1025,7 @@ module.exports = {
             con.release();
         });
     },
-    async message(message, musicCommandsArray, hypixelQueries, client, id) {
+    async message(message, musicCommandsArray, hypixelQueries, exit, client, id) {
         if (!message.content.startsWith(client.prefix) || message.author.bot) {
             if (!message.author.bot) {
                 if (Math.floor(Math.random() * 1000) === 69)
