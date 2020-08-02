@@ -460,14 +460,14 @@ module.exports = {
             con.query(
                 "SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id=" +
                 guild.id,
-                async function (err, result, fields) {
-                    if (result[0] === undefined || result[0].wel_channel === null) {
-                        if (result[0] === undefined) {
+                async function (err, result) {
+                    if (!result[0]|| !result[0].wel_channel || !result[0].welcome) {
+                        if (!result[0]) {
                             pool.getConnection(function (err, con) {
                                 if (err) return console.error(err);
                                 con.query(
                                     "SELECT * FROM servers WHERE id = " + guild.id,
-                                    function (err, result, fields) {
+                                    function (err, result) {
                                         if (err) return console.error(err);
                                         if (result.length > 0) {
                                             console.log(
@@ -478,7 +478,7 @@ module.exports = {
                                                 "INSERT INTO servers (id, autorole, giveaway) VALUES (" +
                                                 guild.id +
                                                 ", '[]', '🎉')",
-                                                function (err, result) {
+                                                function (err) {
                                                     if (err) return console.error(err);
                                                     console.log("Inserted record for " + guild.name);
                                                 }
@@ -588,72 +588,43 @@ module.exports = {
                             //canvas
                             var img = new Image();
 
-                            //when image load
                             img.onload = async function () {
                                 var height = img.height;
                                 var width = img.width;
 
-                                //create canvas + get context
                                 const canvas = createCanvas(width, height);
                                 const ctx = canvas.getContext("2d");
 
-                                //applyText function
                                 const applyText = (canvas, text) => {
                                     const ctx = canvas.getContext("2d");
 
-                                    //calculate largest font size
                                     let fontSize = canvas.width / 12;
 
-                                    //reduce font size loop
                                     do {
-                                        //reduce font size
                                         ctx.font = `${(fontSize -= 5)}px "free-sans"`;
-                                        // Compare pixel width of the text to the canvas minus the approximate avatar size
                                     } while (
                                         ctx.measureText(text).width >
                                         canvas.width - canvas.width / 10
                                     );
-
-                                    // Return the result to use in the actual canvas
                                     return ctx.font;
                                 };
-
-                                //welcomeText function
                                 const welcomeText = (canvas, text) => {
                                     const ctx = canvas.getContext("2d");
-
-                                    //calculate largest font size
                                     let fontSize = canvas.width / 24;
-
-                                    //reduce font size loop
                                     do {
-                                        //reduce font size
                                         ctx.font = `${(fontSize -= 5)}px "free-sans"`;
-                                        // Compare pixel width of the text to the canvas minus the approximate avatar size
                                     } while (
                                         ctx.measureText(text).width >
                                         canvas.width - canvas.width / 4
                                     );
-
-                                    // Return the result to use in the actual canvas
                                     return ctx.font;
                                 };
-
-                                //fetch the image
                                 const image = await loadImage(url);
-
-                                //fetch user avatar
                                 const avatar = await loadImage(
                                     member.user.displayAvatarURL({ format: "png" })
                                 );
-
-                                //draw background
                                 ctx.drawImage(image, 0, 0, width, height);
-
-                                //declare the text
                                 var txt = member.user.username + " #" + member.user.discriminator;
-
-                                //draw font
                                 ctx.font = applyText(canvas, txt);
                                 ctx.strokeStyle = "black";
                                 ctx.lineWidth = canvas.width / 102.4;
@@ -668,11 +639,7 @@ module.exports = {
                                     canvas.width / 2 - ctx.measureText(txt).width / 2,
                                     (canvas.height * 3) / 4
                                 );
-
-                                //declare welcome message
                                 var welcome = "Welcome to the server!";
-
-                                //draw font
                                 ctx.font = welcomeText(canvas, welcome);
                                 ctx.strokeStyle = "black";
                                 ctx.lineWidth = canvas.width / 204.8;
@@ -687,12 +654,8 @@ module.exports = {
                                     canvas.width / 2 - ctx.measureText(welcome).width / 2,
                                     (canvas.height * 6) / 7
                                 );
-
-                                // Pick up the pen
                                 ctx.beginPath();
-                                //line width setting
                                 ctx.lineWidth = canvas.width / 51.2;
-                                // Start the arc to form a circle
                                 ctx.arc(
                                     canvas.width / 2,
                                     canvas.height / 3,
@@ -701,14 +664,10 @@ module.exports = {
                                     Math.PI * 2,
                                     true
                                 );
-                                // Put the pen down
                                 ctx.closePath();
                                 ctx.strokeStyle = "#dfdfdf";
                                 ctx.stroke();
-                                // Clip off the region you drew on
                                 ctx.clip();
-
-                                //draw avatar in circle
                                 ctx.drawImage(
                                     avatar,
                                     canvas.width / 2 - canvas.height / 5,
@@ -716,33 +675,30 @@ module.exports = {
                                     canvas.height / 2.5,
                                     canvas.height / 2.5
                                 );
-
-                                //declare attachment
                                 var attachment = new Discord.MessageAttachment(
                                     canvas.toBuffer(),
                                     "welcome-image.png"
                                 );
 
                                 try {
-                                    //send message
                                     channel.send("", attachment);
                                 } catch (err) {
                                     console.error(err);
                                 }
                             };
 
-                            //image url
                             var url = result[0].wel_img;
-
-                            //give source
+                            try {
+                                var urls = JSON.parse(result[0].wel_img);
+                                url = urls[Math.floor(Math.random() * urls.length)];
+                            } catch(err) {
+                                url = result[0].wel_img;
+                            }
                             img.src = url;
                         }
                     }
-
-                    //check any autorole
-                    if (result[0].autorole === "[]" || result[0] === undefined) {
+                    if (!result[0] || result[0].autorole === "[]") {
                     } else {
-                        //parse array
                         var roleArray = JSON.parse(result[0].autorole);
 
                         for (var i = 0; i < roleArray.length; i++) {
@@ -753,7 +709,6 @@ module.exports = {
                                 var role = await guild.roles.fetch(roleID);
                             }
                             try {
-                                //loop array
                                 member.roles.add(role);
                                 console.log(`Added ${member.displayName} to ${role.name}`)
                             } catch (err) {
@@ -761,8 +716,6 @@ module.exports = {
                             }
                         }
                     }
-
-                    //release SQL
                     con.release();
 
                     if (err) return console.error(err);
@@ -778,9 +731,9 @@ module.exports = {
                 "SELECT leave_msg, leave_channel FROM servers WHERE id='" + guild.id + "'",
                 async function (err, result) {
                     if (
-                        result[0] === undefined ||
-                        result[0].leave_msg === null ||
-                        result[0].leave_channel === null
+                        !result[0] ||
+                        !result[0].leave_msg ||
+                        !result[0].leave_channel
                     ) {
                         if (result[0] === undefined) {
                             con.query(
