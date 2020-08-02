@@ -62,11 +62,11 @@ module.exports = {
                             count += 1;
                         }
                     });
-                    console.log("Set " + count + " queues");
+                    console.log(`[${id}]` + "Set " + count + " queues");
                 });
             }
             con.query("SELECT * FROM rolemsg ORDER BY expiration", (err, res) => {
-                console.log("Found " + res.length + " role messages.");
+                console.log(`[${id}]` + "Found " + res.length + " role messages.");
                 res.forEach(async result => {
                     if (id === 0 && result.guild.id == "622311594654695434") return;
                     if (id === 1 && result.guild.id != "622311594654695434" && result.guild.id != "664716701991960577") return;
@@ -109,7 +109,7 @@ module.exports = {
                 err,
                 results
             ) {
-                console.log("Found " + results.length + " giveaways");
+                console.log(`[${id}]` + "Found " + results.length + " giveaways");
                 results.forEach(async result => {
                     if (id === 0 && result.guild.id == "622311594654695434") return;
                     if (id === 1 && result.guild.id != "622311594654695434" && result.guild.id != "664716701991960577") return;
@@ -257,7 +257,7 @@ module.exports = {
                 fields
             ) {
                 if (err) return console.error(err);
-                console.log("Found " + results.length + " polls.");
+                console.log(`[${id}]` + "Found " + results.length + " polls.");
                 results.forEach(result => {
                     if (id === 0 && result.guild.id == "622311594654695434") return;
                     if (id === 1 && result.guild.id != "622311594654695434" && result.guild.id != "664716701991960577") return;
@@ -343,7 +343,7 @@ module.exports = {
                 });
             });
             con.query("SELECT * FROM timer", (err, results) => {
-                console.log(`Found ${results.length} timers.`);
+                console.log(`[${id}]` + `Found ${results.length} timers.`);
                 results.forEach(async result => {
                     if (id === 0 && result.guild.id == "622311594654695434") return;
                     if (id === 1 && result.guild.id != "622311594654695434" && result.guild.id != "664716701991960577") return;
