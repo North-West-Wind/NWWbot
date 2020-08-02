@@ -602,7 +602,7 @@ module.exports = {
                                     let fontSize = canvas.width / 12;
 
                                     do {
-                                        ctx.font = `${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
+                                        ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
                                     } while (
                                         ctx.measureText(text).width >
                                         canvas.width - canvas.width / 10
@@ -613,7 +613,7 @@ module.exports = {
                                     const ctx = canvas.getContext("2d");
                                     let fontSize = canvas.width / 24;
                                     do {
-                                        ctx.font = `${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
+                                        ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
                                     } while (
                                         ctx.measureText(text).width >
                                         canvas.width - canvas.width / 4

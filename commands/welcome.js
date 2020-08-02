@@ -147,7 +147,7 @@ module.exports = {
                   //reduce font size loop
                   do {
                     //reduce font size
-                    ctx.font = `${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
+                    ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
                     // Compare pixel width of the text to the canvas minus the approximate avatar size
                   } while (
                     ctx.measureText(text).width >
@@ -168,7 +168,7 @@ module.exports = {
                   //reduce font size loop
                   do {
                     //reduce font size
-                    ctx.font = `${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
+                    ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
                     // Compare pixel width of the text to the canvas minus the approximate avatar size
                   } while (
                     ctx.measureText(text).width >
@@ -184,7 +184,7 @@ module.exports = {
 
                 //fetch user avatar
                 const avatar = await loadImage(
-                  message.author.displayAvatarURL({ format: "png" })
+                  member.user.displayAvatarURL({ format: "png" })
                 );
 
                 //draw background
