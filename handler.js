@@ -448,6 +448,7 @@ module.exports = {
                 inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${prefix}invites toggle\` to turn it off)`);
             } catch (err) {
                 console.error("Failed to DM user.");
+                console.error(err);
             }
         }).catch(err => { });
         if (guild.id == "677780367188557824")
