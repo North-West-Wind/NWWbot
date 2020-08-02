@@ -29,6 +29,7 @@
     "follow-redirects": "^1.11.0",
     "gfycat-sdk": "^1.4.18",
     "google-it": "^1.5.0",
+    "is-image-url": "^1.1.8",
     "krunker.js": "^1.2.4",
     "mojang-api": "^0.0.2",
     "moment": "^2.26.0",
