@@ -142,7 +142,7 @@ module.exports = {
                   //reduce font size loop
                   do {
                     //reduce font size
-                    ctx.font = `${(fontSize -= 5)}px "free-sans"`;
+                    ctx.font = `${(fontSize -= 5)}px "free-sans", Arial`;
                     // Compare pixel width of the text to the canvas minus the approximate avatar size
                   } while (
                     ctx.measureText(text).width >
@@ -163,7 +163,7 @@ module.exports = {
                   //reduce font size loop
                   do {
                     //reduce font size
-                    ctx.font = `${(fontSize -= 5)}px "free-sans"`;
+                    ctx.font = `${(fontSize -= 5)}px "free-sans", Arial`;
                     // Compare pixel width of the text to the canvas minus the approximate avatar size
                   } while (
                     ctx.measureText(text).width >
