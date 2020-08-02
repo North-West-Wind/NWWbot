@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const iiu = require("is-image-url");
 var color = Math.floor(Math.random() * 16777214) + 1;
 var panelEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⏹"],
   welcomeEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⬅", "⏹"],
@@ -604,27 +605,39 @@ module.exports = {
           .catch(err => timedOut(msg, panelEmbed));
 
         if (msgCollected.first().attachments.size == 0) {
-          var attachment = msgCollected.first().content;
+          var attachment = msgCollected.first().content.split(/\n+/).filter(att => iiu(att));
         } else {
           var attachment = msgCollected
             .first()
-            .attachments.values()
-            .next().value.attachment;
+            .attachments.array.map(att => att.url).filter(att => iiu(att));
+        }
+        if(attachment.length < 1) {
+          panelEmbed
+            .setDescription(
+              "**Welcome Message/Image/Set**\nNo image attachment was found! Returning to panel main page in 3 seconds..."
+            )
+            .setFooter(
+              "Please wait patiently.",
+              msg.client.user.displayAvatarURL()
+            );
+          await msg.edit(panelEmbed);
+
+          return setTimeout(function () {
+            start(msg, panelEmbed);
+          }, 3000);
         }
         msgCollected.first().delete();
         pool.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(`SELECT wel_img FROM servers WHERE id = '${message.guild.id}'`, (err, results) => {
             if (err) return message.reply("there was an error trying to fetch data from the database!");
-            let urls = "";
-            urls = [attachment];
+            let urls = attachment;
             if (results[0].wel_img) {
               try {
                 let old = JSON.parse(results[0].wel_img);
-                old.push(attachment);
-                urls = old;
+                urls = old.concat(attachment);
               } catch (err) {
-                urls = [attachment];
+                if(iiu(result[0].wel_img)) urls.push(result[0].wel_img);
               }
             }
             con.query(

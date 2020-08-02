@@ -33,10 +33,6 @@ const ytpl = require("ytpl");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
-const urlParser = require("js-video-url-parser");
-const fetch = require("node-fetch");
-const SCDL = require("node-scdl");
-const scdl = new SCDL(process.env.SCID);
 const { http, https } = require("follow-redirects");
 
 const requestStream = url => {
