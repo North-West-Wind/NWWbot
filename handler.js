@@ -444,6 +444,7 @@ module.exports = {
             const uses = await allUserInvites.map(i => i.uses ? i.uses : 0).reduce(reducer);
             if (console.noLog.find(x => x === inviter.id)) return;
             try {
+                console.log(`${inviter.tag} invited ${member.user.tag} to ${guild.name}. ${uses} in total.`);
                 inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${prefix}invites toggle\` to turn it off)`);
             } catch (err) {
                 console.error("Failed to DM user.");
