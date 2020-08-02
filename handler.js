@@ -687,12 +687,13 @@ module.exports = {
                             };
 
                             try {
-                                var urls = JSON.parse(result[0].wel_img);
+                                let urls = JSON.parse(result[0].wel_img);
                                 var url = urls[Math.floor(Math.random() * urls.length)];
+                                img.src = url;
                             } catch(err) {
                                 var url = result[0].wel_img;
+                                img.src = url;
                             }
-                            img.src = url;
                         }
                     }
                     if (!result[0] || result[0].autorole === "[]") {

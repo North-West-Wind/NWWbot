@@ -50,16 +50,11 @@ module.exports = {
               });
             }
           } else {
-            //get channel
-            const channel = guild.channels.resolve(result[0].wel_channel);
-
-
             //convert message into array
             const splitMessage = result[0].welcome.split(" ");
             const messageArray = [];
 
             splitMessage.forEach(word => {
-              //check channel
               if (word.startsWith("{#")) {
                 const first = word.replace("{#", "");
                 const second = first.replace("}", "");
@@ -135,7 +130,7 @@ module.exports = {
             if (result[0].welcome) {
               try {
                 //send message only
-                channel.send(welcomeMessage);
+                message.channel.send(welcomeMessage);
               } catch (err) {
                 console.error(err);
               }
@@ -245,12 +240,13 @@ module.exports = {
               };
 
               try {
-                var urls = JSON.parse(result[0].wel_img);
+                let urls = JSON.parse(result[0].wel_img);
                 var url = urls[Math.floor(Math.random() * urls.length)];
+                img.src = url;
               } catch (err) {
                 var url = result[0].wel_img;
+                img.src = url;
               }
-              img.src = url;
             }
           }
           con.release();
