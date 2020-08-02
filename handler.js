@@ -68,8 +68,8 @@ module.exports = {
             con.query("SELECT * FROM rolemsg ORDER BY expiration", (err, res) => {
                 console.log("Found " + res.length + " role messages.");
                 res.forEach(async result => {
-                    if (id === 0 && result.guild.id === "622311594654695434") return;
-                    if (id === 1 && result.guild.id !== "622311594654695434" && result.guild.id !== "664716701991960577") return;
+                    if (id === 0 && result.guild.id == "622311594654695434") return;
+                    if (id === 1 && result.guild.id != "622311594654695434" && result.guild.id != "664716701991960577") return;
                     console.rm.push(result);
                     var channel = await client.channels.fetch(result.channel);
                     var msg = await channel.messages.fetch(result.id);
@@ -111,8 +111,8 @@ module.exports = {
             ) {
                 console.log("Found " + results.length + " giveaways");
                 results.forEach(async result => {
-                    if (id === 0 && result.guild.id === "622311594654695434") return;
-                    if (id === 1 && result.guild.id !== "622311594654695434" && result.guild.id !== "664716701991960577") return;
+                    if (id === 0 && result.guild.id == "622311594654695434") return;
+                    if (id === 1 && result.guild.id != "622311594654695434" && result.guild.id != "664716701991960577") return;
                     var currentDate = new Date();
                     var millisec = result.endAt - currentDate;
                     if (err) return console.error(err);
@@ -135,7 +135,7 @@ module.exports = {
                             });
                             return;
                         }
-                        if (msg.deleted === true) {
+                        if (msg.deleted) {
                             con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
                                 err,
                                 con
@@ -259,8 +259,8 @@ module.exports = {
                 if (err) return console.error(err);
                 console.log("Found " + results.length + " polls.");
                 results.forEach(result => {
-                    if (id === 0 && result.guild.id === "622311594654695434") return;
-                    if (id === 1 && result.guild.id !== "622311594654695434" && result.guild.id !== "664716701991960577") return;
+                    if (id === 0 && result.guild.id == "622311594654695434") return;
+                    if (id === 1 && result.guild.id != "622311594654695434" && result.guild.id != "664716701991960577") return;
                     var currentDate = new Date();
                     var time = result.endAt - currentDate;
                     setTimeout_(async function () {
@@ -283,7 +283,7 @@ module.exports = {
                             return;
                         }
 
-                        if (msg.deleted === true) {
+                        if (msg.deleted) {
                             con.query("DELETE FROM poll WHERE id = " + msg.id, function (
                                 err,
                                 result
@@ -345,8 +345,8 @@ module.exports = {
             con.query("SELECT * FROM timer", (err, results) => {
                 console.log(`Found ${results.length} timers.`);
                 results.forEach(async result => {
-                    if (id === 0 && result.guild.id === "622311594654695434") return;
-                    if (id === 1 && result.guild.id !== "622311594654695434" && result.guild.id !== "664716701991960577") return;
+                    if (id === 0 && result.guild.id == "622311594654695434") return;
+                    if (id === 1 && result.guild.id != "622311594654695434" && result.guild.id != "664716701991960577") return;
                     let time = result.endAt - new Date();
                     let em = new Discord.MessageEmbed();
                     try {
@@ -450,7 +450,7 @@ module.exports = {
                 console.error("Failed to DM user.");
             }
         }).catch(err => { });
-        if (guild.id === "677780367188557824")
+        if (guild.id == "677780367188557824")
             setTimeout(async () => {
                 var role = await guild.roles.fetch("677785442099396608");
                 member.roles.add(role);
@@ -510,14 +510,14 @@ module.exports = {
                                     const mentionedChannel = guild.channels.find(
                                         x => x.name === second
                                     );
-                                    if (mentionedChannel === null) {
+                                    if (!mentionedChannel) {
                                         messageArray.push("#" + second);
                                     } else {
                                         messageArray.push(mentionedChannel);
                                     }
                                 } else {
                                     const mentionedChannel = guild.channels.resolve(second);
-                                    if (mentionedChannel === null) {
+                                    if (!mentionedChannel) {
                                         messageArray.push("<#" + second + ">");
                                     } else {
                                         messageArray.push(mentionedChannel);
@@ -531,14 +531,14 @@ module.exports = {
                                 const second = first.replace("}", "");
                                 if (isNaN(parseInt(second))) {
                                     const mentionedRole = guild.roles.find(x => x.name === second);
-                                    if (mentionedRole === null) {
+                                    if (!mentionedRole) {
                                         messageArray.push("@" + second);
                                     } else {
                                         messageArray.push(mentionedRole);
                                     }
                                 } else {
                                     const mentionedRole = guild.roles.get(second);
-                                    if (mentionedRole === null) {
+                                    if (!mentionedRole) {
                                         messageArray.push("<@&" + second + ">");
                                     } else {
                                         messageArray.push(mentionedRole);
@@ -552,14 +552,14 @@ module.exports = {
                                 const second = first.replace("}", "");
                                 if (isNaN(parseInt(second))) {
                                     const mentionedUser = client.users.find(x => x.name === second);
-                                    if (mentionedUser === null) {
+                                    if (!mentionedUser) {
                                         messageArray.push("@" + second);
                                     } else {
                                         messageArray.push(mentionedUser);
                                     }
                                 } else {
                                     const mentionedUser = client.users.get(second);
-                                    if (mentionedUser === null) {
+                                    if (!mentionedUser) {
                                         messageArray.push("<@" + second + ">");
                                     } else {
                                         messageArray.push(mentionedUser);
@@ -575,7 +575,7 @@ module.exports = {
                             .join(" ")
                             .replace(/{user}/g, member);
 
-                        if (result[0].welcome !== null) {
+                        if (result[0].welcome) {
                             try {
                                 //send message only
                                 channel.send(welcomeMessage);
@@ -584,8 +584,7 @@ module.exports = {
                             }
                         }
                         //check image link
-                        if (result[0].wel_img === null) {
-                        } else {
+                        if (result[0].wel_img) {
                             //canvas
                             var img = new Image();
 
@@ -736,7 +735,7 @@ module.exports = {
                         !result[0].leave_msg ||
                         !result[0].leave_channel
                     ) {
-                        if (result[0] === undefined) {
+                        if (!result[0]) {
                             con.query(
                                 "SELECT * FROM servers WHERE id = " + guild.id,
                                 function (err, result) {
@@ -785,14 +784,14 @@ module.exports = {
                                     const mentionedChannel = guild.channels.find(
                                         x => x.name === second
                                     );
-                                    if (mentionedChannel === null) {
+                                    if (!mentionedChannel) {
                                         messageArray.push("#" + second);
                                     } else {
                                         messageArray.push(mentionedChannel);
                                     }
                                 } else {
                                     const mentionedChannel = guild.channels.resolve(second);
-                                    if (mentionedChannel === null) {
+                                    if (!mentionedChannel) {
                                         messageArray.push("<#" + second + ">");
                                     } else {
                                         messageArray.push(mentionedChannel);
@@ -806,14 +805,14 @@ module.exports = {
                                 const second = first.replace("}", "");
                                 if (isNaN(parseInt(second))) {
                                     const mentionedRole = guild.roles.find(x => x.name === second);
-                                    if (mentionedRole === null) {
+                                    if (!mentionedRole) {
                                         messageArray.push("@" + second);
                                     } else {
                                         messageArray.push(mentionedRole);
                                     }
                                 } else {
                                     const mentionedRole = guild.roles.get(second);
-                                    if (mentionedRole === null) {
+                                    if (!mentionedRole) {
                                         messageArray.push("<@&" + second + ">");
                                     } else {
                                         messageArray.push(mentionedRole);
@@ -827,14 +826,14 @@ module.exports = {
                                 const second = first.replace("}", "");
                                 if (isNaN(parseInt(second))) {
                                     const mentionedUser = client.users.find(x => x.name === second);
-                                    if (mentionedUser === null) {
+                                    if (!mentionedUser) {
                                         messageArray.push("@" + second);
                                     } else {
                                         messageArray.push(mentionedUser);
                                     }
                                 } else {
                                     const mentionedUser = client.users.get(second);
-                                    if (mentionedUser === null) {
+                                    if (!mentionedUser) {
                                         messageArray.push("<@" + second + ">");
                                     } else {
                                         messageArray.push(mentionedUser);
