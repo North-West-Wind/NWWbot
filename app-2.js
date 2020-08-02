@@ -30,6 +30,11 @@ const Discord = require("discord.js");
 const { prefix, prefix2 } = require("./config.json");
 const { registerFont } = require("canvas");
 
+const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
+for(const file of fontFiles) {
+  const style = file.split(/[\-\.]/)[1];
+  registerFont(`./fonts/${file}`, { family: "NotoSans", style: style.toLowerCase() })
+}
 registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
 
 const alice = new Discord.Client();
