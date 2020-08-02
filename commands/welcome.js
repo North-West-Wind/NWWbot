@@ -1,12 +1,17 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const { createCanvas, Image, loadImage } = require("canvas");
+const { findMember } = require("../function.js");
 
 module.exports = {
   name: "welcome",
   description: "Test the welcome message and image.",
-  execute(message, args, pool) {
-    const member = message.author;
+  async execute(message, args, pool) {
+    let member = message.author;
+    if(args[0]) {
+      member = await findMember(args[0]);
+      if(!member) member = message.author;
+    }
     const guild = message.guild;
     pool.getConnection(function(err, con) {
       if (err) {
