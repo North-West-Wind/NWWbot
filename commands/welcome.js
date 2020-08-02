@@ -7,7 +7,7 @@ module.exports = {
   name: "welcome",
   description: "Test the welcome message and image.",
   async execute(message, args, pool) {
-    let member = message.author;
+    let member = message.member;
     if (args[0]) {
       member = await findMember(message, args[0]);
       if (!member) member = message.author;
@@ -238,7 +238,7 @@ module.exports = {
                 );
 
                 try {
-                  channel.send("", attachment);
+                  message.channel.send("", attachment);
                 } catch (err) {
                   console.error(err);
                 }
@@ -246,30 +246,11 @@ module.exports = {
 
               try {
                 var urls = JSON.parse(result[0].wel_img);
-                url = urls[Math.floor(Math.random() * urls.length)];
+                var url = urls[Math.floor(Math.random() * urls.length)];
               } catch (err) {
                 var url = result[0].wel_img;
               }
               img.src = url;
-            }
-          }
-          if (!result[0] || result[0].autorole === "[]") {
-          } else {
-            var roleArray = JSON.parse(result[0].autorole);
-
-            for (var i = 0; i < roleArray.length; i++) {
-              var roleID = roleArray[i];
-              if (isNaN(parseInt(roleID))) {
-                var role = await guild.roles.find(x => x.name === roleID);
-              } else {
-                var role = await guild.roles.fetch(roleID);
-              }
-              try {
-                member.roles.add(role);
-                console.log(`Added ${member.displayName} to ${role.name}`)
-              } catch (err) {
-                console.error(err);
-              }
             }
           }
           con.release();

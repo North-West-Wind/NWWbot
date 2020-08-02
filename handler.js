@@ -688,7 +688,7 @@ module.exports = {
 
                             try {
                                 var urls = JSON.parse(result[0].wel_img);
-                                url = urls[Math.floor(Math.random() * urls.length)];
+                                var url = urls[Math.floor(Math.random() * urls.length)];
                             } catch(err) {
                                 var url = result[0].wel_img;
                             }
