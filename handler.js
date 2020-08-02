@@ -623,7 +623,7 @@ module.exports = {
                                     member.user.displayAvatarURL({ format: "png" })
                                 );
                                 ctx.drawImage(image, 0, 0, width, height);
-                                var txt = member.user.username + " #" + member.user.discriminator;
+                                var txt = member.user.tag;
                                 ctx.font = applyText(canvas, txt);
                                 ctx.strokeStyle = "black";
                                 ctx.lineWidth = canvas.width / 102.4;
