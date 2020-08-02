@@ -9,7 +9,7 @@ module.exports = {
   async execute(message, args, pool) {
     let member = message.author;
     if(args[0]) {
-      member = await findMember(args[0]);
+      member = await findMember(message, args[0]);
       if(!member) member = message.author;
     }
     const guild = message.guild;
