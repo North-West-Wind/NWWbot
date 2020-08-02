@@ -244,12 +244,11 @@ module.exports = {
                 }
               };
 
-              var url = result[0].wel_img;
               try {
                 var urls = JSON.parse(result[0].wel_img);
                 url = urls[Math.floor(Math.random() * urls.length)];
               } catch (err) {
-                url = result[0].wel_img;
+                var url = result[0].wel_img;
               }
               img.src = url;
             }
