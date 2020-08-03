@@ -328,7 +328,7 @@ module.exports = {
 			case "list":
 				pool.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
-					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, (err, results) => {
+					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
 						if (err) return message.reply("there was an error trying to fetch data from the database!");
 						let now = Date.now();
 						results = results.map(async result => {
