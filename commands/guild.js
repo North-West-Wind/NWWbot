@@ -310,14 +310,14 @@ module.exports = {
 				break;
 			case "delete":
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
-				let user = findUser(args[2]);
-				if (!user) return;
+				let userd = findUser(args[2]);
+				if (!userd) return;
 				pool.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
-					con.query(`SELECT * FROM gtimer WHERE user = '${user.id}'`, (err, results) => {
+					con.query(`SELECT * FROM gtimer WHERE user = '${userd.id}'`, (err, results) => {
 						if (err) return message.reply("there was an error trying to fetch data from the database!");
 						if (results.length == 0) return message.channel.send("No timer was found.");
-						con.query(`DELETE FROM gtimer WHERE user = '${user.id}'`, (err) => {
+						con.query(`DELETE FROM gtimer WHERE user = '${userd.id}'`, (err) => {
 							if (err) return message.reply("there was an error trying to delete the timer!");
 							message.channel.send(`Deleted ${results.length} timers.`);
 						});
