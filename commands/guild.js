@@ -311,13 +311,15 @@ module.exports = {
 				});
 				msg = await msg.edit(`Timer created with the title **${title}** and will last for **${d + h + m + s}**`);
 				setTimeout_(async() => {
-					let asuna = await client.users.fetch("461516729047318529");
+					let asuna = await message.client.users.fetch("461516729047318529");
 					pool.getConnection((err, con) => {
 						if(err) return asuna.send(title + " expired");
-						con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
+						con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`, (err, results) => {
+							if(results.length == 0) return;
+							asuna.send(title + " expired");
+						});
 						con.release();
 					});
-					asuna.send(title + " expired");
 				}, time);
 				break;
 			case "delete":
