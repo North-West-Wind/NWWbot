@@ -1,4 +1,4 @@
-const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql } = require("../function.js");
+const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_ } = require("../function.js");
 const Discord = require("discord.js");
 const ms = require("ms");
 var color = Math.floor(Math.random() * 16777214) + 1;
@@ -300,7 +300,7 @@ module.exports = {
 				if (!uuid || !uuid[0]) return message.reply("there was an error trying to find the player in Minecraft!");
 				pool.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
-					con.query(`INSERT INTO gtimer(user, rank, mc, endAt) VALUES('${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid[0].id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`, (err) => {
+					con.query(`INSERT INTO gtimer(user, dc_rank, mc, endAt) VALUES('${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid[0].id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`, (err) => {
 						if (err) {
 							console.error(err);
 							return message.reply("there was an error trying to insert the timer to the database!");
@@ -310,6 +310,15 @@ module.exports = {
 					con.release();
 				});
 				msg = await msg.edit(`Timer created with the title **${title}** and will last for **${d + h + m + s}**`);
+				setTimeout_(async() => {
+					let asuna = await client.users.fetch("461516729047318529");
+					pool.getConnection((err, con) => {
+						if(err) return asuna.send(title + " expired");
+						con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
+						con.release();
+					});
+					asuna.send(title + " expired");
+				}, time);
 				break;
 			case "delete":
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
@@ -344,7 +353,7 @@ module.exports = {
 								var user = await message.client.users.fetch(str);
 								dc = user.tag;
 							} catch (err) { }
-							let rank = unescape(result.rank);
+							let rank = unescape(result.dc_rank);
 							let title = `${dc} - ${rank} [${username}]`;
 							let seconds = Math.round((result.endAt.getTime() - now) / 1000);
 							return { title: title, time: moment.duration(seconds, "seconds").format() };

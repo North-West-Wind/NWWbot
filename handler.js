@@ -83,7 +83,7 @@ module.exports = {
                             var user = await message.client.users.fetch(str);
                             dc = user.tag;
                         } catch (err) { }
-                        let rank = unescape(result.rank);
+                        let rank = unescape(result.dc_rank);
                         let title = `${dc} - ${rank} [${username}]`;
                         let seconds = Math.round((result.endAt.getTime() - now) / 1000);
                         return `${title} : ${moment.duration(seconds, "seconds").format()}`;
