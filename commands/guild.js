@@ -331,7 +331,7 @@ module.exports = {
 					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, (err, results) => {
 						if (err) return message.reply("there was an error trying to fetch data from the database!");
 						let now = Date.now();
-						results = results.map(result => {
+						results = results.map(async result => {
 							let mc = profile(result.mc);
 							let username = "undefined";
 							if (mc) username = mc.name;

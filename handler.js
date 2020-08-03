@@ -73,7 +73,7 @@ module.exports = {
                 con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, (err, res) => {
                     if(err) return console.error(err);
                     console.log(`[${id}] Found ${res.length} guild timers`);
-                    res = res.map(result => {
+                    res = res.map(async result => {
                         let mc = profile(result.mc);
                         let username = "undefined";
                         if (mc) username = mc.name;
