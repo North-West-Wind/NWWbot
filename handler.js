@@ -74,7 +74,7 @@ module.exports = {
                     if(err) return console.error(err);
                     console.log(`[${id}] Found ${res.length} guild timers`);
                     res = res.map(async result => {
-                        let mc = profile(result.mc);
+                        let mc = await profile(result.mc);
                         let username = "undefined";
                         if (mc) username = mc.name;
                         const str = result.user;

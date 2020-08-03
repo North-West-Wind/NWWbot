@@ -265,7 +265,7 @@ module.exports = {
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
 				if (!args[3]) return message.channel.send("Please provide the user's Minecraft username!");
 				if (!args[4]) return message.channel.send("Please provide the rank of the user!");
-				let user = findUser(message, args[2]);
+				let user = await findUser(message, args[2]);
 				if (!user) return;
 				let title = `${user.tag} - ${args.slice(4).join(" ")} [${args[3]}] (Timer)`;
 				let msg = await message.channel.send("How long do you want the timer to last for? Please enter the duration (example: 10m23s)");
@@ -296,7 +296,7 @@ module.exports = {
 				if (ds !== 0) {
 					s = " " + ds + " seconds";
 				}
-				let uuid = nameToUuid(args[3]);
+				let uuid = await nameToUuid(args[3]);
 				if (!uuid) return message.reply("there was an error trying to find the player in Minecraft!");
 				pool.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
@@ -313,7 +313,7 @@ module.exports = {
 				break;
 			case "delete":
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
-				let userd = findUser(args[2]);
+				let userd = await findUser(args[2]);
 				if (!userd) return;
 				pool.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
@@ -335,7 +335,7 @@ module.exports = {
 						if (err) return message.reply("there was an error trying to fetch data from the database!");
 						let now = Date.now();
 						results = results.map(async result => {
-							let mc = profile(result.mc);
+							let mc = await profile(result.mc);
 							let username = "undefined";
 							if (mc) username = mc.name;
 							const str = result.user;
