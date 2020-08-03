@@ -23,6 +23,9 @@ const profile = (str) => {
 		require("mojang-api").profile(str, function (err, res) { resolve(err ? undefined : res) });
 	})
 }
+const moment = require("moment");
+const formatSetup = require("moment-duration-format");
+formatSetup(moment);
 module.exports = {
     async ready(client, id) {
         console.log(`[${id}] Ready!`);
