@@ -301,7 +301,10 @@ module.exports = {
 				pool.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
 					con.query(`INSERT INTO gtimer(user, rank, mc, endAt) VALUES('${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + time))}')`, (err) => {
-						if (err) return message.reply("there was an error trying to insert the timer to the database!");
+						if (err) {
+							console.error(err);
+							return message.reply("there was an error trying to insert the timer to the database!");
+						}
 						message.channel.send("Timer recorded.");
 					});
 					con.release();
