@@ -5,13 +5,10 @@ const {
   validSPURL,
   isGoodMusicVideoContent,
   decodeHtmlEntity,
-  encodeHtmlEntity,
   validYTPlaylistURL,
   validSCURL
 } = require("../function.js");
 const ytdl = require("ytdl-core-discord");
-const YouTube = require("simple-youtube-api");
-var youtube = new YouTube(process.env.YT);
 var color = Math.floor(Math.random() * 16777214) + 1;
 var SpotifyWebApi = require("spotify-web-api-node");
 var spotifyApi = new SpotifyWebApi({

@@ -18,6 +18,11 @@ const mysql_config = {
 var pool = mysql.createPool(mysql_config);
 const { setTimeout_ } = require("./function.js");
 const wait = require("util").promisify(setTimeout);
+const profile = (str) => {
+	return new Promise(resolve => {
+		require("mojang-api").profile(str, function (err, res) { resolve(err ? undefined : res) });
+	})
+}
 module.exports = {
     async ready(client, id) {
         console.log(`[${id}] Ready!`);
@@ -63,6 +68,33 @@ module.exports = {
                         }
                     });
                     console.log(`[${id}] ` + "Set " + count + " queues");
+                });
+            } else {
+                con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, (err, res) => {
+                    if(err) return console.error(err);
+                    console.log(`[${id}] Found ${res.length} guild timers`);
+                    res = res.map(result => {
+                        let mc = profile(result.mc);
+                        let username = "undefined";
+                        if (mc) username = mc.name;
+                        const str = result.user;
+                        let dc = "undefined#0000";
+                        try {
+                            var user = await message.client.users.fetch(str);
+                            dc = user.tag;
+                        } catch (err) { }
+                        let rank = unescape(result.rank);
+                        let title = `${dc} - ${rank} [${username}]`;
+                        let seconds = Math.round((result.endAt.getTime() - now) / 1000);
+                        return `${title} : ${moment.duration(seconds, "seconds").format()}`;
+                    });
+                    res.forEach(result => {
+                        let endAfter = result.endAt.getTime() - Date.now();
+                        setTimeout_(async() => {
+                            let asuna = await client.users.fetch("461516729047318529");
+                            asuna.send(result + " expired");
+                        }, endAfter);
+                    });
                 });
             }
             con.query("SELECT * FROM rolemsg ORDER BY expiration", (err, res) => {
@@ -623,7 +655,7 @@ module.exports = {
                                     member.user.displayAvatarURL({ format: "png" })
                                 );
                                 ctx.drawImage(image, 0, 0, width, height);
-                                var txt = member.user.username + " #" + member.user.discriminator;
+                                var txt = member.user.tag;
                                 ctx.font = applyText(canvas, txt);
                                 ctx.strokeStyle = "black";
                                 ctx.lineWidth = canvas.width / 102.4;
@@ -686,14 +718,14 @@ module.exports = {
                                 }
                             };
 
-                            var url = result[0].wel_img;
                             try {
-                                var urls = JSON.parse(result[0].wel_img);
-                                url = urls[Math.floor(Math.random() * urls.length)];
+                                let urls = JSON.parse(result[0].wel_img);
+                                var url = urls[Math.floor(Math.random() * urls.length)];
+                                img.src = url;
                             } catch(err) {
-                                url = result[0].wel_img;
+                                var url = result[0].wel_img;
+                                img.src = url;
                             }
-                            img.src = url;
                         }
                     }
                     if (!result[0] || result[0].autorole === "[]") {

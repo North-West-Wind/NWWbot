@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { shuffle, contain, twoDigits } = require("../function.js");
+const { shuffleArray, twoDigits } = require("../function.js");
 const converter = require("number-to-words");
 const { Image, createCanvas, loadImage } = require("canvas");
 const fs = require("fs");
@@ -53,7 +53,6 @@ function toString(x) {
 async function canvasImg(assets, cards) {
   let canvas = createCanvas((cards.length < 5 ? 165 * cards.length : 825), Math.ceil(cards.length / 5) * 256);
   let ctx = canvas.getContext("2d");
-  let images = [];
   for (let i = 0; i < cards.length; i++) {
     let url = await assets.find(x => x.id === twoDigits(cards[i].color) + twoDigits(cards[i].number)).url;
     let img = await loadImage(url);
@@ -163,7 +162,7 @@ module.exports = {
             "The game cannot start as someone didn't accept the invitation!"
           );
         } else {
-          let readFile = await fs.readFileSync("./.glitch-assets", "utf8");
+          let readFile = await fs.readFileSync("../.glitch-assets", "utf8");
           let arr = readFile.split("\n");
           for (let i = 0; i < arr.length - 1; i++) arr[i] = JSON.parse(arr[i]);
           assets = arr.filter(x => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map(x => {
@@ -186,7 +185,7 @@ module.exports = {
 
     async function prepare(mesg, nano) {
       var uno = console.uno;
-      var order = shuffle(participants);
+      var order = shuffleArray(participants);
       message.channel.send(
         "The order has been decided!" +
         order.map(x => `\n${order.indexOf(x) + 1}. **${x.tag}**`)
