@@ -297,10 +297,10 @@ module.exports = {
 					s = " " + ds + " seconds";
 				}
 				let uuid = await nameToUuid(args[3]);
-				if (!uuid) return message.reply("there was an error trying to find the player in Minecraft!");
+				if (!uuid || !uuid[0]) return message.reply("there was an error trying to find the player in Minecraft!");
 				pool.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
-					con.query(`INSERT INTO gtimer(user, rank, mc, endAt) VALUES('${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid.id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`, (err) => {
+					con.query(`INSERT INTO gtimer(user, rank, mc, endAt) VALUES('${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid[0].id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`, (err) => {
 						if (err) {
 							console.error(err);
 							return message.reply("there was an error trying to insert the timer to the database!");
