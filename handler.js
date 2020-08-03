@@ -86,10 +86,10 @@ module.exports = {
                         let rank = unescape(result.dc_rank);
                         let title = `${dc} - ${rank} [${username}]`;
                         let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                        return `${title} : ${moment.duration(seconds, "seconds").format()}`;
+                        return { message: `${title} : ${moment.duration(seconds, "seconds").format()}`, time: result.endAt.getTime() };
                     });
                     res.forEach(result => {
-                        let endAfter = result.endAt.getTime() - Date.now();
+                        let endAfter = result.time - Date.now();
                         setTimeout_(async() => {
                             let asuna = await client.users.fetch("461516729047318529");
                             asuna.send(result + " expired");
