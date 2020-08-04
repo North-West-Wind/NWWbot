@@ -77,7 +77,8 @@ module.exports = {
                     if(err) return console.error(err);
                     console.log(`[${id}] Found ${res.length} guild timers`);
                     let now = Date.now();
-                    res = res.map(async result => {
+                    let tmp = [];
+                    for(const result of results) {
                         let mc = await profile(result.mc);
                         let username = "undefined";
                         if (mc) username = mc.name;
@@ -90,13 +91,14 @@ module.exports = {
                         let rank = unescape(result.dc_rank);
                         let title = `${dc} - ${rank} [${username}]`;
                         let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                        return { message: `${title} : ${moment.duration(seconds, "seconds").format()}`, time: result.endAt.getTime(), user: result.user, uuid: result.mc, dc_rank: result.dc_rank };
-                    });
-                    res.forEach(result => {
-                        let endAfter = result.time - Date.now();
+                        tmp.push({ title: title, time: moment.duration(seconds, "seconds").format(), user: result.user, uuid: result.uuid, dc_rank: result.dc_rank, ms: result.endAt.getTime() });
+                    }
+                    tmp.forEach(result => {
+                        let endAfter = result.ms - Date.now();
                         setTimeout_(async() => {
                             let asuna = await client.users.fetch("461516729047318529");
                             con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.uuid}' AND dc_rank = '${result.dc_rank}'`, (err, results) => {
+                                if(err) return console.error(err);
                                 if(results.length == 0) return;
                                 asuna.send(result.message + " expired");
                                 con.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.uuid}' AND dc_rank = '${result.dc_rank}'`, (err) => {
