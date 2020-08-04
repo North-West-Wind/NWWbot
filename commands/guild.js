@@ -367,25 +367,30 @@ module.exports = {
 							tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
 						}
 						if (tmp.length <= 10) {
+							let description = "";
+							let num = 0;
+							for(const result of tmp) {
+								description += `${++num}. ${result.title} : ${result.time}\n`;
+							}
 							const em = new Discord.MessageEmbed()
 							.setColor(color)
 							.setTitle("Rank Expiration Timers")
-							.setDescription(tmp.map(result => `${tmp.indexOf(result) + 1}. ${result.title} : ${result.time}`).join("\n"))
+							.setDescription(description)
 							.setTimestamp()
 							.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 							message.channel.send(em);
 						} else {
 							const allEmbeds = [];
 							for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
-								let description = "";
+								let desc = "";
 								for(let num = 0; num < 10; num++) {
 									if(!tmp[i + num]) break;
-									description += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
+									desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
 								}
 								const em = new Discord.MessageEmbed()
 								.setColor(color)
 								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
-								.setDescription(description)
+								.setDescription(desc)
 								.setTimestamp()
 								.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 								allEmbeds.push(em);
