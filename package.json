@@ -19,7 +19,7 @@
     "aki-api": "^5.0.0",
     "array-move": "^2.2.0",
     "booru": "^2.2.3",
-    "canvas": "^2.7.0",
+    "canvas": "Automattic/node-canvas#prebuilds@2.6.1",
     "cleverbot-free": "^1.0.2",
     "discord.js": "github:discordjs/discord.js",
     "dotenv": "^8.2.0",
