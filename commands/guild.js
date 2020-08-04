@@ -350,7 +350,8 @@ module.exports = {
 					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
 						if (err) return message.reply("there was an error trying to fetch data from the database!");
 						let now = Date.now();
-						results = results.map(async result => {
+						let tmp = [];
+						for(const result of results) {
 							let mc = await profile(result.mc);
 							let username = "undefined";
 							if (mc) username = mc.name;
@@ -363,27 +364,27 @@ module.exports = {
 							let rank = unescape(result.dc_rank);
 							let title = `${dc} - ${rank} [${username}]`;
 							let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-							return { title: title, time: moment.duration(seconds, "seconds").format() };
-						});
-						if (results.length <= 10) {
+							tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
+						}
+						if (tmp.length <= 10) {
 							const em = new Discord.MessageEmbed()
 							.setColor(color)
 							.setTitle("Rank Expiration Timers")
-							.setDescription(results.map(result => `${results.indexOf(result) + 1}. ${result.title} : ${result.time}`).join("\n"))
+							.setDescription(tmp.map(result => `${tmp.indexOf(result) + 1}. ${result.title} : ${result.time}`).join("\n"))
 							.setTimestamp()
 							.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 							message.channel.send(em);
 						} else {
 							const allEmbeds = [];
-							for (let i = 0; i < Math.ceil(results.length / 10); i++) {
+							for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
 								let description = "";
 								for(let num = 0; num < 10; num++) {
-									if(!results[i + num]) break;
-									description += `${num + 1}. ${results[i + num].title} : ${results[i + num].time}\n`;
+									if(!tmp[i + num]) break;
+									description += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
 								}
 								const em = new Discord.MessageEmbed()
 								.setColor(color)
-								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(results.length / 10)}]`)
+								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
 								.setDescription(description)
 								.setTimestamp()
 								.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
