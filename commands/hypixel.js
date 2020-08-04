@@ -293,6 +293,7 @@ module.exports = {
               hypixelQueries++;
               if (!error && response.statusCode === 200) {
                 console.log(`${res[0].name}'s Hypixel API`); // Print the json response
+                if(!body.player) return message.reply("there was an error trying to read the player data! (It's not found!) (What???)")
                 if (body.player.newPackageRank === "VIP") {
                   var rank = "[VIP]";
                 }
