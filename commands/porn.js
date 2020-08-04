@@ -2056,10 +2056,11 @@ module.exports = {
     
     var picked = subs[Math.floor(Math.random() * subs.length)];
     
-    var response = await redditConn.api.get("/r/" + picked + "/hot").catch(err => console.error(err));
-    if(response[1] === undefined) return await this.execute(message, args);
-    if(response[1].data === undefined || response[1].data.children[0] === undefined || response[1].data.children[0].data === undefined || response[1].data.children[0].data.url === undefined) return await this.execute(message, args);
-    var data = response[1].data.children[0].data;
+    var response = await redditConn.api.get("/r/" + picked + "/hot", { limit: 100 }).catch(err => console.error(err));
+    if(!response || !response[1]) return await this.execute(message, args);
+    if(!response[1].data || !response[1].data.children || !response[1].data.children[0]) return await this.execute(message, args);
+    var data = response[1].data.children[Math.floor(Math.random() * response[1].data.children.length)].data;
+    if(!data || !data.url) return await this.execute(message, args);
     
         const em = new Discord.MessageEmbed()
           .setTitle(`${data.title.substring(0, 256)}`)

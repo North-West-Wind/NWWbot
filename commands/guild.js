@@ -1,4 +1,4 @@
-const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql } = require("../function.js");
+const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_ } = require("../function.js");
 const Discord = require("discord.js");
 const ms = require("ms");
 var color = Math.floor(Math.random() * 16777214) + 1;
@@ -265,7 +265,7 @@ module.exports = {
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
 				if (!args[3]) return message.channel.send("Please provide the user's Minecraft username!");
 				if (!args[4]) return message.channel.send("Please provide the rank of the user!");
-				let user = findUser(message, args[2]);
+				let user = await findUser(message, args[2]);
 				if (!user) return;
 				let title = `${user.tag} - ${args.slice(4).join(" ")} [${args[3]}] (Timer)`;
 				let msg = await message.channel.send("How long do you want the timer to last for? Please enter the duration (example: 10m23s)");
@@ -296,28 +296,42 @@ module.exports = {
 				if (ds !== 0) {
 					s = " " + ds + " seconds";
 				}
-				let uuid = nameToUuid(args[3]);
-				if (!uuid) return message.reply("there was an error trying to find the player in Minecraft!");
+				let uuid = await nameToUuid(args[3]);
+				if (!uuid || !uuid[0]) return message.reply("there was an error trying to find the player in Minecraft!");
 				pool.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
-					con.query(`INSERT INTO gtimer(user, rank, mc, endAt) VALUES('${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + time))}')`, (err) => {
-						if (err) return message.reply("there was an error trying to insert the timer to the database!");
+					con.query(`INSERT INTO gtimer(user, dc_rank, mc, endAt) VALUES('${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid[0].id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`, (err) => {
+						if (err) {
+							console.error(err);
+							return message.reply("there was an error trying to insert the timer to the database!");
+						}
 						message.channel.send("Timer recorded.");
 					});
 					con.release();
 				});
 				msg = await msg.edit(`Timer created with the title **${title}** and will last for **${d + h + m + s}**`);
+				setTimeout_(async() => {
+					let asuna = await message.client.users.fetch("461516729047318529");
+					pool.getConnection((err, con) => {
+						if(err) return asuna.send(title + " expired");
+						con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`, (err, results) => {
+							if(results.length == 0) return;
+							asuna.send(title + " expired");
+						});
+						con.release();
+					});
+				}, time);
 				break;
 			case "delete":
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
-				let user = findUser(args[2]);
-				if (!user) return;
+				let userd = await findUser(args[2]);
+				if (!userd) return;
 				pool.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
-					con.query(`SELECT * FROM gtimer WHERE user = '${user.id}'`, (err, results) => {
+					con.query(`SELECT * FROM gtimer WHERE user = '${userd.id}'`, (err, results) => {
 						if (err) return message.reply("there was an error trying to fetch data from the database!");
 						if (results.length == 0) return message.channel.send("No timer was found.");
-						con.query(`DELETE FROM gtimer WHERE user = '${user.id}'`, (err) => {
+						con.query(`DELETE FROM gtimer WHERE user = '${userd.id}'`, (err) => {
 							if (err) return message.reply("there was an error trying to delete the timer!");
 							message.channel.send(`Deleted ${results.length} timers.`);
 						});
@@ -328,11 +342,11 @@ module.exports = {
 			case "list":
 				pool.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
-					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, (err, results) => {
+					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
 						if (err) return message.reply("there was an error trying to fetch data from the database!");
 						let now = Date.now();
 						results = results.map(async result => {
-							let mc = profile(result.mc);
+							let mc = await profile(result.mc);
 							let username = "undefined";
 							if (mc) username = mc.name;
 							const str = result.user;
@@ -341,7 +355,7 @@ module.exports = {
 								var user = await message.client.users.fetch(str);
 								dc = user.tag;
 							} catch (err) { }
-							let rank = unescape(result.rank);
+							let rank = unescape(result.dc_rank);
 							let title = `${dc} - ${rank} [${username}]`;
 							let seconds = Math.round((result.endAt.getTime() - now) / 1000);
 							return { title: title, time: moment.duration(seconds, "seconds").format() };

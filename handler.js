@@ -23,6 +23,9 @@ const profile = (str) => {
 		require("mojang-api").profile(str, function (err, res) { resolve(err ? undefined : res) });
 	})
 }
+const moment = require("moment");
+const formatSetup = require("moment-duration-format");
+formatSetup(moment);
 module.exports = {
     async ready(client, id) {
         console.log(`[${id}] Ready!`);
@@ -73,8 +76,9 @@ module.exports = {
                 con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, (err, res) => {
                     if(err) return console.error(err);
                     console.log(`[${id}] Found ${res.length} guild timers`);
+                    let now = Date.now();
                     res = res.map(async result => {
-                        let mc = profile(result.mc);
+                        let mc = await profile(result.mc);
                         let username = "undefined";
                         if (mc) username = mc.name;
                         const str = result.user;
@@ -83,13 +87,13 @@ module.exports = {
                             var user = await message.client.users.fetch(str);
                             dc = user.tag;
                         } catch (err) { }
-                        let rank = unescape(result.rank);
+                        let rank = unescape(result.dc_rank);
                         let title = `${dc} - ${rank} [${username}]`;
                         let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                        return `${title} : ${moment.duration(seconds, "seconds").format()}`;
+                        return { message: `${title} : ${moment.duration(seconds, "seconds").format()}`, time: result.endAt.getTime() };
                     });
                     res.forEach(result => {
-                        let endAfter = result.endAt.getTime() - Date.now();
+                        let endAfter = result.time - Date.now();
                         setTimeout_(async() => {
                             let asuna = await client.users.fetch("461516729047318529");
                             asuna.send(result + " expired");
