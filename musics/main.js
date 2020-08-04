@@ -24,8 +24,13 @@ module.exports = {
   stop(guild) {
     const serverQueue = queue.get(guild.id);
     if(!serverQueue) return;
-    if(serverQueue.connection.dispatcher)
+    if(serverQueue.connection && serverQueue.connection.dispatcher)
   serverQueue.connection.dispatcher.destroy();
+  serverQueue.playing = false;
+  serverQueue.connection = null;
+  serverQueue.voiceChannel = null;
+  serverQueue.textChannel = null;
+  if(guild.me.voice.channel)
   guild.me.voice.channel.leave();
   },
   setQueue(guild, songs, loopStatus, repeatStatus) {

@@ -90,13 +90,20 @@ module.exports = {
                         let rank = unescape(result.dc_rank);
                         let title = `${dc} - ${rank} [${username}]`;
                         let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                        return { message: `${title} : ${moment.duration(seconds, "seconds").format()}`, time: result.endAt.getTime() };
+                        return { message: `${title} : ${moment.duration(seconds, "seconds").format()}`, time: result.endAt.getTime(), user: user ? user : undefined, uuid: result.mc, dc_rank: result.dc_rank };
                     });
                     res.forEach(result => {
                         let endAfter = result.time - Date.now();
                         setTimeout_(async() => {
                             let asuna = await client.users.fetch("461516729047318529");
-                            asuna.send(result + " expired");
+                            con.query(`SELECT id FROM gtimer WHERE user = '${result.user.id}' AND mc = '${result.uuid}' AND dc_rank = '${result.dc_rank}'`, (err, results) => {
+                                if(results.length == 0) return;
+                                asuna.send(result.message + " expired");
+                                con.query(`DELETE FROM gtimer WHERE user = '${result.user.id}' AND mc = '${result.uuid}' AND dc_rank = '${result.dc_rank}'`, (err) => {
+                                    if(err) return console.error(err);
+                                    console.log("A guild timer expired");
+                                });
+                            });
                         }, endAfter);
                     });
                 });
@@ -945,6 +952,10 @@ module.exports = {
     },
     async voiceStateUpdate(oldState, newState, client, exit) {
         const guild = oldState.guild || newState.guild;
+        const mainMusic = require("./musics/main.js");
+        if(oldState.id == guild.me.id || newState.id == guild.me.id) {
+            if(!guild.me.voice || !guild.me.voice.channel) return await mainMusic.stop(guild);
+        }
         if (!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
         if (guild.me.voice.channel.members.size <= 1) {
             var pendingExit = await exit.find(x => x === guild.id);
@@ -953,7 +964,6 @@ module.exports = {
             setTimeout(async function () {
                 var shouldExit = exit.find(x => x === guild.id);
                 if (!shouldExit) return;
-                const mainMusic = require("./musics/main.js");
                 return await mainMusic.stop(guild);
             }, 30000);
         } else {

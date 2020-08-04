@@ -315,8 +315,13 @@ module.exports = {
 					pool.getConnection((err, con) => {
 						if(err) return asuna.send(title + " expired");
 						con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`, (err, results) => {
+							if(err) return asuna.send(title + " expired");
 							if(results.length == 0) return;
 							asuna.send(title + " expired");
+							con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`, (err) => {
+								if(err) return console.error(err);
+								console.log("A guild timer expired");
+							});
 						});
 						con.release();
 					});
@@ -361,11 +366,10 @@ module.exports = {
 							return { title: title, time: moment.duration(seconds, "seconds").format() };
 						});
 						if (results.length <= 10) {
-							let num = 0;
 							const em = new Discord.MessageEmbed()
 							.setColor(color)
 							.setTitle("Rank Expiration Timers")
-							.setDescription(results.map(result => `${++num}. ${result.title} : ${result.time}`))
+							.setDescription(results.map(result => `${results.indexOf(result) + 1}. ${result.title} : ${result.time}`).join("\n"))
 							.setTimestamp()
 							.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 							message.channel.send(em);
@@ -375,12 +379,12 @@ module.exports = {
 								let description = "";
 								for(let num = 0; num < 10; num++) {
 									if(!results[i + num]) break;
-									description += `${num + 1}. ${results[i + num].title} : ${results[i + num].time}`;
+									description += `${num + 1}. ${results[i + num].title} : ${results[i + num].time}\n`;
 								}
 								const em = new Discord.MessageEmbed()
 								.setColor(color)
 								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(results.length / 10)}]`)
-								.setDescription(results.map(result => `${++num}. ${result.title} : ${result.time}`))
+								.setDescription(description)
 								.setTimestamp()
 								.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 								allEmbeds.push(em);
