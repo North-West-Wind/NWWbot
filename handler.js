@@ -76,7 +76,7 @@ module.exports = {
                 con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async(err, res) => {
                     if(err) return console.error(err);
                     console.log(`[${id}] Found ${res.length} guild timers`);
-                    res.forEach(result => {
+                    res.forEach(async result => {
                         let endAfter = result.endAt.getTime() - Date.now();
                         let mc = await profile(result.mc);
                         let username = "undefined";
