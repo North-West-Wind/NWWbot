@@ -84,7 +84,7 @@ module.exports = {
                         const str = result.user;
                         let dc = "undefined#0000";
                         try {
-                            var user = await message.client.users.fetch(str);
+                            var user = await client.users.fetch(str);
                             dc = user.tag;
                         } catch (err) { }
                         let rank = unescape(result.dc_rank);
