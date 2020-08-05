@@ -38,9 +38,9 @@ module.exports = {
                 var botMemberCount = 0;
                 for (const user of userMember.values()) {
                     if (user.user.bot) botMemberCount += 1;
-                    if (user.presence !== undefined && user.presence.status === "online") onlineMemberCount += 1;
-                    if (user.presence !== undefined && user.presence.status === "idle") onlineMemberCount += 1;
-                    if (user.presence !== undefined && user.presence.status === "dnd") onlineMemberCount += 1;
+                    if (user.presence && user.presence.status === "online") onlineMemberCount += 1;
+                    else if (user.presence && user.presence.status === "idle") onlineMemberCount += 1;
+                    else if (user.presence && user.presence.status === "dnd") onlineMemberCount += 1;
                 }
                 var memberCountChannel = await guild.channels.resolve("722379389102194718");
                 var botCountChannel = await guild.channels.resolve("722379396652072970");
@@ -81,12 +81,7 @@ module.exports = {
                         let mc = await profile(result.mc);
                         let username = "undefined";
                         if (mc) username = mc.name;
-                        const str = result.user;
-                        let dc = "undefined#0000";
-                        try {
-                            var user = await client.users.fetch(str);
-                            dc = user.tag;
-                        } catch (err) { }
+                        let dc = `<@${result.user}>`;
                         let rank = unescape(result.dc_rank);
                         let title = `${dc} - ${rank} [${username}]`;
                         setTimeout_(async() => {
