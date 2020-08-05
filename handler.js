@@ -73,31 +73,35 @@ module.exports = {
                     console.log(`[${id}] ` + "Set " + count + " queues");
                 });
             } else {
-                con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, (err, res) => {
+                con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async(err, res) => {
                     if(err) return console.error(err);
                     console.log(`[${id}] Found ${res.length} guild timers`);
-                    let now = Date.now();
-                    res = res.map(async result => {
+                    res.forEach(async result => {
+                        let endAfter = result.endAt.getTime() - Date.now();
                         let mc = await profile(result.mc);
                         let username = "undefined";
                         if (mc) username = mc.name;
                         const str = result.user;
                         let dc = "undefined#0000";
                         try {
-                            var user = await message.client.users.fetch(str);
+                            var user = await client.users.fetch(str);
                             dc = user.tag;
                         } catch (err) { }
                         let rank = unescape(result.dc_rank);
                         let title = `${dc} - ${rank} [${username}]`;
-                        let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                        return { message: `${title} : ${moment.duration(seconds, "seconds").format()}`, time: result.endAt.getTime() };
-                    });
-                    res.forEach(result => {
-                        let endAfter = result.time - Date.now();
                         setTimeout_(async() => {
                             let asuna = await client.users.fetch("461516729047318529");
-                            asuna.send(result + " expired");
+                            con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, (err, results) => {
+                                if(err) return console.error(err);
+                                if(results.length == 0) return;
+                                asuna.send(title + " expired");
+                                con.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, (err) => {
+                                    if(err) return console.error(err);
+                                    console.log("A guild timer expired");
+                                });
+                            });
                         }, endAfter);
+
                     });
                 });
             }
@@ -945,6 +949,10 @@ module.exports = {
     },
     async voiceStateUpdate(oldState, newState, client, exit) {
         const guild = oldState.guild || newState.guild;
+        const mainMusic = require("./musics/main.js");
+        if(oldState.id == guild.me.id || newState.id == guild.me.id) {
+            if(!guild.me.voice || !guild.me.voice.channel) return await mainMusic.stop(guild);
+        }
         if (!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
         if (guild.me.voice.channel.members.size <= 1) {
             var pendingExit = await exit.find(x => x === guild.id);
@@ -953,7 +961,6 @@ module.exports = {
             setTimeout(async function () {
                 var shouldExit = exit.find(x => x === guild.id);
                 if (!shouldExit) return;
-                const mainMusic = require("./musics/main.js");
                 return await mainMusic.stop(guild);
             }, 30000);
         } else {

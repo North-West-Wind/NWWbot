@@ -315,8 +315,13 @@ module.exports = {
 					pool.getConnection((err, con) => {
 						if(err) return asuna.send(title + " expired");
 						con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`, (err, results) => {
+							if(err) return asuna.send(title + " expired");
 							if(results.length == 0) return;
 							asuna.send(title + " expired");
+							con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`, (err) => {
+								if(err) return console.error(err);
+								console.log("A guild timer expired");
+							});
 						});
 						con.release();
 					});
@@ -345,7 +350,8 @@ module.exports = {
 					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
 						if (err) return message.reply("there was an error trying to fetch data from the database!");
 						let now = Date.now();
-						results = results.map(async result => {
+						let tmp = [];
+						for(const result of results) {
 							let mc = await profile(result.mc);
 							let username = "undefined";
 							if (mc) username = mc.name;
@@ -358,29 +364,33 @@ module.exports = {
 							let rank = unescape(result.dc_rank);
 							let title = `${dc} - ${rank} [${username}]`;
 							let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-							return { title: title, time: moment.duration(seconds, "seconds").format() };
-						});
-						if (results.length <= 10) {
+							tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
+						}
+						if (tmp.length <= 10) {
+							let description = "";
 							let num = 0;
+							for(const result of tmp) {
+								description += `${++num}. ${result.title} : ${result.time}\n`;
+							}
 							const em = new Discord.MessageEmbed()
 							.setColor(color)
 							.setTitle("Rank Expiration Timers")
-							.setDescription(results.map(result => `${++num}. ${result.title} : ${result.time}`))
+							.setDescription(description)
 							.setTimestamp()
 							.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 							message.channel.send(em);
 						} else {
 							const allEmbeds = [];
-							for (let i = 0; i < Math.ceil(results.length / 10); i++) {
-								let description = "";
+							for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
+								let desc = "";
 								for(let num = 0; num < 10; num++) {
-									if(!results[i + num]) break;
-									description += `${num + 1}. ${results[i + num].title} : ${results[i + num].time}`;
+									if(!tmp[i + num]) break;
+									desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
 								}
 								const em = new Discord.MessageEmbed()
 								.setColor(color)
-								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(results.length / 10)}]`)
-								.setDescription(results.map(result => `${++num}. ${result.title} : ${result.time}`))
+								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
+								.setDescription(desc)
 								.setTimestamp()
 								.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 								allEmbeds.push(em);

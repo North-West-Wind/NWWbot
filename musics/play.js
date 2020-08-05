@@ -24,9 +24,65 @@ const ytpl = require("ytpl");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
-const migrate = require("./migrate.js");
 const { http } = require("follow-redirects");
-const { message } = require("../handler.js");
+
+async function migrate(message, serverQueue, looping, queue, pool, repeat, exit, migrating) {
+  if(migrating.find(x => x === message.guild.id)) return message.channel.send("I'm on my way!").then(msg => msg.delete(10000));
+  if(!message.member.voice.channel) {
+    return message.channel.send("You are not in any voice channel!");
+  }
+  if(!message.guild.me.voice.channel) {
+    return message.channel.send("I am not in any voice channel!");
+  }
+  if(message.member.voice.channelID === message.guild.me.voice.channelID) {
+    return message.channel.send("I'm already in the same channel with you!");
+  }
+  if(!serverQueue) {
+    return message.channel.send("There is nothing playing.");
+  }
+  if(!serverQueue.playing) {
+    return message.channel.send("I'm not playing anything.");
+  }
+  if(!message.member.voice.channel.permissionsFor(message.guild.me).has(3145728)) {
+    return message.channel.send("I don't have the required permissions to play music here!");
+  }
+  migrating.push(message.guild.id);
+  if(exit.find(x => x === message.guild.id)) exit.splice(exit.indexOf(message.guild.id), 1);
+  var oldChannel = serverQueue.voiceChannel;
+  var begin = 0;
+  if(serverQueue.connection && serverQueue.connection.dispatcher) {
+    begin = serverQueue.connection.dispatcher.streamTime - serverQueue.startTime;
+    serverQueue.connection.dispatcher.destroy();
+  }
+  serverQueue.playing = false;
+  serverQueue.connection = null;
+  serverQueue.voiceChannel = null;
+  serverQueue.textChannel = null;
+  if(message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
+  
+  var voiceChannel = message.member.voice.channel;
+  var msg = await message.channel.send("Migrating in 3 seconds...");
+  
+  setTimeout(async() => {
+    if (
+        !message.guild.me.voice.channel ||
+        message.guild.me.voice.channelID !== voiceChannel.id
+      ) {
+        var connection = await voiceChannel.join();
+      } else {
+        await message.guild.me.voice.channel.leave();
+        var connection = await voiceChannel.join();
+      }
+      serverQueue.voiceChannel = voiceChannel;
+      serverQueue.connection = connection;
+      serverQueue.playing = true;
+      serverQueue.textChannel = message.channel;
+      await queue.set(message.guild.id, serverQueue);
+      msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`);
+      migrating.splice(migrating.indexOf(message.guild.id));
+      play(message.guild, serverQueue.songs[0], looping, queue, pool, repeat);
+  }, 3000);
+}
 
 const requestStream = url => {
   return new Promise(resolve => {
@@ -41,16 +97,16 @@ const GET = url => {
 
 async function play(guild, song, looping, queue, pool, repeat, begin) {
   const serverQueue = queue.get(guild.id);
-  if(!begin) var begin = 0;
+  if (!begin) var begin = 0;
   if (!song) {
     guild.me.voice.channel.leave();
     queue.delete(guild.id);
-    pool.getConnection(function(err, con) {
-      if(err) return console.error(err);
+    pool.getConnection(function (err, con) {
+      if (err) return console.error(err);
       con.query(
         "UPDATE servers SET queue = NULL WHERE id = " + guild.id,
-        function(err) {
-          if(err) return console.error(err);
+        function (err) {
+          if (err) return console.error(err);
           console.log("Updated song queue of " + guild.name);
         }
       );
@@ -73,7 +129,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
       Embed.setDescription(
         `**[${song.title}](${song.spot})**\nLength: **${song.time}**`
       ).setThumbnail(song.thumbnail);
-    serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000}));
+    serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
   }
 
   if (serverQueue.connection === null) return;
@@ -91,15 +147,22 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
   } else if (song.type === 3) {
     var res = await GET(`http://api.soundcloud.com/tracks/${song.id}/stream?client_id=${process.env.SCID}`);
     var stream = await requestStream(res.responseUrl);
-      dispatcher = serverQueue.connection.play(stream, {
-        seek: begin
-      });
+    dispatcher = serverQueue.connection.play(stream, {
+      seek: begin
+    });
   } else {
     try {
-      var stream = await ytdl(song.url, { highWaterMark: 1 << 28, begin: begin });
-    } catch(err) {
+      var stream = await ytdl(song.url, {
+        highWaterMark: 1 << 28, begin: begin, requestOptions: {
+          headers: {
+            cookie: process.env.COOKIE
+          }
+        }
+      });
+    } catch (err) {
       console.error(err);
-      serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track...").then(msg => msg.delete({ timeout: 30000 }));
+      if (serverQueue.textChannel)
+        serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track...").then(msg => msg.delete({ timeout: 30000 }));
       const guildLoopStatus = looping.get(guild.id);
       const guildRepeatStatus = repeat.get(guild.id);
 
@@ -110,14 +173,14 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
         await serverQueue.songs.shift();
       }
 
-      pool.getConnection(function(err, con) {
-        if(err) return console.error(err);
+      pool.getConnection(function (err, con) {
+        if (err) return console.error(err);
         con.query(
           "UPDATE servers SET queue = '" +
-            escape(JSON.stringify(serverQueue.songs)) +
-            "' WHERE id = " +
-            guild.id,
-          function(err) {
+          escape(JSON.stringify(serverQueue.songs)) +
+          "' WHERE id = " +
+          guild.id,
+          function (err) {
             if (err) console.error(err);
             console.log("Updated song queue of " + guild.name);
           }
@@ -144,15 +207,15 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
         await serverQueue.songs.shift();
       }
 
-      pool.getConnection(function(err, con) {
-        if(err) return console.error(err);
+      pool.getConnection(function (err, con) {
+        if (err) return console.error(err);
         con.query(
           "UPDATE servers SET queue = '" +
-            escape(JSON.stringify(serverQueue.songs)) +
-            "' WHERE id = " +
-            guild.id,
-          function(err) {
-            if(err) return console.error(err);
+          escape(JSON.stringify(serverQueue.songs)) +
+          "' WHERE id = " +
+          guild.id,
+          function (err) {
+            if (err) return console.error(err);
             console.log("Updated song queue of " + guild.name);
           }
         );
@@ -192,7 +255,7 @@ module.exports = {
             "No song queue found for this server! Please provide a link or keywords to get a music played!"
           );
         if (serverQueue.playing === true || migrating.find(x => x === message.guild.id)) {
-          return await migrate.music(message, serverQueue, looping, queue, pool, repeat, exit, migrating);
+          return await migrate(message, serverQueue, looping, queue, pool, repeat, exit, migrating);
         }
 
         if (
@@ -201,7 +264,7 @@ module.exports = {
         ) {
           try {
             var connection = await voiceChannel.join();
-          } catch(err) {
+          } catch (err) {
             message.reply("there was an error trying to connect to the voice channel!");
             await message.guild.me.voice.channel.leave();
             return console.error(err);
@@ -210,7 +273,7 @@ module.exports = {
           await message.guild.me.voice.channel.leave();
           try {
             var connection = await voiceChannel.join();
-          } catch(err) {
+          } catch (err) {
             message.reply("there was an error trying to connect to the voice channel!");
             await message.guild.me.voice.channel.leave();
             return console.error(err);
@@ -293,13 +356,13 @@ module.exports = {
           } else {
             var res = await fetch(
               `https://api.soundcloud.com/resolve?url=${args[1]}&client_id=${
-                process.env.SCID
+              process.env.SCID
               }`
             );
             if (res.status !== 200) {
               return message.channel.send(
                 "A problem occured while fetching the track information! Status Code: " +
-                  res.status
+                res.status
               );
             }
             var data = await res.json();
@@ -372,27 +435,27 @@ module.exports = {
             case "playlist":
               var musics = await spotifyApi.getPlaylist(musicID, { limit: 50 });
               var tracks = musics.body.tracks.items;
-                async function checkAll() {
-                  if(musics.body.tracks.next) {
-                    var offset = musics.body.tracks.offset + 50;
-                    musics = await spotifyApi.getPlaylist(musicID, {
-                      limit: 50,
-                      offset: offset
-                    });
-                    tracks = tracks.concat(musics.body.tracks.items);
-                    return await checkAll();
-                  }
+              async function checkAll() {
+                if (musics.body.tracks.next) {
+                  var offset = musics.body.tracks.offset + 50;
+                  musics = await spotifyApi.getPlaylist(musicID, {
+                    limit: 50,
+                    offset: offset
+                  });
+                  tracks = tracks.concat(musics.body.tracks.items);
+                  return await checkAll();
                 }
+              }
               await checkAll();
               var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);
               for (var i = 0; i < tracks.length; i++) {
-                await mesg.edit(`Processing track: **${i+1}/${tracks.length}**`);
+                await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`);
                 var matched;
                 try {
                   var searched = await ytsr(
                     tracks[i].track.artists[0].name +
-                      " - " +
-                      tracks[i].track.name,
+                    " - " +
+                    tracks[i].track.name,
                     { limit: 20 }
                   );
                   var results = searched.items.filter(
@@ -451,7 +514,7 @@ module.exports = {
 
                 var tracks = data.body.items;
                 async function checkAll() {
-                  if(data.body.next) {
+                  if (data.body.next) {
                     var offset = data.body.offset + 50;
                     data = await spotifyApi.getAlbumTracks(musicID, {
                       limit: 50,
@@ -471,7 +534,7 @@ module.exports = {
               }
               var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);
               for (var i = 0; i < tracks.length; i++) {
-                await mesg.edit(`Processing track: **${i+1}/${tracks.length}**`)
+                await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`)
                 var matched;
                 try {
                   var searched = await ytsr(
@@ -517,7 +580,7 @@ module.exports = {
                   }
                 }
               }
-              mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000}))
+              mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }))
               break;
             case "track":
               var data = await spotifyApi.getTracks([musicID]);
@@ -628,14 +691,14 @@ module.exports = {
         queue.set(message.guild.id, queueContruct);
 
         try {
-          pool.getConnection(function(err, con) {
-            if(err) return message.reply("there was an error trying to connect to the database!");
+          pool.getConnection(function (err, con) {
+            if (err) return message.reply("there was an error trying to connect to the database!");
             con.query(
               "UPDATE servers SET queue = '" +
-                escape(JSON.stringify(queueContruct.songs)) +
-                "' WHERE id = " +
-                message.guild.id,
-              function(err, result) {
+              escape(JSON.stringify(queueContruct.songs)) +
+              "' WHERE id = " +
+              message.guild.id,
+              function (err, result) {
                 if (err)
                   return message.reply(
                     "there was an error trying to update the queue!"
@@ -647,7 +710,7 @@ module.exports = {
           });
           try {
             var connection = await voiceChannel.join();
-          } catch(err) {
+          } catch (err) {
             message.reply("there was an error trying to connect to the voice channel!");
             await message.guild.me.voice.channel.leave();
             return console.error(err);
@@ -663,25 +726,25 @@ module.exports = {
             repeat
           );
           const Embed = new Discord.MessageEmbed()
-          .setColor(color)
-          .setTitle("New track added:")
-          .setThumbnail(songs[0].thumbnail)
-          .setDescription(
-            `**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`
-          )
-          .setTimestamp()
-          .setFooter(
-            "Have a nice day! :)",
-            message.client.user.displayAvatarURL()
-          );
-        if (songs.length > 1) {
-          Embed.setDescription(`**${songs.length}** tracks were added.`).setThumbnail(undefined);
-        }
-        return message.channel.send(Embed).then(msg => {
-          setTimeout(() => {
-            msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
-          }, 30000);
-        });
+            .setColor(color)
+            .setTitle("New track added:")
+            .setThumbnail(songs[0].thumbnail)
+            .setDescription(
+              `**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`
+            )
+            .setTimestamp()
+            .setFooter(
+              "Have a nice day! :)",
+              message.client.user.displayAvatarURL()
+            );
+          if (songs.length > 1) {
+            Embed.setDescription(`**${songs.length}** tracks were added.`).setThumbnail(undefined);
+          }
+          return message.channel.send(Embed).then(msg => {
+            setTimeout(() => {
+              msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
+            }, 30000);
+          });
         } catch (err) {
           console.log(err);
           queue.delete(message.guild.id);
@@ -696,14 +759,14 @@ module.exports = {
             serverQueue.songs.push(songs[i]);
         }
 
-        pool.getConnection(function(err, con) {
-          if(err) return message.reply("there was an error trying to connect to the database!");
+        pool.getConnection(function (err, con) {
+          if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET queue = '" +
-              escape(JSON.stringify(serverQueue.songs)) +
-              "' WHERE id = " +
-              message.guild.id,
-            function(err) {
+            escape(JSON.stringify(serverQueue.songs)) +
+            "' WHERE id = " +
+            message.guild.id,
+            function (err) {
               if (err)
                 return message.reply(
                   "there was an error trying to update the queue!"
@@ -717,7 +780,7 @@ module.exports = {
         if (!message.guild.me.voice.channel) {
           try {
             var connection = await voiceChannel.join();
-          } catch(err) {
+          } catch (err) {
             message.reply("there was an error trying to connect to the voice channel!");
             await message.guild.me.voice.channel.leave();
             return console.error(err);
@@ -789,13 +852,13 @@ module.exports = {
           saved.push(video[i]);
           results.push(
             ++num +
-              " - **[" +
-              decodeHtmlEntity(video[i].title) +
-              "](" +
-              video[i].link +
-              ")** : **" +
-              video[i].duration +
-              "**"
+            " - **[" +
+            decodeHtmlEntity(video[i].title) +
+            "](" +
+            video[i].link +
+            ")** : **" +
+            video[i].duration +
+            "**"
           );
         } catch {
           --num;
@@ -826,7 +889,7 @@ module.exports = {
                     message.client.user.displayAvatarURL()
                   );
 
-                return msg.edit(cancelled).then(msg => msg.delete({ timeout: 10000}));
+                return msg.edit(cancelled).then(msg => msg.delete({ timeout: 10000 }));
               }
 
               var s = parseInt(content) - 1;
@@ -837,7 +900,7 @@ module.exports = {
                 .setThumbnail(saved[s].thumbnail)
                 .setDescription(
                   `**[${decodeHtmlEntity(saved[s].title)}](${
-                    saved[s].link
+                  saved[s].link
                   })** : **${saved[s].duration}**`
                 )
                 .setTimestamp()
@@ -871,13 +934,13 @@ module.exports = {
                 queue.set(message.guild.id, queueContruct);
 
                 await queueContruct.songs.push(song);
-                pool.getConnection(function(err, con) {
+                pool.getConnection(function (err, con) {
                   con.query(
                     "UPDATE servers SET queue = '" +
-                      escape(JSON.stringify(queueContruct.songs)) +
-                      "' WHERE id = " +
-                      message.guild.id,
-                    function(err, result) {
+                    escape(JSON.stringify(queueContruct.songs)) +
+                    "' WHERE id = " +
+                    message.guild.id,
+                    function (err, result) {
                       if (err)
                         return message.reply(
                           "there was an error trying to execute that command!"
@@ -892,7 +955,7 @@ module.exports = {
                 try {
                   try {
                     var connection = await voiceChannel.join();
-                  } catch(err) {
+                  } catch (err) {
                     message.reply("there was an error trying to connect to the voice channel!");
                     await message.guild.me.voice.channel.leave();
                     return console.error(err);
@@ -926,14 +989,14 @@ module.exports = {
                 } else {
                   serverQueue.songs.push(song);
                 }
-                pool.getConnection(function(err, con) {
-                  if(err) return message.reply("there was an error trying to connect to the database!");
+                pool.getConnection(function (err, con) {
+                  if (err) return message.reply("there was an error trying to connect to the database!");
                   con.query(
                     "UPDATE servers SET queue = '" +
-                      escape(JSON.stringify(serverQueue.songs)) +
-                      "' WHERE id = " +
-                      message.guild.id,
-                    function(err) {
+                    escape(JSON.stringify(serverQueue.songs)) +
+                    "' WHERE id = " +
+                    message.guild.id,
+                    function (err) {
                       if (err)
                         return message.reply(
                           "there was an error trying to update the queue!"
@@ -946,13 +1009,13 @@ module.exports = {
                   con.release();
                 });
                 if (!message.guild.me.voice.channel) {
-          try {
-            var connection = await voiceChannel.join();
-          } catch(err) {
-            message.reply("there was an error trying to connect to the voice channel!");
-            await message.guild.me.voice.channel.leave();
-            return console.error(err);
-          }
+                  try {
+                    var connection = await voiceChannel.join();
+                  } catch (err) {
+                    message.reply("there was an error trying to connect to the voice channel!");
+                    await message.guild.me.voice.channel.leave();
+                    return console.error(err);
+                  }
                   serverQueue.voiceChannel = voiceChannel;
                   serverQueue.connection = connection;
                   serverQueue.playing = true;
@@ -988,10 +1051,10 @@ module.exports = {
                     message.client.user.displayAvatarURL()
                   );
                 return msg.edit(Embed).then(msg => {
-          setTimeout(() => {
-            msg.edit({ embed: null, content: `**[Track: ${song.title}]**` });
-          }, 30000);
-        });
+                  setTimeout(() => {
+                    msg.edit({ embed: null, content: `**[Track: ${song.title}]**` });
+                  }, 30000);
+                });
               }
             })
             .catch(err => {
@@ -1003,7 +1066,7 @@ module.exports = {
                   "Have a nice day! :)",
                   message.client.user.displayAvatarURL()
                 );
-              msg.edit(Ended).then(msg => msg.delete({ timeout: 10000}));
+              msg.edit(Ended).then(msg => msg.delete({ timeout: 10000 }));
             });
         })
         .catch(err => {
@@ -1017,16 +1080,16 @@ module.exports = {
   },
   async play(guild, song, looping, queue, pool, repeat, begin) {
     const serverQueue = queue.get(guild.id);
-    if(!begin) var begin = 0;
+    if (!begin) var begin = 0;
     if (!song) {
       guild.me.voice.channel.leave();
       queue.delete(guild.id);
-      pool.getConnection(function(err, con) {
-        if(err) return console.error(err);
+      pool.getConnection(function (err, con) {
+        if (err) return console.error(err);
         con.query(
           "UPDATE servers SET queue = NULL WHERE id = " + guild.id,
-          function(err) {
-            if(err) return console.error(err);
+          function (err) {
+            if (err) return console.error(err);
             console.log("Updated song queue of " + guild.name);
           }
         );
@@ -1034,23 +1097,23 @@ module.exports = {
       });
       return;
     }
-    
+
     if (serverQueue.textChannel) {
-    const Embed = new Discord.MessageEmbed()
-      .setColor(color)
-      .setTitle("Now playing:")
-      .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
-      .setDescription(
-        `**[${song.title}](${song.url})**\nLength: **${song.time}**`
-      )
-      .setTimestamp()
-      .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
-    if (song.type === 1)
-      Embed.setDescription(
-        `**[${song.title}](${song.spot})**\nLength: **${song.time}**`
-      ).setThumbnail(song.thumbnail);
-    serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000}));
-  }
+      const Embed = new Discord.MessageEmbed()
+        .setColor(color)
+        .setTitle("Now playing:")
+        .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
+        .setDescription(
+          `**[${song.title}](${song.url})**\nLength: **${song.time}**`
+        )
+        .setTimestamp()
+        .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
+      if (song.type === 1)
+        Embed.setDescription(
+          `**[${song.title}](${song.spot})**\nLength: **${song.time}**`
+        ).setThumbnail(song.thumbnail);
+      serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
+    }
 
     if (serverQueue.connection === null) return;
     if (serverQueue.connection.dispatcher)
@@ -1064,43 +1127,49 @@ module.exports = {
         seek: begin
       });
     } else if (song.type === 3) {
-    var res = await GET(`http://api.soundcloud.com/tracks/${song.id}/stream?client_id=${process.env.SCID}`);
-    var stream = await requestStream(res.responseUrl);
+      var res = await GET(`http://api.soundcloud.com/tracks/${song.id}/stream?client_id=${process.env.SCID}`);
+      var stream = await requestStream(res.responseUrl);
       dispatcher = serverQueue.connection.play(stream, {
         seek: begin
       });
     } else {
-    try {
-      var stream = await ytdl(song.url, { highWaterMark: 1 << 28, begin: begin });
-    } catch(err) {
-      console.error(err);
-      serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track...").then(msg => msg.delete({ timeout: 30000 }));
-      const guildLoopStatus = looping.get(guild.id);
-      const guildRepeatStatus = repeat.get(guild.id);
+      try {
+        var stream = await ytdl(song.url, {
+          highWaterMark: 1 << 28, begin: begin, requestOptions: {
+            headers: {
+              cookie: process.env.COOKIE
+            }
+          }
+        });
+      } catch (err) {
+        console.error(err);
+        serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track...").then(msg => msg.delete({ timeout: 30000 }));
+        const guildLoopStatus = looping.get(guild.id);
+        const guildRepeatStatus = repeat.get(guild.id);
 
-      if (guildLoopStatus === true) {
-        await serverQueue.songs.push(song);
-      }
-      if (guildRepeatStatus !== true) {
-        await serverQueue.songs.shift();
-      }
+        if (guildLoopStatus === true) {
+          await serverQueue.songs.push(song);
+        }
+        if (guildRepeatStatus !== true) {
+          await serverQueue.songs.shift();
+        }
 
-      pool.getConnection(function(err, con) {
-        if(err) return console.error(err);
-        con.query(
-          "UPDATE servers SET queue = '" +
+        pool.getConnection(function (err, con) {
+          if (err) return console.error(err);
+          con.query(
+            "UPDATE servers SET queue = '" +
             escape(JSON.stringify(serverQueue.songs)) +
             "' WHERE id = " +
             guild.id,
-          function(err) {
-            if(err) return console.error(err);
-            console.log("Updated song queue of " + guild.name);
-          }
-        );
-        con.release();
-      });
-      return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
-    }
+            function (err) {
+              if (err) return console.error(err);
+              console.log("Updated song queue of " + guild.name);
+            }
+          );
+          con.release();
+        });
+        return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+      }
       dispatcher = serverQueue.connection.play(stream, {
         type: "opus"
       });
@@ -1119,15 +1188,15 @@ module.exports = {
           await serverQueue.songs.shift();
         }
 
-        pool.getConnection(function(err, con) {
-          if(err) return console.error(err);
+        pool.getConnection(function (err, con) {
+          if (err) return console.error(err);
           con.query(
             "UPDATE servers SET queue = '" +
-              escape(JSON.stringify(serverQueue.songs)) +
-              "' WHERE id = " +
-              guild.id,
-            function(err) {
-              if(err) return console.error(err);
+            escape(JSON.stringify(serverQueue.songs)) +
+            "' WHERE id = " +
+            guild.id,
+            function (err) {
+              if (err) return console.error(err);
               console.log("Updated song queue of " + guild.name);
             }
           );
