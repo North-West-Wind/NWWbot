@@ -76,9 +76,8 @@ module.exports = {
                 con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async(err, res) => {
                     if(err) return console.error(err);
                     console.log(`[${id}] Found ${res.length} guild timers`);
-                    let now = Date.now();
-                    let tmp = [];
-                    for(const result of res) {
+                    res.forEach(result => {
+                        let endAfter = result.endAt.getTime() - Date.now();
                         let mc = await profile(result.mc);
                         let username = "undefined";
                         if (mc) username = mc.name;
@@ -90,23 +89,19 @@ module.exports = {
                         } catch (err) { }
                         let rank = unescape(result.dc_rank);
                         let title = `${dc} - ${rank} [${username}]`;
-                        let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                        tmp.push({ title: title, time: moment.duration(seconds, "seconds").format(), user: result.user, uuid: result.uuid, dc_rank: result.dc_rank, ms: result.endAt.getTime() });
-                    }
-                    tmp.forEach(result => {
-                        let endAfter = result.ms - Date.now();
                         setTimeout_(async() => {
                             let asuna = await client.users.fetch("461516729047318529");
-                            con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.uuid}' AND dc_rank = '${result.dc_rank}'`, (err, results) => {
+                            con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, (err, results) => {
                                 if(err) return console.error(err);
                                 if(results.length == 0) return;
-                                asuna.send(result.message + " expired");
-                                con.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.uuid}' AND dc_rank = '${result.dc_rank}'`, (err) => {
+                                asuna.send(title + " expired");
+                                con.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, (err) => {
                                     if(err) return console.error(err);
                                     console.log("A guild timer expired");
                                 });
                             });
                         }, endAfter);
+
                     });
                 });
             }
