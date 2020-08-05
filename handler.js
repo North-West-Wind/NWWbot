@@ -73,7 +73,7 @@ module.exports = {
                     console.log(`[${id}] ` + "Set " + count + " queues");
                 });
             } else {
-                con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, (err, res) => {
+                con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async(err, res) => {
                     if(err) return console.error(err);
                     console.log(`[${id}] Found ${res.length} guild timers`);
                     let now = Date.now();
