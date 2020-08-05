@@ -78,7 +78,7 @@ module.exports = {
                     console.log(`[${id}] Found ${res.length} guild timers`);
                     let now = Date.now();
                     let tmp = [];
-                    for(const result of results) {
+                    for(const result of res) {
                         let mc = await profile(result.mc);
                         let username = "undefined";
                         if (mc) username = mc.name;
