@@ -40,13 +40,22 @@ module.exports = {
                 });
                 break;
         }
-        if (!stream) return msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
-        console.log(stream);
-        let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
-        try {
-            msg.edit("Download Finished", attachment);
-        } catch(err) {
-            msg.edit(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
-        }
+        let bufs = [];
+        stream.on("data", d => {
+            bufs.push(d);
+        });
+        stream.on("error", err => {
+            console.error(err);
+            msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
+        });
+        stream.on("end", () => {
+            let buf = Buffer.concat(bufs);
+            let attachment = new Discord.MessageAttachment(buf, `${song.title}.mp3`);
+            try {
+                msg.edit("Download Finished", attachment);
+            } catch(err) {
+                msg.edit(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
+            }
+        });
     }
 }
