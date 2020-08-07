@@ -715,6 +715,7 @@ module.exports = {
                                 );
 
                                 try {
+                                    if(id === 1) await channel.send("", new Discord.MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
                                     channel.send("", attachment);
                                 } catch (err) {
                                     console.error(err);
