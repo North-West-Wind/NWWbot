@@ -41,6 +41,7 @@ module.exports = {
                 break;
         }
         if (!stream) return msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
+        console.log(stream);
         let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
         try {
             msg.edit("Download Finished", attachment);
