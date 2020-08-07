@@ -51,10 +51,11 @@ module.exports = {
         stream.on("end", () => {
             let buf = Buffer.concat(bufs);
             let attachment = new Discord.MessageAttachment(buf, `${song.title}.mp3`);
+            msg.delete();
             try {
-                msg.edit("Download Finished", attachment);
+                message.channel.send(attachment);
             } catch(err) {
-                msg.edit(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
+                message.channel.send(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
             }
         });
     }
