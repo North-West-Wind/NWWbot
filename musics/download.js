@@ -1,4 +1,4 @@
-const { music } = require("./main");
+const ytdl = require("ytdl-core-discord");
 
 const Discord = require("discord.js");
 module.exports = {
@@ -20,7 +20,7 @@ module.exports = {
                 stream = await requestStream(res.responseUrl);
             default:
                 stream = await ytdl(song.url, {
-                  highWaterMark: 1 << 28, begin: begin, requestOptions: {
+                  highWaterMark: 1 << 28, requestOptions: {
                     headers: {
                       cookie: process.env.COOKIE
                     }
