@@ -235,6 +235,7 @@ module.exports = {
       let drawCard = 0;
       let skip = false;
       var won = false;
+      var cancelled = false;
       let nores = 0;
       while (!won) {
         if (nores === players.size) {
@@ -277,7 +278,7 @@ module.exports = {
             .setColor(color)
             .setTitle(`It's your turn now!`)
             .setDescription(
-              `The current card is ${toString(top)}\nYour cards:\n\n${readCard.join("\n")}\n\n📥 Place\n📤 Draw\nIf you draw, you will draw **${drawCard > 0 ? drawCard + " cards" : "1 card"}**.`
+              `The current card is ${toString(top)}\nYour cards:\n\n${readCard.join("\n")}\n\n📥 Place\n📤 Draw\n⏹️ Stop\nIf you draw, you will draw **${drawCard > 0 ? drawCard + " cards" : "1 card"}**.`
             )
             .attachFiles([{ attachment: await canvasImg(assets, player.card), name: "yourCard.png" }])
             .setImage("attachment://yourCard.png")
@@ -289,8 +290,9 @@ module.exports = {
           let mssg = await player.user.send(em);
           await mssg.react("📥");
           await mssg.react("📤");
+          await mssg.react("⏹️");
           try {
-            var collected = await mssg.awaitReactions((r, u) => ["📥", "📤"].includes(r.emoji.name) && u.id === player.user.id, { time: 120 * 1000, max: 1, errors: ["time"] });
+            var collected = await mssg.awaitReactions((r, u) => ["📥", "📤", "⏹️"].includes(r.emoji.name) && u.id === player.user.id, { time: 120 * 1000, max: 1, errors: ["time"] });
           } catch (err) { }
           let newCard = console.card.random(drawCard > 0 ? drawCard : 1);
           let card = !newCard.length ? [toString(newCard)] : newCard.map(x => toString(x));
@@ -370,6 +372,21 @@ module.exports = {
               continue;
             }
             if (!keys.includes(collected.first().content)) {
+              if (collected.first().content.toLowerCase() == "cancel") {
+                cancelled = true;
+              }
+              if (cancelled) {
+                let cancel = new Discord.MessageEmbed()
+                  .setColor(color)
+                  .setTitle(`${player.user.tag} doesn't want to play with you anymore!`)
+                  .setThumbnail(player.user.displayAvatarURL())
+                  .setDescription(`**${player.user.tag}** left the game!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - nano, "milliseconds").format()}.\nThanks for playing!`)
+                  .setTimestamp()
+                  .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+                mesg.edit(cancel);
+                uno.delete(nano);
+                return;
+              }
               em.setDescription(`You cannot place that card so you drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                 .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                 .setImage("attachment://newCard.png")
@@ -489,7 +506,7 @@ module.exports = {
                 .setDescription(`Congratulations to **${player.user.tag}**!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - nano, "milliseconds").format()}.\nThanks for playing!`)
                 .setTimestamp()
                 .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-              setTimeout(() => mesg.edit(win), 3000);
+              mesg.edit(win);
               uno.delete(nano);
               break;
             } else {
@@ -508,7 +525,7 @@ module.exports = {
               }
               continue;
             }
-          } else {
+          } else if (collected.first().emoji.name === "📤") {
             em.setDescription(`You drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
               .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
               .setImage("attachment://newCard.png")
@@ -525,6 +542,18 @@ module.exports = {
             draw.setDescription(`${player.user.tag} drew ${card.length} card${card.length > 1 ? "s" : ""}!`)
             mesg.edit(draw);
             continue;
+          } else {
+            cancelled = true;
+            let cancel = new Discord.MessageEmbed()
+              .setColor(color)
+              .setTitle(`${player.user.tag} doesn't want to play with you anymore!`)
+              .setThumbnail(player.user.displayAvatarURL())
+              .setDescription(`**${player.user.tag}** left the game!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - nano, "milliseconds").format()}.\nThanks for playing!`)
+              .setTimestamp()
+              .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+            mesg.edit(cancel);
+            uno.delete(nano);
+            return;
           }
         }
       }
