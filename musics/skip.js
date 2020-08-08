@@ -16,8 +16,7 @@ module.exports = {
     return message.channel.send("There is no song that I could skip!");
   const guildLoopStatus = looping.get(message.guild.id);
     const guildRepeatStatus = repeat.get(message.guild.id);
-    if(serverQueue.playing === false) return message.channel.send("No music is being played.")
-  serverQueue.connection.dispatcher.destroy();
+    if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
     if(guildRepeatStatus === true) {
     skipped = 0;
        } else if(guildLoopStatus === true) {

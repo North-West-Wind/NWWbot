@@ -1,4 +1,5 @@
 const ytdl = require("ytdl-core-discord");
+const scdl = require("soundcloud-downloader");
 
 const requestStream = url => {
     return new Promise(resolve => {
@@ -28,8 +29,7 @@ module.exports = {
                 stream = await requestStream(song.url);
                 break;
             case 3:
-                var res = await GET(`http://api.soundcloud.com/tracks/${song.id}/stream?client_id=${process.env.SCID}`);
-                stream = await requestStream(res.responseUrl);
+                stream = await scdl.download(song.url);
             default:
                 stream = await ytdl(song.url, {
                     highWaterMark: 1 << 28, requestOptions: {
@@ -40,17 +40,12 @@ module.exports = {
                 });
                 break;
         }
-        let bufs = [];
-        stream.on("data", d => {
-            bufs.push(d);
-        });
         stream.on("error", err => {
             console.error(err);
             msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
         });
         stream.on("end", () => {
-            let buf = Buffer.concat(bufs);
-            let attachment = new Discord.MessageAttachment(buf, `${song.title}.mp3`);
+            let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
             msg.delete();
             try {
                 message.channel.send(attachment);
