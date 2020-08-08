@@ -30,7 +30,7 @@ module.exports = {
                     stream = await requestStream(song.url);
                 } catch(err) {
                     console.error(err);
-                    return msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
+                    return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
                 }
                 break;
             case 3:
@@ -38,7 +38,7 @@ module.exports = {
                     stream = await scdl.download(song.url);
                 } catch(err) {
                     console.error(err);
-                    return msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
+                    return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
                 }
             default:
                 try {
@@ -51,7 +51,7 @@ module.exports = {
                     });
                 } catch(err) {
                     console.error(err);
-                    return msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
+                    return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
                 }
                 break;
         }

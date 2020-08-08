@@ -2,7 +2,7 @@ const { play } = require("./play.js");
 
 module.exports = {
   name: "skip",
-  description: "Skip a music in the song queue.",
+  description: "Skip a music in the queue.",
   usage: "[amount]",
   music(message, serverQueue, looping, queue, pool, repeat) {
   const args = message.content.slice(message.client.prefix.length).split(/ +/);
