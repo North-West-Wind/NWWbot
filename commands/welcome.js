@@ -233,6 +233,7 @@ module.exports = {
                 );
 
                 try {
+                  if(message.client.user.id == "653133256186789891") await message.channel.send("", new Discord.MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
                   message.channel.send("", attachment);
                 } catch (err) {
                   console.error(err);

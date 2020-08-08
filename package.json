@@ -1,6 +1,6 @@
 {
   "name": "nwwbot",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "NorthWestWind's bot!",
   "main": "server.js",
   "scripts": {
@@ -53,6 +53,7 @@
     "simple-youtube-api": "^5.2.1",
     "smm-api": "^2.1.2",
     "solenolyrics": "^5.0.0",
+    "soundcloud-downloader": "^0.1.3",
     "spotify-web-api-node": "^4.0.0",
     "statuses": "^2.0.0",
     "wikijs": "^6.0.0",
