@@ -462,7 +462,7 @@ module.exports = {
               .setDescription(`The top card is ${toString(placedCard)}`)
               .setImage(assets.find(x => x.id === twoDigits(placedCard.color) + twoDigits(placedCard.number)).url)
               .setTimestamp()
-              .setFooter(`Placed by ${player.user.tag}`, console.user.displayAvatarURL());
+              .setFooter(`Placed by ${player.user.tag}`, message.client.user.displayAvatarURL());
             mesg.edit(placed);
             let reversing = false;
             switch (placedCard.number) {
