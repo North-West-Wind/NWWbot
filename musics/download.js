@@ -26,18 +26,33 @@ module.exports = {
         let stream;
         switch (song.type) {
             case 2:
-                stream = await requestStream(song.url);
+                try {
+                    stream = await requestStream(song.url);
+                } catch(err) {
+                    console.error(err);
+                    return msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
+                }
                 break;
             case 3:
-                stream = await scdl.download(song.url);
+                try {
+                    stream = await scdl.download(song.url);
+                } catch(err) {
+                    console.error(err);
+                    return msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
+                }
             default:
-                stream = await ytdl(song.url, {
-                    highWaterMark: 1 << 28, requestOptions: {
-                        headers: {
-                            cookie: process.env.COOKIE
+                try {
+                    stream = await ytdl(song.url, {
+                        highWaterMark: 1 << 28, requestOptions: {
+                            headers: {
+                                cookie: process.env.COOKIE
+                            }
                         }
-                    }
-                });
+                    });
+                } catch(err) {
+                    console.error(err);
+                    return msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
+                }
                 break;
         }
         stream.on("error", err => {
