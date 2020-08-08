@@ -25,6 +25,7 @@ const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const { http } = require("follow-redirects");
+const scdl = require("soundcloud-downloader");
 
 async function migrate(message, serverQueue, looping, queue, pool, repeat, exit, migrating) {
   if(migrating.find(x => x === message.guild.id)) return message.channel.send("I'm on my way!").then(msg => msg.delete(10000));
@@ -180,8 +181,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
     });
   } else if (song.type === 3) {
     try {
-      var res = await GET(`http://api.soundcloud.com/tracks/${song.id}/stream?client_id=${process.env.SCID}`);
-      var stream = await requestStream(res.responseUrl);
+      var stream = await scdl.download(song.url);
     } catch(err) {
       console.error(err);
       return await skip();
@@ -1175,8 +1175,7 @@ module.exports = {
       });
     } else if (song.type === 3) {
       try {
-        var res = await GET(`http://api.soundcloud.com/tracks/${song.id}/stream?client_id=${process.env.SCID}`);
-        var stream = await requestStream(res.responseUrl);
+        var stream = await scdl.download(song.url);
       } catch(err) {
         console.error(err);
         return await skip();
