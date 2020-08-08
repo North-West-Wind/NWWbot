@@ -162,7 +162,7 @@ module.exports = {
             "The game cannot start as someone didn't accept the invitation!"
           );
         } else {
-          let readFile = await fs.readFileSync("../.glitch-assets", "utf8");
+          let readFile = await fs.readFileSync("./.glitch-assets", "utf8");
           let arr = readFile.split("\n");
           for (let i = 0; i < arr.length - 1; i++) arr[i] = JSON.parse(arr[i]);
           assets = arr.filter(x => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map(x => {
