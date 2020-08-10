@@ -26,7 +26,6 @@ const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const { http } = require("follow-redirects");
 const scdl = require("soundcloud-downloader");
-var skipped = 0;
 
 async function migrate(message, serverQueue, looping, queue, pool, repeat, exit, migrating) {
   if(migrating.find(x => x === message.guild.id)) return message.channel.send("I'm on my way!").then(msg => msg.delete(10000));
@@ -97,7 +96,7 @@ const GET = url => {
   });
 }
 
-async function play(guild, song, looping, queue, pool, repeat, begin) {
+async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 0) {
   const serverQueue = queue.get(guild.id);
   if (!begin) var begin = 0;
   if (!song) {
@@ -151,7 +150,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
       serverQueue.connection = null;
       serverQueue.voiceChannel = null;
       serverQueue.textChannel = null;
-      if(guild.me.voice && guild.me.voice.channel) await message.guild.me.voice.channel.leave();
+      if(guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
     }
     const guildLoopStatus = looping.get(guild.id);
     const guildRepeatStatus = repeat.get(guild.id);
@@ -177,7 +176,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
       );
       con.release();
     });
-    return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+    return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat, 0, skipped);
   }
   if (song.type === 2) {
     try {
