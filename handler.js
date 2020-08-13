@@ -202,6 +202,12 @@ module.exports = {
                                 if(err) return console.error(err);
                                 if(results.length == 0) return;
                                 asuna.send(title + " expired");
+                                try {
+                                    var user = await client.users.fetch(result.user);
+                                    user.send(`Your rank **${rank}** in War of Underworld has expired.`);
+                                } catch(err) {
+                                    console.error("Failed to DM user")
+                                }
                                 con.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, (err) => {
                                     if(err) return console.error(err);
                                     console.log("A guild timer expired");
