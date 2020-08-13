@@ -85,7 +85,7 @@ module.exports = {
 								description += `${++num}. ${result.title} : ${result.time}\n`;
 							}
 							const em = new Discord.MessageEmbed()
-							.setColor(color)
+							.setColor(Math.floor(Math.random() * 16777214) + 1)
 							.setTitle("Rank Expiration Timers")
 							.setDescription(description)
 							.setTimestamp()
@@ -100,7 +100,7 @@ module.exports = {
 									desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
 								}
 								const em = new Discord.MessageEmbed()
-								.setColor(color)
+								.setColor(Math.floor(Math.random() * 16777214) + 1)
 								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
 								.setDescription(desc)
 								.setTimestamp()
