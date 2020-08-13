@@ -50,8 +50,8 @@ module.exports = {
                 botCountChannel.edit({ name: "Bots: " + botMemberCount }).catch(console.realError);
                 onlineCountChannel.edit({ name: "Online: " + onlineMemberCount }).catch(console.realError);
                 try {
-                    var timerChannel = guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
-                    var timerMsg = timerChannel.messages.fetch(process.env.TIME_LIST_ID);
+                    var timerChannel = await guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
+                    var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
                 } catch(err) {
                     console.error("Failed to fetch timer list message");
                     return;
