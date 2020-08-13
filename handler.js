@@ -49,6 +49,119 @@ module.exports = {
                 memberCountChannel.edit({ name: "All Members: " + memberCount }).catch(console.realError);
                 botCountChannel.edit({ name: "Bots: " + botMemberCount }).catch(console.realError);
                 onlineCountChannel.edit({ name: "Online: " + onlineMemberCount }).catch(console.realError);
+                try {
+                    var timerChannel = guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
+                    var timerMsg = timerChannel.messages.fetch(process.env.TIME_LIST_ID);
+                } catch(err) {
+                    console.error("Failed to fetch timer list message");
+                    return;
+                }
+                pool.getConnection((err, con) => {
+					if (err) return message.reply("there was an error trying to connect to the database!");
+					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
+						if (err) return message.reply("there was an error trying to fetch data from the database!");
+						let now = Date.now();
+						let tmp = [];
+						for(const result of results) {
+							let mc = await profile(result.mc);
+							let username = "undefined";
+							if (mc) username = mc.name;
+							const str = result.user;
+							let dc = "undefined#0000";
+							try {
+								var user = await client.users.fetch(str);
+								dc = user.tag;
+							} catch (err) { }
+							let rank = unescape(result.dc_rank);
+							let title = `${dc} - ${rank} [${username}]`;
+							let seconds = Math.round((result.endAt.getTime() - now) / 1000);
+							tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
+						}
+						if (tmp.length <= 10) {
+                            timerMsg.reactions.removeAll().catch(console.error);
+							let description = "";
+							let num = 0;
+							for(const result of tmp) {
+								description += `${++num}. ${result.title} : ${result.time}\n`;
+							}
+							const em = new Discord.MessageEmbed()
+							.setColor(color)
+							.setTitle("Rank Expiration Timers")
+							.setDescription(description)
+							.setTimestamp()
+							.setFooter("This list updates every 30 seconds", message.client.user.displayAvatarURL());
+							timerMsg.edit({ content: "", embed: em });
+						} else {
+							const allEmbeds = [];
+							for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
+								let desc = "";
+								for(let num = 0; num < 10; num++) {
+									if(!tmp[i + num]) break;
+									desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
+								}
+								const em = new Discord.MessageEmbed()
+								.setColor(color)
+								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
+								.setDescription(desc)
+								.setTimestamp()
+								.setFooter("This list updates every 30 seconds", message.client.user.displayAvatarURL());
+								allEmbeds.push(em);
+							}
+							const filter = (reaction, user) => {
+								return (
+									["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
+									user.id === message.author.id
+								);
+							};
+							var msg = await timerMsg.send(allEmbeds[0]);
+							var s = 0;
+							await msg.react("⏮");
+							await msg.react("◀");
+							await msg.react("▶");
+							await msg.react("⏭");
+							await msg.react("⏹");
+							var collector = await msg.createReactionCollector(filter, {
+								time: 29000,
+								errors: ["time"]
+							});
+
+							collector.on("collect", function (reaction, user) {
+								reaction.users.remove(user.id);
+								switch (reaction.emoji.name) {
+									case "⏮":
+										s = 0;
+										msg.edit(allEmbeds[s]);
+										break;
+									case "◀":
+										s -= 1;
+										if (s < 0) {
+											s = allEmbeds.length - 1;
+										}
+										msg.edit(allEmbeds[s]);
+										break;
+									case "▶":
+										s += 1;
+										if (s > allEmbeds.length - 1) {
+											s = 0;
+										}
+										msg.edit(allEmbeds[s]);
+										break;
+									case "⏭":
+										s = allEmbeds.length - 1;
+										msg.edit(allEmbeds[s]);
+										break;
+									case "⏹":
+										collector.emit("end");
+										break;
+								}
+							});
+							collector.on("end", function () {
+								msg.reactions.removeAll().catch(console.error);
+							});
+						}
+					});
+					con.release();
+				});
             }, 30000);
         }
 
