@@ -57,9 +57,9 @@ module.exports = {
                     return;
                 }
                 pool.getConnection((err, con) => {
-					if (err) return message.reply("there was an error trying to connect to the database!");
+					if (err) return console.error(err);
 					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
-						if (err) return message.reply("there was an error trying to fetch data from the database!");
+						if (err) return console.error(err);
 						let now = Date.now();
 						let tmp = [];
 						for(const result of results) {
@@ -89,7 +89,7 @@ module.exports = {
 							.setTitle("Rank Expiration Timers")
 							.setDescription(description)
 							.setTimestamp()
-							.setFooter("This list updates every 30 seconds", message.client.user.displayAvatarURL());
+							.setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
 							timerMsg.edit({ content: "", embed: em });
 						} else {
 							const allEmbeds = [];
@@ -104,13 +104,12 @@ module.exports = {
 								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
 								.setDescription(desc)
 								.setTimestamp()
-								.setFooter("This list updates every 30 seconds", message.client.user.displayAvatarURL());
+								.setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
 								allEmbeds.push(em);
 							}
 							const filter = (reaction, user) => {
 								return (
-									["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
-									user.id === message.author.id
+									["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name)
 								);
 							};
 							var msg = await timerMsg.send(allEmbeds[0]);
