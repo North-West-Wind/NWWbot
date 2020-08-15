@@ -347,7 +347,7 @@ module.exports = {
 			case "list":
 				pool.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
-					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
+					con.query(`SELECT * FROM gtimer ORDER BY dc_rank ASC`, async (err, results) => {
 						if (err) return message.reply("there was an error trying to fetch data from the database!");
 						let now = Date.now();
 						let tmp = [];
@@ -356,13 +356,13 @@ module.exports = {
 							let username = "undefined";
 							if (mc) username = mc.name;
 							const str = result.user;
-							let dc = "undefined#0000";
+							let dc = "0";
 							try {
 								var user = await message.client.users.fetch(str);
-								dc = user.tag;
+								dc = user.id;
 							} catch (err) { }
 							let rank = unescape(result.dc_rank);
-							let title = `${dc} - ${rank} [${username}]`;
+							let title = `<@${dc}> - ${rank} [${username}]`;
 							let seconds = Math.round((result.endAt.getTime() - now) / 1000);
 							tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
 						}

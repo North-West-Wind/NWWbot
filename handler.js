@@ -201,8 +201,8 @@ module.exports = {
                             con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, (err, results) => {
                                 if(err) return console.error(err);
                                 if(results.length == 0) return;
-                                asuna.send(title + " expired");
                                 try {
+                                    asuna.send(title + " expired");
                                     var user = await client.users.fetch(result.user);
                                     user.send(`Your rank **${rank}** in War of Underworld has expired.`);
                                 } catch(err) {

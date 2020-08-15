@@ -76,8 +76,12 @@ module.exports = {
         errors: ["time"]
       })
       .catch(err => msg.edit("Don't make me wait too long. I'm busy."));
-    if (!collected || !collected.first())
-      return msg.edit("Don't make me wait too long. I'm busy.");
+      try {
+        if (!collected || !collected.first())
+          return msg.edit("Don't make me wait too long. I'm busy.");
+      } catch(err) {
+          return msg.edit("Don't make me wait too long. I'm busy.");
+      }
     msg.edit(`You invited ${collected.first().content} to play UNO.`);
     collected.first().delete();
     if (collected.first().mentions.members.size === 0)
