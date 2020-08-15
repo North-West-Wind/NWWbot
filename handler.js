@@ -198,7 +198,7 @@ module.exports = {
                         let title = `${dc} - ${rank} [${username}]`;
                         setTimeout_(async() => {
                             let asuna = await client.users.fetch("461516729047318529");
-                            con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, (err, results) => {
+                            con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, async(err, results) => {
                                 if(err) return console.error(err);
                                 if(results.length == 0) return;
                                 try {
