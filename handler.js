@@ -67,13 +67,13 @@ module.exports = {
 							let username = "undefined";
 							if (mc) username = mc.name;
 							const str = result.user;
-							let dc = "undefined#0000";
+							let dc = "0";
 							try {
 								var user = await client.users.fetch(str);
-								dc = user.tag;
+								dc = user.id;
 							} catch (err) { }
 							let rank = unescape(result.dc_rank);
-							let title = `${dc} - ${rank} [${username}]`;
+							let title = `<@${dc}> - ${rank} [${username}]`;
 							let seconds = Math.round((result.endAt.getTime() - now) / 1000);
 							tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
 						}
