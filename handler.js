@@ -112,7 +112,7 @@ module.exports = {
 									["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name)
 								);
 							};
-							var msg = await timerMsg.send(allEmbeds[0]);
+							var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
 							var s = 0;
 							await msg.react("⏮");
 							await msg.react("◀");
