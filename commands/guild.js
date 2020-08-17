@@ -213,7 +213,7 @@ module.exports = {
 		let em = new Discord.MessageEmbed()
 			.setTitle("There is a splash!")
 			.setColor(color)
-			.setDescription(`\`${mc}\` is hosting a splash!\nDo \`/p join ${mc}\` in Hypixel to be part of it!\n\n**Location:** ${location}\n**Potions:** ${potions}\n**Slots:** ${slots}\n**Note: ** ${notes.length > 0 ? notes : "N/A"}`)
+			.setDescription(`\`${mc}\` is hosting a splash!\nDo \`/p join ${mc}\` in Hypixel or join the guild party to be part of it!\n\n**Location:** ${location}\n**Potions:** ${potions}\n**Slots:** ${slots}\n**Note: ** ${notes.length > 0 ? notes : "N/A"}`)
 			.setTimestamp()
 			.setFooter(`Hosted by ${mc}`, message.client.user.displayAvatarURL());
 
