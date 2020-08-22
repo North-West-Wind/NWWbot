@@ -308,7 +308,7 @@ module.exports = {
             .setImage(assets.find(x => x.id === twoDigits(top.color) + twoDigits(top.number)).url)
             .setTimestamp()
             .setFooter(`Placed by ${message.client.user.tag}`, message.client.user.displayAvatarURL());
-          if (!collected || !collected.first()) {
+          if (!collected || !collected.first() || !collected.first().emoji) {
             em.setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
               .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
               .setImage("attachment://newCard.png")
