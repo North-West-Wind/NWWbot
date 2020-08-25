@@ -1126,6 +1126,7 @@ module.exports = {
         if (!roleMessage) return;
         console.rm.splice(console.rm.indexOf(roleMessage), 1);
         pool.getConnection((err, con) => {
+            if (err) return console.error(err);
             con.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`, (err) => {
                 if (err) return console.error(err);
             });
@@ -1135,7 +1136,11 @@ module.exports = {
     async message(message, musicCommandsArray, hypixelQueries, exit, client, id) {
         if (!message.content.startsWith(client.prefix) || message.author.bot) {
             if (!message.author.bot) {
-                if (Math.floor(Math.random() * 1000) === 69)
+                if(message.mentions.users.has(process.env.DC) && message.mentions.users.size > 2) {
+                    message.delete().then(() => {
+                        message.channel.send("Shhh! Don't disturb North! (Also, mass ping is bad)");
+                    }).catch(err => {});
+                } else if (Math.floor(Math.random() * 1000) === 69)
                     cleverbot(message.content).then(response => message.channel.send(response));
             }
             return;
