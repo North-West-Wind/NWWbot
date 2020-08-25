@@ -599,7 +599,6 @@ module.exports = {
                 inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${client.prefix}invites toggle\` to turn it off)`);
             } catch (err) {
                 console.error("Failed to DM user.");
-                console.error(err);
             }
         }).catch(err => { });
         if (guild.id == "677780367188557824")
@@ -861,8 +860,9 @@ module.exports = {
                             } else {
                                 var role = await guild.roles.fetch(roleID);
                             }
+                            if(!role) continue;
                             try {
-                                member.roles.add(role);
+                                member.roles.add(roleID);
                                 console.log(`Added ${member.displayName} to ${role.name}`)
                             } catch (err) {
                                 console.error(err);

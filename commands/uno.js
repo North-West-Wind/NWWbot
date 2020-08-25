@@ -510,7 +510,8 @@ module.exports = {
                 .setDescription(`Congratulations to **${player.user.tag}**!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - nano, "milliseconds").format()}.\nThanks for playing!`)
                 .setTimestamp()
                 .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-              mesg.edit(win);
+              await player.user.send("You won the game! Congratulations!");
+              await mesg.edit(win);
               uno.delete(nano);
               break;
             } else {
