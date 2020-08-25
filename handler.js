@@ -516,10 +516,10 @@ module.exports = {
                         em.setTitle(msg.embeds[0].title).setColor(msg.embeds[0].color).setFooter(msg.embeds[0].footer.text, msg.embeds[0].footer.iconURL).setTimestamp(msg.embeds[0].timestamp);
                     }
                     let count = 0;
-                    let id = setInterval(async () => {
+                    let timerid = setInterval(async () => {
                         time -= 1000;
                         if (time <= 0) {
-                            clearInterval(id);
+                            clearInterval(timerid);
                             em.setDescription("The timer has ended.");
                             msg = await msg.edit(em);
                             author.send(`Your timer in **${guild.name}** has ended! https://discordapp.com/channels/${guild.id}/${channel.id}/${msg.id}`);
@@ -563,7 +563,7 @@ module.exports = {
                         msg = await msg.edit(em);
                         count = 0;
                     }, 1000);
-                    console.timers.set(result.msg, id);
+                    console.timers.set(result.msg, timerid);
                 });
             });
             con.query("SELECT * FROM nolog", (err, results) => {
