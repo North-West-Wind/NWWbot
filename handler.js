@@ -647,6 +647,7 @@ module.exports = {
                         //get channel
                         const channel = guild.channels.resolve(result[0].wel_channel);
 
+                        if(!channel.permissionsFor(guild.me).has(18432)) return;
 
                         //convert message into array
                         const splitMessage = result[0].welcome.split(" ");
@@ -914,7 +915,7 @@ module.exports = {
                             if (err) return console.error(err);
                         }
                     } else {
-                        if (guild.me.hasPermission("VIEW_AUDIT_LOGS")) {
+                        if (guild.me.hasPermission(128)) {
                             const fetchedLogs = await guild.fetchAuditLogs({
                                 limit: 1,
                                 type: 'MEMBER_KICK',
@@ -1170,7 +1171,7 @@ module.exports = {
             return;
         } else {
             if (message.guild !== null) {
-                if (!message.channel.permissionsFor(message.guild.me).has(["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"])) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
+                if (!message.channel.permissionsFor(message.guild.me).has(84992)) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
             }
             if (musicCommandsArray.includes(command.name) == true) {
                 const mainMusic = require("./musics/main.js");

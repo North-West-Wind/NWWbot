@@ -45,7 +45,7 @@ module.exports = {
           if (results.length == 0) {
             message.channel.send("This user haven't been warned before.");
           } else {
-            if (!message.member.permissions.has("BAN_MEMBERS"))
+            if (!message.member.permissions.has(4))
               return message.channel.send(
                 "You don't have the permission to use this command!"
               );

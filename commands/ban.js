@@ -7,13 +7,13 @@ module.exports = {
   args: true,
   usage: "<user | user ID> [reason]",
   execute(message, args) {
-    if (!message.member.permissions.has("BAN_MEMBERS")) {
+    if (!message.member.permissions.has(4)) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
       return;
     }
-    if(!message.guild.me.permissions.has('BAN_MEMBERS')) {
+    if(!message.guild.me.permissions.has(4)) {
       message.channel.send(`I don\'t have the permission to ban members.`)
       return;
     }

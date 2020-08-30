@@ -8,13 +8,13 @@ module.exports = {
   args: true,
   usage: "<user | user ID> [reason]",
   async execute(message, args) {
-    if (!message.member.permissions.has("MUTE_MEMBERS")) {
+    if (!message.member.permissions.has(4194304)) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
       return;
     }
-    if (!message.guild.me.permissions.has('MUTE_MEMBERS')) {
+    if (!message.guild.me.permissions.has(4194304)) {
       message.channel.send(`I don\'t have the permission to unmute members.`)
       return;
     }

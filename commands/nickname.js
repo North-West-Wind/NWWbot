@@ -7,11 +7,11 @@ module.exports = {
   usage: "<user | user ID> <nickname>",
   aliases: ["nick"],
   async execute(message, args) {
-    if (!message.member.permissions.has('MANAGE_NICKNAMES')) { 
+    if (!message.member.permissions.has(134217728)) { 
       message.channel.send(`You don\'t have the permission to use this command.`)
       return;
     }
-    if(!message.guild.me.permissions.has('MANAGE_NICKNAMES')) {
+    if(!message.guild.me.permissions.has(134217728)) {
       message.channel.send(`I don\'t have the permission to change their nickname.`)
       return;
     }

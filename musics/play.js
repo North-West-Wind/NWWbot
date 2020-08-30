@@ -269,7 +269,7 @@ module.exports = {
         "You need to be in a voice channel to play music!"
       );
     const permissions = voiceChannel.permissionsFor(message.client.user);
-    if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
+    if (!permissions.has(3145728)) {
       return message.channel.send("I can't play in your voice channel!");
     }
 

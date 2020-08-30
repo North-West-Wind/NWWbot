@@ -69,16 +69,14 @@ module.exports = {
         const permissions = channel.permissionsFor(message.guild.me);
         const userPermission = channel.permissionsFor(message.member);
         if (
-          !permissions.has("SEND_MESSAGES") ||
-          !permissions.has("EMBED_LINKS")
+          !permissions.has(18432)
         ) {
           return message.channel.send(
             "I cannot do giveaway in this channel as I don't have the permission!"
           );
         }
         if (
-          !userPermission.has("SEND_MESSAGES") ||
-          !userPermission.has("EMBED_LINKS")
+          !userPermission.has(18432)
         ) {
           return message.channel.send(
             "I cannot do giveaway in this channel as you don't have the permission to send message there!"
@@ -465,16 +463,14 @@ module.exports = {
             const permissions = channel.permissionsFor(message.guild.me);
             const userPermission = channel.permissionsFor(message.member);
             if (
-              !permissions.has("SEND_MESSAGES") ||
-              !permissions.has("EMBED_LINKS")
+              !permissions.has(18432)
             ) {
               return mesg.edit(
                 "I cannot do giveaway in this channel as I don't have the permission!"
               );
             }
             if (
-              !userPermission.has("SEND_MESSAGES") ||
-              !userPermission.has("EMBED_LINKS")
+              !userPermission.has(18432)
             ) {
               return mesg.edit(
                 "I cannot do giveaway in this channel as you don't have the permission to send message there!"

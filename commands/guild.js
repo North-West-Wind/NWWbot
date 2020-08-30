@@ -259,7 +259,7 @@ module.exports = {
 		message.channel.send(prize);
 	},
 	async timer(message, args, pool) {
-		if (!message.member.hasPermission("ADMINISTRATOR") || !message.guild) return;
+		if (!message.member.hasPermission(8) || !message.guild) return;
 		switch (args[1]) {
 			case "create":
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
