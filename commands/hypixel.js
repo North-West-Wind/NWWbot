@@ -5596,7 +5596,7 @@ module.exports = {
                       }));
 
                       if(error) {
-                        return message.channel.send("https://sky.lea.moe/stats/" + res[0].name);
+                        return message.channel.send("https://sky.shiiyu.moe/stats/" + res[0].name);
                       }
                     
                     var memberCount = Object.keys(skyblock.members).length;
