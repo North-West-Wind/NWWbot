@@ -31,10 +31,9 @@ module.exports = {
     .setTitle("Searching tags: " + args.join(", "))
     .setDescription("Tags: `" + post.tags.join(", ") + "`\nPlease be patient. Image will load soon...")
     .setTimestamp()
-    .setFooter("From " + post.booru.domain, message.client.user.displayAvatarURL());
+    .setFooter("From " + post.booru.domain, message.client.user.displayAvatarURL())
+    .setImage(fileUrl);
     
     message.channel.send(Embed);
-    var attachment = new Discord.MessageAttachment(fileUrl, "image.jpg");
-    message.channel.send(attachment);
   }
 }
