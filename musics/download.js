@@ -22,7 +22,7 @@ module.exports = {
         if (!serverQueue.songs) serverQueue.songs = [];
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the song queue.");
         let song = serverQueue.songs[0];
-        let msg = await message.channel.send(`Downloading... (Soundtrack type: **Type ${song.type}**)`);
+        let msg = await message.channel.send(`Downloading... (Soundtrack Type: **Type ${song.type}**)`);
         let stream;
         switch (song.type) {
             case 2:
@@ -56,6 +56,14 @@ module.exports = {
                 }
                 break;
         }
+        let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
+        await msg.delete();
+        try {
+            message.channel.send(attachment);
+        } catch(err) {
+            message.channel.send(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
+        }
+        /*
         stream.on("error", err => {
             console.error(err);
             msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
@@ -69,5 +77,6 @@ module.exports = {
                 message.channel.send(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
             }
         });
+        */
     }
 }
