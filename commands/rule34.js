@@ -16,7 +16,7 @@ module.exports = {
     var sites = ["rule34.paheal.net", "rule34.xxx"];
     var pickedSite = sites[Math.floor(Math.random() * sites.length)];
     
-    var posts = await Booru.search(pickedSite, args, { limit: 100, random: true });
+    var posts = await Booru.search(pickedSite, args, { limit: 100, random: false });
     var pickedPost = posts[Math.floor(Math.random() * posts.length)];
       if(!pickedPost) return pick();
       else return pickedPost;
