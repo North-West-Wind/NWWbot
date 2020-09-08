@@ -13,10 +13,7 @@ module.exports = {
     }
     if(!args[0]) return message.channel.send("Please provide at least 1 tag!" + ` Usage: ${message.client.prefix}${this.name} ${this.usage}`)
     async function pick() {
-    var sites = ["rule34.paheal.net", "rule34.xxx"];
-    var pickedSite = sites[Math.floor(Math.random() * sites.length)];
-    
-    var posts = await Booru.search(pickedSite, args, { limit: 100, random: false });
+    var posts = await Booru.search("rule34.paheal.net", args, { limit: 100, random: false });
     var pickedPost = posts[Math.floor(Math.random() * posts.length)];
       if(!pickedPost) return pick();
       else return pickedPost;
