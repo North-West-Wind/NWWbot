@@ -1,5 +1,6 @@
 const ytdl = require("ytdl-core-discord");
 const scdl = require("soundcloud-downloader");
+const request = require("request-stream");
 
 const requestStream = url => {
     return new Promise(resolve => {
