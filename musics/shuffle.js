@@ -6,7 +6,7 @@ module.exports = {
   name: "shuffle",
   description: "Shuffle the song queue.",
   usage: " ",
-  async music(message, serverQueue, pool) {
+  async music(message, serverQueue, looping, queue, pool) {
 
     if (!serverQueue) return message.channel.send("There is nothing playing.");
     await shuffleArray(serverQueue.songs);
