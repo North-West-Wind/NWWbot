@@ -18,14 +18,14 @@ module.exports = {
     
     var posts = await Booru.search(pickedSite, args, { limit: 100, random: false });
     var pickedPost = posts[Math.floor(Math.random() * posts.length)];
-      if(pickedPost === undefined) return pick();
+      if(!pickedPost) return pick();
       else return pickedPost;
     }
     
     var post = await pick();
     var fileUrl;
-    if(!post.fileUrl || post.fileUrl === null || post.fileUrl === undefined) {
-      if(!post.data.file_url || post.data.file_url === null || post.data.file_url === undefined) {
+    if(!post.fileUrl) {
+      if(!post.data.file_url) {
         return await this.execute(message, args);
       }
       fileUrl = post.data.file_url;

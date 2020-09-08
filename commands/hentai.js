@@ -18,7 +18,8 @@ module.exports = {
     "maid",
     "orgy",
     "panties",
-    "neko"
+    "neko",
+		"netorare"
   ],
   async execute(message, args) {
     if(message.channel.nsfw === false) {
