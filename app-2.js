@@ -37,8 +37,8 @@ for(const file of fontFiles) {
 }
 registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
 
-const alice = new Discord.Client();
-const client = new Discord.Client();
+const alice = new Discord.Client({ restRequestTimeout: 60000 });
+const client = new Discord.Client({ restRequestTimeout: 60000 });
 
 console.commands = new Discord.Collection();
 console.items = new Discord.Collection();
