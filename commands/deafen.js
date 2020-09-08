@@ -9,13 +9,13 @@ module.exports = {
   usage: "<user | user ID> [reason]",
   aliases: ["deaf"],
   async execute(message, args) {
-    if (!message.member.permissions.has("DEAFEN_MEMBERS")) {
+    if (!message.member.permissions.has(8388608)) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
       return;
     }
-    if(!message.guild.me.permissions.has('DEAFEN_MEMBERS')) {
+    if(!message.guild.me.permissions.has(8388608)) {
       message.channel.send(`I don\'t have the permission to deafen members.`)
       return;
     }

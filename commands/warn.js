@@ -31,11 +31,11 @@ module.exports = {
       const user = await findUser(message, args[0]);
 
       if (!user) return;
-      if (!message.member.permissions.has("BAN_MEMBERS"))
+      if (!message.member.permissions.has(4))
         return message.channel.send(
           "You don't have the permission to use this command!"
         );
-      if (!message.guild.me.permissions.has("BAN_MEMBERS"))
+      if (!message.guild.me.permissions.has(4))
         return message.channel.send(
           "I don't have the permission to warn user!"
         );

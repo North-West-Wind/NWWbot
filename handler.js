@@ -49,6 +49,118 @@ module.exports = {
                 memberCountChannel.edit({ name: "All Members: " + memberCount }).catch(console.realError);
                 botCountChannel.edit({ name: "Bots: " + botMemberCount }).catch(console.realError);
                 onlineCountChannel.edit({ name: "Online: " + onlineMemberCount }).catch(console.realError);
+                try {
+                    var timerChannel = await guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
+                    var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
+                } catch(err) {
+                    console.error("Failed to fetch timer list message");
+                    return;
+                }
+                pool.getConnection((err, con) => {
+					if (err) return console.error(err);
+					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
+						if (err) return console.error(err);
+						let now = Date.now();
+						let tmp = [];
+						for(const result of results) {
+							let mc = await profile(result.mc);
+							let username = "undefined";
+							if (mc) username = mc.name;
+							const str = result.user;
+							let dc = "0";
+							try {
+								var user = await client.users.fetch(str);
+								dc = user.id;
+							} catch (err) { }
+							let rank = unescape(result.dc_rank);
+							let title = `<@${dc}> - ${rank} [${username}]`;
+							let seconds = Math.round((result.endAt.getTime() - now) / 1000);
+							tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
+						}
+						if (tmp.length <= 10) {
+                            timerMsg.reactions.removeAll().catch(console.error);
+							let description = "";
+							let num = 0;
+							for(const result of tmp) {
+								description += `${++num}. ${result.title} : ${result.time}\n`;
+							}
+							const em = new Discord.MessageEmbed()
+							.setColor(Math.floor(Math.random() * 16777214) + 1)
+							.setTitle("Rank Expiration Timers")
+							.setDescription(description)
+							.setTimestamp()
+							.setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+							timerMsg.edit({ content: "", embed: em });
+						} else {
+							const allEmbeds = [];
+							for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
+								let desc = "";
+								for(let num = 0; num < 10; num++) {
+									if(!tmp[i + num]) break;
+									desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
+								}
+								const em = new Discord.MessageEmbed()
+								.setColor(Math.floor(Math.random() * 16777214) + 1)
+								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
+								.setDescription(desc)
+								.setTimestamp()
+								.setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+								allEmbeds.push(em);
+							}
+							const filter = (reaction, user) => {
+								return (
+									["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name)
+								);
+							};
+							var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
+							var s = 0;
+							await msg.react("⏮");
+							await msg.react("◀");
+							await msg.react("▶");
+							await msg.react("⏭");
+							await msg.react("⏹");
+							var collector = await msg.createReactionCollector(filter, {
+								time: 29000,
+								errors: ["time"]
+							});
+
+							collector.on("collect", function (reaction, user) {
+								reaction.users.remove(user.id);
+								switch (reaction.emoji.name) {
+									case "⏮":
+										s = 0;
+										msg.edit(allEmbeds[s]);
+										break;
+									case "◀":
+										s -= 1;
+										if (s < 0) {
+											s = allEmbeds.length - 1;
+										}
+										msg.edit(allEmbeds[s]);
+										break;
+									case "▶":
+										s += 1;
+										if (s > allEmbeds.length - 1) {
+											s = 0;
+										}
+										msg.edit(allEmbeds[s]);
+										break;
+									case "⏭":
+										s = allEmbeds.length - 1;
+										msg.edit(allEmbeds[s]);
+										break;
+									case "⏹":
+										collector.emit("end");
+										break;
+								}
+							});
+							collector.on("end", function () {
+								msg.reactions.removeAll().catch(console.error);
+							});
+						}
+					});
+					con.release();
+				});
             }, 30000);
         }
 
@@ -86,10 +198,16 @@ module.exports = {
                         let title = `${dc} - ${rank} [${username}]`;
                         setTimeout_(async() => {
                             let asuna = await client.users.fetch("461516729047318529");
-                            con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, (err, results) => {
+                            con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, async(err, results) => {
                                 if(err) return console.error(err);
                                 if(results.length == 0) return;
-                                asuna.send(title + " expired");
+                                try {
+                                    asuna.send(title + " expired");
+                                    var user = await client.users.fetch(result.user);
+                                    user.send(`Your rank **${rank}** in War of Underworld has expired.`);
+                                } catch(err) {
+                                    console.error("Failed to DM user")
+                                }
                                 con.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, (err) => {
                                     if(err) return console.error(err);
                                     console.log("A guild timer expired");
@@ -398,10 +516,10 @@ module.exports = {
                         em.setTitle(msg.embeds[0].title).setColor(msg.embeds[0].color).setFooter(msg.embeds[0].footer.text, msg.embeds[0].footer.iconURL).setTimestamp(msg.embeds[0].timestamp);
                     }
                     let count = 0;
-                    let id = setInterval(async () => {
+                    let timerid = setInterval(async () => {
                         time -= 1000;
                         if (time <= 0) {
-                            clearInterval(id);
+                            clearInterval(timerid);
                             em.setDescription("The timer has ended.");
                             msg = await msg.edit(em);
                             author.send(`Your timer in **${guild.name}** has ended! https://discordapp.com/channels/${guild.id}/${channel.id}/${msg.id}`);
@@ -445,7 +563,7 @@ module.exports = {
                         msg = await msg.edit(em);
                         count = 0;
                     }, 1000);
-                    console.timers.set(result.msg, id);
+                    console.timers.set(result.msg, timerid);
                 });
             });
             con.query("SELECT * FROM nolog", (err, results) => {
@@ -481,7 +599,6 @@ module.exports = {
                 inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${client.prefix}invites toggle\` to turn it off)`);
             } catch (err) {
                 console.error("Failed to DM user.");
-                console.error(err);
             }
         }).catch(err => { });
         if (guild.id == "677780367188557824")
@@ -530,6 +647,7 @@ module.exports = {
                         //get channel
                         const channel = guild.channels.resolve(result[0].wel_channel);
 
+                        if(!channel.permissionsFor(guild.me).has(18432)) return;
 
                         //convert message into array
                         const splitMessage = result[0].welcome.split(" ");
@@ -743,8 +861,9 @@ module.exports = {
                             } else {
                                 var role = await guild.roles.fetch(roleID);
                             }
+                            if(!role) continue;
                             try {
-                                member.roles.add(role);
+                                member.roles.add(roleID);
                                 console.log(`Added ${member.displayName} to ${role.name}`)
                             } catch (err) {
                                 console.error(err);
@@ -796,7 +915,7 @@ module.exports = {
                             if (err) return console.error(err);
                         }
                     } else {
-                        if (guild.me.hasPermission("VIEW_AUDIT_LOGS")) {
+                        if (guild.me.hasPermission(128)) {
                             const fetchedLogs = await guild.fetchAuditLogs({
                                 limit: 1,
                                 type: 'MEMBER_KICK',
@@ -1008,6 +1127,7 @@ module.exports = {
         if (!roleMessage) return;
         console.rm.splice(console.rm.indexOf(roleMessage), 1);
         pool.getConnection((err, con) => {
+            if (err) return console.error(err);
             con.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`, (err) => {
                 if (err) return console.error(err);
             });
@@ -1017,7 +1137,11 @@ module.exports = {
     async message(message, musicCommandsArray, hypixelQueries, exit, client, id) {
         if (!message.content.startsWith(client.prefix) || message.author.bot) {
             if (!message.author.bot) {
-                if (Math.floor(Math.random() * 1000) === 69)
+                if(message.mentions.users.has(process.env.DC) && message.mentions.users.size > 2) {
+                    message.delete().then(() => {
+                        message.channel.send("Shhh! Don't disturb North! (Also, mass ping is bad)");
+                    }).catch(err => {});
+                } else if (Math.floor(Math.random() * 1000) === 69)
                     cleverbot(message.content).then(response => message.channel.send(response));
             }
             return;
@@ -1047,7 +1171,7 @@ module.exports = {
             return;
         } else {
             if (message.guild !== null) {
-                if (!message.channel.permissionsFor(message.guild.me).has(["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"])) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
+                if (!message.channel.permissionsFor(message.guild.me).has(84992)) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
             }
             if (musicCommandsArray.includes(command.name) == true) {
                 const mainMusic = require("./musics/main.js");

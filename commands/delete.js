@@ -14,13 +14,13 @@ module.exports = {
       );
     }
 
-    if (!message.member.permissions.has("MANAGE_MESSAGES")) {
+    if (!message.member.permissions.has(8192)) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
       return;
     }
-    if (!message.guild.me.permissions.has("MANAGE_MESSAGES")) {
+    if (!message.guild.me.permissions.has(8192)) {
       message.channel.send(`I don\'t have the permission to delete messages.`);
       return;
     }
@@ -34,13 +34,13 @@ module.exports = {
       var channelID = parseInt(args[0].replace(/<#/g, "").replace(/>/g, ""));
       if(isNaN(channelID)) {
         if (args[0] == "all") {
-          if (!message.member.permissions.has("MANAGE_CHANNELS")) {
+          if (!message.member.permissions.has(16)) {
               message.channel.send(
                 `You don\'t have the permission to use this command.`
             );
             return;
           }
-          if (!message.guild.me.permissions.has("MANAGE_CHANNELS")) {
+          if (!message.guild.me.permissions.has(16)) {
             message.channel.send(`I don\'t have the permission to delete all messages.`);
             return;
           }
@@ -66,13 +66,13 @@ module.exports = {
         if(isNaN(amount)) {
           
             if (args[1] == "all") {
-              if (!message.member.permissions.has("MANAGE_CHANNELS")) {
+              if (!message.member.permissions.has(16)) {
                 message.channel.send(
                   `You don\'t have the permission to use this command.`
               );
               return;
             }
-            if (!message.guild.me.permissions.has("MANAGE_CHANNELS")) {
+            if (!message.guild.me.permissions.has(16)) {
               message.channel.send(`I don\'t have the permission to delete all messages.`);
               return;
             }

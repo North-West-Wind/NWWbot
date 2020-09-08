@@ -19,8 +19,8 @@ module.exports = {
     
     var clientPermission = channel.permissionsFor(message.guild.me);
     var userPermission = channel.permissionsFor(message.member);
-    if(!clientPermission.has("SEND_MESSAGES")) return message.channel.send("I don't have the permission to send message in this channel!")
-    if(!userPermission.has("SEND_MESSAGES")) return message.channel.send("You don't have the permission to make me send message in this channel.")
+    if(!clientPermission.has(2048)) return message.channel.send("I don't have the permission to send message in this channel!")
+    if(!userPermission.has(2048)) return message.channel.send("You don't have the permission to make me send message in this channel.")
     
     channel.send(args.slice(1).join(" "));
     message.channel.send("Announcement made.");

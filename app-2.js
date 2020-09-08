@@ -55,8 +55,8 @@ for(let i = 0; i < 4; i++) {
     console.card.set(twoDigits(i) + twoDigits(s), { color: i, number: s});
   }
 }
-console.card.set("0400", { color: 4, number: 13 });
-console.card.set("0401", { color: 4, number: 14 });
+console.card.set("0413", { color: 4, number: 13 });
+console.card.set("0414", { color: 4, number: 14 });
 
 const commandFiles = fs
   .readdirSync("./commands")

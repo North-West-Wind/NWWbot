@@ -213,7 +213,7 @@ module.exports = {
 		let em = new Discord.MessageEmbed()
 			.setTitle("There is a splash!")
 			.setColor(color)
-			.setDescription(`\`${mc}\` is hosting a splash!\nDo \`/p join ${mc}\` in Hypixel to be part of it!\n\n**Location:** ${location}\n**Potions:** ${potions}\n**Slots:** ${slots}\n**Note: ** ${notes.length > 0 ? notes : "N/A"}`)
+			.setDescription(`\`${mc}\` is hosting a splash!\nDo \`/p join ${mc}\` in Hypixel or join the guild party to be part of it!\n\n**Location:** ${location}\n**Potions:** ${potions}\n**Slots:** ${slots}\n**Note: ** ${notes.length > 0 ? notes : "N/A"}`)
 			.setTimestamp()
 			.setFooter(`Hosted by ${mc}`, message.client.user.displayAvatarURL());
 
@@ -259,7 +259,7 @@ module.exports = {
 		message.channel.send(prize);
 	},
 	async timer(message, args, pool) {
-		if (!message.member.hasPermission("ADMINISTRATOR") || !message.guild) return;
+		if (!message.member.hasPermission(8) || !message.guild) return;
 		switch (args[1]) {
 			case "create":
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
@@ -356,13 +356,13 @@ module.exports = {
 							let username = "undefined";
 							if (mc) username = mc.name;
 							const str = result.user;
-							let dc = "undefined#0000";
+							let dc = "0";
 							try {
 								var user = await message.client.users.fetch(str);
-								dc = user.tag;
+								dc = user.id;
 							} catch (err) { }
 							let rank = unescape(result.dc_rank);
-							let title = `${dc} - ${rank} [${username}]`;
+							let title = `<@${dc}> - ${rank} [${username}]`;
 							let seconds = Math.round((result.endAt.getTime() - now) / 1000);
 							tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
 						}

@@ -50,15 +50,10 @@ module.exports = {
       return await this.region(message, args);
     }
     const reactPermissions =
-      message.guild.me.permissions.has([
-        "ADD_REACTIONS",
-        "EMBED_LINKS",
-        "READ_MESSAGE_HISTORY",
-        "MANAGE_MESSAGES"
-      ]) &&
+      message.guild.me.permissions.has(90176) &&
       message.channel
         .permissionsFor(message.guild.me)
-        .has(["ADD_REACTIONS", "EMBED_LINKS", "READ_MESSAGE_HISTORY", "MANAGE_MESSAGES"]);
+        .has(90176);
 
     if (!reactPermissions) {
       return await message.channel.send(

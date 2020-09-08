@@ -6,7 +6,7 @@ module.exports = {
   args: true,
   usage: '<user | user ID> <role | role ID | role name>',
   async execute(message, args) {
-    if (!message.member.permissions.has('MANAGE_ROLES')) {
+    if (!message.member.permissions.has(268435456)) {
       message.channel.send(`You don\'t have the permission to use this command.`)
       return;
     }

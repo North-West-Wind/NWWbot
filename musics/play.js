@@ -96,7 +96,7 @@ const GET = url => {
   });
 }
 
-async function play(guild, song, looping, queue, pool, repeat, begin) {
+async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 0) {
   const serverQueue = queue.get(guild.id);
   if (!begin) var begin = 0;
   if (!song) {
@@ -139,8 +139,19 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
 
   var dispatcher;
   async function skip() {
+    skipped += 1;
     if (serverQueue.textChannel)
-      serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track...").then(msg => msg.delete({ timeout: 30000 }));
+      serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track..." + `${skipped < 2 ? "" : `(${skipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
+    if(skipped >= 3) {
+      serverQueue.textChannel.send("The error happened 3 times in a row! Disconnecting the bot...");
+      if (serverQueue.connection != null && serverQueue.connection.dispatcher)
+        serverQueue.connection.dispatcher.destroy();
+      serverQueue.playing = false;
+      serverQueue.connection = null;
+      serverQueue.voiceChannel = null;
+      serverQueue.textChannel = null;
+      if(guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
+    }
     const guildLoopStatus = looping.get(guild.id);
     const guildRepeatStatus = repeat.get(guild.id);
 
@@ -165,7 +176,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
       );
       con.release();
     });
-    return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+    return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat, 0, skipped);
   }
   if (song.type === 2) {
     try {
@@ -206,6 +217,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin) {
       type: "opus"
     });
   }
+  skipped = 0;
   dispatcher
     .on("finish", async () => {
       dispatcher = null;
@@ -257,7 +269,7 @@ module.exports = {
         "You need to be in a voice channel to play music!"
       );
     const permissions = voiceChannel.permissionsFor(message.client.user);
-    if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
+    if (!permissions.has(3145728)) {
       return message.channel.send("I can't play in your voice channel!");
     }
 

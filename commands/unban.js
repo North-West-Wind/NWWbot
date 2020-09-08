@@ -8,7 +8,7 @@ module.exports = {
   usage: "<user | user ID> [reason]",
   args: true,
   execute(message, args) {
-    if (!message.member.permissions.has("BAN_MEMBERS")) {
+    if (!message.member.permissions.has(4)) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );

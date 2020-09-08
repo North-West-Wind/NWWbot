@@ -16,7 +16,7 @@ module.exports = {
     };
     if (!args[0]) {
       const guild = message.guild;
-      if(!guild.me.hasPermission("MANAGE_GUILD")) return message.channel.send("I don't have the permission to fetch all server invites!");
+      if(!guild.me.hasPermission(32)) return message.channel.send("I don't have the permission to fetch all server invites!");
       let members = Array.from(guild.members.cache.values());
       let invitedStr = [];
       let guildInvites = await guild.fetchInvites();
@@ -110,7 +110,7 @@ module.exports = {
       }
     } else if (args[0].toLowerCase() === "me") {
       const guild = message.guild;
-      if(!guild.me.hasPermission("MANAGE_GUILD")) return message.channel.send("I don't have the permission to fetch all server invites!");
+      if(!guild.me.hasPermission(32)) return message.channel.send("I don't have the permission to fetch all server invites!");
       let guildInvites = await guild.fetchInvites();
       let invites = guildInvites.filter(i => i.inviter.id === message.author.id && i.guild.id === guild.id);
       let reducer = (a,b) => a+b;

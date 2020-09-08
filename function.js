@@ -197,7 +197,7 @@ module.exports = {
 		var roleID = str.replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
       var role = await message.guild.roles.cache.find(
-        x => x.name.toLowerCase() === `${args[0].toLowerCase()}`
+        x => x.name.toLowerCase() === `${message.content.split(" ")[1].toLowerCase()}`
       );
       if (role === null) {
 				message.channel.send(
