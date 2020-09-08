@@ -8,30 +8,27 @@ module.exports = {
   aliases: ["r34"],
   usage: "<tags>",
   async execute(message, args) {
-    if(message.channel.nsfw === false) {
+    if(!message.channel.nsfw) {
       return message.channel.send("Please use an NSFW channel to use this command!")
     }
-    if(!args[0]) return message.channel.send("Please provide at least 1 tag!" + ` Usage: ${message.client.prefix}${this.name}${this.usage}`)
+    if(!args[0]) return message.channel.send("Please provide at least 1 tag!" + ` Usage: ${message.client.prefix}${this.name} ${this.usage}`)
     async function pick() {
     var sites = ["rule34.paheal.net", "rule34.xxx"];
     var pickedSite = sites[Math.floor(Math.random() * sites.length)];
     
-    var posts = await Booru.search(pickedSite, args, { limit: 100, random: false });
+    var posts = await Booru.search(pickedSite, args, { limit: 100, random: true });
     var pickedPost = posts[Math.floor(Math.random() * posts.length)];
-      if(pickedPost === undefined) return pick();
+      if(!pickedPost) return pick();
       else return pickedPost;
     }
     
     var post = await pick();
     var fileUrl;
-    if(!post.fileUrl || post.fileUrl === null || post.fileUrl === undefined) {
-      if(!post.data.file_url || post.data.file_url === null || post.data.file_url === undefined) {
-        return await this.execute(message, args);
-      }
-      fileUrl = post.data.file_url;
-    } else {
-      fileUrl = post.fileUrl;
-    }
+    if(post.sampleUrl) fileUrl = post.sampleUrl;
+    else if(post.fileUrl) fileUrl = post.fileUrl;
+    else if(post.source) fileUrl = post.source;
+    else if(post.data.file_url) fileUrl = post.data.file_url;
+    else return await this.execute(message, args);
     const Embed = new Discord.MessageEmbed()
     .setColor(color)
     .setTitle("Searching tags: " + args.join(", "))

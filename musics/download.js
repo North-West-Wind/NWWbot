@@ -21,8 +21,8 @@ module.exports = {
         if (!serverQueue) return message.channel.send("There is nothing playing.");
         if (!serverQueue.songs) serverQueue.songs = [];
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the song queue.");
-        let msg = await message.channel.send("Downloading...");
         let song = serverQueue.songs[0];
+        let msg = await message.channel.send(`Downloading... (Soundtrack type: **Type ${song.type}**)`);
         let stream;
         switch (song.type) {
             case 2:

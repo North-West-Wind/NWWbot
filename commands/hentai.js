@@ -18,10 +18,11 @@ module.exports = {
     "maid",
     "orgy",
     "panties",
+    "netorare",
     "neko"
   ],
   async execute(message, args) {
-    if(message.channel.nsfw === false) {
+    if(!message.channel.nsfw) {
       return message.channel.send("Please use an NSFW channel to use this command!")
     }
     var tag = "random";
