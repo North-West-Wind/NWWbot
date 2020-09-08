@@ -40,6 +40,7 @@ module.exports = {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
                 }
+                break;
             default:
                 try {
                     stream = await ytdl(song.url, {

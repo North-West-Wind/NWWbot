@@ -10,6 +10,7 @@ const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const ytdl = require("ytdl-core-discord");
+const scdl = require("soundcloud-downloader");
 
 module.exports = {
   name: "np",
@@ -35,6 +36,10 @@ module.exports = {
         var metadata = await mm.parseStream(stream).catch(console.error);
         var length = Math.round(metadata.format.duration);
         break;
+      case 3:
+        var info = await scdl.getInfo(serverQueue.songs[0].url);
+        var length = Math.round(info.duration / 1000);
+        break;
     }
     var songLength = moment.duration(length, "seconds").format();
     var positionTime = moment.duration(Math.round(position / 1000), "seconds").format();
@@ -52,8 +57,8 @@ module.exports = {
     .setTimestamp()
     .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     if(serverQueue.songs[0].type === 0 || serverQueue.songs[0].type === 3) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
-    if(serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
-    if(serverQueue.songs[0].type === 2) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`];
+    else if(serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
+    else if(serverQueue.songs[0].type === 2) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`];
     embed.setDescription(`${info[0]}\n\n${positionTime} **${processBar.join("")}** ${songLength}`).setThumbnail(info[1]);
   return message.channel.send(embed).then(msg => {
     setTimeout(() => {
