@@ -58,7 +58,7 @@
     "statuses": "^2.0.0",
     "wikijs": "^6.0.0",
     "youtube-search": "^1.1.4",
-    "ytdl-core": "^3.1.1",
+    "ytdl-core": "^3.2.2",
     "ytdl-core-discord": "amishshah/ytdl-core-discord",
     "ytpl": "^0.1.21",
     "ytsr": "^0.1.15"
