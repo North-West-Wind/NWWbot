@@ -173,7 +173,7 @@ module.exports = {
         await msg.react("▶");
         await msg.react("⏭");
         await msg.react("⏹");
-        var collector = await msg.createReactionCollector((r, u) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id, {
+        var collector = await msg.createReactionCollector((r, u) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(r.emoji.name) && user.id === message.author.id, {
           idle: 60000,
           errors: ["time"]
         });
