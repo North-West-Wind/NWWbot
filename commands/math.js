@@ -13,23 +13,23 @@ module.exports = {
         switch(args[0]) {
             case "evaluate":
             case "eval":
-                done = await math.evaluate(args.slice(1).join(" ")).catch(err => done = "Evaluation Error");
+                try { done = await math.evaluate(args.slice(1).join(" ")); } catch(err) {done = "Evaluation Error";}
                 break;
             case "derivative":
             case "deri":
-                done = await math.derivative(args.slice(1).join(" ").catch(err => done = "Differentiation Error"));
+                try { done = await math.derivative(args.slice(1).join(" ")); } catch(err) {done = "Differentiation Error";}
                 break;
             case "solvelinear":
             case "lsol":
-                done = await math.lsolve(args.slice(1).join(" ")).catch(err => done = "Solving Error");
+                try { done = await math.lsolve(args.slice(1).join(" ")); } catch(err) {done = "Solving Error";}
                 break;
             case "rationalize":
             case "rat":
-                done = await math.rationalize(args.slice(1).join(" ")).catch(err => done = "Rationalization Error");
+                try { done = await math.rationalize(args.slice(1).join(" ")); } catch(err) {done = "Rationalization Error";}
                 break;
             case "simplify":
             case "sim":
-                done = await math.simplify(args.slice(1).join(" ")).catch(err => done = "Simplification Error");
+                try { done = await math.simplify(args.slice(1).join(" ")); } catch(err) {done = "Simplification Error";}
                 break;
             case "help":
                 return await this.help(message);
@@ -173,7 +173,7 @@ module.exports = {
         await msg.react("▶");
         await msg.react("⏭");
         await msg.react("⏹");
-        var collector = await msg.createReactionCollector(filter, {
+        var collector = await msg.createReactionCollector((r, u) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id, {
           idle: 60000,
           errors: ["time"]
         });
