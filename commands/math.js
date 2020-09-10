@@ -38,7 +38,7 @@ module.exports = {
         }
         message.channel.send(done);
     },
-    help(message) {
+    async help(message) {
         var operators = {
             "Add": "x + y // add(x, y)",
             "Subtract": "x - y // subtract(x, y)",
