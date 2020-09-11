@@ -143,11 +143,11 @@ module.exports = {
         let strings = [];
         let strings2 = [];
         for(let i = 0; i < 63; i++) {
-            let str = `**${keys[i]}** : **${values[i]}**`;
+            let str = `${keys[i]} : ${values[i]}`;
             strings.push(str);
         }
         for(let i = 63; i < keys.length; i++) {
-            let str = `**${keys[i]}** : **${values[i]}**`;
+            let str = `${keys[i]} : ${values[i]}`;
             strings2.push(str);
         }
         var em = new Discord.MessageEmbed()
@@ -159,7 +159,7 @@ module.exports = {
         var em2 = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle("Math Operators/Functions List [Page 2/2]")
-        .setDescription(strings.join("\n"))
+        .setDescription(strings2.join("\n"))
         .setTimestamp()
         .setFooter("Have a nice day! :D", message.client.user.displayAvatarURL());
         const allEmbeds = [em, em2];
