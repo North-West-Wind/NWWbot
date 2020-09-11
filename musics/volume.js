@@ -14,14 +14,15 @@ module.exports = {
       else serverQueue.songs[0].volume = 1 + (Number(args[1]) / 100);
       if(serverQueue.songs[0].volume > 10) serverQueue.volume = 10;
       if(serverQueue.songs[0].volume < 0) serverQueue.volume = 0;
+      message.channel.send("Volume of the current soundtrack has been changed to **" + Math.round(serverQueue.volume * serverQueue.songs[0].volume * 100) + "%**.");
     } else {
       serverQueue.volume += Number(args[1]) / 100;
       if(serverQueue.volume > 10) serverQueue.volume = 10;
       if(serverQueue.volume < 0) serverQueue.volume = 0;
+      message.channel.send("Volume has been changed to **" + Math.round(serverQueue.volume * 100) + "%**.");
     }
     if(serverQueue.connection && serverQueue.playing && serverQueue.connection.dispatcher) {
       serverQueue.connection.dispatcher.setVolume(serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume);
     }
-    message.channel.send("Volume has been changed to **" + Math.round(serverQueue.volume * 100) + "%**.");
   }
 }

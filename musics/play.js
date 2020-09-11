@@ -698,7 +698,7 @@ module.exports = {
           } catch (err) {
             return message.channel.send("No video was found!");
           }
-          var length = parseInt(songInfo.length_seconds);
+          var length = parseInt(songInfo.videoDetails.lengthSeconds);
           var songLength = moment.duration(length, "seconds").format();
           var songs = [
             {
@@ -876,7 +876,6 @@ module.exports = {
         );
       const results = [];
       var saved = [];
-      var retries = 1;
       try {
         var searched = await ytsr(args.slice(1).join(" "), { limit: 10 });
         var video = searched.items.filter(x => x.type === "video");
@@ -973,6 +972,7 @@ module.exports = {
 
                 await queueContruct.songs.push(song);
                 pool.getConnection(function (err, con) {
+                  if(err) return console.error(err);
                   con.query(
                     "UPDATE servers SET queue = '" +
                     escape(JSON.stringify(queueContruct.songs)) +
