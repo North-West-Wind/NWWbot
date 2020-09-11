@@ -10,19 +10,19 @@ console.log = async function(str) {
  	console.realLog(str);
  	try {
    	var logChannel = await client.channels.fetch("678847137391312917");
+     logChannel.send("`" + str + "`");
  	} catch(err) {
    	return console.realError(err)
  	}
-    logChannel.send("`" + str + "`");
 }
 console.error = async function(str) {
   console.realError(str);
   try {
     var logChannel = await client.channels.fetch("678847137391312917");
+    logChannel.send("`ERROR!`\n`" + str.message + "`");
   } catch(err) {
     return console.realError(err)
   }
-    logChannel.send("`ERROR!`\n`" + str.message + "`");
 }
 
 const fs = require("fs");
@@ -37,8 +37,8 @@ for(const file of fontFiles) {
 }
 registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
 
-const alice = new Discord.Client();
-const client = new Discord.Client();
+const alice = new Discord.Client({ restRequestTimeout: 60000 });
+const client = new Discord.Client({ restRequestTimeout: 60000 });
 
 console.commands = new Discord.Collection();
 console.items = new Discord.Collection();

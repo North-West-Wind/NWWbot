@@ -251,7 +251,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
     .on("error", error => {
       console.error(error);
     });
-  dispatcher.setVolume(serverQueue.volume);
+  dispatcher.setVolume(serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume);
 }
 
 module.exports = {
@@ -331,7 +331,8 @@ module.exports = {
             title: file.name.split(".")[0].replace(/_/g, " "),
             url: file.url,
             type: 2,
-            time: songLength
+            time: songLength,
+            volume: 1
           };
           songs.push(song);
         }
@@ -374,7 +375,8 @@ module.exports = {
                 title: title,
                 url: args[1],
                 type: 2,
-                time: songLength
+                time: songLength,
+                volume: 1
               };
               var songs = [song];
             }
@@ -407,7 +409,8 @@ module.exports = {
                   id: track.id,
                   time: songLength,
                   thumbnail: track.artwork_url,
-                  url: track.permalink_url
+                  url: track.permalink_url,
+                  volume: 1
                 };
                 songs.push(song);
               }
@@ -421,7 +424,8 @@ module.exports = {
                   id: data.id,
                   time: songLength,
                   thumbnail: data.artwork_url,
-                  url: data.permalink_url
+                  url: data.permalink_url,
+                  volume: 1
                 }
               ];
             }
@@ -502,7 +506,8 @@ module.exports = {
                         tracks[i].track.external_urls.spotify,
                       thumbnail:
                         tracks[i].track.album.images[0].url,
-                      time: songLength
+                      time: songLength,
+                      volume: 1
                     };
                     songs.push(matched);
                     break;
@@ -517,7 +522,8 @@ module.exports = {
                         tracks[i].track.external_urls.spotify,
                       thumbnail:
                         tracks[i].track.album.images[0].url,
-                      time: songLength
+                      time: songLength,
+                      volume: 1
                     };
                     songs.push(matched);
                   }
@@ -584,7 +590,8 @@ module.exports = {
                       thumbnail: highlight
                         ? tracks[i].album.images[0].url
                         : image,
-                      time: songLength
+                      time: songLength,
+                      volume: 1
                     };
                     songs.push(matched);
                     break;
@@ -599,7 +606,8 @@ module.exports = {
                       thumbnail: highlight
                         ? tracks[i].album.images[0].url
                         : image,
-                      time: songLength
+                      time: songLength,
+                      volume: 1
                     };
                     songs.push(matched);
                   }
@@ -634,7 +642,8 @@ module.exports = {
                       type: 1,
                       spot: tracks[i].external_urls.spotify,
                       thumbnail: tracks[i].album.images[0].url,
-                      time: songLength
+                      time: songLength,
+                      volume: 1
                     };
                     songs.push(matched);
                     break;
@@ -647,7 +656,8 @@ module.exports = {
                       type: 1,
                       spot: tracks[i].external_urls.spotify,
                       thumbnail: tracks[i].album.images[0].url,
-                      time: songLength
+                      time: songLength,
+                      volume: 1
                     };
                     songs.push(matched);
                   }
@@ -677,7 +687,8 @@ module.exports = {
               url: video.url_simple,
               type: 0,
               time: video.duration,
-              thumbnail: video.thumbnail
+              thumbnail: video.thumbnail,
+              volume: 1
             };
             songs.push(info);
           }
@@ -687,7 +698,7 @@ module.exports = {
           } catch (err) {
             return message.channel.send("No video was found!");
           }
-          var length = parseInt(songInfo.length_seconds);
+          var length = parseInt(songInfo.videoDetails.lengthSeconds);
           var songLength = moment.duration(length, "seconds").format();
           var songs = [
             {
@@ -695,7 +706,8 @@ module.exports = {
               url: songInfo.video_url,
               type: 0,
               time: songLength,
-              thumbnail: `https://img.youtube.com/vi/${songInfo.video_id}/maxresdefault.jpg`
+              thumbnail: `https://img.youtube.com/vi/${songInfo.video_id}/maxresdefault.jpg`,
+              volume: 1
             }
           ];
         }
@@ -864,7 +876,6 @@ module.exports = {
         );
       const results = [];
       var saved = [];
-      var retries = 1;
       try {
         var searched = await ytsr(args.slice(1).join(" "), { limit: 10 });
         var video = searched.items.filter(x => x.type === "video");
@@ -941,7 +952,8 @@ module.exports = {
                 url: saved[s].link,
                 type: 0,
                 time: length,
-                thumbnail: saved[s].thumbnail
+                thumbnail: saved[s].thumbnail,
+                volume: 1
               };
 
               if (!serverQueue) {
@@ -960,6 +972,7 @@ module.exports = {
 
                 await queueContruct.songs.push(song);
                 pool.getConnection(function (err, con) {
+                  if(err) return console.error(err);
                   con.query(
                     "UPDATE servers SET queue = '" +
                     escape(JSON.stringify(queueContruct.songs)) +
@@ -1245,6 +1258,6 @@ module.exports = {
       .on("error", error => {
         console.error(error);
       });
-    dispatcher.setVolume(serverQueue.volume);
+      dispatcher.setVolume(serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume);
   }
 };
