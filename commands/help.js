@@ -12,7 +12,7 @@ module.exports = {
 
     if (!args.length) {
       const attachment = new Discord.MessageAttachment(
-        "https://www.dropbox.com/s/g4ym6beqdb8bal3/manual.pdf?dl=1", "manual.pdf"
+        "../manual.pdf", "manual.pdf"
       );
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
@@ -36,7 +36,7 @@ module.exports = {
 
         .addField(
           "**Miscellaneous**",
-          "giveaway\npoll\ngoogle\nspam\ntrade\ntimer",
+          "giveaway\npoll\ngoogle\nspam\ntrade\ntimer\nmath",
           true
         )
         .addField("**NSFW**", "hentai\nrule34\nporn", true)

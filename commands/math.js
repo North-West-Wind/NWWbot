@@ -4,10 +4,10 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
     name: "math",
-    description: "Solve your Mathematical problems!",
+    description: "Solve your Mathematical problems.",
     usage: "<subcommand> <expression>",
-    subcommands: ["evaluate", "derivative", "solvelinear", "rationalize", "simplify", "help"],
-    subaliases: ["eval", "deri", "lsol", "rat", "sim", "help"],
+    subcommands: ["evaluate", "derivative", "rationalize", "simplify", "help"],
+    subaliases: ["eval", "ddx", "rat", "sim", "help"],
     async execute(message, args) {
         let done = "Error!";
         switch(args[0]) {
@@ -16,12 +16,8 @@ module.exports = {
                 try { done = await math.evaluate(args.slice(1).join(" ")); } catch(err) {done = "Evaluation Error";}
                 break;
             case "derivative":
-            case "deri":
+            case "ddx":
                 try { done = await math.derivative(args.slice(1).join(" ")); } catch(err) {done = "Differentiation Error";}
-                break;
-            case "solvelinear":
-            case "lsol":
-                try { done = await math.lsolve(args.slice(1).join(" ")); } catch(err) {done = "Solving Error";}
                 break;
             case "rationalize":
             case "rat":
