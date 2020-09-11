@@ -332,7 +332,7 @@ module.exports = {
             url: file.url,
             type: 2,
             time: songLength,
-            volume = 1
+            volume: 1
           };
           songs.push(song);
         }
