@@ -139,17 +139,15 @@ module.exports = {
             "Hyperbolic Tangent": "tanh(x)"
         }
         let keys = Object.keys(operators);
-        keys.map(x => `**${x}**`);
         let values = Object.values(operators);
-        values.map(x => `**${x}**`);
         let strings = [];
         let strings2 = [];
         for(let i = 0; i < 63; i++) {
-            let str = `${keys[i]} : ${values[i]}`;
+            let str = `**${keys[i]}** : **${values[i]}**`;
             strings.push(str);
         }
         for(let i = 63; i < keys.length; i++) {
-            let str = `${keys[i]} : ${values[i]}`;
+            let str = `**${keys[i]}** : **${values[i]}**`;
             strings2.push(str);
         }
         var em = new Discord.MessageEmbed()
