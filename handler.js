@@ -219,6 +219,7 @@ module.exports = {
                 });
             }
             con.query("SELECT * FROM rolemsg ORDER BY expiration", (err, res) => {
+                if(err) return console.error(err);
                 console.log(`[${id}] ` + "Found " + res.length + " role messages.");
                 res.forEach(async result => {
                     if (id === 0 && result.guild == "622311594654695434") return;
@@ -245,7 +246,7 @@ module.exports = {
                                         if (err) return console.error(err);
                                         console.log("Deleted an expired role-message.");
                                         if (!deleted)
-                                            msg.reactions.removeAll().catch(err => console.error("Failed to remove reactions but nevermind."));
+                                            msg.reactions.removeAll().catch(() => console.error("Failed to remove reactions but nevermind."));
                                     });
                                 } else {
                                     expire(results[0].expiration - date);
@@ -391,8 +392,7 @@ module.exports = {
                                     );
 
                                 con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
-                                    err,
-                                    con
+                                    err
                                 ) {
                                     if (err) return console.error(err);
                                     console.log("Deleted an ended giveaway record.");
@@ -404,8 +404,7 @@ module.exports = {
             });
             con.query("SELECT * FROM poll ORDER BY endAt ASC", function (
                 err,
-                results,
-                fields
+                results
             ) {
                 if (err) return console.error(err);
                 console.log(`[${id}] ` + "Found " + results.length + " polls.");
@@ -494,6 +493,7 @@ module.exports = {
                 });
             });
             con.query("SELECT * FROM timer", (err, results) => {
+                if(err) console.error(err);
                 console.log(`[${id}] ` + `Found ${results.length} timers.`);
                 results.forEach(async result => {
                     if (id === 0 && result.guild == "622311594654695434") return;
