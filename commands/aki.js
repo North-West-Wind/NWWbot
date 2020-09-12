@@ -248,9 +248,9 @@ module.exports = {
           // found some answers
           if (aki.answers != null && aki.answers.length > 0) {
             found = true;
-            const { name } = aki.answers[0];
-            const image = aki.answers[0].absolute_picture_path;
-            const description = aki.answers[0].description || "";
+            const { name } = aki.answers[aki.guessCount - 1];
+            const image = aki.answers[aki.guessCount - 1].absolute_picture_path;
+            const description = aki.answers[aki.guessCount - 1].description || "";
 
             embed
               .setTitle("Akinator")
