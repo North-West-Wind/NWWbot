@@ -14,19 +14,19 @@ module.exports = {
         switch(args[0]) {
             case "evaluate":
             case "eval":
-                try { done = await math.evaluate(args.slice(1).join(" ")); } catch(err) {done = "Evaluation Error";}
+                try { done = await math.evaluate(args.slice(1).join(" ")); } catch(err) {done = "Evaluation Error"; console.error(err);}
                 break;
             case "derivative":
             case "ddx":
-                try { done = await math.derivative(args.slice(1).join(" "), "x").compile().evaluate(); } catch(err) {done = "Differentiation Error";}
+                try { done = await math.derivative(args.slice(1).join(" "), "x").compile().evaluate(); } catch(err) {done = "Differentiation Error"; console.error(err);}
                 break;
             case "rationalize":
             case "rat":
-                try { done = await math.rationalize(args.slice(1).join(" ")).compile().evaluate(); } catch(err) {done = "Rationalization Error";}
+                try { done = await math.rationalize(args.slice(1).join(" ")).compile().evaluate(); } catch(err) {done = "Rationalization Error"; console.error(err);}
                 break;
             case "simplify":
             case "sim":
-                try { done = await math.simplify(args.slice(1).join(" ")).compile().evaluate(); } catch(err) {done = "Simplification Error";}
+                try { done = await math.simplify(args.slice(1).join(" ")).compile().evaluate(); } catch(err) {done = "Simplification Error"; console.error(err);}
                 break;
             case "help":
                 return await this.help(message);
