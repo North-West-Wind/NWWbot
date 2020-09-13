@@ -223,7 +223,6 @@ module.exports = {
             found = false; // not found, time to reset on our side
           }
           await aki.step(answerID);
-          console.realLog(aki.answers);
         }
         if ((aki.progress >= 90 && loop > 3) || aki.currentStep >= 419) {
           // reset loop to ensure we are not getting the same answer (we have to keep trying)
