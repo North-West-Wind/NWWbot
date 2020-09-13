@@ -29,7 +29,6 @@ module.exports = {
             case 2:
                 try {
                     stream = await requestStream(song.url);
-                    let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
@@ -38,7 +37,6 @@ module.exports = {
             case 3:
                 try {
                     stream = await scdl.download(song.url);
-                    let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
@@ -53,7 +51,6 @@ module.exports = {
                             }
                         }
                     });
-                    let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp4`);
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
@@ -62,6 +59,7 @@ module.exports = {
         }
         await msg.delete();
         try {
+            let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp4`);
             message.channel.send(attachment);
         } catch(err) {
             message.channel.send(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
