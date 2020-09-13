@@ -9,7 +9,8 @@ delete console["error"];
 console.log = async function(str) {
  	console.realLog(str);
  	try {
-   	var logChannel = await client.channels.fetch("678847137391312917");
+     var logChannel = await client.channels.fetch("678847137391312917");
+     if(logChannel)
      logChannel.send("`" + str + "`");
  	} catch(err) {
    	return console.realError(err)
@@ -19,6 +20,7 @@ console.error = async function(str) {
   console.realError(str);
   try {
     var logChannel = await client.channels.fetch("678847137391312917");
+    if(logChannel)
     logChannel.send("`ERROR!`\n`" + str.message + "`");
   } catch(err) {
     return console.realError(err)

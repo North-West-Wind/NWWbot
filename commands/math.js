@@ -1,5 +1,6 @@
 const math = require("mathjs");
 const Discord = require("discord.js");
+const { compile } = require("mathjs");
 var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
@@ -13,19 +14,19 @@ module.exports = {
         switch(args[0]) {
             case "evaluate":
             case "eval":
-                try { done = await math.evaluate(args.slice(1).join(" ")); } catch(err) {done = "Evaluation Error";}
+                try { done = await math.evaluate(args.slice(1).join(" ")); } catch(err) {done = "Evaluation Error"; console.error(err);}
                 break;
             case "derivative":
             case "ddx":
-                try { done = await math.derivative(args.slice(1).join(" ")); } catch(err) {done = "Differentiation Error";}
+                try { done = await math.derivative(args.slice(1).join(" "), "x").compile().evaluate(); } catch(err) {done = "Differentiation Error"; console.error(err);}
                 break;
             case "rationalize":
             case "rat":
-                try { done = await math.rationalize(args.slice(1).join(" ")); } catch(err) {done = "Rationalization Error";}
+                try { done = await math.rationalize(args.slice(1).join(" ")).toString(); } catch(err) {done = "Rationalization Error"; console.error(err);}
                 break;
             case "simplify":
             case "sim":
-                try { done = await math.simplify(args.slice(1).join(" ")); } catch(err) {done = "Simplification Error";}
+                try { done = await math.simplify(args.slice(1).join(" ")).toString(); } catch(err) {done = "Simplification Error"; console.error(err);}
                 break;
             case "help":
                 return await this.help(message);
@@ -133,11 +134,31 @@ module.exports = {
             "Hyperbolic Sine": "sinh(x)",
             "Tangent": "tan(x)",
             "Hyperbolic Tangent": "tanh(x)"
+        };
+        var constants = {
+          "Euler's Number": "e // E",
+          "Imaginary Unit": "i",
+          "Infinity": "Infinity",
+          "Natural Logarithm of 2": "LN2",
+          "Natural Logarithm of 10": "LN10",
+          "Base-2 Logarithm of E": "LOG2E",
+          "Base-10 Logarithm of E": "LOG10E",
+          "Not a Number": "NaN",
+          "Null": "null",
+          "Golden Ratio": "phi",
+          "Pi": "pi // PI",
+          "Square Root of 1/2": "SQRT1_2",
+          "Square Root of 2": "SQRT2",
+          "Twice Pi": "tau",
+          "Undefined": "undefined"
         }
         let keys = Object.keys(operators);
         let values = Object.values(operators);
+        let morekeys = Object.keys(constants);
+        let morevalues = Object.values(constants);
         let strings = [];
         let strings2 = [];
+        let strings3 = [];
         for(let i = 0; i < 63; i++) {
             let str = `${keys[i]} : ${values[i]}`;
             strings.push(str);
@@ -146,19 +167,29 @@ module.exports = {
             let str = `${keys[i]} : ${values[i]}`;
             strings2.push(str);
         }
+        for(let i = 0; i < morekeys.length; i++) {
+            let str = `${morekeys[i]} : ${morevalues[i]}`;
+            strings3.push(str);
+        }
         var em = new Discord.MessageEmbed()
         .setColor(color)
-        .setTitle("Math Operators/Functions List [Page 1/2]")
+        .setTitle("Math Operators/Functions/Constants List [Page 1/3]")
         .setDescription(strings.join("\n"))
         .setTimestamp()
         .setFooter("Have a nice day! :D", message.client.user.displayAvatarURL());
         var em2 = new Discord.MessageEmbed()
         .setColor(color)
-        .setTitle("Math Operators/Functions List [Page 2/2]")
+        .setTitle("Math Operators/Functions/Constants List [Page 2/3]")
         .setDescription(strings2.join("\n"))
         .setTimestamp()
         .setFooter("Have a nice day! :D", message.client.user.displayAvatarURL());
-        const allEmbeds = [em, em2];
+        var em3 = new Discord.MessageEmbed()
+        .setColor(color)
+        .setTitle("Math Operators/Functions/Constants List [Page 3/3]")
+        .setDescription(strings3.join("\n"))
+        .setTimestamp()
+        .setFooter("Have a nice day! :D", message.client.user.displayAvatarURL());
+        const allEmbeds = [em, em2, em3];
         var s = 0;
         var msg = await message.channel.send(allEmbeds[0]);
   

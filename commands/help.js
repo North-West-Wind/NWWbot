@@ -12,7 +12,7 @@ module.exports = {
 
     if (!args.length) {
       const attachment = new Discord.MessageAttachment(
-        "../manual.pdf", "manual.pdf"
+        "https://www.dropbox.com/s/g4ym6beqdb8bal3/manual.pdf?dl=1", "manual.pdf"
       );
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
@@ -69,7 +69,7 @@ module.exports = {
             `Could not send help DM to ${message.author.tag}.\n`,
             error
           );
-          message.reply("why don't you let me DM you ;-;");
+          message.reply("there was an error trying to send you a DM!");
         });
     }
     const name = args[0].toLowerCase();

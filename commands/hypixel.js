@@ -5642,7 +5642,7 @@ module.exports = {
                     const Embed = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
-                    .setURL("https://sky.lea.moe/stats/" + res[0].name)
+                    .setURL("https://sky.shiiyu.moe/stats/" + res[0].name)
                     .setDescription("SkyBlock - **" + profile.cute_name + "**\n" + `Members [${memberCount}]: ${memberName.join(", ")}\n\n**Magma Boss** in **${magmaStr}**\n**Dark Auction** in **${darkStr}**\n**Bank Interest** in **${bankStr}**\n**New Year** in **${yearStr}**\n**Travelling Zoo** in **${zooStr}**\n**Spooky Festival** in **${spookStr}**\n**Winter Event** in **${winterStr}**\n**Jerry Workshop** in **${jerryStr}**`)
                     .addField("Purse", numberWithCommas(purse), true)
                     .addField("Total Kills", numberWithCommas(kills), true)
@@ -5724,7 +5724,7 @@ module.exports = {
                   collector.on("end", async function() {
                     msg.reactions.removeAll().catch(console.error);
                     await msg.edit({ content: "Loading simplier version...", embed: null });
-                    await msg.edit("https://sky.lea.moe/stats/" + res[0].name);
+                    await msg.edit("https://sky.shiiyu.moe/stats/" + res[0].name);
                   });
                 }
               }
