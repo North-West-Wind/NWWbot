@@ -222,7 +222,7 @@ module.exports = {
             }
             found = false; // not found, time to reset on our side
           }
-          await aki.step();
+          await aki.step(answerID);
           console.realLog(aki.answers);
         }
         if ((aki.progress >= 90 && loop > 3) || aki.currentStep >= 419) {
@@ -236,7 +236,7 @@ module.exports = {
 
               // can continue (max of 80 steps)
               if (aki.currentStep < this.maxSteps) {
-                await aki.step();
+                await aki.step(answerID);
               } else {
                 msg = await msg.edit("Akinator error has occurred.", {
                   embed: null
