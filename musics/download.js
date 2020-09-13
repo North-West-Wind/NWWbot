@@ -45,7 +45,7 @@ module.exports = {
             default:
                 try {
                     stream = await ytdl(song.url, {
-                        highWaterMark: 1 << 28, requestOptions: {
+                        highWaterMark: 1 << 28, filter: "audioonly", requestOptions: {
                             headers: {
                                 cookie: process.env.COOKIE
                             }
@@ -64,20 +64,5 @@ module.exports = {
         } catch(err) {
             message.channel.send(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
         }
-        /*
-        stream.on("error", err => {
-            console.error(err);
-            msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
-        });
-        stream.on("end", () => {
-            let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
-            msg.delete();
-            try {
-                message.channel.send(attachment);
-            } catch(err) {
-                message.channel.send(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
-            }
-        });
-        */
     }
 }
