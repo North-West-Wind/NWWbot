@@ -22,11 +22,11 @@ module.exports = {
                 break;
             case "rationalize":
             case "rat":
-                try { done = await math.rationalize(args.slice(1).join(" ")).compile().evaluate(); } catch(err) {done = "Rationalization Error"; console.error(err);}
+                try { done = await math.rationalize(args.slice(1).join(" ")).toString(); } catch(err) {done = "Rationalization Error"; console.error(err);}
                 break;
             case "simplify":
             case "sim":
-                try { done = await math.simplify(args.slice(1).join(" ")).compile().evaluate(); } catch(err) {done = "Simplification Error"; console.error(err);}
+                try { done = await math.simplify(args.slice(1).join(" ")).toString(); } catch(err) {done = "Simplification Error"; console.error(err);}
                 break;
             case "help":
                 return await this.help(message);
