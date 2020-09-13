@@ -10,8 +10,6 @@ module.exports = {
   name: "aki",
   description: "Play Akinator on Discord!",
   aliases: ["akinator"],
-  cooldown: 25,
-  type: "other",
   guildOnly: true,
   usage: "[region]",
   users: new Set(),
@@ -41,7 +39,7 @@ module.exports = {
     'ru',
     'tr'
   ],
-  maxSteps: 80,
+  maxSteps: 420,
 
   yes: "✅",
   no: "❌",
@@ -226,7 +224,7 @@ module.exports = {
           }
           await aki.step();
         }
-        if ((aki.progress >= 78 && loop > 3) || aki.currentStep >= 79) {
+        if ((aki.progress >= 418 && loop > 3) || aki.currentStep >= 419) {
           // reset loop to ensure we are not getting the same answer (we have to keep trying)
           loop = 0;
 
@@ -248,6 +246,7 @@ module.exports = {
           // found some answers
           if (aki.answers != null && aki.answers.length > 0) {
             found = true;
+            console.realLog(aki.answers);
             const { name } = aki.answers[aki.guessCount - 1];
             const image = aki.answers[aki.guessCount - 1].absolute_picture_path;
             const description = aki.answers[aki.guessCount - 1].description || "";
@@ -322,7 +321,7 @@ module.exports = {
             msg = await msg.edit(embed);
 
             // done with the game, we can't do anything else.
-            if (aki.currentStep >= 79) {
+            if (aki.currentStep >= 419) {
               embed.setTitle("This is my final guess!");
               embed.setDescription(`**${name}**\n**${description}**`);
               embed.setFooter(
