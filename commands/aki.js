@@ -224,7 +224,7 @@ module.exports = {
           }
           await aki.step();
         }
-        if ((aki.progress >= 418 && loop > 3) || aki.currentStep >= 419) {
+        if ((aki.progress >= 85 && loop > 3) || aki.currentStep >= 419) {
           // reset loop to ensure we are not getting the same answer (we have to keep trying)
           loop = 0;
 
