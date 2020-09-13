@@ -223,8 +223,9 @@ module.exports = {
             found = false; // not found, time to reset on our side
           }
           await aki.step();
+          console.realLog(aki.answers);
         }
-        if ((aki.progress >= 85 && loop > 3) || aki.currentStep >= 419) {
+        if ((aki.progress >= 90 && loop > 3) || aki.currentStep >= 419) {
           // reset loop to ensure we are not getting the same answer (we have to keep trying)
           loop = 0;
 
@@ -246,7 +247,6 @@ module.exports = {
           // found some answers
           if (aki.answers != null && aki.answers.length > 0) {
             found = true;
-            console.realLog(aki.answers);
             const { name } = aki.answers[aki.guessCount - 1];
             const image = aki.answers[aki.guessCount - 1].absolute_picture_path;
             const description = aki.answers[aki.guessCount - 1].description || "";
