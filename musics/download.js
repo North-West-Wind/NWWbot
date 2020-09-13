@@ -29,6 +29,7 @@ module.exports = {
             case 2:
                 try {
                     stream = await requestStream(song.url);
+                    let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
@@ -37,6 +38,7 @@ module.exports = {
             case 3:
                 try {
                     stream = await scdl.download(song.url);
+                    let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
@@ -45,19 +47,19 @@ module.exports = {
             default:
                 try {
                     stream = await ytdl(song.url, {
-                        highWaterMark: 1 << 28, filter: "audioonly", requestOptions: {
+                        highWaterMark: 1 << 28, requestOptions: {
                             headers: {
                                 cookie: process.env.COOKIE
                             }
                         }
                     });
+                    let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp4`);
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
                 }
                 break;
         }
-        let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
         await msg.delete();
         try {
             message.channel.send(attachment);
