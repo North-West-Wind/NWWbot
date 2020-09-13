@@ -65,6 +65,7 @@ module.exports = {
             message.channel.send(attachment);
         } catch(err) {
             message.channel.send(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
+            console.error(err);
         }
     }
 }
