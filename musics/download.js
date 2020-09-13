@@ -1,4 +1,4 @@
-const ytdl = require("ytdl-core");
+const ytdl = require("ytdl-core-discord");
 const scdl = require("soundcloud-downloader");
 const request = require("request-stream");
 
