@@ -35,8 +35,9 @@ module.exports = {
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
                 questions = parseInt(collected.first().content);
                 if(!questions || questions === 0 | isNaN(questions)) return msg.edit("That's not a valid number!");
+                break;
             case 1:
-                msg = await msg.edit("Please enter the amount of questions.");
+                msg = await msg.edit("Please enter the time allowed.");
                 collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
                 time = ms(collected.first().content);
