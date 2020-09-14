@@ -53,7 +53,7 @@ module.exports = {
         }
         await msg.delete();
         try {
-            let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp4`);
+            let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
             message.channel.send(attachment);
         } catch(err) {
             message.channel.send(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
