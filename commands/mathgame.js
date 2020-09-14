@@ -14,7 +14,7 @@ module.exports = {
         var msg = await message.channel.send("Who will be playing this game? (Please mention them)");
         let collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
         if (!collected || !collected.first() || !collected.first().content) return msg.edit("You didn't answer me within 30 seconds! Please try again.");
-        collected.first().delete();
+        await collected.first().delete();
         var players = [message.author];
         var scores = {};
         scores[message.author] = 0;
@@ -33,6 +33,7 @@ module.exports = {
                 msg = await msg.edit("Please enter the amount of questions.");
                 collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
+                await collected.first().delete();
                 questions = parseInt(collected.first().content);
                 if(!questions || questions === 0 | isNaN(questions)) return msg.edit("That's not a valid number!");
                 break;
@@ -40,6 +41,7 @@ module.exports = {
                 msg = await msg.edit("Please enter the time allowed.");
                 collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
+                await collected.first().delete();
                 time = ms(collected.first().content);
                 if(!time || time === 0) return msg.edit("That's not a valid number!");
         }
@@ -72,7 +74,7 @@ module.exports = {
                     running = false;
                     break;
                 }
-                collected.first().delete();
+                await collected.first().delete();
                 if(parseInt(collected.first().content) === generated.answer) {
                     scores[collected.first().author.id] += 1;
                     correct = true;
@@ -93,6 +95,7 @@ module.exports = {
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
         msg.edit({ content: "", embed: em });
+        console.mathgames.delete(now);
     },
     async selectMode(message) {
         var em1 = new Discord.MessageEmbed()
