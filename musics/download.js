@@ -1,7 +1,6 @@
 const scdl = require("soundcloud-downloader");
 const request = require("request-stream");
-const ytdl = require('ytdl-core');
-const FFmpeg = require("fluent-ffmpeg");
+const createMusicStream = require('create-music-stream')
 
 const requestStream = url => {
     return new Promise(resolve => {
@@ -40,9 +39,7 @@ module.exports = {
                 break;
             default:
                 try {
-                    const ffmpeg = new FFmpeg(await ytdl(song.url));
-                    stream = new require("stream").PassThrough();
-                    ffmpeg.pipe(stream);
+                    stream = await createMusicStream(song.url, console.log);
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
