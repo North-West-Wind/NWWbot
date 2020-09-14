@@ -10,7 +10,7 @@ module.exports = {
     description: "Math Game prototype.",
     usage: " ",
     async execute(message, args) {
-        if(args[0].toLowerCase() === "clear" && message.author.id === process.env.DC) {
+        if(args[0] && args[0].toLowerCase() === "clear" && message.author.id === process.env.DC) {
             console.mathgames.clear();
             return;
         }
