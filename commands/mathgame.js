@@ -32,7 +32,7 @@ module.exports = {
         collected = undefined;
         switch(mode) {
             case -1:
-                return msg.edit("You didn't choose any mode in time!");
+                return msg.edit("Nothing was chosen!");
             case 0:
                 msg = await msg.edit("Please enter the amount of questions.");
                 collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
