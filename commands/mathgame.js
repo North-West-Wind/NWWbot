@@ -92,8 +92,8 @@ module.exports = {
             score: 0
         };
         for(const user of players) {
-            if(scores[user.id] > winner.score) winner.name = user.tag;
-            else if(scores[user.id] === winner.score) winner.name += ` ${user.tag}`;
+            if(scores[user.id] > winner.score) { winner.name = user.tag; winner.score = scores[user.id]; }
+            else if(scores[user.id] === winner.score) { winner.name += ` ${user.tag}`; winner.score = scores[user.id]; }
         }
         em.setTitle("Game Over")
         .setDescription(`Here are the final scores after **${moment.duration(Math.round((Date.now() - now) / 1000), "seconds").format()}**!\n${players.map(x => `**${x.tag}** --- **${scores[x.id]}**\n`)}\nCongratulations to **${winner.name}** for winning this game with **${winner.score} points**!`)
