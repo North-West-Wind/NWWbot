@@ -8,10 +8,8 @@ formatSetup(moment);
 module.exports = {
     name: "mathgame",
     description: "Math Game prototype.",
-    usage: "<mode>",
-    modes: ["questions", "timer", "endless"],
+    usage: " ",
     async execute(message, args) {
-        if (!args[0] || !this.modes.includes(args[0].toLowerCase())) return message.channel.send("The mode is invalid!");
         for (const arrs of Array.from(console.mathgames.values())) if (arrs.includes(message.author.id)) return message.channel.send("You are already in another game!");
         var msg = await message.channel.send("Who will be playing this game? (Please mention them)");
         let collected = await msg.channel.awaitMessages(x => x.user.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
