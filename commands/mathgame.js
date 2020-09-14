@@ -14,6 +14,7 @@ module.exports = {
         var msg = await message.channel.send("Who will be playing this game? (Please mention them)");
         let collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
         if (!collected || !collected.first() || !collected.first().content) return msg.edit("You didn't answer me within 30 seconds! Please try again.");
+        collected.first().delete();
         var players = [message.author];
         var scores = {};
         scores[message.author] = 0;
@@ -29,13 +30,13 @@ module.exports = {
             case -1:
                 return msg.edit("You didn't choose any mode in time!");
             case 0:
-                await msg.edit("Please enter the amount of questions.");
+                msg = await msg.edit("Please enter the amount of questions.");
                 collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
                 questions = parseInt(collected.first().content);
                 if(!questions || questions === 0 | isNaN(questions)) return msg.edit("That's not a valid number!");
             case 1:
-                await msg.edit("Please enter the amount of questions.");
+                msg = await msg.edit("Please enter the amount of questions.");
                 collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
                 time = ms(collected.first().content);
@@ -70,6 +71,7 @@ module.exports = {
                     running = false;
                     break;
                 }
+                collected.first().delete();
                 if(parseInt(collected.first().content) === generated.answer) {
                     scores[collected.first().author.id] += 1;
                     correct = true;
