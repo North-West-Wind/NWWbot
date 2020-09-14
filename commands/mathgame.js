@@ -10,6 +10,10 @@ module.exports = {
     description: "Math Game prototype.",
     usage: " ",
     async execute(message, args) {
+        if(args[0].toLowerCase() === "clear" && message.author.id === process.env.DC) {
+            console.mathgames.clear();
+            return;
+        }
         for (const arrs of Array.from(console.mathgames.values())) if (arrs.includes(message.author.id)) return message.channel.send("You are already in another game!");
         var msg = await message.channel.send("Who will be playing this game? (Please mention them)");
         let collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
