@@ -41,7 +41,8 @@ module.exports = {
             default:
                 try {
                     const ffmpeg = new FFmpeg(await ytdl(song.url));
-                    stream = await ffmpeg.format("mp3");
+                    stream = new require("stream").PassThrough();
+                    ffmpeg.pipe(stream);
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
