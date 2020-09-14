@@ -7,11 +7,6 @@ const requestStream = url => {
         request(url, (err, res) => resolve(res));
     });
 };
-const GET = url => {
-    return new Promise(resolve => {
-        http.get(url, res => resolve(res));
-    });
-}
 const Discord = require("discord.js");
 module.exports = {
     name: "download",
