@@ -145,7 +145,7 @@ module.exports = {
         );
       con.query(
         "SELECT * FROM queue WHERE user = '" + message.author.id + "'",
-        function(err, results) {
+        async function(err, results) {
           if (err)
             return message.reply(
               "there was an error trying to fetch data from the database!"
@@ -168,11 +168,22 @@ module.exports = {
                 .join(" ")
                 .toLowerCase()
             ) {
-              return message.channel.send(
-                "There is already a queue named **" +
-                  args.slice(2).join(" ") +
-                  "** stored."
-              );
+              var em = new Discord.MessageEmbed()
+              .setColor(color)
+              .setTitle("Warning")
+              .setDescription(`There is already a queue named **${args.slice(2).join(" ")}** stored. Do you want to override it?\n✅ Yes\n❌ No`)
+              .setTimestamp()
+              .setFooter("Please answer in 30 seconds.", message.client.user.displayAvatarURL());
+              var msg = await message.channel.send(em);
+              await msg.react("✅");
+              await msg.react("❌");
+              var collected = await msg.awaitReactions((r, u) => (["✅", "❌"].includes(r.emoji.name) && u.id === message.author.id), { time: 30000, max: 1, errors: ["time"] });
+              await msg.reactions.removeAll().catch(console.error);
+              if(!collected || !collected.first()) return msg.edit({ content: "I cannot receive your answer! I'll take that as a NO.", embed: null });
+              if(collected.first().emoji.name === "✅") {
+                await msg.edit({ content: `The queue ${args.slice(2).join(" ")} will be overrided.`, embed: null });
+                continue;
+              } else return await msg.edit({ content: `Action cancelled. The queue ${args.slice(2).join(" ")} will not be overrided.`, embed: null });
             }
           }
           con.query(
@@ -312,31 +323,74 @@ module.exports = {
         );
       con.query(
         "SELECT * FROM queue WHERE user = '" + message.author.id + "'",
-        function(err, results) {
+        async function(err, results) {
           if (err)
             return message.reply(
               "there was an error trying to fetch the queues from the database!"
             );
           var queues = [];
           var num = 0;
+          var allEmbeds = [];
           for (const result of results) {
             var queue = JSON.parse(unescape(result.queue));
             queues.push(
               `${++num}. **${result.name}** : **${queue.length} tracks**`
             );
+            var pageArray = queue.slice(0, 10);
+            var queueEmbed = new Discord.MessageEmbed()
+              .setColor(color)
+              .setTitle(`Queue - ${result.name}`)
+              .setDescription(`There are ${queue.length} tracks in total.\n\n${pageArray.join("\n")}`)
+              .setTimestamp()
+              .setFooter(queue.length > pageArray.length ? "Cannot show all soundtracks here..." : "Here are all the soundtracks in this queue.", message.client.user.displayAvatarURL());
+            allEmbeds.push(queueEmbed);
           }
+          var emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
+          var available = ["⬅", "⏹️"];
           const em = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle(`Stored queues of **${message.author.tag}**`)
             .setDescription(
-              `Slots used: **${results.length}**/10\n\n${queues.join("\n")}`
+              `Slots used: **${results.length}/10**\n\n${queues.join("\n")}`
             )
             .setTimestamp()
             .setFooter(
-              "Have a nice day! :)",
+              "React to the numbers to view your queue.",
               message.client.user.displayAvatarURL()
             );
-          message.channel.send(em);
+          allEmbeds.unshift(em);
+          var msg = await message.channel.send(em);
+          for(let i = 0; i < Math.min(num, 10); i++) {
+            await msg.react(emojis[i]);
+            available.push(emojis[i]);
+          }
+          await msg.react(available[0]);
+          await msg.react(available[1]);
+          var collector = msg.createReactionCollector((r, u) => available.includes(r.emoji.name) && u.id === message.author.id, { idle: 30000 });
+          collector.on("collect", function(reaction, user) {
+            reaction.users.remove(user.id);
+            let index = emojis.indexOf(reaction.emoji.name);
+            if(index < 0 || index > num + 2 || index == 1) return collector.emit("end");
+            else if(index == 0) {
+              let back = await msg.reactions.cache.get(available[0]);
+              let stop = await msg.reactions.cache.get(available[1]);
+              await back.remove().catch(console.error);
+              await stop.remove().catch(console.error);
+              msg.edit(allEmbeds[0]);
+            } else {
+              msg.edit(allEmbeds[index]);
+              await msg.react(available[0]);
+              await msg.react(available[1]);
+            }
+          });
+          collector.on("end", function() {
+            msg.reactions.removeAll().catch(console.error);
+            msg.edit(allEmbeds[0]);
+            setTimeout(() => {
+              msg.edit({ embed: null, content: "**[Insert Queue Information Here]**" })
+            }, 60000);
+          });
+
         }
       );
       con.release();
