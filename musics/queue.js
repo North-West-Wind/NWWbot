@@ -331,12 +331,12 @@ module.exports = {
           var queues = [];
           var num = 0;
           var allEmbeds = [];
-          var queueNum = 0;
           for (const result of results) {
             var queue = JSON.parse(unescape(result.queue));
             queues.push(
               `${++num}. **${result.name}** : **${queue.length} tracks**`
             );
+            var queueNum = 0;
             var pageArray = queue.map(song => {
               var str;
               if (song.type === 0 || song.type === 2 || song.type === 3 || !song.type)
@@ -388,7 +388,7 @@ module.exports = {
               await back.remove().catch(console.error);
               msg.edit(allEmbeds[0]);
             } else {
-              msg.edit(allEmbeds[index]);
+              msg.edit(allEmbeds[index - 1]);
               let stop = await msg.reactions.cache.get(available[1]);
               await stop.remove().catch(console.error);
               await msg.react(available[0]);
