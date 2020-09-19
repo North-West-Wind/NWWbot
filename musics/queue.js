@@ -336,7 +336,19 @@ module.exports = {
             queues.push(
               `${++num}. **${result.name}** : **${queue.length} tracks**`
             );
-            var pageArray = queue.slice(0, 10);
+            var pageArray = queue.map(song => {
+              var str;
+              if (song.type === 0 || song.type === 2 || song.type === 3 || !song.type)
+                str = `**${++index} - ** **[${song.title}](${song.url})** : **${
+                  song.time
+                }**`;
+              else if (song.type === 1)
+                str = `**${++index} - ** **[${song.title}](${song.spot})** : **${
+                  song.time
+                }**`;
+        
+              return str;
+            }).slice(0, 10);
             var queueEmbed = new Discord.MessageEmbed()
               .setColor(color)
               .setTitle(`Queue - ${result.name}`)
@@ -364,21 +376,20 @@ module.exports = {
             await msg.react(emojis[i]);
             available.push(emojis[i]);
           }
-          await msg.react(available[0]);
           await msg.react(available[1]);
           var collector = msg.createReactionCollector((r, u) => available.includes(r.emoji.name) && u.id === message.author.id, { idle: 30000 });
           collector.on("collect", async function(reaction, user) {
             reaction.users.remove(user.id);
-            let index = emojis.indexOf(reaction.emoji.name);
+            let index = available.indexOf(reaction.emoji.name);
             if(index < 0 || index > num + 2 || index == 1) return collector.emit("end");
             else if(index == 0) {
               let back = await msg.reactions.cache.get(available[0]);
-              let stop = await msg.reactions.cache.get(available[1]);
               await back.remove().catch(console.error);
-              await stop.remove().catch(console.error);
               msg.edit(allEmbeds[0]);
             } else {
               msg.edit(allEmbeds[index]);
+              let stop = await msg.reactions.cache.get(available[1]);
+              await stop.remove().catch(console.error);
               await msg.react(available[0]);
               await msg.react(available[1]);
             }
