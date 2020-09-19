@@ -331,6 +331,7 @@ module.exports = {
           var queues = [];
           var num = 0;
           var allEmbeds = [];
+          var queueNum = 0;
           for (const result of results) {
             var queue = JSON.parse(unescape(result.queue));
             queues.push(
@@ -339,11 +340,11 @@ module.exports = {
             var pageArray = queue.map(song => {
               var str;
               if (song.type === 0 || song.type === 2 || song.type === 3 || !song.type)
-                str = `**${++index} - ** **[${song.title}](${song.url})** : **${
+                str = `**${++queueNum} - ** **[${song.title}](${song.url})** : **${
                   song.time
                 }**`;
               else if (song.type === 1)
-                str = `**${++index} - ** **[${song.title}](${song.spot})** : **${
+                str = `**${++queueNum} - ** **[${song.title}](${song.spot})** : **${
                   song.time
                 }**`;
         
