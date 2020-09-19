@@ -367,7 +367,7 @@ module.exports = {
           await msg.react(available[0]);
           await msg.react(available[1]);
           var collector = msg.createReactionCollector((r, u) => available.includes(r.emoji.name) && u.id === message.author.id, { idle: 30000 });
-          collector.on("collect", function(reaction, user) {
+          collector.on("collect", async function(reaction, user) {
             reaction.users.remove(user.id);
             let index = emojis.indexOf(reaction.emoji.name);
             if(index < 0 || index > num + 2 || index == 1) return collector.emit("end");
