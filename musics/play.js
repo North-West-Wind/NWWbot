@@ -613,7 +613,7 @@ module.exports = {
                   }
                 }
               }
-              mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }))
+              mesg.edit("Track processing completed").then(msg => msg.delete({ timeout: 10000 }))
               break;
             case "track":
               var data = await spotifyApi.getTracks([musicID]);
@@ -674,13 +674,17 @@ module.exports = {
             if (err.message === "This playlist is private.") {
               return message.channel.send("The playlist is private!");
             } else {
-              return message.channel.send(
-                "An unexpected error has occured while fetching your playlist!"
+              return message.reply(
+                "there was an error fetching your playlist!"
               );
             }
           }
           var videos = playlistInfo.items;
           var songs = [];
+          var mesg = await message.channel.send(`Processing track: **0/${videos.length}**`);
+          var interval = setInterval(() => {
+            if(songs.length < videos.length) await mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`);
+          }, 1000);
           for (const video of videos) {
             var info = {
               title: video.title,
@@ -692,6 +696,8 @@ module.exports = {
             };
             songs.push(info);
           }
+          mesg.edit(`Track processing completed`).then(msg => msg.delete({ timeout: 10000 }));
+          clearInterval(interval);
         } else {
           try {
             var songInfo = await ytdl.getInfo(args[1]);
