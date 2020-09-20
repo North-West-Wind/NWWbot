@@ -471,7 +471,7 @@ module.exports = {
                     return message.reply("there was an error adding your soundtrack!");
                 }
             } else {
-                serverQueue.songs.push(songs[i]);
+                serverQueue.songs = serverQueue.songs.concat(songs);
 
                 pool.getConnection(function (err, con) {
                     if (err) return message.reply("there was an error trying to connect to the database!");
