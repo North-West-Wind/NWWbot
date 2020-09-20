@@ -389,10 +389,13 @@ module.exports = {
               msg.edit(allEmbeds[0]);
             } else {
               msg.edit(allEmbeds[index - 1]);
-              let stop = await msg.reactions.cache.get(available[1]);
-              await stop.remove().catch(console.error);
-              await msg.react(available[0]);
-              await msg.react(available[1]);
+              let back = await msg.reactions.cache.get(available[0]);
+              if(!back) {
+                let stop = await msg.reactions.cache.get(available[1]);
+                if(stop) await stop.remove().catch(console.error);
+                await msg.react(available[0]);
+                await msg.react(available[1]);
+              }
             }
           });
           collector.on("end", function() {
