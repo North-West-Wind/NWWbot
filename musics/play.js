@@ -682,7 +682,7 @@ module.exports = {
           var videos = playlistInfo.items;
           var songs = [];
           var mesg = await message.channel.send(`Processing track: **0/${videos.length}**`);
-          var interval = setInterval(() => {
+          var interval = setInterval(async() => {
             if(songs.length < videos.length) await mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`);
           }, 1000);
           for (const video of videos) {
