@@ -9,7 +9,7 @@ module.exports = {
   subcommands: ["save", "load", "delete", "list"],
   subaliases: ["s", "l", "d", "li"],
   async music(message, serverQueue, looping, queue, pool) {
-    const args = message.content.split(" ");
+    const args = message.content.split(/ +/);
     if (args[1] !== undefined && (args[1].toLowerCase() === "save" || args[1].toLowerCase() === "s")) {
       return await this.save(message, serverQueue, pool, args);
     }

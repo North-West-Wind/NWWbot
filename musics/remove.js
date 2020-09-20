@@ -2,27 +2,24 @@ const { play } = require("./play.js");
 
 module.exports = {
   name: "remove",
-  description: "Remove a music from the song queue.",
-  usage: "<index>",
+  description: "Remove soundtrack(s) from the song queue.",
+  usage: "<index | starting index> [delete count]",
   async music(message, serverQueue, looping, queue, pool, repeat) {
-    const args = message.content.split(" ")
-    if (!args[1]) return message.channel.send("You did not provide any index." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
+    const args = message.content.split(/ +/);
+    if (!args[1]) return message.channel.send("You did not provide any index." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+    if(args[2] && !isNaN(parseInt(args[2])) && parseInt(args[2]) < 1) return message.channel.send("The delete count must be larger than 0!");
     var queueIndex = parseInt(args[1]);
-    if (typeof queueIndex !== "number")
+    if (isNaN(queueIndex))
       return message.channel.send("The query provided is not a number.");
     if (!serverQueue) return message.channel.send("There is nothing playing.");
     var deleteIndex = queueIndex - 1;
-    if (deleteIndex === 0) {
-      if (serverQueue.connection && serverQueue.connection.dispatcher) {
-        serverQueue.connection.dispatcher.destroy();
-      }
-    }
     if (deleteIndex > serverQueue.songs.length - 1)
       return message.channel.send(
         `You cannot remove the song that doesn't exist.`
       );
-    var title = serverQueue.songs[deleteIndex].title;
-    var removed = await serverQueue.songs.splice(deleteIndex, 1);
+    var song = serverQueue.songs[deleteIndex];
+    var title = song.title;
+    var removed = await serverQueue.songs.splice(deleteIndex, args[2] && !isNaN(parseInt(args[2])) ? parseInt(args[2]) : 1);
     pool.getConnection(function (err, con) {
       if (err) return message.reply("there was an error trying to connect to the database!");
       con.query(
@@ -39,9 +36,12 @@ module.exports = {
       con.release();
     });
     message.channel.send(
-      `**${title}** has been removed from the queue.`
+      `${removed.length > 1 ? `**${removed.length} tracks** have` : `**${title}** has`} been removed from the queue.`
     );
-    if (deleteIndex === 0) {
+    if (song != serverQueue.songs[0]) {
+      if (serverQueue.connection && serverQueue.connection.dispatcher) {
+        serverQueue.connection.dispatcher.destroy();
+      }
       play(message.guild, serverQueue.songs[0], looping, queue, pool, repeat);
     }
   }

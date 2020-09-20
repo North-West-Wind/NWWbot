@@ -795,11 +795,9 @@ module.exports = {
         }
       } else {
         if (!message.guild.me.voice.channel || serverQueue.playing === false) {
-          for (var i = songs.length; i > 0; i--)
-            serverQueue.songs.unshift(songs[i - 1]);
+          serverQueue.songs = songs.concat(serverQueue.songs);
         } else {
-          for (var i = 0; i < songs.length; i++)
-            serverQueue.songs.push(songs[i]);
+          serverQueue.songs = serverQueue.songs.concat(songs);
         }
 
         pool.getConnection(function (err, con) {
