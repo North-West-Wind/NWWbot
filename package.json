@@ -63,7 +63,7 @@
     "youtube-search": "^1.1.4",
     "ytdl-core": "^3.2.2",
     "ytdl-core-discord": "amishshah/ytdl-core-discord",
-    "ytpl": "^0.1.21",
-    "ytsr": "^0.1.15"
+    "ytpl": "^1.0.1",
+    "ytsr": "^1.0.1"
   }
 }
