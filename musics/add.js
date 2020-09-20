@@ -362,7 +362,7 @@ module.exports = {
             } else {
                 if (validYTPlaylistURL(args[1])) {
                     try {
-                        var playlistInfo = await ytpl(args[1]);
+                        var playlistInfo = await ytpl(args[1], { limit: Infinity });
                     } catch (err) {
                         if (err.message === "This playlist is private.") {
                             return message.channel.send("The playlist is private!");
