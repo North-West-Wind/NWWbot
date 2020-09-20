@@ -258,7 +258,7 @@ module.exports = {
   name: "play",
   description:
     "Play music with the link or keywords provided. Only support YouTube videos currently.",
-  aliases: ["add", "p"],
+  aliases: ["p"],
   usage: "[link | keywords | attachment]",
   async music(message, serverQueue, looping, queue, pool, repeat, exit, migrating) {
     const args = message.content.split(/ +/);

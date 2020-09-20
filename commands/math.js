@@ -11,6 +11,7 @@ module.exports = {
     subaliases: ["eval", "ddx", "rat", "sim", "help"],
     async execute(message, args) {
         let done = "Error!";
+        if(!args[0]) return message.channel.send(`You didn't provide any subcommands! Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
         switch(args[0]) {
             case "evaluate":
             case "eval":
