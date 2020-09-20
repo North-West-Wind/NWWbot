@@ -12,10 +12,10 @@ module.exports = {
     if (isNaN(queueIndex))
       return message.channel.send("The query provided is not a number.");
     if (!serverQueue) return message.channel.send("There is nothing playing.");
-    var deleteIndex = queueIndex - 1;
+    var deleteIndex = queueIndex - 1 < 0 ? serverQueue.songs.length + queueIndex - 1 : queueIndex - 1;
     if (deleteIndex > serverQueue.songs.length - 1)
       return message.channel.send(
-        `You cannot remove the song that doesn't exist.`
+        `You cannot remove a soundtrack that doesn't exist.`
       );
     var song = serverQueue.songs[deleteIndex];
     var title = song.title;
