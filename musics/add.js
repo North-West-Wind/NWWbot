@@ -367,8 +367,9 @@ module.exports = {
                         if (err.message === "This playlist is private.") {
                             return message.channel.send("The playlist is private!");
                         } else {
+                            console.error(err);
                             return message.reply(
-                                "there was an error fetching your playlist!"
+                                "there was an error trying to fetch your playlist!"
                             );
                         }
                     }
