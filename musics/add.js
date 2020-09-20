@@ -397,7 +397,7 @@ module.exports = {
                     } catch (err) {
                         return message.channel.send("No video was found!");
                     }
-                    var length = parseInt(songInfo.videoDetails.lengthSeconds);
+                    var length = parseInt(songInfo.length_seconds);
                     var songLength = moment.duration(length, "seconds").format();
                     var songs = [
                         {
