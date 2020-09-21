@@ -1175,11 +1175,11 @@ module.exports = {
                 if(timeout) {
                     clearTimeout(timeout);
                     timeout = undefined;
-                    timeout = setTimeout(() => {
-                        client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
-                        timeout = undefined;
-                    }, 60000);
-                } else client.user.setPresence({ activity: { name: "your commands", type: "WATCHING" }, status: "online", afk: false });
+                } else client.user.setPresence({ activity: { name: "Your Commands", type: "WATCHING" }, status: "online", afk: false });
+                timeout = setTimeout(() => {
+                    client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
+                    timeout = undefined;
+                }, 60000);
             }
             if (message.guild !== null) {
                 if (!message.channel.permissionsFor(message.guild.me).has(84992)) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
