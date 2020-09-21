@@ -29,14 +29,8 @@ module.exports = {
     var index = 0;
     var songArray = serverQueue.songs.map(song => {
       var str;
-      if (song.type === 0 || song.type === 2 || song.type === 3 || !song.type)
-        str = `**${++index} - ** **[${song.title}](${song.url})** : **${
-          song.time
-        }**`;
-      else if (song.type === 1)
-        str = `**${++index} - ** **[${song.title}](${song.spot})** : **${
-          song.time
-        }**`;
+      if (song.type === 1) str = `**${++index} - ** **[${song.title}](${song.spot})** : **${song.time}**`;
+      else str = `**${++index} - ** **[${song.title}](${song.url})** : **${song.time}**`;
 
       return str;
     });
@@ -50,30 +44,30 @@ module.exports = {
       );
     };
 
-      for (let i = 0; i < Math.ceil(songArray.length / 10); i++) {
-        var pageArray = songArray.slice(i * 10, i * 10 + 10);
-        var queueEmbed = new Discord.MessageEmbed()
-          .setColor(color)
-          .setTitle(
-            `Song queue for ${message.guild.name} [${i + 1}/${Math.ceil(
-              songArray.length / 10
-            )}]`
-          )
-          .setDescription(
-            "There are " +
-              songArray.length +
-              " tracks in total.\n\n" +
-              pageArray.join("\n")
-          )
-          .setTimestamp()
-          .setFooter(
-            "Now playing: " +
-              (serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing"),
-            message.client.user.displayAvatarURL()
-          );
+    for (let i = 0; i < Math.ceil(songArray.length / 10); i++) {
+      var pageArray = songArray.slice(i * 10, i * 10 + 10);
+      var queueEmbed = new Discord.MessageEmbed()
+        .setColor(color)
+        .setTitle(
+          `Song queue for ${message.guild.name} [${i + 1}/${Math.ceil(
+            songArray.length / 10
+          )}]`
+        )
+        .setDescription(
+          "There are " +
+          songArray.length +
+          " tracks in total.\n\n" +
+          pageArray.join("\n")
+        )
+        .setTimestamp()
+        .setFooter(
+          "Now playing: " +
+          (serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing"),
+          message.client.user.displayAvatarURL()
+        );
 
-        allEmbeds.push(queueEmbed);
-      }
+      allEmbeds.push(queueEmbed);
+    }
 
     if (allEmbeds.length == 1) {
       message.channel.send(allEmbeds[0]).then(msg => {
@@ -95,7 +89,7 @@ module.exports = {
         errors: ["time"]
       });
 
-      collector.on("collect", function(reaction, user) {
+      collector.on("collect", function (reaction, user) {
         reaction.users.remove(user.id);
         switch (reaction.emoji.name) {
           case "⏮":
@@ -125,7 +119,7 @@ module.exports = {
             break;
         }
       });
-      collector.on("end", function() {
+      collector.on("end", function () {
         msg.reactions.removeAll().catch(console.error);
         setTimeout(() => {
           msg.edit({ embed: null, content: "**[Insert Queue Information Here]**" })
@@ -138,14 +132,14 @@ module.exports = {
       return message.channel.send(
         "There is no queue playing in this server right now!"
       );
-    pool.getConnection(function(err, con) {
+    pool.getConnection(function (err, con) {
       if (err)
         return message.reply(
           "there was an error trying to connect to the database!"
         );
       con.query(
         "SELECT * FROM queue WHERE user = '" + message.author.id + "'",
-        async function(err, results) {
+        async function (err, results) {
           if (err)
             return message.reply(
               "there was an error trying to fetch data from the database!"
@@ -169,18 +163,18 @@ module.exports = {
                 .toLowerCase()
             ) {
               var em = new Discord.MessageEmbed()
-              .setColor(color)
-              .setTitle("Warning")
-              .setDescription(`There is already a queue named **${args.slice(2).join(" ")}** stored. Do you want to override it?\n✅ Yes\n❌ No`)
-              .setTimestamp()
-              .setFooter("Please answer in 30 seconds.", message.client.user.displayAvatarURL());
+                .setColor(color)
+                .setTitle("Warning")
+                .setDescription(`There is already a queue named **${args.slice(2).join(" ")}** stored. Do you want to override it?\n✅ Yes\n❌ No`)
+                .setTimestamp()
+                .setFooter("Please answer in 30 seconds.", message.client.user.displayAvatarURL());
               var msg = await message.channel.send(em);
               await msg.react("✅");
               await msg.react("❌");
               var collected = await msg.awaitReactions((r, u) => (["✅", "❌"].includes(r.emoji.name) && u.id === message.author.id), { time: 30000, max: 1, errors: ["time"] });
               await msg.reactions.removeAll().catch(console.error);
-              if(!collected || !collected.first()) return msg.edit({ content: "I cannot receive your answer! I'll take that as a NO.", embed: null });
-              if(collected.first().emoji.name === "✅") {
+              if (!collected || !collected.first()) return msg.edit({ content: "I cannot receive your answer! I'll take that as a NO.", embed: null });
+              if (collected.first().emoji.name === "✅") {
                 await msg.edit({ content: `The queue ${args.slice(2).join(" ")} will be overrided.`, embed: null });
                 continue;
               } else return await msg.edit({ content: `Action cancelled. The queue ${args.slice(2).join(" ")} will not be overrided.`, embed: null });
@@ -188,19 +182,19 @@ module.exports = {
           }
           con.query(
             "INSERT INTO queue(user, name, queue) " +
-              `VALUES('${message.author.id}', '${args
-                .slice(2)
-                .join(" ")}', '${escape(JSON.stringify(serverQueue.songs))}')`,
-            function(err) {
+            `VALUES('${message.author.id}', '${args
+              .slice(2)
+              .join(" ")}', '${escape(JSON.stringify(serverQueue.songs))}')`,
+            function (err) {
               if (err)
                 return message.reply(
                   "there was an error trying to store the queue!"
                 );
               message.channel.send(
                 "The song queue has been stored with the name **" +
-                  args.slice(2).join(" ") +
-                  "**!" +
-                  `\nSlots used: **${results.length + 1}/10**`
+                args.slice(2).join(" ") +
+                "**!" +
+                `\nSlots used: **${results.length + 1}/10**`
               );
             }
           );
@@ -210,27 +204,27 @@ module.exports = {
     });
   },
   load(message, serverQueue, pool, args, queue) {
-    if(serverQueue && serverQueue.playing) {
+    if (serverQueue && serverQueue.playing) {
       return message.channel.send("Someone is listening to the music. Don't ruin their day.");
     }
     if (!args[2]) {
       return message.channel.send("Please provide the name of the queue.");
     }
-    pool.getConnection(function(err, con) {
+    pool.getConnection(function (err, con) {
       if (err)
         return message.reply(
           "there was an error trying to connect to the database!"
         );
       con.query(
         "SELECT * FROM queue WHERE LOWER(name) = '" +
-          args
-            .slice(2)
-            .join(" ")
-            .toLowerCase() +
-          "' AND user = '" +
-          message.author.id +
-          "'",
-        function(err, results) {
+        args
+          .slice(2)
+          .join(" ")
+          .toLowerCase() +
+        "' AND user = '" +
+        message.author.id +
+        "'",
+        function (err, results) {
           if (err)
             return message.reply(
               "there was an error trying to fetch queues from the database!"
@@ -258,7 +252,7 @@ module.exports = {
           } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
           con.query(
             `UPDATE servers SET queue = '${results[0].queue}' WHERE id = '${message.guild.id}'`,
-            function(err) {
+            function (err) {
               if (err)
                 return message.reply(
                   "there was an error trying to update the queue!"
@@ -277,21 +271,21 @@ module.exports = {
     if (!args[2]) {
       return message.channel.send("Please provide the name of the queue.");
     }
-    pool.getConnection(function(err, con) {
+    pool.getConnection(function (err, con) {
       if (err)
         return message.reply(
           "there was an error trying to connect to the database!"
         );
       con.query(
         "SELECT * FROM queue WHERE LOWER(name) = '" +
-          args
-            .slice(2)
-            .join(" ")
-            .toLowerCase() +
-          "' AND user = '" +
-          message.author.id +
-          "'",
-        function(err, results) {
+        args
+          .slice(2)
+          .join(" ")
+          .toLowerCase() +
+        "' AND user = '" +
+        message.author.id +
+        "'",
+        function (err, results) {
           if (err)
             return message.reply(
               "there was an error trying to fetch queues from the database!"
@@ -299,7 +293,7 @@ module.exports = {
           if (results.length == 0) {
             return message.channel.send("No queue was found!");
           }
-          con.query(`DELETE FROM queue WHERE id = ${results[0].id}`, function(
+          con.query(`DELETE FROM queue WHERE id = ${results[0].id}`, function (
             err
           ) {
             if (err)
@@ -316,14 +310,14 @@ module.exports = {
     });
   },
   list(message, pool) {
-    pool.getConnection(function(err, con) {
+    pool.getConnection(function (err, con) {
       if (err)
         return message.reply(
           "there was an error trying to connect to the database!"
         );
       con.query(
         "SELECT * FROM queue WHERE user = '" + message.author.id + "'",
-        async function(err, results) {
+        async function (err, results) {
           if (err)
             return message.reply(
               "there was an error trying to fetch the queues from the database!"
@@ -340,14 +334,12 @@ module.exports = {
             var pageArray = queue.map(song => {
               var str;
               if (song.type === 0 || song.type === 2 || song.type === 3 || !song.type)
-                str = `**${++queueNum} - ** **[${song.title}](${song.url})** : **${
-                  song.time
-                }**`;
+                str = `**${++queueNum} - ** **[${song.title}](${song.url})** : **${song.time
+                  }**`;
               else if (song.type === 1)
-                str = `**${++queueNum} - ** **[${song.title}](${song.spot})** : **${
-                  song.time
-                }**`;
-        
+                str = `**${++queueNum} - ** **[${song.title}](${song.spot})** : **${song.time
+                  }**`;
+
               return str;
             }).slice(0, 10);
             var queueEmbed = new Discord.MessageEmbed()
@@ -373,32 +365,32 @@ module.exports = {
             );
           allEmbeds.unshift(em);
           var msg = await message.channel.send(em);
-          for(let i = 0; i < Math.min(num, 10); i++) {
+          for (let i = 0; i < Math.min(num, 10); i++) {
             await msg.react(emojis[i]);
             available.push(emojis[i]);
           }
           await msg.react(available[1]);
           var collector = msg.createReactionCollector((r, u) => available.includes(r.emoji.name) && u.id === message.author.id, { idle: 30000 });
-          collector.on("collect", async function(reaction, user) {
+          collector.on("collect", async function (reaction, user) {
             reaction.users.remove(user.id);
             let index = available.indexOf(reaction.emoji.name);
-            if(index < 0 || index > num + 2 || index == 1) return collector.emit("end");
-            else if(index == 0) {
+            if (index < 0 || index > num + 2 || index == 1) return collector.emit("end");
+            else if (index == 0) {
               let back = await msg.reactions.cache.get(available[0]);
               await back.remove().catch(console.error);
               msg.edit(allEmbeds[0]);
             } else {
               msg.edit(allEmbeds[index - 1]);
               let back = await msg.reactions.cache.get(available[0]);
-              if(!back) {
+              if (!back) {
                 let stop = await msg.reactions.cache.get(available[1]);
-                if(stop) await stop.remove().catch(console.error);
+                if (stop) await stop.remove().catch(console.error);
                 await msg.react(available[0]);
                 await msg.react(available[1]);
               }
             }
           });
-          collector.on("end", function() {
+          collector.on("end", function () {
             msg.reactions.removeAll().catch(console.error);
             msg.edit(allEmbeds[0]);
             setTimeout(() => {

@@ -32,6 +32,7 @@ module.exports = {
         var length = parseInt(songInfo.length_seconds);
         break;
       case 2:
+      case 4:
         var stream = await requestStream(serverQueue.songs[0].url).catch(console.error);
         var metadata = await mm.parseStream(stream).catch(console.error);
         var length = Math.round(metadata.format.duration);
@@ -54,11 +55,10 @@ module.exports = {
     .setColor(Math.floor(Math.random() * 16777214) + 1)
     .setTitle("Now playing:" + (serverQueue.playing ? "" : " (Not actually)"))
     .setTimestamp()
-    .setTimestamp()
     .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     if(serverQueue.songs[0].type === 0 || serverQueue.songs[0].type === 3) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
     else if(serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
-    else if(serverQueue.songs[0].type === 2) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`];
+    else if(serverQueue.songs[0].type === 2 || serverQueue.songs[0].type === 4) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`];
     embed.setDescription(`${info[0]}\n\n${positionTime} **${processBar.join("")}** ${songLength}`).setThumbnail(info[1]);
   return message.channel.send(embed).then(msg => {
     setTimeout(() => {
