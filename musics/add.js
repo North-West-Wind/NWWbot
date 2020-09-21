@@ -374,12 +374,13 @@ module.exports = {
                 }
             } else if(validGDURL(args[1])) {
                 const formats = [/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing/, /https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/];
+                const alphanumeric = /^[a-zA-Z0-9\-_]+$/
                 formats.forEach((regex) => {
-                    const matches = url.match(regex)
+                    const matches = args[1].match(regex)
                     if (matches && matches.groups && matches.groups.id) id = matches.groups.id
                 });
                 if (!id) {
-                    if (alphanumeric.test(url)) id = url
+                    if (alphanumeric.test(args[1])) id = args[1];
                     else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
                 }
                 var link = "https://drive.google.com/uc?export=download&id=" + id;
@@ -387,7 +388,7 @@ module.exports = {
                 try {
                     var metadata = await mm.parseStream(stream);
                 } catch (err) {
-                    return message.channel.send("The audio format is not supported!");
+                    return message.reply("there was an error trying to parse your link!");
                 }
                 if (!metadata) return message.channel.send("An error occured while parsing the audio file into stream! Maybe it is not link to the file?");
                 var length = Math.round(metadata.format.duration);
