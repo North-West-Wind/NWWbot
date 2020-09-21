@@ -24,6 +24,8 @@ const ytpl = require("ytpl");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
+const rp = require("request-promise-native");
+const cheerio = require("cheerio");
 
 module.exports = {
     name: "add",
@@ -387,6 +389,13 @@ module.exports = {
                 var stream = await requestStream(link);
                 try {
                     var metadata = await mm.parseStream(stream);
+                    var html = await rp(args[1]);
+                    var $ = cheerio.load(html);
+                    var titleArr = $("title").text().split(" - ");
+                    titleArr.splice(-1, 1);
+                    var titleArr2 = titleArr.join(" - ").split(".");
+                    titleArr2.splice(-1, 1);
+                    var title = titleArr2.join(".");
                 } catch (err) {
                     return message.reply("there was an error trying to parse your link!");
                 }
@@ -394,7 +403,7 @@ module.exports = {
                 var length = Math.round(metadata.format.duration);
                 var songLength = moment.duration(length, "seconds").format();
                 var song = {
-                    title: stream.data.name,
+                    title: title,
                     url: args[1],
                     type: 4,
                     time: songLength,

@@ -27,6 +27,8 @@ const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const { http } = require("follow-redirects");
 const scdl = require("soundcloud-downloader");
+const rp = require("request-promise-native");
+const cheerio = require("cheerio");
 
 async function migrate(message, serverQueue, looping, queue, pool, repeat, exit, migrating) {
   if (migrating.find(x => x === message.guild.id)) return message.channel.send("I'm on my way!").then(msg => msg.delete(10000));
@@ -693,14 +695,22 @@ module.exports = {
         var stream = await requestStream(link);
         try {
             var metadata = await mm.parseStream(stream);
+            var html = await rp(args[1]);
+            var $ = cheerio.load(html);
+            var titleArr = $("title").text().split(" - ");
+            titleArr.splice(-1, 1);
+            var titleArr2 = titleArr.join(" - ").split(".");
+            titleArr2.splice(-1, 1);
+            var title = titleArr2.join(".");
         } catch (err) {
             return message.reply("there was an error trying to parse your link!");
         }
         if (!metadata) return message.channel.send("An error occured while parsing the audio file into stream! Maybe it is not link to the file?");
         var length = Math.round(metadata.format.duration);
         var songLength = moment.duration(length, "seconds").format();
+
         var song = {
-          title: stream.data.name,
+          title: title,
           url: args[1],
           type: 4,
           time: songLength,
