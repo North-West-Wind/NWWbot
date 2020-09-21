@@ -29,6 +29,7 @@ const { http } = require("follow-redirects");
 const scdl = require("soundcloud-downloader");
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
+const wait = (milli) => new Promise(resolve => setTimeout(resolve, milli));
 
 async function migrate(message, serverQueue, looping, queue, pool, repeat, exit, migrating) {
   if (migrating.find(x => x === message.guild.id)) return message.channel.send("I'm on my way!").then(msg => msg.delete(10000));
@@ -179,6 +180,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
   if (song.type === 2 || song.type === 4) {
     try {
       var stream = await requestStream(song.url);
+      await wait(5000);
     } catch (err) {
       console.error(err);
       return await skip();
@@ -1221,6 +1223,7 @@ module.exports = {
     if (song.type === 2 || song.type === 4) {
       try {
         var stream = await requestStream(song.url);
+        await wait(5000);
       } catch (err) {
         console.error(err);
         return await skip();
