@@ -404,7 +404,7 @@ module.exports = {
                 var songLength = moment.duration(length, "seconds").format();
                 var song = {
                     title: title,
-                    url: args[1],
+                    url: link,
                     type: 4,
                     time: songLength,
                     volume: 1
