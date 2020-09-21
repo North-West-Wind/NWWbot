@@ -26,6 +26,7 @@ const profile = (str) => {
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
+var timeout = undefined;
 module.exports = {
     async ready(client, id) {
         console.log(`[${id}] Ready!`);
@@ -165,7 +166,7 @@ module.exports = {
         }
 
         if (id === 0)
-            client.user.setActivity("You", { type: "WATCHING" });
+            client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
         else
             client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         pool.getConnection(function (err, con) {
@@ -1170,6 +1171,16 @@ module.exports = {
         if (!command) {
             return;
         } else {
+            if(id === 0) {
+                if(timeout) {
+                    clearTimeout(timeout);
+                    timeout = undefined;
+                    timeout = setTimeout(() => {
+                        client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
+                        timeout = undefined;
+                    }, 60000);
+                } else client.user.setPresence({ activity: { name: "your commands", type: "WATCHING" }, status: "online", afk: false });
+            }
             if (message.guild !== null) {
                 if (!message.channel.permissionsFor(message.guild.me).has(84992)) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
             }
