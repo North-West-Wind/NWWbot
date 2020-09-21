@@ -178,7 +178,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
     });
     return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat, 0, skipped);
   }
-  if (song.type === 2) {
+  if (song.type === 2 || song.type === 4) {
     try {
       var stream = await requestStream(song.url);
     } catch (err) {
@@ -1211,7 +1211,7 @@ module.exports = {
       });
       return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
     }
-    if (song.type === 2) {
+    if (song.type === 2 || song.type === 4) {
       try {
         var stream = await requestStream(song.url);
       } catch (err) {
