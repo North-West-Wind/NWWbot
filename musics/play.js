@@ -93,11 +93,6 @@ const requestStream = url => {
     request(url, (err, res) => resolve(res));
   });
 };
-const GET = url => {
-  return new Promise(resolve => {
-    http.get(url, res => resolve(res));
-  });
-}
 
 async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 0) {
   const serverQueue = queue.get(guild.id);
