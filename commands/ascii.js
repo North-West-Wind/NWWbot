@@ -39,7 +39,7 @@ module.exports = {
                         ctx.font = "14px Courier New";
                         ctx.textBaseline = "top";
                         ctx.textAlign = "left";
-                        ctx.fillStyle = 'white';
+                        ctx.fillStyle = 'gray';
                         ctx.fillRect(0, 0, width, height);
                         var num = 0;
                         for(const line of lines) {
