@@ -60,6 +60,9 @@ module.exports = {
                         return message.reply("there was an error trying to convert the image into ASCII!");
                     }
                 });
+                break;
+            default:
+                return message.channel.send(`That is not a valid subcommand! Subcommands: \`${this.subcomamnds.join(", ")}\``)
         }
     }
 }

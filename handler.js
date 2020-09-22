@@ -33,23 +33,6 @@ module.exports = {
         if (id === 1) {
             setInterval(async () => {
                 const guild = await client.guilds.resolve("622311594654695434");
-                const memberCount = guild.memberCount;
-                const userMember = guild.members.cache;
-                var onlineMemberCount = 0;
-                var botMemberCount = 0;
-                for (const user of userMember.values()) {
-                    if (user.user.bot) botMemberCount += 1;
-                    if (user.presence && user.presence.status === "online") onlineMemberCount += 1;
-                    else if (user.presence && user.presence.status === "idle") onlineMemberCount += 1;
-                    else if (user.presence && user.presence.status === "dnd") onlineMemberCount += 1;
-                }
-                var memberCountChannel = await guild.channels.resolve("722379389102194718");
-                var botCountChannel = await guild.channels.resolve("722379396652072970");
-                var onlineCountChannel = await guild.channels.resolve("722379393263075338");
-
-                memberCountChannel.edit({ name: "All Members: " + memberCount }).catch(() => {});
-                botCountChannel.edit({ name: "Bots: " + botMemberCount }).catch(() => {});
-                onlineCountChannel.edit({ name: "Online: " + onlineMemberCount }).catch(() => {});
                 try {
                     var timerChannel = await guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
                     var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
