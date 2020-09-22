@@ -22,8 +22,8 @@ module.exports = {
                     if(!isImageUrl(attachment.url)) return message.channel.send("The attachment is not an image!");
                     var options = {
                         fit:    'box',
-                        width:  attachment.width / 10,
-                        height: attachment.height / 10
+                        width:  Math.round(attachment.width / 10),
+                        height: Math.round(attachment.height / 10)
                     }
                     try {
                         var asciis = await asciify(attachment.url, options);
