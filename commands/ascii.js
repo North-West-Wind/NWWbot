@@ -44,8 +44,8 @@ module.exports = {
                         var num = 0;
                         for(const line of lines) {
                             var words = anser.ansiToJson(line);
+                            words = words.filter(x => x.content.length > 0);
                             for(let i = 0; i < words.length; i++) {
-                                if(words[i].content.length < 1) continue;
                                 ctx.fillStyle = 'white';
                                 if(words[i].fg) ctx.fillStyle = `rgb(${words[i].fg})`;
                                 ctx.fillText(words[i].content, i * width / anser.ansiToText(line).length, num * 18);
