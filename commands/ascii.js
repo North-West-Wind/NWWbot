@@ -22,7 +22,7 @@ module.exports = {
                     if(!isImageUrl(attachment.url)) return message.channel.send("The attachment is not an image!");
                     var options = {
                         fit:    'box',
-                        width:  Math.round(attachment.width / 10),
+                        width:  Math.round(attachment.width / (10 * 0.42)),
                         height: Math.round(attachment.height / 10)
                     }
                     var msg = await message.channel.send("Image received! Processing ASCII art...");
