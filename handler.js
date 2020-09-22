@@ -47,9 +47,9 @@ module.exports = {
                 var botCountChannel = await guild.channels.resolve("722379396652072970");
                 var onlineCountChannel = await guild.channels.resolve("722379393263075338");
 
-                memberCountChannel.edit({ name: "All Members: " + memberCount }).catch(console.realError);
-                botCountChannel.edit({ name: "Bots: " + botMemberCount }).catch(console.realError);
-                onlineCountChannel.edit({ name: "Online: " + onlineMemberCount }).catch(console.realError);
+                memberCountChannel.edit({ name: "All Members: " + memberCount }).catch(() => {});
+                botCountChannel.edit({ name: "Bots: " + botMemberCount }).catch(() => {});
+                onlineCountChannel.edit({ name: "Online: " + onlineMemberCount }).catch(() => {});
                 try {
                     var timerChannel = await guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
                     var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
