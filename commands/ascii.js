@@ -25,6 +25,7 @@ module.exports = {
                         width:  Math.round(attachment.width / 10),
                         height: Math.round(attachment.height / 10)
                     }
+                    var msg = await message.channel.send("Image received! Processing ASCII art...");
                     try {
                         var asciis = await asciify(attachment.url, options);
                         var lines = asciis.split("\n");
@@ -39,7 +40,7 @@ module.exports = {
                         ctx.font = "14px Courier New";
                         ctx.textBaseline = "top";
                         ctx.textAlign = "left";
-                        ctx.fillStyle = 'silver';
+                        ctx.fillStyle = 'gray';
                         ctx.fillRect(0, 0, width, height);
                         var num = 0;
                         for(const line of lines) {
@@ -55,9 +56,10 @@ module.exports = {
                         var nameArr = attachment.name.split(".");
                         nameArr.splice(-1, 1);
                         var newattachment = new Discord.MessageAttachment(canvas.toBuffer(), `${nameArr.join(".")}.png`);
+                        msg.delete();
                         message.channel.send(newattachment);
                     } catch(err) {
-                        return message.reply("there was an error trying to convert the image into ASCII!");
+                        return msg.edit(`<@${message.author.id}>, there was an error trying to convert the image into ASCII!`);
                     }
                 });
                 break;
