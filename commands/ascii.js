@@ -22,8 +22,8 @@ module.exports = {
                     if(!isImageUrl(attachment.url)) return message.channel.send("The attachment is not an image!");
                     var options = {
                         fit:    'box',
-                        width:  attachment.width / 5,
-                        height: attachment.height / 5
+                        width:  attachment.width / 10,
+                        height: attachment.height / 10
                     }
                     try {
                         var asciis = await asciify(attachment.url, options);
@@ -39,7 +39,7 @@ module.exports = {
                         ctx.font = "14px Courier New";
                         ctx.textBaseline = "top";
                         ctx.textAlign = "left";
-                        ctx.fillStyle = 'gray';
+                        ctx.fillStyle = 'silver';
                         ctx.fillRect(0, 0, width, height);
                         var num = 0;
                         for(const line of lines) {
