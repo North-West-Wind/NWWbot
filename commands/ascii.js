@@ -4,6 +4,7 @@ const asciify = require('asciify-image');
 const isImageUrl = require('is-image-url');
 const { createCanvas } = require("canvas");
 const Discord = require("discord.js");
+const { Readable } = require('stream');
 module.exports = {
     name: "ascii",
     description: "Generate ASCII arts from text or image.",
@@ -14,7 +15,10 @@ module.exports = {
         switch(args[0].toLowerCase()) {
             case "text":
                 if(!args[1]) return message.channel.send("You didn't provide any text! If you want to convert an image, use the `image` subcommand.");
-                message.channel.send("```" + figlet.textSync(args.slice(1).join(" ")) + "```");
+                var text = figlet.textSync(args.slice(1).join(" "));
+                var attachment = new Discord.MessageAttachment(Readable.from(text), `${args.slice(1).join(" ")}.txt`);
+                if(text.length + 83 > 2000) return message.channel.send("The text is too long to send in Discord! Therefore, I've made it into a file!", attachment);
+                message.channel.send("```" + text + "```\nYour text might not show properly! Therefore, there is a text file for you!", attachment);
             break;
             case "image":
                 if(message.attachments.size < 1) return message.channel.send("You didn't provide any image! If you want to convert text, use the `text` subcommand.");
@@ -37,7 +41,7 @@ module.exports = {
 
                         var canvas = createCanvas(width, height);
                         var ctx = canvas.getContext("2d");
-                        ctx.font = "14px Courier New";
+                        ctx.font = "15px Courier New";
                         ctx.textBaseline = "top";
                         ctx.textAlign = "left";
                         ctx.fillStyle = 'dimgray';
