@@ -1158,7 +1158,7 @@ module.exports = {
                 if(timeout) {
                     clearTimeout(timeout);
                     timeout = undefined;
-                } else client.user.setPresence({ activity: { name: "Your Commands", type: "WATCHING" }, status: "online", afk: false });
+                } else client.user.setPresence({ activity: { name: `${message.author.username}'s Commands`, type: "WATCHING" }, status: "online", afk: false });
                 timeout = setTimeout(() => {
                     client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
                     timeout = undefined;
