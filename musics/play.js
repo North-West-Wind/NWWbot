@@ -28,6 +28,8 @@ formatSetup(moment);
 const scdl = require("soundcloud-downloader");
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
+const fs = require("fs");
+const StreamConcat = require('stream-concat');
 
 async function migrate(message, serverQueue, looping, queue, pool, repeat, exit, migrating) {
   if (migrating.find(x => x === message.guild.id)) return message.channel.send("I'm on my way!").then(msg => msg.delete(10000));
@@ -177,14 +179,16 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
   }
   if (song.type === 2 || song.type === 4) {
     try {
-      var stream = await requestStream(song.url);
+      var requestedStream = await requestStream(song.url);
+      var silence = fs.createReadStream(`${__dirname}/silence.mp3`);
+      var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28});
     } catch (err) {
       console.error(err);
       return await skip();
     }
     dispatcher = serverQueue.connection.play(stream, {
       type: "unknown",
-      highWaterMark: 1 << 29,
+      highWaterMark: 1 << 28,
       seek: begin
     });
   } else if (song.type === 3) {
