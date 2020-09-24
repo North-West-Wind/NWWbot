@@ -28,9 +28,9 @@ const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const request = require("request-stream");
 const requestStream = url => {
-  return new Promise(resolve => {
-    request(url, (err, res) => resolve(res));
-  });
+    return new Promise(resolve => {
+        request(url, (err, res) => resolve(res));
+    });
 };
 
 module.exports = {
@@ -380,7 +380,7 @@ module.exports = {
                         }
                     ];
                 }
-            } else if(validGDURL(args[1])) {
+            } else if (validGDURL(args[1])) {
                 const formats = [/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing/, /https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/];
                 const alphanumeric = /^[a-zA-Z0-9\-_]+$/
                 formats.forEach((regex) => {
@@ -416,7 +416,7 @@ module.exports = {
                     volume: 1
                 };
                 var songs = [song];
-            } else if (message.attachments.size > 0) {
+            } else if (validURL(args[1])) {
                 var linkArr = args[1].split("/");
                 if (linkArr[linkArr.length - 1].split("?").length == 1) {
                     var title = linkArr[linkArr.length - 1]
@@ -450,6 +450,31 @@ module.exports = {
                     volume: 1
                 };
                 var songs = [song];
+            } else if (message.attachments.size > 0) {
+                var files = message.attachments;
+                var songs = [];
+                for (const file of files.values()) {
+                    var stream = await requestStream(file.url);
+                    try {
+                        var metadata = await mm.parseStream(stream);
+                    } catch (err) {
+                        return message.channel.send("The audio format is not supported!");
+                    }
+                    if (!metadata)
+                        return message.channel.send(
+                            "An error occured while parsing the audio file into stream! Maybe it is not link to the file?"
+                        );
+                    var length = Math.round(metadata.format.duration);
+                    var songLength = moment.duration(length, "seconds").format();
+                    var song = {
+                        title: file.name.split(".")[0].replace(/_/g, " "),
+                        url: file.url,
+                        type: 2,
+                        time: songLength,
+                        volume: 1
+                    };
+                    songs.push(song);
+                }
             } else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
 
             if (!serverQueue) {

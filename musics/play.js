@@ -276,7 +276,7 @@ module.exports = {
 
     if (!args[1]) {
       if (message.attachments.size < 1) {
-        if (!serverQueue)
+        if (!serverQueue || !serverQueue.songs || serverQueue.songs.length < 1)
           return message.channel.send(
             "No song queue found for this server! Please provide a link or keywords to get a music played!"
           );
@@ -340,7 +340,7 @@ module.exports = {
       }
     }
 
-    const checkURL = message.attachments.size > 0 || validURL(args[1]);
+    const checkURL = validURL(args[1]);
 
     if (checkURL) {
       if (validYTURL(args[1])) {
@@ -715,7 +715,7 @@ module.exports = {
           volume: 1
         };
         var songs = [song];
-      } else if (message.attachments.size > 0) {
+      } else if (validURL(args[1])) {
         var linkArr = args[1].split("/");
         if (linkArr[linkArr.length - 1].split("?").length == 1) {
           var title = linkArr[linkArr.length - 1]
@@ -1223,14 +1223,16 @@ module.exports = {
     }
     if (song.type === 2 || song.type === 4) {
       try {
-        var stream = await requestStream(song.url);
+        var requestedStream = await requestStream(song.url);
+        var silence = fs.createReadStream(`${__dirname}/silence.mp3`);
+        var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28});
       } catch (err) {
         console.error(err);
         return await skip();
       }
       dispatcher = serverQueue.connection.play(stream, {
         type: "unknown",
-        highWaterMark: 1 << 29,
+        highWaterMark: 1 << 28,
         seek: begin
       });
     } else if (song.type === 3) {
