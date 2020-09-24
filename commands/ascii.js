@@ -29,7 +29,7 @@ module.exports = {
                         width:  Math.round(attachment.width / (10 * 0.42)),
                         height: Math.round(attachment.height / 10)
                     }
-                    var msg = await message.channel.send("Image received! Processing ASCII art...");
+                    var msg = await message.channel.send("Image received! Processing ASCII art... (Note: The quality of the generated art depends on the resolution of the image!)");
                     try {
                         var asciis = await asciify(attachment.url, options);
                         var lines = asciis.split("\n");
