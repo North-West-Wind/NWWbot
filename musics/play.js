@@ -181,7 +181,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
     try {
       var requestedStream = await requestStream(song.url);
       var silence = fs.createReadStream(`${__dirname}/silence.mp3`);
-      var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28});
+      var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28 });
     } catch (err) {
       console.error(err);
       return await skip();
@@ -682,26 +682,26 @@ module.exports = {
         const formats = [/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing/, /https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/];
         const alphanumeric = /^[a-zA-Z0-9\-_]+$/
         formats.forEach((regex) => {
-            const matches = args[1].match(regex)
-            if (matches && matches.groups && matches.groups.id) id = matches.groups.id
+          const matches = args[1].match(regex)
+          if (matches && matches.groups && matches.groups.id) id = matches.groups.id
         });
         if (!id) {
-            if (alphanumeric.test(args[1])) id = args[1];
-            else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+          if (alphanumeric.test(args[1])) id = args[1];
+          else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
         }
         var link = "https://drive.google.com/uc?export=download&id=" + id;
         var stream = await requestStream(link);
         try {
-            var metadata = await mm.parseStream(stream);
-            var html = await rp(args[1]);
-            var $ = cheerio.load(html);
-            var titleArr = $("title").text().split(" - ");
-            titleArr.splice(-1, 1);
-            var titleArr2 = titleArr.join(" - ").split(".");
-            titleArr2.splice(-1, 1);
-            var title = titleArr2.join(".");
+          var metadata = await mm.parseStream(stream);
+          var html = await rp(args[1]);
+          var $ = cheerio.load(html);
+          var titleArr = $("title").text().split(" - ");
+          titleArr.splice(-1, 1);
+          var titleArr2 = titleArr.join(" - ").split(".");
+          titleArr2.splice(-1, 1);
+          var title = titleArr2.join(".");
         } catch (err) {
-            return message.reply("there was an error trying to parse your link!");
+          return message.reply("there was an error trying to parse your link!");
         }
         if (!metadata) return message.channel.send("An error occured while parsing the audio file into stream! Maybe it is not link to the file?");
         var length = Math.round(metadata.format.duration);
@@ -1225,7 +1225,7 @@ module.exports = {
       try {
         var requestedStream = await requestStream(song.url);
         var silence = fs.createReadStream(`${__dirname}/silence.mp3`);
-        var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28});
+        var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28 });
       } catch (err) {
         console.error(err);
         return await skip();
