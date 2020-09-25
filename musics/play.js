@@ -115,19 +115,6 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
     return;
   }
 
-  if (serverQueue.textChannel) {
-    const Embed = new Discord.MessageEmbed()
-      .setColor(color)
-      .setTitle("Now playing:")
-      .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
-      .setDescription(
-        `**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**`
-      )
-      .setTimestamp()
-      .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
-    serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
-  }
-
   if (serverQueue.connection === null) return;
   if (serverQueue.connection.dispatcher)
     serverQueue.startTime = serverQueue.connection.dispatcher.streamTime;
@@ -199,6 +186,11 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
     });
   } else {
     try {
+      var songInfo = await ytdl.getInfo(song.url);
+      if(songInfo.videoDetails.title != song.title) {
+        serverQueue.songs[0].title = songInfo.videoDetails.title;
+        song = serverQueue.songs[0];
+      }
       var stream = await ytdl(song.url, {
         highWaterMark: 1 << 28, begin: begin, requestOptions: {
           headers: {
@@ -214,6 +206,19 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
       type: "opus"
     });
   }
+  if (serverQueue.textChannel) {
+    const Embed = new Discord.MessageEmbed()
+      .setColor(color)
+      .setTitle("Now playing:")
+      .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
+      .setDescription(
+        `**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**`
+      )
+      .setTimestamp()
+      .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
+    serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
+  }
+
   skipped = 0;
   dispatcher
     .on("finish", async () => {
@@ -1156,7 +1161,7 @@ module.exports = {
         });
     }
   },
-  async play(guild, song, looping, queue, pool, repeat, begin) {
+  async play(guild, song, looping, queue, pool, repeat, begin, skipped = 0) {
     const serverQueue = queue.get(guild.id);
     if (!begin) var begin = 0;
     if (!song) {
@@ -1176,26 +1181,24 @@ module.exports = {
       return;
     }
 
-    if (serverQueue.textChannel) {
-      const Embed = new Discord.MessageEmbed()
-        .setColor(color)
-        .setTitle("Now playing:")
-        .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
-        .setDescription(
-          `**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**`
-        )
-        .setTimestamp()
-        .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
-      serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
-    }
-
     if (serverQueue.connection === null) return;
     if (serverQueue.connection.dispatcher)
       serverQueue.startTime = serverQueue.connection.dispatcher.streamTime;
     var dispatcher;
     async function skip() {
+      skipped += 1;
       if (serverQueue.textChannel)
-        serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track...").then(msg => msg.delete({ timeout: 30000 }));
+        serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track..." + `${skipped < 2 ? "" : `(${skipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
+      if (skipped >= 3) {
+        serverQueue.textChannel.send("The error happened 3 times in a row! Disconnecting the bot...");
+        if (serverQueue.connection != null && serverQueue.connection.dispatcher)
+          serverQueue.connection.dispatcher.destroy();
+        serverQueue.playing = false;
+        serverQueue.connection = null;
+        serverQueue.voiceChannel = null;
+        serverQueue.textChannel = null;
+        if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
+      }
       const guildLoopStatus = looping.get(guild.id);
       const guildRepeatStatus = repeat.get(guild.id);
 
@@ -1220,7 +1223,7 @@ module.exports = {
         );
         con.release();
       });
-      return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+      return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat, skipped);
     }
     if (song.type === 2 || song.type === 4) {
       try {
@@ -1248,6 +1251,11 @@ module.exports = {
       });
     } else {
       try {
+        var songInfo = await ytdl.getInfo(song.url);
+        if(songInfo.videoDetails.title != song.title) {
+          serverQueue.songs[0].title = songInfo.videoDetails.title;
+          song = serverQueue.songs[0];
+        }
         var stream = await ytdl(song.url, {
           highWaterMark: 1 << 28, begin: begin, requestOptions: {
             headers: {
@@ -1263,6 +1271,19 @@ module.exports = {
         type: "opus"
       });
     }
+    if (serverQueue.textChannel) {
+      const Embed = new Discord.MessageEmbed()
+        .setColor(color)
+        .setTitle("Now playing:")
+        .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
+        .setDescription(
+          `**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**`
+        )
+        .setTimestamp()
+        .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
+      serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
+    }
+    skipped = 0;
     dispatcher
       .on("finish", async () => {
         dispatcher = null;
