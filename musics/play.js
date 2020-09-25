@@ -121,14 +121,10 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
       .setTitle("Now playing:")
       .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
       .setDescription(
-        `**[${song.title}](${song.url})**\nLength: **${song.time}**`
+        `**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**`
       )
       .setTimestamp()
       .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
-    if (song.type === 1)
-      Embed.setDescription(
-        `**[${song.title}](${song.spot})**\nLength: **${song.time}**`
-      ).setThumbnail(song.thumbnail);
     serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
   }
 
@@ -1186,14 +1182,10 @@ module.exports = {
         .setTitle("Now playing:")
         .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
         .setDescription(
-          `**[${song.title}](${song.url})**\nLength: **${song.time}**`
+          `**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**`
         )
         .setTimestamp()
         .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
-      if (song.type === 1)
-        Embed.setDescription(
-          `**[${song.title}](${song.spot})**\nLength: **${song.time}**`
-        ).setThumbnail(song.thumbnail);
       serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
     }
 
