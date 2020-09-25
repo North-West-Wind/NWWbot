@@ -84,17 +84,17 @@ module.exports = {
                     } catch (err) {
                         return message.channel.send("No video was found!");
                     }
-                    var length = parseInt(songInfo.length_seconds);
+                    var length = parseInt(songInfo.videoDetails.lengthSeconds);
                     var songLength = moment.duration(length, "seconds").format();
                     var songs = [
-                        {
-                            title: decodeHtmlEntity(songInfo.title),
-                            url: songInfo.video_url,
-                            type: 0,
-                            time: songLength,
-                            thumbnail: `https://img.youtube.com/vi/${songInfo.video_id}/maxresdefault.jpg`,
-                            volume: 1
-                        }
+                      {
+                        title: decodeHtmlEntity(songInfo.videoDetails.title),
+                        url: songInfo.videoDetails.video_url,
+                        type: 0,
+                        time: songLength,
+                        thumbnail: songInfo.videoDetails.thumbnail.thumbnails[songInfo.videoDetails.thumbnail.thumbnails.length - 1],
+                        volume: 1
+                      }
                     ];
                 }
             } else if (validSPURL(args[1])) {
