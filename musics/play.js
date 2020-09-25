@@ -180,7 +180,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
   if (song.type === 2 || song.type === 4) {
     try {
       var requestedStream = await requestStream(song.url);
-      var silence = fs.createReadStream(`${__dirname}/silence.mp3`);
+      var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
       var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28});
     } catch (err) {
       console.error(err);
@@ -1224,7 +1224,7 @@ module.exports = {
     if (song.type === 2 || song.type === 4) {
       try {
         var requestedStream = await requestStream(song.url);
-        var silence = fs.createReadStream(`${__dirname}/silence.mp3`);
+        var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
         var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28});
       } catch (err) {
         console.error(err);
