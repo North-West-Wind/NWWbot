@@ -180,8 +180,8 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
   if (song.type === 2 || song.type === 4) {
     try {
       var requestedStream = await requestStream(song.url);
-      var silence = fs.createReadStream(`${__dirname}/silence.mp3`);
-      var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28 });
+      var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
+      var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28});
     } catch (err) {
       console.error(err);
       return await skip();
@@ -382,15 +382,15 @@ module.exports = {
           } catch (err) {
             return message.channel.send("No video was found!");
           }
-          var length = parseInt(songInfo.length_seconds);
+          var length = parseInt(songInfo.videoDetails.lengthSeconds);
           var songLength = moment.duration(length, "seconds").format();
           var songs = [
             {
-              title: decodeHtmlEntity(songInfo.title),
-              url: songInfo.video_url,
+              title: decodeHtmlEntity(songInfo.videoDetails.title),
+              url: songInfo.videoDetails.video_url,
               type: 0,
               time: songLength,
-              thumbnail: `https://img.youtube.com/vi/${songInfo.video_id}/maxresdefault.jpg`,
+              thumbnail: songInfo.videoDetails.thumbnail.thumbnails[songInfo.videoDetails.thumbnail.thumbnails.length - 1],
               volume: 1
             }
           ];
@@ -1224,8 +1224,8 @@ module.exports = {
     if (song.type === 2 || song.type === 4) {
       try {
         var requestedStream = await requestStream(song.url);
-        var silence = fs.createReadStream(`${__dirname}/silence.mp3`);
-        var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28 });
+        var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
+        var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28});
       } catch (err) {
         console.error(err);
         return await skip();
