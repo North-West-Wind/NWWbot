@@ -86,13 +86,22 @@ module.exports = {
                     }
                     var length = parseInt(songInfo.videoDetails.lengthSeconds);
                     var songLength = moment.duration(length, "seconds").format();
+                    var thumbnails = songInfo.videoDetails.thumbnail.thumbnails;
+                    var thumbUrl = thumbnails[thumbnails.length - 1].url;
+                    var maxWidth = 0;
+                    for(const thumbnail of thumbnails) {
+                      if(thumbnail.width > maxWidth) {
+                        maxWidth = thumbnail.width;
+                        thumbUrl = thumbnail.url;
+                      }
+                    }
                     var songs = [
                       {
                         title: decodeHtmlEntity(songInfo.videoDetails.title),
                         url: songInfo.videoDetails.video_url,
                         type: 0,
                         time: songLength,
-                        thumbnail: songInfo.videoDetails.thumbnail.thumbnails[songInfo.videoDetails.thumbnail.thumbnails.length - 1],
+                        thumbnail: thumbUrl,
                         volume: 1
                       }
                     ];
