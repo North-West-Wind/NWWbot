@@ -17,7 +17,8 @@ module.exports = {
       return message.channel.send(
         `You cannot remove a soundtrack that doesn't exist.`
       );
-    var song = serverQueue.songs[0];
+    var song = serverQueue.songs[deleteIndex];
+    var oldSong = serverQueue.songs[0];
     var title = song.title;
     var removed = await serverQueue.songs.splice(deleteIndex, args[2] && !isNaN(parseInt(args[2])) ? parseInt(args[2]) : 1);
     pool.getConnection(function (err, con) {
@@ -38,7 +39,7 @@ module.exports = {
     message.channel.send(
       `${removed.length > 1 ? `**${removed.length} tracks** have` : `**${title}** has`} been removed from the queue.`
     );
-    if (song != serverQueue.songs[0]) {
+    if (oldSong != serverQueue.songs[0]) {
       if (serverQueue.connection && serverQueue.connection.dispatcher) {
         serverQueue.connection.dispatcher.destroy();
       }

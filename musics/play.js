@@ -193,6 +193,8 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
           }
         }
       });
+      var metadata = await mm.parseStream(stream);
+      console.realLog(metadata);
     } catch (err) {
       console.error(err);
       return await skip();
@@ -1253,6 +1255,8 @@ module.exports = {
             }
           }
         });
+        var metadata = await mm.parseStream(stream);
+        console.realLog(metadata);
       } catch (err) {
         console.error(err);
         return await skip();
