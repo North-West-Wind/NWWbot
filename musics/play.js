@@ -186,11 +186,6 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
     });
   } else {
     try {
-      var songInfo = await ytdl.getInfo(song.url);
-      if(songInfo.videoDetails.title != song.title) {
-        serverQueue.songs[0].title = songInfo.videoDetails.title;
-        song = serverQueue.songs[0];
-      }
       var stream = await ytdl(song.url, {
         highWaterMark: 1 << 28, begin: begin, requestOptions: {
           headers: {
@@ -1251,11 +1246,6 @@ module.exports = {
       });
     } else {
       try {
-        var songInfo = await ytdl.getInfo(song.url);
-        if(songInfo.videoDetails.title != song.title) {
-          serverQueue.songs[0].title = songInfo.videoDetails.title;
-          song = serverQueue.songs[0];
-        }
         var stream = await ytdl(song.url, {
           highWaterMark: 1 << 28, begin: begin, requestOptions: {
             headers: {
