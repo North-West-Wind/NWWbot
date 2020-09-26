@@ -1,17 +1,13 @@
-const ytdl = require("ytdl-core");
 const scdl = require("soundcloud-downloader");
 const request = require("request-stream");
+const fs = require("fs");
+const ytdl = require("ytdl-core");
 
 const requestStream = url => {
     return new Promise(resolve => {
         request(url, (err, res) => resolve(res));
     });
 };
-const GET = url => {
-    return new Promise(resolve => {
-        http.get(url, res => resolve(res));
-    });
-}
 const Discord = require("discord.js");
 module.exports = {
     name: "download",
@@ -44,25 +40,22 @@ module.exports = {
                 break;
             default:
                 try {
-                    stream = await ytdl(song.url, {
-                        highWaterMark: 1 << 28, filter: "audioonly", requestOptions: {
-                            headers: {
-                                cookie: process.env.COOKIE
-                            }
-                        }
-                    });
+                    var now = Date.now();
+                    ytdl(song.url).pipe(fs.createWriteStream(`${now}.mp3`))
+                    stream = fs.createReadStream(`${now}.mp3`);
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
                 }
                 break;
         }
-        let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
         await msg.delete();
         try {
+            let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
             message.channel.send(attachment);
         } catch(err) {
             message.channel.send(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
+            console.error(err);
         }
     }
 }

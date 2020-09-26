@@ -26,29 +26,13 @@ const profile = (str) => {
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
+var timeout = undefined;
 module.exports = {
     async ready(client, id) {
         console.log(`[${id}] Ready!`);
         if (id === 1) {
             setInterval(async () => {
                 const guild = await client.guilds.resolve("622311594654695434");
-                const memberCount = guild.memberCount;
-                const userMember = guild.members.cache;
-                var onlineMemberCount = 0;
-                var botMemberCount = 0;
-                for (const user of userMember.values()) {
-                    if (user.user.bot) botMemberCount += 1;
-                    if (user.presence && user.presence.status === "online") onlineMemberCount += 1;
-                    else if (user.presence && user.presence.status === "idle") onlineMemberCount += 1;
-                    else if (user.presence && user.presence.status === "dnd") onlineMemberCount += 1;
-                }
-                var memberCountChannel = await guild.channels.resolve("722379389102194718");
-                var botCountChannel = await guild.channels.resolve("722379396652072970");
-                var onlineCountChannel = await guild.channels.resolve("722379393263075338");
-
-                memberCountChannel.edit({ name: "All Members: " + memberCount }).catch(console.realError);
-                botCountChannel.edit({ name: "Bots: " + botMemberCount }).catch(console.realError);
-                onlineCountChannel.edit({ name: "Online: " + onlineMemberCount }).catch(console.realError);
                 try {
                     var timerChannel = await guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
                     var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
@@ -165,7 +149,7 @@ module.exports = {
         }
 
         if (id === 0)
-            client.user.setActivity("You", { type: "WATCHING" });
+            client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
         else
             client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         pool.getConnection(function (err, con) {
@@ -596,7 +580,7 @@ module.exports = {
             if (console.noLog.find(x => x === inviter.id)) return;
             try {
                 console.log(`${inviter.tag} invited ${member.user.tag} to ${guild.name}. ${uses} in total.`);
-                inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${client.prefix}invites toggle\` to turn it off)`);
+                await inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${client.prefix}invites toggle\` to turn it off)`);
             } catch (err) {
                 console.error("Failed to DM user.");
             }
@@ -1170,6 +1154,16 @@ module.exports = {
         if (!command) {
             return;
         } else {
+            if(id === 0) {
+                if(timeout) {
+                    clearTimeout(timeout);
+                    timeout = undefined;
+                } else client.user.setPresence({ activity: { name: `${message.author.username}'s Commands`, type: "WATCHING" }, status: "online", afk: false });
+                timeout = setTimeout(() => {
+                    client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
+                    timeout = undefined;
+                }, 60000);
+            }
             if (message.guild !== null) {
                 if (!message.channel.permissionsFor(message.guild.me).has(84992)) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
             }

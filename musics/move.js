@@ -6,7 +6,7 @@ module.exports = {
   description: "Move a music to a specific position of the song queue.",
   usage: "<target> <destination>",
   async music(message, serverQueue, looping, queue, pool, repeat) {
-    const args = message.content.split(" ");
+    const args = message.content.split(/ +/);
     if (!args[1]) return message.channel.send("You did not provide any target." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
     if (!args[2]) return message.channel.send("You did not provide any destination." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
     var queueIndex = parseInt(args[1]);

@@ -262,14 +262,14 @@ module.exports = {
 
             const probably = msg.reactions.cache.get(this.probably);
             try {
-                await probably.users.remove();
+                await probably.remove();
               
             } catch (error) {
               console.error("Failed to remove reactions.");
             }
             const probablyNot = msg.reactions.cache.get(this.probablyNot);
             try {
-                await probablyNot.users.remove();
+                await probablyNot.remove();
               
             } catch (error) {
               console.error("Failed to remove reactions.");
@@ -277,7 +277,7 @@ module.exports = {
             const unknown = msg.reactions.cache.get(this.unknown);
             try {
            
-                await unknown.users.remove();
+                await unknown.remove();
               
             } catch (error) {
               console.error("Failed to remove reactions.");
@@ -285,7 +285,7 @@ module.exports = {
             const back = msg.reactions.cache.get(this.back);
             try {
         
-                await back.users.remove();
+                await back.remove();
               
             } catch (error) {
               console.error("Failed to remove reactions.");
@@ -293,7 +293,7 @@ module.exports = {
             const stop = msg.reactions.cache.get(this.stop);
             try {
       
-                await stop.users.remove();
+                await stop.remove();
               
             } catch (error) {
               console.error("Failed to remove reactions.");

@@ -47,6 +47,7 @@ console.items = new Discord.Collection();
 console.card = new Discord.Collection();
 console.uno = new Discord.Collection();
 console.timers = new Discord.Collection();
+console.mathgames = new Discord.Collection();
 console.noLog = [];
 
 alice.prefix = prefix2;

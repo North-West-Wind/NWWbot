@@ -54,6 +54,13 @@ module.exports = {
     var pattern = new RegExp(/^(spotify:|https:\/\/[a-z]+\.spotify\.com\/)/);
     return pattern.test(str);
   },
+  validGDURL(str) {
+    var pattern1 = new RegExp(/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing/);
+    var pattern2 = new RegExp(/https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/);
+    if(pattern1.test(str)) return true;
+    else if(pattern2.test(str)) return true;
+    else return false;
+  },
   validImgurURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/;
     return !!pattern.test(str);

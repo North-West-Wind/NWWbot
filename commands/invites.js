@@ -132,7 +132,7 @@ module.exports = {
           if(result.length < 1) {
             con.query(`INSERT INTO nolog VALUES('${message.author.id}')`, err => {
               if(err) return message.reply("I cannot remember your decision right now! Please try again later.");
-              message.client.noLog.push(message.author.id);
+              console.noLog.push(message.author.id);
               message.channel.send("You will no longer receive message from me when someone joins the server with your links.");
             });
           } else {
