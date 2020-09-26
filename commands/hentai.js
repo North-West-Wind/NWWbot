@@ -93,7 +93,7 @@ module.exports = {
     else if(amount < 1) return message.channel.send("The amount of message must be larger than 0!");
     else if(amount > 120) return message.channel.send("The amount of message must be smaller than 120!");
     var counter = 0;
-    var i = setInterval(() => {
+    var i = setInterval(async() => {
       if(counter === amount) return clearInterval(i);
       await this.random(message);
       counter++;
