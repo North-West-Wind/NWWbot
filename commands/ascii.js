@@ -18,7 +18,7 @@ module.exports = {
                 var text = figlet.textSync(args.slice(1).join(" "));
                 var attachment = new Discord.MessageAttachment(Readable.from(text), `${args.slice(1).join(" ")}.txt`);
                 if(text.length + 83 > 2000) return message.channel.send("The text is too long to send in Discord! Therefore, I've made it into a file!", attachment);
-                message.channel.send("```" + text + "```\nYour text might not show properly! Therefore, there is a text file for you!", attachment);
+                message.channel.send("```" + text + "```\nYour text might not show properly! Therefore, here is a text file for you!", attachment);
             break;
             case "image":
                 if(message.attachments.size < 1) return message.channel.send("You didn't provide any image! If you want to convert text, use the `text` subcommand.");

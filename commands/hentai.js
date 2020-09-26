@@ -86,12 +86,14 @@ module.exports = {
     if(!args[1]) return message.channel.send("You didn't provide the amount of messages to be sent!");
     else if(!args[2]) return message.channel.send("You didn't provide the interval between each message!");
     var amount = parseInt(args[1]);
+    var interval = ms(args[2]);
     if(isNaN(amount)) return message.channel.send("The amount of message is invalid!");
     else if(!interval) return message.channel.send("The interval is not valid!");
     else if(interval < 1000) return message.channel.send("The interval must be larger than 1 second!");
     else if(interval > 300000) return message.channel.send("The interval must be smaller than 5 minutes!");
     else if(amount < 1) return message.channel.send("The amount of message must be larger than 0!");
     else if(amount > 120) return message.channel.send("The amount of message must be smaller than 120!");
+    message.channel.send(`Auto-hentai initialized. **${amount} messages** with interval **${interval} milliseconds**`)
     var counter = 0;
     var i = setInterval(async() => {
       if(counter === amount) return clearInterval(i);
