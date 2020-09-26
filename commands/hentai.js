@@ -102,7 +102,7 @@ module.exports = {
       }
       await this.random(message);
       counter++;
-      console.log(`Auto-hentai in channel ${message.channel.name} of server ${message.guild.name}`);
+      console.log(`Auto-hentai ${counter} times in channel ${message.channel.name} of server ${message.guild.name}`);
     }, interval);
   }
 };
