@@ -193,8 +193,6 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
           }
         }
       });
-      var metadata = await mm.parseStream(stream);
-      console.realLog(metadata);
     } catch (err) {
       console.error(err);
       return await skip();
@@ -203,6 +201,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
       type: "opus"
     });
   }
+  const now = Date.now();
   if (serverQueue.textChannel) {
     const Embed = new Discord.MessageEmbed()
       .setColor(color)
@@ -223,6 +222,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
       const guildLoopStatus = looping.get(guild.id);
       const guildRepeatStatus = repeat.get(guild.id);
       console.log("Music ended! In " + guild.name);
+      if(Date.now() - now < 1000 && serverQueue.textChannel) serverQueue.textChannel.send("There was probably a error playing the last track. (It played for less than a second!) Please contact NorthWestWind#1885 if the problem persist.")
 
       if (guildLoopStatus === true) {
         await serverQueue.songs.push(song);
@@ -1255,8 +1255,6 @@ module.exports = {
             }
           }
         });
-        var metadata = await mm.parseStream(stream);
-        console.realLog(metadata);
       } catch (err) {
         console.error(err);
         return await skip();
@@ -1265,6 +1263,7 @@ module.exports = {
         type: "opus"
       });
     }
+    const now = Date.now();
     if (serverQueue.textChannel) {
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
@@ -1284,6 +1283,7 @@ module.exports = {
         const guildLoopStatus = looping.get(guild.id);
         const guildRepeatStatus = repeat.get(guild.id);
         console.log("Music ended! In " + guild.name);
+        if(Date.now() - now < 1000 && serverQueue.textChannel) serverQueue.textChannel.send("There was probably a error playing the last track. (It played for less than a second!) Please contact NorthWestWind#1885 if the problem persist.")
 
         if (guildLoopStatus === true) {
           await serverQueue.songs.push(song);
