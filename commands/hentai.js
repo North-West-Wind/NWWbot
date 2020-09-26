@@ -7,7 +7,7 @@ module.exports = {
   name: "hentai",
   description:
     "Return something very NSFW. Require NSFW channel.",
-  usage: "[tag]",
+  usage: "[tag | auto] [amount] [interval]",
   aliases: ["h"],
   tags: [
     "ass",
@@ -28,7 +28,7 @@ module.exports = {
     }
     var tag = "random";
     if (args.length >= 1) {
-      if (args[0] === "tags") return await this.tagsList(message); 
+      if (args[0].toLowerCase() === "tags") return await this.tagsList(message); 
       else if (args[0].toLowerCase() === "auto") return await this.auto(message, args);
 
       const testTag = args[0];
@@ -96,7 +96,10 @@ module.exports = {
     message.channel.send(`Auto-hentai initialized. **${amount} messages** with interval **${interval} milliseconds**`)
     var counter = 0;
     var i = setInterval(async() => {
-      if(counter === amount) return clearInterval(i);
+      if(counter === amount) {
+        message.channel.send("Auto-hentai ended. Thank you for using that!");
+        return clearInterval(i);
+      }
       await this.random(message);
       counter++;
       console.log(`Auto-hentai in channel ${message.channel.name} of server ${message.guild.name}`);
