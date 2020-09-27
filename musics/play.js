@@ -222,7 +222,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
       const guildLoopStatus = looping.get(guild.id);
       const guildRepeatStatus = repeat.get(guild.id);
       console.log("Music ended! In " + guild.name);
-      if(Date.now() - now < 1000 && serverQueue.textChannel) serverQueue.textChannel.send("There was probably a error playing the last track. (It played for less than a second!) Please contact NorthWestWind#1885 if the problem persist.")
+      if(Date.now() - now < 1000 && serverQueue.textChannel) serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!) Please contact NorthWestWind#1885 if the problem persist.")
 
       if (guildLoopStatus === true) {
         await serverQueue.songs.push(song);
@@ -1283,7 +1283,7 @@ module.exports = {
         const guildLoopStatus = looping.get(guild.id);
         const guildRepeatStatus = repeat.get(guild.id);
         console.log("Music ended! In " + guild.name);
-        if(Date.now() - now < 1000 && serverQueue.textChannel) serverQueue.textChannel.send("There was probably a error playing the last track. (It played for less than a second!) Please contact NorthWestWind#1885 if the problem persist.")
+        if(Date.now() - now < 1000 && serverQueue.textChannel) serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!) Please contact NorthWestWind#1885 if the problem persist.")
 
         if (guildLoopStatus === true) {
           await serverQueue.songs.push(song);
