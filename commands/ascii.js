@@ -8,7 +8,7 @@ const { Readable } = require('stream');
 module.exports = {
     name: "ascii",
     description: "Generate ASCII arts from text or image.",
-    usage: "<subcommand> <text | (image attachment)>",
+    usage: "<subcommand> <text | attachment>",
     subcomamnds: ["text", "image"],
     async execute(message, args) {
         if(!args[0]) return message.channel.send(`Please provide a subcommand!\nUsage: \`${message.client.prefix}${this.name} ${this.usage}\`\nAvailable Subcommands: \`${this.subcomamnds.join(", ")}\``);
