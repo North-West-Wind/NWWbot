@@ -28,7 +28,6 @@ formatSetup(moment);
 const scdl = require("soundcloud-downloader");
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
-const fs = require("fs");
 const StreamConcat = require('stream-concat');
 
 async function migrate(message, serverQueue, looping, queue, pool, repeat, exit, migrating) {
