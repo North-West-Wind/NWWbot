@@ -235,7 +235,7 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
         con.release();
       });
       if(Date.now() - now < 1000 && serverQueue.textChannel) {
-        serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist.").then(msg => msg.delete({ timeout: 30000 }));
+        serverQueue.textChannel.send(`There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist. ${oldSkipped < 2 ? "" : `(${oldSkipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
         oldSkipped++;
         if(oldSkipped >= 3) {
           serverQueue.textChannel.send("The error happened 3 times in a row! Disconnecting the bot...");
@@ -1302,7 +1302,7 @@ module.exports = {
           con.release();
         });
         if(Date.now() - now < 1000 && serverQueue.textChannel) {
-          serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist.").then(msg => msg.delete({ timeout: 30000 }));
+          serverQueue.textChannel.send(`There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist. ${oldSkipped < 2 ? "" : `(${oldSkipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
           oldSkipped++;
           if(oldSkipped >= 3) {
             serverQueue.textChannel.send("The error happened 3 times in a row! Disconnecting the bot...");
@@ -1315,7 +1315,7 @@ module.exports = {
             if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
           }
         } else oldSkipped = 0;
-        play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+        play(guild, serverQueue.songs[0], looping, queue, pool, repeat, oldSkipped);
       })
       .on("error", error => {
         console.error(error);
