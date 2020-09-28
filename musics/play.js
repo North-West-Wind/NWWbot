@@ -212,7 +212,6 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
       const guildLoopStatus = looping.get(guild.id);
       const guildRepeatStatus = repeat.get(guild.id);
       console.log("Music ended! In " + guild.name);
-      if(Date.now() - now < 1000 && serverQueue.textChannel) serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!) Please contact NorthWestWind#1885 if the problem persist.")
 
       if (guildLoopStatus === true) {
         await serverQueue.songs.push(song);
@@ -235,6 +234,10 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
         );
         con.release();
       });
+      if(Date.now() - now < 1000 && serverQueue.textChannel) {
+        serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist.");
+        return await skip();
+      }
       play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
     })
     .on("error", error => {
@@ -1265,7 +1268,6 @@ module.exports = {
         const guildLoopStatus = looping.get(guild.id);
         const guildRepeatStatus = repeat.get(guild.id);
         console.log("Music ended! In " + guild.name);
-        if(Date.now() - now < 1000 && serverQueue.textChannel) serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!) Please contact NorthWestWind#1885 if the problem persist.")
 
         if (guildLoopStatus === true) {
           await serverQueue.songs.push(song);
@@ -1288,6 +1290,10 @@ module.exports = {
           );
           con.release();
         });
+        if(Date.now() - now < 1000 && serverQueue.textChannel) {
+          serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist.");
+          return await skip();
+        }
         play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
       })
       .on("error", error => {
