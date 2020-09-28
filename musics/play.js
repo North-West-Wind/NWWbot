@@ -204,7 +204,7 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
       .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
     serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
   }
-
+  oldSkipped = skipped;
   skipped = 0;
   dispatcher
     .on("finish", async () => {
@@ -236,7 +236,18 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
       });
       if(Date.now() - now < 1000 && serverQueue.textChannel) {
         serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist.").then(msg => msg.delete({ timeout: 30000 }));
-      }
+        oldSkipped++;
+        if(oldSkipped >= 3) {
+          serverQueue.textChannel.send("The error happened 3 times in a row! Disconnecting the bot...");
+          if (serverQueue.connection != null && serverQueue.connection.dispatcher)
+            serverQueue.connection.dispatcher.destroy();
+          serverQueue.playing = false;
+          serverQueue.connection = null;
+          serverQueue.voiceChannel = null;
+          serverQueue.textChannel = null;
+          if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
+        }
+      } else oldSkipped = 0;
       play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
     })
     .on("error", error => {
@@ -1260,6 +1271,7 @@ module.exports = {
         .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
       serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
     }
+    oldSkipped = skipped;
     skipped = 0;
     dispatcher
       .on("finish", async () => {
@@ -1291,7 +1303,18 @@ module.exports = {
         });
         if(Date.now() - now < 1000 && serverQueue.textChannel) {
           serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist.").then(msg => msg.delete({ timeout: 30000 }));
-        }
+          oldSkipped++;
+          if(oldSkipped >= 3) {
+            serverQueue.textChannel.send("The error happened 3 times in a row! Disconnecting the bot...");
+            if (serverQueue.connection != null && serverQueue.connection.dispatcher)
+              serverQueue.connection.dispatcher.destroy();
+            serverQueue.playing = false;
+            serverQueue.connection = null;
+            serverQueue.voiceChannel = null;
+            serverQueue.textChannel = null;
+            if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
+          }
+        } else oldSkipped = 0;
         play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
       })
       .on("error", error => {
