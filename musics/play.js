@@ -54,9 +54,7 @@ async function migrate(message, serverQueue, looping, queue, pool, repeat, exit,
   migrating.push(message.guild.id);
   if (exit.find(x => x === message.guild.id)) exit.splice(exit.indexOf(message.guild.id), 1);
   var oldChannel = serverQueue.voiceChannel;
-  var begin = 0;
   if (serverQueue.connection && serverQueue.connection.dispatcher) {
-    begin = serverQueue.connection.dispatcher.streamTime - serverQueue.startTime;
     serverQueue.connection.dispatcher.destroy();
   }
   serverQueue.playing = false;
@@ -95,9 +93,8 @@ const requestStream = url => {
   });
 };
 
-async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 0) {
+async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
   const serverQueue = queue.get(guild.id);
-  if (!begin) var begin = 0;
   if (!song) {
     guild.me.voice.channel.leave();
     queue.delete(guild.id);
@@ -158,7 +155,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
       );
       con.release();
     });
-    return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat, 0, skipped);
+    return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat, skipped);
   }
   if (song.type === 2 || song.type === 4) {
     try {
@@ -171,8 +168,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
     }
     dispatcher = serverQueue.connection.play(stream, {
       type: "unknown",
-      highWaterMark: 1 << 28,
-      seek: begin
+      highWaterMark: 1 << 28
     });
   } else if (song.type === 3) {
     try {
@@ -181,17 +177,11 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
       console.error(err);
       return await skip();
     }
-    dispatcher = serverQueue.connection.play(stream, {
-      seek: begin
-    });
+    dispatcher = serverQueue.connection.play(stream);
   } else {
     try {
       var stream = await ytdl(song.url, {
-        highWaterMark: 1 << 28, begin: begin, requestOptions: {
-          headers: {
-            cookie: process.env.COOKIE
-          }
-        }
+        highWaterMark: 1 << 28
       });
     } catch (err) {
       console.error(err);
@@ -1158,9 +1148,8 @@ module.exports = {
         });
     }
   },
-  async play(guild, song, looping, queue, pool, repeat, begin, skipped = 0) {
+  async play(guild, song, looping, queue, pool, repeat, skipped = 0) {
     const serverQueue = queue.get(guild.id);
-    if (!begin) var begin = 0;
     if (!song) {
       guild.me.voice.channel.leave();
       queue.delete(guild.id);
@@ -1233,8 +1222,7 @@ module.exports = {
       }
       dispatcher = serverQueue.connection.play(stream, {
         type: "unknown",
-        highWaterMark: 1 << 28,
-        seek: begin
+        highWaterMark: 1 << 28
       });
     } else if (song.type === 3) {
       try {
@@ -1243,17 +1231,11 @@ module.exports = {
         console.error(err);
         return await skip();
       }
-      dispatcher = serverQueue.connection.play(stream, {
-        seek: begin
-      });
+      dispatcher = serverQueue.connection.play(stream);
     } else {
       try {
         var stream = await ytdl(song.url, {
-          highWaterMark: 1 << 28, begin: begin, requestOptions: {
-            headers: {
-              cookie: process.env.COOKIE
-            }
-          }
+          highWaterMark: 1 << 28
         });
       } catch (err) {
         console.error(err);
