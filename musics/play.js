@@ -248,7 +248,7 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
           if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
         }
       } else oldSkipped = 0;
-      play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+      play(guild, serverQueue.songs[0], looping, queue, pool, repeat, oldSkipped);
     })
     .on("error", error => {
       console.error(error);
