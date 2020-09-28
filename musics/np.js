@@ -25,10 +25,12 @@ module.exports = {
     var processBar = [];
     for(let i = 0; i < 20; i++) processBar.push("=");
     var progress = 0;
+    var isLive = false;
     switch(serverQueue.songs[0].type) {
       case 0:
       case 1:
         var songInfo = await ytdl.getInfo(serverQueue.songs[0].url).catch(console.error);
+        if(songInfo.videoDetails.isLive) isLive = true;
         var length = parseInt(songInfo.length_seconds);
         break;
       case 2:
@@ -42,14 +44,19 @@ module.exports = {
         var length = Math.round(info.duration / 1000);
         break;
     }
-    var songLength = moment.duration(length, "seconds").format();
-    var positionTime = moment.duration(Math.round(position / 1000), "seconds").format();
-    if(position === 0 || isNaN(position))
-      positionTime = "0:00";
-    var totalLength = Math.round(length * 1000);
-    progress = Math.floor((position / totalLength) * processBar.length);
-    processBar.splice(progress, 1, "+");
-    
+    if(isLive) {
+      processBar.splice(19, 1, "+");
+      var songLength = "∞";
+      var positionTime = "∞";
+    } else {
+      var songLength = moment.duration(length, "seconds").format();
+      var positionTime = moment.duration(Math.round(position / 1000), "seconds").format();
+      if(position === 0 || isNaN(position))
+        positionTime = "0:00";
+      var totalLength = Math.round(length * 1000);
+      progress = Math.floor((position / totalLength) * processBar.length);
+      processBar.splice(progress, 1, "+");
+    }
     var info = [];
   var embed = new Discord.MessageEmbed()
     .setColor(Math.floor(Math.random() * 16777214) + 1)

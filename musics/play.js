@@ -235,7 +235,7 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
         con.release();
       });
       if(Date.now() - now < 1000 && serverQueue.textChannel) {
-        serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist.");
+        serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist.").then(msg => msg.delete({ timeout: 30000 }));
       }
       play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
     })
@@ -373,7 +373,7 @@ module.exports = {
             return message.channel.send("No video was found!");
           }
           var length = parseInt(songInfo.videoDetails.lengthSeconds);
-          var songLength = moment.duration(length, "seconds").format();
+          var songLength = !songInfo.videoDetails.isLive && typeof songInfo.videoDetails.lengthSeconds === "string" ? moment.duration(length, "seconds").format() : "∞";
           var thumbnails = songInfo.videoDetails.thumbnail.thumbnails;
           var thumbUrl = thumbnails[thumbnails.length - 1].url;
           var maxWidth = 0;
@@ -461,7 +461,7 @@ module.exports = {
               for (var s = 0; s < results.length; s++) {
                 if (results.length == 0) break;
                 if (isGoodMusicVideoContent(results[s])) {
-                  var songLength = results[s].duration;
+                  var songLength = results[s].live ? results[s].duration : "∞";
                   matched = {
                     title: tracks[i].track.name,
                     url: results[s].link,
@@ -477,7 +477,7 @@ module.exports = {
                   break;
                 }
                 if (s + 1 == results.length) {
-                  var songLength = results[0].duration;
+                  var songLength = results[s].live ? results[0].duration : "∞";
                   matched = {
                     title: tracks[i].track.name,
                     url: results[0].link,
@@ -545,7 +545,7 @@ module.exports = {
               for (var s = 0; s < results.length; s++) {
                 if (results.length == 0) break;
                 if (isGoodMusicVideoContent(results[s])) {
-                  var songLength = results[s].duration;
+                  var songLength = results[s].live ? results[s].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[s].link,
@@ -561,7 +561,7 @@ module.exports = {
                   break;
                 }
                 if (s + 1 == results.length) {
-                  var songLength = results[0].duration;
+                  var songLength = reuslts[s].live ? results[0].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[0].link,
@@ -599,7 +599,7 @@ module.exports = {
               for (var s = 0; s < results.length; s++) {
                 if (results.length == 0) break;
                 if (isGoodMusicVideoContent(results[s])) {
-                  var songLength = results[s].duration;
+                  var songLength = results[s].live ? results[s].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[s].link,
@@ -613,7 +613,7 @@ module.exports = {
                   break;
                 }
                 if (s + 1 == results.length) {
-                  var songLength = results[0].duration;
+                  var songLength = results[s].live ? results[0].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[0].link,
@@ -980,7 +980,7 @@ module.exports = {
                 );
 
               msg.edit(chosenEmbed);
-              var length = saved[s].duration;
+              var length = saved[s].live ? saved[s].duration : "∞";
               var song = {
                 title: decodeHtmlEntity(saved[s].title),
                 url: saved[s].link,
@@ -1290,7 +1290,7 @@ module.exports = {
           con.release();
         });
         if(Date.now() - now < 1000 && serverQueue.textChannel) {
-          serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist.");
+          serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist.").then(msg => msg.delete({ timeout: 30000 }));
         }
         play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
       })
