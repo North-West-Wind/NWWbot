@@ -181,7 +181,7 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
   } else {
     try {
       var stream = await ytdl(song.url, {
-        highWaterMark: 1 << 28
+        highWaterMark: 1 << 28, requestOptions: { headers: process.env.COOKIE }
       });
     } catch (err) {
       console.error(err);
@@ -1238,7 +1238,7 @@ module.exports = {
     } else {
       try {
         var stream = await ytdl(song.url, {
-          highWaterMark: 1 << 28
+          highWaterMark: 1 << 28, requestOptions: { headers: process.env.COOKIE }
         });
       } catch (err) {
         console.error(err);
