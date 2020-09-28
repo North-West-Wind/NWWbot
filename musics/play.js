@@ -461,7 +461,7 @@ module.exports = {
               for (var s = 0; s < results.length; s++) {
                 if (results.length == 0) break;
                 if (isGoodMusicVideoContent(results[s])) {
-                  var songLength = results[s].live ? results[s].duration : "∞";
+                  var songLength = !results[s].live ? results[s].duration : "∞";
                   matched = {
                     title: tracks[i].track.name,
                     url: results[s].link,
@@ -477,7 +477,7 @@ module.exports = {
                   break;
                 }
                 if (s + 1 == results.length) {
-                  var songLength = results[s].live ? results[0].duration : "∞";
+                  var songLength = !results[s].live ? results[0].duration : "∞";
                   matched = {
                     title: tracks[i].track.name,
                     url: results[0].link,
@@ -545,7 +545,7 @@ module.exports = {
               for (var s = 0; s < results.length; s++) {
                 if (results.length == 0) break;
                 if (isGoodMusicVideoContent(results[s])) {
-                  var songLength = results[s].live ? results[s].duration : "∞";
+                  var songLength = !results[s].live ? results[s].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[s].link,
@@ -561,7 +561,7 @@ module.exports = {
                   break;
                 }
                 if (s + 1 == results.length) {
-                  var songLength = reuslts[s].live ? results[0].duration : "∞";
+                  var songLength = !reuslts[s].live ? results[0].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[0].link,
@@ -599,7 +599,7 @@ module.exports = {
               for (var s = 0; s < results.length; s++) {
                 if (results.length == 0) break;
                 if (isGoodMusicVideoContent(results[s])) {
-                  var songLength = results[s].live ? results[s].duration : "∞";
+                  var songLength = !results[s].live ? results[s].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[s].link,
@@ -613,7 +613,7 @@ module.exports = {
                   break;
                 }
                 if (s + 1 == results.length) {
-                  var songLength = results[s].live ? results[0].duration : "∞";
+                  var songLength = !results[s].live ? results[0].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[0].link,
@@ -980,7 +980,7 @@ module.exports = {
                 );
 
               msg.edit(chosenEmbed);
-              var length = saved[s].live ? saved[s].duration : "∞";
+              var length = !saved[s].live ? saved[s].duration : "∞";
               var song = {
                 title: decodeHtmlEntity(saved[s].title),
                 url: saved[s].link,
