@@ -236,7 +236,6 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
       });
       if(Date.now() - now < 1000 && serverQueue.textChannel) {
         serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist.");
-        return await skip();
       }
       play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
     })
@@ -1292,7 +1291,6 @@ module.exports = {
         });
         if(Date.now() - now < 1000 && serverQueue.textChannel) {
           serverQueue.textChannel.send("There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist.");
-          return await skip();
         }
         play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
       })
