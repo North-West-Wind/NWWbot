@@ -3,13 +3,13 @@ const Discord = require("discord.js");
 const ms = require("ms");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const nameToUuid = (str) => {
-	return new Promise(resolve => {
-		require("mojang-api").nameToUuid(str, function (err, res) { resolve(err ? undefined : res); })
+	return new Promise((resolve, reject) => {
+		require("mojang-api").nameToUuid(str, function (err, res) { if(err) reject(err); else resolve(res); })
 	});
 }
 const profile = (str) => {
-	return new Promise(resolve => {
-		require("mojang-api").profile(str, function (err, res) { resolve(err ? undefined : res) });
+	return new Promise((resolve, reject) => {
+		require("mojang-api").profile(str, function (err, res) { if(err) reject(err); else resolve(res); });
 	})
 }
 const moment = require("moment");

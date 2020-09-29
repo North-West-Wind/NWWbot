@@ -1,11 +1,6 @@
 const Discord = require("discord.js");
 const { Aki } = require("aki-api");
 var color = Math.floor(Math.random() * 16777214) + 1;
-
-/**
- * module for Aki. Testing it out.
- * @type {{name: string, description: string, cooldown: number, guildOnly: boolean, run(*, *, *, *): Promise<Promise<Message|Message[]>|*>, help: (function(): string)}}
- */
 module.exports = {
   name: "aki",
   description: "Play Akinator on Discord!",

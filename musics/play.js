@@ -28,7 +28,6 @@ formatSetup(moment);
 const scdl = require("soundcloud-downloader");
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
-const fs = require("fs");
 const StreamConcat = require('stream-concat');
 
 async function migrate(message, serverQueue, looping, queue, pool, repeat, exit, migrating) {
@@ -54,9 +53,7 @@ async function migrate(message, serverQueue, looping, queue, pool, repeat, exit,
   migrating.push(message.guild.id);
   if (exit.find(x => x === message.guild.id)) exit.splice(exit.indexOf(message.guild.id), 1);
   var oldChannel = serverQueue.voiceChannel;
-  var begin = 0;
   if (serverQueue.connection && serverQueue.connection.dispatcher) {
-    begin = serverQueue.connection.dispatcher.streamTime - serverQueue.startTime;
     serverQueue.connection.dispatcher.destroy();
   }
   serverQueue.playing = false;
@@ -90,14 +87,13 @@ async function migrate(message, serverQueue, looping, queue, pool, repeat, exit,
 }
 
 const requestStream = url => {
-  return new Promise(resolve => {
-    request(url, (err, res) => resolve(res));
+  return new Promise((resolve, reject) => {
+    request(url, (err, res) => err ? reject(err) : resolve(res));
   });
 };
 
-async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 0) {
+async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
   const serverQueue = queue.get(guild.id);
-  if (!begin) var begin = 0;
   if (!song) {
     guild.me.voice.channel.leave();
     queue.delete(guild.id);
@@ -158,21 +154,20 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
       );
       con.release();
     });
-    return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat, 0, skipped);
+    return await play(guild, serverQueue.songs[0], looping, queue, pool, repeat, skipped);
   }
   if (song.type === 2 || song.type === 4) {
     try {
       var requestedStream = await requestStream(song.url);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-      var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28});
+      var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25});
     } catch (err) {
       console.error(err);
       return await skip();
     }
     dispatcher = serverQueue.connection.play(stream, {
       type: "unknown",
-      highWaterMark: 1 << 28,
-      seek: begin
+      highWaterMark: 1 << 25
     });
   } else if (song.type === 3) {
     try {
@@ -181,17 +176,11 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
       console.error(err);
       return await skip();
     }
-    dispatcher = serverQueue.connection.play(stream, {
-      seek: begin
-    });
+    dispatcher = serverQueue.connection.play(stream);
   } else {
     try {
       var stream = await ytdl(song.url, {
-        highWaterMark: 1 << 28, begin: begin, requestOptions: {
-          headers: {
-            cookie: process.env.COOKIE
-          }
-        }
+        highWaterMark: 1 << 25, requestOptions: { headers: process.env.COOKIE }
       });
     } catch (err) {
       console.error(err);
@@ -214,7 +203,7 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
       .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
     serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
   }
-
+  oldSkipped = skipped;
   skipped = 0;
   dispatcher
     .on("finish", async () => {
@@ -222,7 +211,6 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
       const guildLoopStatus = looping.get(guild.id);
       const guildRepeatStatus = repeat.get(guild.id);
       console.log("Music ended! In " + guild.name);
-      if(Date.now() - now < 1000 && serverQueue.textChannel) serverQueue.textChannel.send("There was probably a error playing the last track. (It played for less than a second!) Please contact NorthWestWind#1885 if the problem persist.")
 
       if (guildLoopStatus === true) {
         await serverQueue.songs.push(song);
@@ -245,7 +233,21 @@ async function play(guild, song, looping, queue, pool, repeat, begin, skipped = 
         );
         con.release();
       });
-      play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+      if(Date.now() - now < 1000 && serverQueue.textChannel) {
+        serverQueue.textChannel.send(`There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist. ${oldSkipped < 2 ? "" : `(${oldSkipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
+        oldSkipped++;
+        if(oldSkipped >= 3) {
+          serverQueue.textChannel.send("The error happened 3 times in a row! Disconnecting the bot...");
+          if (serverQueue.connection != null && serverQueue.connection.dispatcher)
+            serverQueue.connection.dispatcher.destroy();
+          serverQueue.playing = false;
+          serverQueue.connection = null;
+          serverQueue.voiceChannel = null;
+          serverQueue.textChannel = null;
+          if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
+        }
+      } else oldSkipped = 0;
+      play(guild, serverQueue.songs[0], looping, queue, pool, repeat, oldSkipped);
     })
     .on("error", error => {
       console.error(error);
@@ -381,7 +383,7 @@ module.exports = {
             return message.channel.send("No video was found!");
           }
           var length = parseInt(songInfo.videoDetails.lengthSeconds);
-          var songLength = moment.duration(length, "seconds").format();
+          var songLength = !songInfo.videoDetails.isLive && typeof songInfo.videoDetails.lengthSeconds === "string" ? moment.duration(length, "seconds").format() : "∞";
           var thumbnails = songInfo.videoDetails.thumbnail.thumbnails;
           var thumbUrl = thumbnails[thumbnails.length - 1].url;
           var maxWidth = 0;
@@ -469,7 +471,7 @@ module.exports = {
               for (var s = 0; s < results.length; s++) {
                 if (results.length == 0) break;
                 if (isGoodMusicVideoContent(results[s])) {
-                  var songLength = results[s].duration;
+                  var songLength = !results[s].live ? results[s].duration : "∞";
                   matched = {
                     title: tracks[i].track.name,
                     url: results[s].link,
@@ -485,7 +487,7 @@ module.exports = {
                   break;
                 }
                 if (s + 1 == results.length) {
-                  var songLength = results[0].duration;
+                  var songLength = !results[s].live ? results[0].duration : "∞";
                   matched = {
                     title: tracks[i].track.name,
                     url: results[0].link,
@@ -553,7 +555,7 @@ module.exports = {
               for (var s = 0; s < results.length; s++) {
                 if (results.length == 0) break;
                 if (isGoodMusicVideoContent(results[s])) {
-                  var songLength = results[s].duration;
+                  var songLength = !results[s].live ? results[s].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[s].link,
@@ -569,7 +571,7 @@ module.exports = {
                   break;
                 }
                 if (s + 1 == results.length) {
-                  var songLength = results[0].duration;
+                  var songLength = !reuslts[s].live ? results[0].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[0].link,
@@ -607,7 +609,7 @@ module.exports = {
               for (var s = 0; s < results.length; s++) {
                 if (results.length == 0) break;
                 if (isGoodMusicVideoContent(results[s])) {
-                  var songLength = results[s].duration;
+                  var songLength = !results[s].live ? results[s].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[s].link,
@@ -621,7 +623,7 @@ module.exports = {
                   break;
                 }
                 if (s + 1 == results.length) {
-                  var songLength = results[0].duration;
+                  var songLength = !results[s].live ? results[0].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[0].link,
@@ -988,7 +990,7 @@ module.exports = {
                 );
 
               msg.edit(chosenEmbed);
-              var length = saved[s].duration;
+              var length = !saved[s].live ? saved[s].duration : "∞";
               var song = {
                 title: decodeHtmlEntity(saved[s].title),
                 url: saved[s].link,
@@ -1158,9 +1160,8 @@ module.exports = {
         });
     }
   },
-  async play(guild, song, looping, queue, pool, repeat, begin, skipped = 0) {
+  async play(guild, song, looping, queue, pool, repeat, skipped = 0) {
     const serverQueue = queue.get(guild.id);
-    if (!begin) var begin = 0;
     if (!song) {
       guild.me.voice.channel.leave();
       queue.delete(guild.id);
@@ -1226,15 +1227,14 @@ module.exports = {
       try {
         var requestedStream = await requestStream(song.url);
         var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-        var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28});
+        var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25});
       } catch (err) {
         console.error(err);
         return await skip();
       }
       dispatcher = serverQueue.connection.play(stream, {
         type: "unknown",
-        highWaterMark: 1 << 28,
-        seek: begin
+        highWaterMark: 1 << 25
       });
     } else if (song.type === 3) {
       try {
@@ -1243,17 +1243,11 @@ module.exports = {
         console.error(err);
         return await skip();
       }
-      dispatcher = serverQueue.connection.play(stream, {
-        seek: begin
-      });
+      dispatcher = serverQueue.connection.play(stream);
     } else {
       try {
         var stream = await ytdl(song.url, {
-          highWaterMark: 1 << 28, begin: begin, requestOptions: {
-            headers: {
-              cookie: process.env.COOKIE
-            }
-          }
+          highWaterMark: 1 << 25, requestOptions: { headers: process.env.COOKIE }
         });
       } catch (err) {
         console.error(err);
@@ -1276,6 +1270,7 @@ module.exports = {
         .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
       serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
     }
+    oldSkipped = skipped;
     skipped = 0;
     dispatcher
       .on("finish", async () => {
@@ -1283,7 +1278,6 @@ module.exports = {
         const guildLoopStatus = looping.get(guild.id);
         const guildRepeatStatus = repeat.get(guild.id);
         console.log("Music ended! In " + guild.name);
-        if(Date.now() - now < 1000 && serverQueue.textChannel) serverQueue.textChannel.send("There was probably a error playing the last track. (It played for less than a second!) Please contact NorthWestWind#1885 if the problem persist.")
 
         if (guildLoopStatus === true) {
           await serverQueue.songs.push(song);
@@ -1306,7 +1300,21 @@ module.exports = {
           );
           con.release();
         });
-        play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
+        if(Date.now() - now < 1000 && serverQueue.textChannel) {
+          serverQueue.textChannel.send(`There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist. ${oldSkipped < 2 ? "" : `(${oldSkipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
+          oldSkipped++;
+          if(oldSkipped >= 3) {
+            serverQueue.textChannel.send("The error happened 3 times in a row! Disconnecting the bot...");
+            if (serverQueue.connection != null && serverQueue.connection.dispatcher)
+              serverQueue.connection.dispatcher.destroy();
+            serverQueue.playing = false;
+            serverQueue.connection = null;
+            serverQueue.voiceChannel = null;
+            serverQueue.textChannel = null;
+            if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
+          }
+        } else oldSkipped = 0;
+        play(guild, serverQueue.songs[0], looping, queue, pool, repeat, oldSkipped);
       })
       .on("error", error => {
         console.error(error);

@@ -28,8 +28,8 @@ const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const request = require("request-stream");
 const requestStream = url => {
-    return new Promise(resolve => {
-        request(url, (err, res) => resolve(res));
+    return new Promise((resolve, reject) => {
+        request(url, (err, res) => err ? reject(err) : resolve(res));
     });
 };
 

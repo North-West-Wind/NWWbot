@@ -4,8 +4,8 @@ const fs = require("fs");
 const ytdl = require("ytdl-core");
 
 const requestStream = url => {
-    return new Promise(resolve => {
-        request(url, (err, res) => resolve(res));
+    return new Promise((resolve, reject) => {
+        request(url, (err, res) => err ? reject(err) : resolve(res));
     });
 };
 const Discord = require("discord.js");
@@ -40,9 +40,13 @@ module.exports = {
                 break;
             default:
                 try {
-                    var now = Date.now();
-                    ytdl(song.url).pipe(fs.createWriteStream(`${now}.mp3`))
-                    stream = fs.createReadStream(`${now}.mp3`);
+                    stream = await ytdl(song.url, {
+                        highWaterMark: 1 << 25, requestOptions: {
+                            headers: {
+                                cookie: process.env.COOKIE
+                            }
+                        }
+                    });
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
