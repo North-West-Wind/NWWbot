@@ -160,14 +160,14 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
     try {
       var requestedStream = await requestStream(song.url);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-      var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28});
+      var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25});
     } catch (err) {
       console.error(err);
       return await skip();
     }
     dispatcher = serverQueue.connection.play(stream, {
       type: "unknown",
-      highWaterMark: 1 << 28
+      highWaterMark: 1 << 25
     });
   } else if (song.type === 3) {
     try {
@@ -180,7 +180,7 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
   } else {
     try {
       var stream = await ytdl(song.url, {
-        highWaterMark: 1 << 28, requestOptions: { headers: process.env.COOKIE }
+        highWaterMark: 1 << 25, requestOptions: { headers: process.env.COOKIE }
       });
     } catch (err) {
       console.error(err);
@@ -1227,14 +1227,14 @@ module.exports = {
       try {
         var requestedStream = await requestStream(song.url);
         var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-        var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 28});
+        var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25});
       } catch (err) {
         console.error(err);
         return await skip();
       }
       dispatcher = serverQueue.connection.play(stream, {
         type: "unknown",
-        highWaterMark: 1 << 28
+        highWaterMark: 1 << 25
       });
     } else if (song.type === 3) {
       try {
@@ -1247,7 +1247,7 @@ module.exports = {
     } else {
       try {
         var stream = await ytdl(song.url, {
-          highWaterMark: 1 << 28, requestOptions: { headers: process.env.COOKIE }
+          highWaterMark: 1 << 25, requestOptions: { headers: process.env.COOKIE }
         });
       } catch (err) {
         console.error(err);

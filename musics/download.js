@@ -41,7 +41,7 @@ module.exports = {
             default:
                 try {
                     stream = await ytdl(song.url, {
-                        highWaterMark: 1 << 28, requestOptions: {
+                        highWaterMark: 1 << 25, requestOptions: {
                             headers: {
                                 cookie: process.env.COOKIE
                             }
