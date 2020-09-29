@@ -1,6 +1,5 @@
 const Discord = require("discord.js")
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json");
 const { Krunker: Api, OrderBy, UserNotFoundError } = require("@fasetto/krunker.io");
 const Krunker = new Api();
 
@@ -12,7 +11,7 @@ module.exports = {
   args: true,
   async execute(message, args) {
     if(!args[0]) {
-      return message.channel.send("No username provided!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("No username provided!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
     }
     try {
       var user = await Krunker.GetProfile(args.join(" "));

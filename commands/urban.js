@@ -2,7 +2,6 @@ const querystring = require("querystring");
 const Discord = require("discord.js");
 const fetch = require("node-fetch");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "urban",
@@ -11,7 +10,7 @@ module.exports = {
   usage: "<query>",
   async execute(message, args) {
     if (!args.length) {
-      return message.channel.send("You need to supply a search term!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("You need to supply a search term!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
     }
 
     const query = querystring.stringify({ term: args.join(" ") });

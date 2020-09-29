@@ -1,7 +1,6 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits } = require("../function.js");
-const { prefix } = require("../config.json")
 
 module.exports = {
   name: "sell",
@@ -9,8 +8,8 @@ module.exports = {
   usage: "<price> <item>",
   args: true,
   async execute(message, args, pool) {
-    if (!args[0]) return message.channel.send("Please state the price!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
-    if (!args[1]) return message.channel.send("Please provide the item!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
+    if (!args[0]) return message.channel.send("Please state the price!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+    if (!args[1]) return message.channel.send("Please provide the item!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
 
     if (isNaN(Number(args[0])))
       return message.channel.send(args[0] + " is not a valid price!");

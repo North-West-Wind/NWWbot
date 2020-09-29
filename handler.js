@@ -1,37 +1,161 @@
+const cleverbot = require("cleverbot-free");
+const { Image, createCanvas, loadImage } = require("canvas");
+const Discord = require("discord.js");
+const mysql = require("mysql");
+const mysql_config = {
+    connectTimeout: 60 * 60 * 1000,
+    acquireTimeout: 60 * 60 * 1000,
+    timeout: 60 * 60 * 1000,
+    connectionLimit: 1000,
+    host: process.env.DBHOST,
+    user: process.env.DBUSER,
+    password: process.env.DBPW,
+    database: process.env.DBNAME,
+    supportBigNumbers: true,
+    bigNumberStrings: true,
+    charset: "utf8mb4"
+};
+var pool = mysql.createPool(mysql_config);
+const { setTimeout_ } = require("./function.js");
+const wait = require("util").promisify(setTimeout);
+const profile = (str) => {
+	return new Promise((resolve, reject) => {
+		require("mojang-api").profile(str, function (err, res) { if(err) reject(err); else resolve(res); });
+	})
+}
+const moment = require("moment");
+const formatSetup = require("moment-duration-format");
+formatSetup(moment);
+var timeout = undefined;
 module.exports = {
-    ready(client, id) {
-        console.log(client.user.name + " Ready!");
+    async ready(client, id) {
+        console.log(`[${id}] Ready!`);
         if (id === 1) {
             setInterval(async () => {
                 const guild = await client.guilds.resolve("622311594654695434");
-                const memberCount = guild.memberCount;
-                const userMember = guild.members.cache;
-                var onlineMemberCount = 0;
-                var botMemberCount = 0;
-                for (const user of userMember.values()) {
-                    if (user.user.bot) botMemberCount += 1;
-                    if (user.presence !== undefined && user.presence.status === "online") onlineMemberCount += 1;
-                    if (user.presence !== undefined && user.presence.status === "idle") onlineMemberCount += 1;
-                    if (user.presence !== undefined && user.presence.status === "dnd") onlineMemberCount += 1;
+                try {
+                    var timerChannel = await guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
+                    var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
+                } catch(err) {
+                    console.error("Failed to fetch timer list message");
+                    return;
                 }
-                var memberCountChannel = await guild.channels.resolve("722379389102194718");
-                var botCountChannel = await guild.channels.resolve("722379396652072970");
-                var onlineCountChannel = await guild.channels.resolve("722379393263075338");
+                pool.getConnection((err, con) => {
+					if (err) return console.error(err);
+					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
+						if (err) return console.error(err);
+						let now = Date.now();
+						let tmp = [];
+						for(const result of results) {
+							let mc = await profile(result.mc);
+							let username = "undefined";
+							if (mc) username = mc.name;
+							const str = result.user;
+							let dc = "0";
+							try {
+								var user = await client.users.fetch(str);
+								dc = user.id;
+							} catch (err) { }
+							let rank = unescape(result.dc_rank);
+							let title = `<@${dc}> - ${rank} [${username}]`;
+							let seconds = Math.round((result.endAt.getTime() - now) / 1000);
+							tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
+						}
+						if (tmp.length <= 10) {
+                            timerMsg.reactions.removeAll().catch(console.error);
+							let description = "";
+							let num = 0;
+							for(const result of tmp) {
+								description += `${++num}. ${result.title} : ${result.time}\n`;
+							}
+							const em = new Discord.MessageEmbed()
+							.setColor(Math.floor(Math.random() * 16777214) + 1)
+							.setTitle("Rank Expiration Timers")
+							.setDescription(description)
+							.setTimestamp()
+							.setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+							timerMsg.edit({ content: "", embed: em });
+						} else {
+							const allEmbeds = [];
+							for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
+								let desc = "";
+								for(let num = 0; num < 10; num++) {
+									if(!tmp[i + num]) break;
+									desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
+								}
+								const em = new Discord.MessageEmbed()
+								.setColor(Math.floor(Math.random() * 16777214) + 1)
+								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
+								.setDescription(desc)
+								.setTimestamp()
+								.setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+								allEmbeds.push(em);
+							}
+							const filter = (reaction, user) => {
+								return (
+									["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name)
+								);
+							};
+							var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
+							var s = 0;
+							await msg.react("⏮");
+							await msg.react("◀");
+							await msg.react("▶");
+							await msg.react("⏭");
+							await msg.react("⏹");
+							var collector = await msg.createReactionCollector(filter, {
+								time: 29000,
+								errors: ["time"]
+							});
 
-                memberCountChannel.edit({ name: "All Members: " + memberCount }).catch(console.realError);
-                botCountChannel.edit({ name: "Bots: " + botMemberCount }).catch(console.realError);
-                onlineCountChannel.edit({ name: "Online: " + onlineMemberCount }).catch(console.realError);
+							collector.on("collect", function (reaction, user) {
+								reaction.users.remove(user.id);
+								switch (reaction.emoji.name) {
+									case "⏮":
+										s = 0;
+										msg.edit(allEmbeds[s]);
+										break;
+									case "◀":
+										s -= 1;
+										if (s < 0) {
+											s = allEmbeds.length - 1;
+										}
+										msg.edit(allEmbeds[s]);
+										break;
+									case "▶":
+										s += 1;
+										if (s > allEmbeds.length - 1) {
+											s = 0;
+										}
+										msg.edit(allEmbeds[s]);
+										break;
+									case "⏭":
+										s = allEmbeds.length - 1;
+										msg.edit(allEmbeds[s]);
+										break;
+									case "⏹":
+										collector.emit("end");
+										break;
+								}
+							});
+							collector.on("end", function () {
+								msg.reactions.removeAll().catch(console.error);
+							});
+						}
+					});
+					con.release();
+				});
             }, 30000);
         }
 
         if (id === 0)
-            client.user.setActivity("You", { type: "WATCHING" });
+            client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
         else
             client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         pool.getConnection(function (err, con) {
             if (err) return console.error(err);
-            const { setQueue, checkQueue } = require("./musics/main.js");
-            if (!checkQueue) {
+            const { setQueue } = require("./musics/main.js");
+            if (id === 0) {
                 con.query("SELECT id, queue, looping, repeating FROM servers", function (err, results) {
                     if (err) return console.error(err);
                     var count = 0;
@@ -42,17 +166,49 @@ module.exports = {
                             count += 1;
                         }
                     });
-                    console.log("Set " + count + " queues");
+                    console.log(`[${id}] ` + "Set " + count + " queues");
+                });
+            } else {
+                con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async(err, res) => {
+                    if(err) return console.error(err);
+                    console.log(`[${id}] Found ${res.length} guild timers`);
+                    res.forEach(async result => {
+                        let endAfter = result.endAt.getTime() - Date.now();
+                        let mc = await profile(result.mc);
+                        let username = "undefined";
+                        if (mc) username = mc.name;
+                        let dc = `<@${result.user}>`;
+                        let rank = unescape(result.dc_rank);
+                        let title = `${dc} - ${rank} [${username}]`;
+                        setTimeout_(async() => {
+                            let asuna = await client.users.fetch("461516729047318529");
+                            con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, async(err, results) => {
+                                if(err) return console.error(err);
+                                if(results.length == 0) return;
+                                try {
+                                    asuna.send(title + " expired");
+                                    var user = await client.users.fetch(result.user);
+                                    user.send(`Your rank **${rank}** in War of Underworld has expired.`);
+                                } catch(err) {
+                                    console.error("Failed to DM user")
+                                }
+                                con.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, (err) => {
+                                    if(err) return console.error(err);
+                                    console.log("A guild timer expired");
+                                });
+                            });
+                        }, endAfter);
+
+                    });
                 });
             }
             con.query("SELECT * FROM rolemsg ORDER BY expiration", (err, res) => {
-                console.log("Found " + res.length + " role messages.");
+                if(err) return console.error(err);
+                console.log(`[${id}] ` + "Found " + res.length + " role messages.");
                 res.forEach(async result => {
-                    if (id === 0 && result.guild.id === "622311594654695434") return;
-                    if (id === 1 && result.guild.id !== "622311594654695434" && result.guild.id !== "664716701991960577") return;
-                    rm.push(result);
-                    var channel = await client.channels.fetch(result.channel);
-                    var msg = await channel.messages.fetch(result.id);
+                    if (id === 0 && result.guild == "622311594654695434") return;
+                    if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
+                    console.rm.push(result);
 
                     var currentDate = new Date();
                     var millisec = result.expiration - currentDate;
@@ -74,7 +230,7 @@ module.exports = {
                                         if (err) return console.error(err);
                                         console.log("Deleted an expired role-message.");
                                         if (!deleted)
-                                            msg.reactions.removeAll().catch(err => console.error("Failed to remove reactions but nevermind."));
+                                            msg.reactions.removeAll().catch(() => console.error("Failed to remove reactions but nevermind."));
                                     });
                                 } else {
                                     expire(results[0].expiration - date);
@@ -89,10 +245,10 @@ module.exports = {
                 err,
                 results
             ) {
-                console.log("Found " + results.length + " giveaways");
+                console.log(`[${id}] ` + "Found " + results.length + " giveaways");
                 results.forEach(async result => {
-                    if (id === 0 && result.guild.id === "622311594654695434") return;
-                    if (id === 1 && result.guild.id !== "622311594654695434" && result.guild.id !== "664716701991960577") return;
+                    if (id === 0 && result.guild == "622311594654695434") return;
+                    if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
                     var currentDate = new Date();
                     var millisec = result.endAt - currentDate;
                     if (err) return console.error(err);
@@ -115,7 +271,7 @@ module.exports = {
                             });
                             return;
                         }
-                        if (msg.deleted === true) {
+                        if (msg.deleted) {
                             con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
                                 err,
                                 con
@@ -132,8 +288,7 @@ module.exports = {
                                 await peopleReacted.users.fetch();
                             } catch (err) {
                                 con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
-                                    err,
-                                    con
+                                    err
                                 ) {
                                     if (err) return console.error(err);
                                     console.log("Deleted an ended giveaway record.");
@@ -148,15 +303,14 @@ module.exports = {
                                 return console.error(err);
                             }
 
-                            const remove = endReacted.indexOf(client.user.id);
+                            const remove = endReacted.indexOf(id === 0 ? "649611982428962819" : "653133256186789891");
                             if (remove > -1) {
                                 endReacted.splice(remove, 1);
                             }
 
                             if (endReacted.length === 0) {
                                 con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
-                                    err,
-                                    result
+                                    err
                                 ) {
                                     if (err) return console.error(err);
                                     console.log("Deleted an ended giveaway record.");
@@ -222,8 +376,7 @@ module.exports = {
                                     );
 
                                 con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
-                                    err,
-                                    con
+                                    err
                                 ) {
                                     if (err) return console.error(err);
                                     console.log("Deleted an ended giveaway record.");
@@ -235,14 +388,13 @@ module.exports = {
             });
             con.query("SELECT * FROM poll ORDER BY endAt ASC", function (
                 err,
-                results,
-                fields
+                results
             ) {
                 if (err) return console.error(err);
-                console.log("Found " + results.length + " polls.");
+                console.log(`[${id}] ` + "Found " + results.length + " polls.");
                 results.forEach(result => {
-                    if (id === 0 && result.guild.id === "622311594654695434") return;
-                    if (id === 1 && result.guild.id !== "622311594654695434" && result.guild.id !== "664716701991960577") return;
+                    if (id === 0 && result.guild == "622311594654695434") return;
+                    if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
                     var currentDate = new Date();
                     var time = result.endAt - currentDate;
                     setTimeout_(async function () {
@@ -265,7 +417,7 @@ module.exports = {
                             return;
                         }
 
-                        if (msg.deleted === true) {
+                        if (msg.deleted) {
                             con.query("DELETE FROM poll WHERE id = " + msg.id, function (
                                 err,
                                 result
@@ -325,10 +477,11 @@ module.exports = {
                 });
             });
             con.query("SELECT * FROM timer", (err, results) => {
-                console.log(`Found ${results.length} timers.`);
+                if(err) console.error(err);
+                console.log(`[${id}] ` + `Found ${results.length} timers.`);
                 results.forEach(async result => {
-                    if (id === 0 && result.guild.id === "622311594654695434") return;
-                    if (id === 1 && result.guild.id !== "622311594654695434" && result.guild.id !== "664716701991960577") return;
+                    if (id === 0 && result.guild == "622311594654695434") return;
+                    if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
                     let time = result.endAt - new Date();
                     let em = new Discord.MessageEmbed();
                     try {
@@ -347,10 +500,10 @@ module.exports = {
                         em.setTitle(msg.embeds[0].title).setColor(msg.embeds[0].color).setFooter(msg.embeds[0].footer.text, msg.embeds[0].footer.iconURL).setTimestamp(msg.embeds[0].timestamp);
                     }
                     let count = 0;
-                    let id = setInterval(async () => {
+                    let timerid = setInterval(async () => {
                         time -= 1000;
                         if (time <= 0) {
-                            clearInterval(id);
+                            clearInterval(timerid);
                             em.setDescription("The timer has ended.");
                             msg = await msg.edit(em);
                             author.send(`Your timer in **${guild.name}** has ended! https://discordapp.com/channels/${guild.id}/${channel.id}/${msg.id}`);
@@ -394,7 +547,7 @@ module.exports = {
                         msg = await msg.edit(em);
                         count = 0;
                     }, 1000);
-                    console.timers.set(result.msg, id);
+                    console.timers.set(result.msg, timerid);
                 });
             });
             con.query("SELECT * FROM nolog", (err, results) => {
@@ -412,7 +565,7 @@ module.exports = {
             }).catch(err => { });
         });
     },
-    guildMemberAdd(member, client, id) {
+    async guildMemberAdd(member, client, id) {
         const guild = member.guild;
         guild.fetchInvites().then(async guildInvites => {
             const ei = console.invites[member.guild.id];
@@ -426,12 +579,13 @@ module.exports = {
             const uses = await allUserInvites.map(i => i.uses ? i.uses : 0).reduce(reducer);
             if (console.noLog.find(x => x === inviter.id)) return;
             try {
-                inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${prefix}invites toggle\` to turn it off)`);
+                console.log(`${inviter.tag} invited ${member.user.tag} to ${guild.name}. ${uses} in total.`);
+                await inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${client.prefix}invites toggle\` to turn it off)`);
             } catch (err) {
                 console.error("Failed to DM user.");
             }
         }).catch(err => { });
-        if (guild.id === "677780367188557824")
+        if (guild.id == "677780367188557824")
             setTimeout(async () => {
                 var role = await guild.roles.fetch("677785442099396608");
                 member.roles.add(role);
@@ -442,14 +596,14 @@ module.exports = {
             con.query(
                 "SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id=" +
                 guild.id,
-                async function (err, result, fields) {
-                    if (result[0] === undefined || result[0].wel_channel === null) {
-                        if (result[0] === undefined) {
+                async function (err, result) {
+                    if (!result[0]|| !result[0].wel_channel || !result[0].welcome) {
+                        if (!result[0]) {
                             pool.getConnection(function (err, con) {
                                 if (err) return console.error(err);
                                 con.query(
                                     "SELECT * FROM servers WHERE id = " + guild.id,
-                                    function (err, result, fields) {
+                                    function (err, result) {
                                         if (err) return console.error(err);
                                         if (result.length > 0) {
                                             console.log(
@@ -460,7 +614,7 @@ module.exports = {
                                                 "INSERT INTO servers (id, autorole, giveaway) VALUES (" +
                                                 guild.id +
                                                 ", '[]', '🎉')",
-                                                function (err, result) {
+                                                function (err) {
                                                     if (err) return console.error(err);
                                                     console.log("Inserted record for " + guild.name);
                                                 }
@@ -477,6 +631,7 @@ module.exports = {
                         //get channel
                         const channel = guild.channels.resolve(result[0].wel_channel);
 
+                        if(!channel.permissionsFor(guild.me).has(18432)) return;
 
                         //convert message into array
                         const splitMessage = result[0].welcome.split(" ");
@@ -491,14 +646,14 @@ module.exports = {
                                     const mentionedChannel = guild.channels.find(
                                         x => x.name === second
                                     );
-                                    if (mentionedChannel === null) {
+                                    if (!mentionedChannel) {
                                         messageArray.push("#" + second);
                                     } else {
                                         messageArray.push(mentionedChannel);
                                     }
                                 } else {
                                     const mentionedChannel = guild.channels.resolve(second);
-                                    if (mentionedChannel === null) {
+                                    if (!mentionedChannel) {
                                         messageArray.push("<#" + second + ">");
                                     } else {
                                         messageArray.push(mentionedChannel);
@@ -512,14 +667,14 @@ module.exports = {
                                 const second = first.replace("}", "");
                                 if (isNaN(parseInt(second))) {
                                     const mentionedRole = guild.roles.find(x => x.name === second);
-                                    if (mentionedRole === null) {
+                                    if (!mentionedRole) {
                                         messageArray.push("@" + second);
                                     } else {
                                         messageArray.push(mentionedRole);
                                     }
                                 } else {
                                     const mentionedRole = guild.roles.get(second);
-                                    if (mentionedRole === null) {
+                                    if (!mentionedRole) {
                                         messageArray.push("<@&" + second + ">");
                                     } else {
                                         messageArray.push(mentionedRole);
@@ -533,14 +688,14 @@ module.exports = {
                                 const second = first.replace("}", "");
                                 if (isNaN(parseInt(second))) {
                                     const mentionedUser = client.users.find(x => x.name === second);
-                                    if (mentionedUser === null) {
+                                    if (!mentionedUser) {
                                         messageArray.push("@" + second);
                                     } else {
                                         messageArray.push(mentionedUser);
                                     }
                                 } else {
                                     const mentionedUser = client.users.get(second);
-                                    if (mentionedUser === null) {
+                                    if (!mentionedUser) {
                                         messageArray.push("<@" + second + ">");
                                     } else {
                                         messageArray.push(mentionedUser);
@@ -556,7 +711,7 @@ module.exports = {
                             .join(" ")
                             .replace(/{user}/g, member);
 
-                        if (result[0].welcome !== null) {
+                        if (result[0].welcome) {
                             try {
                                 //send message only
                                 channel.send(welcomeMessage);
@@ -565,77 +720,47 @@ module.exports = {
                             }
                         }
                         //check image link
-                        if (result[0].wel_img === null) {
-                        } else {
+                        if (result[0].wel_img) {
                             //canvas
                             var img = new Image();
 
-                            //when image load
                             img.onload = async function () {
                                 var height = img.height;
                                 var width = img.width;
 
-                                //create canvas + get context
                                 const canvas = createCanvas(width, height);
                                 const ctx = canvas.getContext("2d");
 
-                                //applyText function
                                 const applyText = (canvas, text) => {
                                     const ctx = canvas.getContext("2d");
 
-                                    //calculate largest font size
                                     let fontSize = canvas.width / 12;
 
-                                    //reduce font size loop
                                     do {
-                                        //reduce font size
-                                        ctx.font = `${(fontSize -= 5)}px "free-sans"`;
-                                        // Compare pixel width of the text to the canvas minus the approximate avatar size
+                                        ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
                                     } while (
                                         ctx.measureText(text).width >
                                         canvas.width - canvas.width / 10
                                     );
-
-                                    // Return the result to use in the actual canvas
                                     return ctx.font;
                                 };
-
-                                //welcomeText function
                                 const welcomeText = (canvas, text) => {
                                     const ctx = canvas.getContext("2d");
-
-                                    //calculate largest font size
                                     let fontSize = canvas.width / 24;
-
-                                    //reduce font size loop
                                     do {
-                                        //reduce font size
-                                        ctx.font = `${(fontSize -= 5)}px "free-sans"`;
-                                        // Compare pixel width of the text to the canvas minus the approximate avatar size
+                                        ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
                                     } while (
                                         ctx.measureText(text).width >
                                         canvas.width - canvas.width / 4
                                     );
-
-                                    // Return the result to use in the actual canvas
                                     return ctx.font;
                                 };
-
-                                //fetch the image
                                 const image = await loadImage(url);
-
-                                //fetch user avatar
                                 const avatar = await loadImage(
                                     member.user.displayAvatarURL({ format: "png" })
                                 );
-
-                                //draw background
                                 ctx.drawImage(image, 0, 0, width, height);
-
-                                //declare the text
-                                var txt = member.user.username + " #" + member.user.discriminator;
-
-                                //draw font
+                                var txt = member.user.tag;
                                 ctx.font = applyText(canvas, txt);
                                 ctx.strokeStyle = "black";
                                 ctx.lineWidth = canvas.width / 102.4;
@@ -650,11 +775,7 @@ module.exports = {
                                     canvas.width / 2 - ctx.measureText(txt).width / 2,
                                     (canvas.height * 3) / 4
                                 );
-
-                                //declare welcome message
                                 var welcome = "Welcome to the server!";
-
-                                //draw font
                                 ctx.font = welcomeText(canvas, welcome);
                                 ctx.strokeStyle = "black";
                                 ctx.lineWidth = canvas.width / 204.8;
@@ -669,12 +790,8 @@ module.exports = {
                                     canvas.width / 2 - ctx.measureText(welcome).width / 2,
                                     (canvas.height * 6) / 7
                                 );
-
-                                // Pick up the pen
                                 ctx.beginPath();
-                                //line width setting
                                 ctx.lineWidth = canvas.width / 51.2;
-                                // Start the arc to form a circle
                                 ctx.arc(
                                     canvas.width / 2,
                                     canvas.height / 3,
@@ -683,14 +800,10 @@ module.exports = {
                                     Math.PI * 2,
                                     true
                                 );
-                                // Put the pen down
                                 ctx.closePath();
                                 ctx.strokeStyle = "#dfdfdf";
                                 ctx.stroke();
-                                // Clip off the region you drew on
                                 ctx.clip();
-
-                                //draw avatar in circle
                                 ctx.drawImage(
                                     avatar,
                                     canvas.width / 2 - canvas.height / 5,
@@ -698,33 +811,31 @@ module.exports = {
                                     canvas.height / 2.5,
                                     canvas.height / 2.5
                                 );
-
-                                //declare attachment
                                 var attachment = new Discord.MessageAttachment(
                                     canvas.toBuffer(),
                                     "welcome-image.png"
                                 );
 
                                 try {
-                                    //send message
+                                    if(id === 1) await channel.send("", new Discord.MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
                                     channel.send("", attachment);
                                 } catch (err) {
                                     console.error(err);
                                 }
                             };
 
-                            //image url
-                            var url = result[0].wel_img;
-
-                            //give source
-                            img.src = url;
+                            try {
+                                let urls = JSON.parse(result[0].wel_img);
+                                var url = urls[Math.floor(Math.random() * urls.length)];
+                                img.src = url;
+                            } catch(err) {
+                                var url = result[0].wel_img;
+                                img.src = url;
+                            }
                         }
                     }
-
-                    //check any autorole
-                    if (result[0].autorole === "[]" || result[0] === undefined) {
+                    if (!result[0] || result[0].autorole === "[]") {
                     } else {
-                        //parse array
                         var roleArray = JSON.parse(result[0].autorole);
 
                         for (var i = 0; i < roleArray.length; i++) {
@@ -734,17 +845,15 @@ module.exports = {
                             } else {
                                 var role = await guild.roles.fetch(roleID);
                             }
+                            if(!role) continue;
                             try {
-                                //loop array
-                                member.roles.add(role);
+                                member.roles.add(roleID);
                                 console.log(`Added ${member.displayName} to ${role.name}`)
                             } catch (err) {
                                 console.error(err);
                             }
                         }
                     }
-
-                    //release SQL
                     con.release();
 
                     if (err) return console.error(err);
@@ -752,7 +861,7 @@ module.exports = {
             );
         });
     },
-    guildMemberRemove(member, client, id) {
+    async guildMemberRemove(member, client, id) {
         const guild = member.guild;
         pool.getConnection(function (err, con) {
             if (err) return console.error(err);
@@ -760,11 +869,11 @@ module.exports = {
                 "SELECT leave_msg, leave_channel FROM servers WHERE id='" + guild.id + "'",
                 async function (err, result) {
                     if (
-                        result[0] === undefined ||
-                        result[0].leave_msg === null ||
-                        result[0].leave_channel === null
+                        !result[0] ||
+                        !result[0].leave_msg ||
+                        !result[0].leave_channel
                     ) {
-                        if (result[0] === undefined) {
+                        if (!result[0]) {
                             con.query(
                                 "SELECT * FROM servers WHERE id = " + guild.id,
                                 function (err, result) {
@@ -790,7 +899,7 @@ module.exports = {
                             if (err) return console.error(err);
                         }
                     } else {
-                        if (guild.me.hasPermission("VIEW_AUDIT_LOGS")) {
+                        if (guild.me.hasPermission(128)) {
                             const fetchedLogs = await guild.fetchAuditLogs({
                                 limit: 1,
                                 type: 'MEMBER_KICK',
@@ -813,14 +922,14 @@ module.exports = {
                                     const mentionedChannel = guild.channels.find(
                                         x => x.name === second
                                     );
-                                    if (mentionedChannel === null) {
+                                    if (!mentionedChannel) {
                                         messageArray.push("#" + second);
                                     } else {
                                         messageArray.push(mentionedChannel);
                                     }
                                 } else {
                                     const mentionedChannel = guild.channels.resolve(second);
-                                    if (mentionedChannel === null) {
+                                    if (!mentionedChannel) {
                                         messageArray.push("<#" + second + ">");
                                     } else {
                                         messageArray.push(mentionedChannel);
@@ -834,14 +943,14 @@ module.exports = {
                                 const second = first.replace("}", "");
                                 if (isNaN(parseInt(second))) {
                                     const mentionedRole = guild.roles.find(x => x.name === second);
-                                    if (mentionedRole === null) {
+                                    if (!mentionedRole) {
                                         messageArray.push("@" + second);
                                     } else {
                                         messageArray.push(mentionedRole);
                                     }
                                 } else {
                                     const mentionedRole = guild.roles.get(second);
-                                    if (mentionedRole === null) {
+                                    if (!mentionedRole) {
                                         messageArray.push("<@&" + second + ">");
                                     } else {
                                         messageArray.push(mentionedRole);
@@ -855,14 +964,14 @@ module.exports = {
                                 const second = first.replace("}", "");
                                 if (isNaN(parseInt(second))) {
                                     const mentionedUser = client.users.find(x => x.name === second);
-                                    if (mentionedUser === null) {
+                                    if (!mentionedUser) {
                                         messageArray.push("@" + second);
                                     } else {
                                         messageArray.push(mentionedUser);
                                     }
                                 } else {
                                     const mentionedUser = client.users.get(second);
-                                    if (mentionedUser === null) {
+                                    if (!mentionedUser) {
                                         messageArray.push("<@" + second + ">");
                                     } else {
                                         messageArray.push(mentionedUser);
@@ -890,7 +999,7 @@ module.exports = {
             con.release();
         });
     },
-    guildCreate(guild) {
+    async guildCreate(guild) {
         console.log("Joined a new guild: " + guild.name);
         console.invites[guild.id] = await guild.fetchInvites();
 
@@ -922,7 +1031,7 @@ module.exports = {
             con.release();
         });
     },
-    guildDelete(guild) {
+    async guildDelete(guild) {
         console.log("Left a guild: " + guild.name);
         delete console.invites[guild.id];
         pool.getConnection(function (err, con) {
@@ -937,8 +1046,12 @@ module.exports = {
             con.release();
         });
     },
-    voiceStateUpdate(oldState, newState, client) {
+    async voiceStateUpdate(oldState, newState, client, exit) {
         const guild = oldState.guild || newState.guild;
+        const mainMusic = require("./musics/main.js");
+        if(oldState.id == guild.me.id || newState.id == guild.me.id) {
+            if(!guild.me.voice || !guild.me.voice.channel) return await mainMusic.stop(guild);
+        }
         if (!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
         if (guild.me.voice.channel.members.size <= 1) {
             var pendingExit = await exit.find(x => x === guild.id);
@@ -947,7 +1060,6 @@ module.exports = {
             setTimeout(async function () {
                 var shouldExit = exit.find(x => x === guild.id);
                 if (!shouldExit) return;
-                const mainMusic = require("./musics/main.js");
                 return await mainMusic.stop(guild);
             }, 30000);
         } else {
@@ -957,7 +1069,7 @@ module.exports = {
             }
         }
     },
-    guildMemberUpdate(oldMember, newMember, client) {
+    async guildMemberUpdate(oldMember, newMember, client) {
         if (oldMember.premiumSinceTimestamp !== null || newMember.premiumSinceTimestamp === null) return;
         pool.getConnection(function (err, con) {
             if (err) return console.error(err);
@@ -973,5 +1085,105 @@ module.exports = {
             });
             con.release();
         });
+    },
+    async messageReactionAdd(r, user) {
+        var roleMessage = console.rm.find(x => x.id === r.message.id);
+        if (!roleMessage) return;
+        var emojis = JSON.parse(roleMessage.emojis);
+        if (!emojis.includes(r.emoji.name)) return;
+        var index = emojis.indexOf(r.emoji.name);
+        var guild = await client.guilds.cache.get(roleMessage.guild);
+        var member = await guild.members.fetch(user);
+        member.roles.add([JSON.parse(roleMessage.roles)[index]]).catch(console.error);
+    },
+    async messageReactionRemove(r, user) {
+        var roleMessage = console.rm.find(x => x.id === r.message.id);
+        if (!roleMessage) return;
+        var emojis = JSON.parse(roleMessage.emojis);
+        if (!emojis.includes(r.emoji.name)) return;
+        var index = emojis.indexOf(r.emoji.name);
+        var guild = await client.guilds.cache.get(roleMessage.guild);
+        var member = await guild.members.fetch(user);
+        member.roles.remove([JSON.parse(roleMessage.roles)[index]]).catch(console.error);
+    },
+    async messageDelete(message) {
+        var roleMessage = console.rm.find(x => x.id === message.id);
+        if (!roleMessage) return;
+        console.rm.splice(console.rm.indexOf(roleMessage), 1);
+        pool.getConnection((err, con) => {
+            if (err) return console.error(err);
+            con.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`, (err) => {
+                if (err) return console.error(err);
+            });
+            con.release();
+        });
+    },
+    async message(message, musicCommandsArray, hypixelQueries, exit, client, id) {
+        if (!message.content.startsWith(client.prefix) || message.author.bot) {
+            if (!message.author.bot) {
+                if(message.mentions.users.has(process.env.DC) && message.mentions.users.size > 4) {
+                    message.delete().then(() => {
+                        message.channel.send("Shhh! Don't disturb North! (Also, mass ping is bad)");
+                    }).catch(err => {});
+                } else if (Math.floor(Math.random() * 1000) === 69)
+                    cleverbot(message.content).then(response => message.channel.send(response));
+            }
+            return;
+        };
+
+        const args = message.content.slice(client.prefix.length).split(/ +/);
+        const commandName = args.shift().toLowerCase();
+        if (commandName === "guild" && id === 0) return;
+
+        if (commandName.args && !args.length) {
+            let reply = `You didn't provide any arguments, <@${message.author}>!`;
+
+            if (command.usage) {
+                reply += `\nThe proper usage would be: \`${client.prefix}${command.name} ${command.usage}\``;
+            }
+
+            return message.channel.send(reply);
+        }
+
+        const command =
+            console.commands.get(commandName) ||
+            console.commands.find(
+                cmd => cmd.aliases && cmd.aliases.includes(commandName)
+            );
+
+        if (!command) {
+            return;
+        } else {
+            if(id === 0) {
+                if(timeout) {
+                    clearTimeout(timeout);
+                    timeout = undefined;
+                } else client.user.setPresence({ activity: { name: `${message.author.username}'s Commands`, type: "WATCHING" }, status: "online", afk: false });
+                timeout = setTimeout(() => {
+                    client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
+                    timeout = undefined;
+                }, 60000);
+            }
+            if (message.guild !== null) {
+                if (!message.channel.permissionsFor(message.guild.me).has(84992)) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
+            }
+            if (musicCommandsArray.includes(command.name) == true) {
+                const mainMusic = require("./musics/main.js");
+                try {
+                    return await mainMusic.music(message, commandName, pool, exit);
+                } catch (error) {
+                    console.error(error);
+                    return await message.reply(
+                        "there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server."
+                    );
+                }
+            }
+            try {
+                command.execute(message, args, pool, musicCommandsArray, hypixelQueries, console.rm);
+            } catch (error) {
+                console.error(error);
+                message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
+            }
+        }
     }
 }

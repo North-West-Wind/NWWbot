@@ -17,7 +17,7 @@ module.exports = {
     };
     var dlcExist = false;
     try {
-      var dlc = await message.guild.members.fetch("684639278944223277");
+      var dlc = await message.guild.members.fetch(process.env.DLC);
       var dlcData = await fetch("https://nwwdlc--northwestwind.repl.co/api/status").then(resp => resp.json());
       dlcExist = true;
     } catch(err) {}
@@ -90,10 +90,6 @@ module.exports = {
     .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       
     }
-    
-    
-    
-    
     var date = message.client.readyAt.getDate();
         var month = message.client.readyAt.getMonth();
         var year = message.client.readyAt.getFullYear();

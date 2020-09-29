@@ -10,8 +10,6 @@ module.exports = {
   async execute(message, args) {
     if(!args[0]) return message.channel.send("Please provide keywords to search with!");
     var data = await wiki({ apiUrl: 'https://en.wikipedia.org/w/api.php' }).search(args.join(" "), 100);
-    //var data = await wiki({ apiUrl: 'https://en.wikipedia.org/w/api.php' }).page("Communism");
-    //console.realLog(await data.url())
     var num = 0;
     var allEmbeds = [];
     for(const result of data.results) {

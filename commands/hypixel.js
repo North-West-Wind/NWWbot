@@ -8,7 +8,6 @@ const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: 1000 }
 const contains = (string, content) => {
   return !!~(string || "").indexOf(content);
 };
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "hypixel",
@@ -46,6 +45,7 @@ module.exports = {
   ],
   subaliases: ["g", "ach", "tnt", "bw", "du", "sw", "sg", "ar", "mm", "bb", "mcgo", "vz", "pb", "q", "uhc", "wa", "mw", "cw", "sh", "suhc", "are", "p", "sb", "ah", "ba"],
   async execute(message, args, pool, yeet, hypixelQueries) {
+    const prefix = message.client.prefix;
     if (hypixelQueries > 90) return message.channel.send("Hey! Slow down!");
     if (!args[0]) {
       return message.channel.send(
@@ -293,6 +293,7 @@ module.exports = {
               hypixelQueries++;
               if (!error && response.statusCode === 200) {
                 console.log(`${res[0].name}'s Hypixel API`); // Print the json response
+                if(!body.player) return message.reply("there was an error trying to read the player data! (It's not found!) (What???)")
                 if (body.player.newPackageRank === "VIP") {
                   var rank = "[VIP]";
                 }
@@ -5595,7 +5596,7 @@ module.exports = {
                       }));
 
                       if(error) {
-                        return message.channel.send("https://sky.lea.moe/stats/" + res[0].name);
+                        return message.channel.send("https://sky.shiiyu.moe/stats/" + res[0].name);
                       }
                     
                     var memberCount = Object.keys(skyblock.members).length;
@@ -5641,7 +5642,7 @@ module.exports = {
                     const Embed = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
-                    .setURL("https://sky.lea.moe/stats/" + res[0].name)
+                    .setURL("https://sky.shiiyu.moe/stats/" + res[0].name)
                     .setDescription("SkyBlock - **" + profile.cute_name + "**\n" + `Members [${memberCount}]: ${memberName.join(", ")}\n\n**Magma Boss** in **${magmaStr}**\n**Dark Auction** in **${darkStr}**\n**Bank Interest** in **${bankStr}**\n**New Year** in **${yearStr}**\n**Travelling Zoo** in **${zooStr}**\n**Spooky Festival** in **${spookStr}**\n**Winter Event** in **${winterStr}**\n**Jerry Workshop** in **${jerryStr}**`)
                     .addField("Purse", numberWithCommas(purse), true)
                     .addField("Total Kills", numberWithCommas(kills), true)
@@ -5723,7 +5724,7 @@ module.exports = {
                   collector.on("end", async function() {
                     msg.reactions.removeAll().catch(console.error);
                     await msg.edit({ content: "Loading simplier version...", embed: null });
-                    await msg.edit("https://sky.lea.moe/stats/" + res[0].name);
+                    await msg.edit("https://sky.shiiyu.moe/stats/" + res[0].name);
                   });
                 }
               }

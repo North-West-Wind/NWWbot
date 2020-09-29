@@ -1,7 +1,6 @@
 var Dictionary = require("oxford-dictionary");
 const Discord = require("discord.js")
 var color = Math.floor(Math.random() * 16777214) + 1;
-var { prefix } = require("../config.json")
   
   var config = {
     app_id : process.env.OXID,
@@ -19,7 +18,7 @@ module.exports = {
   async execute(message, args) {
     
     if(!args[0]) {
-      return message.channel.send(`Please enter a keyword/keywords.\nUsage: \`${prefix}${this.name} ${this.usage}\``);
+      return message.channel.send(`Please enter a keyword/keywords.\nUsage: \`${message.client.prefix}${this.name} ${this.usage}\``);
     }
     
     try {

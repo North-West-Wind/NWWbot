@@ -13,9 +13,15 @@ module.exports = {
     const userMember = message.guild.members.cache;
     const userMemberCount = [];
     const botMemberCount = [];
+    var onlineMembers = 0;
+    var idleMembers = 0;
+    var dndMembers = 0;
     for(const user of userMember.values()) {
       if(user.user.bot === false) userMemberCount.push(user.id);
       if(user.user.bot) botMemberCount.push(user.id);
+      if (user.presence && user.presence.status === "online") onlineMembers += 1;
+      else if (user.presence && user.presence.status === "idle") idleMembers += 1;
+      else if (user.presence && user.presence.status === "dnd") dndMembers += 1;
     }
     const roles = message.guild.roles.cache;
     const roleIDs = [];
@@ -50,14 +56,14 @@ module.exports = {
           " UTC";
 		
     const Embed = new Discord.MessageEmbed()
-    .setTitle("Information of " + name)
+    .setTitle("Information of \"" + name + '\"')
     .setColor(color)
     .setThumbnail(icon)
     .addField("ID", id, true)
-    .addField("Name", name, true)
+    .addField("Member statuses", `Online: \`${onlineMembers}\`\nIdle: \`${idleMembers}\`\nDo not Disturb: \`${dndMembers}\``, true)
     .addField("Member count", `Members: \`${memberCount}\`\nUsers: \`${userMemberCount.length}\`\nBots: \`${botMemberCount.length}\``, true)
     .addField("Created", createdTime, true)
-    .addField("Region", region, true)
+    .addField("Region", region.charAt(0).toUpperCase() + region.slice(1), true)
     .addField("Owner", owner, true)
     .addField(`Roles [${roleIDs.length}]`, (`<@&${roleIDs.join("> <@&")}>`).length < 1024 ? (`<@&${roleIDs.join("> <@&")}>`) : "Too many roles...")
     .setTimestamp()

@@ -11,7 +11,7 @@ module.exports = {
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle(message.author.username + "'s avatar: ")
-        .setImage(message.author.displayAvatarURL())
+        .setImage(message.author.displayAvatarURL({ size: 4096 }))
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       return message.channel.send(Embed);
@@ -23,7 +23,7 @@ module.exports = {
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle(user.username + "'s avatar: ")
-        .setImage(user.displayAvatarURL())
+        .setImage(user.displayAvatarURL({ size: 4096 }))
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       return message.channel.send(Embed);

@@ -31,14 +31,12 @@ module.exports = {
     
     var chosen = subreddits[Math.floor(Math.random() * subreddits.length)];
     
-    var response = await redditConn.api.get(`/r/${chosen}/hot`, { limit: 100 }).catch(err => {
-      message.channel.send("there was an error trying to execute that command!");
-      return console.error(err);
-    });
+    var response = await redditConn.api.get(`/r/${chosen}/hot`, { limit: 100 }).catch(console.error);
+    if(!response) return await this.execute(message, args);
     if(response[1] === undefined) return await this.execute(message, args);
     if(response[1].data === undefined || response[1].data.children[0] === undefined || response[1].data.children[0].data === undefined || response[1].data.children[0].data.url === undefined) return await this.execute(message, args);
     var data = response[1].data.children[Math.floor(Math.random() * response[1].data.children.length)].data;
-    if(data.url === undefined || (!data.url.endsWith(".jpg") && !data.url.endsWith(".png") && !data.url.endsWith(".gif") && !validImgurURL(data.url))) return await this.execute(message, args);
+    if(!data || data.url === undefined || (!data.url.endsWith(".jpg") && !data.url.endsWith(".png") && !data.url.endsWith(".gif") && !validImgurURL(data.url))) return await this.execute(message, args);
     
       const em = new Discord.MessageEmbed()
         .setTitle(`${data.title.substring(0, 256)}`)

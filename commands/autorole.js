@@ -1,5 +1,4 @@
 const { findMember } = require("../function.js");
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "autorole",
@@ -7,19 +6,19 @@ module.exports = {
   args: true,
   usage: "<role | role ID | role name> <user | user ID>",
   async execute(message, args) {
-    if (!message.member.permissions.has('MANAGE_ROLES')) { 
+    if (!message.member.permissions.has(268435456)) { 
       message.channel.send(`You don\'t have the permission to use this command.`)
       return;
     }
-    if(!message.guild.me.permissions.has('MANAGE_ROLES')) {
+    if(!message.guild.me.permissions.has(268435456)) {
       message.channel.send(`I don\'t have the permission to add roles to them.`)
       return;
     }
     if(!args[0]) {
-      return message.channel.send("Please enter the role you want the users to be." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("Please enter the role you want the users to be." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
     }
     if(!args[1]) {
-      return message.channel.send("Please mention at least 1 user." + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("Please mention at least 1 user." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
     }
      var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {

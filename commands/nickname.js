@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-const { prefix } = require("../config.json");
 const { findMember } = require("../function.js");
 
 module.exports = {
@@ -8,16 +7,16 @@ module.exports = {
   usage: "<user | user ID> <nickname>",
   aliases: ["nick"],
   async execute(message, args) {
-    if (!message.member.permissions.has('MANAGE_NICKNAMES')) { 
+    if (!message.member.permissions.has(134217728)) { 
       message.channel.send(`You don\'t have the permission to use this command.`)
       return;
     }
-    if(!message.guild.me.permissions.has('MANAGE_NICKNAMES')) {
+    if(!message.guild.me.permissions.has(134217728)) {
       message.channel.send(`I don\'t have the permission to change their nickname.`)
       return;
     }
-    if(!args[0]) return message.channel.send("Please mention an user." + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
-    if(!args[1]) return message.channel.send("Please enter the nickname." + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
+    if(!args[0]) return message.channel.send("Please mention an user." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+    if(!args[1]) return message.channel.send("Please enter the nickname." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
     
 		let member = await findMember(message, args[0]);
     

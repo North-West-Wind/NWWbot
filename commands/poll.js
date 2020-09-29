@@ -2,7 +2,6 @@ const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const client = new Discord.Client();
 const ms = require("ms");
-const { prefix } = require("../config.json");
 
 const { twoDigits, setTimeout_ } = require("../function.js");
 
@@ -14,7 +13,7 @@ module.exports = {
   async execute(message, args, pool) {
     if (!args[0]) {
       return message.channel.send(
-        `Proper usage: ${prefix}${this.name} ${
+        `Proper usage: ${message.client.prefix}${this.name} ${
           this.usage
         }\nSubcommands: \`${this.subcommands.join("`, `")}\``
       );
@@ -36,7 +35,7 @@ module.exports = {
       if (err) {
         console.error(err);
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       }
       var msg = await message.channel.send(
@@ -49,6 +48,7 @@ module.exports = {
           error: ["error"]
         })
         .catch(err => msg.edit("Time's up. Cancelled action."));
+      if(!channelCollected.first()) return msg.edit("Time's up. Cancelled action.");
       if (channelCollected.first().content === "cancel") {
         await channelCollected.first().delete();
         return msg.edit("Cancelled poll.");
@@ -70,11 +70,12 @@ module.exports = {
       );
       var collected = await message.channel
         .awaitMessages(filter, {
-          time: 30000,
+          time: 60000,
           max: 1,
           error: ["time"]
         })
         .catch(err => msg.edit("Time's up. Cancelled action."));
+      if(!collected.first()) return msg.edit("Time's up. Cancelled action.");
       if (collected.first().content === "cancel") {
         await collected.first().delete();
         return msg.edit("Cancelled poll.");
@@ -93,7 +94,7 @@ module.exports = {
           error: ["time"]
         })
         .catch(err => msg.edit("Time's up. Cancelled action."));
-      if (collected2.first() === undefined)
+      if (!collected2.first())
         msg.edit("Time's up. Cancelled action.");
       if (collected2.first().content === "cancel") {
         await collected2.first().delete();
@@ -152,6 +153,7 @@ module.exports = {
           error: ["time"]
         })
         .catch(err => msg.edit("Time's up. Cancelled action."));
+      if(!optionString.first()) return msg.edit("Time's up. Cancelled action.");
       if (optionString.first().content === "cancel") {
         await optionString.first().delete();
         return msg.edit("Cancelled poll.");
@@ -285,11 +287,11 @@ module.exports = {
           ", '" +
           escape(title) +
           "')",
-        function(err, result) {
+        function(err) {
           if (err) {
             console.error(err);
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to insert the record!"
             );
           }
           console.log(
@@ -311,9 +313,7 @@ module.exports = {
           ) {
             if (err) {
               console.error(err);
-              return message.reply(
-                "there was an error trying to execute that command!"
-              );
+              return;
             }
             console.log("Deleted an ended poll.");
           });
@@ -321,14 +321,11 @@ module.exports = {
         } else {
           con.query("SELECT * FROM poll WHERE id = " + msg.id, async function(
             err,
-            results,
-            fields
+            results
           ) {
             if (err) {
               console.error(err);
-              return message.reply(
-                "there was an error trying to execute that command!"
-              );
+              return;
             }
             if (results.length < 1) {
               return;
@@ -372,14 +369,11 @@ module.exports = {
                 console.error(err);
               });
               con.query("DELETE FROM poll WHERE id = " + msg.id, function(
-                err,
-                result
+                err
               ) {
                 if (err) {
                   console.error(err);
-                  return message.reply(
-                    "there was an error trying to execute that command!"
-                  );
+                  return;
                 }
                 console.log("Deleted an ended poll.");
               });
@@ -501,16 +495,16 @@ module.exports = {
       if (err) {
         console.error(err);
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       }
       con.query(
         "SELECT * FROM poll WHERE guild = " + message.guild.id,
-        function(err, results, fields) {
+        function(err, results) {
           if (err) {
             console.error(err);
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to fetch data from the database!"
             );
           }
           const Embed = new Discord.MessageEmbed()

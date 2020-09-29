@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "bank",
@@ -8,7 +7,7 @@ module.exports = {
     "Display your Discord Economy status. You can also deposit or withdraw money with this command.",
   usage: " ",
   async execute(message, args, pool) {
-    pool.getConnection(async function(err, con) {
+    pool.getConnection(async function (err, con) {
       if (err) {
         console.error(err);
         return message.reply(
@@ -17,10 +16,10 @@ module.exports = {
       }
       con.query(
         "SELECT * FROM currency WHERE user_id = " +
-          message.author.id +
-          " AND guild = " +
-          message.guild.id,
-        async function(err, results, fields) {
+        message.author.id +
+        " AND guild = " +
+        message.guild.id,
+        async function (err, results, fields) {
           if (err) {
             console.error(err);
             return message.reply(
@@ -30,8 +29,8 @@ module.exports = {
           if (results.length == 0) {
             return message.channel.send(
               "You don't have any bank account registered. Use `" +
-                prefix +
-                "work` to work and have an account registered!"
+              message.client.prefix +
+              "work` to work and have an account registered!"
             );
           } else {
             var cash = results[0].currency;
@@ -56,10 +55,13 @@ module.exports = {
             async function MainPage() {
               con.query(
                 "SELECT * FROM currency WHERE user_id = " +
-                  message.author.id +
-                  " AND guild = " +
-                  message.guild.id,
-                async function(err, newResults, fields) {
+                message.author.id +
+                " AND guild = " +
+                message.guild.id,
+                async function (err, newResults) {
+                  if (err) {
+                    message.reply("there was an error trying to fetch data from the database!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.")
+                  }
                   cash = newResults[0].currency;
                   bank = newResults[0].bank;
                   const embed = new Discord.MessageEmbed()
@@ -117,150 +119,42 @@ module.exports = {
                         time: 60000,
                         errors: ["times"]
                       })
-                      .catch(() => {});
+                      .catch(() => { });
                     amount.first().delete();
 
                     if (isNaN(parseInt(amount.first().content))) {
-                      con.query(
-                        "SELECT * FROM currency WHERE user_id = " +
+                      if (amount.first().content === "quarter") {
+                        var deposits =
+                          Math.round(
+                            (Number(newResults[0].currency) / 4 +
+                              Number.EPSILON) *
+                            100
+                          ) / 100;
+                        var newCurrency =
+                          Number(newResults[0].currency) - deposits;
+                        var newBank = Number(newResults[0].bank) + deposits;
+                        con.query(
+                          "UPDATE currency SET `currency` = '" +
+                          newCurrency +
+                          "', `bank` = '" +
+                          newBank +
+                          "' WHERE user_id = " +
                           message.author.id +
                           " AND guild = " +
                           message.guild.id,
-                        async function(err, results, fields) {
-                          if (amount.first().content === "quarter") {
-                            var deposits =
-                              Math.round(
-                                (Number(newResults[0].currency) / 4 +
-                                  Number.EPSILON) *
-                                  100
-                              ) / 100;
-                            var newCurrency =
-                              Number(newResults[0].currency) - deposits;
-                            var newBank = Number(newResults[0].bank) + deposits;
-                            con.query(
-                              "UPDATE currency SET `currency` = '" +
-                                newCurrency +
-                                "', `bank` = '" +
-                                newBank +
-                                "' WHERE user_id = " +
-                                message.author.id +
-                                " AND guild = " +
-                                message.guild.id,
-                              async function(err, result) {
-                                if (err) {
-                                  console.error(err);
-                                  return message.reply(
-                                    "there was an error trying to execute that command!"
-                                  );
-                                }
-                                var depositedEmbed = new Discord.MessageEmbed()
-                                  .setColor(color)
-                                  .setTitle("Deposition Successful")
-                                  .setDescription(
-                                    "Deposited **$" + deposits + "** into bank!"
-                                  )
-                                  .setTimestamp()
-                                  .setFooter(
-                                    "Returning to main page in 3 seconds...",
-                                    message.client.user.displayAvatarURL()
-                                  );
-
-                                await msg.edit(depositedEmbed);
-
-                                setTimeout(() => MainPage(), 3000);
-                              }
-                            );
-                          } else if (amount.first().content === "half") {
-                            var deposits =
-                              Math.round(
-                                (Number(newResults[0].currency) / 2 +
-                                  Number.EPSILON) *
-                                  100
-                              ) / 100;
-                            var newCurrency =
-                              Number(newResults[0].currency) - deposits;
-                            var newBank = Number(newResults[0].bank) + deposits;
-                            con.query(
-                              "UPDATE currency SET `currency` = '" +
-                                newCurrency +
-                                "', `bank` = '" +
-                                newBank +
-                                "' WHERE user_id = " +
-                                message.author.id +
-                                " AND guild = " +
-                                message.guild.id,
-                              async function(err, result) {
-                                if (err) {
-                                  console.error(err);
-                                  return message.reply(
-                                    "there was an error trying to execute that command!"
-                                  );
-                                }
-                                var depositedEmbed = new Discord.MessageEmbed()
-                                  .setColor(color)
-                                  .setTitle("Deposition Successful")
-                                  .setDescription(
-                                    "Deposited **$" + deposits + "** into bank!"
-                                  )
-                                  .setTimestamp()
-                                  .setFooter(
-                                    "Returning to main page in 3 seconds...",
-                                    message.client.user.displayAvatarURL()
-                                  );
-
-                                await msg.edit(depositedEmbed);
-
-                                setTimeout(() => MainPage(), 3000);
-                              }
-                            );
-                          } else if (amount.first().content === "all") {
-                            var deposits =
-                              Math.round(
-                                (Number(newResults[0].currency) +
-                                  Number.EPSILON) *
-                                  100
-                              ) / 100;
-                            var newCurrency =
-                              Number(newResults[0].currency) - deposits;
-                            var newBank = Number(newResults[0].bank) + deposits;
-                            con.query(
-                              "UPDATE currency SET `currency` = '" +
-                                newCurrency +
-                                "', `bank` = '" +
-                                newBank +
-                                "' WHERE user_id = " +
-                                message.author.id +
-                                " AND guild = " +
-                                message.guild.id,
-                              async function(err, result) {
-                                if (err) {
-                                  console.error(err);
-                                  return message.reply(
-                                    "there was an error trying to execute that command!"
-                                  );
-                                }
-                                var depositedEmbed = new Discord.MessageEmbed()
-                                  .setColor(color)
-                                  .setTitle("Deposition Successful")
-                                  .setDescription(
-                                    "Deposited **$" + deposits + "** into bank!"
-                                  )
-                                  .setTimestamp()
-                                  .setFooter(
-                                    "Returning to main page in 3 seconds...",
-                                    message.client.user.displayAvatarURL()
-                                  );
-
-                                await msg.edit(depositedEmbed);
-
-                                setTimeout(() => MainPage(), 3000);
-                              }
-                            );
-                          } else {
+                          async function (err) {
+                            if (err) {
+                              console.error(err);
+                              return message.reply(
+                                "there was an error trying to fetch data from the database!"
+                              );
+                            }
                             var depositedEmbed = new Discord.MessageEmbed()
                               .setColor(color)
-                              .setTitle("Deposition Failed")
-                              .setDescription("That is not a valid amount!")
+                              .setTitle("Deposition Successful")
+                              .setDescription(
+                                "Deposited **$" + deposits + "** into bank!"
+                              )
                               .setTimestamp()
                               .setFooter(
                                 "Returning to main page in 3 seconds...",
@@ -271,56 +165,148 @@ module.exports = {
 
                             setTimeout(() => MainPage(), 3000);
                           }
-                        }
-                      );
-                    } else {
-                      con.query(
-                        "SELECT * FROM currency WHERE user_id = " +
+                        );
+                      } else if (amount.first().content === "half") {
+                        var deposits =
+                          Math.round(
+                            (Number(newResults[0].currency) / 2 +
+                              Number.EPSILON) *
+                            100
+                          ) / 100;
+                        var newCurrency =
+                          Number(newResults[0].currency) - deposits;
+                        var newBank = Number(newResults[0].bank) + deposits;
+                        con.query(
+                          "UPDATE currency SET `currency` = '" +
+                          newCurrency +
+                          "', `bank` = '" +
+                          newBank +
+                          "' WHERE user_id = " +
                           message.author.id +
                           " AND guild = " +
                           message.guild.id,
-                        function(err, results, fields) {
-                          var deposits =
-                            Number(amount.first().content) >
-                            Number(newResults[0].currency)
-                              ? Number(newResults[0].currency)
-                              : Number(amount.first().content);
-                          var newCurrency =
-                            Number(newResults[0].currency) - deposits;
-                          var newBank = Number(newResults[0].bank) + deposits;
-                          con.query(
-                            "UPDATE currency SET `currency` = '" +
-                              newCurrency +
-                              "', `bank` = '" +
-                              newBank +
-                              "' WHERE user_id = " +
-                              message.author.id +
-                              " AND guild = " +
-                              message.guild.id,
-                            async function(err, result) {
-                              if (err) {
-                                console.error(err);
-                                return message.reply(
-                                  "there was an error trying to execute that command!"
-                                );
-                              }
-                              var depositedEmbed = new Discord.MessageEmbed()
-                                .setColor(color)
-                                .setTitle("Deposition Successful")
-                                .setDescription(
-                                  "Deposited **$" + deposits + "** into bank!"
-                                )
-                                .setTimestamp()
-                                .setFooter(
-                                  "Returning to main page in 3 seconds...",
-                                  message.client.user.displayAvatarURL()
-                                );
-
-                              await msg.edit(depositedEmbed);
-
-                              setTimeout(() => MainPage(), 3000);
+                          async function (err) {
+                            if (err) {
+                              console.error(err);
+                              return message.reply(
+                                "there was an error trying to execute that command!"
+                              );
                             }
+                            var depositedEmbed = new Discord.MessageEmbed()
+                              .setColor(color)
+                              .setTitle("Deposition Successful")
+                              .setDescription(
+                                "Deposited **$" + deposits + "** into bank!"
+                              )
+                              .setTimestamp()
+                              .setFooter(
+                                "Returning to main page in 3 seconds...",
+                                message.client.user.displayAvatarURL()
+                              );
+
+                            await msg.edit(depositedEmbed);
+
+                            setTimeout(() => MainPage(), 3000);
+                          }
+                        );
+                      } else if (amount.first().content === "all") {
+                        var deposits =
+                          Math.round(
+                            (Number(newResults[0].currency) +
+                              Number.EPSILON) *
+                            100
+                          ) / 100;
+                        var newCurrency =
+                          Number(newResults[0].currency) - deposits;
+                        var newBank = Number(newResults[0].bank) + deposits;
+                        con.query(
+                          "UPDATE currency SET `currency` = '" +
+                          newCurrency +
+                          "', `bank` = '" +
+                          newBank +
+                          "' WHERE user_id = " +
+                          message.author.id +
+                          " AND guild = " +
+                          message.guild.id,
+                          async function (err) {
+                            if (err) {
+                              console.error(err);
+                              return message.reply(
+                                "there was an error trying to execute that command!"
+                              );
+                            }
+                            var depositedEmbed = new Discord.MessageEmbed()
+                              .setColor(color)
+                              .setTitle("Deposition Successful")
+                              .setDescription(
+                                "Deposited **$" + deposits + "** into bank!"
+                              )
+                              .setTimestamp()
+                              .setFooter(
+                                "Returning to main page in 3 seconds...",
+                                message.client.user.displayAvatarURL()
+                              );
+
+                            await msg.edit(depositedEmbed);
+
+                            setTimeout(() => MainPage(), 3000);
+                          }
+                        );
+                      } else {
+                        var depositedEmbed = new Discord.MessageEmbed()
+                          .setColor(color)
+                          .setTitle("Deposition Failed")
+                          .setDescription("That is not a valid amount!")
+                          .setTimestamp()
+                          .setFooter(
+                            "Returning to main page in 3 seconds...",
+                            message.client.user.displayAvatarURL()
                           );
+
+                        await msg.edit(depositedEmbed);
+
+                        setTimeout(() => MainPage(), 3000);
+                      }
+                    } else {
+                      var deposits =
+                        Number(amount.first().content) >
+                          Number(newResults[0].currency)
+                          ? Number(newResults[0].currency)
+                          : Number(amount.first().content);
+                      var newCurrency =
+                        Number(newResults[0].currency) - deposits;
+                      var newBank = Number(newResults[0].bank) + deposits;
+                      con.query(
+                        "UPDATE currency SET `currency` = '" +
+                        newCurrency +
+                        "', `bank` = '" +
+                        newBank +
+                        "' WHERE user_id = " +
+                        message.author.id +
+                        " AND guild = " +
+                        message.guild.id,
+                        async function (err) {
+                          if (err) {
+                            console.error(err);
+                            return message.reply(
+                              "there was an error trying to execute that command!"
+                            );
+                          }
+                          var depositedEmbed = new Discord.MessageEmbed()
+                            .setColor(color)
+                            .setTitle("Deposition Successful")
+                            .setDescription(
+                              "Deposited **$" + deposits + "** into bank!"
+                            )
+                            .setTimestamp()
+                            .setFooter(
+                              "Returning to main page in 3 seconds...",
+                              message.client.user.displayAvatarURL()
+                            );
+
+                          await msg.edit(depositedEmbed);
+
+                          setTimeout(() => MainPage(), 3000);
                         }
                       );
                     }
@@ -344,37 +330,37 @@ module.exports = {
                         time: 60000,
                         errors: ["times"]
                       })
-                      .catch(() => {});
+                      .catch(() => { });
 
                     amount.first().delete();
 
                     if (isNaN(parseInt(amount.first().content))) {
                       con.query(
                         "SELECT * FROM currency WHERE user_id = " +
-                          message.author.id +
-                          " AND guild = " +
-                          message.guild.id,
-                        async function(err, results, fields) {
+                        message.author.id +
+                        " AND guild = " +
+                        message.guild.id,
+                        async function (err, results, fields) {
                           if (amount.first().content === "quarter") {
                             var deposits =
                               Math.round(
                                 (Number(newResults[0].bank) / 4 +
                                   Number.EPSILON) *
-                                  100
+                                100
                               ) / 100;
                             var newCurrency =
                               Number(newResults[0].currency) + deposits;
                             var newBank = Number(newResults[0].bank) - deposits;
                             con.query(
                               "UPDATE currency SET `currency` = '" +
-                                newCurrency +
-                                "', `bank` = '" +
-                                newBank +
-                                "' WHERE user_id = " +
-                                message.author.id +
-                                " AND guild = " +
-                                message.guild.id,
-                              async function(err, result) {
+                              newCurrency +
+                              "', `bank` = '" +
+                              newBank +
+                              "' WHERE user_id = " +
+                              message.author.id +
+                              " AND guild = " +
+                              message.guild.id,
+                              async function (err, result) {
                                 if (err) {
                                   console.error(err);
                                   return message.reply(
@@ -386,8 +372,8 @@ module.exports = {
                                   .setTitle("Withdrawal Successful")
                                   .setDescription(
                                     "Withdrawed **$" +
-                                      deposits +
-                                      "** from bank!"
+                                    deposits +
+                                    "** from bank!"
                                   )
                                   .setTimestamp()
                                   .setFooter(
@@ -405,21 +391,21 @@ module.exports = {
                               Math.round(
                                 (Number(newResults[0].bank) / 2 +
                                   Number.EPSILON) *
-                                  100
+                                100
                               ) / 100;
                             var newCurrency =
                               Number(newResults[0].currency) + deposits;
                             var newBank = Number(newResults[0].bank) - deposits;
                             con.query(
                               "UPDATE currency SET `currency` = '" +
-                                newCurrency +
-                                "', `bank` = '" +
-                                newBank +
-                                "' WHERE user_id = " +
-                                message.author.id +
-                                " AND guild = " +
-                                message.guild.id,
-                              async function(err, result) {
+                              newCurrency +
+                              "', `bank` = '" +
+                              newBank +
+                              "' WHERE user_id = " +
+                              message.author.id +
+                              " AND guild = " +
+                              message.guild.id,
+                              async function (err, result) {
                                 if (err) {
                                   console.error(err);
                                   return message.reply(
@@ -431,8 +417,8 @@ module.exports = {
                                   .setTitle("Withdrawal Successful")
                                   .setDescription(
                                     "Withdrawed **$" +
-                                      deposits +
-                                      "** from bank!"
+                                    deposits +
+                                    "** from bank!"
                                   )
                                   .setTimestamp()
                                   .setFooter(
@@ -449,21 +435,21 @@ module.exports = {
                             var deposits =
                               Math.round(
                                 (Number(newResults[0].bank) + Number.EPSILON) *
-                                  100
+                                100
                               ) / 100;
                             var newCurrency =
                               Number(newResults[0].currency) + deposits;
                             var newBank = Number(newResults[0].bank) - deposits;
                             con.query(
                               "UPDATE currency SET `currency` = '" +
-                                newCurrency +
-                                "', `bank` = '" +
-                                newBank +
-                                "' WHERE user_id = " +
-                                message.author.id +
-                                " AND guild = " +
-                                message.guild.id,
-                              async function(err, result) {
+                              newCurrency +
+                              "', `bank` = '" +
+                              newBank +
+                              "' WHERE user_id = " +
+                              message.author.id +
+                              " AND guild = " +
+                              message.guild.id,
+                              async function (err, result) {
                                 if (err) {
                                   console.error(err);
                                   return message.reply(
@@ -475,8 +461,8 @@ module.exports = {
                                   .setTitle("Withdrawal Successful")
                                   .setDescription(
                                     "Withdrawed **$" +
-                                      deposits +
-                                      "** from bank!"
+                                    deposits +
+                                    "** from bank!"
                                   )
                                   .setTimestamp()
                                   .setFooter(
@@ -507,53 +493,45 @@ module.exports = {
                         }
                       );
                     } else {
+                      var deposits =
+                        Number(amount.first().content) >
+                          Number(newResults[0].bank)
+                          ? Number(newResults[0].bank)
+                          : Number(amount.first().content);
+                      var newCurrency =
+                        Number(newResults[0].currency) + deposits;
+                      var newBank = Number(newResults[0].bank) - deposits;
                       con.query(
-                        "SELECT * FROM currency WHERE user_id = " +
-                          message.author.id +
-                          " AND guild = " +
-                          message.guild.id,
-                        function(err, results, fields) {
-                          var deposits =
-                            Number(amount.first().content) >
-                            Number(newResults[0].bank)
-                              ? Number(newResults[0].bank)
-                              : Number(amount.first().content);
-                          var newCurrency =
-                            Number(newResults[0].currency) + deposits;
-                          var newBank = Number(newResults[0].bank) - deposits;
-                          con.query(
-                            "UPDATE currency SET `currency` = '" +
-                              newCurrency +
-                              "', `bank` = '" +
-                              newBank +
-                              "' WHERE user_id = " +
-                              message.author.id +
-                              " AND guild = " +
-                              message.guild.id,
-                            async function(err, result) {
-                              if (err) {
-                                console.error(err);
-                                return message.reply(
-                                  "there was an error trying to execute that command!"
-                                );
-                              }
-                              var withdrawedEmbed = new Discord.MessageEmbed()
-                                .setColor(color)
-                                .setTitle("Withdrawal Successful")
-                                .setDescription(
-                                  "Withdrawed **$" + deposits + "** from bank!"
-                                )
-                                .setTimestamp()
-                                .setFooter(
-                                  "Returning to main page in 3 seconds...",
-                                  message.client.user.displayAvatarURL()
-                                );
+                        "UPDATE currency SET `currency` = '" +
+                        newCurrency +
+                        "', `bank` = '" +
+                        newBank +
+                        "' WHERE user_id = " +
+                        message.author.id +
+                        " AND guild = " +
+                        message.guild.id,
+                        async function (err, result) {
+                          if (err) {
+                            console.error(err);
+                            return message.reply(
+                              "there was an error trying to execute that command!"
+                            );
+                          }
+                          var withdrawedEmbed = new Discord.MessageEmbed()
+                            .setColor(color)
+                            .setTitle("Withdrawal Successful")
+                            .setDescription(
+                              "Withdrawed **$" + deposits + "** from bank!"
+                            )
+                            .setTimestamp()
+                            .setFooter(
+                              "Returning to main page in 3 seconds...",
+                              message.client.user.displayAvatarURL()
+                            );
 
-                              await msg.edit(withdrawedEmbed);
+                          await msg.edit(withdrawedEmbed);
 
-                              setTimeout(() => MainPage(), 3000);
-                            }
-                          );
+                          setTimeout(() => MainPage(), 3000);
                         }
                       );
                     }

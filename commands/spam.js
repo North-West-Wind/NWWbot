@@ -1,7 +1,6 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const {findUser} = require("../function.js")
-const { prefix } = require('../config.json');
 
 module.exports = {
   name: "spam",
@@ -12,13 +11,13 @@ module.exports = {
   async execute(message, args) {
     
     if(!args[0]) {
-      return message.channel.send("Please tell me the user!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("Please tell me the user!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
     }
     if(!args[1]) {
-      return message.channel.send("Please tell me the time you want to spam this user!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("Please tell me the time you want to spam this user!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
     }
     if(!args[2]) {
-      return message.channel.send("Please enter the message to spam!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("Please enter the message to spam!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
     }
     
     const taggedUser = await findUser(message, args[0]);

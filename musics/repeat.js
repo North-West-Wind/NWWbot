@@ -13,9 +13,9 @@ module.exports = {
       message.channel.send("Disabled looping to prevent conflict.");
     }
     pool.getConnection(function(err, con) {
-        if(err) return message.reply("there was an error trying to execute that command!");
+        if(err) return message.reply("there was an error trying to connect to the database!");
         con.query("UPDATE servers SET repeating = 1, looping = NULL WHERE id = '" + message.guild.id + "'", function(err) {
-          if(err) return message.reply("there was an error trying to execute that command!");
+          if(err) return message.reply("there was an error trying to update the status!");
           message.channel.send("The song is now being repeated.");
         });
         con.release();
@@ -28,9 +28,9 @@ module.exports = {
         message.channel.send("Disabled looping to prevent conflict.");
       }
       pool.getConnection(function(err, con) {
-        if(err) return message.reply("there was an error trying to execute that command!");
+        if(err) return message.reply("there was an error trying to connect to the database!");
         con.query("UPDATE servers SET repeating = 1, looping = NULL WHERE id = '" + message.guild.id + "'", function(err) {
-          if(err) return message.reply("there was an error trying to execute that command!");
+          if(err) return message.reply("there was an error trying to update the status!");
           message.channel.send("The song is now being repeated.");
         });
         con.release();
@@ -39,9 +39,9 @@ module.exports = {
     } else {
       repeat.set(message.guild.id, false);
       pool.getConnection(function(err, con) {
-        if(err) return message.reply("there was an error trying to execute that command!");
+        if(err) return message.reply("there was an error trying to connect to the database!");
         con.query("UPDATE servers SET repeating = NULL WHERE id = '" + message.guild.id + "'", function(err) {
-          if(err) return message.reply("there was an error trying to execute that command!");
+          if(err) return message.reply("there was an error trying to update the status!");
           message.channel.send("The song is no longer being repeated.");
         });
         con.release();
