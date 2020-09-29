@@ -39,7 +39,6 @@ for(const file of fontFiles) {
 }
 registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
 
-const alice = new Discord.Client({ restRequestTimeout: 60000 });
 const client = new Discord.Client({ restRequestTimeout: 60000 });
 
 console.commands = new Discord.Collection();
@@ -50,7 +49,6 @@ console.timers = new Discord.Collection();
 console.mathgames = new Discord.Collection();
 console.noLog = [];
 
-alice.prefix = prefix2;
 client.prefix = prefix;
 
 for(let i = 0; i < 4; i++) {
@@ -108,16 +106,3 @@ client.on("messageReactionAdd", async(r, user) => messageReactionAdd(r, user));
 client.on("messageReactionRemove", async(r, user) => messageReactionRemove(r, user));
 client.on("messageDelete", (message) => messageDelete(message));
 client.on("message", async msg => message(msg, musicCommandsArray, hypixelQueries, exit, client, 0));
-
-alice.once("ready", () => ready(alice, 1));
-alice.login(process.env.TOKEN2);
-alice.on("guildMemberAdd", member => guildMemberAdd(member, alice, 1));
-alice.on("guildMemberRemove", async member => guildMemberRemove(member, alice, 1));
-alice.on("guildCreate", async guild => guildCreate(guild));
-alice.on("guildDelete", guild => guildDelete(guild));
-alice.on("voiceStateUpdate", async (oldState, newState) => voiceStateUpdate(oldState, newState, alice, exit));
-alice.on("guildMemberUpdate", (oldMember, newMember) => guildMemberUpdate(oldMember, newMember, alice));
-alice.on("messageReactionAdd", async(r, user) => messageReactionAdd(r, user));
-alice.on("messageReactionRemove", async(r, user) => messageReactionRemove(r, user));
-alice.on("messageDelete", (message) => messageDelete(message));
-alice.on("message", async msg => message(msg, musicCommandsArray, hypixelQueries, exit, alice, 1));
