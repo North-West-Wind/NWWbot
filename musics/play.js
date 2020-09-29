@@ -87,8 +87,8 @@ async function migrate(message, serverQueue, looping, queue, pool, repeat, exit,
 }
 
 const requestStream = url => {
-  return new Promise(resolve => {
-    request(url, (err, res) => resolve(res));
+  return new Promise((resolve, reject) => {
+    request(url, (err, res) => err ? reject(err) : resolve(res));
   });
 };
 

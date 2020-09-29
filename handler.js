@@ -19,8 +19,8 @@ var pool = mysql.createPool(mysql_config);
 const { setTimeout_ } = require("./function.js");
 const wait = require("util").promisify(setTimeout);
 const profile = (str) => {
-	return new Promise(resolve => {
-		require("mojang-api").profile(str, function (err, res) { resolve(err ? undefined : res) });
+	return new Promise((resolve, reject) => {
+		require("mojang-api").profile(str, function (err, res) { if(err) reject(err); else resolve(res); });
 	})
 }
 const moment = require("moment");

@@ -1,8 +1,8 @@
 const Discord = require("discord.js");
 const request = require("request-stream");
 const requestStream = url => {
-  return new Promise(resolve => {
-    request(url, (err, res) => resolve(res));
+  return new Promise((resolve, reject) => {
+    request(url, (err, res) => err ? reject(err) : resolve(res));
   });
 };
 const mm = require("music-metadata");
@@ -31,7 +31,7 @@ module.exports = {
       case 1:
         var songInfo = await ytdl.getInfo(serverQueue.songs[0].url).catch(console.error);
         if(songInfo.videoDetails.isLive) isLive = true;
-        var length = parseInt(songInfo.length_seconds);
+        var length = parseInt(songInfo.videoDetails.lengthSecond);
         break;
       case 2:
       case 4:
