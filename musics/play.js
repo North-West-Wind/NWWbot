@@ -165,10 +165,7 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
       console.error(err);
       return await skip();
     }
-    dispatcher = serverQueue.connection.play(stream, {
-      type: "unknown",
-      highWaterMark: 1 << 25
-    });
+    dispatcher = serverQueue.connection.play(stream);
   } else if (song.type === 3) {
     try {
       var stream = await scdl.download(song.url);
@@ -203,7 +200,7 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
       .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
     serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
   }
-  oldSkipped = skipped;
+  var oldSkipped = skipped;
   skipped = 0;
   dispatcher
     .on("finish", async () => {
@@ -571,7 +568,7 @@ module.exports = {
                   break;
                 }
                 if (s + 1 == results.length) {
-                  var songLength = !reuslts[s].live ? results[0].duration : "∞";
+                  var songLength = !results[s].live ? results[0].duration : "∞";
                   matched = {
                     title: tracks[i].name,
                     url: results[0].link,
@@ -689,7 +686,8 @@ module.exports = {
         }
       } else if (validGDURL(args[1])) {
         const formats = [/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing/, /https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/];
-        const alphanumeric = /^[a-zA-Z0-9\-_]+$/
+        const alphanumeric = /^[a-zA-Z0-9\-_]+$/;
+        let id;
         formats.forEach((regex) => {
           const matches = args[1].match(regex)
           if (matches && matches.groups && matches.groups.id) id = matches.groups.id
@@ -1232,10 +1230,7 @@ module.exports = {
         console.error(err);
         return await skip();
       }
-      dispatcher = serverQueue.connection.play(stream, {
-        type: "unknown",
-        highWaterMark: 1 << 25
-      });
+      dispatcher = serverQueue.connection.play(stream);
     } else if (song.type === 3) {
       try {
         var stream = await scdl.download(song.url);
@@ -1270,7 +1265,7 @@ module.exports = {
         .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
       serverQueue.textChannel.send(Embed).then(msg => msg.delete({ timeout: 30000 }));
     }
-    oldSkipped = skipped;
+    var oldSkipped = skipped;
     skipped = 0;
     dispatcher
       .on("finish", async () => {
