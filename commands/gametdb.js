@@ -7,6 +7,10 @@ var accOpt = {
         client_secret: process.env.TWITCH_SECRET,
         grant_type: "client_credentials"
     },
+    headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    },
     json: true
 };
 const igdb = require('igdb-api-node').default;
