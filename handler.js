@@ -1118,7 +1118,7 @@ module.exports = {
             con.release();
         });
     },
-    async message(message, musicCommandsArray, hypixelQueries, exit, client, id) {
+    async message(message, musicCommandsArray, exit, client, id) {
         if (!message.content.startsWith(client.prefix) || message.author.bot) {
             if (!message.author.bot) {
                 if(message.mentions.users.has(process.env.DC) && message.mentions.users.size > 4) {
@@ -1179,7 +1179,7 @@ module.exports = {
                 }
             }
             try {
-                command.execute(message, args, pool, musicCommandsArray, hypixelQueries, console.rm);
+                command.execute(message, args, pool, musicCommandsArray, console.rm);
             } catch (error) {
                 console.error(error);
                 message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");

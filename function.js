@@ -332,5 +332,8 @@ module.exports = {
       g: (decimal >> 8) & 0xff,
       b: decimal & 0xff,
     };
+  },
+  readableDate(date) {
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear}`;
   }
 };
