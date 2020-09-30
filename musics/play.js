@@ -9,7 +9,7 @@ const {
   validYTPlaylistURL,
   validSCURL
 } = require("../function.js");
-const ytdl = require("ytdl-core-discord");
+const ytdl = require("ytdl-core");
 var color = Math.floor(Math.random() * 16777214) + 1;
 var SpotifyWebApi = require("spotify-web-api-node");
 var spotifyApi = new SpotifyWebApi({
@@ -177,15 +177,13 @@ async function play(guild, song, looping, queue, pool, repeat, skipped = 0) {
   } else {
     try {
       var stream = await ytdl(song.url, {
-        highWaterMark: 1 << 25, requestOptions: { headers: process.env.COOKIE }
+        highWaterMark: 1 << 28, requestOptions: { headers: process.env.COOKIE }
       });
     } catch (err) {
       console.error(err);
       return await skip();
     }
-    dispatcher = serverQueue.connection.play(stream, {
-      type: "opus"
-    });
+    dispatcher = serverQueue.connection.play(stream);
   }
   const now = Date.now();
   if (serverQueue.textChannel) {
@@ -1242,15 +1240,13 @@ module.exports = {
     } else {
       try {
         var stream = await ytdl(song.url, {
-          highWaterMark: 1 << 25, requestOptions: { headers: process.env.COOKIE }
+          highWaterMark: 1 << 28, requestOptions: { headers: process.env.COOKIE }
         });
       } catch (err) {
         console.error(err);
         return await skip();
       }
-      dispatcher = serverQueue.connection.play(stream, {
-        type: "opus"
-      });
+      dispatcher = serverQueue.connection.play(stream);
     }
     const now = Date.now();
     if (serverQueue.textChannel) {
