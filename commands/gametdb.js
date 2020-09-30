@@ -28,7 +28,7 @@ module.exports = {
     aliases: ["gtdb", "igdb"],
     async execute(message, args) {
         if (!args[0]) return message.channel.send("You need to provide at least 1 keyword!");
-        var accTok = await rp(options);
+        var accTok = await rp(accOpt);
         const client = igdb(process.env.TWITCH_ID, accTok.access_token);
         const response = await client.fields("*").limit(500).sort('rating', 'desc').search(args.join(" ")).request("/games");
         const allEmbeds = [];
