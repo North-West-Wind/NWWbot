@@ -21,7 +21,7 @@ const filter = (reaction, user) => {
   );
 };
 
-modules.exports = {
+module.exports = {
     name: "gametdb",
     descipriont: "Fetch games from IGDB.",
     usage: "<keywords>",
