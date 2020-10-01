@@ -63,9 +63,8 @@ module.exports = {
     .setTitle("Now playing:" + (serverQueue.playing ? "" : " (Not actually)"))
     .setTimestamp()
     .setFooter(`Looping: ${serverQueue.looping} | Repeating: ${serverQueue.repeating}`, message.client.user.displayAvatarURL());
-    if(serverQueue.songs[0].type === 0 || serverQueue.songs[0].type === 3) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
-    else if(serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
-    else if(serverQueue.songs[0].type === 2 || serverQueue.songs[0].type === 4) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`];
+    if(serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
+    else info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
     embed.setDescription(`${info[0]}\n\n${positionTime} **${processBar.join("")}** ${songLength}`).setThumbnail(info[1]);
   return message.channel.send(embed).then(msg => {
     setTimeout(() => {

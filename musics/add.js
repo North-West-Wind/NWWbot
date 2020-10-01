@@ -422,7 +422,8 @@ module.exports = {
                     url: link,
                     type: 4,
                     time: songLength,
-                    volume: 1
+                    volume: 1,
+                    thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg"
                 };
                 var songs = [song];
             } else if (validURL(args[1])) {
@@ -456,7 +457,8 @@ module.exports = {
                     url: args[1],
                     type: 2,
                     time: songLength,
-                    volume: 1
+                    volume: 1,
+                    thumbnail: "https://www.flaticon.com/svg/static/icons/svg/2305/2305904.svg"
                 };
                 var songs = [song];
             } else if (message.attachments.size > 0) {
@@ -480,7 +482,8 @@ module.exports = {
                         url: file.url,
                         type: 2,
                         time: songLength,
-                        volume: 1
+                        volume: 1,
+                        thumbnail: "https://www.flaticon.com/svg/static/icons/svg/2305/2305904.svg"
                     };
                     songs.push(song);
                 }
