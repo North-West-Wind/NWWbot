@@ -134,9 +134,8 @@ module.exports = {
       }
     );
   },
-  shuffleArray(array) {
-    let temp = array[0];
-    array.splice(0, 1);
+  shuffleArray(array, start) {
+    let temp = array.splice(0, start);
     var i;
     var j;
     var x;
@@ -146,7 +145,7 @@ module.exports = {
       array[i] = array[j];
       array[j] = x;
     }
-    array.unshift(temp);
+    array = temp.concat(array);
     temp = [];
     return array;
   },

@@ -5,10 +5,11 @@ module.exports = {
   name: "move",
   description: "Move a music to a specific position of the song queue.",
   usage: "<target> <destination>",
-  async music(message, serverQueue, looping, queue, pool, repeat) {
+  async music(message, serverQueue, queue, pool) {
     const args = message.content.split(/ +/);
     if (!args[1]) return message.channel.send("You did not provide any target." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
     if (!args[2]) return message.channel.send("You did not provide any destination." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+    if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to alter the queue when the bot is playing!");
     var queueIndex = parseInt(args[1]);
     var dest = parseInt(args[2]);
     if (isNaN(queueIndex))
@@ -51,7 +52,7 @@ module.exports = {
     );
     if (targetIndex === 0 || destIndex === 0) {
       if (serverQueue.playing) {
-        play(message.guild, serverQueue.songs[0], looping, queue, pool, repeat);
+        play(message.guild, serverQueue.songs[0], queue, pool);
       }
     }
   }

@@ -3,12 +3,9 @@ module.exports = {
   description: "Resume the paused music.",
   usage: " ",
   music(message, serverQueue) {
-    if (!message.member.voice.channel)
-    return message.channel.send("You are not in a voice channel!");
+    if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to resume the music when the bot is playing!");
 
-    if(!serverQueue) {
-      return message.channel.send("There is nothing playing.");
-    }
+    if(!serverQueue || !serverQueue.connection || !serverQueue.connection.dispatcher) return message.channel.send("There is nothing playing.");
     
   if (serverQueue.paused === true) {
     serverQueue.paused = false;

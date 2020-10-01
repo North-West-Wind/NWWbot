@@ -1,6 +1,4 @@
-var looping = new Map();
 var queue = new Map();
-var repeat = new Map();
 var migrating = [];
 
 module.exports = {
@@ -15,7 +13,7 @@ module.exports = {
     const serverQueue = queue.get(message.guild.id);
     
     try {
-      command.music(message, serverQueue, looping, queue, pool, repeat, exit, migrating);
+      command.music(message, serverQueue, queue, pool, exit, migrating);
     } catch(error) {
       console.error(error);
       message.reply("there was an error trying to execute that command!");
@@ -42,10 +40,9 @@ module.exports = {
           volume: 1,
           playing: false,
           paused: false,
-          startTime: 0
+          looping: loopStatus,
+          repeating: repeatStatus
         };
-    repeat.set(guild, repeatStatus);
-    looping.set(guild, loopStatus);
     queue.set(guild, queueContruct);
   },
   checkQueue() {

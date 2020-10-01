@@ -37,7 +37,7 @@ module.exports = {
     name: "add",
     description: "Add soundtracks to the queue without playing it.",
     usage: "<link | keywords>",
-    async music(message, serverQueue, looping, queue, pool) {
+    async music(message, serverQueue, queue, pool) {
         const args = message.content.split(/ +/);
 
         if (!args[1]) args[1] = "";
