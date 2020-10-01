@@ -4,7 +4,7 @@
   "description": "NorthWestWind's bot!",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node app-2.js"
   },
   "engines": {
     "node": "12.x",
@@ -16,7 +16,7 @@
     "@discordjs/opus": "^0.3.2",
     "@fasetto/krunker.io": "^0.4.2",
     "akaneko": "^3.3.0",
-    "aki-api": "^5.1.0",
+    "aki-api": "^5.1.1",
     "anser": "^2.0.0",
     "array-move": "^3.0.1",
     "asciify-image": "^0.1.6",
@@ -35,12 +35,13 @@
     "follow-redirects": "^1.13.0",
     "gfycat-sdk": "^1.4.18",
     "google-it": "^1.5.0",
+    "igdb-api-node": "^5.0.0",
     "is-image-url": "^1.1.8",
     "krunker.js": "^1.2.4",
     "mathjs": "^7.2.0",
     "mojang-api": "^0.0.2",
     "moment": "^2.29.0",
-    "moment-duration-format": "^2.2.2",
+    "moment-duration-format": "^2.3.2",
     "ms": "^2.1.2",
     "music-metadata": "^7.4.0",
     "mysql": "^2.18.1",
@@ -66,9 +67,9 @@
     "wikijs": "^6.0.0",
     "youtube-audio-stream": "^0.3.6",
     "youtube-search": "^1.1.4",
-    "ytdl-core": "^3.2.2",
-    "ytdl-core-discord": "github:amishshah/ytdl-core-discord",
+    "ytdl-core": "^3.3.0",
+    "ytdl-core-discord": "github:amishshah/ytdl-core-discord#dependabot/npm_and_yarn/ytdl-core-3.3.0",
     "ytpl": "^1.0.1",
-    "ytsr": "^1.0.1"
+    "ytsr": "^1.0.2"
   }
 }

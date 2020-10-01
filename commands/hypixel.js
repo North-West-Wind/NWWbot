@@ -44,9 +44,8 @@ module.exports = {
     "bazaar"
   ],
   subaliases: ["g", "ach", "tnt", "bw", "du", "sw", "sg", "ar", "mm", "bb", "mcgo", "vz", "pb", "q", "uhc", "wa", "mw", "cw", "sh", "suhc", "are", "p", "sb", "ah", "ba"],
-  async execute(message, args, pool, yeet, hypixelQueries) {
+  async execute(message, args, pool) {
     const prefix = message.client.prefix;
-    if (hypixelQueries > 90) return message.channel.send("Hey! Slow down!");
     if (!args[0]) {
       return message.channel.send(
         "Please use one of the subcommands or enter an username for profile!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``
@@ -290,7 +289,6 @@ module.exports = {
               json: true
             },
             function(error, response, body) {
-              hypixelQueries++;
               if (!error && response.statusCode === 200) {
                 console.log(`${res[0].name}'s Hypixel API`); // Print the json response
                 if(!body.player) return message.reply("there was an error trying to read the player data! (It's not found!) (What???)")
@@ -350,7 +348,6 @@ module.exports = {
                     json: true
                   },
                   function(err, resp, stuff) {
-                    hypixelQueries++;
                     if (!error && response.statusCode === 200) {
                       if (stuff.guild === null) {
                         var firstdate = new Date(body.player.firstLogin);
@@ -443,7 +440,6 @@ module.exports = {
                             json: true
                           },
                           function(gerr, gres, gbody) {
-                            hypixelQueries++;
                             if (!error && response.statusCode === 200) {
                               console.log(`${res[0].name}'s Hypixel Guild Stuff`); // Print the json response
 
@@ -578,7 +574,6 @@ module.exports = {
             },
 
             async function(error, response, body) {
-              hypixelQueries++;
               if (!error && response.statusCode === 200) {
                 console.log(`${res[0].name}'s Hypixel API`); // Print the json response
                 if (body.player.newPackageRank === "VIP") {
@@ -615,7 +610,6 @@ module.exports = {
                       json: true
                     },
                     function(err, guildResponse, guildBody) {
-                      hypixelQueries++;
                       if (!err && guildResponse.statusCode === 200) {
                         if (guildBody.guild === null) {
                           return message.channel.send(
@@ -633,7 +627,6 @@ module.exports = {
                             json: true
                           },
                           async function(guErr, guRes, guBody) {
-                            hypixelQueries++;
                             if (!guErr && guRes.statusCode === 200) {
                               var exp = [];
                               var guildId = guBody.guild._id;

@@ -4,17 +4,17 @@ module.exports = {
     name: "unskip",
     description: "Go to the previous music in the queue.",
     usage: "[amount]",
-    music(message, serverQueue, looping, queue, pool, repeat) {
+    async music(message, serverQueue, queue, pool) {
         const args = message.content.slice(message.client.prefix.length).split(/ +/);
         var skipped = 1;
         const guild = message.guild;
-        if (!message.member.voice.channel)
+        if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing)
             return message.channel.send(
-                "You have to be in a voice channel to skip the music!"
+                "You have to be in a voice channel to unskip the music when the bot is playing!"
             );
         if (!serverQueue)
             return message.channel.send("There is no song that I could unskip!");
-        const guildRepeatStatus = repeat.get(message.guild.id);
+        const guildRepeatStatus = serverQueue.repeating;
         if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
         if (guildRepeatStatus) {
             skipped = 0;
@@ -51,7 +51,9 @@ module.exports = {
             con.release();
         });
         message.channel.send(`Unskipped **${skipped}** track${skipped > 1 ? "s" : ""}!`);
-        play(guild, serverQueue.songs[0], looping, queue, pool, repeat);
-
+        if (message.member.voice.channel && serverQueue.playing) {
+            if (!serverQueue.connection) serverQueue.connection = await message.member.voice.channel.join();
+            play(guild, serverQueue.songs[0], queue, pool);
+        }
     }
 }

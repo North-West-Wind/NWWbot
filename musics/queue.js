@@ -8,7 +8,7 @@ module.exports = {
   usage: " ",
   subcommands: ["save", "load", "delete", "list"],
   subaliases: ["s", "l", "d", "li"],
-  async music(message, serverQueue, looping, queue, pool) {
+  async music(message, serverQueue, queue, pool) {
     const args = message.content.split(/ +/);
     if (args[1] !== undefined && (args[1].toLowerCase() === "save" || args[1].toLowerCase() === "s")) {
       return await this.save(message, serverQueue, pool, args);
@@ -154,13 +154,13 @@ module.exports = {
               "Please provide the name of the queue."
             );
           }
+          var query = `INSERT INTO queue(user, name, queue) VALUES('${message.author.id}', '${args.slice(2).join(" ")}', '${escape(JSON.stringify(serverQueue.songs))}')`;
           for (const result of results) {
             if (
-              result.name.toLowerCase() ===
+              result.name ===
               args
                 .slice(2)
                 .join(" ")
-                .toLowerCase()
             ) {
               var em = new Discord.MessageEmbed()
                 .setColor(color)
@@ -175,16 +175,13 @@ module.exports = {
               await msg.reactions.removeAll().catch(console.error);
               if (!collected || !collected.first()) return msg.edit({ content: "I cannot receive your answer! I'll take that as a NO.", embed: null });
               if (collected.first().emoji.name === "✅") {
-                await msg.edit({ content: `The queue ${args.slice(2).join(" ")} will be overrided.`, embed: null });
-                continue;
+                await msg.edit({ content: `The queue ${args.slice(2).join(" ")} will be overridden.`, embed: null });
+                query = `UPDATE queue SET queue = '${escape(JSON.stringify(serverQueue.songs))}' WHERE id = ${result.id}`;
+                break;;
               } else return await msg.edit({ content: `Action cancelled. The queue ${args.slice(2).join(" ")} will not be overrided.`, embed: null });
             }
           }
-          con.query(
-            "INSERT INTO queue(user, name, queue) " +
-            `VALUES('${message.author.id}', '${args
-              .slice(2)
-              .join(" ")}', '${escape(JSON.stringify(serverQueue.songs))}')`,
+          con.query(query,
             function (err) {
               if (err)
                 return message.reply(
@@ -194,7 +191,7 @@ module.exports = {
                 "The song queue has been stored with the name **" +
                 args.slice(2).join(" ") +
                 "**!" +
-                `\nSlots used: **${results.length + 1}/10**`
+                `\nSlots used: **${query.substring(0, 6) == "INSERT" ? results.length + 1 : results.length}/10**`
               );
             }
           );

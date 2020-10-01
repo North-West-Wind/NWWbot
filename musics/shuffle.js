@@ -6,10 +6,11 @@ module.exports = {
   name: "shuffle",
   description: "Shuffle the song queue.",
   usage: " ",
-  async music(message, serverQueue, looping, queue, pool) {
-
-    if (!serverQueue) return message.channel.send("There is nothing playing.");
-    await shuffleArray(serverQueue.songs);
+  async music(message, serverQueue, queue, pool) {
+    if (!serverQueue || serverQueue.songs.length < 1) return message.channel.send("There is nothing in the queue.");
+    if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to shuffle the queue when the bot is playing!");
+    if(serverQueue.playing) await shuffleArray(serverQueue.songs, 1);
+    else await shuffleArray(serverQueue.songs, 0);
     pool.getConnection(function(err, con) {
       if(err) return message.reply("there was an error trying to connect to the database!");
       con.query(
@@ -17,7 +18,7 @@ module.exports = {
           escape(JSON.stringify(serverQueue.songs)) +
           "' WHERE id = " +
           message.guild.id,
-        function(err, result) {
+        function(err) {
           if (err)
             return message.reply(
               "there was an error trying to update the queue!"
