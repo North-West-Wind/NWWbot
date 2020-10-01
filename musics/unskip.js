@@ -4,7 +4,7 @@ module.exports = {
     name: "unskip",
     description: "Go to the previous music in the queue.",
     usage: "[amount]",
-    music(message, serverQueue, queue, pool) {
+    async music(message, serverQueue, queue, pool) {
         const args = message.content.slice(message.client.prefix.length).split(/ +/);
         var skipped = 1;
         const guild = message.guild;
