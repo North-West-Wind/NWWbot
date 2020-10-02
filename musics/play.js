@@ -374,7 +374,7 @@ module.exports = {
           clearInterval(interval);
         } else {
           try {
-            var songInfo = await ytdl.getInfo(args[1]);
+            var songInfo = await ytdl.getInfo(args[1], { requestOptions: { headers: { cookie: process.env.COOKIE } } });
           } catch (err) {
             return message.channel.send("No video was found!");
           }

@@ -12,7 +12,7 @@ module.exports = {
 
     if (!args.length) {
       const attachment = new Discord.MessageAttachment(
-        "https://www.dropbox.com/s/g4ym6beqdb8bal3/manual.pdf?dl=1", "manual.pdf"
+        "https://www.dropbox.com/s/g4ym6beqdb8bal3/manual.pdf?dl=0", "manual.pdf"
       );
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
@@ -23,7 +23,7 @@ module.exports = {
         .setThumbnail(message.client.user.displayAvatarURL())
         .addField(
           "**Managements**",
-          "delete\nrole\nunrole\naddrole\ndelrole\nautorole\nannounce",
+          "delete\nrole\nunrole\naddrole\ndelrole\nautorole\nannounce\nrole-message",
           true
         )
         .addField(
@@ -32,7 +32,7 @@ module.exports = {
           true
         )
         .addField("**Economy**", "work\nbank\nshop", true)
-        .addField("**Fun**", "chat\nreddit\nrng\ngreet\nthx\nrank\nuno\ncolor\nrps", true)
+        .addField("**Fun**", "chat\nreddit\nrng\ngreet\nthx\nrank\nuno\nascii\ncolor\nrps", true)
 
         .addField(
           "**Miscellaneous**",
@@ -48,7 +48,7 @@ module.exports = {
         .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban\noxford\nspeedrun\nwiki\nlyrics\nknowyourmeme", true)
         .addField(
           "**Music**",
-          "play\nskip\nunskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nmove\nloop\nrepeat\nmigrate\nvolume",
+          "play\nskip\nunskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nmove\nloop\nrepeat\nmigrate\nvolume\ndownload",
           true
         )
 

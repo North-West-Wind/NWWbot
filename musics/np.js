@@ -9,7 +9,7 @@ const mm = require("music-metadata");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
-const ytdl = require("ytdl-core-discord");
+const ytdl = require("ytdl-core");
 const scdl = require("soundcloud-downloader");
 
 module.exports = {
@@ -29,7 +29,7 @@ module.exports = {
     switch(serverQueue.songs[0].type) {
       case 0:
       case 1:
-        var songInfo = await ytdl.getInfo(serverQueue.songs[0].url).catch(console.error);
+        var songInfo = await ytdl.getInfo(serverQueue.songs[0].url, { requestOptions: { headers: { cookie: process.env.COOKIE } } }).catch(console.error);
         if(songInfo.videoDetails.isLive) isLive = true;
         var length = parseInt(songInfo.videoDetails.lengthSecond);
         break;
@@ -46,10 +46,8 @@ module.exports = {
     }
     if(isLive) {
       processBar.splice(19, 1, "+");
-      var songLength = "∞";
       var positionTime = "∞";
     } else {
-      var songLength = moment.duration(length, "seconds").format();
       var positionTime = moment.duration(Math.round(position / 1000), "seconds").format();
       if(position === 0 || isNaN(position))
         positionTime = "0:00";
@@ -65,7 +63,7 @@ module.exports = {
     .setFooter(`Looping: ${serverQueue.looping} | Repeating: ${serverQueue.repeating}`, message.client.user.displayAvatarURL());
     if(serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
     else info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
-    embed.setDescription(`${info[0]}\n\n${positionTime} **${processBar.join("")}** ${songLength}`).setThumbnail(info[1]);
+    embed.setDescription(`${info[0]}\n\n${positionTime} **${processBar.join("")}** ${serverQueue.songs[0].time}`).setThumbnail(info[1]);
   return message.channel.send(embed).then(msg => {
     setTimeout(() => {
       msg.edit({ embed: null, content: "**[Insert Displayed Information Here]**" });

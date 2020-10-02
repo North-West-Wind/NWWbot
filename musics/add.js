@@ -9,7 +9,7 @@ const {
     validYTPlaylistURL,
     validSCURL
 } = require("../function.js");
-const ytdl = require("ytdl-core-discord");
+const ytdl = require("ytdl-core");
 var color = Math.floor(Math.random() * 16777214) + 1;
 var SpotifyWebApi = require("spotify-web-api-node");
 var spotifyApi = new SpotifyWebApi({
@@ -80,7 +80,7 @@ module.exports = {
                     clearInterval(interval);
                 } else {
                     try {
-                        var songInfo = await ytdl.getInfo(args[1]);
+                        var songInfo = await ytdl.getInfo(args[1], { requestOptions: { headers: { cookie: process.env.COOKIE } } });
                     } catch (err) {
                         return message.channel.send("No video was found!");
                     }

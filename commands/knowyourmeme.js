@@ -168,7 +168,7 @@ async function doSearch(term) {
 
 module.exports = {
   name: "knowyourmeme",
-  description: "Fetch memes from Know Your Meme.",
+  description: "Display meme information from Know Your Meme.",
   usage: "[keywords]",
   aliases: ["kym"],
   async execute(message, args) {
