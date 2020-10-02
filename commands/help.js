@@ -32,7 +32,7 @@ module.exports = {
           true
         )
         .addField("**Economy**", "work\nbank\nshop", true)
-        .addField("**Fun**", "chat\nreddit\nrng\ngreet\nthx\nrank\nuno", true)
+        .addField("**Fun**", "chat\nreddit\nrng\ngreet\nthx\nrank\nuno\ncolor\nrps", true)
 
         .addField(
           "**Miscellaneous**",
@@ -45,7 +45,7 @@ module.exports = {
           "help\nserver\nping\navatar\nwelcome\nrole-info",
           true
         )
-        .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban\noxford\nspeedrun\nwiki\nlyrics", true)
+        .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban\noxford\nspeedrun\nwiki\nlyrics\nknowyourmeme", true)
         .addField(
           "**Music**",
           "play\nskip\nunskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nmove\nloop\nrepeat\nmigrate\nvolume",

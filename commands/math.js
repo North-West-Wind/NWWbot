@@ -1,6 +1,5 @@
 const math = require("mathjs");
 const Discord = require("discord.js");
-const { compile } = require("mathjs");
 var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {

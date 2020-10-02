@@ -8,17 +8,17 @@ module.exports = {
   args: true,
   usage: "<user | user ID> [reason]",
   execute(message, args, pool) {
+    if (!args[0]) {
+      return message.channel.send(
+        "Tell me who you are warning." +
+          ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``
+      );
+    }
     pool.getConnection(async function(err, con) {
       if (err) {
         console.error(err);
         return message.reply(
           "there was an error trying to connect to the database!"
-        );
-      }
-      if (!args[0]) {
-        return message.channel.send(
-          "Tell me who you are warning." +
-            ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``
         );
       }
 

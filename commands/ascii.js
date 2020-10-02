@@ -16,7 +16,7 @@ module.exports = {
             case "text":
                 if(!args[1]) return message.channel.send("You didn't provide any text! If you want to convert an image, use the `image` subcommand.");
                 var text = figlet.textSync(args.slice(1).join(" "));
-                var attachment = new Discord.MessageAttachment(Readable.from(text), `${args.slice(1).join(" ")}.txt`);
+                var attachment = new Discord.MessageAttachment(Buffer.from(text, 'utf8'), `${args.slice(1).join(" ")}.txt`);
                 if(text.length + 83 > 2000) return message.channel.send("The text is too long to send in Discord! Therefore, I've made it into a file!", attachment);
                 message.channel.send("```" + text + "```\nYour text might not show properly! Therefore, here is a text file for you!", attachment);
             break;
@@ -60,9 +60,14 @@ module.exports = {
                         var nameArr = attachment.name.split(".");
                         nameArr.splice(-1, 1);
                         var newattachment = new Discord.MessageAttachment(canvas.toBuffer(), `${nameArr.join(".")}.png`);
+                        var colorAtt = new Discord.MessageAttachment(Buffer.from(asciis, 'utf8'), `${nameArr.join(" ")}_text.txt`);
+                        var noColorAtt = new Discord.MessageAttachment(Buffer.from(anser.ansiToText(asciis), 'utf8'), `${nameArr.join(" ")}_text_no_color.txt`);
                         msg.delete();
                         message.channel.send(newattachment);
+                        message.channel.send(colorAtt);
+                        message.channel.send(noColorAtt);
                     } catch(err) {
+                        console.error(err);
                         return msg.edit(`<@${message.author.id}>, there was an error trying to convert the image into ASCII!`);
                     }
                 });
