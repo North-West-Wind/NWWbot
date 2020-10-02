@@ -1,31 +1,34 @@
-var looping = new Map();
 var queue = new Map();
-var repeat = new Map();
 var migrating = [];
 
 module.exports = {
   name: "main",
   music(message, commandName, pool, exit) {
     const command =
-    message.client.commands.get(commandName) ||
-    message.client.commands.find(
+    console.commands.get(commandName) ||
+    console.commands.find(
       cmd => cmd.aliases && cmd.aliases.includes(commandName)
     );
     
     const serverQueue = queue.get(message.guild.id);
     
     try {
-      command.music(message, serverQueue, looping, queue, pool, repeat, exit, migrating);
+      command.music(message, serverQueue, queue, pool, exit, migrating);
     } catch(error) {
       console.error(error);
-        message.reply("there was an error trying to execute that command!");
+      message.reply("there was an error trying to execute that command!");
     }
   },
   stop(guild) {
     const serverQueue = queue.get(guild.id);
     if(!serverQueue) return;
-    if(serverQueue.connection.dispatcher)
+    if(serverQueue.connection && serverQueue.connection.dispatcher)
   serverQueue.connection.dispatcher.destroy();
+  serverQueue.playing = false;
+  serverQueue.connection = null;
+  serverQueue.voiceChannel = null;
+  serverQueue.textChannel = null;
+  if(guild.me.voice.channel)
   guild.me.voice.channel.leave();
   },
   setQueue(guild, songs, loopStatus, repeatStatus) {
@@ -37,10 +40,12 @@ module.exports = {
           volume: 1,
           playing: false,
           paused: false,
-          startTime: 0
+          looping: loopStatus,
+          repeating: repeatStatus
         };
-    repeat.set(guild, repeatStatus);
-    looping.set(guild, loopStatus);
     queue.set(guild, queueContruct);
+  },
+  checkQueue() {
+    return queue.size > 0;
   }
 }

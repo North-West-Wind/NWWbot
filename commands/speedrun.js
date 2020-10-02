@@ -1,7 +1,6 @@
 const Discord = require("discord.js");
 const fetch = require("node-fetch");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "speedrun",
@@ -11,7 +10,7 @@ module.exports = {
   async execute(message, args) {
     if (!args[0])
       return message.channel.send(
-        "Please enter the name of the game you want to search!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``
+        "Please enter the name of the game you want to search!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``
       );
     var gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(args.join(" "))}`).then(res => res.json());
     if(gameFetch.status && gameFetch.status === 404) {

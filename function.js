@@ -34,8 +34,8 @@ module.exports = {
         "(\\#[-a-z\\d_]*)?$",
       "i"
     ); // fragment locator
-    if(!!pattern.test(str))
-    return true;
+    if (str.slice(8).search("open.spotify.com") === 0 || !!pattern.test(str))
+      return true;
     else return false;
   },
   validYTURL(str) {
@@ -45,14 +45,21 @@ module.exports = {
     return !!pattern.test(str);
   },
   validYTPlaylistURL(str) {
-    var pattern = new RegExp(/^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/playlist\?list=\w+/);
+    var pattern = new RegExp(
+      /^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/playlist\?list=\w+/
+    );
     return !!pattern.test(str);
   },
   validSPURL(str) {
-    var pattern = new RegExp(
-      /^(spotify:|https:\/\/[a-z]+\.spotify\.com\/)/
-    )
+    var pattern = new RegExp(/^(spotify:|https:\/\/[a-z]+\.spotify\.com\/)/);
     return pattern.test(str);
+  },
+  validGDURL(str) {
+    var pattern1 = new RegExp(/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing/);
+    var pattern2 = new RegExp(/https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/);
+    if(pattern1.test(str)) return true;
+    else if(pattern2.test(str)) return true;
+    else return false;
   },
   validImgurURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/;
@@ -127,9 +134,8 @@ module.exports = {
       }
     );
   },
-  shuffleArray(array) {
-    let temp = array[0];
-    array.splice(0, 1);
+  shuffleArray(array, start) {
+    let temp = array.splice(0, start);
     var i;
     var j;
     var x;
@@ -139,12 +145,9 @@ module.exports = {
       array[i] = array[j];
       array[j] = x;
     }
-    array.unshift(temp);
+    array = temp.concat(array);
     temp = [];
     return array;
-  },
-  shuffle(array) {
-    return array.sort(() => Math.random() - 0.5);
   },
   async findUser(message, str) {
     if (isNaN(parseInt(str))) {
@@ -196,6 +199,27 @@ module.exports = {
 
     return member;
   },
+	async findRole(message, str) {
+		var roleID = str.replace(/<@&/g, "").replace(/>/g, "");
+    if (isNaN(parseInt(roleID))) {
+      var role = await message.guild.roles.cache.find(
+        x => x.name.toLowerCase() === `${message.content.split(" ")[1].toLowerCase()}`
+      );
+      if (role === null) {
+				message.channel.send(
+          "No role was found with the name " + args[0]
+        );
+        return null;
+      }
+    } else {
+      var role = await message.guild.roles.cache.get(roleID);
+      if (role === null) {
+				message.channel.send("No role was found!");
+        return null;
+      }
+    }
+		return role;
+	},
   getRandomNumber(min, max) {
     return Math.random() * (max - min) + min;
   },
@@ -221,34 +245,94 @@ module.exports = {
     while (pattern.test(x)) x = x.replace(pattern, "$1,$2");
     return x;
   },
-  contain(str, content) {
-    return !!~(str || "").indexOf(content);
-  },
   isGoodMusicVideoContent(videoSearchResultItem) {
-   const contains = (string, content) => {
-    return !!~(string || "").indexOf(content);
-  }
+    const contains = (string, content) => {
+      return !!~(string || "").indexOf(content);
+    };
     return (
-      contains(videoSearchResultItem.author ? videoSearchResultItem.author.name : undefined, "VEVO") ||
       contains(
-        videoSearchResultItem.author ? videoSearchResultItem.author.name.toLowerCase() : undefined,
-        "official"
+        videoSearchResultItem.author
+          ? videoSearchResultItem.author.name
+          : undefined,
+        "VEVO"
       ) ||
       contains(
-        videoSearchResultItem.title.toLowerCase(),
+        videoSearchResultItem.author
+          ? videoSearchResultItem.author.name.toLowerCase()
+          : undefined,
         "official"
-      ) || !contains(videoSearchResultItem.title.toLowerCase(), "extended")
+      ) ||
+      contains(videoSearchResultItem.title.toLowerCase(), "official") ||
+      !contains(videoSearchResultItem.title.toLowerCase(), "extended")
     );
   },
   elegantPair(x, y) {
-    return (x >= y) ? (x * x + x + y) : (y * y + x);
+    return x >= y ? x * x + x + y : y * y + x;
   },
   elegantUnpair(z) {
     var sqrtz = Math.floor(Math.sqrt(z)),
-    sqz = sqrtz * sqrtz;
-    return ((z - sqz) >= sqrtz) ? [sqrtz, z - sqz - sqrtz] : [z - sqz, sqrtz];
+      sqz = sqrtz * sqrtz;
+    return z - sqz >= sqrtz ? [sqrtz, z - sqz - sqrtz] : [z - sqz, sqrtz];
   },
-  sleep(x) {
-    return new Promise(resolve => setTimeout(resolve, x));
+  jsDate2Mysql(newDate) {
+    function twoDigits(d) {
+      if (0 <= d && d < 10) return "0" + d.toString();
+      if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
+      return d.toString();
+    }
+    var date = newDate.getDate();
+    var month = newDate.getMonth();
+    var year = newDate.getFullYear();
+    var hour = newDate.getHours();
+    var minute = newDate.getMinutes();
+    var second = newDate.getSeconds();
+    var newDateSql =
+      year +
+      "-" +
+      twoDigits(month + 1) +
+      "-" +
+      twoDigits(date) +
+      " " +
+      twoDigits(hour) +
+      ":" +
+      twoDigits(minute) +
+      ":" +
+      twoDigits(second);
+    return newDateSql;
+  },
+	getWithWeight(input) {
+    var array = [];
+    for(var item in input) {
+        if ( input.hasOwnProperty(item) ) {
+            for( var i=0; i<input[item]; i++ ) {
+                array.push(item);
+            }
+        }
+    }
+    return array[Math.floor(Math.random() * array.length)];
+  },
+  hexToRgb(hex) {
+    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+      return r + r + g + g + b + b;
+    });
+  
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  },
+  decimalToRgb(decimal) {
+    return {
+      r: (decimal >> 16) & 0xff,
+      g: (decimal >> 8) & 0xff,
+      b: decimal & 0xff,
+    };
+  },
+  readableDate(date) {
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear}`;
   }
 };

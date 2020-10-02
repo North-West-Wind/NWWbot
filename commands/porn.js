@@ -2056,10 +2056,11 @@ module.exports = {
     
     var picked = subs[Math.floor(Math.random() * subs.length)];
     
-    var response = await redditConn.api.get("/r/" + picked + "/hot").catch(err => console.error(err));
-    if(response[1] === undefined) return await this.execute(message, args);
-    if(response[1].data === undefined || response[1].data.children[0] === undefined || response[1].data.children[0].data === undefined || response[1].data.children[0].data.url === undefined) return await this.execute(message, args);
-    var data = response[1].data.children[0].data;
+    var response = await redditConn.api.get("/r/" + picked + "/hot", { limit: 100 }).catch(err => console.error(err));
+    if(!response || !response[1]) return await this.execute(message, args);
+    if(!response[1].data || !response[1].data.children || !response[1].data.children[0]) return await this.execute(message, args);
+    var data = response[1].data.children[Math.floor(Math.random() * response[1].data.children.length)].data;
+    if(!data || !data.url) return await this.execute(message, args);
     
         const em = new Discord.MessageEmbed()
           .setTitle(`${data.title.substring(0, 256)}`)
@@ -2108,10 +2109,6 @@ module.exports = {
       }
       if(video.size > 8388119) {
         return await this.execute(message, args);
-        /*
-        em.setDescription(`Tags: \`${tags.length > 0 ? tags.join("->") : "`N/A`"}\`\n(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\nFrom r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).\nHowever, the video size is too large for uploading! Go to the link instead.`)
-      await message.channel.send(em);
-      */
       } else {
       await message.channel.send(em);
       message.channel.send(video);

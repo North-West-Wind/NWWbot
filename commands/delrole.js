@@ -1,5 +1,4 @@
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "delrole",
@@ -7,19 +6,19 @@ module.exports = {
   args: true,
   usage: "<role | role ID | role name>",
   async execute(message, args) {
-    if (!message.member.permissions.has("MANAGE_ROLES")) {
+    if (!message.member.permissions.has(268435456)) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
       return;
     }
-    if(!message.guild.me.permissions.has('MANAGE_ROLES')) {
+    if(!message.guild.me.permissions.has(268435456)) {
       message.channel.send(`I don\'t have the permission to delete roles.`)
       return;
     }
     
     if(!args[0]) {
-      return message.channel.send("You didn't tell me the role to delete!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("You didn't tell me the role to delete!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
     }
     
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");

@@ -1,6 +1,4 @@
 var color = Math.floor(Math.random() * 16777214) + 1;
-
-const { prefix } = require("../config.json");
 const Discord = require("discord.js");
 module.exports = {
   name: "help",
@@ -10,17 +8,17 @@ module.exports = {
   cooldown: 5,
   execute(message, args) {
     const data = [];
-    const { commands } = message.client;
+    const { commands } = console;
 
     if (!args.length) {
       const attachment = new Discord.MessageAttachment(
-        "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1589543070522", "manual.pdf"
+        "https://www.dropbox.com/s/g4ym6beqdb8bal3/manual.pdf?dl=1", "manual.pdf"
       );
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle("Command list is here!")
         .setDescription(
-          `You can send \`${prefix}help [command name]\` to get info on a specific command!\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`
+          `You can send \`${message.client.prefix}help [command name]\` to get info on a specific command!\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`
         )
         .setThumbnail(message.client.user.displayAvatarURL())
         .addField(
@@ -34,11 +32,11 @@ module.exports = {
           true
         )
         .addField("**Economy**", "work\nbank\nshop", true)
-        .addField("**Fun**", "chat\nreddit\nrng\ngreet\nthx\nrank\nuno", true)
+        .addField("**Fun**", "chat\nreddit\nrng\ngreet\nthx\nrank\nuno\ncolor", true)
 
         .addField(
           "**Miscellaneous**",
-          "giveaway\npoll\ngoogle\nspam\ntrade",
+          "giveaway\npoll\ngoogle\nspam\ntrade\ntimer\nmath",
           true
         )
         .addField("**NSFW**", "hentai\nrule34\nporn", true)
@@ -50,7 +48,7 @@ module.exports = {
         .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban\noxford\nspeedrun\nwiki\nlyrics", true)
         .addField(
           "**Music**",
-          "play\nskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nmove\nloop\nrepeat\nmigrate\nvolume",
+          "play\nskip\nunskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nmove\nloop\nrepeat\nmigrate\nvolume",
           true
         )
 
@@ -71,7 +69,7 @@ module.exports = {
             `Could not send help DM to ${message.author.tag}.\n`,
             error
           );
-          message.reply("why don't you let me DM you ;-;");
+          message.reply("there was an error trying to send you a DM!");
         });
     }
     const name = args[0].toLowerCase();
@@ -90,7 +88,7 @@ module.exports = {
     if (command.description)
       data.push(`**Description:** ${command.description}`);
     if (command.usage)
-      data.push(`**Usage:** ${prefix}${command.name} ${command.usage}`);
+      data.push(`**Usage:** ${message.client.prefix}${command.name} ${command.usage}`);
     if (command.subcommands)
       data.push(`**Subcommands:** ${command.subcommands.join(", ")}`);
     if (command.subaliases)

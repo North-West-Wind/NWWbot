@@ -1,14 +1,13 @@
 const Discord = require("discord.js");
 const solenolyrics = require("solenolyrics");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "lyrics",
   description: "Display lyrics of songs if they are found.",
   usage: "<song>",
   async execute(message, args) {
-    if(!args[0]) return message.channel.send("You didn't provide any song!" + ` Usage: ${prefix}${this.name}${this.usage}`);
+    if(!args[0]) return message.channel.send("You didn't provide any song!" + ` Usage: ${message.client.prefix}${this.name}${this.usage}`);
     
     var lyrics = await solenolyrics.requestLyricsFor(args.join(" "));
     var title = await solenolyrics.requestTitleFor(args.join(" "));

@@ -1,5 +1,4 @@
 const moment = require("moment");
-const { prefix } = require("../config.json");
 module.exports = {
   name: "role-message",
   description: "Allows you to create a message for users to react and join a role.",
@@ -7,18 +6,18 @@ module.exports = {
   subcommands: ["create", "refresh"],
   subaliases: ["cr", "re"],
   aliases: ["role-msg", "rm"],
-  async execute(message, args, pool, useless, trash, rm) {
+  async execute(message, args, pool) {
     if(!args[0]) {
-      return message.channel.send("Please use a subcommand!" + ` Usage: ${prefix}${this.name}${this.usage}`);
+      return message.channel.send("Please use a subcommand!" + ` Usage: ${message.client.prefix}${this.name}${this.usage}`);
     }
     if(args[0] === "create" || args[0] === "cr") {
-      return await this.create(message, args, pool, rm);
+      return await this.create(message, pool, console.rm);
     }
     if(args[0] === "refresh" || args[0] === "re") {
       return await this.refresh(message, args, pool);
     }
   },
-  async create(message, args, pool, rm) {
+  async create(message, pool, rm) {
     var msg = await message.channel.send("Please enter the message you want to send.");
     var collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 120000, max: 1, errors: ["time"] }).catch(console.error);
     if(collected.first() === undefined) {

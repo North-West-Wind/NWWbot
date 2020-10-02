@@ -8,7 +8,7 @@ module.exports = {
     "Display your rank in the server. However, this command requires a DLC to work. Leveling system was inspired by MEE6.",
   async execute(message, args, pool) {
     try {
-      var dlc = await message.guild.members.fetch("684639278944223277");
+      await message.guild.members.fetch(process.env.DLC);
     } catch (err) {
       return message.channel.send(
         "You didn't install the DLC for leveling! Please install it with the following link:\nhttps://discordapp.com/api/oauth2/authorize?client_id=684639278944223277&permissions=1024&scope=bot"
@@ -18,7 +18,7 @@ module.exports = {
       if (err) {
         console.error(err);
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       }
       con.query(
@@ -26,11 +26,11 @@ module.exports = {
           message.author.id +
           " AND guild = " +
           message.guild.id,
-        function(err, results, fields) {
+        function(err, results) {
           if (err) {
             console.error(err);
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to fetch data from the database!"
             );
           }
           var expBackup = parseInt(results[0].exp);
@@ -54,7 +54,7 @@ module.exports = {
               if (err) {
                 console.error(err);
                 return message.reply(
-                  "there was an error trying to execute that command!"
+                  "there was an error trying to fetch data from the database!"
                 );
               }
 

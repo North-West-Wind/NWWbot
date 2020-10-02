@@ -4,7 +4,7 @@ module.exports = {
   name: "migrate",
   description: "Move the bot to the channel you are in. Use when changing voice channel.",
   usage: " ",
-  async music(message, serverQueue, looping, queue, pool, repeat, exit, migrating) {
+  async music(message, serverQueue, queue, pool, exit, migrating) {
     if(migrating.find(x => x === message.guild.id)) return message.channel.send("I'm on my way!").then(msg => msg.delete(10000));
     if(!message.member.voice.channel) {
       return message.channel.send("You are not in any voice channel!");
@@ -36,7 +36,7 @@ module.exports = {
     serverQueue.connection = null;
     serverQueue.voiceChannel = null;
     serverQueue.textChannel = null;
-    if(message.guild.me.voice.channel) message.guild.me.voice.channel.leave();
+    if(message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
     
     var voiceChannel = message.member.voice.channel;
     var msg = await message.channel.send("Migrating in 3 seconds...");
@@ -58,7 +58,7 @@ module.exports = {
         await queue.set(message.guild.id, serverQueue);
         msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`);
         migrating.splice(migrating.indexOf(message.guild.id));
-        play(message.guild, serverQueue.songs[0], looping, queue, pool, repeat);
+        play(message.guild, serverQueue.songs[0], queue, pool);
     }, 3000);
   }
 }

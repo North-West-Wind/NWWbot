@@ -1,7 +1,6 @@
 const Discord= require("discord.js");
 const { findMember } = require("../function.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "mute",
@@ -9,13 +8,13 @@ module.exports = {
   args: true,
   usage: "<user | user ID> [reason]",
   async execute(message, args) {
-    if (!message.member.permissions.has("MUTE_MEMBERS")) {
+    if (!message.member.permissions.has(4194304)) {
       message.channel.send(
         `You don\'t have the permission to use this command.`
       );
       return;
     }
-    if(!message.guild.me.permissions.has('MUTE_MEMBERS')) {
+    if(!message.guild.me.permissions.has(4194304)) {
       message.channel.send(`I don\'t have the permission to mute members.`)
       return;
     }
@@ -24,7 +23,7 @@ module.exports = {
     if (!message.guild) return;
     
     if(!args[0]) {
-      return message.channel.send("You didn't mention any user!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("You didn't mention any user!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
     }
     
     

@@ -4,11 +4,10 @@ const http = require("http");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits, numberWithCommas } = require("../function.js");
 const nodefetch = require("node-fetch");
-const fetch = require("fetch-retry")(nodefetch, { retries: 10, retryDelay: 1000 });
+const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: 1000 });
 const contains = (string, content) => {
   return !!~(string || "").indexOf(content);
 };
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "hypixel",
@@ -45,8 +44,8 @@ module.exports = {
     "bazaar"
   ],
   subaliases: ["g", "ach", "tnt", "bw", "du", "sw", "sg", "ar", "mm", "bb", "mcgo", "vz", "pb", "q", "uhc", "wa", "mw", "cw", "sh", "suhc", "are", "p", "sb", "ah", "ba"],
-  async execute(message, args, pool, yeet, hypixelQueries) {
-    if (hypixelQueries > 90) return message.channel.send("Hey! Slow down!");
+  async execute(message, args, pool) {
+    const prefix = message.client.prefix;
     if (!args[0]) {
       return message.channel.send(
         "Please use one of the subcommands or enter an username for profile!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``
@@ -290,9 +289,9 @@ module.exports = {
               json: true
             },
             function(error, response, body) {
-              hypixelQueries++;
               if (!error && response.statusCode === 200) {
                 console.log(`${res[0].name}'s Hypixel API`); // Print the json response
+                if(!body.player) return message.reply("there was an error trying to read the player data! (It's not found!) (What???)")
                 if (body.player.newPackageRank === "VIP") {
                   var rank = "[VIP]";
                 }
@@ -349,7 +348,6 @@ module.exports = {
                     json: true
                   },
                   function(err, resp, stuff) {
-                    hypixelQueries++;
                     if (!error && response.statusCode === 200) {
                       if (stuff.guild === null) {
                         var firstdate = new Date(body.player.firstLogin);
@@ -427,13 +425,6 @@ module.exports = {
                               message.client.user.displayAvatarURL()
                             );
                         }
-                        if (body.player.socialMedia.links.DISCORD) {
-                          Embed.addField(
-                            "Discord",
-                            "@" + body.player.socialMedia.links.DISCORD
-                          );
-                        } else {
-                        }
                         message.channel.send(Embed);
                       } else {
                         console.log(`${res[0].name}'s Hypixel Guild API`); // Print the json response
@@ -449,7 +440,6 @@ module.exports = {
                             json: true
                           },
                           function(gerr, gres, gbody) {
-                            hypixelQueries++;
                             if (!error && response.statusCode === 200) {
                               console.log(`${res[0].name}'s Hypixel Guild Stuff`); // Print the json response
 
@@ -584,7 +574,6 @@ module.exports = {
             },
 
             async function(error, response, body) {
-              hypixelQueries++;
               if (!error && response.statusCode === 200) {
                 console.log(`${res[0].name}'s Hypixel API`); // Print the json response
                 if (body.player.newPackageRank === "VIP") {
@@ -621,7 +610,6 @@ module.exports = {
                       json: true
                     },
                     function(err, guildResponse, guildBody) {
-                      hypixelQueries++;
                       if (!err && guildResponse.statusCode === 200) {
                         if (guildBody.guild === null) {
                           return message.channel.send(
@@ -639,7 +627,6 @@ module.exports = {
                             json: true
                           },
                           async function(guErr, guRes, guBody) {
-                            hypixelQueries++;
                             if (!guErr && guRes.statusCode === 200) {
                               var exp = [];
                               var guildId = guBody.guild._id;
@@ -5527,17 +5514,41 @@ module.exports = {
                   
                 } else if (args[0] === "skyblock" || args[0] === "sb") {
                   var sb = body.player.stats.SkyBlock;
+                  let error = false;
+                  var allEmbeds = [];
                   
-                 var allEmbeds = [];
-                  
-                  var magmaBoss = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bosstimer/magma/estimatedSpawn").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var darkAuction = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/darkauction/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var bankInterest = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bank/interest/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var newYear = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/newyear/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var travelZoo = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/zoo/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var spookyFest = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/spookyFestival/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var winterEvent = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/winter/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
-                  var jerryWorkshop = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/jerryWorkshop/estimate").then(resp => resp.json().catch(err => console.error("Fetching failed.")));
+                  var magmaBoss = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bosstimer/magma/estimatedSpawn").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var darkAuction = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/darkauction/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var bankInterest = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bank/interest/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var newYear = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/newyear/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var travelZoo = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/zoo/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var spookyFest = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/spookyFestival/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var winterEvent = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/winter/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+                  var jerryWorkshop = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/jerryWorkshop/estimate").then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
                   
                   function estimateStringify(estimateObj) {
                     var estimate = ((estimateObj ? estimateObj.estimate : 0) - Date.now());
@@ -5572,7 +5583,14 @@ module.exports = {
                   
                   var profiles = Object.values(sb.profiles);
                   for(const profile of profiles) {
-                    var skyblock = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${res[0].id}/${profile.profile_id}`).then(resp => resp.json());
+                    var skyblock = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${res[0].id}/${profile.profile_id}`).then(resp => resp.json().catch(err => {
+                      console.error("Fetching failed.");
+                      error = true;
+                      }));
+
+                      if(error) {
+                        return message.channel.send("https://sky.shiiyu.moe/stats/" + res[0].name);
+                      }
                     
                     var memberCount = Object.keys(skyblock.members).length;
                     var members = Object.values(skyblock.members);
@@ -5617,7 +5635,7 @@ module.exports = {
                     const Embed = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle(rank + res[0].name)
-                    .setURL("https://sky.lea.moe/stats/" + res[0].name)
+                    .setURL("https://sky.shiiyu.moe/stats/" + res[0].name)
                     .setDescription("SkyBlock - **" + profile.cute_name + "**\n" + `Members [${memberCount}]: ${memberName.join(", ")}\n\n**Magma Boss** in **${magmaStr}**\n**Dark Auction** in **${darkStr}**\n**Bank Interest** in **${bankStr}**\n**New Year** in **${yearStr}**\n**Travelling Zoo** in **${zooStr}**\n**Spooky Festival** in **${spookStr}**\n**Winter Event** in **${winterStr}**\n**Jerry Workshop** in **${jerryStr}**`)
                     .addField("Purse", numberWithCommas(purse), true)
                     .addField("Total Kills", numberWithCommas(kills), true)
@@ -5699,7 +5717,7 @@ module.exports = {
                   collector.on("end", async function() {
                     msg.reactions.removeAll().catch(console.error);
                     await msg.edit({ content: "Loading simplier version...", embed: null });
-                    await msg.edit("https://sky.lea.moe/stats/" + res[0].name);
+                    await msg.edit("https://sky.shiiyu.moe/stats/" + res[0].name);
                   });
                 }
               }

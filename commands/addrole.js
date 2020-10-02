@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { prefix } = require("../config.json");
 
 module.exports = {
   name: "addrole",
@@ -8,16 +7,16 @@ module.exports = {
   args: true,
   usage: "<role name> [color]",
   execute(message, args) {
-    if (!message.member.permissions.has('MANAGE_ROLES')) { 
+    if (!message.member.permissions.has(268435456)) { 
       message.channel.send(`You don\'t have the permission to use this command.`)
       return;
     }
-    if(!message.guild.me.permissions.has('MANAGE_ROLES')) {
+    if(!message.guild.me.permissions.has(268435456)) {
       message.channel.send(`I don\'t have the permission to add roles.`)
       return;
     }
     if(!args[0]) {
-      return message.channel.send("You didn't tell me the role name!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("You didn't tell me the role name!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
     }
     if(!args[1]) {
       message.guild

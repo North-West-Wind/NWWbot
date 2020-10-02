@@ -33,23 +33,17 @@ const ytpl = require("ytpl");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
-const urlParser = require("js-video-url-parser");
-const fetch = require("node-fetch");
-const SCDL = require("node-scdl");
-const scdl = new SCDL(process.env.SCID);
 const { http, https } = require("follow-redirects");
 
 const requestStream = url => {
-  return new Promise(resolve => {
-    request(url, (err, res) => resolve(res));
+  return new Promise((resolve, reject) => {
+    request(url, (err, res) => err ? reject(err) : resolve(res));
   });
 };
 
 const requestGet = url => {
-  return new Promise(resolve => {
-    request.get({ url: url, encoding: null }, (err, res, body) => {
-      resolve(body);
-    });
+  return new Promise((resolve, reject) => {
+    request.get({ url: url, encoding: null }, (err, res, body) => err ? reject(err) : resolve(res));
   });
 }
 

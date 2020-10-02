@@ -3,7 +3,6 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 var color = Math.floor(Math.random() * 16777214) + 1;
 const mysql = require("mysql");
-const { prefix } = require("../config.json");
 
 const { twoDigits, setTimeout_ } = require("../function.js");
 
@@ -19,7 +18,7 @@ module.exports = {
 
     if (!args[0]) {
       return message.channel.send(
-        `Proper usage: ${prefix}${this.name} ${
+        `Proper usage: ${message.client.prefix}${this.name} ${
           this.usage
         }\nSubcommands: \`${this.subcommands.join("`, `")}\``
       );
@@ -70,16 +69,14 @@ module.exports = {
         const permissions = channel.permissionsFor(message.guild.me);
         const userPermission = channel.permissionsFor(message.member);
         if (
-          !permissions.has("SEND_MESSAGES") ||
-          !permissions.has("EMBED_LINKS")
+          !permissions.has(18432)
         ) {
           return message.channel.send(
             "I cannot do giveaway in this channel as I don't have the permission!"
           );
         }
         if (
-          !userPermission.has("SEND_MESSAGES") ||
-          !userPermission.has("EMBED_LINKS")
+          !userPermission.has(18432)
         ) {
           return message.channel.send(
             "I cannot do giveaway in this channel as you don't have the permission to send message there!"
@@ -308,7 +305,7 @@ module.exports = {
                             reacted.push(data);
                           }
 
-                          const remove = reacted.indexOf("649611982428962819");
+                          const remove = reacted.indexOf(message.client.user.id);
                           if (remove > -1) {
                             reacted.splice(remove, 1);
                           }
@@ -466,16 +463,14 @@ module.exports = {
             const permissions = channel.permissionsFor(message.guild.me);
             const userPermission = channel.permissionsFor(message.member);
             if (
-              !permissions.has("SEND_MESSAGES") ||
-              !permissions.has("EMBED_LINKS")
+              !permissions.has(18432)
             ) {
               return mesg.edit(
                 "I cannot do giveaway in this channel as I don't have the permission!"
               );
             }
             if (
-              !userPermission.has("SEND_MESSAGES") ||
-              !userPermission.has("EMBED_LINKS")
+              !userPermission.has(18432)
             ) {
               return mesg.edit(
                 "I cannot do giveaway in this channel as you don't have the permission to send message there!"
@@ -804,9 +799,7 @@ module.exports = {
                                                           reacted.push(data);
                                                         }
 
-                                                        const remove = reacted.indexOf(
-                                                          "649611982428962819"
-                                                        );
+                                                        const remove = reacted.indexOf(message.client.user.id);
                                                         if (remove > -1) {
                                                           reacted.splice(
                                                             remove,
@@ -1080,7 +1073,7 @@ module.exports = {
               return console.error(err);
             }
 
-            const remove = endReacted.indexOf("649611982428962819");
+            const remove = endReacted.indexOf(message.client.user.id);
             if (remove > -1) {
               endReacted.splice(remove, 1);
             }

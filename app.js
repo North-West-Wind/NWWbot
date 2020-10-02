@@ -1,39 +1,4 @@
-const http = require("http");
-const express = require("express");
-const request = require("request");
-const device = require("express-device");
-const app = express();
-const moment = require("moment");
-app.use(device.capture());
-app.get("/", (req, response) => {
-  console.log(`Pinged at ${moment().format("HH:mm:ss")}`);
-  if(req.device.type === "phone")
-    response.sendFile(__dirname + "/views/mobile/index.html");
-  else
-    response.sendFile(__dirname + "/views/index.html");
-});
-app.get("/news", (req, response) => {
-  if(req.device.type === "phone")
-    response.sendFile(__dirname + "/views/mobile/news.html");
-  else
-    response.sendFile(__dirname + "/views/news.html");
-});
-app.get("/about", (req, response) => {
-  if(req.device.type === "phone")
-    response.sendFile(__dirname + "/views/mobile/about.html");
-  else
-    response.sendFile(__dirname + "/views/about.html");
-});
-app.get("/manual", (req, response) => {
-  request("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2Fmanual.pdf?v=1589543070522").pipe(response);
-});
-app.get("/ping", (req, response) => {
-  response.sendStatus(200);
-});
-app.listen(process.env.PORT);
-setInterval(() => {
-  http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
-}, 280000);
+require("dotenv").config();
 
 const { twoDigits, setTimeout_ } = require("./function.js");
 console.realLog = console.log;
@@ -43,9 +8,8 @@ const wait = require("util").promisify(setTimeout);
 const fs = require("fs");
 const Discord = require("discord.js");
 const cleverbot = require("cleverbot-free");
-const { exec } = require("child_process");
 const { prefix } = require("./config.json");
-const { Image, createCanvas, loadImage } = require("canvas");
+const { Image, createCanvas, loadImage, registerFont } = require("canvas");
 const mysql = require("mysql");
 const mysql_config = {
   connectTimeout: 60 * 60 * 1000,
@@ -60,6 +24,8 @@ const mysql_config = {
   bigNumberStrings: true,
   charset: "utf8mb4"
 };
+
+registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
 
 var pool = mysql.createPool(mysql_config);
 
@@ -115,28 +81,17 @@ for (const file of musicCommandFiles) {
 var rm = [];
 client.invites = {};
 client.once("ready", () => {
-  exec("rm -rf .cache", (error, stdout, stderr) => {
-    if (error) {
-        console.log(`error: ${error.message}`);
-        return;
-    }
-    if (stderr) {
-        console.log(`stderr: ${stderr}`);
-        return;
-    }
-    console.log("Cleared cache");
-  });
   delete console["log"];
   delete console["error"];
-console.log = async function(str) {
-  console.realLog(str);
-  try {
-    var logChannel = await client.channels.fetch("678847137391312917");
-  } catch(err) {
-    return console.realError(err)
-  }
+	console.log = async function(str) {
+  	console.realLog(str);
+  	try {
+    	var logChannel = await client.channels.fetch("678847137391312917");
+  	} catch(err) {
+    	return console.realError(err)
+  	}
     logChannel.send("`" + str + "`");
-}
+	}
   console.error = async function(str) {
     console.realError(str);
   try {
@@ -707,7 +662,7 @@ client.on("guildMemberAdd", member => {
                 //reduce font size loop
                 do {
                   //reduce font size
-                  ctx.font = `${(fontSize -= 5)}px sans-serif`;
+                  ctx.font = `${(fontSize -= 5)}px "free-sans"`;
                   // Compare pixel width of the text to the canvas minus the approximate avatar size
                 } while (
                   ctx.measureText(text).width >
@@ -728,7 +683,7 @@ client.on("guildMemberAdd", member => {
                 //reduce font size loop
                 do {
                   //reduce font size
-                  ctx.font = `${(fontSize -= 5)}px sans-serif`;
+                  ctx.font = `${(fontSize -= 5)}px "free-sans"`;
                   // Compare pixel width of the text to the canvas minus the approximate avatar size
                 } while (
                   ctx.measureText(text).width >
