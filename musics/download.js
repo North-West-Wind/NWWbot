@@ -40,13 +40,7 @@ module.exports = {
                 break;
             default:
                 try {
-                    stream = await ytdl(song.url, {
-                        highWaterMark: 1 << 25, requestOptions: {
-                            headers: {
-                                cookie: process.env.COOKIE
-                            }
-                        }
-                    });
+                    stream = ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: process.env.COOKIE } } });
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
@@ -58,7 +52,7 @@ module.exports = {
             let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
             message.channel.send(attachment);
         } catch(err) {
-            message.channel.send(`<@${message.author.id}>, there was an error trying to send the soundtrack!`);
+            message.reply(`there was an error trying to send the soundtrack!`);
             console.error(err);
         }
     }
