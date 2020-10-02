@@ -1,6 +1,6 @@
 const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_ } = require("../function.js");
 const Discord = require("discord.js");
-const ms = require("ms");
+const { ms } = require("../function.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const nameToUuid = (str) => {
 	return new Promise((resolve, reject) => {

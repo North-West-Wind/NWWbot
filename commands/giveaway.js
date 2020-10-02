@@ -1,4 +1,4 @@
-const ms = require("ms"); // npm install ms
+const { ms } = require("../function.js");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 var color = Math.floor(Math.random() * 16777214) + 1;
