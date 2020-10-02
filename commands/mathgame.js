@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const ms = require("ms");
+const { ms } = require("../function.js");
 const math = require("mathjs");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");

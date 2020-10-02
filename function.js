@@ -1,5 +1,5 @@
 const request = require("request");
-
+const ms = require("ms");
 module.exports = {
   twoDigits(d) {
     if (0 <= d && d < 10) return "0" + d.toString();
@@ -17,7 +17,7 @@ module.exports = {
       var args = arguments;
       args[1] -= maxDelay;
 
-      return setTimeout(function() {
+      return setTimeout(function () {
         this.setTimeout_.apply(fn, args);
       }, maxDelay);
     }
@@ -31,7 +31,7 @@ module.exports = {
       "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
       "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
       "(\\?.*)?" + // query string
-        "(\\#[-a-z\\d_]*)?$",
+      "(\\#[-a-z\\d_]*)?$",
       "i"
     ); // fragment locator
     if (str.slice(8).search("open.spotify.com") === 0 || !!pattern.test(str))
@@ -57,8 +57,8 @@ module.exports = {
   validGDURL(str) {
     var pattern1 = new RegExp(/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing/);
     var pattern2 = new RegExp(/https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/);
-    if(pattern1.test(str)) return true;
-    else if(pattern2.test(str)) return true;
+    if (pattern1.test(str)) return true;
+    else if (pattern2.test(str)) return true;
     else return false;
   },
   validImgurURL(str) {
@@ -103,7 +103,7 @@ module.exports = {
   },
   decodeHtmlEntity(str) {
     return str
-      .replace(/&#(\d+);/g, function(match, dec) {
+      .replace(/&#(\d+);/g, function (match, dec) {
         return String.fromCharCode(dec);
       })
       .replace(/&quot;/g, `"`)
@@ -129,7 +129,7 @@ module.exports = {
         url: url,
         json: true
       },
-      function(error, response, body) {
+      function (error, response, body) {
         callback(error, body);
       }
     );
@@ -199,14 +199,14 @@ module.exports = {
 
     return member;
   },
-	async findRole(message, str) {
-		var roleID = str.replace(/<@&/g, "").replace(/>/g, "");
+  async findRole(message, str) {
+    var roleID = str.replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
       var role = await message.guild.roles.cache.find(
         x => x.name.toLowerCase() === `${message.content.split(" ")[1].toLowerCase()}`
       );
       if (role === null) {
-				message.channel.send(
+        message.channel.send(
           "No role was found with the name " + args[0]
         );
         return null;
@@ -214,12 +214,12 @@ module.exports = {
     } else {
       var role = await message.guild.roles.cache.get(roleID);
       if (role === null) {
-				message.channel.send("No role was found!");
+        message.channel.send("No role was found!");
         return null;
       }
     }
-		return role;
-	},
+    return role;
+  },
   getRandomNumber(min, max) {
     return Math.random() * (max - min) + min;
   },
@@ -300,24 +300,24 @@ module.exports = {
       twoDigits(second);
     return newDateSql;
   },
-	getWithWeight(input) {
+  getWithWeight(input) {
     var array = [];
-    for(var item in input) {
-        if ( input.hasOwnProperty(item) ) {
-            for( var i=0; i<input[item]; i++ ) {
-                array.push(item);
-            }
+    for (var item in input) {
+      if (input.hasOwnProperty(item)) {
+        for (var i = 0; i < input[item]; i++) {
+          array.push(item);
         }
+      }
     }
     return array[Math.floor(Math.random() * array.length)];
   },
   hexToRgb(hex) {
     // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
     var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
       return r + r + g + g + b + b;
     });
-  
+
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
       r: parseInt(result[1], 16),
@@ -334,5 +334,23 @@ module.exports = {
   },
   readableDate(date) {
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear}`;
+  },
+  ms(val, options) {
+    if (typeof val === "string" && superms(val) === undefined) {
+      var mses = [];
+      let temp = "";
+      let last = "";
+      for (let i = 0; i < val.length; i++) {
+        let char = val.substr(i, 1);
+        if (!/\d/.test(last) && /\d/.test(char) && i != 0) {
+          if (superms(temp) === undefined) return undefined;
+          mses.push(superms(temp));
+          temp = "";
+        }
+        temp += char;
+        if (val[i + 1] === undefined) mses.push(superms(temp));
+      }
+      return mses.reduce((acc, c) => acc + c);
+    } else return superms(val, options);
   }
 };

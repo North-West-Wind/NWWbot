@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const neko = require("akaneko");
-const ms = require("ms");
+const { ms } = require("../function.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {

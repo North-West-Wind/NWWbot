@@ -11,7 +11,7 @@ const requestStream = url => {
 const Discord = require("discord.js");
 module.exports = {
     name: "download",
-    description: "Download the soundtrack that is currently playing on the server.",
+    description: "Download the first soundtrack in the server queue.",
     usage: " ",
     aliases: ["dl"],
     async music(message, serverQueue) {
@@ -40,7 +40,7 @@ module.exports = {
                 break;
             default:
                 try {
-                    stream = ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: process.env.COOKIE } } });
+                    stream = ytdl(song.url, { highWaterMark: 1 << 25, filter: "audioonly", quality: "lowestaudio", requestOptions: { headers: { cookie: process.env.COOKIE } } });
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
@@ -49,8 +49,9 @@ module.exports = {
         }
         await msg.delete();
         try {
+            await message.channel.send("The file may not appear just yet. Please be patient!");
             let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
-            message.channel.send(attachment);
+            message.channel.send(attachment).catch((err) => message.reply(`there was an error trying to send the soundtrack! (${err.message})`));
         } catch(err) {
             message.reply(`there was an error trying to send the soundtrack!`);
             console.error(err);

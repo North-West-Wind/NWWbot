@@ -3,7 +3,7 @@ var color = Math.floor(Math.random() * Math.pow(255, 3));
 
 module.exports = {
   name: "rps",
-  description: "Play rock, scissors, paper with the bot!",
+  description: "Play rock, paper, scissors with the randomizer.",
   aliases: ["rockscissorspaper", "rockpaperscissors", "paperscissorsstone", "rsp", "pss"],
   async execute(message) {
     const options = ["🖐", "✌", "👊"];

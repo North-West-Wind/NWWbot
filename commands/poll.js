@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const client = new Discord.Client();
-const ms = require("ms");
+const { ms } = require("../function.js");
 
 const { twoDigits, setTimeout_ } = require("../function.js");
 

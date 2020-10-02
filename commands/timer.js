@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const ms = require("ms");
+const { ms } = require("../function.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const pSql = require("promise-mysql");
 const { jsDate2Mysql } = require("../function.js");

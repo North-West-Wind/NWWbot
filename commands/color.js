@@ -10,7 +10,7 @@ function isArgsRgb(args, length) {
 
 module.exports = {
     name: "color",
-    description: "Shows you the color you entered, or a random color.",
+    description: "Display the color you entered, or a random color.",
     usage: "[color]",
     async execute(message, args) {
         var red = Math.floor(Math.random() * 256);
