@@ -98,7 +98,6 @@ function parseMemeBody(url, body) {
   const name = $(".info h1 a")[0].children[0].data;
   const bodycopy = $(".bodycopy");
   const header = $("header.rel.c");
-  console.realLog(header);
   const photo = header.find($(".photo"));
   const image = photo[0] && photo[0].children[0] && photo[0].children[0].attribs && photo[0].children[0].attribs["data-src"] ? photo[0].children[0].attribs["data-src"] : null;
 
