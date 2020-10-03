@@ -1,5 +1,5 @@
 const request = require("request");
-const ms = require("ms");
+const superms = require("ms");
 module.exports = {
   twoDigits(d) {
     if (0 <= d && d < 10) return "0" + d.toString();
