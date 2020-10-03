@@ -5,6 +5,7 @@ module.exports = {
   name: "chat",
   description: "Chat with the bot. Note that the bot has no memory about what had been said before so don’t try to do Q&A with it.",
   usage: "<message>",
+  category: 3,
   execute(message, args) {
     if(!args[0]) {
       return message.channel.send("What are we gonna talk about?" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)

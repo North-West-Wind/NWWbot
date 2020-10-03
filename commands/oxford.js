@@ -15,6 +15,7 @@ module.exports = {
   description: "Search definitions of words from Oxford Dictionary. If it cannot search, use \"urban\" instead.",
   usage: "<keywords>",
   aliases: ["ox"],
+  category: 7,
   async execute(message, args) {
     
     if(!args[0]) {

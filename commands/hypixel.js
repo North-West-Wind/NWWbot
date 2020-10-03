@@ -16,6 +16,7 @@ module.exports = {
   args: true,
   aliases: ["hy"],
   usage: "[subcommand] <username>",
+  category: 6,
   subcommands: [
     "guild",
     "achievements",

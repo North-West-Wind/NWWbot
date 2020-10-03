@@ -7,6 +7,7 @@ module.exports = {
   description: "Display speedrun attempts of a game from Speedrun.com.",
   aliases: ["sr"],
   usage: "<game>",
+  category: 7,
   async execute(message, args) {
     if (!args[0])
       return message.channel.send(

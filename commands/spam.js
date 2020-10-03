@@ -8,6 +8,7 @@ module.exports = {
   aliases: ["sp"],
   args: true,
   usage: "<user | user ID> <amount> <message>",
+  category: 4,
   async execute(message, args) {
     
     if(!args[0]) {

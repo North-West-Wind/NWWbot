@@ -5,6 +5,7 @@ module.exports = {
 	name: 'greet',
 	description: 'Greet somebody.',
   usage: "<user | user ID>",
+  category: 3,
 	async execute(message, args) {
 		if (!args[0]) {
             return message.channel.send('Who am I greeting?' + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);

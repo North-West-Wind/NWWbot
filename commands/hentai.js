@@ -22,6 +22,7 @@ module.exports = {
     "netorare",
     "neko"
   ],
+  category: 5,
   async execute(message, args) {
     if (!message.channel.nsfw) {
       return message.channel.send("Please use an NSFW channel to use this command!")

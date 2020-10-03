@@ -7,6 +7,7 @@ module.exports = {
   description: "Put something to the cross-server shop and sell it!",
   usage: "<price> <item>",
   args: true,
+  category: 9,
   async execute(message, args, pool) {
     if (!args[0]) return message.channel.send("Please state the price!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
     if (!args[1]) return message.channel.send("Please provide the item!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);

@@ -8,6 +8,7 @@ module.exports = {
   description: "Connect to SMMDB's API.",
   aliases: ["supermariomaker"],
   usage: "<keywords>",
+  category: 7,
   async execute(message, args) {
     if (!args[0])
       return message.channel.send("Please provide a query for searching!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);

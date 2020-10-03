@@ -8,6 +8,7 @@ module.exports = {
   description: "Search the Urban Dictionary on Discord.",
   args: true,
   usage: "<query>",
+  category: 7,
   async execute(message, args) {
     if (!args.length) {
       return message.channel.send("You need to supply a search term!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);

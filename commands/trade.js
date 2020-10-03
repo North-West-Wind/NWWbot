@@ -6,6 +6,7 @@ module.exports = {
   description: "Announce in the channel that you want to trade something.",
   args: true,
   usage: " ",
+  category: 4,
   async execute(message, args) {
     message.delete();
     const filter = x => x.author.id === message.author.id;

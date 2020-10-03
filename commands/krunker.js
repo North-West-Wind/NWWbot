@@ -9,6 +9,7 @@ module.exports = {
   aliases: ["kr"],
   usage: "<username>",
   args: true,
+  category: 7,
   async execute(message, args) {
     if(!args[0]) {
       return message.channel.send("No username provided!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)

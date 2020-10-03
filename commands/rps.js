@@ -5,6 +5,7 @@ module.exports = {
   name: "rps",
   description: "Play rock, paper, scissors with the randomizer.",
   aliases: ["rockscissorspaper", "rockpaperscissors", "paperscissorsstone", "rsp", "pss"],
+  category: 3,
   async execute(message) {
     const options = ["🖐", "✌", "👊"];
     var em = new Discord.MessageEmbed()

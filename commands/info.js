@@ -8,6 +8,7 @@ module.exports = {
   name: "info",
   description: "Display information of the bot.",
   usage: " ",
+  category: 6,
   async execute(message) {
     const filter = (reaction, user) => {
       return (

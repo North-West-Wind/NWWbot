@@ -5,6 +5,7 @@ module.exports = {
   description: "Random number generator. Generate a random number between range.",
   usage: "<min> <max> [count] [decimal place]",
   aliases: ["randomnumber", "randomnumbergenerator"] ,
+  category: 3,
   execute(message, args) {
 		let count = 1;
 		let decimal = -1;

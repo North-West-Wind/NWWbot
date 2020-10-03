@@ -6,6 +6,7 @@ module.exports = {
   description: "Add a new role to the server. The “color” parameter is optional.",
   args: true,
   usage: "<role name> [color]",
+  category: 0,
   execute(message, args) {
     if (!message.member.permissions.has(268435456)) { 
       message.channel.send(`You don\'t have the permission to use this command.`)

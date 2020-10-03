@@ -5,6 +5,7 @@ module.exports = {
   name: "move",
   description: "Move a music to a specific position of the song queue.",
   usage: "<target> <destination>",
+  category: 8,
   async music(message, serverQueue, queue, pool) {
     const args = message.content.split(/ +/);
     if (!args[1]) return message.channel.send("You did not provide any target." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);

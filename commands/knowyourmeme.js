@@ -171,6 +171,7 @@ module.exports = {
   description: "Display meme information from Know Your Meme.",
   usage: "[keywords]",
   aliases: ["kym"],
+  category: 7,
   async execute(message, args) {
     if(!args[0]) return message.channel.send("Please provide at least 1 keyword!" + ` Usage: ${message.client.prefix}${this.name} ${this.usage}`);
     var msg = await message.channel.send("Loading the memes...");

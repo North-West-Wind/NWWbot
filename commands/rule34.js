@@ -7,6 +7,7 @@ module.exports = {
   description: "Display Rule34 images. Add tags to filter. Require NSFW channel.",
   aliases: ["r34"],
   usage: "<tags>",
+  category: 5,
   async execute(message, args) {
     if(!message.channel.nsfw) {
       return message.channel.send("Please use an NSFW channel to use this command!")

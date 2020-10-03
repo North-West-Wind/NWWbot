@@ -6,6 +6,7 @@ module.exports = {
   description: "Ban a member of the server.",
   args: true,
   usage: "<user | user ID> [reason]",
+  category: 1,
   execute(message, args) {
     if (!message.member.permissions.has(4)) {
       message.channel.send(

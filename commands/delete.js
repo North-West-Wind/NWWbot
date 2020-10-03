@@ -7,6 +7,7 @@ module.exports = {
   args: true,
   usage: "[channel] <amount | subcommand | start> [end]",
   subcommands: ["all"],
+  category: 0,
   async execute(message, args) {
     if (message.channel instanceof Discord.DMChannel) {
       return message.channel.send(

@@ -70,6 +70,7 @@ const MojangAPI = require("mojang-api");
 module.exports = {
   name: "test",
   description: "For test, really.",
+  category: 10,
   async execute(message, args, pool, useless, hypixel, log) {
     if (message.author.id !== process.env.DC)
       return message.channel.send("You can't use this.");

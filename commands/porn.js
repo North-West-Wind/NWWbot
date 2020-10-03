@@ -21,6 +21,7 @@ module.exports = {
   name: "porn",
   description: "Returns real porn images from Reddit. Require NSFW channel.",
   usage: "[tag]",
+  category: 5,
   
   //age
     //college

@@ -3,9 +3,10 @@ const { findMember } = require("../function.js");
 
 module.exports = {
   name: "nickname",
-  description: "Set user's nickname in server.",
+  description: "Set user's nickname on the server.",
   usage: "<user | user ID> <nickname>",
   aliases: ["nick"],
+  category: 0,
   async execute(message, args) {
     if (!message.member.permissions.has(134217728)) { 
       message.channel.send(`You don\'t have the permission to use this command.`)

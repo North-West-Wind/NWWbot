@@ -17,6 +17,7 @@ module.exports = {
   description: "Display the music being played.",
   aliases: ["nowplaying"],
   usage: " ",
+  category: 8,
   async music(message, serverQueue) {
     if (!serverQueue) return message.channel.send("There is nothing playing.");
     if(serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");

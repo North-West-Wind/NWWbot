@@ -4,11 +4,11 @@ const asciify = require('asciify-image');
 const isImageUrl = require('is-image-url');
 const { createCanvas } = require("canvas");
 const Discord = require("discord.js");
-const { Readable } = require('stream');
 module.exports = {
     name: "ascii",
     description: "Generate ASCII arts from text or image.",
     usage: "<subcommand> <text | attachment>",
+    category: 3,
     subcomamnds: ["text", "image"],
     async execute(message, args) {
         if(!args[0]) return message.channel.send(`Please provide a subcommand!\nUsage: \`${message.client.prefix}${this.name} ${this.usage}\`\nAvailable Subcommands: \`${this.subcomamnds.join(", ")}\``);

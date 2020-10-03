@@ -12,6 +12,7 @@ module.exports = {
     name: "color",
     description: "Display the color you entered, or a random color.",
     usage: "[color]",
+    category: 3,
     async execute(message, args) {
         var red = Math.floor(Math.random() * 256);
         var green = Math.floor(Math.random() * 256);

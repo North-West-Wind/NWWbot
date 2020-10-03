@@ -8,6 +8,7 @@ module.exports = {
   usage: " ",
   subcommands: ["save", "load", "delete", "list"],
   subaliases: ["s", "l", "d", "li"],
+  category: 8,
   async music(message, serverQueue, queue, pool) {
     const args = message.content.split(/ +/);
     if (args[1] !== undefined && (args[1].toLowerCase() === "save" || args[1].toLowerCase() === "s")) {

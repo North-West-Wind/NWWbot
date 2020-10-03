@@ -4,6 +4,7 @@ module.exports = {
   name: "skip",
   description: "Skip a music in the queue.",
   usage: "[amount]",
+  category: 8,
   async music(message, serverQueue, queue, pool) {
     const args = message.content.slice(message.client.prefix.length).split(/ +/);
     var skipped = 1;
