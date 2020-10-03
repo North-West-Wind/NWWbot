@@ -442,7 +442,7 @@ module.exports = {
                   "there was an error trying to update the queue!"
                 );
               message.channel.send(
-                `The queue **${results[0].name}** has been loaded.`
+                `The queue of this server has been synchronize to the queue of the server **${guild.name}**.`
               );
             }
           );
