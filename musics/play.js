@@ -769,7 +769,9 @@ module.exports = {
           volume: 1,
           playing: true,
           paused: false,
-          startTime: 0
+          startTime: 0,
+          looping: false,
+          repeating: false
         };
 
         queue.set(message.guild.id, queueContruct);
@@ -1003,7 +1005,9 @@ module.exports = {
                   volume: 1,
                   playing: true,
                   paused: false,
-                  startTime: 0
+                  startTime: 0,
+                  looping: false,
+                  repeating: false
                 };
 
                 queue.set(message.guild.id, queueContruct);

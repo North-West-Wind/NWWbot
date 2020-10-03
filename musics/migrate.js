@@ -28,9 +28,7 @@ module.exports = {
     migrating.push(message.guild.id);
     if(exit.find(x => x === message.guild.id)) exit.splice(exit.indexOf(message.guild.id), 1);
     var oldChannel = serverQueue.voiceChannel;
-    var begin = 0;
     if(serverQueue.connection && serverQueue.connection.dispatcher) {
-      begin = serverQueue.connection.dispatcher.streamTime - serverQueue.startTime;
       serverQueue.connection.dispatcher.destroy();
     }
     serverQueue.playing = false;
