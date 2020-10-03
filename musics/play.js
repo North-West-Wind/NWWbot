@@ -80,7 +80,7 @@ async function migrate(message, serverQueue, queue, pool, exit, migrating) {
     serverQueue.playing = true;
     serverQueue.textChannel = message.channel;
     await queue.set(message.guild.id, serverQueue);
-    msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`);
+    msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`).catch(() => {});
     migrating.splice(migrating.indexOf(message.guild.id));
     play(message.guild, serverQueue.songs[0], queue, pool);
   }, 3000);
@@ -358,7 +358,7 @@ module.exports = {
           var songs = [];
           var mesg = await message.channel.send(`Processing track: **0/${videos.length}**`);
           var interval = setInterval(async () => {
-            if (songs.length < videos.length) await mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`);
+            if (songs.length < videos.length) await mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`).catch(() => {});
           }, 1000);
           for (const video of videos) {
             var info = {
@@ -371,7 +371,7 @@ module.exports = {
             };
             songs.push(info);
           }
-          mesg.edit(`Track processing completed`).then(msg => msg.delete({ timeout: 10000 }));
+          mesg.edit(`Track processing completed`).then(msg => msg.delete({ timeout: 10000 }).catch(() => {})).catch(() => {});
           clearInterval(interval);
         } else {
           try {
@@ -449,7 +449,7 @@ module.exports = {
             await checkAll();
             var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);
             for (var i = 0; i < tracks.length; i++) {
-              await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`);
+              await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`).catch(() => {});
               var matched;
               try {
                 var searched = await ytsr(
@@ -500,7 +500,7 @@ module.exports = {
                 }
               }
             }
-            mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }));
+            mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }).catch(() => {})).catch(() => {});
             break;
           case "album":
             if (highlight === false) {
@@ -536,7 +536,7 @@ module.exports = {
             }
             var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);
             for (var i = 0; i < tracks.length; i++) {
-              await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`)
+              await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`).catch(() => {});
               var matched;
               try {
                 var searched = await ytsr(
@@ -584,7 +584,7 @@ module.exports = {
                 }
               }
             }
-            mesg.edit("Track processing completed").then(msg => msg.delete({ timeout: 10000 }))
+            mesg.edit("Track processing completed").then(msg => msg.delete({ timeout: 10000 }).catch(() => {})).catch(() => {});
             break;
           case "track":
             var data = await spotifyApi.getTracks([musicID]);
@@ -824,9 +824,9 @@ module.exports = {
           }
           return message.channel.send(Embed).then(msg => {
             setTimeout(() => {
-              msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
+              msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => {});
             }, 30000);
-          });
+          }).catch(() => {});
         } catch (err) {
           console.log(err);
           queue.delete(message.guild.id);
@@ -900,9 +900,9 @@ module.exports = {
         }
         return message.channel.send(Embed).then(msg => {
           setTimeout(() => {
-            msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
+            msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => {});
           }, 30000);
-        });
+        }).catch(() => {});
       }
     } else {
       const Embed = new Discord.MessageEmbed()
@@ -964,7 +964,7 @@ module.exports = {
                     message.client.user.displayAvatarURL()
                   );
 
-                return msg.edit(cancelled).then(msg => msg.delete({ timeout: 10000 }));
+                return msg.edit(cancelled).then(msg => msg.delete({ timeout: 10000 }).catch(() => {})).catch(() => {});
               }
 
               var s = parseInt(content) - 1;
@@ -983,7 +983,7 @@ module.exports = {
                   message.client.user.displayAvatarURL()
                 );
 
-              msg.edit(chosenEmbed);
+              msg.edit(chosenEmbed).catch(() => {});
               var length = !saved[s].live ? saved[s].duration : "∞";
               var song = {
                 title: decodeHtmlEntity(saved[s].title),
@@ -1046,9 +1046,9 @@ module.exports = {
                   );
                   msg.edit(Embed).then(msg => {
                     setTimeout(() => {
-                      msg.edit({ embed: null, content: `**[Track: ${song.title}]**` });
+                      msg.edit({ embed: null, content: `**[Track: ${song.title}]**` }).catch(() => {});
                     }, 30000);
-                  });
+                  }).catch(() => {});
                 } catch (err) {
                   console.log(err);
                   queue.delete(message.guild.id);
@@ -1122,9 +1122,9 @@ module.exports = {
                   );
                 return msg.edit(Embed).then(msg => {
                   setTimeout(() => {
-                    msg.edit({ embed: null, content: `**[Track: ${song.title}]**` });
+                    msg.edit({ embed: null, content: `**[Track: ${song.title}]**` }).catch(() => {});
                   }, 30000);
-                });
+                }).catch(() => {});
               }
             })
             .catch(err => {
@@ -1136,7 +1136,7 @@ module.exports = {
                   "Have a nice day! :)",
                   message.client.user.displayAvatarURL()
                 );
-              msg.edit(Ended).then(msg => msg.delete({ timeout: 10000 }));
+              msg.edit(Ended).then(msg => msg.delete({ timeout: 10000 }).catch(() => {})).catch(() => {});
             });
         })
         .catch(err => {
