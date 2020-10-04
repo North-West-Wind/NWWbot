@@ -30,7 +30,7 @@ module.exports = {
                 green = rgb.g;
                 blue = rgb.b;
                 random = false;
-            } else if(!isNaN(parseInt(args[0])) && parseInt(args[0]) < Math.pow(255, 3) && parseInt(args[0]) > 0) {
+            } else if(!isNaN(parseInt(args[0])) && parseInt(args[0]) < Math.pow(256, 3) && parseInt(args[0]) > 0) {
                 rgb = decimalToRgb(parseInt(args[0]));
                 red = rgb.r;
                 green = rgb.g;

@@ -18,7 +18,7 @@ module.exports = {
     };
     var dlcExist = false;
     try {
-      var dlc = await message.guild.members.fetch(process.env.DLC);
+      await message.guild.members.fetch(process.env.DLC);
       var dlcData = await fetch("https://nwwdlc--northwestwind.repl.co/api/status").then(resp => resp.json());
       dlcExist = true;
     } catch(err) {}

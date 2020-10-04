@@ -2,6 +2,7 @@ const Discord = require("discord.js");
 const smm = require("smm-api");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits } = require("../function.js");
+const themes = ["Ground", "Underground", "Castle", "Airship", "Underwater", "Ghost House"];
 
 module.exports = {
   name: "smm",
@@ -93,37 +94,10 @@ module.exports = {
             var gameStyle = "New Super Mario Bros. U";
           }
 
-          if (courseThemeID == 0) {
-            var courseTheme = "Ground";
-          } else if (courseThemeID == 1) {
-            var courseTheme = "Underground";
-          } else if (courseThemeID == 2) {
-            var courseTheme = "Castle";
-          } else if (courseThemeID == 3) {
-            var courseTheme = "Airship";
-          } else if (courseThemeID == 4) {
-            var courseTheme = "Underwater";
-          } else if (courseThemeID == 5) {
-            var courseTheme = "Ghost House";
-          }
-
-          if (courseThemeSubID == 0) {
-            var courseThemeSub = "Ground";
-          } else if (courseThemeSubID == 1) {
-            var courseThemeSub = "Underground";
-          } else if (courseThemeSubID == 2) {
-            var courseThemeSub = "Castle";
-          } else if (courseThemeSubID == 3) {
-            var courseThemeSub = "Airship";
-          } else if (courseThemeSubID == 4) {
-            var courseThemeSub = "Underwater";
-          } else if (courseThemeSubID == 5) {
-            var courseThemeSub = "Ghost House";
-          }
-
-          if (courses[i].description == undefined)
-            var description = "No description.";
-          else var description = courses[i].description;
+          var courseTheme = themes[courseThemeID];
+          var courseThemeSub = themes[courseThemeSubID];
+          var description = "No description";
+          if (courses[i].description) description = courses[i].description;
 
           const Embed = new Discord.MessageEmbed()
             .setColor(color)

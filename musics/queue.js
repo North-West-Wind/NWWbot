@@ -397,8 +397,11 @@ module.exports = {
     if (!args[2]) return message.channel.send("Please provide the name or ID of the server.");
     const guild = await message.client.guilds.cache.find(x => x.name.toLowerCase() === args.slice(2).join(" ").toLowerCase() || x.id == args[2]);
     if(!guild) return message.channel.send("I cannot find that server! Maybe I am not in that server?");
-    const member = await guild.members.fetch(message.author.id);
-    if(!member) return message.channel.send("You are not in that server!");
+    try {
+      await guild.members.fetch(message.author.id);
+    } catch(e) {
+      return message.channel.send("You are not in that server!");
+    }
     pool.getConnection(function (err, con) {
       if (err)
         return message.reply(

@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * Math.pow(255, 3));
+var color = Math.floor(Math.random() * Math.pow(256, 3));
 
 module.exports = {
   name: "rps",
