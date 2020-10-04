@@ -14,10 +14,11 @@ module.exports = {
     description: "Connect to SMMDB's Course 2 API.",
     aliases: ["supermariomaker2"],
     usage: "<keywords>",
-    category: 7,
+    category: 9,
     async execute(message, args) {
         if (!args[0]) return message.channel.send("Please provide a query for searching!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
-        const courses = await fetch(`https://api.smmdb.net/courses2?limit=100&title=${escape(args.join(" "))}`).then(res => res.json());
+        const courses = await fetch(`https://api.smmdb.net/courses2?limit=100&title=${encodeURIComponent(args.join(" "))}`).then(res => res.json());
+        console.realLog(courses);
         const allEmbeds = [];
         for (const course of courses) {
             const uploader = course.uploader;
