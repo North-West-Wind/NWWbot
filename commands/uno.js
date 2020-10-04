@@ -95,8 +95,15 @@ module.exports = {
       return msg.edit("Why would you invite yourself?");
     var responses = 0;
     var accepted = 0;
+    var ingame = false;
     var participants = [message.author];
     collected.first().mentions.members.forEach(async member => {
+      var otherGames = uno.find(game => game.players.has(member.id));
+      if(otherGames !== undefined) {
+        responses++;
+        ingame = true;
+        return message.channel.send(`**${member.user.tag}** is already in another game!`);
+      }
       participants.push(member.user);
       var em = new Discord.MessageEmbed()
         .setAuthor(message.author.tag, message.author.displayAvatarURL())
@@ -166,6 +173,8 @@ module.exports = {
           return message.channel.send(
             "The game cannot start as someone didn't accept the invitation!"
           );
+        } else if(ingame) {
+          return message.channel.send("The game cannot start as somebody is in another game!");
         } else {
           let readFile = await fs.readFileSync("./.glitch-assets", "utf8");
           let arr = readFile.split("\n");
@@ -245,6 +254,7 @@ module.exports = {
       while (!won) {
         if (nores === players.size) {
           mesg.edit({ embed: null, content: "No one responsded. Therefore, the game ended." });
+          uno.delete(nano);
           return;
         }
         nores = 0;
@@ -317,7 +327,7 @@ module.exports = {
               .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
               .setImage("attachment://newCard.png")
               .setTimestamp()
-              .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
+              .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
             await mssg.delete();
             mssg.channel.send(em);
             player.card = player.card.concat(newCard);
@@ -338,7 +348,7 @@ module.exports = {
                 .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                 .setImage("attachment://newCard.png")
                 .setTimestamp()
-                .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
+                .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
               await mssg.delete();
               mssg.channel.send(em);
               player.card = player.card.concat(newCard);
@@ -375,7 +385,7 @@ module.exports = {
                 .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                 .setImage("attachment://newCard.png")
                 .setTimestamp()
-                .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
+                .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
               await mssg.delete();
               mssg.channel.send(em);
               player.card = player.card.concat(newCard);
@@ -410,7 +420,7 @@ module.exports = {
                 .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                 .setImage("attachment://newCard.png")
                 .setTimestamp()
-                .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
+                .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
               await mssg.delete();
               mssg.channel.send(em);
               player.card = player.card.concat(newCard);
@@ -441,7 +451,7 @@ module.exports = {
                   .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                   .setImage("attachment://newCard.png")
                   .setTimestamp()
-                  .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
+                  .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
                 await mssg.delete();
                 mssg.channel.send(em);
                 player.card = player.card.concat(newCard);
@@ -482,7 +492,7 @@ module.exports = {
                 .setTitle(`Your turn ended!`)
                 .setDescription(`The color you chose: ${colorStr}`)
                 .setTimestamp()
-                .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
+                .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
             } else {
               player.card.splice(player.card.indexOf(placedCard), 1);
               players.set(key, player);
@@ -491,7 +501,7 @@ module.exports = {
                 .setTitle(`Your turn ended!`)
                 .setDescription(`You placed ${toString(placedCard)}!`)
                 .setTimestamp()
-                .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
+                .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
             }
             await mssg.delete();
             mssg.channel.send(em);
@@ -524,11 +534,19 @@ module.exports = {
             if (player.card.length === 0) {
               won = true;
               let data = await console.uno.get(nano);
+              var scores = 0;
+              for(const p of Array.from(data.players.values())) {
+                for(const c of p.card) {
+                  if(c.number < 10) scores += c.number;
+                  else if(c.number < 13) scores += 20;
+                  else scores += 50;
+                }
+              }
               let win = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle(`${player.user.tag} won!`)
                 .setThumbnail(player.user.displayAvatarURL())
-                .setDescription(`Congratulations to **${player.user.tag}**!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - nano, "milliseconds").format()}.\nThanks for playing!`)
+                .setDescription(`Congratulations to **${player.user.tag}** winning with **${scores} scores**!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - nano, "milliseconds").format()}.\nThanks for playing!`)
                 .setTimestamp()
                 .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
               await player.user.send("You won the game! Congratulations!");
@@ -560,7 +578,7 @@ module.exports = {
               .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
               .setImage("attachment://newCard.png")
               .setTimestamp()
-              .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
+              .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
             await mssg.delete();
             mssg.channel.send(em);
             player.card = player.card.concat(newCard);
