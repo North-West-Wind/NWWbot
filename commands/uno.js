@@ -98,7 +98,7 @@ module.exports = {
     var ingame = false;
     var participants = [message.author];
     collected.first().mentions.members.forEach(async member => {
-      var otherGames = uno.find(game => game.players.has(member.id));
+      var otherGames = console.uno.find(game => game.players.has(member.id));
       if(otherGames !== undefined) {
         responses++;
         ingame = true;
