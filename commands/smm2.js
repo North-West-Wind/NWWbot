@@ -18,11 +18,10 @@ module.exports = {
     async execute(message, args) {
         if (!args[0]) return message.channel.send("Please provide a query for searching!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
         const courses = await fetch(`https://api.smmdb.net/courses2?limit=100&title=${encodeURIComponent(args.join(" "))}`).then(res => res.json());
-        console.realLog(courses);
         const allEmbeds = [];
         for (const course of courses) {
             const uploader = course.uploader;
-            const difficulty = course.difficulty.substr(0, 1).toUpperCase() + course.difficulty.substr(1, course.difficulty.length - 1);
+            const difficulty = course.difficulty ? course.difficulty.substr(0, 1).toUpperCase() + course.difficulty.substr(1, course.difficulty.length - 1) : "No description.";
             const uploaded = readableDateTime(new Date(course.uploaded));
             const lastModified = readableDateTime(new Date(course.lastModified));
             const votes = course.votes;
@@ -33,18 +32,19 @@ module.exports = {
             const thumbnail = `https://api.smmdb.net/courses2/thumbnail/${course.id}?size=l`;
 
             const main = {
-                theme: course.course_area.course_theme === "GHOUST_HOUSE" ? "Ghost House" : course.course_area.course_theme.substr(0, 1) + course.course_area.course_theme.substr(1, course.course_area.course_theme.length - 1).toLowerCase().split(/_/g).join(" "),
-                autoscroll: course.course_area.auto_scroll.substr(0, 1) + course.course_area.auto_scroll.substr(1, course.course_area.auto_scroll.length - 1).toLowerCase().split(/_/g).join(" "),
-                orientation: course.course_area.orientation.substr(0, 1) + course.course_area.orientation.substr(1, course.course_area.orientation.length - 1).toLowerCase().split(/_/g).join(" "),
-                day: course.course_area.day_time.substr(0, 1) + course.course_area.day_time.substr(1, course.course_area.day_time.length - 1).toLowerCase().split(/_/g).join(" ")
+                theme: course.course.course_area.course_theme === "GHOUST_HOUSE" ? "Ghost House" : course.course.course_area.course_theme.substr(0, 1) + course.course.course_area.course_theme.substr(1, course.course.course_area.course_theme.length - 1).toLowerCase().split(/_/g).join(" "),
+                autoscroll: course.course.course_area.auto_scroll.substr(0, 1) + course.course.course_area.auto_scroll.substr(1, course.course.course_area.auto_scroll.length - 1).toLowerCase().split(/_/g).join(" "),
+                orientation: course.course.course_area.orientation.substr(0, 1) + course.course.course_area.orientation.substr(1, course.course.course_area.orientation.length - 1).toLowerCase().split(/_/g).join(" "),
+                day: course.course.course_area.day_time.substr(0, 1) + course.course.course_area.day_time.substr(1, course.course.course_area.day_time.length - 1).toLowerCase().split(/_/g).join(" ")
             };
             
-            const sub = {
-                theme: course.course_sub_area.course_theme === "GHOUST_HOUSE" ? "Ghost House" : course.course_sub_area.course_theme.substr(0, 1) + course.course_sub_area.course_theme.substr(1, course.course_sub_area.course_theme.length - 1).toLowerCase().split(/_/g).join(" "),
-                autoscroll: course.course_sub_area.auto_scroll.substr(0, 1) + course.course_sub_area.auto_scroll.substr(1, course.course_sub_area.auto_scroll.length - 1).toLowerCase().split(/_/g).join(" "),
-                orientation: course.course_sub_area.orientation.substr(0, 1) + course.course_sub_area.orientation.substr(1, course.course_sub_area.orientation.length - 1).toLowerCase().split(/_/g).join(" "),
-                day: course.course_sub_area.day_time.substr(0, 1) + course.course_sub_area.day_time.substr(1, course.course_sub_area.day_time.length - 1).toLowerCase().split(/_/g).join(" ")
-            };
+            if(course.course.course_sub_area)
+                var sub = {
+                    theme: course.course.course_sub_area.course_theme === "GHOUST_HOUSE" ? "Ghost House" : course.course.course_sub_area.course_theme.substr(0, 1) + course.course.course_sub_area.course_theme.substr(1, course.course.course_sub_area.course_theme.length - 1).toLowerCase().split(/_/g).join(" "),
+                    autoscroll: course.course.course_sub_area.auto_scroll.substr(0, 1) + course.course.course_sub_area.auto_scroll.substr(1, course.course.course_sub_area.auto_scroll.length - 1).toLowerCase().split(/_/g).join(" "),
+                    orientation: course.course.course_sub_area.orientation.substr(0, 1) + course.course.course_sub_area.orientation.substr(1, course.course.course_sub_area.orientation.length - 1).toLowerCase().split(/_/g).join(" "),
+                    day: course.course.course_sub_area.day_time.substr(0, 1) + course.course.course_sub_area.day_time.substr(1, course.course.course_sub_area.day_time.length - 1).toLowerCase().split(/_/g).join(" ")
+                };
 
             const em = new Discord.MessageEmbed()
                 .setColor(Math.floor(Math.random() * Math.pow(256, 3)))
@@ -58,7 +58,7 @@ module.exports = {
                 .addField("Time", time, true)
                 .addField("Style", style, true)
                 .addField("Main Area", `Theme: **${main.theme}**\nAuto-scroll: **${main.autoscroll}**\nOrientation: **${main.orientation}**\nDay/Night: **${main.day}**`)
-                .addField("Sub Area", `Theme: **${sub.theme}**\nAuto-scroll: **${sub.autoscroll}**\nOrientation: **${sub.orientation}**\nDay/Night: **${sub.day}**`)
+                .addField("Sub Area", sub ? `Theme: **${sub.theme}**\nAuto-scroll: **${sub.autoscroll}**\nOrientation: **${sub.orientation}**\nDay/Night: **${sub.day}**` : "No Sub Area")
                 .setTimestamp()
                 .setFooter(`Votes: ${votes}`);
             allEmbeds.push(em);
