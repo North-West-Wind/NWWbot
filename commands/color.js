@@ -12,6 +12,7 @@ module.exports = {
     name: "color",
     description: "Display the color you entered, or a random color.",
     usage: "[color]",
+    category: 3,
     async execute(message, args) {
         var red = Math.floor(Math.random() * 256);
         var green = Math.floor(Math.random() * 256);
@@ -29,7 +30,7 @@ module.exports = {
                 green = rgb.g;
                 blue = rgb.b;
                 random = false;
-            } else if(!isNaN(parseInt(args[0])) && parseInt(args[0]) < Math.pow(255, 3) && parseInt(args[0]) > 0) {
+            } else if(!isNaN(parseInt(args[0])) && parseInt(args[0]) < Math.pow(256, 3) && parseInt(args[0]) > 0) {
                 rgb = decimalToRgb(parseInt(args[0]));
                 red = rgb.r;
                 green = rgb.g;

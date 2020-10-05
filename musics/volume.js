@@ -3,6 +3,7 @@ module.exports = {
   description: "Turn the volume of music up or down by percentage.",
   usage: "<percentage>",
   aliases: ["vol"],
+  category: 8,
   async music(message, serverQueue) {
     var args = message.content.split(/ +/);
     if(!args[1]) return message.channel.send(`The current volume is **${Math.round(serverQueue.volume * 100)}%** and the current volume of the soundtrack is **${Math.round(serverQueue.volume * (serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.songs[0].volume : 1) * 100)}%**`);

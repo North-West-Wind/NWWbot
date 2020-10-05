@@ -3,6 +3,7 @@ module.exports = {
   description: "Toggle repeat of a song.",
   usage: " ",
   aliases: ["rep", "rp"],
+  category: 8,
   music(message, serverQueue, queue, pool) {
     const guildLoopStatus = serverQueue.looping;
     const guildRepeatStatus = serverQueue.repeating;

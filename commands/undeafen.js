@@ -8,6 +8,7 @@ module.exports = {
   args: true,
   aliases: ["undeaf"],
   usage: "<user | user ID> [reason]",
+  category: 1,
   async execute(message, args) {
     if (!message.member.permissions.has(8388608)) {
       message.channel.send(

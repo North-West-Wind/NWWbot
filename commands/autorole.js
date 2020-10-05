@@ -5,6 +5,7 @@ module.exports = {
   description: 'This has nothing to do with the auto-role when a user joins the server. The command is very similar to the “?role” command, but it can assign a single role to multiple users at once.',
   args: true,
   usage: "<role | role ID | role name> <user | user ID>",
+  category: 0,
   async execute(message, args) {
     if (!message.member.permissions.has(268435456)) { 
       message.channel.send(`You don\'t have the permission to use this command.`)

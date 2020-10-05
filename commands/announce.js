@@ -6,6 +6,7 @@ module.exports = {
 	description: 'Let the bot announce something for you in a specific channel.',
   aliases: ['ann'],
   usage: "<channel | channel ID> <announcement>",
+  category: 0,
 	async execute(message, args) {
    if(!args[0]) {
      return message.channel.send("Please tell me the channel to announce." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)

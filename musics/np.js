@@ -17,13 +17,14 @@ module.exports = {
   description: "Display the music being played.",
   aliases: ["nowplaying"],
   usage: " ",
+  category: 8,
   async music(message, serverQueue) {
     if (!serverQueue) return message.channel.send("There is nothing playing.");
     if(serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");
     var position = 0;
     if(serverQueue.connection && serverQueue.connection.dispatcher) position = (serverQueue.connection.dispatcher.streamTime - serverQueue.startTime);
     var processBar = [];
-    for(let i = 0; i < 20; i++) processBar.push("=");
+    for(let i = 0; i < 20; i++) processBar.push("═");
     var progress = 0;
     var isLive = false;
     switch(serverQueue.songs[0].type) {
@@ -45,7 +46,7 @@ module.exports = {
         break;
     }
     if(isLive) {
-      processBar.splice(19, 1, "+");
+      processBar.splice(19, 1, "█");
       var positionTime = "∞";
     } else {
       var positionTime = moment.duration(Math.round(position / 1000), "seconds").format();
@@ -53,7 +54,7 @@ module.exports = {
         positionTime = "0:00";
       var totalLength = Math.round(length * 1000);
       progress = Math.floor((position / totalLength) * processBar.length);
-      processBar.splice(progress, 1, "+");
+      processBar.splice(progress, 1, "█");
     }
     var info = [];
   var embed = new Discord.MessageEmbed()

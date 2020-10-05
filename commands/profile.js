@@ -6,6 +6,7 @@ module.exports = {
   description:
     "Display profile of yourself or the mentioned user on the server.",
   usage: "[user | user ID]",
+  category: 6,
   async execute(message, args) {
     if (!args[0]) {
       var member = message.member;

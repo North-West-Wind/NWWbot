@@ -4,6 +4,7 @@ module.exports = {
   name: "remove",
   description: "Remove soundtrack(s) from the song queue.",
   usage: "<index | starting index> [delete count]",
+  category: 8,
   async music(message, serverQueue, queue, pool) {
     const args = message.content.split(/ +/);
     if (!args[1]) return message.channel.send("You did not provide any index." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);

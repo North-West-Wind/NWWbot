@@ -2,6 +2,7 @@ module.exports = {
   name: "resume",
   description: "Resume the paused music.",
   usage: " ",
+  category: 8,
   music(message, serverQueue) {
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to resume the music when the bot is playing!");
 

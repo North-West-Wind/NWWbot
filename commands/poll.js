@@ -10,6 +10,7 @@ module.exports = {
   description: "Create, end or list giveaways on the server.",
   usage: "<subcommand>",
   subcommands: ["create", "end", "list"],
+  category: 4,
   async execute(message, args, pool) {
     if (!args[0]) {
       return message.channel.send(

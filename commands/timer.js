@@ -22,6 +22,7 @@ module.exports = {
   description: "Let the bot countdown for you.",
   usage: "<subcommand>",
   subcommands: ["create", "edit", "delete"],
+  category: 4,
   async execute(message, args, pool) {
     if (!args[0]) return message.channel.send(`Please choose a subcommand. **${this.subcommands.join(", ")}** Usage: ${message.client.prefix}${this.name} ${this.usage}`);
     if (!this.subcommands.includes(args[0])) return message.channel.send(`What is that subcommand? This are the subcommands: **${this.subcommands.join(", ")}**`);

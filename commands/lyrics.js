@@ -6,6 +6,7 @@ module.exports = {
   name: "lyrics",
   description: "Display lyrics of songs if they are found.",
   usage: "<song>",
+  category: 7,
   async execute(message, args) {
     if(!args[0]) return message.channel.send("You didn't provide any song!" + ` Usage: ${message.client.prefix}${this.name}${this.usage}`);
     

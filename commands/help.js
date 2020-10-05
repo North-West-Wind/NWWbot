@@ -6,13 +6,14 @@ module.exports = {
   aliases: ["commands"],
   usage: "[command]",
   cooldown: 5,
+  category: 6,
   execute(message, args) {
     const data = [];
     const { commands } = console;
 
     if (!args.length) {
       const attachment = new Discord.MessageAttachment(
-        "https://www.dropbox.com/s/g4ym6beqdb8bal3/manual.pdf?dl=0", "manual.pdf"
+        "https://drive.google.com/uc?export=download&id=114RCw-5oiYTgHGSpNIotMNd7rlgknfiy", "manual.pdf"
       );
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
@@ -22,36 +23,32 @@ module.exports = {
         )
         .setThumbnail(message.client.user.displayAvatarURL())
         .addField(
-          "**Managements**",
-          "delete\nrole\nunrole\naddrole\ndelrole\nautorole\nannounce\nrole-message",
+          "**Managements**", Array.from(commands.filter(x => x.category === 0).keys()).join("\n"),
           true
         )
         .addField(
-          "**Moderator**",
-          "ban\nunban\nkick\nwarn\nunwarn\nmute\nunmute\ndeafen\nundeafen",
+          "**Moderator**", Array.from(commands.filter(x => x.category === 1).keys()).join("\n"),
           true
         )
-        .addField("**Economy**", "work\nbank\nshop", true)
-        .addField("**Fun**", "chat\nreddit\nrng\ngreet\nthx\nrank\nuno\nascii\ncolor\nrps", true)
+        .addField("**Economy**", Array.from(commands.filter(x => x.category === 2).keys()).join("\n"), true)
+        .addField("**Fun**", Array.from(commands.filter(x => x.category === 3).keys()).join("\n"), true)
 
         .addField(
-          "**Miscellaneous**",
-          "giveaway\npoll\ngoogle\nspam\ntrade\ntimer\nmath",
+          "**Miscellaneous**", Array.from(commands.filter(x => x.category === 4).keys()).join("\n"),
           true
         )
-        .addField("**NSFW**", "hentai\nrule34\nporn", true)
+        .addField("**NSFW**", Array.from(commands.filter(x => x.category === 5).keys()).join("\n"), true)
         .addField(
-          "**Information**",
-          "help\nserver\nping\navatar\nwelcome\nrole-info",
+          "**Information**", Array.from(commands.filter(x => x.category === 6).keys()).join("\n"),
           true
         )
-        .addField("**API**", "minecraft\nhypixel\nkrunker\naki\nurban\noxford\nspeedrun\nwiki\nlyrics\nknowyourmeme", true)
+        .addField("**API**", Array.from(commands.filter(x => x.category === 7).keys()).join("\n"), true)
         .addField(
-          "**Music**",
-          "play\nskip\nunskip\nstop\nnowplaying\nqueue\nshuffle\npause\nresume\nremove\nmove\nloop\nrepeat\nmigrate\nvolume\ndownload",
+          "**Music**", Array.from(commands.filter(x => x.category === 8).keys()).join("\n"),
           true
         )
-
+        .addField("**Under Development**", Array.from(commands.filter(x => x.category === 9).keys()).join("\n"), true)
+        .addField("**Dev Command**", Array.from(commands.filter(x => x.category === 10).keys()).join("\n"), true)
         .setTimestamp()
         .setFooter(
           "Have a nice day! :)",
@@ -93,7 +90,7 @@ module.exports = {
       data.push(`**Subcommands:** ${command.subcommands.join(", ")}`);
     if (command.subaliases)
       data.push(`**Subcommands' Aliases:** ${command.subaliases.join(", ")}`);
-    if(command.regions)
+    if (command.regions)
       data.push(`**Regions:** ${command.regions.join(", ")}`)
     if (command.subcommands)
       data.push(

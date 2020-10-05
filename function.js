@@ -1,5 +1,5 @@
 const request = require("request");
-const ms = require("ms");
+const superms = require("ms");
 module.exports = {
   twoDigits(d) {
     if (0 <= d && d < 10) return "0" + d.toString();
@@ -334,6 +334,29 @@ module.exports = {
   },
   readableDate(date) {
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear}`;
+  },
+  readableDateTime(date) {
+    const day = date.getDate();
+    const month = date.getMonth();
+    const year = date.getFullYear();
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+    const second = date.getSeconds();
+
+    var dateTime =
+      twoDigits(day) +
+      "/" +
+      twoDigits(month + 1) +
+      "/" +
+      twoDigits(year) +
+      " " +
+      twoDigits(hour) +
+      ":" +
+      twoDigits(minute) +
+      ":" +
+      twoDigits(second) +
+      " UTC";
+    return dateTime;
   },
   ms(val, options) {
     if (typeof val === "string" && superms(val) === undefined) {

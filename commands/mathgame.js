@@ -9,6 +9,7 @@ module.exports = {
     name: "mathgame",
     description: "Math Game prototype.",
     usage: " ",
+    category: 9,
     async execute(message, args) {
         /*
         if(args[0] && args[0].toLowerCase() === "clear" && message.author.id === process.env.DC) {

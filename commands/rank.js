@@ -6,6 +6,7 @@ module.exports = {
   name: "rank",
   description:
     "Display your rank in the server. However, this command requires a DLC to work. Leveling system was inspired by MEE6.",
+    category: 3,
   async execute(message, args, pool) {
     try {
       await message.guild.members.fetch(process.env.DLC);

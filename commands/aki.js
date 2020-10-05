@@ -5,10 +5,8 @@ module.exports = {
   name: "aki",
   description: "Play Akinator on Discord!",
   aliases: ["akinator"],
-  guildOnly: true,
   usage: "[region]",
-  users: new Set(),
-
+  category: 7,
   regions: [
     'en',
     'en_objects',

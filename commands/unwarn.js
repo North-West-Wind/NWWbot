@@ -6,6 +6,7 @@ module.exports = {
   name: "unwarn",
   description: "Remove all warnings of a member of the server.",
   usage: "<user | user ID>",
+  category: 1,
   execute(message, args, pool) {
     pool.getConnection(async function(err, con) {
       if (err) {

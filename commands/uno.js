@@ -65,6 +65,7 @@ module.exports = {
   name: "uno",
   description: "Play UNO with your friends!",
   usage: " ",
+  category: 3,
   async execute(message, args) {
     var msg = await message.channel.send(
       "Alright, we will start an UNO game. Who will be invited? Please mention them!"
@@ -94,8 +95,15 @@ module.exports = {
       return msg.edit("Why would you invite yourself?");
     var responses = 0;
     var accepted = 0;
+    var ingame = false;
     var participants = [message.author];
     collected.first().mentions.members.forEach(async member => {
+      var otherGames = console.uno.find(game => game.players.has(member.id));
+      if(otherGames !== undefined) {
+        responses++;
+        ingame = true;
+        return message.channel.send(`**${member.user.tag}** is already in another game!`);
+      }
       participants.push(member.user);
       var em = new Discord.MessageEmbed()
         .setAuthor(message.author.tag, message.author.displayAvatarURL())
@@ -165,6 +173,8 @@ module.exports = {
           return message.channel.send(
             "The game cannot start as someone didn't accept the invitation!"
           );
+        } else if(ingame) {
+          return message.channel.send("The game cannot start as somebody is in another game!");
         } else {
           let readFile = await fs.readFileSync("./.glitch-assets", "utf8");
           let arr = readFile.split("\n");
@@ -214,7 +224,7 @@ module.exports = {
             "Game started.",
             message.client.user.displayAvatarURL()
           );
-        player.user.send(em).then(msg => setTimeout(() => msg.edit({ content: "**[Your cards from beginning]**", embed: null }), 30000));
+        player.user.send(em);
       }
       var numbersOnly = console.card.filter(
         x => x.color < 4 && x.number < 10
@@ -244,6 +254,7 @@ module.exports = {
       while (!won) {
         if (nores === players.size) {
           mesg.edit({ embed: null, content: "No one responsded. Therefore, the game ended." });
+          uno.delete(nano);
           return;
         }
         nores = 0;
@@ -258,7 +269,7 @@ module.exports = {
               .setColor(color)
               .setTimestamp()
               .setFooter("Better luck next time!", message.client.user.displayAvatarURL());
-            player.user.send(skipEm).then(msg => setTimeout(() => msg.edit({ content: "Turn skipped", embed: null }), 10000));
+            player.user.send(skipEm);
             players.set(key, player);
             uno.set(nano, { players: players, card: top, cards: await uno.get(nano).cards });
             skip = false;
@@ -309,14 +320,16 @@ module.exports = {
             .setTimestamp()
             .setFooter(`Placed by ${message.client.user.tag}`, message.client.user.displayAvatarURL());
           if (!collected || !collected.first() || !collected.first().emoji) {
-            em.setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
+            em = new Discord.MessageEmbed()
+              .setColor(color)
+              .setTitle(`Your turn ended!`)
+              .setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
               .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
               .setImage("attachment://newCard.png")
-              .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
-            mssg.edit(em).then(msg => setTimeout(() => {
-              msg.delete();
-              msg.channel.send({ embed: null, content: `You drew ${card.length} card${card.length > 1 ? "s" : ""}: ${card.join(", ")}` })
-            }, 10000));
+              .setTimestamp()
+              .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
+            await mssg.delete();
+            mssg.channel.send(em);
             player.card = player.card.concat(newCard);
             players.set(key, player);
             uno.set(nano, { players: players, card: top, cards: uno.get(nano).cards });
@@ -328,14 +341,16 @@ module.exports = {
           }
           if (collected.first().emoji.name === "📥") {
             if (placeable.length == 0) {
-              em.setDescription(`You don't have any card to place so you are forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
+              em = new Discord.MessageEmbed()
+                .setColor(color)
+                .setTitle(`Your turn ended!`)
+                .setDescription(`You don't have any card to place so you are forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                 .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                 .setImage("attachment://newCard.png")
-                .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
-              mssg.edit(em).then(msg => setTimeout(() => {
-                msg.delete();
-                msg.channel.send({ embed: null, content: `You drew ${card.length} card${card.length > 1 ? "s" : ""}: ${card.join(", ")}` })
-              }, 10000));
+                .setTimestamp()
+                .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
+              await mssg.delete();
+              mssg.channel.send(em);
               player.card = player.card.concat(newCard);
               players.set(key, player);
               uno.set(nano, { players: players, card: top, cards: await uno.get(nano).cards });
@@ -349,23 +364,30 @@ module.exports = {
               keys.push(console.card.findKey(f => f === x));
               return toString(x) + ` : **${console.card.findKey(f => f === x)}**`
             });
-            em.setDescription(`Cards you can place:\n\n${placeCard.join("\n")}\nType the ID after the card to place.`)
+            em = new Discord.MessageEmbed()
+              .setColor(color)
+              .setTitle(`Action: Placing`)
+              .setDescription(`Cards you can place:\n\n${placeCard.join("\n")}\nType the ID after the card to place.`)
               .attachFiles([{ attachment: await canvasImg(assets, placeable), name: "place.png" }])
               .setImage("attachment://place.png")
+              .setTimestamp()
               .setFooter(`Please decide in 2 mintues.`, message.client.user.displayAvatarURL());
-            mssg.edit(em);
+            await mssg.delete();
+            mssg = await mssg.channel.send(em);
             try {
               var collected = await mssg.channel.awaitMessages(x => x.author.id === player.user.id, { max: 1, time: 120 * 1000, errors: ["time"] });
             } catch (err) { }
             if (!collected || !collected.first() || !collected.first().content) {
-              em.setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
+              em = new Discord.MessageEmbed()
+                .setColor(color)
+                .setTitle(`Your turn ended!`)
+                .setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                 .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                 .setImage("attachment://newCard.png")
-                .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
-              mssg.edit(em).then(msg => setTimeout(() => {
-                msg.delete();
-                msg.channel.send({ embed: null, content: `You drew ${card.length} card${card.length > 1 ? "s" : ""}: ${card.join(", ")}` })
-              }, 10000));
+                .setTimestamp()
+                .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
+              await mssg.delete();
+              mssg.channel.send(em);
               player.card = player.card.concat(newCard);
               players.set(key, player);
               uno.set(nano, { players: players, card: top, cards: await uno.get(nano).cards });
@@ -391,15 +413,16 @@ module.exports = {
                 uno.delete(nano);
                 return;
               }
-              em.setDescription(`You cannot place that card so you drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
+              em = new Discord.MessageEmbed()
+                .setColor(color)
+                .setTitle(`Your turn ended!`)
+                .setDescription(`You cannot place that card so you drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                 .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                 .setImage("attachment://newCard.png")
-                .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
-              mssg.delete();
-              mssg.channel.send(em).then(msg => setTimeout(() => {
-                msg.delete();
-                msg.channel.send({ embed: null, content: `You drew ${card.length} card${card.length > 1 ? "s" : ""}: ${card.join(", ")}` })
-              }, 10000));
+                .setTimestamp()
+                .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
+              await mssg.delete();
+              mssg.channel.send(em);
               player.card = player.card.concat(newCard);
               players.set(key, player);
               uno.set(nano, { players: players, card: top, cards: await uno.get(nano).cards });
@@ -409,10 +432,9 @@ module.exports = {
               continue;
             }
             let placedCard = console.card.get(collected.first().content);
-            let changeColor = false;
             if (placedCard.number === 13 || placedCard.number === 14) {
               em.setDescription("Please choose your color:").setFooter("Please decide in 2 minutes.");
-              mssg.delete();
+              await mssg.delete();
               mssg = await mssg.channel.send(em);
               let colors = ["🟥", "🟨", "🟦", "🟩"];
               for (const rColor of colors) {
@@ -422,14 +444,16 @@ module.exports = {
                 var collected = await mssg.awaitReactions((r, u) => colors.includes(r.emoji.name) && u.id === player.user.id, { max: 1, time: 120 * 1000, errors: ["time"] });
               } catch (err) { }
               if (!collected || !collected.first()) {
-                em.setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
+                em = new Discord.MessageEmbed()
+                  .setColor(color)
+                  .setTitle(`Your turn ended!`)
+                  .setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                   .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                   .setImage("attachment://newCard.png")
-                  .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
-                mssg.edit(em).then(msg => setTimeout(() => {
-                  msg.delete();
-                  msg.channel.send({ embed: null, content: `You drew ${card.length} card${card.length > 1 ? "s" : ""}: ${card.join(", ")}` })
-                }, 10000));
+                  .setTimestamp()
+                  .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
+                await mssg.delete();
+                mssg.channel.send(em);
                 player.card = player.card.concat(newCard);
                 players.set(key, player);
                 uno.set(nano, { players: players, card: top, cards: await uno.get(nano).cards });
@@ -463,17 +487,24 @@ module.exports = {
               player.card.splice(player.card.indexOf(placedCard), 1);
               players.set(key, player);
               placedCard = { color: chosenColor, number: placedCard.number };
-              em.setDescription(`The color you chose: ${colorStr}`).setFooter("Your turn ended.", message.client.user.displayAvatarURL());
+              em = new Discord.MessageEmbed()
+                .setColor(color)
+                .setTitle(`Your turn ended!`)
+                .setDescription(`The color you chose: ${colorStr}`)
+                .setTimestamp()
+                .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
             } else {
               player.card.splice(player.card.indexOf(placedCard), 1);
               players.set(key, player);
-              em.setDescription(`You placed ${toString(placedCard)}!`).setFooter("Your turn ended.", message.client.user.displayAvatarURL());
+              em = new Discord.MessageEmbed()
+                .setColor(color)
+                .setTitle(`Your turn ended!`)
+                .setDescription(`You placed ${toString(placedCard)}!`)
+                .setTimestamp()
+                .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
             }
-            mssg.delete();
-            mssg.channel.send(em).then(msg => setTimeout(() => {
-              msg.delete();
-              msg.channel.send({ embed: null, content: `You placed: ${toString(placedCard)}` })
-            }, 10000));
+            await mssg.delete();
+            mssg.channel.send(em);
             let data = await uno.get(nano);
             await uno.set(nano, { players: players, card: placedCard, cards: data.cards + 1 });
             let placed = new Discord.MessageEmbed()
@@ -503,15 +534,24 @@ module.exports = {
             if (player.card.length === 0) {
               won = true;
               let data = await console.uno.get(nano);
+              var scores = 0;
+              for(const p of Array.from(data.players.values())) {
+                for(const c of p.card) {
+                  if(c.number < 10) scores += c.number;
+                  else if(c.number < 13) scores += 20;
+                  else scores += 50;
+                }
+              }
               let win = new Discord.MessageEmbed()
                 .setColor(color)
                 .setTitle(`${player.user.tag} won!`)
                 .setThumbnail(player.user.displayAvatarURL())
-                .setDescription(`Congratulations to **${player.user.tag}**!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - nano, "milliseconds").format()}.\nThanks for playing!`)
+                .setDescription(`Congratulations to **${player.user.tag}** winning with **${scores} scores**!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - nano, "milliseconds").format()}.\nThanks for playing!`)
                 .setTimestamp()
                 .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
               await player.user.send("You won the game! Congratulations!");
-              await mesg.edit(win);
+              await mesg.delete();
+              await mesg.channel.send(win);
               uno.delete(nano);
               break;
             } else {
@@ -531,15 +571,16 @@ module.exports = {
               continue;
             }
           } else if (collected.first().emoji.name === "📤") {
-            em.setDescription(`You drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
+            em = new Discord.MessageEmbed()
+              .setColor(color)
+              .setTitle(`Your turn ended!`)
+              .setDescription(`You drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
               .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
               .setImage("attachment://newCard.png")
-              .setFooter("Your turn ended.", message.client.user.displayAvatarURL());
-            mssg.delete();
-            mssg.channel.send(em).then(msg => setTimeout(() => {
-              msg.delete();
-              msg.channel.send({ embed: null, content: `You drew ${card.length} card${card.length > 1 ? "s" : ""}: ${card.join(", ")}` })
-            }, 10000));
+              .setTimestamp()
+              .setFooter(`Game started by ${message.author.tag} | Played in server ${message.guild.name} - channel ${message.channel.name}`, message.client.user.displayAvatarURL());
+            await mssg.delete();
+            mssg.channel.send(em);
             player.card = player.card.concat(newCard);
             players.set(key, player);
             uno.set(nano, { players: players, card: top, cards: uno.get(nano).cards });

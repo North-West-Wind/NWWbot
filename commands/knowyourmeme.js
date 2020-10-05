@@ -171,6 +171,7 @@ module.exports = {
   description: "Display meme information from Know Your Meme.",
   usage: "[keywords]",
   aliases: ["kym"],
+  category: 7,
   async execute(message, args) {
     if(!args[0]) return message.channel.send("Please provide at least 1 keyword!" + ` Usage: ${message.client.prefix}${this.name} ${this.usage}`);
     var msg = await message.channel.send("Loading the memes...");
@@ -179,7 +180,7 @@ module.exports = {
     let num = 0;
     for (const result of results) {
       var em = new Discord.MessageEmbed()
-        .setColor(Math.floor(Math.random() * Math.pow(255, 3)))
+        .setColor(Math.floor(Math.random() * Math.pow(256, 3)))
         .setThumbnail(result.image ? result.image : undefined)
         .setTitle(result.name)
         .setURL(result.url)

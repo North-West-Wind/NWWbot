@@ -13,6 +13,7 @@ module.exports = {
   usage: "<subcommand>",
   aliases: ["g"],
   subcommands: ["create", "end", "list"],
+  category: 4,
   async execute(message, args, pool) {
     const guild = message.guild;
 

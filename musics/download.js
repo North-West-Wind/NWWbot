@@ -14,6 +14,7 @@ module.exports = {
     description: "Download the first soundtrack in the server queue.",
     usage: " ",
     aliases: ["dl"],
+    category: 8,
     async music(message, serverQueue) {
         if (!serverQueue) return message.channel.send("There is nothing playing.");
         if (!serverQueue.songs) serverQueue.songs = [];

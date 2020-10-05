@@ -8,6 +8,7 @@ module.exports = {
   description: "Google Search everything with Discord.",
   usage: "<query>",
   args: true,
+  category: 4,
   async execute(message, args) {
     if(args.length < 1) {
       return message.channel.send("Please provide a query for searching!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);

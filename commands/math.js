@@ -8,6 +8,7 @@ module.exports = {
     usage: "<subcommand> <expression>",
     subcommands: ["evaluate", "derivative", "rationalize", "simplify", "help"],
     subaliases: ["eval", "ddx", "rat", "sim", "help"],
+    category: 4,
     async execute(message, args) {
         let done = "Error!";
         if(!args[0]) return message.channel.send(`You didn't provide any subcommands! Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);

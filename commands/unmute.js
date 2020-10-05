@@ -7,6 +7,7 @@ module.exports = {
   description: "Unmute a member while the member is in a voice channel.",
   args: true,
   usage: "<user | user ID> [reason]",
+  category: 1,
   async execute(message, args) {
     if (!message.member.permissions.has(4194304)) {
       message.channel.send(

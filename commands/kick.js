@@ -6,6 +6,7 @@ module.exports = {
   description: "Kick a member of the server.",
   args: true,
   usage: "<user | user ID> [reason]",
+  category: 1,
   execute(message, args) {
     if (!message.member.permissions.has(2)) {
       message.channel.send(

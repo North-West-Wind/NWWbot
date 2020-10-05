@@ -6,6 +6,7 @@ module.exports = {
   subcommands: ["create", "refresh"],
   subaliases: ["cr", "re"],
   aliases: ["role-msg", "rm"],
+  category: 0,
   async execute(message, args, pool) {
     if(!args[0]) {
       return message.channel.send("Please use a subcommand!" + ` Usage: ${message.client.prefix}${this.name}${this.usage}`);

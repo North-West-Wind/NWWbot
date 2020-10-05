@@ -11,7 +11,7 @@ module.exports = {
   description: "Generate a token for logging into the Configuration Panel.",
   usage: "[subcommand]",
   subcommands: ["new", "panel"],
-
+  category: 1,
   async execute(message, args, pool) {
     if (message.channel instanceof Discord.DMChannel) {
       return message.channel.send("Direct messages is not configurable.");

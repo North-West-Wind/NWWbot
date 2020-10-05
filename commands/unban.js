@@ -7,6 +7,7 @@ module.exports = {
   description: "Unban a member of the server.",
   usage: "<user | user ID> [reason]",
   args: true,
+  category: 1,
   execute(message, args) {
     if (!message.member.permissions.has(4)) {
       message.channel.send(

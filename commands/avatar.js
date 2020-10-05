@@ -6,6 +6,7 @@ module.exports = {
   description: "Display the message author's avatar or the mentioned user's avatar.",
   aliases: ["icon", "pfp"],
   usage: "[user | user ID]",
+  category: 6,
   async execute(message, args) {
     if (!args[0]) {
       const Embed = new Discord.MessageEmbed()

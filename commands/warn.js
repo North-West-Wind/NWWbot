@@ -7,6 +7,7 @@ module.exports = {
   description: "Warn a member of the server. 3 warnings will lead to a ban.",
   args: true,
   usage: "<user | user ID> [reason]",
+  category: 1,
   execute(message, args, pool) {
     if (!args[0]) {
       return message.channel.send(

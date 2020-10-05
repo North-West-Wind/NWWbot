@@ -7,6 +7,7 @@ module.exports = {
   description: "Display information of a role.",
   aliases: ["ri"],
   usage: "<role | role ID | role name>",
+  category: 6,
   async execute(message, args) {
     if(!args[0]) {
       return message.channel.send("Please mention a role/role ID/role name." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);

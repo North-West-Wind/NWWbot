@@ -3,6 +3,7 @@ module.exports = {
 	description: 'Reloads a command',
 	args: true,
 	aliases: ['f5'],
+	category: 10,
 	execute(message, args, pool, musicCommandsArray) {
 		if (message.author.id != process.env.DC) return;
 

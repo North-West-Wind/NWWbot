@@ -20,6 +20,7 @@ module.exports = {
   description: "Fetch memes from Reddit.",
   usage: "[subreddits]",
   aliases: ["meme"],
+  category: 7,
   async execute(message, args) {
     var subreddits;
     var def = ["memes", "dankmemes", "meme"];

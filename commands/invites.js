@@ -3,10 +3,11 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "invites",
-  description: "Check how many users you have invited.",
+  description: "Display information about users invited on the server.",
   usage: "[subcommand]",
   subcommands: ["me", "toggle"],
   aliases: ["inv"],
+  category: 6,
   async execute(message, args, pool) {
     const filter = (reaction, user) => {
       return (

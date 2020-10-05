@@ -10,6 +10,7 @@ module.exports = {
   usage: "[subcommand] <username | UUID | IP>",
   subcommands: ["profile", "server", "history"],
   subaliases: ["pro", "srv", "his"],
+  category: 7,
   execute(message, args) {
     const MojangAPI = require("mojang-api");
 
