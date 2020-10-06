@@ -337,13 +337,13 @@ module.exports = {
       }
     }
 
-    const checkURL = validURL(args[1]);
+    const checkURL = validURL(args.slice(1).join(" "));
 
     if (checkURL) {
-      if (validYTURL(args[1])) {
-        if (validYTPlaylistURL(args[1])) {
+      if (validYTURL(args.slice(1).join(" "))) {
+        if (validYTPlaylistURL(args.slice(1).join(" "))) {
           try {
-            var playlistInfo = await ytpl(args[1], { limit: Infinity });
+            var playlistInfo = await ytpl(args.slice(1).join(" "), { limit: Infinity });
           } catch (err) {
             if (err.message === "This playlist is private.") {
               return message.channel.send("The playlist is private!");
@@ -375,7 +375,7 @@ module.exports = {
           clearInterval(interval);
         } else {
           try {
-            var songInfo = await ytdl.getInfo(args[1], { requestOptions: { headers: { cookie: process.env.COOKIE } } });
+            var songInfo = await ytdl.getInfo(args.slice(1).join(" "), { requestOptions: { headers: { cookie: process.env.COOKIE } } });
           } catch (err) {
             return message.channel.send("No video was found!");
           }
@@ -401,7 +401,7 @@ module.exports = {
             }
           ];
         }
-      } else if (validSPURL(args[1])) {
+      } else if (validSPURL(args.slice(1).join(" "))) {
         var d = await spotifyApi.clientCredentialsGrant();
 
         await spotifyApi.setAccessToken(d.body.access_token);
@@ -416,7 +416,7 @@ module.exports = {
         // Save the access token so that it's used in future calls
         await spotifyApi.setAccessToken(refreshed.body.access_token);
 
-        var url_array = args[1].replace("https://", "").split("/");
+        var url_array = args.slice(1).join(" ").replace("https://", "").split("/");
         var musicID = url_array[2].split("?")[0];
 
         if (url_array[2].split("?")[1] !== undefined)
@@ -636,9 +636,9 @@ module.exports = {
               break;
             }
         }
-      } else if (validSCURL(args[1])) {
+      } else if (validSCURL(args.slice(1).join(" "))) {
         var res = await fetch(
-          `https://api.soundcloud.com/resolve?url=${args[1]}&client_id=${process.env.SCID
+          `https://api.soundcloud.com/resolve?url=${args.slice(1).join(" ")}&client_id=${process.env.SCID
           }`
         );
         if (res.status !== 200) {
@@ -684,23 +684,23 @@ module.exports = {
             }
           ];
         }
-      } else if (validGDURL(args[1])) {
+      } else if (validGDURL(args.slice(1).join(" "))) {
         const formats = [/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing/, /https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/];
         const alphanumeric = /^[a-zA-Z0-9\-_]+$/;
         let id;
         formats.forEach((regex) => {
-          const matches = args[1].match(regex)
+          const matches = args.slice(1).join(" ").match(regex)
           if (matches && matches.groups && matches.groups.id) id = matches.groups.id
         });
         if (!id) {
-          if (alphanumeric.test(args[1])) id = args[1];
+          if (alphanumeric.test(args.slice(1).join(" "))) id = args.slice(1).join(" ");
           else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
         }
         var link = "https://drive.google.com/uc?export=download&id=" + id;
         var stream = await requestStream(link);
         try {
           var metadata = await mm.parseStream(stream);
-          var html = await rp(args[1]);
+          var html = await rp(args.slice(1).join(" "));
           var $ = cheerio.load(html);
           var titleArr = $("title").text().split(" - ");
           titleArr.splice(-1, 1);
@@ -723,19 +723,19 @@ module.exports = {
           thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg"
         };
         var songs = [song];
-      } else if (validURL(args[1])) {
-        var linkArr = args[1].split("/");
+      } else if (validURL(args.slice(1).join(" "))) {
+        var linkArr = args.slice(1).join(" ").split("/");
         if (linkArr[linkArr.length - 1].split("?").length == 1) {
           var title = linkArr[linkArr.length - 1]
             .split(".")[0]
             .replace(/_/g, " ");
         } else {
-          linkArr = args[1].split("?");
+          linkArr = args.slice(1).join(" ").split("?");
           var title = linkArr[linkArr.length - 1]
             .split(".")[0]
             .replace(/_/g, " ");
         }
-        var stream = await requestStream(args[1]);
+        var stream = await requestStream(args.slice(1).join(" "));
         try {
           var metadata = await mm.parseStream(stream);
         } catch (err) {
@@ -751,7 +751,7 @@ module.exports = {
         var songLength = moment.duration(length, "seconds").format();
         var song = {
           title: title,
-          url: args[1],
+          url: args.slice(1).join(" "),
           type: 2,
           time: songLength,
           volume: 1,
