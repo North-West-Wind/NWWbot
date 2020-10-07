@@ -39,7 +39,7 @@ module.exports = {
     name: "axolotl",
     description: "Get a random Axolotl image.",
     usage: " ",
-    category: 9,
+    category: 3,
     aliases: ["axol"],
     async execute(message) {
         const selected = links[Math.floor(Math.random() * links.length)];
