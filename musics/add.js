@@ -431,7 +431,7 @@ module.exports = {
                 var songs = [song];
             } else if (validMSURL(args.slice(1).join(" "))) {
                 try {
-                    var response = await rp({ uri: args.join(" "), resolveWithFullResponse: true });
+                    var response = await rp({ uri: args.slice(1).join(" "), resolveWithFullResponse: true });
                     if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
                     var body = response.body;
                 } catch (err) {
