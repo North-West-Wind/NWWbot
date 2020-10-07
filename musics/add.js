@@ -7,7 +7,8 @@ const {
     isGoodMusicVideoContent,
     decodeHtmlEntity,
     validYTPlaylistURL,
-    validSCURL
+    validSCURL,
+    validMSURL
 } = require("../function.js");
 const { parseBody } = require("../commands/musescore.js");
 const ytdl = require("ytdl-core");
