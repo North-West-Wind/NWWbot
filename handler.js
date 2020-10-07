@@ -1123,7 +1123,7 @@ module.exports = {
             if (!message.author.bot) {
                 if(message.mentions.users.has(process.env.DC) && message.mentions.users.size > 4) {
                     message.delete().then(() => {
-                        message.channel.send("Shhh! Don't disturb North! (Also, mass ping is bad)");
+                        message.reply("Shhh! Don't disturb North! (Also, mass ping is bad)");
                     }).catch(err => {});
                 } else if (Math.floor(Math.random() * 1000) === 69)
                     cleverbot(message.content).then(response => message.channel.send(response));

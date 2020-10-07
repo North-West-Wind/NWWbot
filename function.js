@@ -101,6 +101,10 @@ module.exports = {
     var pattern = /^http(s)?:\/\/(soundcloud\.com|snd\.sc)\/(.+)?/;
     return !!pattern.test(str);
   },
+  validMSURL(str) {
+    var pattern = /^(https?:\/\/)?musescore\.com\/user\/[0-9]{8}\/scores\/[0-9]{6,}$/;
+    return !!pattern.test(str);
+  },
   decodeHtmlEntity(str) {
     return str
       .replace(/&#(\d+);/g, function (match, dec) {

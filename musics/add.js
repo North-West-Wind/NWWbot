@@ -9,6 +9,7 @@ const {
     validYTPlaylistURL,
     validSCURL
 } = require("../function.js");
+const { parseBody } = require("../commands/musescore.js");
 const ytdl = require("ytdl-core");
 var color = Math.floor(Math.random() * 16777214) + 1;
 var SpotifyWebApi = require("spotify-web-api-node");
@@ -64,7 +65,7 @@ module.exports = {
                     var songs = [];
                     var mesg = await message.channel.send(`Processing track: **0/${videos.length}**`);
                     var interval = setInterval(async () => {
-                        if (songs.length < videos.length) await mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`).catch(() => {});
+                        if (songs.length < videos.length) await mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`).catch(() => { });
                     }, 1000);
                     for (const video of videos) {
                         var info = {
@@ -77,7 +78,7 @@ module.exports = {
                         };
                         songs.push(info);
                     }
-                    mesg.edit(`Track processing completed`).then(msg => msg.delete({ timeout: 10000 }).catch(() => {})).catch(() => {});
+                    mesg.edit(`Track processing completed`).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
                     clearInterval(interval);
                 } else {
                     try {
@@ -90,21 +91,21 @@ module.exports = {
                     var thumbnails = songInfo.videoDetails.thumbnail.thumbnails;
                     var thumbUrl = thumbnails[thumbnails.length - 1].url;
                     var maxWidth = 0;
-                    for(const thumbnail of thumbnails) {
-                      if(thumbnail.width > maxWidth) {
-                        maxWidth = thumbnail.width;
-                        thumbUrl = thumbnail.url;
-                      }
+                    for (const thumbnail of thumbnails) {
+                        if (thumbnail.width > maxWidth) {
+                            maxWidth = thumbnail.width;
+                            thumbUrl = thumbnail.url;
+                        }
                     }
                     var songs = [
-                      {
-                        title: decodeHtmlEntity(songInfo.videoDetails.title),
-                        url: songInfo.videoDetails.video_url,
-                        type: 0,
-                        time: songLength,
-                        thumbnail: thumbUrl,
-                        volume: 1
-                      }
+                        {
+                            title: decodeHtmlEntity(songInfo.videoDetails.title),
+                            url: songInfo.videoDetails.video_url,
+                            type: 0,
+                            time: songLength,
+                            thumbnail: thumbUrl,
+                            volume: 1
+                        }
                     ];
                 }
             } else if (validSPURL(args.slice(1).join(" "))) {
@@ -155,7 +156,7 @@ module.exports = {
                         await checkAll();
                         var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);
                         for (var i = 0; i < tracks.length; i++) {
-                            await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`).catch(() => {});
+                            await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`).catch(() => { });
                             var matched;
                             try {
                                 var searched = await ytsr(
@@ -206,7 +207,7 @@ module.exports = {
                                 }
                             }
                         }
-                        mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }).catch(() => {})).catch(() => {});
+                        mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
                         break;
                     case "album":
                         if (highlight === false) {
@@ -242,7 +243,7 @@ module.exports = {
                         }
                         var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);
                         for (var i = 0; i < tracks.length; i++) {
-                            await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`).catch(() => {});
+                            await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`).catch(() => { });
                             var matched;
                             try {
                                 var searched = await ytsr(
@@ -290,7 +291,7 @@ module.exports = {
                                 }
                             }
                         }
-                        mesg.edit("Track processing completed").then(msg => msg.delete({ timeout: 10000 })).catch(() => {});
+                        mesg.edit("Track processing completed").then(msg => msg.delete({ timeout: 10000 })).catch(() => { });
                         break;
                     case "track":
                         var data = await spotifyApi.getTracks([musicID]);
@@ -427,6 +428,38 @@ module.exports = {
                     thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg"
                 };
                 var songs = [song];
+            } else if (validMSURL(args.slice(1).join(" "))) {
+                try {
+                    var response = await rp({ uri: args.join(" "), resolveWithFullResponse: true });
+                    if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
+                    var body = response.body;
+                } catch (err) {
+                    return message.reply("there was an error trying to fetch data of the score!");
+                }
+                var data = parseBody(body);
+                var stream = await requestStream(data.mp3);
+                try {
+                    var metadata = await mm.parseStream(stream);
+                } catch (err) {
+                    return message.channel.send(
+                        "The audio format is not supported!"
+                    );
+                }
+                if (!metadata)
+                    return message.channel.send(
+                        "An error occured while parsing the audio file into stream! Maybe it is not link to the file?"
+                    );
+                var length = Math.round(metadata.format.duration);
+                var songLength = moment.duration(length, "seconds").format();
+                var song = {
+                    title: data.title,
+                    url: args.slice(1).join(" "),
+                    mp3: data.mp3,
+                    type: 5,
+                    time: songLength,
+                    volume: 1,
+                    thumbnail: "https://s3.amazonaws.com/s.musescore.org/about/images/design_MU3/musescore_sticker+11%403x.png"
+                };
             } else if (validURL(args.slice(1).join(" "))) {
                 var linkArr = args.slice(1).join(" ").split("/");
                 if (linkArr[linkArr.length - 1].split("?").length == 1) {
@@ -541,9 +574,9 @@ module.exports = {
                     }
                     return message.channel.send(Embed).then(msg => {
                         setTimeout(() => {
-                            msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => {});
+                            msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { });
                         }, 30000);
-                    }).catch(() => {});
+                    }).catch(() => { });
                 } catch (err) {
                     console.log(err);
                     queue.delete(message.guild.id);
@@ -586,9 +619,9 @@ module.exports = {
                 }
                 return message.channel.send(Embed).then(msg => {
                     setTimeout(() => {
-                        msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => {});
+                        msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { });
                     }, 30000);
-                }).catch(() => {});
+                }).catch(() => { });
             }
         } else {
             const Embed = new Discord.MessageEmbed()
@@ -650,7 +683,7 @@ module.exports = {
                                         message.client.user.displayAvatarURL()
                                     );
 
-                                return msg.edit(cancelled).then(msg => msg.delete({ timeout: 10000 }).catch(() => {})).catch(() => {});
+                                return msg.edit(cancelled).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
                             }
 
                             var s = parseInt(content) - 1;
@@ -669,7 +702,7 @@ module.exports = {
                                     message.client.user.displayAvatarURL()
                                 );
 
-                            msg.edit(chosenEmbed).catch(() => {});
+                            msg.edit(chosenEmbed).catch(() => { });
                             var length = saved[s].duration;
                             var song = {
                                 title: decodeHtmlEntity(saved[s].title),
@@ -717,9 +750,9 @@ module.exports = {
                                 try {
                                     msg.edit(Embed).then(msg => {
                                         setTimeout(() => {
-                                            msg.edit({ embed: null, content: `**[Track: ${song.title}]**` }).catch(() => {});
+                                            msg.edit({ embed: null, content: `**[Track: ${song.title}]**` }).catch(() => { });
                                         }, 30000);
-                                    }).catch(() => {});
+                                    }).catch(() => { });
                                 } catch (err) {
                                     console.log(err);
                                     queue.delete(message.guild.id);
@@ -758,9 +791,9 @@ module.exports = {
                                     );
                                 return await msg.edit(Embed).then(msg => {
                                     setTimeout(() => {
-                                        msg.edit({ embed: null, content: `**[Track: ${song.title}]**` }).catch(() => {});
+                                        msg.edit({ embed: null, content: `**[Track: ${song.title}]**` }).catch(() => { });
                                     }, 30000);
-                                }).catch(() => {});
+                                }).catch(() => { });
                             }
                         })
                         .catch(err => {
@@ -772,7 +805,7 @@ module.exports = {
                                     "Have a nice day! :)",
                                     message.client.user.displayAvatarURL()
                                 );
-                            msg.edit(Ended).then(msg => msg.delete({ timeout: 10000 }).catch(() => {})).catch(() => {});
+                            msg.edit(Ended).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
                         });
                 })
                 .catch(err => {

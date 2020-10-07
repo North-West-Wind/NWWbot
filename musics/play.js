@@ -7,8 +7,10 @@ const {
   isGoodMusicVideoContent,
   decodeHtmlEntity,
   validYTPlaylistURL,
-  validSCURL
+  validSCURL,
+  validMSURL
 } = require("../function.js");
+const { parseBody } = require("../commands/musescore.js");
 const ytdl = require("ytdl-core");
 var color = Math.floor(Math.random() * 16777214) + 1;
 var SpotifyWebApi = require("spotify-web-api-node");
@@ -170,6 +172,16 @@ async function play(guild, song, queue, pool, skipped = 0) {
     try {
       var stream = await scdl.download(song.url);
     } catch (err) {
+      console.error(err);
+      return await skip();
+    }
+    dispatcher = serverQueue.connection.play(stream);
+  } else if (song.type === 5) {
+    try {
+      var requestedStream = await requestStream(song.mp3);
+      var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
+      var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25});
+    } catch(err) {
       console.error(err);
       return await skip();
     }
@@ -723,6 +735,38 @@ module.exports = {
           thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg"
         };
         var songs = [song];
+      } else if (validMSURL(args.slice(1).join(" "))) {
+        try {
+            var response = await rp({ uri: args.join(" "), resolveWithFullResponse: true });
+            if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
+            var body = response.body;
+        } catch (err) {
+            return message.reply("there was an error trying to fetch data of the score!");
+        }
+        var data = parseBody(body);
+        var stream = await requestStream(data.mp3);
+        try {
+          var metadata = await mm.parseStream(stream);
+        } catch (err) {
+          return message.channel.send(
+            "The audio format is not supported!"
+          );
+        }
+        if (!metadata)
+          return message.channel.send(
+            "An error occured while parsing the audio file into stream! Maybe it is not link to the file?"
+          );
+        var length = Math.round(metadata.format.duration);
+        var songLength = moment.duration(length, "seconds").format();
+        var song = {
+          title: data.title,
+          url: args.slice(1).join(" "),
+          mp3: data.mp3,
+          type: 5,
+          time: songLength,
+          volume: 1,
+          thumbnail: "https://s3.amazonaws.com/s.musescore.org/about/images/design_MU3/musescore_sticker+11%403x.png"
+        };
       } else if (validURL(args.slice(1).join(" "))) {
         var linkArr = args.slice(1).join(" ").split("/");
         if (linkArr[linkArr.length - 1].split("?").length == 1) {
@@ -1229,6 +1273,16 @@ module.exports = {
       try {
         var stream = await scdl.download(song.url);
       } catch (err) {
+        console.error(err);
+        return await skip();
+      }
+      dispatcher = serverQueue.connection.play(stream);
+    } else if (song.type === 5) {
+      try {
+        var requestedStream = await requestStream(song.mp3);
+        var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
+        var stream = new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25});
+      } catch(err) {
         console.error(err);
         return await skip();
       }
