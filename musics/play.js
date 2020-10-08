@@ -767,6 +767,7 @@ module.exports = {
           volume: 1,
           thumbnail: "https://s3.amazonaws.com/s.musescore.org/about/images/design_MU3/musescore_sticker+11%403x.png"
         };
+        var songs = [song];
       } else if (validURL(args.slice(1).join(" "))) {
         var linkArr = args.slice(1).join(" ").split("/");
         if (linkArr[linkArr.length - 1].split("?").length == 1) {
