@@ -277,9 +277,7 @@ module.exports = {
           message.guild.id +
           ", " +
           channel.id +
-          `, '["` +
-          options.join('", "') +
-          `"]', "` +
+          `, '["${options.join('", "')}"]', "` +
           newDateSql +
           '", ' +
           message.author.id +

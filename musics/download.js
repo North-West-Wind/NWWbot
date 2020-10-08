@@ -24,6 +24,7 @@ module.exports = {
         let stream;
         switch (song.type) {
             case 2:
+            case 4:
                 try {
                     stream = await requestStream(song.url);
                 } catch(err) {
@@ -34,6 +35,14 @@ module.exports = {
             case 3:
                 try {
                     stream = await scdl.download(song.url);
+                } catch(err) {
+                    console.error(err);
+                    return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
+                }
+                break;
+            case 5:
+                try {
+                    stream = await requestStream(song.mp3);
                 } catch(err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);

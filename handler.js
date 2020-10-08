@@ -161,7 +161,11 @@ module.exports = {
                     var count = 0;
                     results.forEach(result => {
                         if (result.queue !== null || result.looping !== null || result.repeating !== null) {
-                            var queue = result.queue !== null ? JSON.parse(unescape(result.queue)) : [];
+                            var parsed = [];
+                            try {
+                                if(result.queue !== null) parsed = JSON.parse(unescape(result.queue));
+                            } catch(err) { parsed = []; }
+                            var queue = parsed;
                             setQueue(result.id, queue, result.looping === 1 ? true : false, result.repeating === 1 ? true : false);
                             count += 1;
                         }
@@ -408,8 +412,7 @@ module.exports = {
                             var msg = await channel.messages.fetch(result.id);
                         } catch (err) {
                             con.query("DELETE FROM poll WHERE id = " + result.id, function (
-                                err,
-                                con
+                                err
                             ) {
                                 if (err) return console.error(err);
                                 console.log("Deleted an ended poll.");
@@ -419,8 +422,7 @@ module.exports = {
 
                         if (msg.deleted) {
                             con.query("DELETE FROM poll WHERE id = " + msg.id, function (
-                                err,
-                                result
+                                err
                             ) {
                                 if (err) return console.error(err);
                                 console.log("Deleted an ended poll.");
@@ -1123,7 +1125,7 @@ module.exports = {
             if (!message.author.bot) {
                 if(message.mentions.users.has(process.env.DC) && message.mentions.users.size > 4) {
                     message.delete().then(() => {
-                        message.channel.send("Shhh! Don't disturb North! (Also, mass ping is bad)");
+                        message.reply("Shhh! Don't disturb North! (Also, mass ping is bad)");
                     }).catch(err => {});
                 } else if (Math.floor(Math.random() * 1000) === 69)
                     cleverbot(message.content).then(response => message.channel.send(response));
