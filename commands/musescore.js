@@ -57,7 +57,7 @@ module.exports = {
                 await mesg.delete();
                 const attachment = new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`);
                 const pdf = new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`);
-                message.channel.send([attachment, pdf]);
+                message.author.send([attachment, pdf]);
             });
         }
     },
