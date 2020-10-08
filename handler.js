@@ -164,7 +164,10 @@ module.exports = {
                             var parsed = [];
                             try {
                                 if(result.queue !== null) parsed = JSON.parse(unescape(result.queue));
-                            } catch(err) { parsed = []; }
+                            } catch(err) {
+                                console.log(`Error parsing queue of ${result.id}`);
+                                parsed = []; 
+                            }
                             var queue = parsed;
                             setQueue(result.id, queue, result.looping === 1 ? true : false, result.repeating === 1 ? true : false);
                             count += 1;

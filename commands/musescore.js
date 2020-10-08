@@ -22,6 +22,7 @@ module.exports = {
         } catch (err) {
             return message.reply("there was an error trying to fetch data of the score!");
         }
+        var msg = await message.channel.send("Loading score...");
         var data = this.parseBody(body);
         const em = new Discord.MessageEmbed()
             .setColor(Math.floor(Math.random() * Math.pow(256, 3)))
@@ -35,8 +36,8 @@ module.exports = {
             .addField("Page Count", data.pageCount, true)
             .addField("Date Created", new Date(data.created * 1000).toLocaleString(), true)
             .addField("Date Updated", new Date(data.updated * 1000).toLocaleString(), true)
-            .addField(`Tags [${data.tags.length}]`, data.tags.join(", "))
-            .addField(`Parts [${data.parts.length}]`, data.parts.join(", "))
+            .addField(`Tags [${data.tags.length}]`, data.tags.length > 0 ? data.tags.join(", ") : "None")
+            .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ? data.parts.join(", ") : "None")
             .setTimestamp()
             .setFooter("Have a nice day! :)");
         const doc = new PDFDocument();
@@ -45,7 +46,8 @@ module.exports = {
             if (i + 1 < data.pageCount) doc.addPage();
         }
         doc.end();
-        rs(data.mp3, (err, res) => {
+        rs(data.mp3, async(err, res) => {
+            await msg.delete();
             if (err) return message.channel.send(em);
             const attachment = new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`);
             const pdf = new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`);
@@ -53,13 +55,13 @@ module.exports = {
         });
     },
     parseBody(body) {
-        var $ = cheerio.load(body);
-        var meta = $('meta[property="og:image"]')[0];
-        var image = meta.attribs.content;
-        var important = image.split("/").slice(7, 12).join("/");
-        var mp3 = `https://nocdn.musescore.com/static/musescore/scoredata/gen/${important}/score.mp3`;
-        var store = $('div.js-store')[0].attribs["data-content"];
-        var data = JSON.parse(store).store.page.data;
+        const $ = cheerio.load(body);
+        const meta = $('meta[property="og:image"]')[0];
+        const image = meta.attribs.content;
+        const important = image.split("/").slice(7, 12).join("/");
+        const mp3 = `https://nocdn.musescore.com/static/musescore/scoredata/gen/${important}/score.mp3`;
+        const store = $('div.js-store')[0].attribs["data-content"];
+        const data = JSON.parse(store).store.page.data;
         const id = data.score.id;
         const title = data.score.title;
         const thumbnail = data.score.thumbnails.large;
@@ -82,6 +84,7 @@ module.exports = {
         } catch (err) {
             return message.reply("there was an error trying to search for scores!");
         }
+        var msg = await message.channel.send("Loading scores...");
         var $ = cheerio.load(body);
         var store = $("div.js-store")[0].attribs["data-content"];
         var data = JSON.parse(store);
@@ -129,7 +132,8 @@ module.exports = {
         };
 
         var s = 0;
-        var msg = await message.channel.send(
+        await msg.delete();
+        msg = await message.channel.send(
             allEmbeds[0]
         );
 
@@ -180,10 +184,10 @@ module.exports = {
                     }
                     doc.end();
                     rs(mp3s[s], (err, res) => {
-                        if (err) return message.channel.send("Failed to send attachments.");
+                        if (err) return message.author.send("Failed to send attachments.");
                         const attachment = new Discord.MessageAttachment(res, `${allEmbeds[s].title.replace(/ +/g, "_")}.mp3`);
                         const pdf = new Discord.MessageAttachment(doc, `${allEmbeds[s].title.replace(/ +/g, "_")}.pdf`);
-                        message.channel.send([attachment, pdf]);
+                        message.author.send([attachment, pdf]);
                     });
                     break;
             }
