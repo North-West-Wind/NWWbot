@@ -102,7 +102,7 @@ module.exports = {
     return pattern.test(str);
   },
   validMSURL(str) {
-    var pattern = /^(https?:\/\/)?musescore\.com\/user\/[0-9]{1,}\/scores\/[0-9]{1,}$/;
+    var pattern = /^(https?:\/\/)?musescore\.com\/(user|[\w%\-_.!~*'()]+)\/([0-9]{1,}\/scores\/[0-9]{1,}\/?|[\w%\-_.!~*'()]+\/?)$/;
     return pattern.test(str);
   },
   decodeHtmlEntity(str) {
