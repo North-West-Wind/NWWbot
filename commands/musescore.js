@@ -192,7 +192,7 @@ module.exports = {
                         if (i + 1 < importants[s].pages) doc.addPage();
                     }
                     doc.end();
-                    rs(mp3s[s], (err, res) => {
+                    rs(mp3s[s], async(err, res) => {
                         if (err) return message.author.send("Failed to send attachments.");
                         const attachment = new Discord.MessageAttachment(res, `${allEmbeds[s].title.replace(/ +/g, "_")}.mp3`);
                         const pdf = new Discord.MessageAttachment(doc, `${allEmbeds[s].title.replace(/ +/g, "_")}.pdf`);
