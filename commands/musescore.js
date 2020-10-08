@@ -40,26 +40,25 @@ module.exports = {
             .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ? data.parts.join(", ") : "None")
             .setTimestamp()
             .setFooter("Have a nice day! :)");
-        rs(data.mp3, async(err, res) => {
-            await msg.delete();
-            if (err) return message.channel.send(em);
-            const attachment = new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`);
-            message.channel.send(attachment);
-        });
         msg = await msg.edit({ content: "", embed: em });
         await msg.react("📥");
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors:["time"] });
         msg.reactions.removeAll().catch(console.error);
         if(collected && collected.first()) {
-            var mesg = await message.author.send("Generating sheetmusic...");
+            var mesg = await message.author.send("Generating files...");
             const doc = new PDFDocument();
             for (let i = 0; i < data.pageCount; i++) {
                 SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
                 if (i + 1 < data.pageCount) doc.addPage();
             }
             doc.end();
-            await mesg.delete();
-            message.author.send(doc);
+            rs(data.mp3, async(err, res) => {
+                if (err) return await mesg.edit("Failed to generate files!");
+                await mesg.delete();
+                const attachment = new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`);
+                const pdf = new Discord.MessageAttachment(doc, `${allEmbeds[s].title.replace(/ +/g, "_")}.pdf`);
+                message.channel.send([attachment, pdf]);
+            });
         }
     },
     parseBody(body) {
