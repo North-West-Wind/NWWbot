@@ -11,7 +11,7 @@ const styles = {
 
 module.exports = {
     name: "smm2",
-    description: "Connect to SMMDB's Course 2 API.",
+    description: "Search courses of Super Mario Maker from smmdb.net. API by Tarnadas.",
     aliases: ["supermariomaker2"],
     usage: "<keywords>",
     category: 7,

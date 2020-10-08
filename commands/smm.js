@@ -6,7 +6,7 @@ const themes = ["Ground", "Underground", "Castle", "Airship", "Underwater", "Gho
 
 module.exports = {
   name: "smm",
-  description: "Connect to SMMDB's API.",
+  description: "Search courses of Super Mario Maker from smmdb.net. API by Tarnadas.",
   aliases: ["supermariomaker"],
   usage: "<keywords>",
   category: 7,
