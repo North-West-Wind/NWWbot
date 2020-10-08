@@ -163,9 +163,9 @@ module.exports = {
                         if (result.queue !== null || result.looping !== null || result.repeating !== null) {
                             var parsed = [];
                             try {
-                                parsed = JSON.parse(unescape(result.queue));
+                                if(result.queue !== null) parsed = JSON.parse(unescape(result.queue));
                             } catch(err) { parsed = []; }
-                            var queue = result.queue !== null ? parsed : [];
+                            var queue = parsed;
                             setQueue(result.id, queue, result.looping === 1 ? true : false, result.repeating === 1 ? true : false);
                             count += 1;
                         }
