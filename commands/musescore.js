@@ -56,7 +56,7 @@ module.exports = {
                 if (err) return await mesg.edit("Failed to generate files!");
                 await mesg.delete();
                 const attachment = new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`);
-                const pdf = new Discord.MessageAttachment(doc, `${allEmbeds[s].title.replace(/ +/g, "_")}.pdf`);
+                const pdf = new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`);
                 message.channel.send([attachment, pdf]);
             });
         }
