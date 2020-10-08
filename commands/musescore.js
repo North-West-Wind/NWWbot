@@ -29,7 +29,7 @@ module.exports = {
             .setTitle(data.title)
             .setURL(data.url)
             .setThumbnail(data.thumbnail)
-            .setDescription(data.description)
+            .setDescription(`Description: **${data.description}**\n\nClick 📥 to download the sheetmusic`)
             .addField("ID", data.id, true)
             .addField("Author", data.user.name, true)
             .addField("Duration", data.duration, true)
@@ -40,19 +40,27 @@ module.exports = {
             .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ? data.parts.join(", ") : "None")
             .setTimestamp()
             .setFooter("Have a nice day! :)");
-        const doc = new PDFDocument();
-        for (let i = 0; i < data.pageCount; i++) {
-            SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-            if (i + 1 < data.pageCount) doc.addPage();
-        }
-        doc.end();
         rs(data.mp3, async(err, res) => {
             await msg.delete();
             if (err) return message.channel.send(em);
             const attachment = new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`);
-            const pdf = new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`);
-            message.channel.send([attachment, pdf, em]);
+            message.channel.send(attachment);
         });
+        msg = await msg.edit({ content: "", embed: em });
+        await msg.react("📥");
+        const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors:["time"] });
+        msg.reactions.removeAll().catch(console.error);
+        if(collected && collected.first()) {
+            var mesg = await message.author.send("Generating sheetmusic...");
+            const doc = new PDFDocument();
+            for (let i = 0; i < data.pageCount; i++) {
+                SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                if (i + 1 < data.pageCount) doc.addPage();
+            }
+            doc.end();
+            await mesg.delete();
+            message.author.send(doc);
+        }
     },
     parseBody(body) {
         const $ = cheerio.load(body);
@@ -177,6 +185,7 @@ module.exports = {
                     collector.emit("end");
                     break;
                 case "📥":
+                    var mesg = await message.author.send("Generating files...");
                     const doc = new PDFDocument();
                     for (let i = 0; i < importants[s].pages; i++) {
                         SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
@@ -187,6 +196,7 @@ module.exports = {
                         if (err) return message.author.send("Failed to send attachments.");
                         const attachment = new Discord.MessageAttachment(res, `${allEmbeds[s].title.replace(/ +/g, "_")}.mp3`);
                         const pdf = new Discord.MessageAttachment(doc, `${allEmbeds[s].title.replace(/ +/g, "_")}.pdf`);
+                        await mesg.delete();
                         message.author.send([attachment, pdf]);
                     });
                     break;
