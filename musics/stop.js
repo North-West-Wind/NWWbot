@@ -4,7 +4,7 @@ module.exports = {
   aliases: ["end", "disconnect", "dis"],
   usage: " ",
   category: 8,
-  music(message, serverQueue) {
+  async music(message, serverQueue) {
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to stop the music when the bot is playing!");
     if (!serverQueue) {
       return message.channel.send("There is nothing playing.")
@@ -17,7 +17,7 @@ module.exports = {
     serverQueue.voiceChannel = null;
     serverQueue.textChannel = null;
     if (message.guild.me.voice.channel) {
-      message.guild.me.voice.channel.leave();
+      await message.guild.me.voice.channel.leave();
       message.channel.send(":wave:");
     } else {
       message.channel.send("Re-stopped");
