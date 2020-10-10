@@ -2,8 +2,6 @@ const Discord = require("discord.js");
 const ms = require("ms");
 var color = Math.floor(Math.random() * 16777214) + 1;
 const ytdl = require("ytdl-core");
-const YouTube = require("simple-youtube-api");
-const youtube = new YouTube(process.env.YT);
 const Canvas = require("canvas");
 const randomWords = require("random-words");
 const neko = require("akaneko");
@@ -19,7 +17,6 @@ const {
   validYTPlaylistURL,
   validSCURL
 } = require("../function.js");
-var search = require("youtube-search");
 const Booru = require("booru");
 const Gfycat = require("gfycat-sdk");
 var gfycat = new Gfycat({
@@ -33,7 +30,6 @@ const ytpl = require("ytpl");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
-const { http, https } = require("follow-redirects");
 
 const requestStream = url => {
   return new Promise((resolve, reject) => {
@@ -46,13 +42,6 @@ const requestGet = url => {
     request.get({ url: url, encoding: null }, (err, res, body) => err ? reject(err) : resolve(res));
   });
 }
-
-const GET = url => {
-  return new Promise(resolve => {
-    http.get(url, res => resolve(res));
-  });
-};
-
 var opts = {
   maxResults: 1,
   key: process.env.YT2

@@ -1,4 +1,3 @@
-const serp = require("serp");
 const Discord = require("discord.js")
 var color = Math.floor(Math.random() * 16777214) + 1;
 const googleIt = require("google-it");
