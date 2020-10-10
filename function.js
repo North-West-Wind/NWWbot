@@ -34,7 +34,7 @@ module.exports = {
       "(\\#[-a-z\\d_]*)?$",
       "i"
     ); // fragment locator
-    if (str.slice(8).search("open.spotify.com") === 0 || !!pattern.test(str))
+    if (str.slice(8).search("open.spotify.com") === 0 || pattern.test(str))
       return true;
     else return false;
   },
@@ -42,7 +42,7 @@ module.exports = {
     var pattern = new RegExp(
       /^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/.+/
     ); // fragment locator
-    return !!pattern.test(str);
+    return pattern.test(str);
   },
   validYTPlaylistURL(str) {
     var pattern = new RegExp(
@@ -63,47 +63,47 @@ module.exports = {
   },
   validImgurURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/;
-    return !!pattern.test(str);
+    return pattern.test(str);
   },
   validImgurVideoURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/;
-    return !!pattern.test(str);
+    return pattern.test(str);
   },
   validImgur4wordsURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w\/)?(\w*\w*)+(\.[a-zA-Z0-9]*)?$/;
-    return !!pattern.test(str);
+    return pattern.test(str);
   },
   validImgurAURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w\/)?(\w*\w*)$/;
-    return !!pattern.test(str);
+    return pattern.test(str);
   },
   validNotImgurURL(str) {
     var pattern = /^https?:\/\/imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/;
-    return !!pattern.test(str);
+    return pattern.test(str);
   },
   validRedditURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z]{3})?$/;
-    return !!pattern.test(str);
+    return pattern.test(str);
   },
   validRedditVideoURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/;
-    return !!pattern.test(str);
+    return pattern.test(str);
   },
   validGfyURL(str) {
     var pattern = /^(http(s)?:\/\/)?((w){3}.)?gfycat(.com)?\/\w*/;
-    return !!pattern.test(str);
+    return pattern.test(str);
   },
   validRedGifURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?redgifs.com\/(\w*\/)?(\w*\w*)$/;
-    return !!pattern.test(str);
+    return pattern.test(str);
   },
   validSCURL(str) {
     var pattern = /^http(s)?:\/\/(soundcloud\.com|snd\.sc)\/(.+)?/;
-    return !!pattern.test(str);
+    return pattern.test(str);
   },
   validMSURL(str) {
-    var pattern = /^(https?:\/\/)?musescore\.com\/user\/[0-9]{8}\/scores\/[0-9]{6,}$/;
-    return !!pattern.test(str);
+    var pattern = /^(https?:\/\/)?musescore\.com\/(user|[\w%\-_.!~*'()]+)\/([0-9]{1,}\/scores\/[0-9]{1,}\/?|[\w%\-_.!~*'()]+\/?)$/;
+    return pattern.test(str);
   },
   decodeHtmlEntity(str) {
     return str
