@@ -434,6 +434,7 @@ module.exports = {
       const result = await this.search(message, args);
       if(result.error) return;
       var song = result.song; 
+      var msg = result.msg;
       if (!serverQueue) {
         const queueContruct = {
           textChannel: message.channel,
@@ -1136,7 +1137,7 @@ module.exports = {
         message.client.user.displayAvatarURL()
       );
 
-    msg.edit(chosenEmbed).catch(() => { });
+    await msg.edit(chosenEmbed).catch(() => { });
     var length = !saved[s].live ? saved[s].duration : "∞";
     var song = {
       title: decodeHtmlEntity(saved[s].title),
@@ -1146,6 +1147,6 @@ module.exports = {
       thumbnail: saved[s].thumbnail,
       volume: 1
     };
-    return { error: false, song };
+    return { error: false, song, msg };
   }
 };

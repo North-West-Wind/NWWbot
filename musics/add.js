@@ -143,7 +143,8 @@ module.exports = {
         } else {
             const result = await search(message, args);
             if(result.error) return;
-            var song = result.song; 
+            var song = result.song;
+            var msg = result.msg;
             if (!serverQueue) {
                 const queueContruct = {
                     textChannel: null,
