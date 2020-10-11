@@ -62,7 +62,7 @@ module.exports = {
                         var newattachment = new Discord.MessageAttachment(canvas.toBuffer(), `${nameArr.join(".")}.png`);
                         var colorAtt = new Discord.MessageAttachment(Buffer.from(asciis, 'utf8'), `${nameArr.join(" ")}_text.txt`);
                         var noColorAtt = new Discord.MessageAttachment(Buffer.from(anser.ansiToText(asciis), 'utf8'), `${nameArr.join(" ")}_text_no_color.txt`);
-                        msg.delete();
+                        msg.delete().catch(() => {});
                         message.channel.send(newattachment);
                         message.channel.send(colorAtt);
                         message.channel.send(noColorAtt);

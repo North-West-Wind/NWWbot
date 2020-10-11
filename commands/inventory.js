@@ -83,7 +83,7 @@ module.exports = {
               );
               return msg.edit(em);
             }
-            collected.first().delete();
+            collected.first().delete().catch(() => {});
             if (isNaN(parseInt(collected.first().content))) {
               em.setFooter(
                 "Have a nice day! :)",

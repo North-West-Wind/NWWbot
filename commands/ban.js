@@ -41,7 +41,6 @@ module.exports = {
           
           user.kicked = new Discord.Collection()
            await user.kicked.set(message.guild.id, true)
-          message.delete();
           member
             .then(() => {
               var banEmbed = new Discord.MessageEmbed()

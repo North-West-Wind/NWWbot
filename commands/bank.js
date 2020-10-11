@@ -121,7 +121,7 @@ module.exports = {
                         errors: ["times"]
                       })
                       .catch(() => { });
-                    amount.first().delete();
+                    amount.first().delete().catch(() => {});
 
                     if (isNaN(parseInt(amount.first().content))) {
                       if (amount.first().content === "quarter") {
@@ -333,7 +333,7 @@ module.exports = {
                       })
                       .catch(() => { });
 
-                    amount.first().delete();
+                    amount.first().delete().catch(() => {});
 
                     if (isNaN(parseInt(amount.first().content))) {
                       con.query(
