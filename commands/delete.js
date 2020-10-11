@@ -21,7 +21,7 @@ module.exports = {
       );
       return;
     }
-    if (!message.guild.me.permissions.has(8192)) {
+    if (!message.guild.me.permissions.has(8192) || !message.channel.permissionsFor(message.guild.me).has(8192)) {
       message.channel.send(`I don\'t have the permission to delete messages.`);
       return;
     }

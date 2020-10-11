@@ -17,9 +17,10 @@ module.exports = {
       return message.channel.send("Direct messages is not configurable.");
     }
     if (!message.member.permissions.has(32)) {
-      message.reply(`you don\'t have the permission to use this command.`);
+      message.channel.send(`You don\'t have the permission to use this command.`);
       return;
     }
+    if(!message.channel.permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
 
     const guild = message.guild;
 

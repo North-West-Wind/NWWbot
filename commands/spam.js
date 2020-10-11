@@ -35,7 +35,7 @@ module.exports = {
     
     
      console.log("Will spam user " + taggedUser.username + " for " + time + " times with the message " + msg);
-    message.delete();
+    message.delete().catch(() => {});
     var i = 0;
     var spam = setInterval(function() {
       if(i == time) {

@@ -32,7 +32,7 @@ module.exports = {
     
     if(!member) return;
     if(!member.voice.channel) return message.channel.send("The member is not connected to any voice channel.")
-    message.delete()
+    message.delete().catch(() => {});
     try {
       if(args[1]) {
         var reason = args.slice(1).join(" ");
