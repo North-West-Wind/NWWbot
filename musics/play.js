@@ -282,7 +282,7 @@ module.exports = {
       else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
       if (result.error) return;
       else songs = result.songs;
-      if (songs.length < 1) return message.reply("there was an error trying to add the soundtrack!");
+      if (!songs || songs.length < 1) return message.reply("there was an error trying to add the soundtrack!");
 
       if (!serverQueue) {
         const queueContruct = {
@@ -435,6 +435,7 @@ module.exports = {
       if(result.error) return;
       var song = result.song; 
       var msg = result.msg;
+      const Embed = result.embed;
       if (!serverQueue) {
         const queueContruct = {
           textChannel: message.channel,
@@ -1145,6 +1146,6 @@ module.exports = {
       thumbnail: saved[s].thumbnail,
       volume: 1
     };
-    return { error: false, song, msg };
+    return { error: false, song, msg, embed: Embed };
   }
 };

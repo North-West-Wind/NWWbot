@@ -10,7 +10,7 @@ const {
     validSCURL,
     validMSURL
 } = require("../function.js");
-const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDURL, addMSURL, addURL, search } = require("./play.js");
+const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, search } = require("./play.js");
 
 const requestStream = url => {
     return new Promise((resolve, reject) => {
