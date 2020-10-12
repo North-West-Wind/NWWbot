@@ -262,16 +262,17 @@ module.exports = {
       } else {
         const result = await this.addAttachment(message);
         if (result.error) return;
-        else var songs = result.songs;
+        else var songss = result.songs;
       }
     }
 
-    const checkURL = validURL(args.slice(1).join(" "));
+    const checkURL = validURL(args.slice(1).join(" ")) || (message.attachments.size > 0 && args.length < 2);
 
     if (checkURL) {
       var songs = [];
-      var result = { error: true };
-      if (validYTURL(args.slice(1).join(" "))) {
+      var result = { error: true, attachment: false };
+      if(message.attachments.size > 0 && args.length < 2) { songs = songss; result.attachment = true; }
+      else if (validYTURL(args.slice(1).join(" "))) {
         if (validYTPlaylistURL(args.slice(1).join(" "))) result = await this.addYTPlaylist(message, args);
         else result = await this.addYTURL(message, args);
       } else if (validSPURL(args.slice(1).join(" "))) result = await this.addSPURL(message, args);
@@ -281,7 +282,7 @@ module.exports = {
       else if (validURL(args.slice(1).join(" "))) result = await this.addURL(message, args);
       else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.prefix}${this.name} ${this.usage}\``);
       if (result.error) return;
-      else songs = result.songs;
+      else if(!result.attachment) songs = result.songs;
       if (!songs || songs.length < 1) return message.reply("there was an error trying to add the soundtrack!");
 
       if (!serverQueue) {
@@ -573,7 +574,7 @@ module.exports = {
     for (const file of files.values()) {
       var stream = await requestStream(file.url);
       try {
-        var metadata = await mm.parseStream(stream);
+        var metadata = await mm.parseStream(stream, {}, { duration: true });
       } catch (err) {
         message.channel.send("The audio format is not supported!");
         return { error: true };
@@ -970,7 +971,7 @@ module.exports = {
     var link = "https://drive.google.com/uc?export=download&id=" + id;
     var stream = await requestStream(link);
     try {
-      var metadata = await mm.parseStream(stream);
+      var metadata = await mm.parseStream(stream, {}, { duration: true });
       var html = await rp(args.slice(1).join(" "));
       var $ = cheerio.load(html);
       var titleArr = $("title").text().split(" - ");
@@ -1039,7 +1040,7 @@ module.exports = {
     }
     var stream = await requestStream(args.slice(1).join(" "));
     try {
-      var metadata = await mm.parseStream(stream);
+      var metadata = await mm.parseStream(stream, {}, { duration: true });
     } catch (err) {
       message.channel.send(
         "The audio format is not supported!"

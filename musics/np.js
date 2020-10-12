@@ -37,7 +37,7 @@ module.exports = {
       case 2:
       case 4:
         var stream = await requestStream(serverQueue.songs[0].url).catch(console.error);
-        var metadata = await mm.parseStream(stream).catch(console.error);
+        var metadata = await mm.parseStream(stream, {}, { duration: true }).catch(console.error);
         var length = Math.round(metadata.format.duration);
         break;
       case 3:
