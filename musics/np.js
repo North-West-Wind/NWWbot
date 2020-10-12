@@ -31,7 +31,7 @@ module.exports = {
       case 0:
       case 1:
         var songInfo = await ytdl.getInfo(serverQueue.songs[0].url, { requestOptions: { headers: { cookie: process.env.COOKIE } } }).catch(console.error);
-        if(songInfo.videoDetails.isLive) isLive = true;
+        if(songInfo.videoDetails.isLive || songInfo.videoDetails.isLiveContent) isLive = true;
         var length = parseInt(songInfo.videoDetails.lengthSecond);
         break;
       case 2:

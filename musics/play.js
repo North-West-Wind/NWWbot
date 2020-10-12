@@ -641,7 +641,7 @@ module.exports = {
       return { error: false };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
-    var songLength = moment.duration(length, "seconds").format();
+    var songLength = songInfo.videoDetails.isLive || songInfo.videoDetails.isLiveContent ? "∞" : moment.duration(length, "seconds").format();
     var thumbnails = songInfo.videoDetails.thumbnail.thumbnails;
     var thumbUrl = thumbnails[thumbnails.length - 1].url;
     var maxWidth = 0;
@@ -673,9 +673,7 @@ module.exports = {
       .refreshAccessToken()
       .catch(console.error);
 
-    console.log("The access token has been refreshed!");
-
-    // Save the access token so that it's used in future calls
+    console.log("Refreshed Spotify Access Token");
     await spotifyApi.setAccessToken(refreshed.body.access_token);
 
     var url_array = args.slice(1).join(" ").replace("https://", "").split("/");
@@ -730,7 +728,7 @@ module.exports = {
           for (var s = 0; s < results.length; s++) {
             if (results.length == 0) break;
             if (isGoodMusicVideoContent(results[s])) {
-              var songLength = results[s].duration;
+              var songLength = !results[s].live ? results[s].duration : "∞";
               matched = {
                 title: tracks[i].track.name,
                 url: results[s].link,
@@ -746,7 +744,7 @@ module.exports = {
               break;
             }
             if (s + 1 == results.length) {
-              var songLength = results[0].duration;
+              var songLength = !results[0].live ? results[0].duration : "∞";
               matched = {
                 title: tracks[i].track.name,
                 url: results[0].link,
@@ -814,7 +812,7 @@ module.exports = {
           for (var s = 0; s < results.length; s++) {
             if (results.length == 0) break;
             if (isGoodMusicVideoContent(results[s])) {
-              var songLength = results[s].duration;
+              var songLength = !results[s].live ? results[s].duration : "∞";
               matched = {
                 title: tracks[i].name,
                 url: results[s].link,
@@ -830,7 +828,7 @@ module.exports = {
               break;
             }
             if (s + 1 == results.length) {
-              var songLength = results[0].duration;
+              var songLength = !results[0].live ? results[0].duration : "∞";
               matched = {
                 title: tracks[i].name,
                 url: results[0].link,
@@ -868,7 +866,7 @@ module.exports = {
           for (var s = 0; s < results.length; s++) {
             if (results.length == 0) break;
             if (isGoodMusicVideoContent(results[s])) {
-              var songLength = results[s].duration;
+              var songLength = !results[s].live ? results[s].duration : "∞";
               matched = {
                 title: tracks[i].name,
                 url: results[s].link,
@@ -882,7 +880,7 @@ module.exports = {
               break;
             }
             if (s + 1 == results.length) {
-              var songLength = results[0].duration;
+              var songLength = !results[0].live ? results[0].duration : "∞";
               matched = {
                 title: tracks[i].name,
                 url: results[0].link,
