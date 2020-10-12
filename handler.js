@@ -17,7 +17,6 @@ const mysql_config = {
 };
 var pool = mysql.createPool(mysql_config);
 const { setTimeout_ } = require("./function.js");
-const wait = require("util").promisify(setTimeout);
 const profile = (str) => {
 	return new Promise((resolve, reject) => {
 		require("mojang-api").profile(str, function (err, res) { if(err) reject(err); else resolve(res); });
@@ -563,16 +562,11 @@ module.exports = {
             });
             con.release();
         });
-        wait(1000);
-        client.guilds.cache.forEach(g => {
-            g.fetchInvites().then(guildInvites => {
-                console.invites[g.id] = guildInvites;
-            }).catch(err => { });
-        });
+        if(id == 1) client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
     },
     async guildMemberAdd(member, client, id) {
         const guild = member.guild;
-        guild.fetchInvites().then(async guildInvites => {
+        if(guild.id === "622311594654695434") guild.fetchInvites().then(async guildInvites => {
             const ei = console.invites[member.guild.id];
             console.invites[member.guild.id] = guildInvites;
             const invite = await guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
@@ -589,7 +583,7 @@ module.exports = {
             } catch (err) {
                 console.error("Failed to DM user.");
             }
-        }).catch(err => { });
+        }).catch(() => { });
         if (guild.id == "677780367188557824")
             setTimeout(async () => {
                 var role = await guild.roles.fetch("677785442099396608");
@@ -1184,7 +1178,7 @@ module.exports = {
                 }
             }
             try {
-                command.execute(message, args, pool, musicCommandsArray, console.rm);
+                await command.execute(message, args, pool, musicCommandsArray, console.rm);
             } catch (error) {
                 console.error(error);
                 message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
