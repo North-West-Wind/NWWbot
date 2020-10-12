@@ -6,7 +6,7 @@ module.exports = {
   usage: "[amount]",
   category: 8,
   async music(message, serverQueue, queue, pool) {
-    const args = message.content.slice(message.client.prefix.length).split(/ +/);
+    const args = message.content.split(/ +/);
     var skipped = 1;
     const guild = message.guild;
     if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing)

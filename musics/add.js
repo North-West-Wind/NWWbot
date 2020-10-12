@@ -35,7 +35,7 @@ module.exports = {
             else if (validMSURL(args.slice(1).join(" "))) result = await addMSURL(message, args);
             else if (validURL(args.slice(1).join(" "))) result = await addURL(message, args);
             else if (message.attachments.size > 0) result = await addAttachment(message);
-            else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+            else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.prefix}${this.name} ${this.usage}\``);
             if (result.error) return;
             else songs = result.songs;
             if (songs.length < 1) return message.reply("there was an error trying to add the soundtrack!");

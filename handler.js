@@ -26,6 +26,7 @@ const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 var timeout = undefined;
+console.prefixes = {};
 module.exports = {
     async ready(client, id) {
         console.log(`[${id}] Ready!`);
@@ -155,7 +156,7 @@ module.exports = {
             if (err) return console.error(err);
             const { setQueue } = require("./musics/main.js");
             if (id === 0) {
-                con.query("SELECT id, queue, looping, repeating FROM servers", function (err, results) {
+                con.query("SELECT id, queue, looping, repeating, prefix FROM servers", function (err, results) {
                     if (err) return console.error(err);
                     var count = 0;
                     results.forEach(result => {
@@ -171,6 +172,7 @@ module.exports = {
                             setQueue(result.id, queue, result.looping === 1 ? true : false, result.repeating === 1 ? true : false);
                             count += 1;
                         }
+                        if(result.prefix) try { console.prefixes[result.id] = result.prefix; } catch(err) {}
                     });
                     console.log(`[${id}] ` + "Set " + count + " queues");
                 });
@@ -1118,7 +1120,9 @@ module.exports = {
         });
     },
     async message(message, musicCommandsArray, exit, client, id) {
-        if (!message.content.startsWith(client.prefix) || message.author.bot) {
+        message.prefix = client.prefix;
+        if(message.guild && console.prefixes[message.guild.id]) message.prefix = console.prefixes[message.guild.id];
+        if (!message.content.startsWith(message.prefix) || message.author.bot) {
             if (!message.author.bot) {
                 if(message.mentions.users.has(process.env.DC) && message.mentions.users.size > 4) {
                     message.delete().then(() => {

@@ -12,7 +12,7 @@ module.exports = {
   category: 7,
   async execute(message, args) {
     if (!args[0])
-      return message.channel.send("Please provide a query for searching!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("Please provide a query for searching!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     smm.searchCourses(
       {
         title: args.join(" ")

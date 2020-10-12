@@ -173,7 +173,7 @@ module.exports = {
   aliases: ["kym"],
   category: 7,
   async execute(message, args) {
-    if(!args[0]) return message.channel.send("Please provide at least 1 keyword!" + ` Usage: ${message.client.prefix}${this.name} ${this.usage}`);
+    if(!args[0]) return message.channel.send("Please provide at least 1 keyword!" + ` Usage: ${message.prefix}${this.name} ${this.usage}`);
     var msg = await message.channel.send("Loading the memes...");
     var results = await doSearch(args.join(" "));
     const allEmbeds = [];

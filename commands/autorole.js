@@ -16,10 +16,10 @@ module.exports = {
       return;
     }
     if(!args[0]) {
-      return message.channel.send("Please enter the role you want the users to be." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("Please enter the role you want the users to be." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
     }
     if(!args[1]) {
-      return message.channel.send("Please mention at least 1 user." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("Please mention at least 1 user." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
     }
      var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {

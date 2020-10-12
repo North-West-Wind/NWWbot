@@ -8,7 +8,7 @@ module.exports = {
   category: 3,
 	async execute(message, args) {
 		if (!args[0]) {
-            return message.channel.send('Who am I greeting?' + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+            return message.channel.send('Who am I greeting?' + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
         }
     
 

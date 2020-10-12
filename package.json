@@ -57,13 +57,12 @@
     "solenolyrics": "^5.0.0",
     "soundcloud-downloader": "^0.1.6",
     "spotify-web-api-node": "^4.0.0",
-    "statuses": "^2.0.0",
     "stream-concat": "^0.3.0",
     "svg-to-pdfkit": "^0.1.8",
     "wikijs": "^6.0.0",
     "ytdl-core": "github:fent/node-ytdl-core",
     "ytdl-core-discord": "github:amishshah/ytdl-core-discord#dependabot/npm_and_yarn/ytdl-core-3.3.0",
     "ytpl": "^1.0.1",
-    "ytsr": "^1.0.2"
+    "ytsr": "^1.0.4"
   }
 }

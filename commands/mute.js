@@ -24,7 +24,7 @@ module.exports = {
     if (!message.guild) return;
     
     if(!args[0]) {
-      return message.channel.send("You didn't mention any user!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("You didn't mention any user!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
     }
     
     

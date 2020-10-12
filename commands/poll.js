@@ -14,7 +14,7 @@ module.exports = {
   async execute(message, args, pool) {
     if (!args[0]) {
       return message.channel.send(
-        `Proper usage: ${message.client.prefix}${this.name} ${
+        `Proper usage: ${message.prefix}${this.name} ${
           this.usage
         }\nSubcommands: \`${this.subcommands.join("`, `")}\``
       );

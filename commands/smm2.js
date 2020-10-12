@@ -16,7 +16,7 @@ module.exports = {
     usage: "<keywords>",
     category: 7,
     async execute(message, args) {
-        if (!args[0]) return message.channel.send("Please provide a query for searching!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+        if (!args[0]) return message.channel.send("Please provide a query for searching!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
         const courses = await fetch(`https://api.smmdb.net/courses2?limit=100&title=${encodeURIComponent(args.join(" "))}`).then(res => res.json());
         const allEmbeds = [];
         for (const course of courses) {

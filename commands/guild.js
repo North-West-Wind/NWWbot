@@ -24,7 +24,7 @@ module.exports = {
 	subcommands: ["splash", "invite", "lottery"],
 	subaliases: ["sp", "in", "lot"],
 	async execute(message, args, pool) {
-		if (!args[0]) return message.channel.send("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${message.client.prefix}${this.name} ${this.usage}`);
+		if (!args[0]) return message.channel.send("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${message.prefix}${this.name} ${this.usage}`);
 
 		switch (args[0]) {
 			case "sp":
@@ -40,7 +40,7 @@ module.exports = {
 			case "timer":
 				return await this.timer(message, args, pool);
 			default:
-				return message.channel.send("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${message.client.prefix}${this.name} ${this.usage}`);
+				return message.channel.send("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${message.prefix}${this.name} ${this.usage}`);
 		}
 	},
 	async invite(message, args, pool) {

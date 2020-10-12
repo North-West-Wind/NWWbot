@@ -44,7 +44,7 @@ module.exports = {
   async execute(message, args) {
     var ended = new Map();
     if (args.length >= 1 && args[0].toLowerCase() === "region") {
-      return await this.region(message, args);
+      return await this.region(message);
     }
     const reactPermissions =
       message.guild.me.permissions.has(90176) &&
@@ -366,13 +366,13 @@ module.exports = {
       
     });
   },
-  async region(message, args) {
+  async region(message) {
     const regionEmbed = new Discord.MessageEmbed()
       .setColor(color)
       .setTitle("Akinator")
       .setDescription("Region list\n\n`" + this.regions.join("`\n`") + "`")
       .setFooter(
-        'Use "' + prefix + 'aki [region]" to start a game.',
+        'Use "' + message.prefix + 'aki [region]" to start a game.',
         message.client.user.displayAvatarURL()
       );
     message.channel.send(regionEmbed);

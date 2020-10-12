@@ -11,7 +11,7 @@ module.exports = {
     category: 3,
     subcomamnds: ["text", "image"],
     async execute(message, args) {
-        if(!args[0]) return message.channel.send(`Please provide a subcommand!\nUsage: \`${message.client.prefix}${this.name} ${this.usage}\`\nAvailable Subcommands: \`${this.subcomamnds.join(", ")}\``);
+        if(!args[0]) return message.channel.send(`Please provide a subcommand!\nUsage: \`${message.prefix}${this.name} ${this.usage}\`\nAvailable Subcommands: \`${this.subcomamnds.join(", ")}\``);
         switch(args[0].toLowerCase()) {
             case "text":
                 if(!args[1]) return message.channel.send("You didn't provide any text! If you want to convert an image, use the `image` subcommand.");

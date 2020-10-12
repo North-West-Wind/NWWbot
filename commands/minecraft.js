@@ -16,7 +16,7 @@ module.exports = {
 
     if (!args[0]) {
       return message.channel.send(
-        "Please tell me the Minecraft username of that user or use a subcommand." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``
+        "Please tell me the Minecraft username of that user or use a subcommand." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``
       );
     }
     if (args[0] === "profile" || args[0] === "pro" || !args[1]) {

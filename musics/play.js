@@ -279,7 +279,7 @@ module.exports = {
       else if (validGDURL(args.slice(1).join(" "))) result = await this.addGDURL(message, args);
       else if (validMSURL(args.slice(1).join(" "))) result = await this.addMSURL(message, args);
       else if (validURL(args.slice(1).join(" "))) result = await this.addURL(message, args);
-      else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+      else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.prefix}${this.name} ${this.usage}\``);
       if (result.error) return;
       else songs = result.songs;
       if (!songs || songs.length < 1) return message.reply("there was an error trying to add the soundtrack!");
@@ -963,7 +963,7 @@ module.exports = {
     if (!id) {
       if (alphanumeric.test(args.slice(1).join(" "))) id = args.slice(1).join(" ");
       else {
-        message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+        message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.prefix}${this.name} ${this.usage}\``);
         return { error: true };
       }
     }
@@ -1078,6 +1078,8 @@ module.exports = {
       var video = searched.items.filter(x => x.type === "video");
     } catch (err) {
       console.error(err);
+      message.reply("there was an error trying to search the videos!");
+      return { error: true };
     }
     var num = 0;
     for (let i = 0; i < Math.min(video.length, 10); i++) {
