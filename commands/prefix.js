@@ -3,7 +3,7 @@ module.exports = {
     description: "Change the prefix of the server.",
     usage: "[prefix]",
     execute(message, args, pool) {
-        if(!args[0]) return message.channel.send(`The prefix of this server is "${message.prefix}". Use \`${message.prefix}prefix [prefix]\` to change the prefix.`);
+        if(!args[0]) return message.channel.send(`The prefix of this server is \`${message.prefix}\`. Use \`${message.prefix}prefix [prefix]\` to change the prefix.`);
         if(!message.guild) return message.channel.send("You are not in a server!");
         if(!message.member.hasPermission(32)) return message.channel.send("You don't have the permission to change the prefix of the server!");
         console.prefixes[message.guild.id] = args.join(" ");
