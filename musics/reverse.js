@@ -2,7 +2,7 @@ const { play, updateQueue } = require("./play.js");
 
 module.exports = {
     name: "reverse",
-    description: "Reverse the server queue.",
+    description: "Reverse the order of the server queue.",
     aliases: ["rev"],
     category: 8,
     async music(message, serverQueue, queue, pool) {

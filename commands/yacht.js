@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 
 module.exports = {
     name: "yacht",
-    description: "The Yacht Dice Game on Discord.",
+    description: "Play the Yacht Dice Game on Discord.",
     category: 3,
     async execute(message) {
         if(!message.channel.permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
