@@ -1,7 +1,6 @@
 module.exports = {
   name: "repeat",
   description: "Toggle repeat of a song.",
-  usage: " ",
   aliases: ["rep", "rp"],
   category: 8,
   music(message, serverQueue, queue, pool) {

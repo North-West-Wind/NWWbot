@@ -1,4 +1,4 @@
-const { play } = require("./play.js");
+const { play, updateQueue } = require("./play.js");
 
 module.exports = {
     name: "unskip",
@@ -37,20 +37,7 @@ module.exports = {
                 serverQueue.songs.unshift(song);
             }
         }
-        pool.getConnection(function (err, con) {
-            if (err) return message.reply("there was an error trying to connect to the database!");
-            con.query(
-                "UPDATE servers SET queue = '" +
-                escape(JSON.stringify(serverQueue.songs)) +
-                "' WHERE id = " +
-                guild.id,
-                function (err) {
-                    if (err) return message.reply("there was an error trying to update the queue!");
-                    console.log("Updated song queue of " + guild.name);
-                }
-            );
-            con.release();
-        });
+        updateQueue(message, serverQueue, queue, pool);
         message.channel.send(`Unskipped **${skipped}** track${skipped > 1 ? "s" : ""}!`);
         if (message.member.voice.channel && serverQueue.playing) {
             if (!serverQueue.connection) serverQueue.connection = await message.member.voice.channel.join();

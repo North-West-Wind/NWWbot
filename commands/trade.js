@@ -5,7 +5,6 @@ module.exports = {
   name: "trade",
   description: "Announce in the channel that you want to trade something.",
   args: true,
-  usage: " ",
   category: 4,
   async execute(message, args) {
     message.delete();

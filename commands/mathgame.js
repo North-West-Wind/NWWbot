@@ -8,7 +8,6 @@ formatSetup(moment);
 module.exports = {
     name: "mathgame",
     description: "Math Game prototype.",
-    usage: " ",
     category: 9,
     async execute(message, args) {
         if(!message.channel.permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");

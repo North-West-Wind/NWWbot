@@ -5,7 +5,6 @@ module.exports = {
   name: "bank",
   description:
     "Display your Discord Economy status. You can also deposit or withdraw money with this command.",
-  usage: " ",
   category: 2,
   async execute(message, args, pool) {
     pool.getConnection(async function (err, con) {

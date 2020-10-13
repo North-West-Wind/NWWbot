@@ -13,6 +13,7 @@ module.exports = {
             con.query(`UPDATE servers SET prefix = '${console.prefixes[message.guild.id]}' WHERE id = '${message.guild.id}'`, (err) => {
                 if(err) return message.reply("there was an error trying to save the changes! The change of the prefix will be temporary!");
                 message.channel.send("Changes have been saved properly!");
+                console.log(`Changed prefix of ${message.guild.name} to ${console.prefixes[message.guild.id]}`);
             });
             con.release();
         });

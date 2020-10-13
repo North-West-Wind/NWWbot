@@ -38,7 +38,6 @@ const Discord = require("discord.js");
 module.exports = {
     name: "axolotl",
     description: "Get a random Axolotl image.",
-    usage: " ",
     category: 3,
     aliases: ["axol"],
     async execute(message) {

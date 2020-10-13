@@ -8,7 +8,7 @@ const {
     validSCURL,
     validMSURL
 } = require("../function.js");
-const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDURL, addMSURL, addURL, search } = require("./play.js");
+const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDURL, addMSURL, addURL, search, updateQueue } = require("./play.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
@@ -53,27 +53,7 @@ module.exports = {
                     looping: false,
                     repeating: false
                 };
-
-                queue.set(message.guild.id, queueContruct);
-
                 try {
-                    pool.getConnection(function (err, con) {
-                        if (err) return message.reply("there was an error trying to connect to the database!");
-                        con.query(
-                            "UPDATE servers SET queue = '" +
-                            escape(JSON.stringify(queueContruct.songs)) +
-                            "' WHERE id = " +
-                            message.guild.id,
-                            function (err, result) {
-                                if (err)
-                                    return message.reply(
-                                        "there was an error trying to update the queue!"
-                                    );
-                                console.log("Updated song queue of " + message.guild.name);
-                            }
-                        );
-                        con.release();
-                    });
                     const Embed = new Discord.MessageEmbed()
                         .setColor(color)
                         .setTitle("New track added:")
@@ -101,24 +81,7 @@ module.exports = {
                 }
             } else {
                 serverQueue.songs = serverQueue.songs.concat(songs);
-
-                pool.getConnection(function (err, con) {
-                    if (err) return message.reply("there was an error trying to connect to the database!");
-                    con.query(
-                        "UPDATE servers SET queue = '" +
-                        escape(JSON.stringify(serverQueue.songs)) +
-                        "' WHERE id = " +
-                        message.guild.id,
-                        function (err) {
-                            if (err)
-                                return message.reply(
-                                    "there was an error trying to update the queue!"
-                                );
-                            console.log("Updated song queue of " + message.guild.name);
-                        }
-                    );
-                    con.release();
-                });
+                updateQueue(message, serverQueue, queue, pool);
                 const Embed = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle("New track added:")
@@ -150,7 +113,7 @@ module.exports = {
                     textChannel: null,
                     voiceChannel: null,
                     connection: null,
-                    songs: [],
+                    songs: [song],
                     volume: 1,
                     playing: false,
                     paused: false,
@@ -158,27 +121,7 @@ module.exports = {
                     looping: false,
                     repeating: false
                 };
-
-                queue.set(message.guild.id, queueContruct);
-
-                await queueContruct.songs.push(song);
-                pool.getConnection(function (err, con) {
-                    if (err) return console.error(err);
-                    con.query(
-                        "UPDATE servers SET queue = '" +
-                        escape(JSON.stringify(queueContruct.songs)) +
-                        "' WHERE id = " +
-                        message.guild.id,
-                        function (err) {
-                            if (err)
-                                return console.error(err);
-                            console.log(
-                                "Updated song queue of " + message.guild.name
-                            );
-                        }
-                    );
-                    con.release();
-                });
+                updateQueue(message, queueContruct, queue, pool);
                 try {
                     msg.edit(Embed).then(msg => {
                         setTimeout(() => {
@@ -192,23 +135,7 @@ module.exports = {
                 }
             } else {
                 serverQueue.songs.push(song);
-                pool.getConnection(function (err, con) {
-                    if (err) return console.error(err);
-                    con.query(
-                        "UPDATE servers SET queue = '" +
-                        escape(JSON.stringify(serverQueue.songs)) +
-                        "' WHERE id = " +
-                        message.guild.id,
-                        function (err) {
-                            if (err)
-                                return console.error(err);
-                            console.log(
-                                "Updated song queue of " + message.guild.name
-                            );
-                        }
-                    );
-                    con.release();
-                });
+                updateQueue(message, serverQueue, queue, pool);
                 const Embed = new Discord.MessageEmbed()
                     .setColor(color)
                     .setTitle("New track added:")

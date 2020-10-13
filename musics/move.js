@@ -1,5 +1,5 @@
 const arrayMove = require('array-move');
-const { play } = require("./play.js")
+const { play, updateQueue } = require("./play.js")
 
 module.exports = {
   name: "move",
@@ -33,21 +33,7 @@ module.exports = {
       );
     var title = serverQueue.songs[targetIndex].title;
     arrayMove.mutate(serverQueue.songs, targetIndex, destIndex);
-    pool.getConnection(function (err, con) {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(
-        "UPDATE servers SET queue = '" +
-        escape(JSON.stringify(serverQueue.songs))
-        +
-        "' WHERE id = " +
-        message.guild.id,
-        function (err) {
-          if (err) return message.reply("there was an error trying to update the queue!");
-          console.log("Updated song queue of " + message.guild.name);
-        }
-      );
-      con.release();
-    });
+    updateQueue(message, serverQueue, queue, pool);
     message.channel.send(
       `**${title}** has been moved from **#${queueIndex}** to **#${dest}**.`
     );

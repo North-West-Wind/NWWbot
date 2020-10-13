@@ -84,8 +84,8 @@ module.exports = {
       data.push(`**Aliases:** ${command.aliases.join(", ")}`);
     if (command.description)
       data.push(`**Description:** ${command.description}`);
-    if (command.usage)
-      data.push(`**Usage:** ${message.prefix}${command.name} ${command.usage}`);
+    if (command.usage) data.push(`**Usage:** ${message.prefix}${command.name} ${command.usage}`);
+    else data.push(`**Usage:** ${message.prefix}${command.name}`);
     if (command.subcommands)
       data.push(`**Subcommands:** ${command.subcommands.join(", ")}`);
     if (command.subaliases)

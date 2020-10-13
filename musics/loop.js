@@ -1,7 +1,6 @@
 module.exports = {
   name: "loop",
   description: "Toggle loop of the song queue.",
-  usage: " ",
   category: 8,
   aliases: ["lp"],
   music(message, serverQueue, queue, pool) {

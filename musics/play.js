@@ -39,22 +39,33 @@ const requestStream = url => {
   });
 };
 
+function updateQueue(message, serverQueue, queue, pool) {
+  if(serverQueue === null) queue.delete(message.guild.id);
+  else queue.set(message.guild.id, serverQueue);
+  pool.getConnection(function (err, con) {
+    if (err) {
+      if(!message.dummy) message.reply("there was an error trying to connect to the database!");
+      return;
+    }
+    const query = `UPDATE servers SET queue = ${serverQueue === null ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`;
+    con.query(query, function (err) {
+        if (err) {
+          if(!message.dummy) message.reply("there was an error trying to update the queue!");
+          return;
+        }
+        console.log("Updated song queue of " + message.guild.name);
+      }
+    );
+    con.release();
+  });
+}
+
 async function play(guild, song, queue, pool, skipped = 0) {
   const serverQueue = queue.get(guild.id);
+  const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!song) {
     guild.me.voice.channel.leave();
-    queue.delete(guild.id);
-    pool.getConnection(function (err, con) {
-      if (err) return console.error(err);
-      con.query(
-        "UPDATE servers SET queue = NULL WHERE id = " + guild.id,
-        function (err) {
-          if (err) return console.error(err);
-          console.log("Updated song queue of " + guild.name);
-        }
-      );
-      con.release();
-    });
+    updateQueue(message, null, queue, pool);
     return;
   }
 
@@ -86,21 +97,7 @@ async function play(guild, song, queue, pool, skipped = 0) {
     if (!guildRepeatStatus) {
       await serverQueue.songs.shift();
     }
-
-    pool.getConnection(function (err, con) {
-      if (err) return console.error(err);
-      con.query(
-        "UPDATE servers SET queue = '" +
-        escape(JSON.stringify(serverQueue.songs)) +
-        "' WHERE id = " +
-        guild.id,
-        function (err) {
-          if (err) console.error(err);
-          console.log("Updated song queue of " + guild.name);
-        }
-      );
-      con.release();
-    });
+    updateQueue(message, serverQueue, queue, pool);
     return await play(guild, serverQueue.songs[0], queue, pool, skipped);
   }
   if (song.type === 2 || song.type === 4) {
@@ -164,21 +161,7 @@ async function play(guild, song, queue, pool, skipped = 0) {
       if (!guildRepeatStatus) {
         await serverQueue.songs.shift();
       }
-
-      pool.getConnection(function (err, con) {
-        if (err) return console.error(err);
-        con.query(
-          "UPDATE servers SET queue = '" +
-          escape(JSON.stringify(serverQueue.songs)) +
-          "' WHERE id = " +
-          guild.id,
-          function (err) {
-            if (err) return console.error(err);
-            console.log("Updated song queue of " + guild.name);
-          }
-        );
-        con.release();
-      });
+      updateQueue(message, serverQueue, queue, pool);
       if (Date.now() - now < 1000 && serverQueue.textChannel) {
         serverQueue.textChannel.send(`There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist. ${oldSkipped < 2 ? "" : `(${oldSkipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
         oldSkipped++;
@@ -256,7 +239,7 @@ module.exports = {
         serverQueue.connection = connection;
         serverQueue.playing = true;
         serverQueue.textChannel = message.channel;
-        await queue.set(message.guild.id, serverQueue);
+        queue.set(message.guild.id, serverQueue);
         play(message.guild, serverQueue.songs[0], queue, pool);
         return;
       } else {
@@ -271,7 +254,7 @@ module.exports = {
     if (checkURL) {
       var songs = [];
       var result = { error: true, attachment: false };
-      if(message.attachments.size > 0 && args.length < 2) { songs = songss; result.attachment = true; }
+      if (message.attachments.size > 0 && args.length < 2) { songs = songss; result.attachment = true; }
       else if (validYTURL(args.slice(1).join(" "))) {
         if (validYTPlaylistURL(args.slice(1).join(" "))) result = await this.addYTPlaylist(message, args);
         else result = await this.addYTURL(message, args);
@@ -282,7 +265,7 @@ module.exports = {
       else if (validURL(args.slice(1).join(" "))) result = await this.addURL(message, args);
       else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.prefix}${this.name} ${this.usage}\``);
       if (result.error) return;
-      else if(!result.attachment) songs = result.songs;
+      else if (!result.attachment) songs = result.songs;
       if (!songs || songs.length < 1) return message.reply("there was an error trying to add the soundtrack!");
 
       if (!serverQueue) {
@@ -298,27 +281,8 @@ module.exports = {
           looping: false,
           repeating: false
         };
-
-        queue.set(message.guild.id, queueContruct);
-
         try {
-          pool.getConnection(function (err, con) {
-            if (err) return message.reply("there was an error trying to connect to the database!");
-            con.query(
-              "UPDATE servers SET queue = '" +
-              escape(JSON.stringify(queueContruct.songs)) +
-              "' WHERE id = " +
-              message.guild.id,
-              function (err, result) {
-                if (err)
-                  return message.reply(
-                    "there was an error trying to update the queue!"
-                  );
-                console.log("Updated song queue of " + message.guild.name);
-              }
-            );
-            con.release();
-          });
+          this.updateQueue(message, queueContruct, queue, pool);
           try {
             var connection = await voiceChannel.join();
           } catch (err) {
@@ -365,25 +329,7 @@ module.exports = {
         } else {
           serverQueue.songs = serverQueue.songs.concat(songs);
         }
-
-        pool.getConnection(function (err, con) {
-          if (err) return message.reply("there was an error trying to connect to the database!");
-          con.query(
-            "UPDATE servers SET queue = '" +
-            escape(JSON.stringify(serverQueue.songs)) +
-            "' WHERE id = " +
-            message.guild.id,
-            function (err) {
-              if (err)
-                return message.reply(
-                  "there was an error trying to update the queue!"
-                );
-              console.log("Updated song queue of " + message.guild.name);
-            }
-          );
-          con.release();
-        });
-
+        this.updateQueue(message, serverQueue, queue, pool);
         if (!message.guild.me.voice.channel) {
           try {
             var connection = await voiceChannel.join();
@@ -433,8 +379,8 @@ module.exports = {
       }
     } else {
       const result = await this.search(message, args);
-      if(result.error) return;
-      var song = result.song; 
+      if (result.error) return;
+      var song = result.song;
       var msg = result.msg;
       const Embed = result.embed;
       if (!serverQueue) {
@@ -450,29 +396,7 @@ module.exports = {
           looping: false,
           repeating: false
         };
-
-        queue.set(message.guild.id, queueContruct);
-
-        await queueContruct.songs.push(song);
-        pool.getConnection(function (err, con) {
-          if (err) return console.error(err);
-          con.query(
-            "UPDATE servers SET queue = '" +
-            escape(JSON.stringify(queueContruct.songs)) +
-            "' WHERE id = " +
-            message.guild.id,
-            function (err) {
-              if (err)
-                return message.reply(
-                  "there was an error trying to execute that command!"
-                );
-              console.log(
-                "Updated song queue of " + message.guild.name
-              );
-            }
-          );
-          con.release();
-        });
+        this.updateQueue(message, queueContruct, queue, pool);
         try {
           try {
             var connection = await voiceChannel.join();
@@ -502,25 +426,7 @@ module.exports = {
       } else {
         if (!message.guild.me.voice.channel || !serverQueue.playing) serverQueue.songs.unshift(song);
         else serverQueue.songs.push(song);
-        pool.getConnection(function (err, con) {
-          if (err) return message.reply("there was an error trying to connect to the database!");
-          con.query(
-            "UPDATE servers SET queue = '" +
-            escape(JSON.stringify(serverQueue.songs)) +
-            "' WHERE id = " +
-            message.guild.id,
-            function (err) {
-              if (err)
-                return message.reply(
-                  "there was an error trying to update the queue!"
-                );
-              console.log(
-                "Updated song queue of " + message.guild.name
-              );
-            }
-          );
-          con.release();
-        });
+        this.updateQueue(message, serverQueue, queue, pool);
         if (!message.guild.me.voice.channel) {
           try {
             var connection = await voiceChannel.join();
@@ -1087,7 +993,7 @@ module.exports = {
       try {
         saved.push(video[i]);
         results.push(`${++num} - **[${decodeHtmlEntity(video[i].title)}](${video[i].link})** : **${video[i].duration}**`);
-      } catch(err) {
+      } catch (err) {
         --num;
       }
     }
@@ -1096,12 +1002,12 @@ module.exports = {
     var filter = x => x.author.id === message.author.id;
 
     var collected = await msg.channel.awaitMessages(filter, { max: 1, time: 30000, error: ["time"] });
-    if(!collected || !collected.first() || !collected.first().content) {
+    if (!collected || !collected.first() || !collected.first().content) {
       const Ended = new Discord.MessageEmbed()
-          .setColor(color)
-          .setTitle("Cannot parse your choice.")
-          .setTimestamp()
-          .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+        .setColor(color)
+        .setTitle("Cannot parse your choice.")
+        .setTimestamp()
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       msg.edit(Ended).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
       return { error: true };
     }
@@ -1150,5 +1056,6 @@ module.exports = {
       volume: 1
     };
     return { error: false, song, msg, embed: Embed };
-  }
+  },
+  updateQueue: updateQueue
 };

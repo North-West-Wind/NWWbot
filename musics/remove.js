@@ -1,4 +1,4 @@
-const { play } = require("./play.js");
+const { play, updateQueue } = require("./play.js");
 
 module.exports = {
   name: "remove",
@@ -23,21 +23,7 @@ module.exports = {
     var oldSong = serverQueue.songs[0];
     var title = song.title;
     var removed = await serverQueue.songs.splice(deleteIndex, args[2] && !isNaN(parseInt(args[2])) ? parseInt(args[2]) : 1);
-    pool.getConnection(function (err, con) {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(
-        "UPDATE servers SET queue = '" +
-        escape(JSON.stringify(serverQueue.songs))
-        +
-        "' WHERE id = " +
-        message.guild.id,
-        function (err) {
-          if (err) return message.reply("there was an error trying to update the queue!");
-          console.log("Updated song queue of " + message.guild.name);
-        }
-      );
-      con.release();
-    });
+    updateQueue(message, serverQueue, queue, pool);
     message.channel.send(
       `${removed.length > 1 ? `**${removed.length} tracks** have` : `**${title}** has`} been removed from the queue.`
     );

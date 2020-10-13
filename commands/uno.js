@@ -64,7 +64,6 @@ async function canvasImg(assets, cards) {
 module.exports = {
   name: "uno",
   description: "Play UNO with your friends!",
-  usage: " ",
   category: 3,
   async execute(message, args) {
     var msg = await message.channel.send(

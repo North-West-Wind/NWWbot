@@ -1121,7 +1121,7 @@ module.exports = {
     },
     async message(message, musicCommandsArray, exit, client, id) {
         message.prefix = client.prefix;
-        if(message.guild && console.prefixes[message.guild.id]) message.prefix = console.prefixes[message.guild.id];
+        if(message.guild && console.prefixes[message.guild.id] && id == 0) message.prefix = console.prefixes[message.guild.id];
         if (!message.content.startsWith(message.prefix) || message.author.bot) {
             if (!message.author.bot) {
                 if(message.mentions.users.has(process.env.DC) && message.mentions.users.size > 4) {

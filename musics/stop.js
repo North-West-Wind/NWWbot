@@ -2,7 +2,6 @@ module.exports = {
   name: "stop",
   description: "Stop the music and disconnect the bot from the voice channel.",
   aliases: ["end", "disconnect", "dis"],
-  usage: " ",
   category: 8,
   async music(message, serverQueue) {
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to stop the music when the bot is playing!");

@@ -1,11 +1,10 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
-
+const { updateQueue } = require("./play.js");
 module.exports = {
   name: "queue",
   description: "Display the current song queue.",
   aliases: ["q"],
-  usage: " ",
   subcommands: ["save", "load", "delete", "list"],
   subaliases: ["s", "l", "d", "li"],
   category: 8,
