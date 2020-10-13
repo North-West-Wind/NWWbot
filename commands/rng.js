@@ -11,10 +11,10 @@ module.exports = {
 		let decimal = -1;
     
     if(!args[0]) {
-      return message.channel.send("You didn't provide the minimum number!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("You didn't provide the minimum number!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     }
     if(!args[1]) {
-      return message.channel.send("You didn't provide the maximum number!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("You didn't provide the maximum number!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
     }
     
     if(isNaN(Number(args[0])) || isNaN(Number(args[1]))) return message.channel.send("Discovered non-number objects!");

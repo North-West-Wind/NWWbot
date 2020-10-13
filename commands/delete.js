@@ -26,7 +26,7 @@ module.exports = {
       return;
     }
     if (!args[0]) {
-      return message.channel.send("You didn't provide any amount!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("You didn't provide any amount!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     }
 
     var amount = parseInt(args[0]);
@@ -62,7 +62,7 @@ module.exports = {
       } else {
         var channel = await message.guild.channels.fetch(channelID);
         if(!channel) return message.channel.send("The channel is not valid!");
-        if (!args[1]) return message.channel.send("You didn't provide any amount!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+        if (!args[1]) return message.channel.send("You didn't provide any amount!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
         amount = parseInt(args[1]);
         if(isNaN(amount)) {
           

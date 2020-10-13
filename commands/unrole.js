@@ -12,8 +12,8 @@ module.exports = {
       return;
     }
     
-    if(!args[0]) return message.channel.send("Please mention an user!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
-    if(!args[1]) return message.channel.send("Please mention a role!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+    if(!args[0]) return message.channel.send("Please mention an user!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
+    if(!args[1]) return message.channel.send("Please mention a role!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     
 		 var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {

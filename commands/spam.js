@@ -12,13 +12,13 @@ module.exports = {
   async execute(message, args) {
     
     if(!args[0]) {
-      return message.channel.send("Please tell me the user!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("Please tell me the user!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     }
     if(!args[1]) {
-      return message.channel.send("Please tell me the time you want to spam this user!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("Please tell me the time you want to spam this user!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     }
     if(!args[2]) {
-      return message.channel.send("Please enter the message to spam!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("Please enter the message to spam!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
     }
     
     const taggedUser = await findUser(message, args[0]);

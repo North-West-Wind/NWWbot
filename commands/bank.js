@@ -5,7 +5,6 @@ module.exports = {
   name: "bank",
   description:
     "Display your Discord Economy status. You can also deposit or withdraw money with this command.",
-  usage: " ",
   category: 2,
   async execute(message, args, pool) {
     pool.getConnection(async function (err, con) {
@@ -30,7 +29,7 @@ module.exports = {
           if (results.length == 0) {
             return message.channel.send(
               "You don't have any bank account registered. Use `" +
-              message.client.prefix +
+              message.prefix +
               "work` to work and have an account registered!"
             );
           } else {

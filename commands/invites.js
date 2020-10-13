@@ -7,8 +7,8 @@ module.exports = {
   usage: "[subcommand]",
   subcommands: ["me", "toggle"],
   aliases: ["inv"],
-  category: 6,
   async execute(message, args, pool) {
+		if(message.guild.id !== "622311594654695434") return;
     const filter = (reaction, user) => {
       return (
         ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&

@@ -19,7 +19,7 @@ module.exports = {
     }
     
     if(!args[0]) {
-      return message.channel.send("You didn't tell me the role to delete!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("You didn't tell me the role to delete!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
     }
     
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");

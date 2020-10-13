@@ -7,7 +7,6 @@ module.exports = {
   name: "work",
   description:
     "Work in the server and gain virtual money. By working more, you will gain experience and level up. That can make you gain more.",
-  usage: " ",
   category: 2,
   execute(message, args, pool) {
     var currentDate = new Date();

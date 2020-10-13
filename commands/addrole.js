@@ -17,7 +17,7 @@ module.exports = {
       return;
     }
     if(!args[0]) {
-      return message.channel.send("You didn't tell me the role name!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("You didn't tell me the role name!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     }
     if(!args[1]) {
       message.guild

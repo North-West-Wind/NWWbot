@@ -8,7 +8,7 @@ module.exports = {
   usage: "<song>",
   category: 7,
   async execute(message, args) {
-    if(!args[0]) return message.channel.send("You didn't provide any song!" + ` Usage: ${message.client.prefix}${this.name}${this.usage}`);
+    if(!args[0]) return message.channel.send("You didn't provide any song!" + ` Usage: ${message.prefix}${this.name}${this.usage}`);
     
     var lyrics = await solenolyrics.requestLyricsFor(args.join(" "));
     var title = await solenolyrics.requestTitleFor(args.join(" "));

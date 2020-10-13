@@ -12,7 +12,7 @@ module.exports = {
     if(!message.channel.nsfw) {
       return message.channel.send("Please use an NSFW channel to use this command!")
     }
-    if(!args[0]) return message.channel.send("Please provide at least 1 tag!" + ` Usage: ${message.client.prefix}${this.name} ${this.usage}`)
+    if(!args[0]) return message.channel.send("Please provide at least 1 tag!" + ` Usage: ${message.prefix}${this.name} ${this.usage}`)
     async function pick() {
     var posts = await Booru.search("rule34.paheal.net", args, { limit: 100, random: false });
     var pickedPost = posts[Math.floor(Math.random() * posts.length)];

@@ -11,7 +11,7 @@ module.exports = {
   category: 7,
   async execute(message, args) {
     if (!args.length) {
-      return message.channel.send("You need to supply a search term!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("You need to supply a search term!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     }
 
     const query = querystring.stringify({ term: args.join(" ") });

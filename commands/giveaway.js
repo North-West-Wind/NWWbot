@@ -16,10 +16,10 @@ module.exports = {
   category: 4,
   async execute(message, args, pool) {
     const guild = message.guild;
-
+    const prefix = message.prefix;
     if (!args[0]) {
       return message.channel.send(
-        `Proper usage: ${message.client.prefix}${this.name} ${
+        `Proper usage: ${message.prefix}${this.name} ${
           this.usage
         }\nSubcommands: \`${this.subcommands.join("`, `")}\``
       );

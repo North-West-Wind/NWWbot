@@ -9,10 +9,10 @@ module.exports = {
   category: 0,
 	async execute(message, args) {
    if(!args[0]) {
-     return message.channel.send("Please tell me the channel to announce." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
+     return message.channel.send("Please tell me the channel to announce." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
    }
     if(!args[1]) {
-      return message.channel.send("Please provide the message to announce." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``)
+      return message.channel.send("Please provide the message to announce." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
     }
     
     var channel = await message.guild.channels.resolve(args[0].replace(/<#/g, "").replace(/>/g, ""))

@@ -17,7 +17,6 @@ const mysql_config = {
 };
 var pool = mysql.createPool(mysql_config);
 const { setTimeout_ } = require("./function.js");
-const wait = require("util").promisify(setTimeout);
 const profile = (str) => {
 	return new Promise((resolve, reject) => {
 		require("mojang-api").profile(str, function (err, res) { if(err) reject(err); else resolve(res); });
@@ -27,6 +26,7 @@ const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 var timeout = undefined;
+console.prefixes = {};
 module.exports = {
     async ready(client, id) {
         console.log(`[${id}] Ready!`);
@@ -156,7 +156,7 @@ module.exports = {
             if (err) return console.error(err);
             const { setQueue } = require("./musics/main.js");
             if (id === 0) {
-                con.query("SELECT id, queue, looping, repeating FROM servers", function (err, results) {
+                con.query("SELECT id, queue, looping, repeating, prefix FROM servers", function (err, results) {
                     if (err) return console.error(err);
                     var count = 0;
                     results.forEach(result => {
@@ -172,6 +172,7 @@ module.exports = {
                             setQueue(result.id, queue, result.looping === 1 ? true : false, result.repeating === 1 ? true : false);
                             count += 1;
                         }
+                        if(result.prefix) try { console.prefixes[result.id] = result.prefix; } catch(err) {}
                     });
                     console.log(`[${id}] ` + "Set " + count + " queues");
                 });
@@ -563,16 +564,11 @@ module.exports = {
             });
             con.release();
         });
-        wait(1000);
-        client.guilds.cache.forEach(g => {
-            g.fetchInvites().then(guildInvites => {
-                console.invites[g.id] = guildInvites;
-            }).catch(err => { });
-        });
+        if(id == 1) client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
     },
     async guildMemberAdd(member, client, id) {
         const guild = member.guild;
-        guild.fetchInvites().then(async guildInvites => {
+        if(guild.id === "622311594654695434") guild.fetchInvites().then(async guildInvites => {
             const ei = console.invites[member.guild.id];
             console.invites[member.guild.id] = guildInvites;
             const invite = await guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
@@ -589,7 +585,7 @@ module.exports = {
             } catch (err) {
                 console.error("Failed to DM user.");
             }
-        }).catch(err => { });
+        }).catch(() => { });
         if (guild.id == "677780367188557824")
             setTimeout(async () => {
                 var role = await guild.roles.fetch("677785442099396608");
@@ -1124,7 +1120,9 @@ module.exports = {
         });
     },
     async message(message, musicCommandsArray, exit, client, id) {
-        if (!message.content.startsWith(client.prefix) || message.author.bot) {
+        message.prefix = client.prefix;
+        if(message.guild && console.prefixes[message.guild.id] && id == 0) message.prefix = console.prefixes[message.guild.id];
+        if (!message.content.startsWith(message.prefix) || message.author.bot) {
             if (!message.author.bot) {
                 if(message.mentions.users.has(process.env.DC) && message.mentions.users.size > 4) {
                     message.delete().then(() => {
@@ -1184,7 +1182,7 @@ module.exports = {
                 }
             }
             try {
-                command.execute(message, args, pool, musicCommandsArray, console.rm);
+                await command.execute(message, args, pool, musicCommandsArray, console.rm);
             } catch (error) {
                 console.error(error);
                 message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");

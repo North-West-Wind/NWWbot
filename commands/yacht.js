@@ -2,8 +2,7 @@ const Discord = require("discord.js");
 
 module.exports = {
     name: "yacht",
-    description: "The Yacht Dice Game on Discord.",
-    usage: " ",
+    description: "Play the Yacht Dice Game on Discord.",
     category: 3,
     async execute(message) {
         if(!message.channel.permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
@@ -224,6 +223,7 @@ module.exports = {
             const str = `${dices.map(x => `Dice ${dices.indexOf(x) + 1}: **${x.number}${x.locked ? " (Locked)" : ""}**`).join("\n")}\n\nScores:\n1s: **${scores["1s"].score}**\n2s: **${scores["2s"].score}**\n3s: **${scores["3s"].score}**\n4s: **${scores["4s"].score}**\n5s: **${scores["5s"].score}**\n6s: **${scores["6s"].score}**\nBonus: **${scores.bonus.score}**\n3 of a kind: **${scores.triple.score}**\n4 of a kind: **${scores.quadruple.score}**\nFull House: **${scores.doubtri.score}**\n4 Straight: **${scores["4str"].score}**\n5 Straight: **${scores["5str"].score}**\nYacht: **${scores.quintuple.score}**\nChoice: **${scores.choice.score}**`;
             em.setTitle(`Yacht Dice Game (Round ${round})`).setDescription(str + `\nCommands:\n**Roll** - Roll the dices (${3 - rolled} times left)\n**Lock <index>** - Lock the dices with indexes 1 to 6\n**Score <category>** Choose a category to place your score and move to the next turn\n**End** - End the game immediately`);
             msg = await msg.edit(em);
+            if(round > 12) collector.emit("end");
         });
         collector.on("end", async() => {
             await end();

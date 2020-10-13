@@ -45,8 +45,8 @@ module.exports = {
     "bazaar"
   ],
   subaliases: ["g", "ach", "tnt", "bw", "du", "sw", "sg", "ar", "mm", "bb", "mcgo", "vz", "pb", "q", "uhc", "wa", "mw", "cw", "sh", "suhc", "are", "p", "sb", "ah", "ba"],
-  async execute(message, args, pool) {
-    const prefix = message.client.prefix;
+  async execute(message, args) {
+    const prefix = message.prefix;
     if (!args[0]) {
       return message.channel.send(
         "Please use one of the subcommands or enter an username for profile!" + ` Usage: \`${prefix}${this.name} ${this.usage}\``

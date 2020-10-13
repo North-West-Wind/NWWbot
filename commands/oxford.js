@@ -19,7 +19,7 @@ module.exports = {
   async execute(message, args) {
 
     if (!args[0]) {
-      return message.channel.send(`Please enter a keyword/keywords.\nUsage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+      return message.channel.send(`Please enter a keyword/keywords.\nUsage: \`${message.prefix}${this.name} ${this.usage}\``);
     }
 
     try {

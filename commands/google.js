@@ -10,7 +10,7 @@ module.exports = {
   category: 4,
   async execute(message, args) {
     if(args.length < 1) {
-      return message.channel.send("Please provide a query for searching!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("Please provide a query for searching!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     }
     
     var results = [];

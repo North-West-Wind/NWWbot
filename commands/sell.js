@@ -9,8 +9,8 @@ module.exports = {
   args: true,
   category: 9,
   async execute(message, args, pool) {
-    if (!args[0]) return message.channel.send("Please state the price!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
-    if (!args[1]) return message.channel.send("Please provide the item!" + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+    if (!args[0]) return message.channel.send("Please state the price!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
+    if (!args[1]) return message.channel.send("Please provide the item!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
 
     if (isNaN(Number(args[0])))
       return message.channel.send(args[0] + " is not a valid price!");

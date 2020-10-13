@@ -1,5 +1,5 @@
 const arrayMove = require('array-move');
-const { play } = require("./play.js")
+const { play, updateQueue } = require("./play.js")
 
 module.exports = {
   name: "move",
@@ -8,8 +8,8 @@ module.exports = {
   category: 8,
   async music(message, serverQueue, queue, pool) {
     const args = message.content.split(/ +/);
-    if (!args[1]) return message.channel.send("You did not provide any target." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
-    if (!args[2]) return message.channel.send("You did not provide any destination." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+    if (!args[1]) return message.channel.send("You did not provide any target." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
+    if (!args[2]) return message.channel.send("You did not provide any destination." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to alter the queue when the bot is playing!");
     var queueIndex = parseInt(args[1]);
     var dest = parseInt(args[2]);
@@ -33,21 +33,7 @@ module.exports = {
       );
     var title = serverQueue.songs[targetIndex].title;
     arrayMove.mutate(serverQueue.songs, targetIndex, destIndex);
-    pool.getConnection(function (err, con) {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(
-        "UPDATE servers SET queue = '" +
-        escape(JSON.stringify(serverQueue.songs))
-        +
-        "' WHERE id = " +
-        message.guild.id,
-        function (err) {
-          if (err) return message.reply("there was an error trying to update the queue!");
-          console.log("Updated song queue of " + message.guild.name);
-        }
-      );
-      con.release();
-    });
+    updateQueue(message, serverQueue, queue, pool);
     message.channel.send(
       `**${title}** has been moved from **#${queueIndex}** to **#${dest}**.`
     );

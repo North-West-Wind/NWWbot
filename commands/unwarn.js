@@ -19,7 +19,7 @@ module.exports = {
       if (!args[0]) {
         return message.channel.send(
           "Tell me who you are unwarning." +
-            ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``
+            ` Usage: \`${message.prefix}${this.name} ${this.usage}\``
         );
       }
 

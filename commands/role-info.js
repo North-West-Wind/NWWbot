@@ -10,7 +10,7 @@ module.exports = {
   category: 6,
   async execute(message, args) {
     if(!args[0]) {
-      return message.channel.send("Please mention a role/role ID/role name." + ` Usage: \`${message.client.prefix}${this.name} ${this.usage}\``);
+      return message.channel.send("Please mention a role/role ID/role name." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     }
     
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");

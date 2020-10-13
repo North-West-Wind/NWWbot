@@ -6,7 +6,6 @@ module.exports = {
   name: "inventory",
   description: "Display your inventory.",
   aliases: ["e"],
-  usage: " ",
   category: 2,
   async execute(message, args, pool) {
     pool.getConnection(function(err, con) {
