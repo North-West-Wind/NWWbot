@@ -60,7 +60,7 @@ function updateQueue(message, serverQueue, queue, pool) {
   });
 }
 
-async function play(guild, song, queue, pool, skipped = 0) {
+async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   const serverQueue = queue.get(guild.id);
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!song) {
@@ -70,8 +70,8 @@ async function play(guild, song, queue, pool, skipped = 0) {
   }
 
   if (serverQueue.connection === null) return;
-  if (serverQueue.connection.dispatcher)
-    serverQueue.startTime = serverQueue.connection.dispatcher.streamTime;
+  if (serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
+  else serverQueue.startTime = -seek * 1000;
 
   var dispatcher;
   async function skip() {
@@ -104,7 +104,7 @@ async function play(guild, song, queue, pool, skipped = 0) {
     try {
       var requestedStream = await requestStream(song.url);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }));
+      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25, seek: seek }));
     } catch (err) {
       console.error(err);
       return await skip();
@@ -120,14 +120,14 @@ async function play(guild, song, queue, pool, skipped = 0) {
     try {
       var requestedStream = await requestStream(song.mp3);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }));
+      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25, seek: seek }));
     } catch (err) {
       console.error(err);
       return await skip();
     }
   } else {
     try {
-      dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 29, dlChunkSize: 0, filter: "audioonly", requestOptions: { headers: { cookie: process.env.COOKIE } } }));
+      dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 28, dlChunkSize: 0, filter: "audioonly", requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
     } catch (err) {
       console.error(err);
       return await skip();
@@ -140,7 +140,7 @@ async function play(guild, song, queue, pool, skipped = 0) {
       .setTitle("Now playing:")
       .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
       .setDescription(
-        `**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**`
+        `**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**${seek > 0 ? ` | Starts From: **${moment.duration(seek, "seconds").format()}**` : ""}`
       )
       .setTimestamp()
       .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
@@ -543,7 +543,7 @@ module.exports = {
   },
   async addYTURL(message, args) {
     try {
-      var songInfo = await ytdl.getInfo(args.slice(1).join(" "), { requestOptions: { headers: { cookie: process.env.COOKIE } } });
+      var songInfo = await ytdl.getInfo(args.slice(1).join(" "), { requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
     } catch (err) {
       message.channel.send("No video was found!");
       return { error: false };

@@ -19,7 +19,7 @@ module.exports = {
     const guildRepeatStatus = serverQueue.repeating;
     if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
     if (guildRepeatStatus) {
-      skipped = 0;
+      skipped = 1;
     } else if (guildLoopStatus) {
       if (args[1]) {
         if (isNaN(parseInt(args[1]))) {
