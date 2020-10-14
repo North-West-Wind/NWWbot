@@ -10,5 +10,6 @@ module.exports = {
     if (message.guild.me.voice.channel)
       message.guild.me.voice.channel.leave();
     updateQueue(message, null, queue, pool);
+    message.channel.send("The queue has been cleared!");
   }
 };
