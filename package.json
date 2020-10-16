@@ -61,7 +61,6 @@
     "svg-to-pdfkit": "^0.1.8",
     "wikijs": "^6.0.0",
     "ytdl-core": "github:fent/node-ytdl-core",
-    "ytdl-core-discord": "github:amishshah/ytdl-core-discord#dependabot/npm_and_yarn/ytdl-core-3.3.0",
     "ytpl": "^1.0.1",
     "ytsr": "^1.0.4"
   }
