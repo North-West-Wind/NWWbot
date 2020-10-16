@@ -7,9 +7,8 @@ module.exports = {
   description: "Display lyrics of songs if they are found.",
   usage: "<song>",
   category: 7,
+  args: 1,
   async execute(message, args) {
-    if(!args[0]) return message.channel.send("You didn't provide any song!" + ` Usage: ${message.prefix}${this.name}${this.usage}`);
-    
     var lyrics = await solenolyrics.requestLyricsFor(args.join(" "));
     var title = await solenolyrics.requestTitleFor(args.join(" "));
     var author = await solenolyrics.requestAuthorFor(args.join(" "));
@@ -43,6 +42,7 @@ module.exports = {
           }
           recheck();
           var em = new Discord.MessageEmbed()
+          .setThumbnail(icon)
           .setColor(color)
           .setTitle(title)
           .setAuthor(author)
@@ -65,6 +65,7 @@ module.exports = {
       }
       recheck();
       var em = new Discord.MessageEmbed()
+      .setThumbnail(icon)
       .setColor(color)
       .setTitle(title)
       .setAuthor(author)

@@ -1,9 +1,8 @@
 var queue = new Map();
-var migrating = [];
 
 module.exports = {
   name: "main",
-  async music(message, commandName, pool, exit) {
+  async music(message, commandName, pool) {
     const command =
     console.commands.get(commandName) ||
     console.commands.find(
@@ -13,7 +12,7 @@ module.exports = {
     const serverQueue = queue.get(message.guild.id);
     
     try {
-      await command.music(message, serverQueue, queue, pool, exit, migrating);
+      await command.music(message, serverQueue, queue, pool);
     } catch(error) {
       console.error(error);
       message.reply("there was an error trying to execute that command!");

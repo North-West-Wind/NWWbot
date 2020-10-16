@@ -9,9 +9,9 @@ module.exports = {
     subcommands: ["evaluate", "derivative", "rationalize", "simplify", "help"],
     subaliases: ["eval", "ddx", "rat", "sim", "help"],
     category: 4,
+    args: 2,
     async execute(message, args) {
         let done = "Error!";
-        if(!args[0]) return message.channel.send(`You didn't provide any subcommands! Usage: \`${message.prefix}${this.name} ${this.usage}\``);
         switch(args[0]) {
             case "evaluate":
             case "eval":

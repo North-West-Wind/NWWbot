@@ -40,21 +40,21 @@ const requestStream = url => {
 };
 
 function updateQueue(message, serverQueue, queue, pool) {
-  if(serverQueue === null) queue.delete(message.guild.id);
+  if (serverQueue === null) queue.delete(message.guild.id);
   else queue.set(message.guild.id, serverQueue);
-  pool.getConnection(function (err, con) {
+  if (pool) pool.getConnection(function (err, con) {
     if (err) {
-      if(!message.dummy) message.reply("there was an error trying to connect to the database!");
+      if (!message.dummy) message.reply("there was an error trying to connect to the database!");
       return;
     }
     const query = `UPDATE servers SET queue = ${serverQueue === null ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`;
     con.query(query, function (err) {
-        if (err) {
-          if(!message.dummy) message.reply("there was an error trying to update the queue!");
-          return;
-        }
-        console.log("Updated song queue of " + message.guild.name);
+      if (err) {
+        if (!message.dummy) message.reply("there was an error trying to update the queue!");
+        return;
       }
+      console.log("Updated song queue of " + message.guild.name);
+    }
     );
     con.release();
   });
@@ -191,7 +191,7 @@ module.exports = {
   aliases: ["p"],
   usage: "[link | keywords | attachment]",
   category: 8,
-  async music(message, serverQueue, queue, pool, exit, migrating) {
+  async music(message, serverQueue, queue, pool) {
     const args = message.content.split(/ +/);
 
     const voiceChannel = message.member.voice.channel;
@@ -210,8 +210,8 @@ module.exports = {
           return message.channel.send(
             "No song queue was found for this server! Please provide a link or keywords to get a music played!"
           );
-        if (serverQueue.playing === true || migrating.find(x => x === message.guild.id)) {
-          return await migrate(message, serverQueue, queue, pool, exit, migrating);
+        if (serverQueue.playing === true || console.migrating.find(x => x === message.guild.id)) {
+          return await migrate(message, serverQueue, queue, pool);
         }
 
         if (

@@ -1,10 +1,12 @@
+const { updateQueue } = require("./play");
+
 module.exports = {
   name: "volume",
   description: "Turn the volume of music up or down by percentage.",
-  usage: "<percentage>",
+  usage: "[percentage]",
   aliases: ["vol"],
   category: 8,
-  async music(message, serverQueue) {
+  async music(message, serverQueue, queue) {
     var args = message.content.split(/ +/);
     if(!args[1]) return message.channel.send(`The current volume is **${Math.round(serverQueue.volume * 100)}%** and the current volume of the soundtrack is **${Math.round(serverQueue.volume * (serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.songs[0].volume : 1) * 100)}%**`);
     if(!serverQueue) return message.channel.send("There is nothing playing. Volume didn't change.");
@@ -27,5 +29,6 @@ module.exports = {
       serverQueue.connection.dispatcher.setVolume(serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume);
       console.log(`Set volume of ${message.guild.name} to ${serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume}`);
     }
+    updateQueue(message, serverQueue, queue, null);
   }
 }

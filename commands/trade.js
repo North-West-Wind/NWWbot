@@ -4,9 +4,8 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
   name: "trade",
   description: "Announce in the channel that you want to trade something.",
-  args: true,
   category: 4,
-  async execute(message, args) {
+  async execute(message) {
     message.delete();
     const filter = x => x.author.id === message.author.id;
     var msg = await message.channel.send("What do you want?");

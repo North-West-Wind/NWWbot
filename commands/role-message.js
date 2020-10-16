@@ -7,10 +7,8 @@ module.exports = {
   subaliases: ["cr", "re"],
   aliases: ["role-msg", "rm"],
   category: 0,
+  args: 1,
   async execute(message, args, pool) {
-    if(!args[0]) {
-      return message.channel.send("Please use a subcommand!" + ` Usage: ${message.prefix}${this.name}${this.usage}`);
-    }
     if(args[0] === "create" || args[0] === "cr") {
       return await this.create(message, pool, console.rm);
     }

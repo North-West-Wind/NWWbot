@@ -7,9 +7,9 @@ module.exports = {
   description: "Search Wikipedia for stuff.",
   usage: "<query>",
   aliases: ["wikipedia"],
+  args: 1,
   category: 7,
   async execute(message, args) {
-    if(!args[0]) return message.channel.send("Please provide keywords to search with!");
     var data = await wiki({ apiUrl: 'https://en.wikipedia.org/w/api.php' }).search(args.join(" "), 100);
     var num = 0;
     var allEmbeds = [];

@@ -1,3 +1,5 @@
+const { updateQueue } = require("./play");
+
 module.exports = {
   name: "repeat",
   description: "Toggle repeat of a song.",
@@ -30,7 +32,7 @@ module.exports = {
         });
         con.release();
       });
-      return;
     }
+    updateQueue(message, serverQueue, queue, null);
   }
 }

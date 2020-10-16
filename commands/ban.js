@@ -4,7 +4,7 @@ const { findUser } = require("../function.js");
 module.exports = {
   name: "ban",
   description: "Ban a member of the server.",
-  args: true,
+  args: 1,
   usage: "<user | user ID> [reason]",
   category: 1,
   execute(message, args) {
@@ -21,13 +21,6 @@ module.exports = {
     // Let's pretend you mentioned the user you want to add a role to (!addrole @user Role Name):
 
     if (!message.guild) return;
-    
-    if(!args[0]) {
-      return message.channel.send("You didn't mention any user!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
-    }
-    
-    
-   
     findUser(message, args[0]).then(async user => {
       
       if(!user) return;

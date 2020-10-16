@@ -23,8 +23,8 @@ module.exports = {
   usage: "<subcommand>",
   subcommands: ["create", "edit", "delete"],
   category: 4,
+  args: 1,
   async execute(message, args, pool) {
-    if (!args[0]) return message.channel.send(`Please choose a subcommand. **${this.subcommands.join(", ")}** Usage: ${message.prefix}${this.name} ${this.usage}`);
     if (!this.subcommands.includes(args[0])) return message.channel.send(`What is that subcommand? This are the subcommands: **${this.subcommands.join(", ")}**`);
     switch (args[0]) {
       case "create":

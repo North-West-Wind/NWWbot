@@ -16,12 +16,8 @@ module.exports = {
   usage: "<keywords>",
   aliases: ["ox"],
   category: 7,
+  args: 1,
   async execute(message, args) {
-
-    if (!args[0]) {
-      return message.channel.send(`Please enter a keyword/keywords.\nUsage: \`${message.prefix}${this.name} ${this.usage}\``);
-    }
-
     try {
       var lookup = await dict.find(escape(args.join(" ")));
     } catch (err) {

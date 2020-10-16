@@ -7,6 +7,7 @@ module.exports = {
   name: "welcome",
   description: "Test the welcome message and image.",
   category: 6,
+  usage: "[user | user ID]",
   async execute(message, args, pool) {
     let member = message.member;
     if (args[0]) {

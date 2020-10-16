@@ -11,14 +11,9 @@ module.exports = {
   subcommands: ["profile", "server", "history"],
   subaliases: ["pro", "srv", "his"],
   category: 7,
+  args: 1,
   execute(message, args) {
     const MojangAPI = require("mojang-api");
-
-    if (!args[0]) {
-      return message.channel.send(
-        "Please tell me the Minecraft username of that user or use a subcommand." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``
-      );
-    }
     if (args[0] === "profile" || args[0] === "pro" || !args[1]) {
       if (!args[1]) {
         var str = args[0];
