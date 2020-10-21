@@ -183,6 +183,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     })
     .on("error", async error => {
       console.error(error);
+      skipped = oldSkipped;
       await skip();
     });
   dispatcher.setVolume(serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume);
