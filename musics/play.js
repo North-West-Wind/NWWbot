@@ -24,6 +24,7 @@ const fetch = require("node-fetch");
 const request = require("request-stream");
 const mm = require("music-metadata");
 const ytsr = require("ytsr");
+const ytsr2 = require("youtube-sr");
 const ytpl = require("ytpl");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
@@ -630,7 +631,18 @@ module.exports = {
               x => x.type === "video" && x.duration.split(":").length < 3
             );
           } catch (err) {
-            return console.error(err);
+            try {
+              var searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
+              var results = searched.map(x => {
+                return {
+                  live: false,
+                  duration: x.durationFormatted,
+                  link: `https://www.youtube.com/watch?v=${x.id}`
+                }
+              });
+            } catch (err) {
+              return console.error(err);
+            }
           }
 
           for (var s = 0; s < results.length; s++) {
@@ -708,14 +720,27 @@ module.exports = {
           var matched;
           try {
             var searched = await ytsr(
-              tracks[i].artists[0].name + " - " + tracks[i].name,
+              tracks[i].track.artists[0].name +
+              " - " +
+              tracks[i].track.name,
               { limit: 20 }
             );
             var results = searched.items.filter(
               x => x.type === "video" && x.duration.split(":").length < 3
             );
           } catch (err) {
-            return console.error(err);
+            try {
+              var searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
+              var results = searched.map(x => {
+                return {
+                  live: false,
+                  duration: x.durationFormatted,
+                  link: `https://www.youtube.com/watch?v=${x.id}`
+                }
+              });
+            } catch (err) {
+              return console.error(err);
+            }
           }
           for (var s = 0; s < results.length; s++) {
             if (results.length == 0) break;
@@ -762,14 +787,27 @@ module.exports = {
           var matched;
           try {
             var searched = await ytsr(
-              tracks[i].artists[0].name + " - " + tracks[i].name,
+              tracks[i].track.artists[0].name +
+              " - " +
+              tracks[i].track.name,
               { limit: 20 }
             );
             var results = searched.items.filter(
               x => x.type === "video" && x.duration.split(":").length < 3
             );
           } catch (err) {
-            return console.error(err);
+            try {
+              var searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
+              var results = searched.map(x => {
+                return {
+                  live: false,
+                  duration: x.durationFormatted,
+                  link: `https://www.youtube.com/watch?v=${x.id}`
+                }
+              });
+            } catch (err) {
+              return console.error(err);
+            }
           }
           for (var s = 0; s < results.length; s++) {
             if (results.length == 0) break;
@@ -979,23 +1017,32 @@ module.exports = {
       .setTimestamp()
       .setFooter("Choose your song by typing the number, or type anything else to cancel.", message.client.user.displayAvatarURL());
     const results = [];
-    var saved = [];
     try {
       var searched = await ytsr(args.slice(1).join(" "), { limit: 20 });
       var video = searched.items.filter(x => x.type === "video");
     } catch (err) {
-      console.error(err);
-      message.reply("there was an error trying to search the videos!");
-      return { error: true };
+      try {
+        var searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
+        var video = searched.map(x => {
+          return {
+            live: false,
+            duration: x.durationFormatted,
+            link: `https://www.youtube.com/watch?v=${x.id}`,
+            title: x.title,
+            thumbnail: x.thumbnail.url
+          }
+        });
+      } catch (err) {
+        console.error(err);
+        message.reply("there was an error trying to search the videos!");
+        return { error: true };
+      }
     }
     var num = 0;
-    for (let i = 0; i < Math.min(video.length, 10); i++) {
-      try {
-        saved.push(video[i]);
-        results.push(`${++num} - **[${decodeHtmlEntity(video[i].title)}](${video[i].link})** : **${video[i].duration}**`);
-      } catch (err) {
-        --num;
-      }
+    for (let i = 0; i < Math.min(video.length, 10); i++) try {
+      results.push(`${++num} - **[${decodeHtmlEntity(video[i].title)}](${video[i].link})** : **${video[i].duration}**`);
+    } catch (err) {
+      --num;
     }
     Embed.setDescription(results.join("\n"));
     var msg = await message.channel.send(Embed)
@@ -1034,10 +1081,10 @@ module.exports = {
     const chosenEmbed = new Discord.MessageEmbed()
       .setColor(color)
       .setTitle("Music chosen:")
-      .setThumbnail(saved[s].thumbnail)
+      .setThumbnail(video[s].thumbnail)
       .setDescription(
-        `**[${decodeHtmlEntity(saved[s].title)}](${saved[s].link
-        })** : **${saved[s].duration}**`
+        `**[${decodeHtmlEntity(video[s].title)}](${video[s].link
+        })** : **${video[s].duration}**`
       )
       .setTimestamp()
       .setFooter(
@@ -1046,13 +1093,13 @@ module.exports = {
       );
 
     await msg.edit(chosenEmbed).catch(() => { });
-    var length = !saved[s].live ? saved[s].duration : "∞";
+    var length = !video[s].live ? video[s].duration : "∞";
     var song = {
-      title: decodeHtmlEntity(saved[s].title),
-      url: saved[s].link,
+      title: decodeHtmlEntity(video[s].title),
+      url: video[s].link,
       type: 0,
       time: length,
-      thumbnail: saved[s].thumbnail,
+      thumbnail: video[s].thumbnail,
       volume: 1
     };
     return { error: false, song, msg, embed: Embed };
