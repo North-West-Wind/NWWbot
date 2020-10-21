@@ -62,6 +62,6 @@
     "wikijs": "^6.0.0",
     "ytdl-core": "github:fent/node-ytdl-core",
     "ytpl": "^1.0.1",
-    "ytsr": "^1.0.4"
+    "ytsr": "github:TimeForANinja/node-ytsr#wip-api-adjustments"
   }
 }
