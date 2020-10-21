@@ -28,8 +28,5 @@ module.exports = {
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       return message.channel.send(Embed);
-    
-
-    message.channel.send(Embed);
   }
 };

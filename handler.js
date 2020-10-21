@@ -473,8 +473,7 @@ module.exports = {
                                 console.error(err);
                             });
                             con.query("DELETE FROM poll WHERE id = " + msg.id, function (
-                                err,
-                                result
+                                err
                             ) {
                                 if (err) return console.error(err);
                                 console.log("Deleted an ended poll.");

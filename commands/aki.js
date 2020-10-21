@@ -292,7 +292,7 @@ module.exports = {
               console.error("Failed to remove reactions.");
             }
 
-            if (aki.currentStep >= 79) {
+            if (aki.currentStep >= 419) {
               embed.setTitle("My Final Guess is... 🤔");
             } else {
               embed.setTitle("I'm thinking of... 🤔");
@@ -314,7 +314,6 @@ module.exports = {
 
             // done with the game, we can't do anything else.
             if (aki.currentStep >= 419) {
-              embed.setTitle("This is my final guess!");
               embed.setDescription(`**${name}**\n**${description}**`);
               embed.setFooter(
                 "Hope I am correct!",

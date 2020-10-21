@@ -61,7 +61,7 @@ module.exports = {
                     message.guild.name +
                     "**."
                 );
-              return message.author.send(banSuccessfulEmbed);
+              return message.channel.send(banSuccessfulEmbed);
             })
             .catch(err => {
               message.channel.send("I failed to ban this member!");
@@ -70,9 +70,6 @@ module.exports = {
         } else {
           message.channel.send("That user doesn't exist!");
         }
-      
-    }).catch(err => {
-      return message.channel.send("I cannot find this member!")
-    });
+    })
   }
 };

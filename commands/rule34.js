@@ -10,31 +10,36 @@ module.exports = {
   category: 5,
   args: 1,
   async execute(message, args) {
-    if(!message.channel.nsfw) {
+    if (!message.channel.nsfw) {
       return message.channel.send("Please use an NSFW channel to use this command!")
     }
     async function pick() {
-    var posts = await Booru.search("rule34.paheal.net", args, { limit: 100, random: false });
-    var pickedPost = posts[Math.floor(Math.random() * posts.length)];
-      if(!pickedPost) return pick();
+      try {
+        var posts = await Booru.search("rule34.paheal.net", args, { random: true });
+      } catch (err) {
+        message.reply("there was an error trying to find rule34 with this tag!");
+        return { error: true };
+      }
+      var pickedPost = posts[Math.floor(Math.random() * posts.length)];
+      if (!pickedPost) return pick();
       else return pickedPost;
     }
-    
     var post = await pick();
+    if(post.error) return;
     var fileUrl;
-    if(post.sampleUrl) fileUrl = post.sampleUrl;
-    else if(post.fileUrl) fileUrl = post.fileUrl;
-    else if(post.source) fileUrl = post.source;
-    else if(post.data.file_url) fileUrl = post.data.file_url;
-    else return await this.execute(message, args);
+    if (post.sampleUrl) fileUrl = post.sampleUrl;
+    else if (post.fileUrl) fileUrl = post.fileUrl;
+    else if (post.source) fileUrl = post.source;
+    else if (post.data.file_url) fileUrl = post.data.file_url;
+    else return message.channel.send("Cannot find any image!");
     const Embed = new Discord.MessageEmbed()
-    .setColor(color)
-    .setTitle("Searching tags: " + args.join(", "))
-    .setDescription("Tags: `" + post.tags.join(", ") + "`\nPlease be patient. Image will load soon...")
-    .setTimestamp()
-    .setFooter("From " + post.booru.domain, message.client.user.displayAvatarURL())
-    .setImage(fileUrl);
-    
+      .setColor(color)
+      .setTitle("Searching tags: " + args.join(", "))
+      .setDescription("Tags: `" + post.tags.join(", ") + "`\nPlease be patient. Image will load soon...")
+      .setTimestamp()
+      .setFooter("From " + post.booru.domain, message.client.user.displayAvatarURL())
+      .setImage(fileUrl);
+
     message.channel.send(Embed);
   }
 }
