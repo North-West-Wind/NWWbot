@@ -1022,7 +1022,7 @@ module.exports = {
       var video = searched.items.filter(x => x.type === "video");
     } catch (err) {
       try {
-        var searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
+        var searched = await ytsr2.search(args.slice(1).join(" "), { limit: 20 });
         var video = searched.map(x => {
           return {
             live: false,
