@@ -105,7 +105,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     try {
       var requestedStream = await requestStream(song.url);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25, seek: seek }));
+      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }), { seek: seek });
     } catch (err) {
       console.error(err);
       return await skip();
@@ -121,14 +121,16 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     try {
       var requestedStream = await requestStream(song.mp3);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25, seek: seek }));
+      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }), { seek: seek });
     } catch (err) {
       console.error(err);
       return await skip();
     }
   } else {
     try {
-      dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 28, dlChunkSize: 0, filter: "audioonly", requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
+      var requestedStream = ytdl(song.url, { highWaterMark: 1 << 28, dlChunkSize: 0, filter: "audioonly", requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
+      var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
+      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }), { seek: seek });
     } catch (err) {
       console.error(err);
       return await skip();
@@ -179,8 +181,9 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
       } else oldSkipped = 0;
       play(guild, serverQueue.songs[0], queue, pool, oldSkipped);
     })
-    .on("error", error => {
+    .on("error", async error => {
       console.error(error);
+      await skip();
     });
   dispatcher.setVolume(serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume);
 }
