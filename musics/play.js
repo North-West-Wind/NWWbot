@@ -128,9 +128,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     }
   } else {
     try {
-      var requestedStream = ytdl(song.url, { highWaterMark: 1 << 28, dlChunkSize: 0, filter: "audioonly", requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
-      var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }), { seek: seek });
+      dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 28, dlChunkSize: 0, filter: "audioonly", requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
     } catch (err) {
       console.error(err);
       return await skip();
