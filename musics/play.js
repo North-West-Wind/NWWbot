@@ -648,7 +648,6 @@ module.exports = {
               return console.error(err);
             }
           }
-
           for (var s = 0; s < results.length; s++) {
             if (results.length == 0) break;
             if (isGoodMusicVideoContent(results[s])) {
