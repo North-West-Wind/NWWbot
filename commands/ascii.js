@@ -10,6 +10,7 @@ module.exports = {
     usage: "<subcommand> <text | attachment>",
     category: 3,
     subcomamnds: ["text", "image"],
+    args: 2,
     async execute(message, args) {
         if(!args[0]) return message.channel.send(`Please provide a subcommand!\nUsage: \`${message.prefix}${this.name} ${this.usage}\`\nAvailable Subcommands: \`${this.subcomamnds.join(", ")}\``);
         switch(args[0].toLowerCase()) {

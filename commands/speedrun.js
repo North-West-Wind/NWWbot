@@ -8,11 +8,8 @@ module.exports = {
   aliases: ["sr"],
   usage: "<game>",
   category: 7,
+  args: 1,
   async execute(message, args) {
-    if (!args[0])
-      return message.channel.send(
-        "Please enter the name of the game you want to search!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``
-      );
     var gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(args.join(" "))}`).then(res => res.json());
     if(gameFetch.status && gameFetch.status === 404) {
     var result = await fetch(

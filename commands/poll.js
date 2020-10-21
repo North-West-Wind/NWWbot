@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const client = new Discord.Client();
 const { ms } = require("../function.js");
 
 const { twoDigits, setTimeout_ } = require("../function.js");
@@ -11,6 +10,7 @@ module.exports = {
   usage: "<subcommand>",
   subcommands: ["create", "end", "list"],
   category: 4,
+  args: 1,
   async execute(message, args, pool) {
     if (!args[0]) {
       return message.channel.send(

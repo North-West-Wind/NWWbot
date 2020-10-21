@@ -6,15 +6,10 @@ module.exports = {
   name: "google",
   description: "Google Search everything with Discord.",
   usage: "<query>",
-  args: true,
+  args: 1,
   category: 4,
   async execute(message, args) {
-    if(args.length < 1) {
-      return message.channel.send("Please provide a query for searching!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
-    }
-    
     var results = [];
-    
     var links = await googleIt({ query: args.join(" ") });
     links.slice(0, 10);
     var num = 0;

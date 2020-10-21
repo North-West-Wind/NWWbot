@@ -11,6 +11,7 @@ const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const ytdl = require("ytdl-core");
 const scdl = require("soundcloud-downloader");
+const { ms } = require("../function.js");
 
 module.exports = {
   name: "np",
@@ -26,24 +27,8 @@ module.exports = {
     for(let i = 0; i < 20; i++) processBar.push("═");
     var progress = 0;
     var isLive = false;
-    switch(serverQueue.songs[0].type) {
-      case 0:
-      case 1:
-        var songInfo = await ytdl.getInfo(serverQueue.songs[0].url, { requestOptions: { headers: { cookie: process.env.COOKIE } } }).catch(console.error);
-        if(songInfo.videoDetails.isLive || songInfo.videoDetails.isLiveContent) isLive = true;
-        var length = parseInt(songInfo.videoDetails.lengthSecond);
-        break;
-      case 2:
-      case 4:
-        var stream = await requestStream(serverQueue.songs[0].url).catch(console.error);
-        var metadata = await mm.parseStream(stream, {}, { duration: true }).catch(console.error);
-        var length = Math.round(metadata.format.duration);
-        break;
-      case 3:
-        var info = await scdl.getInfo(serverQueue.songs[0].url);
-        var length = Math.round(info.duration / 1000);
-        break;
-    }
+    if(serverQueue.songs[0].time === "∞") isLive = true;
+    else var length = ms(serverQueue.songs[0].time);
     if(isLive) {
       processBar.splice(19, 1, "█");
       var positionTime = "∞";
@@ -51,8 +36,7 @@ module.exports = {
       var positionTime = moment.duration(Math.round(position / 1000), "seconds").format();
       if(position === 0 || isNaN(position))
         positionTime = "0:00";
-      var totalLength = Math.round(length * 1000);
-      progress = Math.floor((position / totalLength) * processBar.length);
+      progress = Math.floor((position / length) * processBar.length);
       processBar.splice(progress, 1, "█");
     }
     var info = [];

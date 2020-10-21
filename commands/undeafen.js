@@ -5,7 +5,7 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
   name: "undeafen",
   description: "Undeafen a member while the member is in a voice channel.",
-  args: true,
+  args: 1,
   aliases: ["undeaf"],
   usage: "<user | user ID> [reason]",
   category: 1,
@@ -21,12 +21,6 @@ module.exports = {
       return;
     }
     if (!message.guild) return;
-
-    if (!args[0]) {
-      return message.channel.send("You didn't mention any user!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
-    }
-
-
     var member = await findMember(message, args[0]);
 
     if (!member) return;

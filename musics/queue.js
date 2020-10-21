@@ -224,7 +224,7 @@ module.exports = {
             } else {
               var voiceChannel = null;
             }
-            var queueContruct = {
+            const queueContruct = {
               textChannel: message.channel,
               voiceChannel: voiceChannel,
               connection: null,
@@ -422,7 +422,7 @@ module.exports = {
             } else {
               var voiceChannel = null;
             }
-            var queueContruct = {
+            const queueContruct = {
               textChannel: message.channel,
               voiceChannel: voiceChannel,
               connection: null,

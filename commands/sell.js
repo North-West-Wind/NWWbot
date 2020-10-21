@@ -6,12 +6,9 @@ module.exports = {
   name: "sell",
   description: "Put something to the cross-server shop and sell it!",
   usage: "<price> <item>",
-  args: true,
+  args: 2,
   category: 9,
   async execute(message, args, pool) {
-    if (!args[0]) return message.channel.send("Please state the price!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
-    if (!args[1]) return message.channel.send("Please provide the item!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
-
     if (isNaN(Number(args[0])))
       return message.channel.send(args[0] + " is not a valid price!");
 

@@ -24,6 +24,7 @@ const fetch = require("node-fetch");
 const request = require("request-stream");
 const mm = require("music-metadata");
 const ytsr = require("ytsr");
+const ytsr2 = require("youtube-sr");
 const ytpl = require("ytpl");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
@@ -40,27 +41,27 @@ const requestStream = url => {
 };
 
 function updateQueue(message, serverQueue, queue, pool) {
-  if(serverQueue === null) queue.delete(message.guild.id);
+  if (serverQueue === null) queue.delete(message.guild.id);
   else queue.set(message.guild.id, serverQueue);
-  pool.getConnection(function (err, con) {
+  if (pool) pool.getConnection(function (err, con) {
     if (err) {
-      if(!message.dummy) message.reply("there was an error trying to connect to the database!");
+      if (!message.dummy) message.reply("there was an error trying to connect to the database!");
       return;
     }
     const query = `UPDATE servers SET queue = ${serverQueue === null ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`;
     con.query(query, function (err) {
-        if (err) {
-          if(!message.dummy) message.reply("there was an error trying to update the queue!");
-          return;
-        }
-        console.log("Updated song queue of " + message.guild.name);
+      if (err) {
+        if (!message.dummy) message.reply("there was an error trying to update the queue!");
+        return;
       }
+      console.log("Updated song queue of " + message.guild.name);
+    }
     );
     con.release();
   });
 }
 
-async function play(guild, song, queue, pool, skipped = 0) {
+async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   const serverQueue = queue.get(guild.id);
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!song) {
@@ -70,8 +71,8 @@ async function play(guild, song, queue, pool, skipped = 0) {
   }
 
   if (serverQueue.connection === null) return;
-  if (serverQueue.connection.dispatcher)
-    serverQueue.startTime = serverQueue.connection.dispatcher.streamTime;
+  if (serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
+  else serverQueue.startTime = -seek * 1000;
 
   var dispatcher;
   async function skip() {
@@ -104,7 +105,7 @@ async function play(guild, song, queue, pool, skipped = 0) {
     try {
       var requestedStream = await requestStream(song.url);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }));
+      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25, seek: seek }));
     } catch (err) {
       console.error(err);
       return await skip();
@@ -120,14 +121,14 @@ async function play(guild, song, queue, pool, skipped = 0) {
     try {
       var requestedStream = await requestStream(song.mp3);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }));
+      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25, seek: seek }));
     } catch (err) {
       console.error(err);
       return await skip();
     }
   } else {
     try {
-      dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 29, dlChunkSize: 0, filter: "audioonly", requestOptions: { headers: { cookie: process.env.COOKIE } } }));
+      dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 28, dlChunkSize: 0, filter: "audioonly", requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
     } catch (err) {
       console.error(err);
       return await skip();
@@ -140,7 +141,7 @@ async function play(guild, song, queue, pool, skipped = 0) {
       .setTitle("Now playing:")
       .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
       .setDescription(
-        `**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**`
+        `**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**${seek > 0 ? ` | Starts From: **${moment.duration(seek, "seconds").format()}**` : ""}`
       )
       .setTimestamp()
       .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
@@ -191,7 +192,7 @@ module.exports = {
   aliases: ["p"],
   usage: "[link | keywords | attachment]",
   category: 8,
-  async music(message, serverQueue, queue, pool, exit, migrating) {
+  async music(message, serverQueue, queue, pool) {
     const args = message.content.split(/ +/);
 
     const voiceChannel = message.member.voice.channel;
@@ -210,8 +211,8 @@ module.exports = {
           return message.channel.send(
             "No song queue was found for this server! Please provide a link or keywords to get a music played!"
           );
-        if (serverQueue.playing === true || migrating.find(x => x === message.guild.id)) {
-          return await migrate(message, serverQueue, queue, pool, exit, migrating);
+        if (serverQueue.playing === true || console.migrating.find(x => x === message.guild.id)) {
+          return await migrate(message, serverQueue, queue, pool);
         }
 
         if (
@@ -543,7 +544,7 @@ module.exports = {
   },
   async addYTURL(message, args) {
     try {
-      var songInfo = await ytdl.getInfo(args.slice(1).join(" "), { requestOptions: { headers: { cookie: process.env.COOKIE } } });
+      var songInfo = await ytdl.getInfo(args.slice(1).join(" "), { requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
     } catch (err) {
       message.channel.send("No video was found!");
       return { error: false };
@@ -630,7 +631,18 @@ module.exports = {
               x => x.type === "video" && x.duration.split(":").length < 3
             );
           } catch (err) {
-            return console.error(err);
+            try {
+              var searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
+              var results = searched.map(x => {
+                return {
+                  live: false,
+                  duration: x.durationFormatted,
+                  link: `https://www.youtube.com/watch?v=${x.id}`
+                }
+              });
+            } catch (err) {
+              return console.error(err);
+            }
           }
 
           for (var s = 0; s < results.length; s++) {
@@ -708,14 +720,27 @@ module.exports = {
           var matched;
           try {
             var searched = await ytsr(
-              tracks[i].artists[0].name + " - " + tracks[i].name,
+              tracks[i].track.artists[0].name +
+              " - " +
+              tracks[i].track.name,
               { limit: 20 }
             );
             var results = searched.items.filter(
               x => x.type === "video" && x.duration.split(":").length < 3
             );
           } catch (err) {
-            return console.error(err);
+            try {
+              var searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
+              var results = searched.map(x => {
+                return {
+                  live: false,
+                  duration: x.durationFormatted,
+                  link: `https://www.youtube.com/watch?v=${x.id}`
+                }
+              });
+            } catch (err) {
+              return console.error(err);
+            }
           }
           for (var s = 0; s < results.length; s++) {
             if (results.length == 0) break;
@@ -762,14 +787,27 @@ module.exports = {
           var matched;
           try {
             var searched = await ytsr(
-              tracks[i].artists[0].name + " - " + tracks[i].name,
+              tracks[i].track.artists[0].name +
+              " - " +
+              tracks[i].track.name,
               { limit: 20 }
             );
             var results = searched.items.filter(
               x => x.type === "video" && x.duration.split(":").length < 3
             );
           } catch (err) {
-            return console.error(err);
+            try {
+              var searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
+              var results = searched.map(x => {
+                return {
+                  live: false,
+                  duration: x.durationFormatted,
+                  link: `https://www.youtube.com/watch?v=${x.id}`
+                }
+              });
+            } catch (err) {
+              return console.error(err);
+            }
           }
           for (var s = 0; s < results.length; s++) {
             if (results.length == 0) break;
@@ -979,23 +1017,32 @@ module.exports = {
       .setTimestamp()
       .setFooter("Choose your song by typing the number, or type anything else to cancel.", message.client.user.displayAvatarURL());
     const results = [];
-    var saved = [];
     try {
       var searched = await ytsr(args.slice(1).join(" "), { limit: 20 });
       var video = searched.items.filter(x => x.type === "video");
     } catch (err) {
-      console.error(err);
-      message.reply("there was an error trying to search the videos!");
-      return { error: true };
+      try {
+        var searched = await ytsr2.search(args.slice(1).join(" "), { limit: 20 });
+        var video = searched.map(x => {
+          return {
+            live: false,
+            duration: x.durationFormatted,
+            link: `https://www.youtube.com/watch?v=${x.id}`,
+            title: x.title,
+            thumbnail: x.thumbnail.url
+          }
+        });
+      } catch (err) {
+        console.error(err);
+        message.reply("there was an error trying to search the videos!");
+        return { error: true };
+      }
     }
     var num = 0;
-    for (let i = 0; i < Math.min(video.length, 10); i++) {
-      try {
-        saved.push(video[i]);
-        results.push(`${++num} - **[${decodeHtmlEntity(video[i].title)}](${video[i].link})** : **${video[i].duration}**`);
-      } catch (err) {
-        --num;
-      }
+    for (let i = 0; i < Math.min(video.length, 10); i++) try {
+      results.push(`${++num} - **[${decodeHtmlEntity(video[i].title)}](${video[i].link})** : **${video[i].duration}**`);
+    } catch (err) {
+      --num;
     }
     Embed.setDescription(results.join("\n"));
     var msg = await message.channel.send(Embed)
@@ -1034,10 +1081,10 @@ module.exports = {
     const chosenEmbed = new Discord.MessageEmbed()
       .setColor(color)
       .setTitle("Music chosen:")
-      .setThumbnail(saved[s].thumbnail)
+      .setThumbnail(video[s].thumbnail)
       .setDescription(
-        `**[${decodeHtmlEntity(saved[s].title)}](${saved[s].link
-        })** : **${saved[s].duration}**`
+        `**[${decodeHtmlEntity(video[s].title)}](${video[s].link
+        })** : **${video[s].duration}**`
       )
       .setTimestamp()
       .setFooter(
@@ -1046,13 +1093,13 @@ module.exports = {
       );
 
     await msg.edit(chosenEmbed).catch(() => { });
-    var length = !saved[s].live ? saved[s].duration : "∞";
+    var length = !video[s].live ? video[s].duration : "∞";
     var song = {
-      title: decodeHtmlEntity(saved[s].title),
-      url: saved[s].link,
+      title: decodeHtmlEntity(video[s].title),
+      url: video[s].link,
       type: 0,
       time: length,
-      thumbnail: saved[s].thumbnail,
+      thumbnail: video[s].thumbnail,
       volume: 1
     };
     return { error: false, song, msg, embed: Embed };

@@ -11,7 +11,7 @@ module.exports = {
       if (err) {
         console.error(err);
         return message.reply(
-          "there was an error trying to execute that command!"
+          "there was an error trying to connect to the database!"
         );
       }
       con.query(
@@ -19,11 +19,11 @@ module.exports = {
         message.author.id +
         " AND guild = " +
         message.guild.id,
-        async function (err, results, fields) {
+        async function (err, results) {
           if (err) {
             console.error(err);
             return message.reply(
-              "there was an error trying to execute that command!"
+              "there was an error trying to fetch your currency!"
             );
           }
           if (results.length == 0) {

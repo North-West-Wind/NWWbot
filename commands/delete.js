@@ -4,10 +4,10 @@ module.exports = {
   name: "delete",
   description: "Delete a specific amount of message in a channel. Sadly, this command does not work for DMs.",
   aliases: ["del"],
-  args: true,
   usage: "[channel] <amount | subcommand | start> [end]",
   subcommands: ["all"],
   category: 0,
+  args: 1,
   async execute(message, args) {
     if (message.channel instanceof Discord.DMChannel) {
       return message.channel.send(

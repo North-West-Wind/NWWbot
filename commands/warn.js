@@ -5,16 +5,10 @@ const { findUser } = require("../function.js");
 module.exports = {
   name: "warn",
   description: "Warn a member of the server. 3 warnings will lead to a ban.",
-  args: true,
+  args: 1,
   usage: "<user | user ID> [reason]",
   category: 1,
   execute(message, args, pool) {
-    if (!args[0]) {
-      return message.channel.send(
-        "Tell me who you are warning." +
-          ` Usage: \`${message.prefix}${this.name} ${this.usage}\``
-      );
-    }
     pool.getConnection(async function(err, con) {
       if (err) {
         console.error(err);

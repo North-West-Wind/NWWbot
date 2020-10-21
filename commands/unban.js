@@ -6,7 +6,7 @@ module.exports = {
   name: "unban",
   description: "Unban a member of the server.",
   usage: "<user | user ID> [reason]",
-  args: true,
+  args: 1,
   category: 1,
   execute(message, args) {
     if (!message.member.permissions.has(4)) {
@@ -18,16 +18,12 @@ module.exports = {
 
     if (!message.guild) return;
 
-    if(!args[0]) {
-      return message.channel.send("You didn't mention any user!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
-    }
-    
     message.delete();
-    
+
     findUser(message, args[0])
       .then(user => {
-      
-      if(!user) return;
+
+        if (!user) return;
         if (args[1]) {
           var reason = args.slice(1).join(" ");
           var member = message.guild.members.unban(user, reason);
@@ -57,10 +53,10 @@ module.exports = {
                 .setTitle("User Unbanned!")
                 .setDescription(
                   "Unbanned **" +
-                    user.username +
-                    "** in server **" +
-                    message.guild.name +
-                    "**."
+                  user.username +
+                  "** in server **" +
+                  message.guild.name +
+                  "**."
                 );
               return message.author.send(unbanSuccessfulEmbed);
             })

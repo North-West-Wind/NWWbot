@@ -9,7 +9,7 @@ const { twoDigits, setTimeout_ } = require("../function.js");
 module.exports = {
   name: "giveaway",
   description: "Create, end or list giveaways on the server.",
-  args: true,
+  args: 1,
   usage: "<subcommand>",
   aliases: ["g"],
   subcommands: ["create", "end", "list"],
@@ -17,13 +17,6 @@ module.exports = {
   async execute(message, args, pool) {
     const guild = message.guild;
     const prefix = message.prefix;
-    if (!args[0]) {
-      return message.channel.send(
-        `Proper usage: ${message.prefix}${this.name} ${
-          this.usage
-        }\nSubcommands: \`${this.subcommands.join("`, `")}\``
-      );
-    }
 
     if (args[0] === "create") {
       if (args[1]) {

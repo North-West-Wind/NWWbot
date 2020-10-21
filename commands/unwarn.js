@@ -7,6 +7,7 @@ module.exports = {
   description: "Remove all warnings of a member of the server.",
   usage: "<user | user ID>",
   category: 1,
+  args: 1,
   execute(message, args, pool) {
     pool.getConnection(async function(err, con) {
       if (err) {
@@ -15,14 +16,6 @@ module.exports = {
           "there was an error trying to connect to the database!"
         );
       }
-
-      if (!args[0]) {
-        return message.channel.send(
-          "Tell me who you are unwarning." +
-            ` Usage: \`${message.prefix}${this.name} ${this.usage}\``
-        );
-      }
-
       if (args[0] === "@everyone") {
         return message.channel.send("I cannot unwarn everyone lol.");
       }

@@ -12,7 +12,8 @@ module.exports = {
         message.channel.send(`The prefix of this server has benn changed to \`${console.prefixes[message.guild.id]}\`.`);
         pool.getConnection((err, con) => {
             if(err) return message.reply("there was an error trying to connect to the database! The change of the prefix will be temporary!");
-            con.query(`UPDATE servers SET prefix = '${console.prefixes[message.guild.id]}' WHERE id = '${message.guild.id}'`, (err) => {
+            const query = `UPDATE servers SET prefix = ${console.prefixes[message.guild.id] === message.client.prefix ? "NULL" : `'${console.prefixes[message.guild.id]}'`} WHERE id = '${message.guild.id}'`
+            con.query(query, (err) => {
                 if(err) return message.reply("there was an error trying to save the changes! The change of the prefix will be temporary!");
                 message.channel.send("Changes have been saved properly!");
                 console.log(`Changed prefix of ${message.guild.name} to ${console.prefixes[message.guild.id]}`);

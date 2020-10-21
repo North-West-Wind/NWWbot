@@ -8,12 +8,9 @@ module.exports = {
   description: "Connect to the Krunker.io API and display stats.",
   aliases: ["kr"],
   usage: "<username>",
-  args: true,
+  args: 1,
   category: 7,
   async execute(message, args) {
-    if(!args[0]) {
-      return message.channel.send("No username provided!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
-    }
     try {
       var user = await Krunker.GetProfile(args.join(" "));
     } catch(e) {

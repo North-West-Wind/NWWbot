@@ -6,19 +6,12 @@ module.exports = {
   args: true,
   usage: '<user | user ID> <role | role ID | role name>',
   category: 0,
+  args: 2,
   async execute(message, args) {
     if (!message.member.permissions.has(268435456)) {
       message.channel.send(`You don\'t have the permission to use this command.`)
       return;
     }
-    if (!args[0]) {
-      return message.channel.send("Please mention at least 1 user." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
-    }
-    if (!args[1]) {
-      return message.channel.send("Please enter the role you want the users to be." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
-    }
-
-
     var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
       var role = await message.guild.roles.cache.find(
@@ -45,11 +38,7 @@ module.exports = {
       message.channel.send(`Successfully added **${taggedUser.tag}** to role **${role.name}**.`);
 
     }).catch(err => {
-      message.channel.send(`Failed adding **${taggedUser.tag}** to role **${role.name}**.`);
+      message.channel.send(`Failed adding **${taggedUser.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
     });
-
-
-
-
   },
 };

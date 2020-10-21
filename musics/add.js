@@ -16,11 +16,9 @@ module.exports = {
     description: "Add soundtracks to the queue without playing it.",
     usage: "<link | keywords>",
     category: 8,
+    args: 1,
     async music(message, serverQueue, queue, pool) {
         const args = message.content.split(/ +/);
-
-        if (!args[1]) args[1] = "";
-
         const checkURL = message.attachments.size > 0 || validURL(args.slice(1).join(" "));
 
         if (checkURL) {
@@ -53,6 +51,7 @@ module.exports = {
                     looping: false,
                     repeating: false
                 };
+                updateQueue(message, queueContruct, queue, pool)
                 try {
                     const Embed = new Discord.MessageEmbed()
                         .setColor(color)

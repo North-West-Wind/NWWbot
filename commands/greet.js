@@ -6,15 +6,9 @@ module.exports = {
 	description: 'Greet somebody.',
   usage: "<user | user ID>",
   category: 3,
+  args: 1,
 	async execute(message, args) {
-		if (!args[0]) {
-            return message.channel.send('Who am I greeting?' + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
-        }
-    
-
-        // grab the "first" mentioned user from the message
-        // this will return a `User` object, just like `message.author`
-        const taggedUser = await findUser(message, args[0]);
+    const taggedUser = await findUser(message, args[0]);
     if(!taggedUser) return;
     message.channel.send("Hello there, **" + taggedUser.tag + "**!");
 	},

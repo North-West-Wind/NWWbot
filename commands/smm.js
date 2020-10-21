@@ -10,9 +10,8 @@ module.exports = {
   aliases: ["supermariomaker"],
   usage: "<keywords>",
   category: 7,
+  args: 1,
   async execute(message, args) {
-    if (!args[0])
-      return message.channel.send("Please provide a query for searching!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     smm.searchCourses(
       {
         title: args.join(" ")

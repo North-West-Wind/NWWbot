@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 var color = Math.floor(Math.random() * 16777214) + 1;
-const { Permissions } = require('discord.js');
 
 module.exports = {
   name: "role-info",
@@ -8,11 +7,8 @@ module.exports = {
   aliases: ["ri"],
   usage: "<role | role ID | role name>",
   category: 6,
+  args: 1,
   async execute(message, args) {
-    if(!args[0]) {
-      return message.channel.send("Please mention a role/role ID/role name." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
-    }
-    
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID)) || args.length > 1) {
       var role = await message.guild.roles.cache.find(

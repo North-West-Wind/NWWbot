@@ -6,16 +6,11 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
   name: "urban",
   description: "Search the Urban Dictionary on Discord.",
-  args: true,
   usage: "<query>",
   category: 7,
+  args: 1,
   async execute(message, args) {
-    if (!args.length) {
-      return message.channel.send("You need to supply a search term!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
-    }
-
     const query = querystring.stringify({ term: args.join(" ") });
-
     const { list } = await fetch(
       `https://api.urbandictionary.com/v0/define?${query}`
     ).then(response => response.json());

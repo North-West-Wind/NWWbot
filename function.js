@@ -207,11 +207,11 @@ module.exports = {
     var roleID = str.replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
       var role = await message.guild.roles.cache.find(
-        x => x.name.toLowerCase() === `${message.content.split(" ")[1].toLowerCase()}`
+        x => x.name.toLowerCase() === `${message.content.split(/ +/).slice(1).join(" ").toLowerCase()}`
       );
       if (role === null) {
         message.channel.send(
-          "No role was found with the name " + args[0]
+          "No role was found with the name " + message.content.split(/ +/).slice(1).join(" ")
         );
         return null;
       }
@@ -340,6 +340,11 @@ module.exports = {
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear}`;
   },
   readableDateTime(date) {
+    function twoDigits(d) {
+      if (0 <= d && d < 10) return "0" + d.toString();
+      if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
+      return d.toString();
+    }
     const day = date.getDate();
     const month = date.getMonth();
     const year = date.getFullYear();
@@ -364,6 +369,18 @@ module.exports = {
   },
   ms(val, options) {
     if (typeof val === "string" && superms(val) === undefined) {
+      if(val.split(":").length > 1) {
+        const nums = val.split(":").reverse();
+        const units = ["s", "m", "h", "d"];
+        const mses = [];
+        for(const num of nums) {
+          const str = `${parseInt(num)}${units[nums.indexOf(num)]}`;
+          const parsed = superms(str);
+          if(parsed === undefined) return undefined;
+          mses.push(parsed);
+        }
+        return mses.reduce((acc, c) => acc + c);
+      }
       var mses = [];
       let temp = "";
       let last = "";

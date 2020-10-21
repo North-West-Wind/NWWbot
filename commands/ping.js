@@ -10,7 +10,7 @@ module.exports = {
   name: "ping",
   description: "Ping the bot and it will show you something interesting (not really).",
   category: 6,
-  execute(message, args) {
+  execute(message) {
     var msgDate = new Date(message.createdTimestamp);
 
     var date = msgDate.getDate();

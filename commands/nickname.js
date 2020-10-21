@@ -7,6 +7,7 @@ module.exports = {
   usage: "<user | user ID> <nickname>",
   aliases: ["nick"],
   category: 0,
+  args: 2,
   async execute(message, args) {
     if (!message.member.permissions.has(134217728)) { 
       message.channel.send(`You don\'t have the permission to use this command.`)
@@ -16,9 +17,6 @@ module.exports = {
       message.channel.send(`I don\'t have the permission to change their nickname.`)
       return;
     }
-    if(!args[0]) return message.channel.send("Please mention an user." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
-    if(!args[1]) return message.channel.send("Please enter the nickname." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
-    
 		let member = await findMember(message, args[0]);
     
     if(!member) return;

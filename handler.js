@@ -18,9 +18,9 @@ const mysql_config = {
 var pool = mysql.createPool(mysql_config);
 const { setTimeout_ } = require("./function.js");
 const profile = (str) => {
-	return new Promise((resolve, reject) => {
-		require("mojang-api").profile(str, function (err, res) { if(err) reject(err); else resolve(res); });
-	})
+    return new Promise((resolve, reject) => {
+        require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); });
+    })
 }
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
@@ -28,7 +28,8 @@ formatSetup(moment);
 var timeout = undefined;
 console.prefixes = {};
 module.exports = {
-    async ready(client, id) {
+    async ready(client) {
+        const id = client.id;
         console.log(`[${id}] Ready!`);
         if (id === 1) {
             setInterval(async () => {
@@ -36,115 +37,115 @@ module.exports = {
                 try {
                     var timerChannel = await guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
                     var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
-                } catch(err) {
+                } catch (err) {
                     console.error("Failed to fetch timer list message");
                     return;
                 }
                 pool.getConnection((err, con) => {
-					if (err) return console.error(err);
-					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
-						if (err) return console.error(err);
-						let now = Date.now();
-						let tmp = [];
-						for(const result of results) {
-							let mc = await profile(result.mc);
-							let username = "undefined";
-							if (mc) username = mc.name;
-							const str = result.user;
-							let dc = "0";
-							try {
-								var user = await client.users.fetch(str);
-								dc = user.id;
-							} catch (err) { }
-							let rank = unescape(result.dc_rank);
-							let title = `<@${dc}> - ${rank} [${username}]`;
-							let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-							tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
-						}
-						if (tmp.length <= 10) {
+                    if (err) return console.error(err);
+                    con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
+                        if (err) return console.error(err);
+                        let now = Date.now();
+                        let tmp = [];
+                        for (const result of results) {
+                            let mc = await profile(result.mc);
+                            let username = "undefined";
+                            if (mc) username = mc.name;
+                            const str = result.user;
+                            let dc = "0";
+                            try {
+                                var user = await client.users.fetch(str);
+                                dc = user.id;
+                            } catch (err) { }
+                            let rank = unescape(result.dc_rank);
+                            let title = `<@${dc}> - ${rank} [${username}]`;
+                            let seconds = Math.round((result.endAt.getTime() - now) / 1000);
+                            tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
+                        }
+                        if (tmp.length <= 10) {
                             timerMsg.reactions.removeAll().catch(console.error);
-							let description = "";
-							let num = 0;
-							for(const result of tmp) {
-								description += `${++num}. ${result.title} : ${result.time}\n`;
-							}
-							const em = new Discord.MessageEmbed()
-							.setColor(Math.floor(Math.random() * 16777214) + 1)
-							.setTitle("Rank Expiration Timers")
-							.setDescription(description)
-							.setTimestamp()
-							.setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
-							timerMsg.edit({ content: "", embed: em });
-						} else {
-							const allEmbeds = [];
-							for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
-								let desc = "";
-								for(let num = 0; num < 10; num++) {
-									if(!tmp[i + num]) break;
-									desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
-								}
-								const em = new Discord.MessageEmbed()
-								.setColor(Math.floor(Math.random() * 16777214) + 1)
-								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
-								.setDescription(desc)
-								.setTimestamp()
-								.setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
-								allEmbeds.push(em);
-							}
-							const filter = (reaction, user) => {
-								return (
-									["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name)
-								);
-							};
-							var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
-							var s = 0;
-							await msg.react("⏮");
-							await msg.react("◀");
-							await msg.react("▶");
-							await msg.react("⏭");
-							await msg.react("⏹");
-							var collector = await msg.createReactionCollector(filter, {
-								time: 29000,
-								errors: ["time"]
-							});
+                            let description = "";
+                            let num = 0;
+                            for (const result of tmp) {
+                                description += `${++num}. ${result.title} : ${result.time}\n`;
+                            }
+                            const em = new Discord.MessageEmbed()
+                                .setColor(Math.floor(Math.random() * 16777214) + 1)
+                                .setTitle("Rank Expiration Timers")
+                                .setDescription(description)
+                                .setTimestamp()
+                                .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+                            timerMsg.edit({ content: "", embed: em });
+                        } else {
+                            const allEmbeds = [];
+                            for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
+                                let desc = "";
+                                for (let num = 0; num < 10; num++) {
+                                    if (!tmp[i + num]) break;
+                                    desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
+                                }
+                                const em = new Discord.MessageEmbed()
+                                    .setColor(Math.floor(Math.random() * 16777214) + 1)
+                                    .setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
+                                    .setDescription(desc)
+                                    .setTimestamp()
+                                    .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+                                allEmbeds.push(em);
+                            }
+                            const filter = (reaction, user) => {
+                                return (
+                                    ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name)
+                                );
+                            };
+                            var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
+                            var s = 0;
+                            await msg.react("⏮");
+                            await msg.react("◀");
+                            await msg.react("▶");
+                            await msg.react("⏭");
+                            await msg.react("⏹");
+                            var collector = await msg.createReactionCollector(filter, {
+                                time: 29000,
+                                errors: ["time"]
+                            });
 
-							collector.on("collect", function (reaction, user) {
-								reaction.users.remove(user.id);
-								switch (reaction.emoji.name) {
-									case "⏮":
-										s = 0;
-										msg.edit(allEmbeds[s]);
-										break;
-									case "◀":
-										s -= 1;
-										if (s < 0) {
-											s = allEmbeds.length - 1;
-										}
-										msg.edit(allEmbeds[s]);
-										break;
-									case "▶":
-										s += 1;
-										if (s > allEmbeds.length - 1) {
-											s = 0;
-										}
-										msg.edit(allEmbeds[s]);
-										break;
-									case "⏭":
-										s = allEmbeds.length - 1;
-										msg.edit(allEmbeds[s]);
-										break;
-									case "⏹":
-										collector.emit("end");
-										break;
-								}
-							});
-							collector.on("end", function () {
-								msg.reactions.removeAll().catch(console.error);
-							});
-						}
-					});
-					con.release();
-				});
+                            collector.on("collect", function (reaction, user) {
+                                reaction.users.remove(user.id);
+                                switch (reaction.emoji.name) {
+                                    case "⏮":
+                                        s = 0;
+                                        msg.edit(allEmbeds[s]);
+                                        break;
+                                    case "◀":
+                                        s -= 1;
+                                        if (s < 0) {
+                                            s = allEmbeds.length - 1;
+                                        }
+                                        msg.edit(allEmbeds[s]);
+                                        break;
+                                    case "▶":
+                                        s += 1;
+                                        if (s > allEmbeds.length - 1) {
+                                            s = 0;
+                                        }
+                                        msg.edit(allEmbeds[s]);
+                                        break;
+                                    case "⏭":
+                                        s = allEmbeds.length - 1;
+                                        msg.edit(allEmbeds[s]);
+                                        break;
+                                    case "⏹":
+                                        collector.emit("end");
+                                        break;
+                                }
+                            });
+                            collector.on("end", function () {
+                                msg.reactions.removeAll().catch(console.error);
+                            });
+                        }
+                    });
+                    con.release();
+                });
             }, 30000);
         }
 
@@ -163,22 +164,22 @@ module.exports = {
                         if (result.queue !== null || result.looping !== null || result.repeating !== null) {
                             var parsed = [];
                             try {
-                                if(result.queue !== null) parsed = JSON.parse(unescape(result.queue));
-                            } catch(err) {
+                                if (result.queue !== null) parsed = JSON.parse(unescape(result.queue));
+                            } catch (err) {
                                 console.log(`Error parsing queue of ${result.id}`);
-                                parsed = []; 
+                                parsed = [];
                             }
                             var queue = parsed;
                             setQueue(result.id, queue, result.looping === 1 ? true : false, result.repeating === 1 ? true : false);
                             count += 1;
                         }
-                        if(result.prefix) try { console.prefixes[result.id] = result.prefix; } catch(err) {}
+                        if (result.prefix) try { console.prefixes[result.id] = result.prefix; } catch (err) { }
                     });
                     console.log(`[${id}] ` + "Set " + count + " queues");
                 });
             } else {
-                con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async(err, res) => {
-                    if(err) return console.error(err);
+                con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, res) => {
+                    if (err) return console.error(err);
                     console.log(`[${id}] Found ${res.length} guild timers`);
                     res.forEach(async result => {
                         let endAfter = result.endAt.getTime() - Date.now();
@@ -188,20 +189,20 @@ module.exports = {
                         let dc = `<@${result.user}>`;
                         let rank = unescape(result.dc_rank);
                         let title = `${dc} - ${rank} [${username}]`;
-                        setTimeout_(async() => {
+                        setTimeout_(async () => {
                             let asuna = await client.users.fetch("461516729047318529");
-                            con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, async(err, results) => {
-                                if(err) return console.error(err);
-                                if(results.length == 0) return;
+                            con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, async (err, results) => {
+                                if (err) return console.error(err);
+                                if (results.length == 0) return;
                                 try {
                                     asuna.send(title + " expired");
                                     var user = await client.users.fetch(result.user);
                                     user.send(`Your rank **${rank}** in War of Underworld has expired.`);
-                                } catch(err) {
+                                } catch (err) {
                                     console.error("Failed to DM user")
                                 }
                                 con.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, (err) => {
-                                    if(err) return console.error(err);
+                                    if (err) return console.error(err);
                                     console.log("A guild timer expired");
                                 });
                             });
@@ -211,7 +212,7 @@ module.exports = {
                 });
             }
             con.query("SELECT * FROM rolemsg ORDER BY expiration", (err, res) => {
-                if(err) return console.error(err);
+                if (err) return console.error(err);
                 console.log(`[${id}] ` + "Found " + res.length + " role messages.");
                 res.forEach(async result => {
                     if (id === 0 && result.guild == "622311594654695434") return;
@@ -472,8 +473,7 @@ module.exports = {
                                 console.error(err);
                             });
                             con.query("DELETE FROM poll WHERE id = " + msg.id, function (
-                                err,
-                                result
+                                err
                             ) {
                                 if (err) return console.error(err);
                                 console.log("Deleted an ended poll.");
@@ -483,7 +483,7 @@ module.exports = {
                 });
             });
             con.query("SELECT * FROM timer", (err, results) => {
-                if(err) console.error(err);
+                if (err) console.error(err);
                 console.log(`[${id}] ` + `Found ${results.length} timers.`);
                 results.forEach(async result => {
                     if (id === 0 && result.guild == "622311594654695434") return;
@@ -564,11 +564,13 @@ module.exports = {
             });
             con.release();
         });
-        if(id == 1) client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
+        if (id === 1) client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
     },
-    async guildMemberAdd(member, client, id) {
+    async guildMemberAdd(member) {
+        const client = member.client;
+        const id = client.id;
         const guild = member.guild;
-        if(guild.id === "622311594654695434") guild.fetchInvites().then(async guildInvites => {
+        if (guild.id === "622311594654695434") guild.fetchInvites().then(async guildInvites => {
             const ei = console.invites[member.guild.id];
             console.invites[member.guild.id] = guildInvites;
             const invite = await guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
@@ -598,7 +600,7 @@ module.exports = {
                 "SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id=" +
                 guild.id,
                 async function (err, result) {
-                    if (!result[0]|| !result[0].wel_channel || !result[0].welcome) {
+                    if (!result[0] || !result[0].wel_channel || !result[0].welcome) {
                         if (!result[0]) {
                             pool.getConnection(function (err, con) {
                                 if (err) return console.error(err);
@@ -632,7 +634,7 @@ module.exports = {
                         //get channel
                         const channel = guild.channels.resolve(result[0].wel_channel);
 
-                        if(!channel.permissionsFor(guild.me).has(18432)) return;
+                        if (!channel.permissionsFor(guild.me).has(18432)) return;
 
                         //convert message into array
                         const splitMessage = result[0].welcome.split(" ");
@@ -818,7 +820,7 @@ module.exports = {
                                 );
 
                                 try {
-                                    if(id === 1) await channel.send("", new Discord.MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
+                                    if (id === 1) await channel.send("", new Discord.MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
                                     channel.send("", attachment);
                                 } catch (err) {
                                     console.error(err);
@@ -829,7 +831,7 @@ module.exports = {
                                 let urls = JSON.parse(result[0].wel_img);
                                 var url = urls[Math.floor(Math.random() * urls.length)];
                                 img.src = url;
-                            } catch(err) {
+                            } catch (err) {
                                 var url = result[0].wel_img;
                                 img.src = url;
                             }
@@ -846,7 +848,7 @@ module.exports = {
                             } else {
                                 var role = await guild.roles.fetch(roleID);
                             }
-                            if(!role) continue;
+                            if (!role) continue;
                             try {
                                 member.roles.add(roleID);
                                 console.log(`Added ${member.displayName} to ${role.name}`)
@@ -862,7 +864,8 @@ module.exports = {
             );
         });
     },
-    async guildMemberRemove(member, client, id) {
+    async guildMemberRemove(member) {
+        const client = member.client;
         const guild = member.guild;
         pool.getConnection(function (err, con) {
             if (err) return console.error(err);
@@ -1047,12 +1050,11 @@ module.exports = {
             con.release();
         });
     },
-    async voiceStateUpdate(oldState, newState, client, exit) {
+    async voiceStateUpdate(oldState, newState) {
+        const exit = console.exit;
         const guild = oldState.guild || newState.guild;
         const mainMusic = require("./musics/main.js");
-        if(oldState.id == guild.me.id || newState.id == guild.me.id) {
-            if(!guild.me.voice || !guild.me.voice.channel) return await mainMusic.stop(guild);
-        }
+        if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel)) return await mainMusic.stop(guild);
         if (!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
         if (guild.me.voice.channel.members.size <= 1) {
             var pendingExit = await exit.find(x => x === guild.id);
@@ -1070,7 +1072,8 @@ module.exports = {
             }
         }
     },
-    async guildMemberUpdate(oldMember, newMember, client) {
+    async guildMemberUpdate(oldMember, newMember) {
+        const client = oldMember.client || newMember.client;
         if (oldMember.premiumSinceTimestamp !== null || newMember.premiumSinceTimestamp === null) return;
         pool.getConnection(function (err, con) {
             if (err) return console.error(err);
@@ -1119,74 +1122,36 @@ module.exports = {
             con.release();
         });
     },
-    async message(message, musicCommandsArray, exit, client, id) {
-        message.prefix = client.prefix;
-        if(message.guild && console.prefixes[message.guild.id] && id == 0) message.prefix = console.prefixes[message.guild.id];
+    async message(message) {
+        message.prefix = message.client.prefix;
+        if (message.guild && console.prefixes[message.guild.id] && message.client.id === 0) message.prefix = console.prefixes[message.guild.id];
         if (!message.content.startsWith(message.prefix) || message.author.bot) {
-            if (!message.author.bot) {
-                if(message.mentions.users.has(process.env.DC) && message.mentions.users.size > 4) {
-                    message.delete().then(() => {
-                        message.reply("Shhh! Don't disturb North! (Also, mass ping is bad)");
-                    }).catch(err => {});
-                } else if (Math.floor(Math.random() * 1000) === 69)
-                    cleverbot(message.content).then(response => message.channel.send(response));
-            }
+            if (!message.author.bot && Math.floor(Math.random() * 1000) === 69) cleverbot(message.content).then(response => message.channel.send(response));
             return;
         };
-
-        const args = message.content.slice(client.prefix.length).split(/ +/);
+        const args = message.content.slice(message.prefix.length).split(/ +/);
         const commandName = args.shift().toLowerCase();
-        if (commandName === "guild" && id === 0) return;
-
-        if (commandName.args && !args.length) {
-            let reply = `You didn't provide any arguments, <@${message.author}>!`;
-
-            if (command.usage) {
-                reply += `\nThe proper usage would be: \`${client.prefix}${command.name} ${command.usage}\``;
-            }
-
-            return message.channel.send(reply);
+        if (commandName === "guild" && message.client.id === 0) return;
+        const command = console.commands.get(commandName) || console.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+        if (!command) return;
+        if (command.args && args.length < command.args) return message.channel.send(`The command \`${message.prefix}${commandName}\` requires arguments.\nHere's how you are supposed to use it: \`${message.prefix}${command.name}${command.usage ? ` ${command.usage}` : ""}\``);
+        if (message.client.id === 0) {
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = undefined;
+            } else message.client.user.setPresence({ activity: { name: `${message.author.username}'s Commands`, type: "WATCHING" }, status: "online", afk: false });
+            timeout = setTimeout(() => {
+                message.client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
+                timeout = undefined;
+            }, 60000);
         }
-
-        const command =
-            console.commands.get(commandName) ||
-            console.commands.find(
-                cmd => cmd.aliases && cmd.aliases.includes(commandName)
-            );
-
-        if (!command) {
-            return;
-        } else {
-            if(id === 0) {
-                if(timeout) {
-                    clearTimeout(timeout);
-                    timeout = undefined;
-                } else client.user.setPresence({ activity: { name: `${message.author.username}'s Commands`, type: "WATCHING" }, status: "online", afk: false });
-                timeout = setTimeout(() => {
-                    client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
-                    timeout = undefined;
-                }, 60000);
-            }
-            if (message.guild !== null) {
-                if (!message.channel.permissionsFor(message.guild.me).has(84992)) return message.author.send("I don't have the required permissions! Please tell your server admin that I at least need `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
-            }
-            if (musicCommandsArray.includes(command.name) == true) {
-                const mainMusic = require("./musics/main.js");
-                try {
-                    return await mainMusic.music(message, commandName, pool, exit);
-                } catch (error) {
-                    console.error(error);
-                    return await message.reply(
-                        "there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server."
-                    );
-                }
-            }
-            try {
-                await command.execute(message, args, pool, musicCommandsArray, console.rm);
-            } catch (error) {
-                console.error(error);
-                message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
-            }
+        if (message.guild !== null && !message.channel.permissionsFor(message.guild.me).has(84992)) return message.author.send("I don't have the required permissions! Please tell your server admin that I need at least the permissions to `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
+        try {
+            if (command.category === 8) await require("./musics/main.js").music(message, commandName, pool);
+            else await command.execute(message, args, pool);
+        } catch (error) {
+            console.error(error);
+            message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
         }
     }
 }

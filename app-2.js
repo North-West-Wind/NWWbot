@@ -6,23 +6,23 @@ console.realLog = console.log;
 console.realError = console.error;
 delete console["log"];
 delete console["error"];
-console.log = async function(str) {
- 	console.realLog(str);
- 	try {
-     var logChannel = await client.channels.fetch("678847137391312917");
-     if(logChannel)
-     logChannel.send("`" + str + "`");
- 	} catch(err) {
-   	return console.realError(err)
- 	}
+console.log = async function (str) {
+  console.realLog(str);
+  try {
+    var logChannel = await client.channels.fetch("678847137391312917");
+    if (logChannel)
+      logChannel.send("`" + str + "`");
+  } catch (err) {
+    return console.realError(err)
+  }
 }
-console.error = async function(str) {
+console.error = async function (str) {
   console.realError(str);
   try {
     var logChannel = await client.channels.fetch("678847137391312917");
-    if(logChannel)
-    logChannel.send("`ERROR!`\n`" + str.message + "`");
-  } catch(err) {
+    if (logChannel)
+      logChannel.send("`ERROR!`\n`" + str.message + "`");
+  } catch (err) {
     return console.realError(err)
   }
 }
@@ -33,7 +33,7 @@ const { prefix, prefix2 } = require("./config.json");
 const { registerFont } = require("canvas");
 
 const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
-for(const file of fontFiles) {
+for (const file of fontFiles) {
   const style = file.split(/[\-\.]/)[1];
   registerFont(`./fonts/${file}`, { family: "NotoSans", style: style.toLowerCase() })
 }
@@ -50,12 +50,14 @@ console.timers = new Discord.Collection();
 console.mathgames = new Discord.Collection();
 console.noLog = [];
 
-alice.prefix = prefix2;
 client.prefix = prefix;
+alice.prefix = prefix2;
+client.id = 0;
+alice.id = 1;
 
-for(let i = 0; i < 4; i++) {
-  for(let s = 0; s < 13; s++) {
-    console.card.set(twoDigits(i) + twoDigits(s), { color: i, number: s});
+for (let i = 0; i < 4; i++) {
+  for (let s = 0; s < 13; s++) {
+    console.card.set(twoDigits(i) + twoDigits(s), { color: i, number: s });
   }
 }
 console.card.set("0413", { color: 4, number: 13 });
@@ -64,9 +66,16 @@ console.card.set("0414", { color: 4, number: 14 });
 const commandFiles = fs
   .readdirSync("./commands")
   .filter(file => file.endsWith(".js"));
+const musicCommandFiles = fs
+  .readdirSync("./musics")
+  .filter(file => file.endsWith(".js") && !file.startsWith("main"));
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
+  console.commands.set(command.name, command);
+}
+for (const file of musicCommandFiles) {
+  const command = require(`./musics/${file}`);
   console.commands.set(command.name, command);
 }
 
@@ -79,43 +88,33 @@ for (const file of itemFiles) {
   console.items.set(item.name.toLowerCase(), item);
 }
 
-var musicCommandsArray = [];
-
-const musicCommandFiles = fs
-  .readdirSync("./musics")
-  .filter(file => file.endsWith(".js"));
-
-for (const file of musicCommandFiles) {
-  const musicCommand = require(`./musics/${file}`);
-  musicCommandsArray.push(musicCommand.name);
-  console.commands.set(musicCommand.name, musicCommand);
-}
-
 console.rm = [];
 console.invites = {};
-var exit = [];
-client.once("ready", () => ready(client, 0));
-client.login(process.env.TOKEN);
-client.on("guildMemberAdd", member => guildMemberAdd(member, client, 0));
-client.on("guildMemberRemove", async member => guildMemberRemove(member, client, 0));
-client.on("guildCreate", async guild => guildCreate(guild));
-client.on("guildDelete", guild => guildDelete(guild));
-client.on("voiceStateUpdate", async (oldState, newState) => voiceStateUpdate(oldState, newState, client, exit));
-client.on("guildMemberUpdate", (oldMember, newMember) => guildMemberUpdate(oldMember, newMember, client));
-client.on("messageReactionAdd", async(r, user) => messageReactionAdd(r, user));
-client.on("messageReactionRemove", async(r, user) => messageReactionRemove(r, user));
-client.on("messageDelete", (message) => messageDelete(message));
-client.on("message", async msg => message(msg, musicCommandsArray, exit, client, 0));
+console.exit = [];
+console.migrating = [];
+client.once("ready", () => ready(client));
+client.on("guildMemberAdd", guildMemberAdd);
+client.on("guildMemberRemove", guildMemberRemove);
+client.on("guildCreate", guildCreate);
+client.on("guildDelete", guildDelete);
+client.on("voiceStateUpdate", voiceStateUpdate);
+client.on("guildMemberUpdate", guildMemberUpdate);
+client.on("messageReactionAdd", messageReactionAdd);
+client.on("messageReactionRemove", messageReactionRemove);
+client.on("messageDelete", messageDelete);
+client.on("message", message);
 
-alice.once("ready", () => ready(alice, 1));
+alice.once("ready", () => ready(alice));
+alice.on("guildMemberAdd", guildMemberAdd);
+alice.on("guildMemberRemove", guildMemberRemove);
+alice.on("guildCreate", guildCreate);
+alice.on("guildDelete", guildDelete);
+alice.on("voiceStateUpdate", voiceStateUpdate);
+alice.on("guildMemberUpdate", guildMemberUpdate);
+alice.on("messageReactionAdd", messageReactionAdd);
+alice.on("messageReactionRemove", messageReactionRemove);
+alice.on("messageDelete", messageDelete);
+alice.on("message", message);
+
+client.login(process.env.TOKEN);
 alice.login(process.env.TOKEN2);
-alice.on("guildMemberAdd", member => guildMemberAdd(member, alice, 1));
-alice.on("guildMemberRemove", async member => guildMemberRemove(member, alice, 1));
-alice.on("guildCreate", async guild => guildCreate(guild));
-alice.on("guildDelete", guild => guildDelete(guild));
-alice.on("voiceStateUpdate", async (oldState, newState) => voiceStateUpdate(oldState, newState, alice, exit));
-alice.on("guildMemberUpdate", (oldMember, newMember) => guildMemberUpdate(oldMember, newMember, alice));
-alice.on("messageReactionAdd", async(r, user) => messageReactionAdd(r, user));
-alice.on("messageReactionRemove", async(r, user) => messageReactionRemove(r, user));
-alice.on("messageDelete", (message) => messageDelete(message));
-alice.on("message", async msg => message(msg, musicCommandsArray, exit, alice, 1));

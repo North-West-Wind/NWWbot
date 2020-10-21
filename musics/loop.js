@@ -1,3 +1,5 @@
+const { updateQueue } = require("./play");
+
 module.exports = {
   name: "loop",
   description: "Toggle loop of the song queue.",
@@ -30,7 +32,7 @@ module.exports = {
         });
         con.release();
       });
-      return;
     }
+    updateQueue(message, serverQueue, queue, null);
   }
 }

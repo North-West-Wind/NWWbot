@@ -12,8 +12,8 @@ module.exports = {
     usage: "<link | keywords>",
     category: 7,
     aliases: ["muse"],
+    args: 1,
     async execute(message, args) {
-        if (!args[0]) return message.channel.send("Please provide a link or a keyword." + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
         if (!validMSURL(args.join(" "))) return await this.search(message, args);
         try {
             var response = await rp({ uri: args.join(" "), resolveWithFullResponse: true });

@@ -3,7 +3,7 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
   name: "delrole",
   description: "Remove a role from the server.",
-  args: true,
+  args: 1,
   usage: "<role | role ID | role name>",
   category: 0,
   async execute(message, args) {

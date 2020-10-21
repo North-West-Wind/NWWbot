@@ -65,7 +65,7 @@ module.exports = {
   name: "uno",
   description: "Play UNO with your friends!",
   category: 3,
-  async execute(message, args) {
+  async execute(message) {
     var msg = await message.channel.send(
       "Alright, we will start an UNO game. Who will be invited? Please mention them!"
     );

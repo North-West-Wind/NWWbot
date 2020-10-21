@@ -5,7 +5,7 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
   name: "unmute",
   description: "Unmute a member while the member is in a voice channel.",
-  args: true,
+  args: 1,
   usage: "<user | user ID> [reason]",
   category: 1,
   async execute(message, args) {
@@ -20,15 +20,7 @@ module.exports = {
       return;
     }
     if (!message.guild) return;
-
-    if (!args[0]) {
-      return message.channel.send("You didn't mention any user!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
-    }
-
-
     var member = await findMember(message, args[0]);
-
-
     if (!member) return;
     if (!member.voice.channel) return message.channel.send("The member is not connected to any voice channel.")
     message.delete()

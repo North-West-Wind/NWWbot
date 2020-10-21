@@ -5,7 +5,7 @@ var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
   name: "mute",
   description: "Mute a member while the member is in a voice channel.",
-  args: true,
+  args: 1,
   usage: "<user | user ID> [reason]",
   category: 1,
   async execute(message, args) {
@@ -19,15 +19,7 @@ module.exports = {
       message.channel.send(`I don\'t have the permission to mute members.`)
       return;
     }
-    // Let's pretend you mentioned the user you want to add a role to (!addrole @user Role Name):
-
     if (!message.guild) return;
-    
-    if(!args[0]) {
-      return message.channel.send("You didn't mention any user!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
-    }
-    
-    
     var member = await findMember(message, args[0]);
     
     if(!member) return;

@@ -6,10 +6,8 @@ module.exports = {
   description: "Chat with the bot. Note that the bot has no memory about what had been said before so don’t try to do Q&A with it.",
   usage: "<message>",
   category: 3,
+  args: 1,
   execute(message, args) {
-    if(!args[0]) {
-      return message.channel.send("What are we gonna talk about?" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``)
-    }
     var passMessages = log.get(message.author.id);
     if(!passMessages) {
       log.set(message.author.id, []);

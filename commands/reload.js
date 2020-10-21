@@ -1,10 +1,10 @@
 module.exports = {
 	name: 'reload',
 	description: 'Reloads a command',
-	args: true,
+	args: 1,
 	aliases: ['f5'],
 	category: 10,
-	execute(message, args, pool, musicCommandsArray) {
+	execute(message, args) {
 		if (message.author.id != process.env.DC) return;
 
 		args.forEach(arg => {
@@ -33,7 +33,7 @@ module.exports = {
 
 			commandName = command.name;
 
-			if (musicCommandsArray.includes(commandName) == true) {
+			if (command.category === 8) {
 				delete require.cache[require.resolve(`../musics/${commandName}.js`)];
 				try {
 					const newCommand = require(`../musics/${commandName}.js`);

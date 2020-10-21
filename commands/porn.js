@@ -6,7 +6,6 @@ const Gfycat = require('gfycat-sdk');
 var gfycat = new Gfycat({clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET});
 
 var redditConn = new RedditAPI({
-  // Options for Reddit Wrapper
   username: process.env.RUSER,
   password: process.env.RPW,
   app_id: process.env.APPID,
@@ -22,7 +21,6 @@ module.exports = {
   description: "Returns real porn images from Reddit. Require NSFW channel.",
   usage: "[tag]",
   category: 5,
-  
   //age
     //college
   college: ["collegesluts", "CollegeAmateurs", "collegensfw", "CollegeInitiation", "springbreakers"],
