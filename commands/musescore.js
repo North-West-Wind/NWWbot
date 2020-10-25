@@ -44,20 +44,31 @@ module.exports = {
         await msg.react("📥");
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors:["time"] });
         msg.reactions.removeAll().catch(console.error);
+        var error = 0;
         if(collected && collected.first()) {
             var mesg = await message.author.send("Generating files...");
             const doc = new PDFDocument();
             for (let i = 0; i < data.pageCount; i++) {
-                SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                try {
+                    SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                } catch(err) {
+                    console.error(err);
+                    error = 1;
+                    break;
+                }
                 if (i + 1 < data.pageCount) doc.addPage();
             }
             doc.end();
             rs(data.mp3, async(err, res) => {
-                if (err) return await mesg.edit("Failed to generate files!");
+                if (err) error += 2;
                 await mesg.delete();
-                const attachment = new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`);
-                const pdf = new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`);
-                message.author.send([attachment, pdf]);
+                const attachments = [];
+                if(error == 1) await mesg.edit("Failed to generate sheetmusic!");
+                else attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
+                if(error == 2) await mesg.edit("Failed to generate .mp3 file!");
+                else attachments.push(new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`));
+                if(error == 3) return await mesg.edit("Failed to generate files!");
+                message.author.send(attachments);
             });
         }
     },
