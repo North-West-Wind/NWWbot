@@ -93,7 +93,7 @@ module.exports = {
       case "server":
         try {
           var msg = await message.channel.send("Loading servers...");
-          const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+          const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
           const page = await browser.newPage();
           await page.goto("https://matchmaker.krunker.io/game-list?hostname=krunker.io");
           const element = await page.$("pre");
