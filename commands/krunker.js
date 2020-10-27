@@ -91,8 +91,8 @@ module.exports = {
         message.channel.send(Embed);
         break;
       case "server":
+        var msg = await message.channel.send("Loading servers...");
         try {
-          var msg = await message.channel.send("Loading servers...");
           const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
           const page = await browser.newPage();
           await page.goto("https://matchmaker.krunker.io/game-list?hostname=krunker.io");
@@ -219,7 +219,7 @@ module.exports = {
           });
         } catch (err) {
           console.error(err);
-          message.reply("there was an error trying to show you the games!");
+          msg.edit(`<@${message.author.id}>, there was an error trying to show you the games!`);
         }
         break;
       default:
