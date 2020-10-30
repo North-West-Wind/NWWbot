@@ -21,7 +21,8 @@ var spotifyApi = new SpotifyWebApi({
   clientSecret: process.env.SPOTSECRET,
   redirectUri: "https://nwws.ml"
 });
-const fetch = require("node-fetch");
+const nodefetch = require("node-fetch");
+const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const request = require("request-stream");
 const mm = require("music-metadata");
 const ytsr = require("ytsr");
