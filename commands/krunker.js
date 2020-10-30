@@ -95,6 +95,7 @@ module.exports = {
         var msg = await message.channel.send("Loading servers...");
         try {
           const servers = await fetch(`https://north-utils.glitch.me/krunker-servers`, { timeout: 30000 });
+          if(servers.error) throw new Error(servers.message);
           var official = [];
           var custom = [];
           if (!args[1]) {
