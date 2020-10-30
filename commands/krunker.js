@@ -94,7 +94,7 @@ module.exports = {
       case "server":
         var msg = await message.channel.send("Loading servers...");
         try {
-          const servers = await fetch(`https://north-utils.glitch.me/krunker-servers`, { timeout: 30000 });
+          const servers = await fetch(`https://north-utils.glitch.me/krunker-servers`, { timeout: 30000 }).then(res => res.json());
           if(servers.error) throw new Error(servers.message);
           console.realLog(servers);
           var official = [];

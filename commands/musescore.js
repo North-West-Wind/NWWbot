@@ -55,7 +55,7 @@ module.exports = {
                     if (i + 1 < data.pageCount) doc.addPage();
                 }
                 doc.end();
-                const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(args.join(" "))}`, { timeout: 30000 });
+                const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(args.join(" "))}`, { timeout: 30000 }).then(res => res.json());
                 if (mp3.error) throw new Error(mp3.message);
                 rs(mp3.url, async (err, res) => {
                     if (err) return await mesg.edit("Failed to generate files!");
@@ -202,7 +202,7 @@ module.exports = {
                             if (i + 1 < importants[s].pages) doc.addPage();
                         }
                         doc.end();
-                        const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(importants[s].url)}`, { timeout: 30000 });
+                        const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(importants[s].url)}`, { timeout: 30000 }).then(res => res.json());
                         if (mp3.error) throw new Error(mp3.message);
                         rs(mp3.url, async (err, res) => {
                             if (err) return await mesg.edit("Failed to generate files!");
