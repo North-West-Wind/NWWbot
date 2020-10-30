@@ -2,9 +2,46 @@ const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const rs = require("request-stream");
 const Discord = require("discord.js");
-const { validMSURL } = require("../function.js");
+const { validMSURL, findValueByPrefix } = require("../function.js");
 const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
+const puppeteer = require("puppeteer");
+const options = {
+    args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process', // <- this one doesn't works in Windows
+        '--disable-gpu'
+    ],
+    headless: true
+};
+async function getMP3(link) {
+    const browser = await puppeteer.launch(options);
+    var result = { error: true };
+    try {
+        const page = await browser.newPage();
+        await page.setRequestInterception(true);
+        page.on('request', (request) => {
+            if (request.resourceType() === 'image' || request.resourceType() === 'stylesheet' || request.resourceType() === 'font') request.abort();
+            else request.continue();
+        });
+        await page.goto(link, { waitUntil: "domcontentloaded" });
+        await page.waitForSelector("button#playerBtnExprt");
+        await page.$eval("button#playerBtnExprt", play => play.click());
+        const mp3 = await page.waitForRequest(req => req.url().startsWith("https://s3.ultimate-guitar.com"));
+        result.url = mp3.url();
+        result.error = false;
+    } catch (err) {
+        result.message = err.message;
+    } finally {
+        await browser.close();
+    }
+    return result;
+}
 
 module.exports = {
     name: "musescore",
@@ -15,15 +52,15 @@ module.exports = {
     args: 1,
     async execute(message, args) {
         if (!validMSURL(args.join(" "))) return await this.search(message, args);
+        var msg = await message.channel.send("Loading score...");
         try {
-            var response = await rp({ uri: args.join(" "), resolveWithFullResponse: true });
+            const response = await rp({ uri: args.join(" "), resolveWithFullResponse: true });
             if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
-            var body = response.body;
+            var data = this.parseBody(response.body);
         } catch (err) {
+            console.realError(err);
             return message.reply("there was an error trying to fetch data of the score!");
         }
-        var msg = await message.channel.send("Loading score...");
-        var data = this.parseBody(body);
         const em = new Discord.MessageEmbed()
             .setColor(Math.floor(Math.random() * Math.pow(256, 3)))
             .setTitle(data.title)
@@ -42,34 +79,30 @@ module.exports = {
             .setFooter("Have a nice day! :)");
         msg = await msg.edit({ content: "", embed: em });
         await msg.react("📥");
-        const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors:["time"] });
+        const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
         msg.reactions.removeAll().catch(console.error);
-        var error = 0;
-        if(collected && collected.first()) {
+        if (collected && collected.first()) {
             var mesg = await message.author.send("Generating files...");
-            const doc = new PDFDocument();
-            for (let i = 0; i < data.pageCount; i++) {
-                try {
+            try {
+                const doc = new PDFDocument();
+                for (let i = 0; i < data.pageCount; i++) {
                     SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                } catch(err) {
-                    console.error(err);
-                    error = 1;
-                    break;
+                    if (i + 1 < data.pageCount) doc.addPage();
                 }
-                if (i + 1 < data.pageCount) doc.addPage();
+                doc.end();
+                const mp3 = await getMP3(args.join(" "));
+                if (mp3.error) throw new Error(mp3.message);
+                rs(mp3.url, async (err, res) => {
+                    if (err) return await mesg.edit("Failed to generate files!");
+                    await mesg.delete();
+                    const attachment = new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`);
+                    const pdf = new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`);
+                    message.author.send([attachment, pdf]);
+                });
+            } catch (err) {
+                console.error(err);
+                await mesg.edit("Failed to generate files!");
             }
-            doc.end();
-            rs(data.mp3, async(err, res) => {
-                if (err) error += 2;
-                await mesg.delete();
-                const attachments = [];
-                if(error == 1) await mesg.edit("Failed to generate sheetmusic!");
-                else attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
-                if(error == 2) await mesg.edit("Failed to generate .mp3 file!");
-                else attachments.push(new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`));
-                if(error == 3) return await mesg.edit("Failed to generate files!");
-                message.author.send(attachments);
-            });
         }
     },
     parseBody(body) {
@@ -77,8 +110,8 @@ module.exports = {
         const meta = $('meta[property="og:image"]')[0];
         const image = meta.attribs.content;
         const important = image.split("/").slice(7, 12).join("/");
-        const mp3 = `https://nocdn.musescore.com/static/musescore/scoredata/gen/${important}/score.mp3`;
-        const store = $('div.js-store')[0].attribs["data-content"];
+        const stores = Array.from($('div[class^="js-"]'));
+        const store = findValueByPrefix(stores.find(x => x.attribs && x.attribs.class && x.attribs.class.match(/^js-\w+$/)).attribs, "data-");
         const data = JSON.parse(store).store.page.data;
         const id = data.score.id;
         const title = data.score.title;
@@ -92,7 +125,7 @@ module.exports = {
         const updated = data.score.date_updated;
         const description = data.score.truncated_description;
         const tags = data.score.tags;
-        return { id, title, thumbnail, parts, url, user, duration, pageCount, created, updated, description, tags, mp3, important };
+        return { id, title, thumbnail, parts, url, user, duration, pageCount, created, updated, description, tags, important };
     },
     async search(message, args) {
         try {
@@ -104,11 +137,11 @@ module.exports = {
         }
         var msg = await message.channel.send("Loading scores...");
         var $ = cheerio.load(body);
-        var store = $("div.js-store")[0].attribs["data-content"];
+        const stores = Array.from($('div[class^="js-"]'));
+        const store = findValueByPrefix(stores.find(x => x.attribs && x.attribs.class && x.attribs.class.match(/^js-\w+$/)).attribs, "data-");
         var data = JSON.parse(store);
         const allEmbeds = [];
         const importants = [];
-        const mp3s = [];
         var num = 0;
         var scores = data.store.page.data.scores;
         for (const score of scores) {
@@ -117,6 +150,7 @@ module.exports = {
                 if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
                 body = response.body;
             } catch (err) {
+                await msg.delete();
                 return message.reply("there was an error trying to fetch data of the score!");
             }
             data = this.parseBody(body);
@@ -137,8 +171,7 @@ module.exports = {
                 .setTimestamp()
                 .setFooter(`Currently on page ${++num}/${scores.length}`, message.client.user.displayAvatarURL());
             allEmbeds.push(em);
-            importants.push({ important: data.important, pages: data.pageCount });
-            mp3s.push(data.mp3);
+            importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl });
         }
         if (allEmbeds.length < 1) return message.channel.send("No score was found!");
         const filter = (reaction, user) => {
@@ -196,24 +229,31 @@ module.exports = {
                     break;
                 case "📥":
                     var mesg = await message.author.send("Generating files...");
-                    const doc = new PDFDocument();
-                    for (let i = 0; i < importants[s].pages; i++) {
-                        SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                        if (i + 1 < importants[s].pages) doc.addPage();
+                    try {
+                        const doc = new PDFDocument();
+                        for (let i = 0; i < importants[s].pages; i++) {
+                            SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                            if (i + 1 < importants[s].pages) doc.addPage();
+                        }
+                        doc.end();
+                        const mp3 = await getMP3(importants[s].url);
+                        if (mp3.error) throw new Error(mp3.message);
+                        rs(mp3.url, async (err, res) => {
+                            if (err) return await mesg.edit("Failed to generate files!");
+                            const attachment = new Discord.MessageAttachment(res, `${allEmbeds[s].title.replace(/ +/g, "_")}.mp3`);
+                            const pdf = new Discord.MessageAttachment(doc, `${allEmbeds[s].title.replace(/ +/g, "_")}.pdf`);
+                            await mesg.delete();
+                            message.author.send([attachment, pdf]);
+                        });
+                    } catch (err) {
+                        await mesg.edit("Failed to generate files!");
                     }
-                    doc.end();
-                    rs(mp3s[s], async(err, res) => {
-                        if (err) return message.author.send("Failed to send attachments.");
-                        const attachment = new Discord.MessageAttachment(res, `${allEmbeds[s].title.replace(/ +/g, "_")}.mp3`);
-                        const pdf = new Discord.MessageAttachment(doc, `${allEmbeds[s].title.replace(/ +/g, "_")}.pdf`);
-                        await mesg.delete();
-                        message.author.send([attachment, pdf]);
-                    });
                     break;
             }
         });
         collector.on("end", function () {
             msg.reactions.removeAll().catch(console.error);
         });
-    }
+    },
+    download: getMP3
 }
