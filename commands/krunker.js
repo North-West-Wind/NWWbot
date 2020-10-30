@@ -96,7 +96,6 @@ module.exports = {
         try {
           const servers = await fetch(`https://north-utils.glitch.me/krunker-servers`, { timeout: 30000 }).then(res => res.json());
           if(servers.error) throw new Error(servers.message);
-          console.realLog(servers);
           var official = [];
           var custom = [];
           if (!args[1]) {

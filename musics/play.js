@@ -122,7 +122,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     }
   } else if (song.type === 5) {
     try {
-      const result = await fetch(`https://north-utils.glitch.me/musescore/${link}`, { timeout: 30000 }).then(res => res.json());
+      const result = await fetch(`https://north-utils.glitch.me/musescore/${song.url}`, { timeout: 30000 }).then(res => res.json());
       if(result.error) throw new Error(result.message);
       var requestedStream = await requestStream(result.url);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
