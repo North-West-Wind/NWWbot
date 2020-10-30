@@ -111,7 +111,9 @@ module.exports = {
         const image = meta.attribs.content;
         const important = image.split("/").slice(7, 12).join("/");
         const stores = Array.from($('div[class^="js-"]'));
-        const store = findValueByPrefix(stores.find(x => x.attribs && x.attribs.class && x.attribs.class.match(/^js-\w+$/)).attribs, "data-");
+        const found = stores.find(x => x.attribs && x.attribs.class && x.attribs.class.match(/^js-\w+$/));
+        console.realLog(found);
+        const store = findValueByPrefix(found.attribs, "data-");
         const data = JSON.parse(store).store.page.data;
         const id = data.score.id;
         const title = data.score.title;
