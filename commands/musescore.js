@@ -5,43 +5,8 @@ const Discord = require("discord.js");
 const { validMSURL, findValueByPrefix } = require("../function.js");
 const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
-const puppeteer = require("puppeteer");
-const options = {
-    args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process', // <- this one doesn't works in Windows
-        '--disable-gpu'
-    ],
-    headless: true
-};
-async function getMP3(link) {
-    const browser = await puppeteer.launch(options);
-    var result = { error: true };
-    try {
-        const page = await browser.newPage();
-        await page.setRequestInterception(true);
-        page.on('request', (request) => {
-            if (request.resourceType() === 'image' || request.resourceType() === 'stylesheet' || request.resourceType() === 'font') request.abort();
-            else request.continue();
-        });
-        await page.goto(link, { waitUntil: "domcontentloaded" });
-        await page.waitForSelector("button#playerBtnExprt");
-        await page.$eval("button#playerBtnExprt", play => play.click());
-        const mp3 = await page.waitForRequest(req => req.url().startsWith("https://s3.ultimate-guitar.com"));
-        result.url = mp3.url();
-        result.error = false;
-    } catch (err) {
-        result.message = err.message;
-    } finally {
-        await browser.close();
-    }
-    return result;
-}
+const nodefetch = require("node-fetch");
+const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 
 module.exports = {
     name: "musescore",
@@ -90,7 +55,7 @@ module.exports = {
                     if (i + 1 < data.pageCount) doc.addPage();
                 }
                 doc.end();
-                const mp3 = await getMP3(args.join(" "));
+                const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(args.join(" "))}`, { timeout: 30000 }).then(res => res.json());
                 if (mp3.error) throw new Error(mp3.message);
                 rs(mp3.url, async (err, res) => {
                     if (err) return await mesg.edit("Failed to generate files!");
@@ -111,7 +76,8 @@ module.exports = {
         const image = meta.attribs.content;
         const important = image.split("/").slice(7, 12).join("/");
         const stores = Array.from($('div[class^="js-"]'));
-        const store = findValueByPrefix(stores.find(x => x.attribs && x.attribs.class && x.attribs.class.match(/^js-\w+$/)).attribs, "data-");
+        const found = stores.find(x => x.attribs && x.attribs.class && x.attribs.class.match(/^js-\w+$/) && findValueByPrefix(x.attribs, "data-"));
+        const store = findValueByPrefix(found.attribs, "data-");
         const data = JSON.parse(store).store.page.data;
         const id = data.score.id;
         const title = data.score.title;
@@ -236,7 +202,7 @@ module.exports = {
                             if (i + 1 < importants[s].pages) doc.addPage();
                         }
                         doc.end();
-                        const mp3 = await getMP3(importants[s].url);
+                        const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(importants[s].url)}`, { timeout: 30000 }).then(res => res.json());
                         if (mp3.error) throw new Error(mp3.message);
                         rs(mp3.url, async (err, res) => {
                             if (err) return await mesg.edit("Failed to generate files!");
@@ -254,6 +220,5 @@ module.exports = {
         collector.on("end", function () {
             msg.reactions.removeAll().catch(console.error);
         });
-    },
-    download: getMP3
+    }
 }

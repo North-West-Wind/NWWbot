@@ -399,11 +399,12 @@ module.exports = {
   },
   findValueByPrefix(object, prefix) {
     for (var property in object) {
-      if (object.hasOwnProperty(property) && 
+      if (object[property] && 
          property.toString().startsWith(prefix)) {
          return object[property];
       }
     }
+    return undefined;
   },
   isEquivalent(a, b) {
     // Create arrays of property names

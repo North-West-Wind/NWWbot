@@ -13,7 +13,6 @@ const {
 } = require("../function.js");
 const { parseBody } = require("../commands/musescore.js");
 const { migrate } = require("./migrate.js");
-const { download } = require("../commands/musescore.js");
 const ytdl = require("ytdl-core");
 var color = Math.floor(Math.random() * 16777214) + 1;
 var SpotifyWebApi = require("spotify-web-api-node");
@@ -22,7 +21,8 @@ var spotifyApi = new SpotifyWebApi({
   clientSecret: process.env.SPOTSECRET,
   redirectUri: "https://nwws.ml"
 });
-const fetch = require("node-fetch");
+const nodefetch = require("node-fetch");
+const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const request = require("request-stream");
 const mm = require("music-metadata");
 const ytsr = require("ytsr");
@@ -122,7 +122,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     }
   } else if (song.type === 5) {
     try {
-      const result = await download(song.url);
+      const result = await fetch(`https://north-utils.glitch.me/musescore/${song.url}`, { timeout: 30000 }).then(res => res.json());
       if(result.error) throw new Error(result.message);
       var requestedStream = await requestStream(result.url);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
