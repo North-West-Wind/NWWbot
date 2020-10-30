@@ -33,6 +33,7 @@ const scdl = require("soundcloud-downloader");
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
+var cookie = { cookie: process.env.COOKIE, id: 0 };
 
 const requestStream = url => {
   return new Promise((resolve, reject) => {
@@ -78,9 +79,9 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   async function skip() {
     skipped += 1;
     if (serverQueue.textChannel)
-      serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track..." + `${skipped < 2 ? "" : `(${skipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
+      serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track..." + `${skipped < 2 ? "" : ` (${skipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
     if (skipped >= 3) {
-      serverQueue.textChannel.send("The error happened 3 times in a row! Disconnecting the bot...");
+      if (serverQueue.textChannel) serverQueue.textChannel.send("The error happened 3 times in a row! Disconnecting the bot...");
       if (serverQueue.connection != null && serverQueue.connection.dispatcher)
         serverQueue.connection.dispatcher.destroy();
       serverQueue.playing = false;
@@ -105,7 +106,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     try {
       var requestedStream = await requestStream(song.url);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25, seek: seek }));
+      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }), { seek: seek });
     } catch (err) {
       console.error(err);
       return await skip();
@@ -121,14 +122,14 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     try {
       var requestedStream = await requestStream(song.mp3);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25, seek: seek }));
+      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }), { seek: seek });
     } catch (err) {
       console.error(err);
       return await skip();
     }
   } else {
     try {
-      dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 28, dlChunkSize: 0, filter: "audioonly", requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
+      dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 28, dlChunkSize: 0, filter: "audioonly", requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
     } catch (err) {
       console.error(err);
       return await skip();
@@ -179,8 +180,18 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
       } else oldSkipped = 0;
       play(guild, serverQueue.songs[0], queue, pool, oldSkipped);
     })
-    .on("error", error => {
-      console.error(error);
+    .on("error", async error => {
+      if(error.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
+        console.error("Received 429 error. Changing ytdl-core cookie...");
+        cookie.id++;
+        if(!process.env[`COOKIE${cookie.id}`]) {
+          cookie.cookie = process.env.COOKIE;
+          cookie.id = 0;
+        }
+        else cookie.cookie = process.env[`COOKIE${cookie.id}`];
+      } else console.error(error);
+      skipped = oldSkipped;
+      await skip();
     });
   dispatcher.setVolume(serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume);
 }
@@ -644,7 +655,6 @@ module.exports = {
               return console.error(err);
             }
           }
-
           for (var s = 0; s < results.length; s++) {
             if (results.length == 0) break;
             if (isGoodMusicVideoContent(results[s])) {
