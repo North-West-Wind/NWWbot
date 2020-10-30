@@ -8,10 +8,12 @@ const {
   decodeHtmlEntity,
   validYTPlaylistURL,
   validSCURL,
-  validMSURL
+  validMSURL,
+  isEquivalent
 } = require("../function.js");
 const { parseBody } = require("../commands/musescore.js");
 const { migrate } = require("./migrate.js");
+const { download } = require("../commands/musescore.js");
 const ytdl = require("ytdl-core");
 var color = Math.floor(Math.random() * 16777214) + 1;
 var SpotifyWebApi = require("spotify-web-api-node");
@@ -42,14 +44,14 @@ const requestStream = url => {
 };
 
 function updateQueue(message, serverQueue, queue, pool) {
-  if (serverQueue === null) queue.delete(message.guild.id);
+  if (!serverQueue) queue.delete(message.guild.id);
   else queue.set(message.guild.id, serverQueue);
   if (pool) pool.getConnection(function (err, con) {
     if (err) {
       if (!message.dummy) message.reply("there was an error trying to connect to the database!");
       return;
     }
-    const query = `UPDATE servers SET queue = ${serverQueue === null ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`;
+    const query = `UPDATE servers SET queue = ${!serverQueue ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`;
     con.query(query, function (err) {
       if (err) {
         if (!message.dummy) message.reply("there was an error trying to update the queue!");
@@ -71,7 +73,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     return;
   }
 
-  if (serverQueue.connection === null) return;
+  if (!serverQueue.connection) return;
   if (serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;
 
@@ -82,7 +84,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
       serverQueue.textChannel.send("An error occured while trying to play the track! Skipping the track..." + `${skipped < 2 ? "" : ` (${skipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
     if (skipped >= 3) {
       if (serverQueue.textChannel) serverQueue.textChannel.send("The error happened 3 times in a row! Disconnecting the bot...");
-      if (serverQueue.connection != null && serverQueue.connection.dispatcher)
+      if (serverQueue.connection && serverQueue.connection.dispatcher)
         serverQueue.connection.dispatcher.destroy();
       serverQueue.playing = false;
       serverQueue.connection = null;
@@ -120,7 +122,9 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     }
   } else if (song.type === 5) {
     try {
-      var requestedStream = await requestStream(song.mp3);
+      const result = await download(song.url);
+      if(result.error) throw new Error(result.message);
+      var requestedStream = await requestStream(result.url);
       var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
       dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }), { seek: seek });
     } catch (err) {
@@ -129,6 +133,16 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     }
   } else {
     try {
+      if(song.time === "∞") {
+        const args = ["0", song.url];
+        const result = await module.exports.addYTURL({ dummy: true }, args);
+        if(result.error) throw "Failed to find video";
+        if(!isEquivalent(result.songs[0], song)) {
+          song = result.songs[0];
+          serverQueue.songs[0] = song;
+          updateQueue(message, serverQueue, queue, pool);
+        }
+      }
       dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 28, dlChunkSize: 0, filter: "audioonly", requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
     } catch (err) {
       console.error(err);
@@ -222,7 +236,7 @@ module.exports = {
           return message.channel.send(
             "No song queue was found for this server! Please provide a link or keywords to get a music played!"
           );
-        if (serverQueue.playing === true || console.migrating.find(x => x === message.guild.id)) {
+        if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) {
           return await migrate(message, serverQueue, queue, pool);
         }
 
@@ -336,7 +350,7 @@ module.exports = {
           return message.channel.send(err);
         }
       } else {
-        if (!message.guild.me.voice.channel || serverQueue.playing === false) {
+        if (!message.guild.me.voice.channel || !serverQueue.playing) {
           serverQueue.songs = songs.concat(serverQueue.songs);
         } else {
           serverQueue.songs = serverQueue.songs.concat(songs);
@@ -360,7 +374,7 @@ module.exports = {
             queue,
             pool
           );
-        } else if (serverQueue.playing === false) {
+        } else if (!serverQueue.playing) {
           play(
             message.guild,
             serverQueue.songs[0],
@@ -457,7 +471,7 @@ module.exports = {
             queue,
             pool
           );
-        } else if (serverQueue.playing === false) {
+        } else if (!serverQueue.playing) {
           play(
             message.guild,
             serverQueue.songs[0],
@@ -557,8 +571,8 @@ module.exports = {
     try {
       var songInfo = await ytdl.getInfo(args.slice(1).join(" "), { requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
     } catch (err) {
-      message.channel.send("No video was found!");
-      return { error: false };
+      if(!message.dummy) message.channel.send("No video was found!");
+      return { error: true };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
     var songLength = songInfo.videoDetails.isLive || songInfo.videoDetails.isLiveContent ? "∞" : moment.duration(length, "seconds").format();
@@ -693,7 +707,7 @@ module.exports = {
         mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
         break;
       case "album":
-        if (highlight === false) {
+        if (!highlight) {
           var album = await spotifyApi
             .getAlbums([musicID])
             .catch(err => console.log("Something went wrong!", err));
@@ -971,7 +985,6 @@ module.exports = {
     var song = {
       title: data.title,
       url: args.slice(1).join(" "),
-      mp3: data.mp3,
       type: 5,
       time: songLength,
       volume: 1,
@@ -1001,7 +1014,7 @@ module.exports = {
       );
       return { error: true };
     }
-    if (metadata === undefined) {
+    if (!metadata) {
       message.channel.send(
         "An error occured while parsing the audio file into stream! Maybe it is not link to the file?"
       );
