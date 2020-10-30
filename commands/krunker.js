@@ -2,7 +2,8 @@ const Discord = require("discord.js")
 var color = Math.floor(Math.random() * 16777214) + 1;
 const { Krunker: Api, UserNotFoundError } = require("@fasetto/krunker.io");
 const Krunker = new Api();
-const puppeteer = require("puppeteer");
+const nodefetch = require("node-fetch");
+const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 
 module.exports = {
   name: "krunker",
@@ -93,11 +94,7 @@ module.exports = {
       case "server":
         var msg = await message.channel.send("Loading servers...");
         try {
-          const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
-          const page = await browser.newPage();
-          await page.goto("https://matchmaker.krunker.io/game-list?hostname=krunker.io");
-          const element = await page.$("pre");
-          const servers = JSON.parse(await (await element.getProperty('textContent')).jsonValue());
+          const servers = await fetch(`https://north-utils.glitch.me/krunker-servers`, { timeout: 30000 });
           var official = [];
           var custom = [];
           if (!args[1]) {
