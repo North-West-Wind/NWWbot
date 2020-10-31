@@ -186,7 +186,7 @@ module.exports = {
             .setDescription("Enter the page number to warp to that page.")
             .setTimestamp()
             .setFooter("Please decide within 30 seconds.", message.client.user.displayAvatarURL());
-          collector.on("collect", function (reaction, user) {
+          collector.on("collect", async function (reaction, user) {
             reaction.users.remove(user.id);
             switch (reaction.emoji.name) {
               case "🎲":
