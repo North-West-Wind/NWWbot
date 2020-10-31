@@ -39,6 +39,7 @@ module.exports = {
             }
           } else {
             const channel = guild.channels.resolve(result[0].wel_channel);
+            if (!channel) return await message.channel.send(`Failed to find the channel <#${channel.id}>`);
             if (!channel.permissionsFor(guild.me).has(18432)) return await message.channel.send(`Permissions are missing for sending Welcome Message/Image in <#${channel.id}>!`);
             const splitMessage = result[0].welcome.split(" ");
             const messageArray = [];
@@ -136,7 +137,7 @@ module.exports = {
                 ctx.drawImage(avatar, canvas.width / 2 - canvas.height / 5, canvas.height / 3 - canvas.height / 5, canvas.height / 2.5, canvas.height / 2.5);
                 var attachment = new Discord.MessageAttachment(canvas.toBuffer(), "welcome-image.png");
                 try {
-                  if (id === 1) await channel.send(new Discord.MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
+                  if (id === 1) await message.channel.send(new Discord.MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
                   await message.channel.send(attachment);
                 } catch (err) {
                   console.error(err);
@@ -146,7 +147,7 @@ module.exports = {
               try {
                 let urls = JSON.parse(result[0].wel_img);
                 if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
-              } catch(err) {}
+              } catch (err) { }
               img.src = url;
             }
           }
