@@ -1,7 +1,6 @@
 const querystring = require("querystring");
 const Discord = require("discord.js");
 const fetch = require("node-fetch");
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "urban",
@@ -25,7 +24,7 @@ module.exports = {
     for (var i = 0; i < list.length; i++) {
       var answer = list[i];
       const embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle(answer.word)
         .setURL(answer.permalink)
         .addField("Definition", trim(answer.definition, 1024))

@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { ms } = require("../function.js");
 const math = require("mathjs");
 const moment = require("moment");
@@ -53,7 +52,7 @@ module.exports = {
                 if(!time || time === 0) return msg.edit("That's not a valid number!");
         }
         var em = new Discord.MessageEmbed()
-            .setColor(color)
+            .setColor(console.color())
             .setTitle("Math Game Prototype")
             .setDescription(`Game Mode: **${questions > 0 ? `Limited Question Mode (${questions} Questions)` : time > 0 ? `Timer Mode (${moment.duration(Math.round(time / 1000), "seconds").format()})` : "Endless Mode"}**\n**${players.length < 2 ? "Singleplayer" : "Multiplayer"} Game**\nReact with "👌🏻" when you are ready!`)
             .setTimestamp()
@@ -107,19 +106,19 @@ module.exports = {
     },
     async selectMode(message) {
         var em1 = new Discord.MessageEmbed()
-            .setColor(color)
+            .setColor(console.color())
             .setTitle("Limited Questions Mode")
             .setDescription("In this mode, you can set the **amount of questions**\nThe maximum time allowed for each question is **5 minutes**\nAnswers are all integers\nQuestions will get **harder** as the game goes")
             .setTimestamp()
             .setFooter("React with ✅ to choose this one.");
         var em2 = new Discord.MessageEmbed()
-            .setColor(color)
+            .setColor(console.color())
             .setTitle("Timer Mode")
             .setDescription("In this mode, you can set the **amount of time allowed for the entire game**\nThe maximum time allowed for each question is **5 minutes**\nAnswers are all integers\nQuestions will get **harder** as the game goes")
             .setTimestamp()
             .setFooter("React with ✅ to choose this one.");
         var em3 = new Discord.MessageEmbed()
-            .setColor(color)
+            .setColor(console.color())
             .setTitle("Endless Mode")
             .setDescription("In this mode, you can answer **endless amount of questions**\nThe maximum time allowed for each question is **10 seconds + 5 seconds Network Buffer**\nAnswers are all integers\nQuestions will get **harder** as the game goes")
             .setTimestamp()

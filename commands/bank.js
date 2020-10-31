@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "bank",
@@ -36,7 +35,7 @@ module.exports = {
             var cash = results[0].currency;
             var bank = results[0].bank;
             const Embed = new Discord.MessageEmbed()
-              .setColor(color)
+              .setColor(console.color())
               .setTitle(message.author.tag)
               .setDescription("Economic status\n\n1️⃣Deposit\n2️⃣Withdraw")
               .addField("Bank", "$" + bank)
@@ -65,7 +64,7 @@ module.exports = {
                   cash = newResults[0].currency;
                   bank = newResults[0].bank;
                   const embed = new Discord.MessageEmbed()
-                    .setColor(color)
+                    .setColor(console.color())
                     .setTitle(message.author.tag)
                     .setDescription("Economic status\n\n1️⃣Deposit\n2️⃣Withdraw")
                     .addField("Bank", "$" + bank)
@@ -101,7 +100,7 @@ module.exports = {
 
                   if (reaction.emoji.name === "1️⃣") {
                     var depositEmbed = new Discord.MessageEmbed()
-                      .setColor(color)
+                      .setColor(console.color())
                       .setTitle("Deposit")
                       .setDescription(
                         "Please enter the amount you want to deposit.\n(Can also enter `all`, `half` or `quarter`)"
@@ -150,7 +149,7 @@ module.exports = {
                               );
                             }
                             var depositedEmbed = new Discord.MessageEmbed()
-                              .setColor(color)
+                              .setColor(console.color())
                               .setTitle("Deposition Successful")
                               .setDescription(
                                 "Deposited **$" + deposits + "** into bank!"
@@ -193,7 +192,7 @@ module.exports = {
                               );
                             }
                             var depositedEmbed = new Discord.MessageEmbed()
-                              .setColor(color)
+                              .setColor(console.color())
                               .setTitle("Deposition Successful")
                               .setDescription(
                                 "Deposited **$" + deposits + "** into bank!"
@@ -236,7 +235,7 @@ module.exports = {
                               );
                             }
                             var depositedEmbed = new Discord.MessageEmbed()
-                              .setColor(color)
+                              .setColor(console.color())
                               .setTitle("Deposition Successful")
                               .setDescription(
                                 "Deposited **$" + deposits + "** into bank!"
@@ -254,7 +253,7 @@ module.exports = {
                         );
                       } else {
                         var depositedEmbed = new Discord.MessageEmbed()
-                          .setColor(color)
+                          .setColor(console.color())
                           .setTitle("Deposition Failed")
                           .setDescription("That is not a valid amount!")
                           .setTimestamp()
@@ -293,7 +292,7 @@ module.exports = {
                             );
                           }
                           var depositedEmbed = new Discord.MessageEmbed()
-                            .setColor(color)
+                            .setColor(console.color())
                             .setTitle("Deposition Successful")
                             .setDescription(
                               "Deposited **$" + deposits + "** into bank!"
@@ -312,7 +311,7 @@ module.exports = {
                     }
                   } else {
                     var withdrawEmbed = new Discord.MessageEmbed()
-                      .setColor(color)
+                      .setColor(console.color())
                       .setTitle("Withdrawal")
                       .setDescription(
                         "Please enter the amount you want to withdraw.\n(Can also enter `all`, `half` or `quarter`)"
@@ -368,7 +367,7 @@ module.exports = {
                                   );
                                 }
                                 var withdrawedEmbed = new Discord.MessageEmbed()
-                                  .setColor(color)
+                                  .setColor(console.color())
                                   .setTitle("Withdrawal Successful")
                                   .setDescription(
                                     "Withdrawed **$" +
@@ -413,7 +412,7 @@ module.exports = {
                                   );
                                 }
                                 var withdrawedEmbed = new Discord.MessageEmbed()
-                                  .setColor(color)
+                                  .setColor(console.color())
                                   .setTitle("Withdrawal Successful")
                                   .setDescription(
                                     "Withdrawed **$" +
@@ -457,7 +456,7 @@ module.exports = {
                                   );
                                 }
                                 var withdrawedEmbed = new Discord.MessageEmbed()
-                                  .setColor(color)
+                                  .setColor(console.color())
                                   .setTitle("Withdrawal Successful")
                                   .setDescription(
                                     "Withdrawed **$" +
@@ -477,7 +476,7 @@ module.exports = {
                             );
                           } else {
                             var depositedEmbed = new Discord.MessageEmbed()
-                              .setColor(color)
+                              .setColor(console.color())
                               .setTitle("Withdrawal Failed")
                               .setDescription("That is not a valid amount!")
                               .setTimestamp()
@@ -518,7 +517,7 @@ module.exports = {
                             );
                           }
                           var withdrawedEmbed = new Discord.MessageEmbed()
-                            .setColor(color)
+                            .setColor(console.color())
                             .setTitle("Withdrawal Successful")
                             .setDescription(
                               "Withdrawed **$" + deposits + "** from bank!"

@@ -1,5 +1,4 @@
 const Discord = require('discord.js');
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "trade",
@@ -26,7 +25,7 @@ module.exports = {
     await collected2.first().delete();
     msg.delete();
     const Embed = new Discord.MessageEmbed()
-    .setColor(color)
+    .setColor(console.color())
     .setTitle(message.author.tag + "'s trade")
     .setDescription("Want: " + want + "\n------------------------\nHave: " + offer)
     .setTimestamp()

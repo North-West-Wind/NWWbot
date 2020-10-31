@@ -1,5 +1,3 @@
-var color = Math.floor(Math.random() * 16777214) + 1;
-
 module.exports = {
   name: "delrole",
   description: "Remove a role from the server.",
@@ -48,7 +46,7 @@ module.exports = {
 
     const Discord = require('discord.js');
     const Embed = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Role Deleted Successfully")
       .setDescription("Deleted a role **" + role.name + "**")
       .setTimestamp()

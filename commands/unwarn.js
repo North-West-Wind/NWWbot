@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var embedColor = Math.floor(Math.random() * 16777214) + 1;
 const { findUser } = require("../function.js");
 
 module.exports = {
@@ -9,6 +8,11 @@ module.exports = {
   category: 1,
   args: 1,
   execute(message, args, pool) {
+    if (!message.guild) return message.channel.send("This command only works in a server.");
+    if (!message.member.permissions.has(4)) return message.channel.send("You don't have the permission to use this command!");
+    if (!message.guild.me.permissions.has(4)) return message.channel.send("I don't have the permission to unwarn user!");
+    const user = await findUser(message, args[0]);
+    if (!user) return;
     pool.getConnection(async function(err, con) {
       if (err) {
         console.error(err);
@@ -16,14 +20,6 @@ module.exports = {
           "there was an error trying to connect to the database!"
         );
       }
-      if (args[0] === "@everyone") {
-        return message.channel.send("I cannot unwarn everyone lol.");
-      }
-
-      const user = await findUser(message, args[0]);
-
-      if (!user) return;
-
       con.query(
         "SELECT * FROM warn WHERE user = " +
           user.id +
@@ -45,7 +41,7 @@ module.exports = {
               );
 
             var warningEmbed = new Discord.MessageEmbed()
-              .setColor(embedColor)
+              .setColor(console.color())
               .setTitle(`Your warnings have been cleared`)
               .setDescription(`In **${message.guild.name}**`)
               .setTimestamp()
@@ -73,7 +69,7 @@ module.exports = {
             );
 
             var warnSuccessfulEmbed = new Discord.MessageEmbed()
-              .setColor(embedColor)
+              .setColor(console.color())
               .setTitle("User Successfully Unwarned!")
               .setDescription(
                 "Unwarned **" +

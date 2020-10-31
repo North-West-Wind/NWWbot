@@ -1,6 +1,5 @@
 var RedditAPI = require("reddit-wrapper-v2");
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { validImgurURL, validRedditURL, decodeHtmlEntity, validGfyURL, validImgurVideoURL, validRedditVideoURL, validNotImgurURL, validRedGifURL } = require("../function.js");
 const Gfycat = require('gfycat-sdk');
 var gfycat = new Gfycat({clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET});
@@ -2066,7 +2065,7 @@ module.exports = {
         .setDescription(`Tags: \`${tags.length > 0 ? tags.join("->") : "`N/A`"}\`\n(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\nFrom r/${picked}`)
           .setURL(`https://reddit.com${data.permalink}`)
           .setImage(data.url)
-          .setColor(color)
+          .setColor(console.color())
           .setFooter(
             `${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`, message.client.user.displayAvatarURL()
           )

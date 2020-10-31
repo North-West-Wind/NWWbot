@@ -9,7 +9,6 @@ const {
     validMSURL
 } = require("../function.js");
 const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDURL, addMSURL, addURL, search, updateQueue } = require("./play.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
     name: "add",
@@ -54,7 +53,7 @@ module.exports = {
                 updateQueue(message, queueContruct, queue, pool)
                 try {
                     const Embed = new Discord.MessageEmbed()
-                        .setColor(color)
+                        .setColor(console.color())
                         .setTitle("New track added:")
                         .setThumbnail(songs[0].thumbnail)
                         .setDescription(
@@ -82,7 +81,7 @@ module.exports = {
                 serverQueue.songs = serverQueue.songs.concat(songs);
                 updateQueue(message, serverQueue, queue, pool);
                 const Embed = new Discord.MessageEmbed()
-                    .setColor(color)
+                    .setColor(console.color())
                     .setTitle("New track added:")
                     .setThumbnail(songs[0].thumbnail)
                     .setDescription(
@@ -136,7 +135,7 @@ module.exports = {
                 serverQueue.songs.push(song);
                 updateQueue(message, serverQueue, queue, pool);
                 const Embed = new Discord.MessageEmbed()
-                    .setColor(color)
+                    .setColor(console.color())
                     .setTitle("New track added:")
                     .setThumbnail(song.thumbnail)
                     .setDescription(

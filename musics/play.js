@@ -14,7 +14,6 @@ const {
 const { parseBody } = require("../commands/musescore.js");
 const { migrate } = require("./migrate.js");
 const ytdl = require("ytdl-core");
-var color = Math.floor(Math.random() * 16777214) + 1;
 var SpotifyWebApi = require("spotify-web-api-node");
 var spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTID,
@@ -152,7 +151,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   const now = Date.now();
   if (serverQueue.textChannel) {
     const Embed = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Now playing:")
       .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
       .setDescription(
@@ -325,7 +324,7 @@ module.exports = {
             pool
           );
           const Embed = new Discord.MessageEmbed()
-            .setColor(color)
+            .setColor(console.color())
             .setTitle("New track added:")
             .setThumbnail(songs[0].thumbnail)
             .setDescription(
@@ -383,7 +382,7 @@ module.exports = {
           );
         }
         const Embed = new Discord.MessageEmbed()
-          .setColor(color)
+          .setColor(console.color())
           .setTitle("New track added:")
           .setThumbnail(songs[0].thumbnail)
           .setDescription(
@@ -480,7 +479,7 @@ module.exports = {
           );
         }
         const Embed = new Discord.MessageEmbed()
-          .setColor(color)
+          .setColor(console.color())
           .setTitle("New track added:")
           .setThumbnail(song.thumbnail)
           .setDescription(
@@ -1036,7 +1035,7 @@ module.exports = {
   async search(message, args) {
     const Embed = new Discord.MessageEmbed()
       .setTitle("Search result of " + args.slice(1).join(" "))
-      .setColor(color)
+      .setColor(console.color())
       .setTimestamp()
       .setFooter("Choose your song by typing the number, or type anything else to cancel.", message.client.user.displayAvatarURL());
     const results = [];
@@ -1074,7 +1073,7 @@ module.exports = {
     var collected = await msg.channel.awaitMessages(filter, { max: 1, time: 30000, error: ["time"] });
     if (!collected || !collected.first() || !collected.first().content) {
       const Ended = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle("Cannot parse your choice.")
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
@@ -1088,7 +1087,7 @@ module.exports = {
       (parseInt(content) < 1 && parseInt(content) > results.length)
     ) {
       const cancelled = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle("Action cancelled.")
         .setTimestamp()
         .setFooter(
@@ -1102,7 +1101,7 @@ module.exports = {
     var s = parseInt(content) - 1;
 
     const chosenEmbed = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Music chosen:")
       .setThumbnail(video[s].thumbnail)
       .setDescription(

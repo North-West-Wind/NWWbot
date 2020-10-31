@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 const fetch = require("node-fetch");
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "speedrun",
@@ -34,7 +33,7 @@ module.exports = {
         );
       }
       var em = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle("Which game are you looking for?")
         .setDescription(games.join("\n"))
         .setTimestamp()
@@ -100,7 +99,7 @@ module.exports = {
      
     } else {
       var em = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Loading...")
       .setDescription("This will take a while.")
       .setTimestamp()
@@ -111,7 +110,7 @@ module.exports = {
     }
        } else {
          var em = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Loading...")
       .setDescription("This will take a while.")
       .setTimestamp()
@@ -138,7 +137,7 @@ module.exports = {
       var level = levelFetch && levelFetch.data ? levelFetch.data.name : "N/A";
       var category = categoryFetch && categoryFetch.data ? categoryFetch.data.name : "N/A";
       const embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle(result && result.data[0] ? result.data[index ? index : 0].names.international : gameFetch.data.names.international)
         .setDescription(`Category: **${category}**\nLevel: **${level}**`)
         .setURL(record.weblink ? record.weblink : undefined)

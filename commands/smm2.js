@@ -47,7 +47,7 @@ module.exports = {
                 };
 
             const em = new Discord.MessageEmbed()
-                .setColor(Math.floor(Math.random() * Math.pow(256, 3)))
+                .setColor(console.color())
                 .setTitle(title)
                 .setThumbnail(thumbnail)
                 .setDescription(description.length > 2048 ? description.substr(0, 2045) + "..." : description)

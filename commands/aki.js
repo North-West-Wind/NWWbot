@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 const { Aki } = require("aki-api");
-var color = Math.floor(Math.random() * 16777214) + 1;
 module.exports = {
   name: "aki",
   description: "Play Akinator on Discord!",
@@ -89,7 +88,7 @@ module.exports = {
       " **Stop**";
 
     const embed = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Question 1: " + aki.question)
       .setDescription(str)
       .setTimestamp()
@@ -367,7 +366,7 @@ module.exports = {
   },
   async region(message) {
     const regionEmbed = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Akinator")
       .setDescription("Region list\n\n`" + this.regions.join("`\n`") + "`")
       .setFooter(

@@ -1,6 +1,5 @@
 var Dictionary = require("oxford-dictionary");
 const Discord = require("discord.js")
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 var config = {
   app_id: process.env.OXID,
@@ -72,7 +71,7 @@ module.exports = {
         var examples = stuff[i].senses[s].examples.join("\n");
 
         const Embed = new Discord.MessageEmbed()
-          .setColor(color)
+          .setColor(console.color())
           .setTitle("Definitions of \"" + args.join(" ") + "\"")
           .setDescription(`**${stuff[i].category}**`)
           .addField("Definitions", definitions)

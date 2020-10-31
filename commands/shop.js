@@ -1,11 +1,11 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "shop",
   description: "Spend the money you gained from work or lottery.",
   category: 2,
   execute(message, args, pool) {
+    const color = console.color();
     pool.getConnection(function(err, con) {
       if (err) {
         console.error(err);

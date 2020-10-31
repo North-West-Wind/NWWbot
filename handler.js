@@ -70,7 +70,7 @@ module.exports = {
                                 description += `${++num}. ${result.title} : ${result.time}\n`;
                             }
                             const em = new Discord.MessageEmbed()
-                                .setColor(Math.floor(Math.random() * 16777214) + 1)
+                                .setColor(console.color())
                                 .setTitle("Rank Expiration Timers")
                                 .setDescription(description)
                                 .setTimestamp()
@@ -85,7 +85,7 @@ module.exports = {
                                     desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
                                 }
                                 const em = new Discord.MessageEmbed()
-                                    .setColor(Math.floor(Math.random() * 16777214) + 1)
+                                    .setColor(console.color())
                                     .setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
                                     .setDescription(desc)
                                     .setTimestamp()
@@ -369,7 +369,7 @@ module.exports = {
                                         fetchUser.displayAvatarURL()
                                     );
                                 msg.edit(Ended);
-                                var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+                                var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
                                 msg.channel.send(
                                     "Congratulation, " +
                                     winnerMessage +
@@ -466,7 +466,7 @@ module.exports = {
                                     author.displayAvatarURL()
                                 );
                             msg.edit(pollMsg, Ended);
-                            var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+                            var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
 
                             msg.channel.send("A poll has ended!\n" + link);
                             msg.reactions.removeAll().catch(err => {
@@ -512,7 +512,7 @@ module.exports = {
                             clearInterval(timerid);
                             em.setDescription("The timer has ended.");
                             msg = await msg.edit(em);
-                            author.send(`Your timer in **${guild.name}** has ended! https://discordapp.com/channels/${guild.id}/${channel.id}/${msg.id}`);
+                            author.send(`Your timer in **${guild.name}** has ended! https://discord.com/channels/${guild.id}/${channel.id}/${msg.id}`);
                             con.query(`SELECT * FROM timer WHERE guild = '${guild.id}' AND channel = '${channel.id}' AND author = '${author.id}' AND msg = '${msg.id}'`, (err, results) => {
                                 if (err) return console.error(err);
                                 if (results.length < 1) return;
@@ -1126,7 +1126,10 @@ module.exports = {
         message.prefix = message.client.prefix;
         if (message.guild && console.prefixes[message.guild.id] && message.client.id === 0) message.prefix = console.prefixes[message.guild.id];
         if (!message.content.startsWith(message.prefix) || message.author.bot) {
-            if (!message.author.bot && Math.floor(Math.random() * 1000) === 69) cleverbot(message.content).then(response => message.channel.send(response));
+            if (!message.author.bot) {
+                this.messageLevel(message);
+                if(Math.floor(Math.random() * 1000) === 69) cleverbot(message.content).then(response => message.channel.send(response));
+            }
             return;
         };
         const args = message.content.slice(message.prefix.length).split(/ +/);
@@ -1150,8 +1153,53 @@ module.exports = {
             if (command.category === 8) await require("./musics/main.js").music(message, commandName, pool);
             else await command.execute(message, args, pool);
         } catch (error) {
+            console.error(`Error running command ${command.name}`);
             console.error(error);
             message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
         }
+    },
+    messageLevel(message) {
+        var exp = Math.round(getRandomNumber(5, 15));
+        var currentDate = new Date();
+
+        var date = currentDate.getDate();
+        var month = currentDate.getMonth();
+        var year = currentDate.getFullYear();
+        var hour = currentDate.getHours();
+        var minute = currentDate.getMinutes();
+        var second = currentDate.getSeconds();
+
+        var sqlDate =
+            year +
+            "-" +
+            twoDigits(month + 1) +
+            "-" +
+            twoDigits(date) +
+            " " +
+            twoDigits(hour) +
+            ":" +
+            twoDigits(minute) +
+            ":" +
+            twoDigits(second);
+
+        pool.getConnection(function (err, con) {
+            if (err) return console.error(err);
+            con.query("SELECT * FROM leveling WHERE user = " + message.author.id + " AND guild = " + message.guild.id, function (err, results, fields) {
+                if (results.length < 1) {
+                    con.query("INSERT INTO leveling(user, guild, exp, last) VALUES ('" + message.author.id + "', '" + message.guild.id + "', '" + exp + "', '" + sqlDate + "')", function (err, result) {
+                        if (err) return console.error(err);
+                        console.log(message.author.username + " gained " + exp + " XP in server " + message.guild.name);
+                    })
+                } else {
+                    if (new Date() - results[0].last < 60000) return;
+                    var newExp = parseInt(results[0].exp) + exp;
+                    con.query("UPDATE leveling SET exp = '" + newExp + "', last = '" + sqlDate + "' WHERE user = '" + message.author.id + "' AND guild = '" + message.guild.id + "'", function (err, result) {
+                        if (err) return console.error(err);
+                        console.log(message.author.username + " gained " + exp + " XP in server " + message.guild.name);
+                    })
+                }
+            })
+            con.release();
+        });
     }
 }

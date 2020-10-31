@@ -1,8 +1,5 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
-const { ms } = require("../function.js");
-
-const { twoDigits, setTimeout_ } = require("../function.js");
+const { twoDigits, setTimeout_, ms } = require("../function.js");
 
 module.exports = {
   name: "poll",
@@ -242,6 +239,7 @@ module.exports = {
         twoDigits(second) +
         " UTC";
       var pollMsg = "⬆**Poll**⬇";
+      const color = console.color();
       const Embed = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle(title)
@@ -361,7 +359,7 @@ module.exports = {
                   message.author.displayAvatarURL()
                 );
               msg.edit(pollMsg, Ended);
-              var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+              var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
 
               msg.channel.send("A poll has ended!\n" + link);
               msg.reactions.removeAll().catch(err => {
@@ -398,8 +396,7 @@ module.exports = {
       }
       con.query("SELECT * FROM poll WHERE id = '" + msgID + "'", async function(
         err,
-        result,
-        fields
+        result
       ) {
         if (err) {
           console.error(err);
@@ -421,8 +418,7 @@ module.exports = {
           var msg = await channel.messages.fetch(result[0].id);
         } catch (err) {
           con.query("DELETE FROM poll WHERE id = " + result[0].id, function(
-            err,
-            con
+            err
           ) {
             if (err) {
               console.error(err);
@@ -451,7 +447,7 @@ module.exports = {
         }
         var pollMsg = "⬆**Poll**⬇";
         const Ended = new Discord.MessageEmbed()
-          .setColor(color)
+          .setColor(result[0].color)
           .setTitle(unescape(result[0].title))
           .setDescription(
             "Poll ended. Here are the results:\n\n\n" +
@@ -466,7 +462,7 @@ module.exports = {
             author.displayAvatarURL()
           );
         msg.edit(pollMsg, Ended);
-        var link = `https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+        var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
 
         msg.channel.send("A poll has ended!\n" + link);
         msg.reactions.removeAll().catch(err => {
@@ -507,7 +503,7 @@ module.exports = {
             );
           }
           const Embed = new Discord.MessageEmbed()
-            .setColor(color)
+            .setColor(console.color())
             .setTitle("Poll list")
             .setDescription(
               "**" + message.guild.name + "** - " + results.length + " polls"

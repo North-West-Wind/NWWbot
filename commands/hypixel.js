@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits, numberWithCommas } = require("../function.js");
 const nodefetch = require("node-fetch");
 const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: 1000 });
@@ -41,6 +40,7 @@ module.exports = {
   ],
   subaliases: ["g", "ach", "tnt", "bw", "du", "sw", "sg", "ar", "mm", "bb", "mcgo", "vz", "pb", "q", "uhc", "wa", "mw", "cw", "sh", "suhc", "are", "p", "sb", "ah", "ba"],
   async execute(message, args) {
+    const color = console.color();
     args[0] = args[0].toLowerCase();
     if (args[0] === "auctionhouse" || args[0] === "ah") {
       if (!args[1]) return message.channel.send("Please enter an item!");

@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 const { findMember } = require("../function.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "unmute",
@@ -20,7 +19,7 @@ module.exports = {
       return;
     }
     if (!message.guild) return;
-    var member = await findMember(message, args[0]);
+    const member = await findMember(message, args[0]);
     if (!member) return;
     if (!member.voice.channel) return message.channel.send("The member is not connected to any voice channel.")
     message.delete()
@@ -35,7 +34,7 @@ module.exports = {
       }
 
       var muteEmbed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle(`You've been unmuted`)
         .setDescription(`In **${message.guild.name}**`)
         .setTimestamp()
@@ -45,7 +44,7 @@ module.exports = {
         );
       if (reason) muteEmbed.addField("Reason", reason);
       var muteSuccessfulEmbed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle("User Successfully Unmuted!")
         .setDescription(
           "Unmuted **" +
@@ -64,7 +63,7 @@ module.exports = {
 
     } catch (error) {
       var muteFailureEmbed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle("Failed to Unmute User!")
         .setDescription(
           "Couldn't unmute **" +

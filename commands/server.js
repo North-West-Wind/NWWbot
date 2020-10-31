@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits } = require("../function.js")
 
 module.exports = {
@@ -57,7 +56,7 @@ module.exports = {
 		
     const Embed = new Discord.MessageEmbed()
     .setTitle("Information of \"" + name + '\"')
-    .setColor(color)
+    .setColor(console.color())
     .setThumbnail(icon)
     .addField("ID", id, true)
     .addField("Member statuses", `Online: \`${onlineMembers}\`\nIdle: \`${idleMembers}\`\nDo not Disturb: \`${dndMembers}\``, true)

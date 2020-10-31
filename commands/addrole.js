@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "addrole",
@@ -37,7 +36,7 @@ module.exports = {
       .catch(console.error);
       } catch(err) {
         const Embed = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Failed to Create Role")
       .setDescription(`Failed to create the role **${args[0]}**`)
       .setTimestamp()
@@ -48,7 +47,7 @@ module.exports = {
     }
     
     const Embed = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Role Created Successfully")
       .setDescription(`Created a new role **${args[0]}**`)
       .setTimestamp()

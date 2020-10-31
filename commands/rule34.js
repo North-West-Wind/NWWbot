@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const Booru = require("booru");
 
 module.exports = {
@@ -33,7 +32,7 @@ module.exports = {
     else if (post.data.file_url) fileUrl = post.data.file_url;
     else return message.channel.send("Cannot find any image!");
     const Embed = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Searching tags: " + args.join(", "))
       .setDescription("Tags: `" + post.tags.join(", ") + "`\nPlease be patient. Image will load soon...")
       .setTimestamp()

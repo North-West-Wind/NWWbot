@@ -1,6 +1,5 @@
 const wiki = require('wikijs').default;
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "wiki",
@@ -21,7 +20,7 @@ module.exports = {
         var title = result;
       
         const em = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle(`${++num}. ${title}`)
         .setDescription(summary.length > 2048 ? (summary.slice(0, 2045) + "...") : summary)
         .setTimestamp()

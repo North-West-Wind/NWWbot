@@ -1,16 +1,7 @@
 const Discord = require("discord.js");
-const request = require("request-stream");
-const requestStream = url => {
-  return new Promise((resolve, reject) => {
-    request(url, (err, res) => err ? reject(err) : resolve(res));
-  });
-};
-const mm = require("music-metadata");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
-const ytdl = require("ytdl-core");
-const scdl = require("soundcloud-downloader");
 const { ms } = require("../function.js");
 
 module.exports = {
@@ -41,7 +32,7 @@ module.exports = {
     }
     var info = [];
   var embed = new Discord.MessageEmbed()
-    .setColor(Math.floor(Math.random() * 16777214) + 1)
+    .setColor(console.color())
     .setTitle("Now playing:" + (serverQueue.playing ? "" : " (Not actually)"))
     .setTimestamp()
     .setFooter(`Looping: ${serverQueue.looping} | Repeating: ${serverQueue.repeating}`, message.client.user.displayAvatarURL());

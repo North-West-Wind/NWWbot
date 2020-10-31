@@ -1,8 +1,7 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { shuffleArray, twoDigits } = require("../function.js");
 const converter = require("number-to-words");
-const { Image, createCanvas, loadImage } = require("canvas");
+const { createCanvas, loadImage } = require("canvas");
 const fs = require("fs");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
@@ -66,6 +65,7 @@ module.exports = {
   description: "Play UNO with your friends!",
   category: 3,
   async execute(message) {
+    const color = console.color();
     var msg = await message.channel.send(
       "Alright, we will start an UNO game. Who will be invited? Please mention them!"
     );

@@ -27,7 +27,7 @@ module.exports = {
             return message.reply("there was an error trying to fetch data of the score!");
         }
         const em = new Discord.MessageEmbed()
-            .setColor(Math.floor(Math.random() * Math.pow(256, 3)))
+            .setColor(console.color())
             .setTitle(data.title)
             .setURL(data.url)
             .setThumbnail(data.thumbnail)
@@ -121,7 +121,7 @@ module.exports = {
             }
             data = this.parseBody(body);
             const em = new Discord.MessageEmbed()
-                .setColor(Math.floor(Math.random() * Math.pow(256, 3)))
+                .setColor(console.color())
                 .setTitle(data.title)
                 .setURL(data.url)
                 .setThumbnail(data.thumbnail)

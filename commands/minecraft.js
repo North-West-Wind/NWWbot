@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 var Buffer = require("buffer").Buffer;
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "minecraft",
@@ -38,7 +37,7 @@ module.exports = {
               let skin = "https://visage.surgeplay.com/full/256/" + res.id;
 
               const Embed = new Discord.MessageEmbed()
-                .setColor(color)
+                .setColor(console.color())
                 .setTitle(res.name)
                 .setDescription("Profile:")
                 .addField("UUID", res.id, true)
@@ -67,7 +66,7 @@ module.exports = {
             let skin = "https://visage.surgeplay.com/full/256/" + res.id;
 
             const Embed = new Discord.MessageEmbed()
-              .setColor(color)
+              .setColor(console.color())
               .setTitle(res.name)
               .setDescription("Profile:")
               .addField("UUID", res.id, true)
@@ -105,7 +104,7 @@ module.exports = {
             const spaceRemoved = desc.replace(/ +(?= )/g, '');
             const Embed = new Discord.MessageEmbed()
               .setTitle(args.slice(1).join(" "))
-              .setColor(color)
+              .setColor(console.color())
               .addField("IP", "`" + ip + "`", true)
               .addField("Port", "`" + port + "`", true)
               .addField("Player/Max", "`" + player + "`", true)
@@ -147,7 +146,7 @@ module.exports = {
               }
             }
             const Embed = new Discord.MessageEmbed()
-              .setColor(color)
+              .setColor(console.color())
               .setTitle(res[0].name + "'s Username History")
               .setDescription(names.join("\n"))
               .setFooter("Last changed on " + new Date(result[result.length - 1].changedToAt), message.client.user.displayAvatarURL());

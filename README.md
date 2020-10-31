@@ -12,7 +12,7 @@ Favourite Command: (NSFW)\
 Language: Node.js\
 Author: NorthWestWind
 
-You can invite me right [here](https://discordapp.com/api/oauth2/authorize?client_id=649611982428962819&permissions=1391586679&scope=bot).\
+You can invite me right [here](https://discord.com/api/oauth2/authorize?client_id=649611982428962819&permissions=1391586679&scope=bot).\
 I demand the right to Manage Server, but if you don't want to give that to me, understandable, have a great day. Just use [this](https://discord.com/api/oauth2/authorize?client_id=649611982428962819&permissions=0&scope=bot).
 
 # Open Source

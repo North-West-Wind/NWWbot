@@ -1,20 +1,10 @@
-const { numberWithCommas } = require("../function.js");
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
-
 module.exports = {
   name: "rank",
   description:
     "Display your rank in the server. However, this command requires a DLC to work. Leveling system was inspired by MEE6.",
     category: 3,
   async execute(message, args, pool) {
-    try {
-      await message.guild.members.fetch(process.env.DLC);
-    } catch (err) {
-      return message.channel.send(
-        "You didn't install the DLC for leveling! Please install it with the following link:\nhttps://discordapp.com/api/oauth2/authorize?client_id=684639278944223277&permissions=1024&scope=bot"
-      );
-    }
     pool.getConnection(function(err, con) {
       if (err) {
         console.error(err);
@@ -76,7 +66,7 @@ module.exports = {
               dashes.splice(progress, 1, "+");
               var rank = everyone.indexOf(results[0].id) + 1;
               const rankEmbed = new Discord.MessageEmbed()
-                .setColor(color)
+                .setColor(console.color())
                 .setTitle(
                   "Rank of **" +
                     message.author.tag +

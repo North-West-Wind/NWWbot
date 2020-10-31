@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits } = require("../function.js");
 const { version } = require("../package.json");
 const fetch = require("node-fetch");
@@ -84,7 +83,7 @@ module.exports = {
 
       var dlcEmbed = new Discord.MessageEmbed()
         .setTitle("NWW DLC#0446")
-        .setColor(color)
+        .setColor(console.color())
         .setThumbnail(message.client.user.displayAvatarURL())
         .setDescription("Made by NorthWestWind!\nVersion: **[" + dlcVersion + "](https://www.nwws.ml/news)**\n\nRunning on **" + dlcGuild + " servers**\nLast restart: **" + lastReady + "**\nUptime: **" + d + h + m + s + mi + "**")
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
@@ -148,7 +147,7 @@ module.exports = {
 
     const infoEmbed = new Discord.MessageEmbed()
       .setTitle(message.client.user.tag)
-      .setColor(color)
+      .setColor(console.color())
       .setThumbnail(message.client.user.displayAvatarURL())
       .setDescription("Made by NorthWestWind!\nVersion: **[" + version + "](https://www.nwws.ml/news)**\n\nRunning on **" + message.client.guilds.cache.size + " servers**\nLast restart: **" + lastReady + "**\nUptime: **" + d + h + m + s + mi + "**")
       .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());

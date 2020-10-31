@@ -1,4 +1,3 @@
-var color = Math.floor(Math.random() * 16777214) + 1;
 const Discord = require("discord.js");
 const { findMember, twoDigits } = require("../function.js");
 module.exports = {
@@ -75,7 +74,7 @@ module.exports = {
       .addField("Nickname", nick, true)
       .addField("Created", createdTime, true)
       .addField("Joined", joinedTime, true)
-      .setColor(color)
+      .setColor(console.color())
       .setTimestamp()
       .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 
@@ -85,7 +84,7 @@ module.exports = {
       const activityEm = new Discord.MessageEmbed()
         .setTitle("Presence of " + username)
         .setTimestamp()
-        .setColor(color)
+        .setColor(console.color())
         .setFooter(
           "Have a nice day! :)",
           message.client.user.displayAvatarURL()

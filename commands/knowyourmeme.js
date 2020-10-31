@@ -180,7 +180,7 @@ module.exports = {
     let num = 0;
     for (const result of results) {
       var em = new Discord.MessageEmbed()
-        .setColor(Math.floor(Math.random() * Math.pow(256, 3)))
+        .setColor(console.color())
         .setThumbnail(result.image ? result.image : undefined)
         .setTitle(result.name)
         .setURL(result.url)
