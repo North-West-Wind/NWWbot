@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-const client = new Discord.Client();
 const { createCanvas, Image, loadImage } = require("canvas");
 const { findMember } = require("../function.js");
 
@@ -72,11 +71,11 @@ module.exports = {
                 const first = word.replace("{@", "");
                 const second = first.replace("}", "");
                 if (isNaN(parseInt(second))) {
-                  const mentionedUser = client.users.find(x => x.name === second);
+                  const mentionedUser = message.client.users.find(x => x.name === second);
                   if (!mentionedUser) messageArray.push("@" + second);
                   else messageArray.push(mentionedUser);
                 } else {
-                  const mentionedUser = client.users.get(second);
+                  const mentionedUser = message.client.users.get(second);
                   if (!mentionedUser) messageArray.push("<@" + second + ">");
                   else messageArray.push(mentionedUser);
                 }
