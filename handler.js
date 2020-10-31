@@ -725,9 +725,8 @@ module.exports = {
                                     } while (ctx.measureText(text).width > canvas.width - canvas.width / 4);
                                     return ctx.font;
                                 };
-                                const image = await loadImage(url);
                                 const avatar = await loadImage(member.user.displayAvatarURL({ format: "png" }));
-                                ctx.drawImage(image, 0, 0, width, height);
+                                ctx.drawImage(img, 0, 0, width, height);
                                 var txt = member.user.tag;
                                 ctx.font = applyText(canvas, txt);
                                 ctx.strokeStyle = "black";
@@ -758,9 +757,12 @@ module.exports = {
                                     console.error(err);
                                 }
                             };
-                            let urls = JSON.parse(result[0].wel_img);
-                            if(Array.isArray(urls)) img.src = urls[Math.floor(Math.random() * urls.length)];
-                            else img.src = result[0].wel_img;
+                            var url = result[0].wel_img;
+                            try {
+                              let urls = JSON.parse(result[0].wel_img);
+                              if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
+                            } catch(err) {}
+                            img.src = url;
                         }
                     }
                     if (result[0] && result[0].autorole !== "[]") {
