@@ -212,9 +212,9 @@ module.exports = {
                 break;
               case "⏩":
                 await msg.edit({ content: "", embed: pageWarp });
-                const collected = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
-                if(collected && collected.first()) await collected.first().delete();
-                else if(collected.first().content && !isNaN(parseInt(collected.first().content))) s = (parseInt(collected.first().content)) - 1) % allEmbeds.length;
+                const collected1 = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+                if(collected1 && collected1.first()) await collected1.first().delete();
+                else if(collected1.first().content && !isNaN(parseInt(collected1.first().content))) s = (parseInt(collected1.first().content)) - 1) % allEmbeds.length;
                 await msg.edit(allEmbeds[s]);
                 break;
               case "⏮":
