@@ -28,7 +28,7 @@ formatSetup(moment);
 var timeout = undefined;
 console.prefixes = {};
 function messageLevel(message) {
-    var exp = Math.round(getRandomNumber(5, 15));
+    var exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
     var currentDate = new Date();
 
     var date = currentDate.getDate();
