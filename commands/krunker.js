@@ -1,5 +1,4 @@
 const Discord = require("discord.js")
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { Krunker: Api, UserNotFoundError } = require("@fasetto/krunker.io");
 const Krunker = new Api();
 const nodefetch = require("node-fetch");
@@ -55,7 +54,7 @@ module.exports = {
         const Embed = new Discord.MessageEmbed()
           .setTitle(name)
           .setDescription("Krunker stats")
-          .setColor(color)
+          .setColor(console.color())
           .setThumbnail("https://camo.githubusercontent.com/ae9a850fda4698b130cb55c496473ad5ee81d4a4/68747470733a2f2f692e696d6775722e636f6d2f6c734b783064772e706e67")
           .addField("Level", level, true)
           .addField("Krunkies", kr, true)
@@ -131,6 +130,8 @@ module.exports = {
           const allEmbeds = [];
           const officialPage = Math.ceil(official.length / 25);
           const customPage = Math.ceil(custom.length / 25);
+          const officialColor = console.color();
+          const customColor = console.color();
           for (let i = 0; i < officialPage; i++) {
             var str = "";
             for (let j = i * 25; j < i * 25 + 25; j++) {
@@ -139,7 +140,7 @@ module.exports = {
             str += `\nReact with 🎲 to get a random official game!`
             const em = new Discord.MessageEmbed()
               .setTitle(`Official Games (${i + 1}/${officialPage})`)
-              .setColor(color)
+              .setColor(officialColor)
               .setDescription(str)
               .setTimestamp()
               .setFooter(`There are ${officialPage} pages for official games.`, message.client.user.displayAvatarURL());
@@ -153,7 +154,7 @@ module.exports = {
             str += `\nReact with 🎲 to get a random custom game!`
             const em = new Discord.MessageEmbed()
               .setTitle(`Custom Games (${i + 1}/${customPage})`)
-              .setColor(color)
+              .setColor(customColor)
               .setDescription(str)
               .setTimestamp()
               .setFooter(`There are ${customPage} pages for custom games.`, message.client.user.displayAvatarURL());

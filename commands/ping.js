@@ -1,10 +1,5 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
-function twoDigits(d) {
-  if (0 <= d && d < 10) return "0" + d.toString();
-  if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
-  return d.toString();
-}
+const { twoDigits } = require("../function.js");
 
 module.exports = {
   name: "ping",
@@ -63,7 +58,7 @@ module.exports = {
       " UTC";
 
     const Embed = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Ping")
       .addField("Message sent", "`" + msgTime + "`")
       .addField("Message received", "`" + currentTime + "`")

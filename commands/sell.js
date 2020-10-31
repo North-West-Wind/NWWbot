@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits } = require("../function.js");
 
 module.exports = {
@@ -15,7 +14,7 @@ module.exports = {
     var price = Math.round((Number(args[0]) + Number.EPSILON) * 100) / 100;
 
     const confirmationEmbed = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Confirm?")
       .setDescription(
         "This will cost 5% of the price to put it at the shop! The item will be up for 7 days.\n\n✅ Confirm\n❌ Cancel"

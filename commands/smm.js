@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 const smm = require("smm-api");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { twoDigits } = require("../function.js");
 const themes = ["Ground", "Underground", "Castle", "Airship", "Underwater", "Ghost House"];
 
@@ -99,7 +98,7 @@ module.exports = {
           if (courses[i].description) description = courses[i].description;
 
           const Embed = new Discord.MessageEmbed()
-            .setColor(color)
+            .setColor(console.color())
             .setTitle(courses[i].title)
             .setDescription(description)
             .addField("Uploaded", uploadedTime, true)

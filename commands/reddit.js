@@ -1,6 +1,5 @@
 var RedditAPI = require("reddit-wrapper-v2");
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { validImgurURL } = require("../function.js")
 
 var redditConn = new RedditAPI({
@@ -43,7 +42,7 @@ module.exports = {
         .setTitle(`${data.title.substring(0, 256)}`)
         .setURL(`https://reddit.com${data.permalink}`)
         .setImage(data.url)
-        .setColor(color)
+        .setColor(console.color())
         .setFooter(
           `${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`
         )

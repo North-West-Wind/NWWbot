@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 const iiu = require("is-image-url");
-var color = Math.floor(Math.random() * 16777214) + 1;
 var panelEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⏹"],
   welcomeEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⬅", "⏹"],
   yesNo = ["1️⃣", "2️⃣", "⬅", "⏹"],
@@ -174,7 +173,7 @@ module.exports = {
       user.id === message.author.id &&
       !user.bot;
     const login = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle(message.guild.name + "'s Configuration Panel")
       .setDescription("Please login with the token.")
       .setTimestamp()
@@ -207,7 +206,7 @@ module.exports = {
             return await mesg.edit(login);
           }
           const panelEmbed = new Discord.MessageEmbed()
-            .setColor(color)
+            .setColor(console.color())
             .setTitle(message.guild.name + "'s Configuration Panel")
             .setDescription(
               "Please choose an option to configure:\n\n1️⃣ Welcome Message\n2️⃣ Leave Message\n3️⃣ Giveaway Emoji\n⏹ Quit"

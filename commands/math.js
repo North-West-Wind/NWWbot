@@ -1,6 +1,5 @@
 const math = require("mathjs");
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
     name: "math",
@@ -173,19 +172,19 @@ module.exports = {
             strings3.push(str);
         }
         var em = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle("Math Operators/Functions/Constants List [Page 1/3]")
         .setDescription(strings.join("\n"))
         .setTimestamp()
         .setFooter("Have a nice day! :D", message.client.user.displayAvatarURL());
         var em2 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle("Math Operators/Functions/Constants List [Page 2/3]")
         .setDescription(strings2.join("\n"))
         .setTimestamp()
         .setFooter("Have a nice day! :D", message.client.user.displayAvatarURL());
         var em3 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle("Math Operators/Functions/Constants List [Page 3/3]")
         .setDescription(strings3.join("\n"))
         .setTimestamp()

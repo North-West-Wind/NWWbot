@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { findUser } = require("../function.js");
 module.exports = {
   name: "avatar",
@@ -10,7 +9,7 @@ module.exports = {
   async execute(message, args) {
     if (!args[0]) {
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle(message.author.username + "'s avatar: ")
         .setImage(message.author.displayAvatarURL({ size: 4096 }))
         .setTimestamp()
@@ -22,7 +21,7 @@ module.exports = {
     if(!user) return;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle(user.username + "'s avatar: ")
         .setImage(user.displayAvatarURL({ size: 4096 }))
         .setTimestamp()

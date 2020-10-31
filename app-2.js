@@ -21,11 +21,12 @@ console.error = async function (str) {
   try {
     var logChannel = await client.channels.fetch("678847137391312917");
     if (logChannel)
-      logChannel.send("`ERROR!`\n`" + str.message + "`");
+      logChannel.send(`\`ERROR!\`${(str.message ? `\n\`${str.message}\`` : `\n\`${str}\``)}`);
   } catch (err) {
     return console.realError(err)
   }
 }
+console.color = () => Math.floor(Math.random() * 16777214) + 1;
 
 const fs = require("fs");
 const Discord = require("discord.js");

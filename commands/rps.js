@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * Math.pow(256, 3));
 
 module.exports = {
   name: "rps",
@@ -9,7 +8,7 @@ module.exports = {
   async execute(message) {
     const options = ["🖐", "✌", "👊"];
     var em = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle("Rock Paper Scissors")
       .setDescription("**React** when you are ready!\n\n🖐 **Paper**\n✌ **Scissors**\n👊 **Rock**")
       .setTimestamp()

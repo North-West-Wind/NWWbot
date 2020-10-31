@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 const { findMember } = require("../function.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "undeafen",
@@ -36,7 +35,7 @@ module.exports = {
         member.voice.setDeaf(false);
       }
       var muteEmbed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle(`You've been undeafened`)
         .setDescription(`In **${message.guild.name}**`)
         .setTimestamp()
@@ -46,7 +45,7 @@ module.exports = {
         );
       if (reason) muteEmbed.addField("Reason", reason);
       var muteSuccessfulEmbed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle("User Successfully Undeafened!")
         .setDescription(
           "Undeafened **" +
@@ -65,7 +64,7 @@ module.exports = {
 
     } catch (error) {
       var muteFailureEmbed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle("Failed to Undeafen User!")
         .setDescription(
           "Couldn't undeafen **" +

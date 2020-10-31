@@ -1,4 +1,3 @@
-var color = Math.floor(Math.random() * 16777214) + 1;
 const Discord = require("discord.js");
 const fs = require("fs");
 
@@ -49,7 +48,7 @@ module.exports = {
               );
             }
             const em = new Discord.MessageEmbed()
-              .setColor(color)
+              .setColor(console.color())
               .setTitle(message.author.tag + "'s Inventory")
               .setDescription(item.join("\n"))
               .setTimestamp()
@@ -58,7 +57,7 @@ module.exports = {
                 message.client.user.displayAvatarURL()
               );
             var backupEm = new Discord.MessageEmbed()
-              .setColor(color)
+              .setColor(console.color())
               .setTitle(message.author.tag + "'s Inventory")
               .setDescription(item.join("\n"))
               .setTimestamp()

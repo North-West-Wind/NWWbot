@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { updateQueue } = require("./play.js");
 module.exports = {
   name: "queue",
@@ -37,7 +36,7 @@ module.exports = {
     for (let i = 0; i < Math.ceil(songArray.length / 10); i++) {
       var pageArray = songArray.slice(i * 10, i * 10 + 10);
       var queueEmbed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle(
           `Song queue for ${message.guild.name} [${i + 1}/${Math.ceil(
             songArray.length / 10
@@ -153,7 +152,7 @@ module.exports = {
                 .join(" ")
             ) {
               var em = new Discord.MessageEmbed()
-                .setColor(color)
+                .setColor(console.color())
                 .setTitle("Warning")
                 .setDescription(`There is already a queue named **${args.slice(2).join(" ")}** stored. Do you want to override it?\n✅ Yes\n❌ No`)
                 .setTimestamp()
@@ -224,7 +223,7 @@ module.exports = {
             } else {
               var voiceChannel = null;
             }
-            const queueContruct = {
+            serverQueue = {
               textChannel: message.channel,
               voiceChannel: voiceChannel,
               connection: null,
@@ -236,20 +235,9 @@ module.exports = {
               looping: false,
               repeating: false
             };
-            queue.set(message.guild.id, queueContruct);
           } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-          con.query(
-            `UPDATE servers SET queue = '${results[0].queue}' WHERE id = '${message.guild.id}'`,
-            function (err) {
-              if (err)
-                return message.reply(
-                  "there was an error trying to update the queue!"
-                );
-              message.channel.send(
-                `The queue **${results[0].name}** has been loaded.`
-              );
-            }
-          );
+          updateQueue(message, serverQueue, queue, pool);
+          message.channel.send(`The queue **${results[0].name}** has been loaded.`);
         }
       );
       con.release();
@@ -331,7 +319,7 @@ module.exports = {
               return str;
             }).slice(0, 10);
             var queueEmbed = new Discord.MessageEmbed()
-              .setColor(color)
+              .setColor(console.color())
               .setTitle(`Queue - ${result.name}`)
               .setDescription(`There are ${queue.length} tracks in total.\n\n${pageArray.join("\n")}`)
               .setTimestamp()
@@ -341,7 +329,7 @@ module.exports = {
           var emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
           var available = ["⬅", "⏹️"];
           const em = new Discord.MessageEmbed()
-            .setColor(color)
+            .setColor(console.color())
             .setTitle(`Stored queues of **${message.author.tag}**`)
             .setDescription(
               `Slots used: **${results.length}/10**\n\n${queues.join("\n")}`
@@ -395,10 +383,10 @@ module.exports = {
     if (serverQueue && serverQueue.playing) return message.channel.send("Someone is listening to the music. Don't ruin their day.");
     if (!args[2]) return message.channel.send("Please provide the name or ID of the server.");
     const guild = await message.client.guilds.cache.find(x => x.name.toLowerCase() === args.slice(2).join(" ").toLowerCase() || x.id == args[2]);
-    if(!guild) return message.channel.send("I cannot find that server! Maybe I am not in that server?");
+    if (!guild) return message.channel.send("I cannot find that server! Maybe I am not in that server?");
     try {
       await guild.members.fetch(message.author.id);
-    } catch(e) {
+    } catch (e) {
       return message.channel.send("You are not in that server!");
     }
     pool.getConnection(function (err, con) {
@@ -422,7 +410,7 @@ module.exports = {
             } else {
               var voiceChannel = null;
             }
-            const queueContruct = {
+            serverQueue = {
               textChannel: message.channel,
               voiceChannel: voiceChannel,
               connection: null,
@@ -434,20 +422,9 @@ module.exports = {
               looping: false,
               repeating: false
             };
-            queue.set(message.guild.id, queueContruct);
           } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-          con.query(
-            `UPDATE servers SET queue = '${results[0].queue}' WHERE id = '${message.guild.id}'`,
-            function (err) {
-              if (err)
-                return message.reply(
-                  "there was an error trying to update the queue!"
-                );
-              message.channel.send(
-                `The queue of this server has been synchronize to the queue of the server **${guild.name}**.`
-              );
-            }
-          );
+          updateQueue(message, queueContruct, queue, pool);
+          message.channel.send(`The queue of this server has been synchronize to the queue of the server **${guild.name}**.`);
         }
       );
       con.release();

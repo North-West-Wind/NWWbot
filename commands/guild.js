@@ -1,7 +1,6 @@
 const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_ } = require("../function.js");
 const Discord = require("discord.js");
 const { ms } = require("../function.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 const nameToUuid = (str) => {
 	return new Promise((resolve, reject) => {
 		require("mojang-api").nameToUuid(str, function (err, res) { if(err) reject(err); else resolve(res); })
@@ -60,7 +59,7 @@ module.exports = {
 					noname = true;
 				}
 				let em = new Discord.MessageEmbed()
-					.setColor(color)
+					.setColor(console.color())
 					.setTitle("Please choose an operation:")
 					.setDescription("1️⃣: Accept\n2️⃣: Decline (Already in another guild)\n3️⃣: Decline (Already in guild)\n4️⃣: Decline (Banned)")
 					.setTimestamp()
@@ -212,7 +211,7 @@ module.exports = {
 
 		let em = new Discord.MessageEmbed()
 			.setTitle("There is a splash!")
-			.setColor(color)
+			.setColor(console.color())
 			.setDescription(`\`${mc}\` is hosting a splash!\nDo \`/p join ${mc}\` in Hypixel or join the guild party to be part of it!\n\n**Location:** ${location}\n**Potions:** ${potions}\n**Slots:** ${slots}\n**Note: ** ${notes.length > 0 ? notes : "N/A"}`)
 			.setTimestamp()
 			.setFooter(`Hosted by ${mc}`, message.client.user.displayAvatarURL());
@@ -373,7 +372,7 @@ module.exports = {
 								description += `${++num}. ${result.title} : ${result.time}\n`;
 							}
 							const em = new Discord.MessageEmbed()
-							.setColor(color)
+							.setColor(console.color())
 							.setTitle("Rank Expiration Timers")
 							.setDescription(description)
 							.setTimestamp()
@@ -388,7 +387,7 @@ module.exports = {
 									desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
 								}
 								const em = new Discord.MessageEmbed()
-								.setColor(color)
+								.setColor(console.color())
 								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
 								.setDescription(desc)
 								.setTimestamp()

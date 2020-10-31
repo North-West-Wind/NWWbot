@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 const solenolyrics = require("solenolyrics");
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "lyrics",
@@ -43,7 +42,7 @@ module.exports = {
           recheck();
           var em = new Discord.MessageEmbed()
           .setThumbnail(icon)
-          .setColor(color)
+          .setColor(console.color())
           .setTitle(title)
           .setAuthor(author)
           .setDescription(str.join("\n"))
@@ -66,7 +65,7 @@ module.exports = {
       recheck();
       var em = new Discord.MessageEmbed()
       .setThumbnail(icon)
-      .setColor(color)
+      .setColor(console.color())
       .setTitle(title)
       .setAuthor(author)
       .setDescription(str.join("\n\n"))

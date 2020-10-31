@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
 
 module.exports = {
   name: "invites",
@@ -38,7 +37,7 @@ module.exports = {
       invitedStr.sort(compare);
       if (invitedStr.length <= 10) {
         let em = new Discord.MessageEmbed()
-          .setColor(color)
+          .setColor(console.color())
           .setTitle("Number of users invited")
           .setDescription(invitedStr.map(x => x.text).join("\n"))
           .setTimestamp()
@@ -52,7 +51,7 @@ module.exports = {
         let allEmbeds = [];
         for (let i = 0; i < pages; i++) {
           let em = new Discord.MessageEmbed()
-            .setColor(color)
+            .setColor(console.color())
             .setTitle(`Number of users invited (Page ${i + 1}/${pages})`)
             .setDescription(invitedStr.slice(i * 10, (i * 10) + 10).map(x => x.text).join("\n"))
             .setTimestamp()
@@ -117,7 +116,7 @@ module.exports = {
       let reducer = (a,b) => a+b;
       let uses = invites.map(i => i.uses ? i.uses : 0).reduce(reducer);
       let em = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle(`Number of users invited (${message.author.tag})`)
       .setDescription(`In server **${guild.name}**`)
       .addField("Invited Users", uses, true)

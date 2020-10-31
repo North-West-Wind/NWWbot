@@ -1,4 +1,3 @@
-var color = Math.floor(Math.random() * 16777214) + 1;
 const Discord = require("discord.js");
 module.exports = {
   name: "help",
@@ -16,7 +15,7 @@ module.exports = {
         "https://drive.google.com/uc?export=download&id=114RCw-5oiYTgHGSpNIotMNd7rlgknfiy", "manual.pdf"
       );
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(console.color())
         .setTitle("Command list is here!")
         .setDescription(
           `You can send \`${message.prefix}help [command name]\` to get info on a specific command!\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`

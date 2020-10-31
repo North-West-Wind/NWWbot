@@ -1,21 +1,5 @@
 const Discord = require("discord.js");
-const { ms } = require("../function.js");
-var color = Math.floor(Math.random() * 16777214) + 1;
-const pSql = require("promise-mysql");
-const { jsDate2Mysql } = require("../function.js");
-const mysql_config = {
-  connectTimeout: 60 * 60 * 1000,
-  acquireTimeout: 60 * 60 * 1000,
-  timeout: 60 * 60 * 1000,
-  connectionLimit: 10,
-  host: process.env.DBHOST,
-  user: process.env.DBUSER,
-  password: process.env.DBPW,
-  database: process.env.DBNAME,
-  supportBigNumbers: true,
-  bigNumberStrings: true,
-  charset: "utf8mb4"
-};
+const { jsDate2Mysql, ms } = require("../function.js");
 
 module.exports = {
   name: "timer",
@@ -79,7 +63,7 @@ module.exports = {
     }
     msg = await msg.edit(`Timer created in <#${channel.id}> with the title **${title}** and will last for **${d + h + m + s}**`);
     let em = new Discord.MessageEmbed()
-      .setColor(color)
+      .setColor(console.color())
       .setTitle(title)
       .setDescription(`(The timer updates every **5 seconds**)\nThis is a timer and it will last for\n**${d + h + m + s}**`)
       .setTimestamp()
@@ -93,7 +77,7 @@ module.exports = {
         em.setDescription("The timer has ended.");
         try {
           msg = await msg.edit(em);
-          message.author.send(`Your timer in **${message.guild.name}** has ended! https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`);
+          message.author.send(`Your timer in **${message.guild.name}** has ended! https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`);
         } catch (err) { }
         pool.getConnection((err, con) => {
           if (err) return message.reply("there was an error trying to connect to the database!");
@@ -211,7 +195,7 @@ module.exports = {
         }
         msg = await msg.edit(`Timer updated in <#${channel.id}> with the title **${title}** and will last for **${d + h + m + s}**`);
         let em = new Discord.MessageEmbed()
-          .setColor(color)
+          .setColor(console.color())
           .setTitle(title)
           .setDescription(`(The timer updates every **5 seconds**)\nThis is a timer and it will last for\n**${d + h + m + s}**`)
           .setTimestamp()
@@ -226,7 +210,7 @@ module.exports = {
             em.setDescription("The timer has ended.");
             try {
               msg = await msg.edit(em);
-              message.author.send(`Your timer in **${message.guild.name}** has ended! https://discordapp.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`);
+              message.author.send(`Your timer in **${message.guild.name}** has ended! https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`);
             } catch (err) { }
             pool.getConnection((err, con) => {
               if (err) return message.reply("there was an error trying to connect to the database!");
