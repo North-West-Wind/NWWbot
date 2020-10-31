@@ -137,7 +137,7 @@ module.exports = {
             for (let j = i * 25; j < i * 25 + 25; j++) {
               if(official[j]) str += `${j + 1}. **[${official[j][4].i}](https://krunker.io/?game=${official[j][0]})** - **${official[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${official[j][2]}/${official[j][3]}**\n`
             }
-            str += `\nReact with 🎲 to get a random official game!\nReact with 🔗 to get a random official game in the specified region!\nReact with ⏩ to warp to page!`
+            str += `\nReact with 🎲 to get a random official game!\nReact with 🔗 to get a random official game in the specified region!\nReact with ⏩ to warp to a page!`
             const em = new Discord.MessageEmbed()
               .setTitle(`Official Games (${i + 1}/${officialPage})`)
               .setColor(officialColor)
@@ -151,7 +151,7 @@ module.exports = {
             for (let j = i * 25; j < i * 25 + 25; j++) {
               if(custom[j]) str += `${j + 1}. **[${custom[j][4].i}](https://krunker.io/?game=${custom[j][0]})** - **${custom[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${custom[j][2]}/${custom[j][3]}**\n`
             }
-            str += `\nReact with 🎲 to get a random custom game!\nReact with 🔗 to get a random custom game in the specified region!\nReact with ⏩ to warp to page!`
+            str += `\nReact with 🎲 to get a random custom game!\nReact with 🔗 to get a random custom game in the specified region!\nReact with ⏩ to warp to a page!`
             const em = new Discord.MessageEmbed()
               .setTitle(`Custom Games (${i + 1}/${customPage})`)
               .setColor(customColor)
