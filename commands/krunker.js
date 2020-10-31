@@ -137,7 +137,7 @@ module.exports = {
             for (let j = i * 25; j < i * 25 + 25; j++) {
               if(official[j]) str += `${j + 1}. **[${official[j][4].i}](https://krunker.io/?game=${official[j][0]})** - **${official[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${official[j][2]}/${official[j][3]}**\n`
             }
-            str += `\nReact with 🎲 to get a random official game!`
+            str += `\nReact with 🎲 to get a random official game!\nReact with 🔗 to get a random official game in the specified region!\nReact with ⏩ to warp to page!`
             const em = new Discord.MessageEmbed()
               .setTitle(`Official Games (${i + 1}/${officialPage})`)
               .setColor(officialColor)
@@ -151,7 +151,7 @@ module.exports = {
             for (let j = i * 25; j < i * 25 + 25; j++) {
               if(custom[j]) str += `${j + 1}. **[${custom[j][4].i}](https://krunker.io/?game=${custom[j][0]})** - **${custom[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${custom[j][2]}/${custom[j][3]}**\n`
             }
-            str += `\nReact with 🎲 to get a random custom game!`
+            str += `\nReact with 🎲 to get a random custom game!\nReact with 🔗 to get a random custom game in the specified region!\nReact with ⏩ to warp to page!`
             const em = new Discord.MessageEmbed()
               .setTitle(`Custom Games (${i + 1}/${customPage})`)
               .setColor(customColor)
@@ -164,22 +164,58 @@ module.exports = {
 
           var s = 0;
           await msg.react("🎲");
+          await msg.react("🔗");
+          await msg.react("⏩");
           await msg.react("⏮");
           await msg.react("◀");
           await msg.react("▶");
           await msg.react("⏭");
           await msg.react("⏹");
-          var collector = await msg.createReactionCollector((reaction, user) => (["🎲", "◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id), {
+          var collector = await msg.createReactionCollector((reaction, user) => (["🎲", "🔗", "⏩", "◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id), {
             idle: 60000,
             errors: ["time"]
           });
-
+          const linkEmbed = new Discord.MessageEmbed()
+            .setColor(console.color())
+            .setTitle("Random Game Generator")
+            .setTimestamp()
+            .setFooter("Please decide within 30 seconds.", message.client.user.displayAvatarURL());
+          const pageWarp = new Discord.MessageEmbed()
+            .setColor(console.color())
+            .setTitle("Krunker Server Browser")
+            .setDescription("Enter the page number to warp to that page.")
+            .setTimestamp()
+            .setFooter("Please decide within 30 seconds.", message.client.user.displayAvatarURL());
           collector.on("collect", function (reaction, user) {
             reaction.users.remove(user.id);
             switch (reaction.emoji.name) {
               case "🎲":
                 if (s > officialPage - 1) msg.channel.send(`https://krunker.io/?game=${custom[Math.floor(Math.random() * custom.length)][0]}`);
                 else msg.channel.send(`https://krunker.io/?game=${official[Math.floor(Math.random() * official.length)][0]}`);
+                break;
+              case "🔗":
+                var options = [];
+                if (s > officialPage - 1) options = Array.from(new Set(custom.map(x => x[0].split(":")[0])));
+                else options = Array.from(new Set(official.map(x => x[0].split(":")[0])));
+                linkEmbed.setDescription(`Available regions:\n**${options.join("\n")}**\n\nPlease type the region in the channel.`);
+                await msg.edit({ content: "", embed: linkEmbed });
+                const collected = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+                if(collected && collected.first()) await collected.first().delete();
+                else if(collected.first().content && options.includes(collected.first().content.split(/ +/)[0].toUpperCase())) {
+                  const region = options[collected.first().content.split(/ +/)[0].toUpperCase()];
+                  var games = [];
+                  if (s > officialPage - 1) games = custom.filter(x => x[0].startsWith(region));
+                  else games = official.filter(x => x[0].startsWith(region));
+                  msg.channel.send(`https://krunker.io/?game=${games[Math.floor(Math.random() * games.length)][0]}`);
+                }
+                await msg.edit(allEmbeds[s]);
+                break;
+              case "⏩":
+                await msg.edit({ content: "", embed: pageWarp });
+                const collected = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+                if(collected && collected.first()) await collected.first().delete();
+                else if(collected.first().content && !isNaN(parseInt(collected.first().content))) s = (parseInt(collected.first().content)) - 1) % allEmbeds.length;
+                await msg.edit(allEmbeds[s]);
                 break;
               case "⏮":
                 s = 0;
