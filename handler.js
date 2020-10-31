@@ -27,6 +27,50 @@ const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 var timeout = undefined;
 console.prefixes = {};
+function messageLevel(message) {
+    var exp = Math.round(getRandomNumber(5, 15));
+    var currentDate = new Date();
+
+    var date = currentDate.getDate();
+    var month = currentDate.getMonth();
+    var year = currentDate.getFullYear();
+    var hour = currentDate.getHours();
+    var minute = currentDate.getMinutes();
+    var second = currentDate.getSeconds();
+
+    var sqlDate =
+        year +
+        "-" +
+        twoDigits(month + 1) +
+        "-" +
+        twoDigits(date) +
+        " " +
+        twoDigits(hour) +
+        ":" +
+        twoDigits(minute) +
+        ":" +
+        twoDigits(second);
+
+    pool.getConnection(function (err, con) {
+        if (err) return console.error(err);
+        con.query("SELECT * FROM leveling WHERE user = " + message.author.id + " AND guild = " + message.guild.id, function (err, results, fields) {
+            if (results.length < 1) {
+                con.query("INSERT INTO leveling(user, guild, exp, last) VALUES ('" + message.author.id + "', '" + message.guild.id + "', '" + exp + "', '" + sqlDate + "')", function (err, result) {
+                    if (err) return console.error(err);
+                    console.log(message.author.username + " gained " + exp + " XP in server " + message.guild.name);
+                })
+            } else {
+                if (new Date() - results[0].last < 60000) return;
+                var newExp = parseInt(results[0].exp) + exp;
+                con.query("UPDATE leveling SET exp = '" + newExp + "', last = '" + sqlDate + "' WHERE user = '" + message.author.id + "' AND guild = '" + message.guild.id + "'", function (err, result) {
+                    if (err) return console.error(err);
+                    console.log(message.author.username + " gained " + exp + " XP in server " + message.guild.name);
+                })
+            }
+        })
+        con.release();
+    });
+}
 module.exports = {
     async ready(client) {
         const id = client.id;
@@ -1127,7 +1171,7 @@ module.exports = {
         if (message.guild && console.prefixes[message.guild.id] && message.client.id === 0) message.prefix = console.prefixes[message.guild.id];
         if (!message.content.startsWith(message.prefix) || message.author.bot) {
             if (!message.author.bot) {
-                this.messageLevel(message);
+                messageLevel(message);
                 if(Math.floor(Math.random() * 1000) === 69) cleverbot(message.content).then(response => message.channel.send(response));
             }
             return;
@@ -1157,49 +1201,5 @@ module.exports = {
             console.error(error);
             message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
         }
-    },
-    messageLevel(message) {
-        var exp = Math.round(getRandomNumber(5, 15));
-        var currentDate = new Date();
-
-        var date = currentDate.getDate();
-        var month = currentDate.getMonth();
-        var year = currentDate.getFullYear();
-        var hour = currentDate.getHours();
-        var minute = currentDate.getMinutes();
-        var second = currentDate.getSeconds();
-
-        var sqlDate =
-            year +
-            "-" +
-            twoDigits(month + 1) +
-            "-" +
-            twoDigits(date) +
-            " " +
-            twoDigits(hour) +
-            ":" +
-            twoDigits(minute) +
-            ":" +
-            twoDigits(second);
-
-        pool.getConnection(function (err, con) {
-            if (err) return console.error(err);
-            con.query("SELECT * FROM leveling WHERE user = " + message.author.id + " AND guild = " + message.guild.id, function (err, results, fields) {
-                if (results.length < 1) {
-                    con.query("INSERT INTO leveling(user, guild, exp, last) VALUES ('" + message.author.id + "', '" + message.guild.id + "', '" + exp + "', '" + sqlDate + "')", function (err, result) {
-                        if (err) return console.error(err);
-                        console.log(message.author.username + " gained " + exp + " XP in server " + message.guild.name);
-                    })
-                } else {
-                    if (new Date() - results[0].last < 60000) return;
-                    var newExp = parseInt(results[0].exp) + exp;
-                    con.query("UPDATE leveling SET exp = '" + newExp + "', last = '" + sqlDate + "' WHERE user = '" + message.author.id + "' AND guild = '" + message.guild.id + "'", function (err, result) {
-                        if (err) return console.error(err);
-                        console.log(message.author.username + " gained " + exp + " XP in server " + message.guild.name);
-                    })
-                }
-            })
-            con.release();
-        });
     }
 }
