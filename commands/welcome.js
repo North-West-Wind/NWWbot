@@ -15,6 +15,7 @@ module.exports = {
       if (!member) member = message.author;
     }
     const guild = message.guild;
+    const id = message.client.id;
     pool.getConnection(function (err, con) {
       if (err) return console.error(err);
       con.query(
