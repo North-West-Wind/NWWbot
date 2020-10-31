@@ -16,7 +16,7 @@ const mysql_config = {
     charset: "utf8mb4"
 };
 var pool = mysql.createPool(mysql_config);
-const { setTimeout_ } = require("./function.js");
+const { setTimeout_, getRandomNumber, twoDigits } = require("./function.js");
 const profile = (str) => {
     return new Promise((resolve, reject) => {
         require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); });
