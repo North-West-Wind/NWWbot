@@ -413,7 +413,7 @@ module.exports = {
         });
         return;
       }
-      return await this.create(message, args, pool);
+      return await this.create(message, pool);
     }
     if (args[0] === "end") {
       return await this.end(message, args, pool);
@@ -422,7 +422,7 @@ module.exports = {
       return await this.list(message, args, pool);
     }
   },
-  async create(message, args, pool) {
+  async create(message, pool) {
     const filter = user => user.author.id === message.author.id;
     const guild = message.guild;
     var item;

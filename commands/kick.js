@@ -6,7 +6,7 @@ module.exports = {
   args: 1,
   usage: "<user | user ID> [reason]",
   category: 1,
-  execute(message, args) {
+  async execute(message, args) {
     if (!message.guild) return message.channel.send("This command only works in a server.");
     if (!message.member.permissions.has(2)) return message.channel.send(`You don\'t have the permission to use this command.`);
     if (!message.guild.me.permissions.has(2)) return message.channel.send(`I don\'t have the permission to kick members.`);

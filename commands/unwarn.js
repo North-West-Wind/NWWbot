@@ -7,7 +7,7 @@ module.exports = {
   usage: "<user | user ID>",
   category: 1,
   args: 1,
-  execute(message, args, pool) {
+  async execute(message, args, pool) {
     if (!message.guild) return message.channel.send("This command only works in a server.");
     if (!message.member.permissions.has(4)) return message.channel.send("You don't have the permission to use this command!");
     if (!message.guild.me.permissions.has(4)) return message.channel.send("I don't have the permission to unwarn user!");
