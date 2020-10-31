@@ -56,15 +56,13 @@ function messageLevel(message) {
         con.query("SELECT * FROM leveling WHERE user = " + message.author.id + " AND guild = " + message.guild.id, function (err, results, fields) {
             if (results.length < 1) {
                 con.query("INSERT INTO leveling(user, guild, exp, last) VALUES ('" + message.author.id + "', '" + message.guild.id + "', '" + exp + "', '" + sqlDate + "')", function (err, result) {
-                    if (err) return console.error(err);
-                    console.log(message.author.username + " gained " + exp + " XP in server " + message.guild.name);
+                    if (err) console.error(err);
                 })
             } else {
                 if (new Date() - results[0].last < 60000) return;
                 var newExp = parseInt(results[0].exp) + exp;
                 con.query("UPDATE leveling SET exp = '" + newExp + "', last = '" + sqlDate + "' WHERE user = '" + message.author.id + "' AND guild = '" + message.guild.id + "'", function (err, result) {
-                    if (err) return console.error(err);
-                    console.log(message.author.username + " gained " + exp + " XP in server " + message.guild.name);
+                    if (err) console.error(err);
                 })
             }
         })
