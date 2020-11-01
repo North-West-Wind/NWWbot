@@ -49,23 +49,29 @@ module.exports = {
         if (collected && collected.first()) {
             var mesg = await message.author.send("Generating files...");
             try {
+                var hasPDF = true;
                 const doc = new PDFDocument();
                 for (let i = 0; i < data.pageCount; i++) {
-                    SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                    if (i + 1 < data.pageCount) doc.addPage();
+                    try {
+                        SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                        if (i + 1 < data.pageCount) doc.addPage();
+                    } catch(err) {
+                        hasPDF = false;
+                        break;
+                    }
                 }
                 doc.end();
                 const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(args.join(" "))}`, { timeout: 30000 }).then(res => res.json());
                 if (mp3.error) throw new Error(mp3.message);
                 rs(mp3.url, async (err, res) => {
-                    if (err) return await mesg.edit("Failed to generate files!");
+                    const attachments = [];
+                    if (!err && res) attachments.push(new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`));
+                    if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
+                    if(attachments.length < 1) return await mesg.edit("Failed to generate files!");
                     await mesg.delete();
-                    const attachment = new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`);
-                    const pdf = new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`);
-                    message.author.send([attachment, pdf]);
+                    message.author.send(attachments);
                 });
             } catch (err) {
-                console.error(err);
                 await mesg.edit("Failed to generate files!");
             }
         }
@@ -198,18 +204,24 @@ module.exports = {
                     try {
                         const doc = new PDFDocument();
                         for (let i = 0; i < importants[s].pages; i++) {
-                            SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                            if (i + 1 < importants[s].pages) doc.addPage();
+                            try {
+                                SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                                if (i + 1 < data.pageCount) doc.addPage();
+                            } catch(err) {
+                                hasPDF = false;
+                                break;
+                            }
                         }
                         doc.end();
                         const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(importants[s].url)}`, { timeout: 30000 }).then(res => res.json());
                         if (mp3.error) throw new Error(mp3.message);
                         rs(mp3.url, async (err, res) => {
-                            if (err) return await mesg.edit("Failed to generate files!");
-                            const attachment = new Discord.MessageAttachment(res, `${allEmbeds[s].title.replace(/ +/g, "_")}.mp3`);
-                            const pdf = new Discord.MessageAttachment(doc, `${allEmbeds[s].title.replace(/ +/g, "_")}.pdf`);
+                            const attachments = [];
+                            if (!err && res) attachments.push(new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`));
+                            if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
+                            if(attachments.length < 1) return await mesg.edit("Failed to generate files!");
                             await mesg.delete();
-                            message.author.send([attachment, pdf]);
+                            message.author.send(attachments);
                         });
                     } catch (err) {
                         await mesg.edit("Failed to generate files!");
