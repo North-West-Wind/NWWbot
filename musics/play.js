@@ -574,7 +574,7 @@ module.exports = {
       return { error: true };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
-    var songLength = songInfo.videoDetails.isLive || songInfo.videoDetails.isLiveContent ? "∞" : moment.duration(length, "seconds").format();
+    var songLength = songInfo.videoDetails.isLiveContent ? "∞" : moment.duration(length, "seconds").format();
     var thumbnails = songInfo.videoDetails.thumbnail.thumbnails;
     var thumbUrl = thumbnails[thumbnails.length - 1].url;
     var maxWidth = 0;
