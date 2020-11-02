@@ -24,10 +24,10 @@ module.exports = {
     const guild = message.guild;
 
     if (args[0] === "new") {
-      return await this.new(message, args, pool);
+      return await this.new(message, pool);
     }
     if (args[0] === "panel") {
-      return await this.panel(message, args, pool);
+      return await this.panel(message, pool);
     }
 
     pool.getConnection(function (err, con) {
@@ -103,8 +103,8 @@ module.exports = {
       con.release();
     });
   },
-  new(message, args, pool) {
-    var guild = message.guild;
+  new(message, pool) {
+    const guild = message.guild;
     require("crypto").randomBytes(24, function (err, buffer) {
       if (err) return message.reply("there was an error trying to generate a token!");
       var generated = buffer.toString("hex");
@@ -166,7 +166,7 @@ module.exports = {
       });
     });
   },
-  async panel(message, args, pool) {
+  async panel(message, pool) {
     const msgFilter = x => x.author.id === message.author.id;
     const filter = (reaction, user) =>
       welcomeEmoji.includes(reaction.emoji.name) &&
@@ -302,7 +302,7 @@ module.exports = {
           max: 1,
           error: ["time"]
         })
-        .catch(err => timedOut(msg, panelEmbed));
+        .catch(() => timedOut(msg, panelEmbed));
 
       const reaction = collected.first();
       let receivedID = welcomeEmoji.indexOf(reaction.emoji.name);
@@ -341,7 +341,7 @@ module.exports = {
           max: 1,
           error: ["time"]
         })
-        .catch(err => timedOut(msg, panelEmbed));
+        .catch(() => timedOut(msg, panelEmbed));
 
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
@@ -480,7 +480,7 @@ module.exports = {
           .replace(/>/g, "");
         msgCollected.first().delete();
         const channel = msg.guild.channels.resolve(channelID);
-        if (!channel || channel == undefined || channel == null) {
+        if (!channel) {
           panelEmbed
             .setDescription(
               "**Welcome Message/Channel/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds..."

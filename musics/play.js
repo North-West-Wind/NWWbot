@@ -68,7 +68,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!song) {
     if (guild.me.voice) guild.me.voice.channel.leave();
-    updateQueue(message, null, queue, pool);
+    updateQueue(message, serverQueue, queue, pool);
     return;
   }
   var dispatcher;
@@ -131,9 +131,9 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     }
   } else {
     try {
-      if(song.time === "∞") {
+      if(song.isLive) {
         const args = ["0", song.url];
-        const result = await module.exports.addYTURL({ dummy: true }, args);
+        const result = await module.exports.addYTURL({ dummy: true }, args, song.type);
         if(result.error) throw "Failed to find video";
         if(!isEquivalent(result.songs[0], song)) {
           song = result.songs[0];
@@ -141,7 +141,9 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
           updateQueue(message, serverQueue, queue, pool);
         }
       }
-      dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 28, dlChunkSize: 0, filter: "audioonly", requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
+      const options = { highWaterMark: 1 << 28, dlChunkSize: 0, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } };
+      if(!song.isLive) options.filter = "audioonly";
+      dispatcher = serverQueue.connection.play(ytdl(song.url, options), { seek: seek });
     } catch (err) {
       console.error(err);
       return await skip();
@@ -523,7 +525,8 @@ module.exports = {
         type: 2,
         time: songLength,
         volume: 1,
-        thumbnail: "https://www.flaticon.com/svg/static/icons/svg/2305/2305904.svg"
+        thumbnail: "https://www.flaticon.com/svg/static/icons/svg/2305/2305904.svg",
+        isLive: false
       };
       songs.push(song);
       return { error: false, songs };
@@ -557,7 +560,8 @@ module.exports = {
         type: 0,
         time: video.duration,
         thumbnail: video.thumbnail,
-        volume: 1
+        volume: 1,
+        isLive: false
       };
       songs.push(info);
     }
@@ -565,7 +569,7 @@ module.exports = {
     clearInterval(interval);
     return { error: false, songs: songs };
   },
-  async addYTURL(message, args) {
+  async addYTURL(message, args, type = 0) {
     try {
       var songInfo = await ytdl.getInfo(args.slice(1).join(" "), { requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
     } catch (err) {
@@ -587,10 +591,11 @@ module.exports = {
       {
         title: decodeHtmlEntity(songInfo.videoDetails.title),
         url: songInfo.videoDetails.video_url,
-        type: 0,
+        type: type,
         time: songLength,
         thumbnail: thumbUrl,
-        volume: 1
+        volume: 1,
+        isLive: songInfo.videoDetails.isLiveContent
       }
     ];
     return { error: false, songs: songs };
@@ -680,7 +685,8 @@ module.exports = {
                 thumbnail:
                   tracks[i].track.album.images[0].url,
                 time: songLength,
-                volume: 1
+                volume: 1,
+                isLive: results[s].live
               };
               songs.push(matched);
               break;
@@ -696,7 +702,8 @@ module.exports = {
                 thumbnail:
                   tracks[i].track.album.images[0].url,
                 time: songLength,
-                volume: 1
+                volume: 1,
+                isLive: results[s].live
               };
               songs.push(matched);
             }
@@ -777,7 +784,8 @@ module.exports = {
                   ? tracks[i].album.images[0].url
                   : image,
                 time: songLength,
-                volume: 1
+                volume: 1,
+                isLive: results[s].live
               };
               songs.push(matched);
               break;
@@ -793,7 +801,8 @@ module.exports = {
                   ? tracks[i].album.images[0].url
                   : image,
                 time: songLength,
-                volume: 1
+                volume: 1,
+                isLive: results[s].live
               };
               songs.push(matched);
             }
@@ -842,7 +851,8 @@ module.exports = {
                 spot: tracks[i].external_urls.spotify,
                 thumbnail: tracks[i].album.images[0].url,
                 time: songLength,
-                volume: 1
+                volume: 1,
+                isLive: results[s].live
               };
               songs.push(matched);
               break;
@@ -856,7 +866,8 @@ module.exports = {
                 spot: tracks[i].external_urls.spotify,
                 thumbnail: tracks[i].album.images[0].url,
                 time: songLength,
-                volume: 1
+                volume: 1,
+                isLive: results[s].live
               };
               songs.push(matched);
             }
@@ -898,7 +909,8 @@ module.exports = {
           time: songLength,
           thumbnail: track.artwork_url,
           url: track.permalink_url,
-          volume: 1
+          volume: 1,
+          isLive: false
         };
         songs.push(song);
       }
@@ -913,7 +925,8 @@ module.exports = {
           time: songLength,
           thumbnail: data.artwork_url,
           url: data.permalink_url,
-          volume: 1
+          volume: 1,
+          isLive: false
         }
       ];
     }
@@ -961,7 +974,8 @@ module.exports = {
       type: 4,
       time: songLength,
       volume: 1,
-      thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg"
+      thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg",
+      isLive: false
     };
     var songs = [song];
     return { error: false, songs: songs };
@@ -986,7 +1000,8 @@ module.exports = {
       type: 5,
       time: songLength,
       volume: 1,
-      thumbnail: "https://pbs.twimg.com/profile_images/1155047958326517761/IUgssah__400x400.jpg"
+      thumbnail: "https://pbs.twimg.com/profile_images/1155047958326517761/IUgssah__400x400.jpg",
+      isLive: false
     };
     var songs = [song];
     return { error: false, songs: songs };
@@ -1026,7 +1041,8 @@ module.exports = {
       type: 2,
       time: songLength,
       volume: 1,
-      thumbnail: "https://www.flaticon.com/svg/static/icons/svg/2305/2305904.svg"
+      thumbnail: "https://www.flaticon.com/svg/static/icons/svg/2305/2305904.svg",
+      isLive: false
     };
     var songs = [song];
     return { error: false, songs: songs };
@@ -1121,7 +1137,8 @@ module.exports = {
       type: 0,
       time: length,
       thumbnail: video[s].thumbnail,
-      volume: 1
+      volume: 1,
+      isLive: video[s].live
     };
     return { error: false, song, msg, embed: Embed };
   },

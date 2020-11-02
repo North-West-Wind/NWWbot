@@ -34,6 +34,22 @@ module.exports = {
         await this.download(message, song);
     },
     async download(message, song) {
+        try {
+            if(song.isLive) {
+              const args = ["0", song.url];
+              const result = await addYTURL({ dummy: true }, args, song.type);
+              if(result.error) throw "Failed to find video";
+              if(!isEquivalent(result.songs[0], song)) {
+                song = result.songs[0];
+                serverQueue.songs[0] = song;
+                updateQueue(message, serverQueue, queue, pool);
+                if(song.isLive) return await message.channel.send("Livestream downloading is not supported and recommended! Come back later when the livestream is over.");
+              }
+            }
+        } catch(err) {
+            console.error(err);
+            return await message.reply(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
+        }
         let msg = await message.channel.send(`Downloading... (Soundtrack Type: **Type ${song.type}**)`);
         let stream;
         switch (song.type) {
@@ -56,7 +72,9 @@ module.exports = {
                 break;
             case 5:
                 try {
-                    stream = await requestStream(song.mp3);
+                    const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 30000 }).then(res => res.json());
+                    if(mp3.error) throw new Error(mp3.message);
+                    stream = await requestStream(mp3.url);
                 } catch (err) {
                     console.error(err);
                     return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);

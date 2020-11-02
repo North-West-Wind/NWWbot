@@ -1,4 +1,5 @@
 const { updateQueue } = require("./play");
+const { setQueue } = require("./main.js");
 
 module.exports = {
   name: "loop",
@@ -6,6 +7,10 @@ module.exports = {
   category: 8,
   aliases: ["lp"],
   music(message, serverQueue, queue, pool) {
+    if(!serverQueue) {
+      queue = setQueue(message.guild, [], false, false);
+      serverQueue = queue.get(message.guild.id);
+    }
     const guildLoopStatus = serverQueue.looping;
     const guildRepeatStatus = serverQueue.repeating;
     if (!guildLoopStatus) {
