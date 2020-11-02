@@ -67,15 +67,10 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   const serverQueue = queue.get(guild.id);
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!song) {
-    guild.me.voice.channel.leave();
+    if (guild.me.voice) guild.me.voice.channel.leave();
     updateQueue(message, null, queue, pool);
     return;
   }
-
-  if (!serverQueue.connection) return;
-  if (serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
-  else serverQueue.startTime = -seek * 1000;
-
   var dispatcher;
   async function skip() {
     skipped += 1;
@@ -103,6 +98,10 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     updateQueue(message, serverQueue, queue, pool);
     return await play(guild, serverQueue.songs[0], queue, pool, skipped);
   }
+  if (!serverQueue.connection) return;
+  if (serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
+  else serverQueue.startTime = -seek * 1000;
+
   if (song.type === 2 || song.type === 4) {
     try {
       var requestedStream = await requestStream(song.url);

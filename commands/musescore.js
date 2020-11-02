@@ -69,7 +69,11 @@ module.exports = {
                     if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
                     if(attachments.length < 1) return await mesg.edit("Failed to generate files!");
                     await mesg.delete();
-                    message.author.send(attachments);
+                    try {
+                        message.author.send(attachments);
+                    } catch(err) {
+                        message.reply("did you block me? I cannot DM you!");
+                    }
                 });
             } catch (err) {
                 await mesg.edit("Failed to generate files!");
@@ -221,7 +225,11 @@ module.exports = {
                             if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
                             if(attachments.length < 1) return await mesg.edit("Failed to generate files!");
                             await mesg.delete();
-                            message.author.send(attachments);
+                            try {
+                                message.author.send(attachments);
+                            } catch(err) {
+                                message.reply("did you block me? I cannot DM you!");
+                            }
                         });
                     } catch (err) {
                         await mesg.edit("Failed to generate files!");
