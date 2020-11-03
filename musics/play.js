@@ -35,7 +35,6 @@ const scdl = require("soundcloud-downloader");
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
-const ph = require("@justalk/pornhub-api");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
 
 const requestStream = url => {
@@ -125,15 +124,6 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
       const result = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 30000 }).then(res => res.json());
       if(result.error) throw new Error(result.message);
       const requestedStream = await requestStream(result.url);
-      const silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
-      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }), { seek: seek });
-    } catch (err) {
-      console.error(err);
-      return await skip();
-    }
-  } else if (song.type === 6) {
-    try {
-      const requestedStream = await requestStream(song.download);
       const silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
       dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }), { seek: seek });
     } catch (err) {
