@@ -2052,12 +2052,12 @@ module.exports = {
       }
     }
 
-    var picked = subs[Math.floor(Math.random() * subs.length)];
+    const picked = subs[Math.floor(Math.random() * subs.length)];
 
-    var response = await redditConn.api.get("/r/" + picked + "/hot", { limit: 100 }).catch(err => console.error(err));
+    const response = await redditConn.api.get("/r/" + picked + "/hot", { limit: 100 });
     if (!response || !response[1]) return await this.execute(message, args);
     if (!response[1].data || !response[1].data.children || !response[1].data.children[0]) return await this.execute(message, args);
-    var data = response[1].data.children[Math.floor(Math.random() * response[1].data.children.length)].data;
+    const data = response[1].data.children[Math.floor(Math.random() * response[1].data.children.length)].data;
     if (!data || !data.url) return await this.execute(message, args);
 
     const em = new Discord.MessageEmbed()
@@ -2072,31 +2072,27 @@ module.exports = {
       .setTimestamp();
     if (validNotImgurURL(data.url)) em.setImage(data.url.replace("imgur", "i.imgur") + ".jpg");
 
-    if (validImgurURL(data.url) === false && validRedditURL(data.url) === false) {
+    if (!validImgurURL(data.url) && !validRedditURL(data.url)) {
       if (validImgurVideoURL(data.url) || validRedditVideoURL(data.url)) {
         var link = data.url;
       } else if (validGfyURL(data.url) || validRedGifURL(data.url)) {
         await gfycat.authenticate();
-        if (validRedGifURL(data.url))
-          var gif = await gfycat.getGifDetails({ gfyId: data.url.split("/")[4] });
-        else
-          var gif = await gfycat.getGifDetails({ gfyId: data.url.split("/")[3] });
+        if (validRedGifURL(data.url)) var gif = await gfycat.getGifDetails({ gfyId: data.url.split("/")[4] });
+        else var gif = await gfycat.getGifDetails({ gfyId: data.url.split("/")[3] });
         var name = gif.gfyItem.gfyName;
         var link = `https://thumbs.gfycat.com/${name}-mobile.mp4`;
-      } else if (data.media !== null && data.media.type === "gfycat.com") {
+      } else if (data.media && data.media.type === "gfycat.com") {
         var image = decodeHtmlEntity(data.media.oembed.html).split("&").find(x => x.startsWith("image"));
-        if (image === undefined) em.setDescription(`Tags: \`${tags.length > 0 ? tags.join("->") : "`N/A`"}\`\n(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\nFrom r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).`).setImage(undefined);
+        if (!image) em.setDescription(`Tags: \`${tags.length > 0 ? tags.join("->") : "`N/A`"}\`\n(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\nFrom r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).`).setImage(undefined);
         else {
           var arr = unescape(image).split("/");
           var id = arr[arr.length - 1].split("-")[0];
           var link = `https://thumbs.gfycat.com/${id}-mobile.mp4`;
         }
-
       }
       if (!link) return await this.execute(message, args)
       em.setDescription(`Tags:\`${tags.length > 0 ? tags.join("->") : "`N/A`"}\`\n(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\nFrom r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).`).setImage(undefined);
     }
-
     if (link) {
       try {
         var video = new Discord.MessageAttachment(link, "video.mp4");

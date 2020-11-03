@@ -102,7 +102,7 @@ module.exports = {
         if (run.run.system.region) var regionFetch = await fetch(`https://www.speedrun.com/api/v1/regions/${run.run.system.region}`).then(res => res.json());
         const platform = platformFetch && platformFetch.data ? platformFetch.data.name : "N/A";
         const region = regionFetch && regionFetch.data ? regionFetch.data.name : "N/A"
-        if (run.run.players[0].rel === "guest") const player = run.run.players[0].name;
+        if (run.run.players[0].rel === "guest") var player = run.run.players[0].name;
         var time = run.run.times.primary_t;
         var date = run.run.date;
         var place = run.place;
@@ -111,7 +111,7 @@ module.exports = {
       allEmbeds.push(embed);
     }
     if (allEmbeds.length == 1) await msg.edit(allEmbeds[0]);
-    else if (allEmbeds.length == 0) {
+    else if (allEmbeds.length < 1) {
       em.setTitle(result && result.data[0] ? result.data[index ? index : 0].names.international : gameFetch.data.names.international)
         .setDescription("No record was found for this game!")
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
