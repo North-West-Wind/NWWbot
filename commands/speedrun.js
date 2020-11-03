@@ -86,8 +86,8 @@ module.exports = {
     const allEmbeds = [];
     const results = await fetch(`https://www.speedrun.com/api/v1/games/${id}/records`).then(res => res.json());
     for (const record of results.data) {
-      if (record.level) const levelFetch = await fetch(`https://www.speedrun.com/api/v1/levels/${record.level}`).then(res => res.json());
-      if (record.category) const categoryFetch = await fetch(`https://www.speedrun.com/api/v1/categories/${record.category}`).then(res => res.json());
+      if (record.level) var levelFetch = await fetch(`https://www.speedrun.com/api/v1/levels/${record.level}`).then(res => res.json());
+      if (record.category) var categoryFetch = await fetch(`https://www.speedrun.com/api/v1/categories/${record.category}`).then(res => res.json());
       const level = levelFetch && levelFetch.data ? levelFetch.data.name : "N/A";
       const category = categoryFetch && categoryFetch.data ? categoryFetch.data.name : "N/A";
       const embed = new Discord.MessageEmbed()
@@ -98,8 +98,8 @@ module.exports = {
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       for (const run of record.runs) {
-        if (run.run.system.platform) const platformFetch = await fetch(`https://www.speedrun.com/api/v1/platforms/${run.run.system.platform}`).then(res => res.json());
-        if (run.run.system.region) const regionFetch = await fetch(`https://www.speedrun.com/api/v1/regions/${run.run.system.region}`).then(res => res.json());
+        if (run.run.system.platform) var platformFetch = await fetch(`https://www.speedrun.com/api/v1/platforms/${run.run.system.platform}`).then(res => res.json());
+        if (run.run.system.region) var regionFetch = await fetch(`https://www.speedrun.com/api/v1/regions/${run.run.system.region}`).then(res => res.json());
         const platform = platformFetch && platformFetch.data ? platformFetch.data.name : "N/A";
         const region = regionFetch && regionFetch.data ? regionFetch.data.name : "N/A"
         if (run.run.players[0].rel === "guest") const player = run.run.players[0].name;
