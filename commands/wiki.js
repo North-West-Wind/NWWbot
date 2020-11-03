@@ -9,19 +9,18 @@ module.exports = {
   args: 1,
   category: 7,
   async execute(message, args) {
-    var data = await wiki({ apiUrl: 'https://en.wikipedia.org/w/api.php' }).search(args.join(" "), 100);
+    await message.channel.startTyping();
+    const data = await wiki({ apiUrl: 'https://en.wikipedia.org/w/api.php' }).search(args.join(" "), 100);
     var num = 0;
-    var allEmbeds = [];
+    const allEmbeds = [];
     for(const result of data.results) {
       try {
-        var page = await wiki({ headers: { 'User-Agent': 'N0rthWestW1nd/2.0.0 (https://www.nwws.ml; no_u@nwws.ml) wiki.js' }, apiUrl: 'https://en.wikipedia.org/w/api.php' }).page(result);
-        var url = await page.url();
-        var summary = await page.summary();
-        var title = result;
-      
+        const page = await wiki({ headers: { 'User-Agent': 'N0rthWestW1nd/2.0.0 (https://www.nwws.ml; no_u@nwws.ml) wiki.js' }, apiUrl: 'https://en.wikipedia.org/w/api.php' }).page(result);
+        const url = page.url();
+        const summary = await page.summary();
         const em = new Discord.MessageEmbed()
         .setColor(console.color())
-        .setTitle(`${++num}. ${title}`)
+        .setTitle(`${++num}. ${result}`)
         .setDescription(summary.length > 2048 ? (summary.slice(0, 2045) + "...") : summary)
         .setTimestamp()
         .setURL(url)
@@ -33,18 +32,14 @@ module.exports = {
       }
     }
     
-    var emojis = ["⏮", "◀", "▶", "⏭", "⏹"];
+    const emojis = ["⏮", "◀", "▶", "⏭", "⏹"];
     if(allEmbeds[24]) emojis.push("1️⃣");
     if(allEmbeds[49]) emojis.push("2️⃣");
     if(allEmbeds[74]) emojis.push("3️⃣")
     
     var msg = await message.channel.send(allEmbeds[0]);
-    const filter = (reaction, user) => {
-      return (
-        emojis.includes(reaction.emoji.name) &&
-        user.id === message.author.id
-      );
-    };
+    await message.channel.stopTyping(true);
+    const filter = (reaction, user) => (emojis.includes(reaction.emoji.name) && user.id === message.author.id);
 
     var s = 0;
     for(const emoji of emojis) {
@@ -54,7 +49,6 @@ module.exports = {
       idle: 60000,
       errors: ["time"]
     });
-
     collector.on("collect", function(reaction, user) {
       reaction.users.remove(user.id);
       switch (reaction.emoji.name) {

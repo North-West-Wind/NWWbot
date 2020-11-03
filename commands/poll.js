@@ -165,7 +165,7 @@ module.exports = {
       if (options.length <= 1) {
         optionString.first().delete();
         return message.channel.send(
-          "Please provide at least 2 options! Cancelling action..."
+          "Please provide at least 2 options! Cancelled action."
         );
       }
       await optionString.first().delete();

@@ -175,6 +175,7 @@ module.exports = {
   async execute(message, args) {
     if(!args[0]) return message.channel.send("Please provide at least 1 keyword!" + ` Usage: ${message.prefix}${this.name} ${this.usage}`);
     var msg = await message.channel.send("Loading the memes...");
+    await msg.channel.startTyping();
     var results = await doSearch(args.join(" "));
     const allEmbeds = [];
     let num = 0;
@@ -231,6 +232,7 @@ module.exports = {
       );
     };
     var s = 0;
+    await msg.channel.stopTyping(true);
     var msg = await msg.edit({ content: "", embed: allEmbeds[0]});
 
     await msg.react("⏮");

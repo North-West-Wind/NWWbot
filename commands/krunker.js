@@ -92,6 +92,7 @@ module.exports = {
         break;
       case "server":
         var msg = await message.channel.send("Loading servers...");
+        await msg.channel.startTyping();
         try {
           const servers = await fetch(`https://north-utils.glitch.me/krunker-servers`, { timeout: 30000 }).then(res => res.json());
           if(servers.error) throw new Error(servers.message);
@@ -171,6 +172,7 @@ module.exports = {
           await msg.react("▶");
           await msg.react("⏭");
           await msg.react("⏹");
+          await msg.channel.stopTyping(true);
           var collector = await msg.createReactionCollector((reaction, user) => (["🎲", "🔗", "⏩", "◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id), {
             idle: 60000,
             errors: ["time"]

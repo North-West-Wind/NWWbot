@@ -8,7 +8,7 @@ const {
     validSCURL,
     validMSURL
 } = require("../function.js");
-const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDURL, addMSURL, addURL, search, updateQueue } = require("./play.js");
+const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDURL, addMSURL, addPHURL, addURL, search, updateQueue } = require("./play.js");
 
 module.exports = {
     name: "add",
@@ -30,6 +30,7 @@ module.exports = {
             else if (validSCURL(args.slice(1).join(" "))) result = await addSCURL(message, args);
             else if (validGDURL(args.slice(1).join(" "))) result = await addGDURL(message, args);
             else if (validMSURL(args.slice(1).join(" "))) result = await addMSURL(message, args);
+            else if (validPHURL(args.slice(1).join(" "))) result = await addPHURL(message, args);
             else if (validURL(args.slice(1).join(" "))) result = await addURL(message, args);
             else if (message.attachments.size > 0) result = await addAttachment(message);
             else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.prefix}${this.name} ${this.usage}\``);

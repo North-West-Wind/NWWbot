@@ -17,6 +17,7 @@ module.exports = {
     category: 7,
     args: 1,
     async execute(message, args) {
+      await message.channel.startTyping();
         const courses = await fetch(`https://api.smmdb.net/courses2?limit=100&title=${encodeURIComponent(args.join(" "))}`).then(res => res.json());
         const allEmbeds = [];
         for (const course of courses) {
@@ -63,7 +64,10 @@ module.exports = {
                 .setFooter(`Votes: ${votes}`);
             allEmbeds.push(em);
         }
-
+        if(allEmbeds.length < 1) {
+          await message.channel.send("Cannot find any courses!");
+          return await message.channel.stopTyping(true);
+        }
         const filter = (reaction, user) => {
           return (
             ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
@@ -77,6 +81,7 @@ module.exports = {
         await msg.react("▶");
         await msg.react("⏭");
         await msg.react("⏹");
+        await message.channel.stopTyping(true);
         var collector = await msg.createReactionCollector(filter, {
           idle: 60000,
           errors: ["time"]

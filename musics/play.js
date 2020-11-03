@@ -9,6 +9,7 @@ const {
   validYTPlaylistURL,
   validSCURL,
   validMSURL,
+  validPHURL,
   isEquivalent
 } = require("../function.js");
 const { parseBody } = require("../commands/musescore.js");
@@ -34,6 +35,7 @@ const scdl = require("soundcloud-downloader");
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
+const ph = require("@justalk/pornhub-api");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
 
 const requestStream = url => {
@@ -104,8 +106,8 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
 
   if (song.type === 2 || song.type === 4) {
     try {
-      var requestedStream = await requestStream(song.url);
-      var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
+      const requestedStream = await requestStream(song.url);
+      const silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
       dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }), { seek: seek });
     } catch (err) {
       console.error(err);
@@ -122,8 +124,17 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
     try {
       const result = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 30000 }).then(res => res.json());
       if(result.error) throw new Error(result.message);
-      var requestedStream = await requestStream(result.url);
-      var silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
+      const requestedStream = await requestStream(result.url);
+      const silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
+      dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }), { seek: seek });
+    } catch (err) {
+      console.error(err);
+      return await skip();
+    }
+  } else if (song.type === 6) {
+    try {
+      const requestedStream = await requestStream(song.download);
+      const silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
       dispatcher = serverQueue.connection.play(new StreamConcat([silence, requestedStream], { highWaterMark: 1 << 25 }), { seek: seek });
     } catch (err) {
       console.error(err);
@@ -288,6 +299,7 @@ module.exports = {
       else if (validSCURL(args.slice(1).join(" "))) result = await this.addSCURL(message, args);
       else if (validGDURL(args.slice(1).join(" "))) result = await this.addGDURL(message, args);
       else if (validMSURL(args.slice(1).join(" "))) result = await this.addMSURL(message, args);
+      else if (validPHURL(args.slice(1).join(" "))) result = await this.addPHURL(message, args);
       else if (validURL(args.slice(1).join(" "))) result = await this.addURL(message, args);
       else return message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.prefix}${this.name} ${this.usage}\``);
       if (result.error) return;
@@ -1006,6 +1018,29 @@ module.exports = {
     var songs = [song];
     return { error: false, songs: songs };
   },
+  async addPHURL(message, args) {
+    try {
+      const videos = await ph.page(args.slice(1).join(" "), ["title", "duration", "download_urls"]);
+      if(videos.error) throw new Error(video.error);
+      var download = "-1";
+      for(const property in videos.download_urls) if(parseInt(property) < parseInt(download) || parseInt(download) < 0) download = property;
+      var songLength = moment.duration(videos.duration, "seconds").format();
+      var song = {
+        title: videos.title,
+        url: args.slice(1).join(" "),
+        type: 6,
+        time: songLength,
+        volume: 1,
+        thumbnail: "https://plasticmick.com/wp-content/uploads/2019/07/pornhub-logo.jpg",
+        isLive: false,
+        download: download
+      };
+      return { error: false, songs: [song] };
+    } catch(err) {
+      message.reply("there was an error processing the link!");
+      return { error: true };
+    }
+  },
   async addURL(message, args) {
     var linkArr = args.slice(1).join(" ").split("/");
     if (linkArr[linkArr.length - 1].split("?").length == 1) {
@@ -1018,19 +1053,15 @@ module.exports = {
         .split(".")[0]
         .replace(/_/g, " ");
     }
-    var stream = await requestStream(args.slice(1).join(" "));
     try {
+      var stream = await requestStream(args.slice(1).join(" "));
       var metadata = await mm.parseStream(stream, {}, { duration: true });
     } catch (err) {
-      message.channel.send(
-        "The audio format is not supported!"
-      );
+      message.channel.send("The audio format is not supported!");
       return { error: true };
     }
-    if (!metadata) {
-      message.channel.send(
-        "An error occured while parsing the audio file into stream! Maybe it is not link to the file?"
-      );
+    if (!metadata || !stream) {
+      message.reply("there was an error while parsing the audio file into stream! Maybe it is not link to the file?");
       return { error: true };
     }
     var length = Math.round(metadata.format.duration);

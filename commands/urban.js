@@ -10,13 +10,11 @@ module.exports = {
   args: 1,
   async execute(message, args) {
     const query = querystring.stringify({ term: args.join(" ") });
-    const { list } = await fetch(
-      `https://api.urbandictionary.com/v0/define?${query}`
-    ).then(response => response.json());
+    await message.channel.startTyping();
+    const { list } = await fetch(`https://api.urbandictionary.com/v0/define?${query}`).then(response => response.json());
     if (!list.length) {
-      return message.channel.send(
-        `No results found for **${args.join(" ")}**.`
-      );
+      await message.channel.stopTyping(true);
+      return message.channel.send(`No results found for **${args.join(" ")}**.`);
     }
     const trim = (str, max) =>
       str.length > max ? `${str.slice(0, max - 3)}...` : str;
@@ -38,6 +36,7 @@ module.exports = {
     }
 
     var msg = await message.channel.send(allEmbeds[0]);
+    await message.channel.stopTyping(true);
     const filter = (reaction, user) => {
       return (
         ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&

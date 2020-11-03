@@ -42,68 +42,72 @@ module.exports = {
     var pattern = new RegExp(
       /^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/.+/
     ); // fragment locator
-    return pattern.test(str);
+    return str.match(pattern);
   },
   validYTPlaylistURL(str) {
     var pattern = new RegExp(
       /^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/playlist\?list=\w+/
     );
-    return !!pattern.test(str);
+    return str.match(pattern);
   },
   validSPURL(str) {
     var pattern = new RegExp(/^(spotify:|https:\/\/[a-z]+\.spotify\.com\/)/);
-    return pattern.test(str);
+    return str.match(pattern);
   },
   validGDURL(str) {
     var pattern1 = new RegExp(/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing/);
     var pattern2 = new RegExp(/https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/);
-    if (pattern1.test(str)) return true;
-    else if (pattern2.test(str)) return true;
+    if (str.match(pattern1)) return true;
+    else if (str.match(pattern2)) return true;
     else return false;
   },
   validImgurURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/;
-    return pattern.test(str);
+    return str.match(pattern);
   },
   validImgurVideoURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/;
-    return pattern.test(str);
+    return str.match(pattern);
   },
   validImgur4wordsURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w\/)?(\w*\w*)+(\.[a-zA-Z0-9]*)?$/;
-    return pattern.test(str);
+    return str.match(pattern);
   },
   validImgurAURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w\/)?(\w*\w*)$/;
-    return pattern.test(str);
+    return str.match(pattern);
   },
   validNotImgurURL(str) {
     var pattern = /^https?:\/\/imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/;
-    return pattern.test(str);
+    return str.match(pattern);
   },
   validRedditURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z]{3})?$/;
-    return pattern.test(str);
+    return str.match(pattern);
   },
   validRedditVideoURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/;
-    return pattern.test(str);
+    return str.match(pattern);
   },
   validGfyURL(str) {
     var pattern = /^(http(s)?:\/\/)?((w){3}.)?gfycat(.com)?\/\w*/;
-    return pattern.test(str);
+    return str.match(pattern);
   },
   validRedGifURL(str) {
     var pattern = /^https?:\/\/(\w+\.)?redgifs.com\/(\w*\/)?(\w*\w*)$/;
-    return pattern.test(str);
+    return str.match(pattern);
   },
   validSCURL(str) {
     var pattern = /^http(s)?:\/\/(soundcloud\.com|snd\.sc)\/(.+)?/;
-    return pattern.test(str);
+    return str.match(pattern);
   },
   validMSURL(str) {
     var pattern = /^(https?:\/\/)?musescore\.com\/(user|[\w%\-_.!~*'()]+)\/([0-9]{1,}\/scores\/[0-9]{1,}\/?|[\w%\-_.!~*'()]+\/?)$/;
-    return pattern.test(str);
+    return str.match(pattern);
+  },
+  validPHURL(str) {
+    var pattern = /^(https?:\/\/)(www\.)?pornhub\.com\/view_video\.php\?viewkey=\w+\/?$/;
+    return str.match(pattern);
   },
   decodeHtmlEntity(str) {
     return str

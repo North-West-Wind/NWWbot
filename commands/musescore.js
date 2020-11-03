@@ -18,6 +18,7 @@ module.exports = {
     async execute(message, args) {
         if (!validMSURL(args.join(" "))) return await this.search(message, args);
         var msg = await message.channel.send("Loading score...");
+        await msg.channel.startTyping();
         try {
             const response = await rp({ uri: args.join(" "), resolveWithFullResponse: true });
             if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
@@ -44,10 +45,12 @@ module.exports = {
             .setFooter("Have a nice day! :)");
         msg = await msg.edit({ content: "", embed: em });
         await msg.react("📥");
+        await msg.channel.stopTyping(true);
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
         msg.reactions.removeAll().catch(console.error);
         if (collected && collected.first()) {
             var mesg = await message.author.send("Generating files...");
+            await message.author.startTyping();
             try {
                 var hasPDF = true;
                 const doc = new PDFDocument();
@@ -64,19 +67,25 @@ module.exports = {
                 const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(args.join(" "))}`, { timeout: 30000 }).then(res => res.json());
                 if (mp3.error) throw new Error(mp3.message);
                 rs(mp3.url, async (err, res) => {
-                    const attachments = [];
-                    if (!err && res) attachments.push(new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`));
-                    if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
-                    if(attachments.length < 1) return await mesg.edit("Failed to generate files!");
-                    await mesg.delete();
                     try {
-                        message.author.send(attachments);
+                        const attachments = [];
+                        if (!err && res) attachments.push(new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`));
+                        if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
+                        if(attachments.length < 1) {
+                            await mesg.edit("Failed to generate files!");
+                            return await message.author.stopTyping(true);
+                        }
+                        await mesg.delete();
+                        await message.author.send(attachments);
                     } catch(err) {
                         message.reply("did you block me? I cannot DM you!");
+                    } finally {
+                        await message.author.stopTyping(true);
                     }
                 });
             } catch (err) {
                 await mesg.edit("Failed to generate files!");
+                await message.author.stopTyping(true);
             }
         }
     },
@@ -112,6 +121,7 @@ module.exports = {
             return message.reply("there was an error trying to search for scores!");
         }
         var msg = await message.channel.send("Loading scores...");
+        await msg.channel.startTyping();
         var $ = cheerio.load(body);
         const stores = Array.from($('div[class^="js-"]'));
         const store = findValueByPrefix(stores.find(x => x.attribs && x.attribs.class && x.attribs.class.match(/^js-\w+$/)).attribs, "data-");
@@ -170,6 +180,7 @@ module.exports = {
         await msg.react("▶");
         await msg.react("⏭");
         await msg.react("⏹");
+        await msg.channel.stopTyping(true);
         var collector = await msg.createReactionCollector(
             filter,
             { idle: 60000, errors: ["time"] }
@@ -205,6 +216,7 @@ module.exports = {
                     break;
                 case "📥":
                     var mesg = await message.author.send("Generating files...");
+                    await message.author.startTyping();
                     try {
                         const doc = new PDFDocument();
                         for (let i = 0; i < importants[s].pages; i++) {
@@ -220,19 +232,25 @@ module.exports = {
                         const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(importants[s].url)}`, { timeout: 30000 }).then(res => res.json());
                         if (mp3.error) throw new Error(mp3.message);
                         rs(mp3.url, async (err, res) => {
-                            const attachments = [];
-                            if (!err && res) attachments.push(new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`));
-                            if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
-                            if(attachments.length < 1) return await mesg.edit("Failed to generate files!");
-                            await mesg.delete();
                             try {
-                                message.author.send(attachments);
+                                const attachments = [];
+                                if (!err && res) attachments.push(new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`));
+                                if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
+                                if(attachments.length < 1) {
+                                    await mesg.edit("Failed to generate files!");
+                                    return await message.author.stopTyping(true);
+                                }
+                                await mesg.delete();
+                                await message.author.send(attachments);
                             } catch(err) {
                                 message.reply("did you block me? I cannot DM you!");
+                            } finally {
+                                await message.author.stopTyping(true);
                             }
                         });
                     } catch (err) {
                         await mesg.edit("Failed to generate files!");
+                        await message.author.stopTyping(true);
                     }
                     break;
             }
