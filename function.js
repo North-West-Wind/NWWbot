@@ -106,7 +106,7 @@ module.exports = {
     return str.match(pattern);
   },
   validPHURL(str) {
-    var pattern = /^(https?:\/\/)(www\.)?pornhub\.com\/view_video\.php\?viewkey=\w+\/?$/;
+    var pattern = /^(https?:\/\/)(\w+\.)?pornhub\.com\/view_video\.php\?viewkey=\w+\/?$/;
     return str.match(pattern);
   },
   decodeHtmlEntity(str) {
