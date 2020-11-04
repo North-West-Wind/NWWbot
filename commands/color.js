@@ -25,7 +25,7 @@ module.exports = {
             random = false;
         } else if(args[0]) {
             var rgb = hexToRgb(args[0]);
-            if(rgb !== null) {
+            if(rgb) {
                 red = rgb.r;
                 green = rgb.g;
                 blue = rgb.b;
@@ -48,6 +48,6 @@ module.exports = {
         .attachFiles([{ attachment: canvas.toBuffer(), name: `${red}_${green}_${blue}.png` }])
         .setImage(`attachment://${red}_${green}_${blue}.png`)
         .setFooter(random ? "Cannot parse your color...so here's a random color." : `This is the color you want me to show. Do you like it?`, message.client.user.displayAvatarURL());
-        message.channel.send(em);
+        await message.channel.send(em);
     }
 }

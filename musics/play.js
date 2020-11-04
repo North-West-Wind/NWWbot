@@ -787,6 +787,7 @@ module.exports = {
       if (videos.error) throw new Error(video.error);
       var download = "-1";
       for (const property in videos.download_urls) if (parseInt(property) < parseInt(download) || parseInt(download) < 0) download = property;
+      if(parseInt(download) < 1) throw "Cannot get any video quality";
       var songLength = moment.duration(videos.duration, "seconds").format();
       var song = {
         title: videos.title,

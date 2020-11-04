@@ -69,29 +69,13 @@ module.exports = {
     var msg = await message.channel.send(
       "Alright, we will start an UNO game. Who will be invited? Please mention them!"
     );
-    var collected = await message.channel
-      .awaitMessages(x => x.author.id === message.author.id, {
-        max: 1,
-        time: 30000,
-        errors: ["time"]
-      })
-      .catch(err => msg.edit("Don't make me wait too long. I'm busy."));
-      try {
-        if (!collected || !collected.first())
-          return msg.edit("Don't make me wait too long. I'm busy.");
-      } catch(err) {
-          return msg.edit("Don't make me wait too long. I'm busy.");
-      }
+    var collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+    if (!collected || !collected.first()) return msg.edit("Don't make me wait too long. I'm busy.");
+    await collected.first().delete();
+    if (!collected.first().mentions.members || !collected.first().mentions.members.size) return msg.edit("You didn't invite anyone!");
+    else if (collected.first().mentions.members.find(x => x.user.bot)) return msg.edit("Bots cannot play with you!");
+    else if (collected.first().mentions.members.find(x => x.id === message.author.id)) return msg.edit("Why would you invite yourself?");
     msg.edit(`You invited ${collected.first().content} to play UNO.`);
-    collected.first().delete();
-    if (collected.first().mentions.members.size === 0)
-      return msg.edit("You didn't invite anyone!");
-    if (collected.first().mentions.members.find(x => x.user.bot))
-      return msg.edit("Bots cannot play with you!");
-    if (
-      collected.first().mentions.members.find(x => x.id === message.author.id)
-    )
-      return msg.edit("Why would you invite yourself?");
     var responses = 0;
     var accepted = 0;
     var ingame = false;
