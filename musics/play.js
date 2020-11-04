@@ -35,7 +35,6 @@ const scdl = require("soundcloud-downloader");
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
-const ph = require("@justalk/pornhub-api");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
 
 const requestStream = url => {
@@ -783,21 +782,21 @@ module.exports = {
   },
   async addPHURL(message, args) {
     try {
-      const videos = await ph.page(args.slice(1).join(" "), ["title", "duration", "download_urls"]);
-      if (videos.error) throw new Error(video.error);
+      const video = await fetch(`http://north-utils.glitch.me/pornhub/${encodeURIComponent(args.slice(1).join(" "))}`).then(res => res.json());
+      if (video.error) throw new Error(video.error);
       var download = "-1";
-      for (const property in videos.download_urls) if (parseInt(property) < parseInt(download) || parseInt(download) < 0) download = property;
+      for (const property in video.download_urls) if (parseInt(property) < parseInt(download) || parseInt(download) < 0) download = property;
       if(parseInt(download) < 1) throw "Cannot get any video quality";
-      var songLength = moment.duration(videos.duration, "seconds").format();
+      var songLength = moment.duration(video.duration, "seconds").format();
       var song = {
-        title: videos.title,
+        title: video.title,
         url: args.slice(1).join(" "),
         type: 6,
         time: songLength,
         volume: 1,
         thumbnail: "https://plasticmick.com/wp-content/uploads/2019/07/pornhub-logo.jpg",
         isLive: false,
-        download: download
+        download: video.download_urls[download]
       };
       return { error: false, songs: [song] };
     } catch (err) {
