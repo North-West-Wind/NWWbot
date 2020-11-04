@@ -210,13 +210,9 @@ module.exports = {
   async findRole(message, str) {
     var roleID = str.replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
-      var role = await message.guild.roles.cache.find(
-        x => x.name.toLowerCase() === `${message.content.split(/ +/).slice(1).join(" ").toLowerCase()}`
-      );
+      var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === str);
       if (role === null) {
-        message.channel.send(
-          "No role was found with the name " + message.content.split(/ +/).slice(1).join(" ")
-        );
+        message.channel.send("No role was found with the name " + str);
         return null;
       }
     } else {

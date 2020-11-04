@@ -11,11 +11,9 @@ module.exports = {
       queue = setQueue(message.guild, [], false, false);
       serverQueue = queue.get(message.guild.id);
     }
-    const guildLoopStatus = serverQueue.looping;
-    const guildRepeatStatus = serverQueue.repeating;
-    if (!guildRepeatStatus) {
+    if (!serverQueue.repeating) {
       serverQueue.repeating = true;
-      if (guildLoopStatus) {
+      if (serverQueue.looping) {
         serverQueue.looping = false;
         message.channel.send("Disabled looping to prevent conflict.");
       }
