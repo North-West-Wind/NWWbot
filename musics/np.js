@@ -35,7 +35,7 @@ module.exports = {
     .setColor(console.color())
     .setTitle("Now playing:" + (serverQueue.playing ? "" : " (Not actually)"))
     .setTimestamp()
-    .setFooter(`Looping: ${serverQueue.looping} | Repeating: ${serverQueue.repeating}`, message.client.user.displayAvatarURL());
+    .setFooter(`Looping: ${serverQueue.looping ? "Enalbed" : "Disabled"} | Repeating: ${serverQueue.repeating ? "Enalbed" : "Disabled"}`, message.client.user.displayAvatarURL());
     if(serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
     else info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
     embed.setDescription(`${info[0]}\n\n${positionTime} **${processBar.join("")}** ${serverQueue.songs[0].time}`).setThumbnail(info[1]);
