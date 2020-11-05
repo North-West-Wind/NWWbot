@@ -5,7 +5,7 @@ const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validS
 const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search } = require("./play.js");
 const requestStream = url => {
     return new Promise((resolve, reject) => {
-        request(url, (err, res) => err ? reject(err) : resolve(res));
+        request.get(url, (err, res) => err ? reject(err) : resolve(res));
     });
 };
 const Discord = require("discord.js");
@@ -60,6 +60,15 @@ module.exports = {
                     break;
                 case 6:
                     stream = await requestStream(song.download);
+                    if(stream.statusCode != 200) {
+                      const g = await module.exports.addPHURL(message, args);
+                      if(g.error) throw "Failed to find video";
+                      song = g;
+                      serverQueue.songs[0] = song;
+                      updateQueue(message, serverQueue, queue, pool);
+                      stream = await requestStream(song.download);
+                      if(stream.statusCode != 200) throw new Error("Received HTTP Status Code: " + stream.statusCode);
+                    }
                     break;
                 default:
                     stream = ytdl(song.url, { highWaterMark: 1 << 25, filter: "audioonly", quality: "lowestaudio", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });

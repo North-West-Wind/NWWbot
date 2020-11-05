@@ -35,11 +35,12 @@ const scdl = require("soundcloud-downloader");
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
+const ph = require("@justalk/pornhub-api");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
 
 const requestStream = url => {
   return new Promise((resolve, reject) => {
-    request(url, (err, res) => err ? reject(err) : resolve(res));
+    request.get(url, (err, res) => err ? reject(err) : resolve(res));
   });
 };
 
@@ -73,6 +74,7 @@ function updateQueue(message, serverQueue, queue, pool) {
 
 async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   const serverQueue = queue.get(guild.id);
+  const args = ["0", song.url];
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if(!serverQueue.voiceChannel && guild.me.voice && guild.me.voice.channel) serverQueue.voiceChannel = guild.me.voice.channel;
   if (!song || !serverQueue.voiceChannel) {
@@ -118,14 +120,22 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
         dispatcher = serverQueue.connection.play(new StreamConcat([d, silence], { highWaterMark: 1 << 25 }), { seek: seek });
       break;
       case 6:
-        const f = await requestStream(song.download);
+        var f = await requestStream(song.download);
+        if(f.statusCode != 200) {
+          const g = await module.exports.addPHURL(message, args);
+          if(g.error) throw "Failed to find video";
+          song = g;
+          serverQueue.songs[0] = song;
+          updateQueue(message, serverQueue, queue, pool);
+          f = await requestStream(song.download);
+          if(f.statusCode != 200) throw new Error("Received HTTP Status Code: " + f.statusCode);
+        }
         dispatcher = serverQueue.connection.play(new StreamConcat([f, silence], { highWaterMark: 1 << 25 }), { seek: seek });
       break;
       default:
         const h = { highWaterMark: 1 << 28, dlChunkSize: 0, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } };
         if (song.isLive) {
-          const i = ["0", song.url];
-          const j = await module.exports.addYTURL({ dummy: true }, i, song.type);
+          const j = await module.exports.addYTURL(message, args, song.type);
           if (j.error) throw "Failed to find video";
           if (!isEquivalent(j.songs[0], song)) {
             song = j.songs[0];
@@ -782,7 +792,7 @@ module.exports = {
   },
   async addPHURL(message, args) {
     try {
-      const video = await fetch(`http://north-utils.glitch.me/pornhub/${encodeURIComponent(args.slice(1).join(" "))}`).then(res => res.json());
+      const video = await ph.page(args.slice(1).join(" "), ["title", "duration", "download_urls"]);
       if (video.error) throw new Error(video.error);
       var download = "-1";
       for (const property in video.download_urls) if (parseInt(property) < parseInt(download) || parseInt(download) < 0) download = property;
@@ -800,7 +810,7 @@ module.exports = {
       };
       return { error: false, songs: [song] };
     } catch (err) {
-      message.reply("there was an error processing the link!");
+      if(!message.dummy) message.reply("there was an error processing the link!");
       return { error: true };
     }
   },
