@@ -264,7 +264,7 @@ module.exports = {
         var msg = await message.channel.send("Loading changelogs...");
         await msg.channel.startTyping();
         try {
-          const changelogs = await fetch("http://north-utils.glitch.me/krunker-changelog").then(res => res.json());
+          const changelogs = await fetch("https://north-utils.glitch.me/krunker-changelog").then(res => res.json());
           if(changelogs.error) throw new Error(changelogs.error);
           var changelog = {};
           changelog[Object.keys(changelogs).find(x => x.includes("UPDATE"))] = changelogs[Object.keys(changelogs).find(x => x.includes("UPDATE"))];
