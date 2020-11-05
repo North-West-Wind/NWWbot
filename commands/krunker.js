@@ -8,10 +8,10 @@ module.exports = {
   name: "krunker",
   description: "Connect to the Krunker.io API and display stats.",
   aliases: ["kr"],
-  usage: "<subcommand> <username | search term>",
+  usage: "<subcommand> <username | search term | [version]>",
   args: 1,
   category: 7,
-  subcommands: ["stats", "server"],
+  subcommands: ["stats", "server", "changelog"],
   async execute(message, args) {
     switch (args[0]) {
       case "stats":
@@ -172,7 +172,6 @@ module.exports = {
           await msg.react("▶");
           await msg.react("⏭");
           await msg.react("⏹");
-          await msg.channel.stopTyping(true);
           var collector = await msg.createReactionCollector((reaction, user) => (["🎲", "🔗", "⏩", "◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id), {
             idle: 60000,
             errors: ["time"]
@@ -257,8 +256,34 @@ module.exports = {
         } catch (err) {
           console.error(err);
           msg.edit(`<@${message.author.id}>, there was an error trying to show you the games!`);
+        } finally {
+          await msg.channel.stopTyping(true);
         }
         break;
+      case "changelog":
+        var msg = await message.channel.send("Loading changelogs...");
+        await msg.channel.startTyping();
+        try {
+          const changelogs = await fetch("http://north-utils.glitch.me/krunker-changelog").then(res => res.json());
+          if(changelogs.error) throw new Error(changelogs.error);
+          var changelog = {};
+          changelog[Object.keys(changelogs).find(x => x.includes("UPDATE"))] = changelogs[Object.keys(changelogs).find(x => x.includes("UPDATE"))];
+          if(args[1]) {
+            const key = Object.keys(changelogs).find(x => x.includes(args.slice(1).join(" ").toUpperCase()));
+            if(!key) {
+              await msg.channel.stopTyping(true);
+              return message.channel.send("Cannot find any changelog with the supplied string!");
+            }
+            changelog = {};
+            changelog[key] = changelogs[key];
+          }
+          await message.channel.send(`\`\`\`${Object.keys(changelog)[0]}\n${changelog[Object.keys(changelog)[0]].join("\n")}\`\`\``);
+        } catch(err) {
+          console.error(err);
+          msg.edit(`<@${message.author.id}>, there was an error trying to display the changelog!`);
+        } finally {
+          await msg.channel.stopTyping(true);
+        }
       default:
         return message.channel.send("That's not a valid subcommand!" + ` Subcommands: \`${this.subcommands.join("`, `")}\``)
     }
