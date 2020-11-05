@@ -277,7 +277,7 @@ module.exports = {
             changelog = {};
             changelog[key] = changelogs[key];
           }
-          await message.channel.send(`\`\`\`${Object.keys(changelog)[0]}\n${changelog[Object.keys(changelog)[0]].join("\n")}\`\`\``);
+          await msg.edit(`\`\`\`${Object.keys(changelog)[0]}\n${changelog[Object.keys(changelog)[0]].join("\n")}\`\`\``);
         } catch(err) {
           console.error(err);
           msg.edit(`<@${message.author.id}>, there was an error trying to display the changelog!`);
