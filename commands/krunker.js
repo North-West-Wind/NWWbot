@@ -92,7 +92,7 @@ module.exports = {
         break;
       case "server":
         var msg = await message.channel.send("Loading servers...");
-        await msg.channel.startTyping();
+        msg.channel.startTyping();
         try {
           const servers = await fetch(`https://north-utils.glitch.me/krunker-servers`, { timeout: 30000 }).then(res => res.json());
           if(servers.error) throw new Error(servers.message);
@@ -257,21 +257,21 @@ module.exports = {
           console.error(err);
           msg.edit(`<@${message.author.id}>, there was an error trying to show you the games!`);
         } finally {
-          await msg.channel.stopTyping(true);
+          msg.channel.stopTyping(true);
         }
         break;
       case "changelog":
         var msg = await message.channel.send("Loading changelogs...");
-        await msg.channel.startTyping();
+        msg.channel.startTyping();
         try {
-          const changelogs = await fetch("https://north-utils.glitch.me/krunker-changelog").then(res => res.json());
+          const changelogs = await fetch("https://north-utils.glitch.me/krunker-changelog", { timeout: 30000 }).then(res => res.json());
           if(changelogs.error) throw new Error(changelogs.error);
           var changelog = {};
           changelog[Object.keys(changelogs).find(x => x.includes("UPDATE"))] = changelogs[Object.keys(changelogs).find(x => x.includes("UPDATE"))];
           if(args[1]) {
             const key = Object.keys(changelogs).find(x => x.includes(args.slice(1).join(" ").toUpperCase()));
             if(!key) {
-              await msg.channel.stopTyping(true);
+              msg.channel.stopTyping(true);
               return message.channel.send("Cannot find any changelog with the supplied string!");
             }
             changelog = {};
@@ -282,8 +282,9 @@ module.exports = {
           console.error(err);
           msg.edit(`<@${message.author.id}>, there was an error trying to display the changelog!`);
         } finally {
-          await msg.channel.stopTyping(true);
+          msg.channel.stopTyping(true);
         }
+        break;
       default:
         return message.channel.send("That's not a valid subcommand!" + ` Subcommands: \`${this.subcommands.join("`, `")}\``)
     }

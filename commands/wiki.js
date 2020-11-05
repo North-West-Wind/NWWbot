@@ -9,7 +9,7 @@ module.exports = {
   args: 1,
   category: 7,
   async execute(message, args) {
-    await message.channel.startTyping();
+    message.channel.startTyping();
     const data = await wiki({ apiUrl: 'https://en.wikipedia.org/w/api.php' }).search(args.join(" "), 100);
     var num = 0;
     const allEmbeds = [];
@@ -38,7 +38,7 @@ module.exports = {
     if(allEmbeds[74]) emojis.push("3️⃣")
     
     var msg = await message.channel.send(allEmbeds[0]);
-    await message.channel.stopTyping(true);
+    message.channel.stopTyping(true);
     const filter = (reaction, user) => (emojis.includes(reaction.emoji.name) && user.id === message.author.id);
 
     var s = 0;

@@ -42,7 +42,7 @@ module.exports = {
             return await message.reply(`there was an error trying to download the soundtrack!`);
         }
         let msg = await message.channel.send(`Downloading... (Soundtrack Type: **Type ${song.type}**)`);
-        await message.channel.startTyping();
+        message.channel.startTyping();
         let stream;
         try {
             switch (song.type) {
@@ -75,14 +75,14 @@ module.exports = {
                     break;
             }
         } catch (err) {
-            await message.channel.stopTyping(true);
+            message.channel.stopTyping(true);
             console.error(err);
             return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
         }
         try {
             await msg.delete();
             await message.channel.send("The file may not appear just yet. Please be patient!");
-            await message.channel.stopTyping(true);
+            message.channel.stopTyping(true);
             let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
             message.channel.send(attachment).catch((err) => message.reply(`there was an error trying to send the soundtrack! (${err.message})`));
         } catch (err) {
@@ -92,7 +92,6 @@ module.exports = {
     },
     async downloadFromArgs(message, args) {
         var result = { error: true };
-        await message.channel.startTyping();
         if (validYTPlaylistURL(args.slice(1).join(" "))) result = await addYTPlaylist(message, args);
         else if (validYTURL(args.slice(1).join(" "))) result = await addYTURL(message, args);
         else if (validSPURL(args.slice(1).join(" "))) result = await addSPURL(message, args);

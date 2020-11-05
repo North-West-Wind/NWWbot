@@ -9,7 +9,7 @@ module.exports = {
   category: 7,
   args: 1,
   async execute(message, args) {
-    await message.channel.startTyping();
+    message.channel.startTyping();
     const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(args.join(" "))}`).then(res => res.json());
     if (gameFetch.status && gameFetch.status === 404) {
       const games = [];
@@ -22,11 +22,11 @@ module.exports = {
         .setTimestamp()
         .setFooter("Cannot find your game? Try to be more specified.", message.client.user.displayAvatarURL());
       if (result.data.length == 0) {
-        await message.channel.stopTyping(true);
+        message.channel.stopTyping(true);
         return await message.channel.send("No game was found!");
       }
       if (result.data.length > 1) {
-        await message.channel.stopTyping(true);
+        message.channel.stopTyping(true);
         var msg = await message.channel.send(em);
         var choices = [
           "1️⃣",
@@ -56,7 +56,7 @@ module.exports = {
           .setTimestamp()
           .setFooter("Please be patient.", message.client.user.displayAvatarURL());
         await msg.edit(em);
-        await message.channel.startTyping();
+        message.channel.startTyping();
         var reaction = collected.first();
         if (reaction.emoji.name === choices[10]) {
           em.setTitle("Action Cancelled.")
@@ -80,7 +80,7 @@ module.exports = {
         .setTimestamp()
         .setFooter("Please be patient.", message.client.user.displayAvatarURL());
       var msg = await message.channel.send(em);
-      await message.channel.startTyping();
+      message.channel.startTyping();
       var id = gameFetch.data.id;
     }
     const allEmbeds = [];
@@ -169,6 +169,6 @@ module.exports = {
         msg.reactions.removeAll().catch(console.error);
       });
     }
-    await message.channel.stopTyping(true);
+    message.channel.stopTyping(true);
   }
 };

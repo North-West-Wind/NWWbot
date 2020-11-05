@@ -205,13 +205,13 @@ module.exports = {
                   message.client.user.displayAvatarURL()
                 );
               await msg.edit(embed);
-              await msg.channel.startTyping();
+              msg.channel.startTyping();
               await msg.react(this.probably);
               await msg.react(this.probablyNot);
               await msg.react(this.unknown);
               await msg.react(this.back);
               await msg.react(this.stop);
-              await msg.channel.stopTyping(true);
+              msg.channel.stopTyping(true);
             }
             found = false; // not found, time to reset on our side
           }
@@ -252,7 +252,7 @@ module.exports = {
               );
 
             await msg.edit(embed);
-            await msg.channel.startTyping();
+            msg.channel.startTyping();
 
             const probably = msg.reactions.cache.get(this.probably);
             try {
@@ -302,7 +302,7 @@ module.exports = {
             if (image != null) {
               embed.setImage(image);
             }
-            await msg.channel.stopTyping(true);
+            msg.channel.stopTyping(true);
             msg = await msg.edit(embed);
 
             // done with the game, we can't do anything else.
