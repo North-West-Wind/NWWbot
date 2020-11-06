@@ -1,4 +1,4 @@
-const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL } = require("../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL } = require("../function.js");
 const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDURL, addMSURL, addPHURL, addURL, search, updateQueue, createEmbed } = require("./play.js");
 
 module.exports = {

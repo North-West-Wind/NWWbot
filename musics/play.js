@@ -274,7 +274,7 @@ module.exports = {
         serverQueue.playing = true;
         serverQueue.textChannel = message.channel;
       }
-      play(message.guild, serverQueue.songs[0], queue, pool);
+      if(!serverQueue.playing) play(message.guild, serverQueue.songs[0], queue, pool);
       if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
       else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
     } catch (err) {
