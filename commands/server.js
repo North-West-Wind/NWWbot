@@ -15,12 +15,12 @@ module.exports = {
     var onlineMembers = 0;
     var idleMembers = 0;
     var dndMembers = 0;
-    for(const user of userMember.values()) {
-      if(user.user.bot === false) userMemberCount.push(user.id);
-      if(user.user.bot) botMemberCount.push(user.id);
-      if (user.presence && user.presence.status === "online") onlineMembers += 1;
-      else if (user.presence && user.presence.status === "idle") idleMembers += 1;
-      else if (user.presence && user.presence.status === "dnd") dndMembers += 1;
+    for(const member of userMember.values()) {
+      if(member.user.bot === false) userMemberCount.push(member.id);
+      if(member.user.bot) botMemberCount.push(member.id);
+      if (member.presence && member.presence.status === "online") onlineMembers += 1;
+      else if (member.presence && member.presence.status === "idle") idleMembers += 1;
+      else if (member.presence && member.presence.status === "dnd") dndMembers += 1;
     }
     const roles = message.guild.roles.cache;
     const roleIDs = [];
@@ -55,7 +55,7 @@ module.exports = {
           " UTC";
 		
     const Embed = new Discord.MessageEmbed()
-    .setTitle("Information of \"" + name + '\"')
+    .setTitle("Information of " + name)
     .setColor(console.color())
     .setThumbnail(icon)
     .addField("ID", id, true)
