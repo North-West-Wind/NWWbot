@@ -114,7 +114,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
         dispatcher = serverQueue.connection.play(await scdl.download(song.url));
       break;
       case 5:
-        const c = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 30000 }).then(res => res.json());
+        const c = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 90000 }).then(res => res.json());
         if (c.error) throw new Error(c.message);
         const d = await requestStream(c.url);
         dispatcher = serverQueue.connection.play(new StreamConcat([d, silence], { highWaterMark: 1 << 25 }), { seek: seek });

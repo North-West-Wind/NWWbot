@@ -49,7 +49,7 @@ module.exports = {
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
         msg.reactions.removeAll().catch(console.error);
         if (collected && collected.first()) {
-            var mesg = await message.author.send("Generating files...");
+            var mesg = await message.author.send("Generating files... (It will take a minute or two)");
             try {
                 var hasPDF = true;
                 const doc = new PDFDocument();
@@ -63,7 +63,7 @@ module.exports = {
                     }
                 }
                 doc.end();
-                const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(args.join(" "))}`, { timeout: 30000 }).then(res => res.json());
+                const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(args.join(" "))}`, { timeout: 90000 }).then(res => res.json());
                 if (mp3.error) throw new Error(mp3.message);
                 rs(mp3.url, async (err, res) => {
                     try {
@@ -210,7 +210,7 @@ module.exports = {
                     collector.emit("end");
                     break;
                 case "📥":
-                    var mesg = await message.author.send("Generating files...");
+                    var mesg = await message.author.send("Generating files... (It will take a minute or two)");
                     try {
                         const doc = new PDFDocument();
                         for (let i = 0; i < importants[s].pages; i++) {
@@ -223,7 +223,7 @@ module.exports = {
                             }
                         }
                         doc.end();
-                        const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(importants[s].url)}`, { timeout: 30000 }).then(res => res.json());
+                        const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(importants[s].url)}`, { timeout: 90000 }).then(res => res.json());
                         if (mp3.error) throw new Error(mp3.message);
                         rs(mp3.url, async (err, res) => {
                             try {
