@@ -5,7 +5,7 @@ module.exports = {
 	name: 'server',
 	description: 'Display some server information.',
   category: 6,
-	execute(message) {
+	async execute(message) {
     const name = message.guild.name;
     const id = message.guild.id;
     const memberCount = message.guild.memberCount;
