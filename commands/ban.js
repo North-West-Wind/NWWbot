@@ -20,7 +20,7 @@ module.exports = {
       if(args[2]) reason = args.slice(2).join(" ");
       options = { reason: reason, days: parseInt(args[1]) };
     }
-    await message.guild.members.ban(options);
+    await member.ban(options);
     var banEmbed = new Discord.MessageEmbed()
       .setColor(console.color())
       .setTitle(`You've been banned`)

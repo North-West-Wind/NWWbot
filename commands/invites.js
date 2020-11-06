@@ -17,7 +17,7 @@ module.exports = {
     if (!args[0]) {
       const guild = message.guild;
       if(!guild.me.hasPermission(32)) return message.channel.send("I don't have the permission to fetch all server invites!");
-      let members = Array.from(guild.members.cache.values());
+      const members = Array.from((await guild.members.fetch()).values());
       let invitedStr = [];
       let guildInvites = await guild.fetchInvites();
       for (const member of members) {
