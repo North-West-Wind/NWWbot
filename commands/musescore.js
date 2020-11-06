@@ -50,7 +50,6 @@ module.exports = {
         msg.reactions.removeAll().catch(console.error);
         if (collected && collected.first()) {
             var mesg = await message.author.send("Generating files...");
-            message.author.startTyping();
             try {
                 var hasPDF = true;
                 const doc = new PDFDocument();
@@ -73,19 +72,15 @@ module.exports = {
                         if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
                         if(attachments.length < 1) {
                             await mesg.edit("Failed to generate files!");
-                            return message.author.stopTyping(true);
                         }
                         await mesg.delete();
                         await message.author.send(attachments);
                     } catch(err) {
                         message.reply("did you block me? I cannot DM you!");
-                    } finally {
-                        message.author.stopTyping(true);
                     }
                 });
             } catch (err) {
                 await mesg.edit("Failed to generate files!");
-                message.author.stopTyping(true);
             }
         }
     },
@@ -216,7 +211,6 @@ module.exports = {
                     break;
                 case "📥":
                     var mesg = await message.author.send("Generating files...");
-                    message.author.startTyping();
                     try {
                         const doc = new PDFDocument();
                         for (let i = 0; i < importants[s].pages; i++) {
@@ -238,19 +232,15 @@ module.exports = {
                                 if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
                                 if(attachments.length < 1) {
                                     await mesg.edit("Failed to generate files!");
-                                    return message.author.stopTyping(true);
                                 }
                                 await mesg.delete();
                                 await message.author.send(attachments);
                             } catch(err) {
                                 message.reply("did you block me? I cannot DM you!");
-                            } finally {
-                                message.author.stopTyping(true);
                             }
                         });
                     } catch (err) {
                         await mesg.edit("Failed to generate files!");
-                        message.author.stopTyping(true);
                     }
                     break;
             }
