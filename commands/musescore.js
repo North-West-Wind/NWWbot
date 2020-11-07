@@ -16,7 +16,7 @@ const PNGtoPDF = (doc, url) => {
             res.on("data", chunk => chunks.push(chunk));
             res.on("end", () => {
                 try {
-                    doc.image(Buffer.concat(chunks))
+                    doc.image(Buffer.concat(chunks), 0, 0);
                     resolve();
                 } catch(err) {
                     reject(err);
@@ -75,7 +75,7 @@ module.exports = {
                 for (let i = 0; i < data.pageCount; i++) {
                     try {
                         if(ext === "svg") SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.${ext}`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                        else PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.${ext}`);
+                        else await PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.${ext}`);
                         if (i + 1 < data.pageCount) doc.addPage();
                     } catch(err) {
                         if(ext === "svg") {
@@ -243,7 +243,7 @@ module.exports = {
                         for (let i = 0; i < importants[s].pages; i++) {
                             try {
                                 if(ext === "svg") SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.${ext}`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                                else PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.${ext}`);
+                                else await PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.${ext}`);
                                 if (i + 1 < importants[s].pages) doc.addPage();
                             } catch(err) {
                                 if(ext === "svg") {
