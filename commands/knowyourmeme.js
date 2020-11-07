@@ -1,6 +1,6 @@
-const request = require("request");
 const cheerio = require("cheerio");
 const Discord = require("discord.js");
+const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const config = {
   BASE_URL: "http://knowyourmeme.com",
   SEARCH_URL: "/search?q=",
@@ -22,28 +22,9 @@ function getSearchURL(term) {
 
 function makeRequest(url) {
   return new Promise((resolve, reject) => {
-    request(
-      {
-        uri: url,
-        headers: {
-          "User-Agent": config.USER_AGENT
-        }
-      },
-      (err, res, body) => {
-        if (err != null) {
-          reject(typeof err !== "object" ? new Error(err) : err);
-          return;
-        }
-
-        // if the request was not a success for some reason
-        if (res.statusCode.toString()[0] !== "2") {
-          reject(new Error("Status Code " + res.statusCode));
-          return;
-        }
-
-        resolve(body);
-      }
-    );
+    const res = await fetch(url, { headers: { "User-Agent": config.USER_AGENT } });
+    if (res.statusCode.toString()[0] !== "2") reject(new Error("Received HTTP Status Code " + res.statusCode));
+    resolve(await res.text());
   });
 }
 
@@ -111,31 +92,31 @@ function parseMemeBody(url, body) {
     const child = children[i];
 
     if (child.attribs.id === "about")
-      while (children[i+1] && children[i + 1].name === "p") {
+      while (children[i + 1] && children[i + 1].name === "p") {
         if (/[a-zA-Z]/g.test(childrenToText(children[i + 1].children)))
           about.push(childrenToText(children[i + 1].children));
         i++;
       }
     else if (child.attribs.id === "origin")
-      while (children[i+1] && children[i + 1].name === "p") {
+      while (children[i + 1] && children[i + 1].name === "p") {
         if (/[a-zA-Z]/g.test(childrenToText(children[i + 1].children)))
           origin.push(childrenToText(children[i + 1].children));
         i++;
       }
     else if (child.attribs.id === "spread")
-      while (children[i+1] && children[i + 1].name === "p") {
+      while (children[i + 1] && children[i + 1].name === "p") {
         if (/[a-zA-Z]/g.test(childrenToText(children[i + 1].children)))
           spread.push(childrenToText(children[i + 1].children));
         i++;
       }
     else if (child.attribs.id === "reaction")
-      while (children[i+1] && children[i + 1].name === "p") {
+      while (children[i + 1] && children[i + 1].name === "p") {
         if (/[a-zA-Z]/g.test(childrenToText(children[i + 1].children)))
           reaction.push(childrenToText(children[i + 1].children));
         i++;
       }
     else if (child.attribs.id === "impact")
-      while (children[i+1] && children[i + 1].name === "p") {
+      while (children[i + 1] && children[i + 1].name === "p") {
         if (/[a-zA-Z]/g.test(childrenToText(children[i + 1].children)))
           impact.push(childrenToText(children[i + 1].children));
         i++;
@@ -173,7 +154,7 @@ module.exports = {
   aliases: ["kym"],
   category: 7,
   async execute(message, args) {
-    if(!args[0]) return message.channel.send("Please provide at least 1 keyword!" + ` Usage: ${message.prefix}${this.name} ${this.usage}`);
+    if (!args[0]) return message.channel.send("Please provide at least 1 keyword!" + ` Usage: ${message.prefix}${this.name} ${this.usage}`);
     var msg = await message.channel.send("Loading the memes...");
     msg.channel.startTyping();
     var results = await doSearch(args.join(" "));
@@ -233,7 +214,7 @@ module.exports = {
     };
     var s = 0;
     msg.channel.stopTyping(true);
-    var msg = await msg.edit({ content: "", embed: allEmbeds[0]});
+    var msg = await msg.edit({ content: "", embed: allEmbeds[0] });
 
     await msg.react("⏮");
     await msg.react("◀");
@@ -245,7 +226,7 @@ module.exports = {
       errors: ["time"]
     });
 
-    collector.on("collect", function(reaction, user) {
+    collector.on("collect", function (reaction, user) {
       reaction.users.remove(user.id);
       switch (reaction.emoji.name) {
         case "⏮":
@@ -275,7 +256,7 @@ module.exports = {
           break;
       }
     });
-    collector.on("end", function() {
+    collector.on("end", function () {
       msg.reactions.removeAll().catch(console.error);
       setTimeout(
         () =>

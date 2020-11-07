@@ -1,13 +1,8 @@
 const scdl = require("soundcloud-downloader");
-const request = require("request-stream");
 const ytdl = require("ytdl-core");
 const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL } = require("../function.js");
 const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search } = require("./play.js");
-const requestStream = url => {
-    return new Promise((resolve, reject) => {
-        request.get(url, (err, res) => err ? reject(err) : resolve(res));
-    });
-};
+const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const Discord = require("discord.js");
 module.exports = {
     name: "download",
@@ -48,7 +43,7 @@ module.exports = {
             switch (song.type) {
                 case 2:
                 case 4:
-                    stream = await requestStream(song.url);
+                    stream = await fetch(song.url).then(res => res.body);
                     break;
                 case 3:
                     stream = await scdl.download(song.url);
@@ -56,17 +51,19 @@ module.exports = {
                 case 5:
                     const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 30000 }).then(res => res.json());
                     if (mp3.error) throw new Error(mp3.message);
-                    stream = await requestStream(mp3.url);
+                    stream = await fetch(mp3.url).then(res => res.body);
                     break;
                 case 6:
-                    stream = await requestStream(song.download);
-                    if(stream.statusCode != 200) {
+                    const fetched = await fetch(song.download);
+                    stream = fetched.body;
+                    if(fetched.statusCode != 200) {
                       const g = await module.exports.addPHURL(message, args);
                       if(g.error) throw "Failed to find video";
                       song = g;
                       serverQueue.songs[0] = song;
                       updateQueue(message, serverQueue, queue, pool);
-                      stream = await requestStream(song.download);
+                      const fetched2 = await fetch(song.download);
+                      stream = fetched2.body;
                       if(stream.statusCode != 200) throw new Error("Received HTTP Status Code: " + stream.statusCode);
                     }
                     break;

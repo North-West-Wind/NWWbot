@@ -53,7 +53,6 @@
     "reddit-wrapper-v2": "^1.1.6",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
-    "request-stream": "^1.2.2",
     "smm-api": "^2.1.2",
     "solenolyrics": "^5.0.0",
     "soundcloud-downloader": "^0.1.6",

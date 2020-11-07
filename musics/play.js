@@ -21,9 +21,7 @@ var spotifyApi = new SpotifyWebApi({
   clientSecret: process.env.SPOTSECRET,
   redirectUri: "https://nwws.ml"
 });
-const nodefetch = require("node-fetch");
-const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
-const request = require("request-stream");
+const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const mm = require("music-metadata");
 const ytsr = require("ytsr");
 const ytsr2 = require("youtube-sr");
@@ -37,13 +35,6 @@ const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
 const ph = require("@justalk/pornhub-api");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
-
-const requestStream = url => {
-  return new Promise((resolve, reject) => {
-    request.get(url, (err, res) => err ? reject(err) : resolve(res));
-  });
-};
-
 function createEmbed(message, songs) {
   const Embed = new Discord.MessageEmbed()
     .setColor(console.color())
@@ -103,11 +94,11 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   if (serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;
   try {
-    const silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
+    const silence = await fetch("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3").then(res => res.body);
     switch(song.type) {
       case 2:
       case 4:
-        const a = await requestStream(song.url);
+        const a = await fetch(song.url).then(res => res.body);
         dispatcher = serverQueue.connection.play(new StreamConcat([a, silence], { highWaterMark: 1 << 25 }), { seek: seek });
       break;
       case 3:
@@ -116,21 +107,23 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
       case 5:
         const c = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 90000 }).then(res => res.json());
         if (c.error) throw new Error(c.message);
-        const d = await requestStream(c.url);
+        const d = await fetch(c.url).then(res => res.body);
         dispatcher = serverQueue.connection.play(new StreamConcat([d, silence], { highWaterMark: 1 << 25 }), { seek: seek });
       break;
       case 6:
-        var f = await requestStream(song.download);
+        var f = await fetch(song.download);
+        var i = f.body;
         if(f.statusCode != 200) {
           const g = await module.exports.addPHURL(message, args);
           if(g.error) throw "Failed to find video";
           song = g;
           serverQueue.songs[0] = song;
           updateQueue(message, serverQueue, queue, pool);
-          f = await requestStream(song.download);
+          f = await fetch(song.download);
+          i = f.body;
           if(f.statusCode != 200) throw new Error("Received HTTP Status Code: " + f.statusCode);
         }
-        dispatcher = serverQueue.connection.play(new StreamConcat([f, silence], { highWaterMark: 1 << 25 }), { seek: seek });
+        dispatcher = serverQueue.connection.play(new StreamConcat([i, silence], { highWaterMark: 1 << 25 }), { seek: seek });
       break;
       default:
         const h = { highWaterMark: 1 << 28, dlChunkSize: 0, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } };
@@ -288,7 +281,7 @@ module.exports = {
     var files = message.attachments;
     var songs = [];
     for (const file of files.values()) {
-      var stream = await requestStream(file.url);
+      var stream = await fetch(file.url).then(res => res.body);
       try {
         var metadata = await mm.parseStream(stream, {}, { duration: true });
       } catch (err) {
@@ -732,7 +725,7 @@ module.exports = {
       }
     }
     var link = "https://drive.google.com/uc?export=download&id=" + id;
-    var stream = await requestStream(link);
+    var stream = await fetch(link).then(res => res.body);
     try {
       var metadata = await mm.parseStream(stream, {}, { duration: true });
       var html = await rp(args.slice(1).join(" "));
@@ -827,7 +820,7 @@ module.exports = {
         .replace(/_/g, " ");
     }
     try {
-      var stream = await requestStream(args.slice(1).join(" "));
+      var stream = await fetch(args.slice(1).join(" ")).then(res => res.body);
       var metadata = await mm.parseStream(stream, {}, { duration: true });
     } catch (err) {
       message.channel.send("The audio format is not supported!");

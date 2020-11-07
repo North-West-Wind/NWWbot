@@ -32,8 +32,8 @@ var links = [
     "https://cdn.discordapp.com/attachments/763034826931699730/763038345319153684/r3696v2v6rn51.gif",
     "https://i.redd.it/usi861az4mx41.jpg"
 ];
-const request = require("request-stream");
 const Discord = require("discord.js");
+const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 
 module.exports = {
     name: "axolotl",
@@ -42,10 +42,13 @@ module.exports = {
     aliases: ["axol"],
     async execute(message) {
         const selected = links[Math.floor(Math.random() * links.length)];
-        request(selected, (err, res) => {
-            if(err) return message.reply("there was an error fetching the axolotls!");
+        try {
+            const res = await fetch(selected).then(res => res.body);
             const attachment = new Discord.MessageAttachment(res, `axolotl.${selected.split(".")[selected.split(".").length - 1]}`);
             message.channel.send(attachment);
-        });
+        } catch(err) {
+            console.error(err);
+            return message.reply("there was an error fetching the axolotls!");
+        }
     }
 }
