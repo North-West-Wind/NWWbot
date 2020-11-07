@@ -6,7 +6,7 @@ const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const PNGtoPDF = (doc, url) => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
         const res = await fetch(url).then(res => res.body).catch(reject);
         if (err) reject(err);
         const chunks = [];
