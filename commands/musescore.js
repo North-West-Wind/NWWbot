@@ -78,8 +78,10 @@ module.exports = {
                         else PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.${ext}`);
                         if (i + 1 < data.pageCount) doc.addPage();
                     } catch(err) {
-                        if(ext === "svg") ext = "png";
-                        else {
+                        if(ext === "svg") {
+                            ext = "png";
+                            i = -1;
+                        } else {
                             hasPDF = false;
                             break;
                         }
@@ -244,8 +246,10 @@ module.exports = {
                                 else PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.${ext}`);
                                 if (i + 1 < importants[s].pages) doc.addPage();
                             } catch(err) {
-                                if(ext === "svg") ext = "png";
-                                else {
+                                if(ext === "svg") {
+                                    ext = "png";
+                                    i = -1;
+                                } else {
                                     hasPDF = false;
                                     break;
                                 }
