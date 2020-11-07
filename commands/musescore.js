@@ -64,7 +64,7 @@ module.exports = {
         await msg.react("📥");
         msg.channel.stopTyping(true);
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
-        msg.reactions.removeAll().catch(console.error);
+        msg.reactions.removeAll().catch(() => {});
         if (collected && collected.first()) {
             var mesg = await message.author.send("Generating files... (It will take a minute or two)");
             try {
