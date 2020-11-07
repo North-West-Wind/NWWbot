@@ -110,7 +110,7 @@ module.exports = {
                     });
                 });
             } catch (err) {
-                await message.channel.edit("Failed to generate files!");
+                await message.channel.send("Failed to generate files!");
             }
         }
     },
@@ -240,8 +240,8 @@ module.exports = {
                     collector.emit("end");
                     break;
                 case "📥":
-                    var mesg = await message.author.send("Generating files... (It will take a minute or two)");
                     try {
+                        var mesg = await message.author.send("Generating files... (It will take a minute or two)");
                         var hasPDF = true;
                         const doc = new PDFDocument();
                         var ext = "svg";
@@ -283,7 +283,7 @@ module.exports = {
                             });
                         });
                     } catch (err) {
-                        await mesg.edit("Failed to generate files!");
+                        await message.channel.send("Failed to generate files!");
                     }
                     break;
             }
