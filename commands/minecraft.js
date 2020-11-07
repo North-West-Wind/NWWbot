@@ -12,7 +12,7 @@ module.exports = {
   subaliases: ["pro", "srv", "his"],
   category: 7,
   args: 1,
-  execute(message, args) {
+  async execute(message, args) {
     if (args[0] === "profile" || args[0] === "pro" || !args[1]) {
       var str = args[0];
       if (args[1]) str = args[1];
