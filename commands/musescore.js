@@ -14,7 +14,14 @@ const PNGtoPDF = (doc, url) => {
             if(err) reject(err);
             const chunks = [];
             res.on("data", chunk => chunks.push(chunk));
-            res.on("end", () => resolve(doc.image(Buffer.concat(chunks))));
+            res.on("end", () => {
+                try {
+                    doc.image(Buffer.concat(chunks))
+                    resolve();
+                } catch(err) {
+                    reject(err);
+                }
+            });
         });
     })
 }
