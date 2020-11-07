@@ -7,6 +7,17 @@ const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
 const nodefetch = require("node-fetch");
 const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
+const PNGtoPDF = (doc, url) => {
+    return new Promise((resolve, reject) => {
+        const rs = require("request-stream");
+        rs(url, (err, res) => {
+            if(err) reject(err);
+            const chunks = [];
+            res.on("data", chunk => chunks.push(chunk));
+            res.on("end", () => resolve(doc.image(Buffer.concat(chunks))));
+        });
+    })
+}
 
 module.exports = {
     name: "musescore",
@@ -53,13 +64,18 @@ module.exports = {
             try {
                 var hasPDF = true;
                 const doc = new PDFDocument();
+                var ext = "svg";
                 for (let i = 0; i < data.pageCount; i++) {
                     try {
-                        SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                        if(ext === "svg") SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.${ext}`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                        else PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.${ext}`);
                         if (i + 1 < data.pageCount) doc.addPage();
                     } catch(err) {
-                        hasPDF = false;
-                        break;
+                        if(ext === "svg") ext = "png";
+                        else {
+                            hasPDF = false;
+                            break;
+                        }
                     }
                 }
                 doc.end();
@@ -152,7 +168,7 @@ module.exports = {
                 .setTimestamp()
                 .setFooter(`Currently on page ${++num}/${scores.length}`, message.client.user.displayAvatarURL());
             allEmbeds.push(em);
-            importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl });
+            importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl, title: data.title });
         }
         if (allEmbeds.length < 1) return message.channel.send("No score was found!");
         const filter = (reaction, user) => {
@@ -212,14 +228,20 @@ module.exports = {
                 case "📥":
                     var mesg = await message.author.send("Generating files... (It will take a minute or two)");
                     try {
+                        var hasPDF = true;
                         const doc = new PDFDocument();
+                        var ext = "svg";
                         for (let i = 0; i < importants[s].pages; i++) {
                             try {
-                                SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                                if (i + 1 < data.pageCount) doc.addPage();
+                                if(ext === "svg") SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.${ext}`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                                else PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.${ext}`);
+                                if (i + 1 < importants[s].pages) doc.addPage();
                             } catch(err) {
-                                hasPDF = false;
-                                break;
+                                if(ext === "svg") ext = "png";
+                                else {
+                                    hasPDF = false;
+                                    break;
+                                }
                             }
                         }
                         doc.end();
@@ -228,8 +250,8 @@ module.exports = {
                         rs(mp3.url, async (err, res) => {
                             try {
                                 const attachments = [];
-                                if (!err && res) attachments.push(new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`));
-                                if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
+                                if (!err && res) attachments.push(new Discord.MessageAttachment(res, `${importants[s].title.replace(/ +/g, "_")}.mp3`));
+                                if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${importants[s].title.replace(/ +/g, "_")}.pdf`));
                                 if(attachments.length < 1) {
                                     await mesg.edit("Failed to generate files!");
                                 }
