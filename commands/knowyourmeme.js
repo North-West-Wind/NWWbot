@@ -21,7 +21,7 @@ function getSearchURL(term) {
 }
 
 function makeRequest(url) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async(resolve, reject) => {
     const res = await fetch(url, { headers: { "User-Agent": config.USER_AGENT } });
     if (res.statusCode.toString()[0] !== "2") reject(new Error("Received HTTP Status Code " + res.statusCode));
     resolve(await res.text());
