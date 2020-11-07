@@ -6,39 +6,21 @@ module.exports = {
     usage: "[amount]",
     category: 8,
     async music(message, serverQueue, queue, pool) {
-        const args = message.content.split(/ +/);
+        const args = message.content.slice(message.prefix.length).split(/ +/);
         var skipped = 1;
         const guild = message.guild;
-        if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing)
-            return message.channel.send(
-                "You have to be in a voice channel to unskip the music when the bot is playing!"
-            );
-        if (!serverQueue)
-            return message.channel.send("There is no song that I could unskip!");
-        const guildRepeatStatus = serverQueue.repeating;
+        if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to unskip the music when the bot is playing!");
+        if (!serverQueue) return message.channel.send("There is no song that I could unskip!");
         if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
-        if (guildRepeatStatus) {
-            skipped = 1;
-        } else {
-            if (args[1]) {
-                if (isNaN(parseInt(args[1]))) {
-                    message.channel.send(`**${args[1]}** is not a integer. Will skip 1 song instead.`);
-                    var song = serverQueue.songs.pop();
-                    serverQueue.songs.unshift(song);
-                } else {
-                    skipped = parseInt(args[1]);
-                    for (var i = 0; i < parseInt(args[1]); i++) {
-                        var song = serverQueue.songs.pop();
-                        serverQueue.songs.unshift(song);
-                    }
-                }
-            } else {
-                var song = serverQueue.songs.pop();
-                serverQueue.songs.unshift(song);
-            }
+        if (serverQueue.repeating) skipped = 0;
+        else if (args[1] && isNaN(parseInt(args[1]))) message.channel.send(`**${args[1]}** is not a integer. Will skip 1 song instead.`);
+        else if (args[1]) skipped = parseInt(args[1]);
+        for (var i = 0; i < skipped; i++) {
+            var song = serverQueue.songs.pop();
+            serverQueue.songs.unshift(song);
         }
         updateQueue(message, serverQueue, queue, pool);
-        message.channel.send(`Unskipped **${skipped}** track${skipped > 1 ? "s" : ""}!`);
+        message.channel.send(`Unskipped **${Math.max(1, skipped)}** track${skipped > 1 ? "s" : ""}!`);
         if (message.member.voice.channel && serverQueue.playing) {
             if (!serverQueue.connection) serverQueue.connection = await message.member.voice.channel.join();
             play(guild, serverQueue.songs[0], queue, pool);

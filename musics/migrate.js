@@ -15,12 +15,17 @@ module.exports = {
     if (!message.guild.me.voice.channel) return message.channel.send("I am not in any voice channel!");
     if (message.member.voice.channelID === message.guild.me.voice.channelID) return message.channel.send("I'm already in the same channel with you!");
     if (!serverQueue) return message.channel.send("There is nothing playing.");
+    if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the queue.");
     if (!serverQueue.playing) return message.channel.send("I'm not playing anything.");
     if (!message.member.voice.channel.permissionsFor(message.guild.me).has(3145728)) return message.channel.send("I don't have the required permissions to play music here!");
     migrating.push(message.guild.id);
     if (exit.find(x => x === message.guild.id)) exit.splice(exit.indexOf(message.guild.id), 1);
     var oldChannel = serverQueue.voiceChannel;
-    if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
+    var seek = 0;
+    if (serverQueue.connection && serverQueue.connection.dispatcher) {
+      seek = Math.floor((serverQueue.connection.dispatcher.streamTime - serverQueue.startTime) / 1000);
+      serverQueue.connection.dispatcher.destroy();
+    }
     serverQueue.playing = false;
     serverQueue.connection = null;
     serverQueue.voiceChannel = null;
@@ -48,7 +53,7 @@ module.exports = {
       msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`).catch(() => {});
       migrating.splice(migrating.indexOf(message.guild.id));
       updateQueue(message, serverQueue, queue, pool);
-      play(message.guild, serverQueue.songs[0], queue, pool);
+      play(message.guild, serverQueue.songs[0], queue, pool, seek);
     }, 3000);
   }
 }

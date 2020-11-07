@@ -8,10 +8,10 @@ module.exports = {
   name: "krunker",
   description: "Connect to the Krunker.io API and display stats.",
   aliases: ["kr"],
-  usage: "<subcommand> <username | search term>",
+  usage: "<subcommand> <username | search term | [version]>",
   args: 1,
   category: 7,
-  subcommands: ["stats", "server"],
+  subcommands: ["stats", "server", "changelog"],
   async execute(message, args) {
     switch (args[0]) {
       case "stats":
@@ -92,6 +92,7 @@ module.exports = {
         break;
       case "server":
         var msg = await message.channel.send("Loading servers...");
+        msg.channel.startTyping();
         try {
           const servers = await fetch(`https://north-utils.glitch.me/krunker-servers`, { timeout: 30000 }).then(res => res.json());
           if(servers.error) throw new Error(servers.message);
@@ -201,8 +202,8 @@ module.exports = {
                 await msg.edit({ content: "", embed: linkEmbed });
                 const collected = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
                 if(collected && collected.first()) await collected.first().delete();
-                else if(collected.first().content && options.includes(collected.first().content.split(/ +/)[0].toUpperCase())) {
-                  const region = options[collected.first().content.split(/ +/)[0].toUpperCase()];
+                if(collected.first().content && options.includes(collected.first().content.split(/ +/)[0].toUpperCase())) {
+                  const region = options.find(x => x === collected.first().content.split(/ +/)[0].toUpperCase());
                   var games = [];
                   if (s > officialPage - 1) games = custom.filter(x => x[0].startsWith(region));
                   else games = official.filter(x => x[0].startsWith(region));
@@ -212,9 +213,9 @@ module.exports = {
                 break;
               case "⏩":
                 await msg.edit({ content: "", embed: pageWarp });
-                const collected = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
-                if(collected && collected.first()) await collected.first().delete();
-                else if(collected.first().content && !isNaN(parseInt(collected.first().content))) s = (parseInt(collected.first().content)) - 1) % allEmbeds.length;
+                const collected1 = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+                if(collected1 && collected1.first()) await collected1.first().delete();
+                if(collected1.first().content && !isNaN(parseInt(collected1.first().content))) s = (parseInt(collected1.first().content) - 1) % allEmbeds.length;
                 await msg.edit(allEmbeds[s]);
                 break;
               case "⏮":
@@ -255,6 +256,33 @@ module.exports = {
         } catch (err) {
           console.error(err);
           msg.edit(`<@${message.author.id}>, there was an error trying to show you the games!`);
+        } finally {
+          msg.channel.stopTyping(true);
+        }
+        break;
+      case "changelog":
+        var msg = await message.channel.send("Loading changelogs...");
+        msg.channel.startTyping();
+        try {
+          const changelogs = await fetch("https://north-utils.glitch.me/krunker-changelog", { timeout: 30000 }).then(res => res.json());
+          if(changelogs.error) throw new Error(changelogs.error);
+          var changelog = {};
+          changelog[Object.keys(changelogs).find(x => x.includes("UPDATE"))] = changelogs[Object.keys(changelogs).find(x => x.includes("UPDATE"))];
+          if(args[1]) {
+            const key = Object.keys(changelogs).find(x => x.includes(args.slice(1).join(" ").toUpperCase()));
+            if(!key) {
+              msg.channel.stopTyping(true);
+              return message.channel.send("Cannot find any changelog with the supplied string!");
+            }
+            changelog = {};
+            changelog[key] = changelogs[key];
+          }
+          await msg.edit(`\`\`\`${Object.keys(changelog)[0]}\n${changelog[Object.keys(changelog)[0]].join("\n")}\`\`\``);
+        } catch(err) {
+          console.error(err);
+          msg.edit(`<@${message.author.id}>, there was an error trying to display the changelog!`);
+        } finally {
+          msg.channel.stopTyping(true);
         }
         break;
       default:

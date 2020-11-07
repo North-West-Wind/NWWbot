@@ -50,7 +50,7 @@ module.exports = {
     .addField("Member Count", `Members: \`${memberCount}\`\nUsers: \`${userMemberCount.length}\`\nBots: \`${botMemberCount.length}\``, true)
     .addField("Hoist? (Separated)", role.hoist ? "Yes" : "No", true)
     .addField("Position", role.position, true)
-    .addField("Color", (role.hexColor.startwWith("#") ? "#" : "") + role.hexColor.toUpperCase(), true)
+    .addField("Color", (role.hexColor.startsWith("#") ? "#" : "") + role.hexColor.toUpperCase(), true)
     .addField("Permissions", "`" + (permissions.length > 0 ? permissions.join("`, `").replace(/_/g, " ") : "N/A") + "`")
     .setTimestamp()
     .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL())

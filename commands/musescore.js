@@ -7,6 +7,24 @@ const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
 const nodefetch = require("node-fetch");
 const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
+const PNGtoPDF = (doc, url) => {
+    return new Promise((resolve, reject) => {
+        const rs = require("request-stream");
+        rs(url, (err, res) => {
+            if(err) reject(err);
+            const chunks = [];
+            res.on("data", chunk => chunks.push(chunk));
+            res.on("end", () => {
+                try {
+                    doc.image(Buffer.concat(chunks))
+                    resolve();
+                } catch(err) {
+                    reject(err);
+                }
+            });
+        });
+    })
+}
 
 module.exports = {
     name: "musescore",
@@ -18,6 +36,7 @@ module.exports = {
     async execute(message, args) {
         if (!validMSURL(args.join(" "))) return await this.search(message, args);
         var msg = await message.channel.send("Loading score...");
+        msg.channel.startTyping();
         try {
             const response = await rp({ uri: args.join(" "), resolveWithFullResponse: true });
             if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
@@ -44,28 +63,48 @@ module.exports = {
             .setFooter("Have a nice day! :)");
         msg = await msg.edit({ content: "", embed: em });
         await msg.react("📥");
+        msg.channel.stopTyping(true);
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
         msg.reactions.removeAll().catch(console.error);
         if (collected && collected.first()) {
-            var mesg = await message.author.send("Generating files...");
+            var mesg = await message.author.send("Generating files... (It will take a minute or two)");
             try {
+                var hasPDF = true;
                 const doc = new PDFDocument();
+                var ext = "svg";
                 for (let i = 0; i < data.pageCount; i++) {
-                    SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                    if (i + 1 < data.pageCount) doc.addPage();
+                    try {
+                        if(ext === "svg") SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.${ext}`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                        else PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.${ext}`);
+                        if (i + 1 < data.pageCount) doc.addPage();
+                    } catch(err) {
+                        if(ext === "svg") {
+                            ext = "png";
+                            i = -1;
+                        } else {
+                            hasPDF = false;
+                            break;
+                        }
+                    }
                 }
                 doc.end();
-                const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(args.join(" "))}`, { timeout: 30000 }).then(res => res.json());
+                const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(args.join(" "))}`, { timeout: 90000 }).then(res => res.json());
                 if (mp3.error) throw new Error(mp3.message);
                 rs(mp3.url, async (err, res) => {
-                    if (err) return await mesg.edit("Failed to generate files!");
-                    await mesg.delete();
-                    const attachment = new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`);
-                    const pdf = new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`);
-                    message.author.send([attachment, pdf]);
+                    try {
+                        const attachments = [];
+                        if (!err && res) attachments.push(new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`));
+                        if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
+                        if(attachments.length < 1) {
+                            await mesg.edit("Failed to generate files!");
+                        }
+                        await mesg.delete();
+                        await message.author.send(attachments);
+                    } catch(err) {
+                        message.reply("did you block me? I cannot DM you!");
+                    }
                 });
             } catch (err) {
-                console.error(err);
                 await mesg.edit("Failed to generate files!");
             }
         }
@@ -102,6 +141,7 @@ module.exports = {
             return message.reply("there was an error trying to search for scores!");
         }
         var msg = await message.channel.send("Loading scores...");
+        msg.channel.startTyping();
         var $ = cheerio.load(body);
         const stores = Array.from($('div[class^="js-"]'));
         const store = findValueByPrefix(stores.find(x => x.attribs && x.attribs.class && x.attribs.class.match(/^js-\w+$/)).attribs, "data-");
@@ -137,7 +177,7 @@ module.exports = {
                 .setTimestamp()
                 .setFooter(`Currently on page ${++num}/${scores.length}`, message.client.user.displayAvatarURL());
             allEmbeds.push(em);
-            importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl });
+            importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl, title: data.title });
         }
         if (allEmbeds.length < 1) return message.channel.send("No score was found!");
         const filter = (reaction, user) => {
@@ -160,6 +200,7 @@ module.exports = {
         await msg.react("▶");
         await msg.react("⏭");
         await msg.react("⏹");
+        msg.channel.stopTyping(true);
         var collector = await msg.createReactionCollector(
             filter,
             { idle: 60000, errors: ["time"] }
@@ -194,22 +235,42 @@ module.exports = {
                     collector.emit("end");
                     break;
                 case "📥":
-                    var mesg = await message.author.send("Generating files...");
+                    var mesg = await message.author.send("Generating files... (It will take a minute or two)");
                     try {
+                        var hasPDF = true;
                         const doc = new PDFDocument();
+                        var ext = "svg";
                         for (let i = 0; i < importants[s].pages; i++) {
-                            SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.svg`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                            if (i + 1 < importants[s].pages) doc.addPage();
+                            try {
+                                if(ext === "svg") SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.${ext}`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                                else PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.${ext}`);
+                                if (i + 1 < importants[s].pages) doc.addPage();
+                            } catch(err) {
+                                if(ext === "svg") {
+                                    ext = "png";
+                                    i = -1;
+                                } else {
+                                    hasPDF = false;
+                                    break;
+                                }
+                            }
                         }
                         doc.end();
-                        const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(importants[s].url)}`, { timeout: 30000 }).then(res => res.json());
+                        const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(importants[s].url)}`, { timeout: 90000 }).then(res => res.json());
                         if (mp3.error) throw new Error(mp3.message);
                         rs(mp3.url, async (err, res) => {
-                            if (err) return await mesg.edit("Failed to generate files!");
-                            const attachment = new Discord.MessageAttachment(res, `${allEmbeds[s].title.replace(/ +/g, "_")}.mp3`);
-                            const pdf = new Discord.MessageAttachment(doc, `${allEmbeds[s].title.replace(/ +/g, "_")}.pdf`);
-                            await mesg.delete();
-                            message.author.send([attachment, pdf]);
+                            try {
+                                const attachments = [];
+                                if (!err && res) attachments.push(new Discord.MessageAttachment(res, `${importants[s].title.replace(/ +/g, "_")}.mp3`));
+                                if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${importants[s].title.replace(/ +/g, "_")}.pdf`));
+                                if(attachments.length < 1) {
+                                    await mesg.edit("Failed to generate files!");
+                                }
+                                await mesg.delete();
+                                await message.author.send(attachments);
+                            } catch(err) {
+                                message.reply("did you block me? I cannot DM you!");
+                            }
                         });
                     } catch (err) {
                         await mesg.edit("Failed to generate files!");

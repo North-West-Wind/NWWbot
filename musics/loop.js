@@ -1,4 +1,5 @@
 const { updateQueue } = require("./play");
+const { setQueue } = require("./main.js");
 
 module.exports = {
   name: "loop",
@@ -6,11 +7,13 @@ module.exports = {
   category: 8,
   aliases: ["lp"],
   music(message, serverQueue, queue, pool) {
-    const guildLoopStatus = serverQueue.looping;
-    const guildRepeatStatus = serverQueue.repeating;
-    if (!guildLoopStatus) {
+    if(!serverQueue) {
+      queue = setQueue(message.guild, [], false, false);
+      serverQueue = queue.get(message.guild.id);
+    }
+    if (!serverQueue.looping) {
       serverQueue.looping = true;
-      if (guildRepeatStatus === true) {
+      if (serverQueue.repeating) {
         serverQueue.repeating = false;
         message.channel.send("Disabled repeat to prevent conflict.");
       }

@@ -31,6 +31,7 @@ module.exports = {
                         height: Math.round(attachment.height / 10)
                     }
                     var msg = await message.channel.send("Image received! Processing ASCII art... (Note: The quality of the generated art depends on the resolution of the image!)");
+                    msg.channel.startTyping();
                     try {
                         var asciis = await asciify(attachment.url, options);
                         var lines = asciis.split("\n");
@@ -70,6 +71,8 @@ module.exports = {
                     } catch(err) {
                         console.error(err);
                         return msg.edit(`<@${message.author.id}>, there was an error trying to convert the image into ASCII!`);
+                    } finally {
+                        msg.channel.stopTyping(true);
                     }
                 });
                 break;

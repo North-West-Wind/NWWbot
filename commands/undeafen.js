@@ -20,7 +20,7 @@ module.exports = {
       return;
     }
     if (!message.guild) return;
-    var member = await findMember(message, args[0]);
+    const member = await findMember(message, args[0]);
 
     if (!member) return;
     if (!member.voice.channel) return message.channel.send("The member is not connected to any voice channel.")

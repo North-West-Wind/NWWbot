@@ -634,69 +634,62 @@ module.exports = {
         pool.getConnection(function (err, con) {
             if (err) return console.error(err);
             con.query(
-                `SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id = '${guild.id}'`,
-                async function (err, result) {
+                `SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id = '${guild.id}'`, async (err, result) => {
                     if (!result[0] || !result[0].wel_channel || !result[0].welcome) {
                         if (!result[0]) {
-                            pool.getConnection(function (err, con) {
+                            if (err) return console.error(err);
+                            con.query(`SELECT * FROM servers WHERE id = '${guild.id}'`, (err, result) => {
                                 if (err) return console.error(err);
-                                con.query(`SELECT * FROM servers WHERE id = '${guild.id}'`, (err, result) => {
+                                if (result.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
+                                else con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`, (err) => {
                                     if (err) return console.error(err);
-                                    if (result.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
-                                    else con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`, (err) => {
-                                        if (err) return console.error(err);
-                                        console.log("Inserted record for " + guild.name);
-                                    });
+                                    console.log("Inserted record for " + guild.name);
                                 });
-                                if (err) return console.error(err);
-                                con.release();
                             });
+                            if (err) return console.error(err);
                         }
                     } else {
                         const channel = guild.channels.resolve(result[0].wel_channel);
-                        if (!channel.permissionsFor(guild.me).has(18432)) return;
+                        if (!channel || !channel.permissionsFor(guild.me).has(18432)) return;
                         const splitMessage = result[0].welcome.split(" ");
                         const messageArray = [];
                         for (const word of splitMessage) {
-                            if (word.startsWith("{#")) {
-                                const first = word.replace("{#", "");
-                                const second = first.replace("}", "");
-                                if (isNaN(parseInt(second))) {
-                                    const mentionedChannel = guild.channels.find(x => x.name === second);
-                                    if (!mentionedChannel) messageArray.push("#" + second);
+                            if (word.match(/^\{\#\w+\}$/)) {
+                                const str = word.replace(/[\{\#\}]/g, "");
+                                if (isNaN(parseInt(str))) {
+                                    const mentionedChannel = guild.channels.find(x => x.name === str);
+                                    if (!mentionedChannel) messageArray.push("#" + str);
                                     else messageArray.push(mentionedChannel);
                                 } else {
-                                    const mentionedChannel = guild.channels.resolve(second);
-                                    if (!mentionedChannel) messageArray.push("<#" + second + ">");
+                                    const mentionedChannel = guild.channels.resolve(str);
+                                    if (!mentionedChannel) messageArray.push("<#" + str + ">");
                                     else messageArray.push(mentionedChannel);
                                 }
-                            } else if (word.startsWith("{&")) {
-                                const first = word.replace("{&", "");
-                                const second = first.replace("}", "");
-                                if (isNaN(parseInt(second))) {
-                                    const mentionedRole = guild.roles.find(x => x.name === second);
-                                    if (!mentionedRole) messageArray.push("@" + second);
+                            } else if (word.match(/^\{\@\&\w+\}$/)) {
+                                const str = word.replace(/[\{\@\&\}]/g, "");
+                                if (isNaN(parseInt(str))) {
+                                    const mentionedRole = guild.roles.find(x => x.name === str);
+                                    if (!mentionedRole) messageArray.push("@" + str);
                                     else messageArray.push(mentionedRole);
                                 } else {
-                                    const mentionedRole = guild.roles.get(second);
-                                    if (!mentionedRole) messageArray.push("<@&" + second + ">");
+                                    const mentionedRole = guild.roles.get(str);
+                                    if (!mentionedRole) messageArray.push("<@&" + str + ">");
                                     else messageArray.push(mentionedRole);
                                 }
-                            } else if (word.startsWith("{@")) {
-                                const first = word.replace("{@", "");
-                                const second = first.replace("}", "");
-                                if (isNaN(parseInt(second))) {
-                                    const mentionedUser = client.users.find(x => x.name === second);
-                                    if (!mentionedUser) messageArray.push("@" + second);
+                            } else if (word.match(/^\{\@\w+\}$/)) {
+                                const str = word.replace(/[\{\@\}]/g, "");
+                                if (isNaN(parseInt(str))) {
+                                    const mentionedUser = client.users.find(x => x.name === str);
+                                    if (!mentionedUser) messageArray.push("@" + str);
                                     else messageArray.push(mentionedUser);
                                 } else {
-                                    const mentionedUser = client.users.get(second);
-                                    if (!mentionedUser) messageArray.push("<@" + second + ">");
+                                    const mentionedUser = client.users.get(str);
+                                    if (!mentionedUser) messageArray.push("<@" + str + ">");
                                     else messageArray.push(mentionedUser);
                                 }
                             } else messageArray.push(word);
                         }
-                        const welcomeMessage = messageArray.join(" ").replace(/{user}/g, member);
+                        const welcomeMessage = messageArray.join(" ").replace(/{user}/ig, member);
                         if (result[0].welcome) try {
                             await channel.send(welcomeMessage);
                         } catch (err) {
@@ -704,7 +697,7 @@ module.exports = {
                         }
                         if (result[0].wel_img) {
                             var img = new Image();
-                            img.onload = async function () {
+                            img.onload = async() => {
                                 var height = img.height;
                                 var width = img.width;
                                 const canvas = createCanvas(width, height);
@@ -714,7 +707,7 @@ module.exports = {
                                     let fontSize = canvas.width / 12;
                                     do {
                                         ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
-                                    } while (ctx.measureText(text).width > canvas.width - canvas.width / 10);
+                                    } while (ctx.measureText(text).width > canvas.width * 9 / 10);
                                     return ctx.font;
                                 };
                                 const welcomeText = (canvas, text) => {
@@ -722,7 +715,7 @@ module.exports = {
                                     let fontSize = canvas.width / 24;
                                     do {
                                         ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
-                                    } while (ctx.measureText(text).width > canvas.width - canvas.width / 4);
+                                    } while (ctx.measureText(text).width > canvas.width * 3 / 4);
                                     return ctx.font;
                                 };
                                 const avatar = await loadImage(member.user.displayAvatarURL({ format: "png" }));
@@ -759,9 +752,9 @@ module.exports = {
                             };
                             var url = result[0].wel_img;
                             try {
-                              let urls = JSON.parse(result[0].wel_img);
-                              if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
-                            } catch(err) {}
+                                let urls = JSON.parse(result[0].wel_img);
+                                if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
+                            } catch (err) { }
                             img.src = url;
                         }
                     }
@@ -792,137 +785,75 @@ module.exports = {
         const guild = member.guild;
         pool.getConnection(function (err, con) {
             if (err) return console.error(err);
-            con.query(
-                "SELECT leave_msg, leave_channel FROM servers WHERE id='" + guild.id + "'",
-                async function (err, result) {
-                    if (
-                        !result[0] ||
-                        !result[0].leave_msg ||
-                        !result[0].leave_channel
-                    ) {
-                        if (!result[0]) {
-                            con.query(
-                                "SELECT * FROM servers WHERE id = " + guild.id,
-                                function (err, result) {
-                                    if (err) return console.error(err);
-                                    if (result.length > 0) {
-                                        console.log(
-                                            "Found row inserted for this server before. Cancelling row insert..."
-                                        );
-                                    } else {
-                                        con.query(
-                                            "INSERT INTO servers (id, autorole, giveaway) VALUES (" +
-                                            guild.id +
-                                            ", '[]', '🎉')",
-                                            function (err) {
-                                                if (err) return console.error(err);
-                                                console.log("Inserted record for " + guild.name);
-                                            }
-                                        );
-                                    }
-                                }
-                            );
-
+            con.query(`SELECT leave_msg, leave_channel FROM servers WHERE id = '${guild.id}'`, async (err, result) => {
+                if (err) return console.error(err);
+                if (!result[0] || !result[0].leave_msg || !result[0].leave_channel) {
+                    if (!result[0]) {
+                        con.query(`SELECT * FROM servers WHERE id = '${guild.id}'`, (err, result) => {
                             if (err) return console.error(err);
-                        }
-                    } else {
-                        if (guild.me.hasPermission(128)) {
-                            const fetchedLogs = await guild.fetchAuditLogs({
-                                limit: 1,
-                                type: 'MEMBER_KICK',
+                            if (result.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
+                            else con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`, (err) => {
+                                if (err) return console.error(err);
+                                console.log("Inserted record for " + guild.name);
                             });
-                            const kickLog = fetchedLogs.entries.first();
-                            if (kickLog && kickLog.target.id === member.user.id && kickLog.executor.id !== kickLog.target.id) return;
-                        } else {
-                            console.log("Can't view audit logs of " + guild.name);
-                        }
-                        const channel = guild.channels.resolve(result[0].leave_channel);
-                        const splitMessage = result[0].leave_msg.split(" ");
-                        const messageArray = [];
-
-                        splitMessage.forEach(word => {
-                            //check channel
-                            if (word.startsWith("{#")) {
-                                const first = word.replace("{#", "");
-                                const second = first.replace("}", "");
-                                if (isNaN(parseInt(second))) {
-                                    const mentionedChannel = guild.channels.find(
-                                        x => x.name === second
-                                    );
-                                    if (!mentionedChannel) {
-                                        messageArray.push("#" + second);
-                                    } else {
-                                        messageArray.push(mentionedChannel);
-                                    }
-                                } else {
-                                    const mentionedChannel = guild.channels.resolve(second);
-                                    if (!mentionedChannel) {
-                                        messageArray.push("<#" + second + ">");
-                                    } else {
-                                        messageArray.push(mentionedChannel);
-                                    }
-                                }
-                            }
-
-                            //check role
-                            else if (word.startsWith("{&")) {
-                                const first = word.replace("{&", "");
-                                const second = first.replace("}", "");
-                                if (isNaN(parseInt(second))) {
-                                    const mentionedRole = guild.roles.find(x => x.name === second);
-                                    if (!mentionedRole) {
-                                        messageArray.push("@" + second);
-                                    } else {
-                                        messageArray.push(mentionedRole);
-                                    }
-                                } else {
-                                    const mentionedRole = guild.roles.get(second);
-                                    if (!mentionedRole) {
-                                        messageArray.push("<@&" + second + ">");
-                                    } else {
-                                        messageArray.push(mentionedRole);
-                                    }
-                                }
-                            }
-
-                            //check mentioned users
-                            else if (word.startsWith("{@")) {
-                                const first = word.replace("{@", "");
-                                const second = first.replace("}", "");
-                                if (isNaN(parseInt(second))) {
-                                    const mentionedUser = client.users.find(x => x.name === second);
-                                    if (!mentionedUser) {
-                                        messageArray.push("@" + second);
-                                    } else {
-                                        messageArray.push(mentionedUser);
-                                    }
-                                } else {
-                                    const mentionedUser = client.users.get(second);
-                                    if (!mentionedUser) {
-                                        messageArray.push("<@" + second + ">");
-                                    } else {
-                                        messageArray.push(mentionedUser);
-                                    }
-                                }
-                            } else {
-                                messageArray.push(word);
-                            }
                         });
-
-                        const leaveMessage = messageArray
-                            .join(" ")
-                            .replace(/{user}/g, `**${member.user.tag}**`);
-
-                        try {
-                            channel.send(leaveMessage);
-                        } catch (err) {
-                            console.error(err);
-                        }
                     }
-
-                    if (err) return console.error(err);
+                } else {
+                    if (guild.me.hasPermission(128)) {
+                        const fetchedLogs = await guild.fetchAuditLogs({
+                            limit: 1,
+                            type: 'MEMBER_KICK',
+                        });
+                        const kickLog = fetchedLogs.entries.first();
+                        if (kickLog && kickLog.target.id === member.user.id && kickLog.executor.id !== kickLog.target.id) return;
+                    } else console.log("Can't view audit logs of " + guild.name);
+                    const channel = guild.channels.resolve(result[0].leave_channel);
+                    const splitMessage = result[0].leave_msg.split(" ");
+                    const messageArray = [];
+                    for (const word of splitMessage) {
+                        if (word.match(/^\{\#\w+\}$/)) {
+                            const str = word.replace(/[\{\#\}]/g, "");
+                            if (isNaN(parseInt(str))) {
+                                const mentionedChannel = guild.channels.find(x => x.name === str);
+                                if (!mentionedChannel) messageArray.push("#" + str);
+                                else messageArray.push(mentionedChannel);
+                            } else {
+                                const mentionedChannel = guild.channels.resolve(str);
+                                if (!mentionedChannel) messageArray.push("<#" + str + ">");
+                                else messageArray.push(mentionedChannel);
+                            }
+                        } else if (word.match(/^\{\@\&\w+\}$/)) {
+                            const str = word.replace(/[\{\@\&\}]/g, "");
+                            if (isNaN(parseInt(str))) {
+                                const mentionedRole = guild.roles.find(x => x.name === str);
+                                if (!mentionedRole) messageArray.push("@" + str);
+                                else messageArray.push(mentionedRole);
+                            } else {
+                                const mentionedRole = guild.roles.get(str);
+                                if (!mentionedRole) messageArray.push("<@&" + str + ">");
+                                else messageArray.push(mentionedRole);
+                            }
+                        } else if (word.match(/^\{\@\w+\}$/)) {
+                            const str = word.replace(/[\{\@\}]/g, "");
+                            if (isNaN(parseInt(str))) {
+                                const mentionedUser = client.users.find(x => x.name === str);
+                                if (!mentionedUser) messageArray.push("@" + str);
+                                else messageArray.push(mentionedUser);
+                            } else {
+                                const mentionedUser = client.users.get(str);
+                                if (!mentionedUser) messageArray.push("<@" + str + ">");
+                                else messageArray.push(mentionedUser);
+                            }
+                        } else messageArray.push(word);
+                    }
+                    const leaveMessage = messageArray.join(" ").replace(/{user}/gi, `**${member.user.tag}**`);
+                    try {
+                        await channel.send(leaveMessage);
+                    } catch (err) {
+                        console.error(err);
+                    }
                 }
-            );
+            });
             con.release();
         });
     },

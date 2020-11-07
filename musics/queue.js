@@ -8,7 +8,7 @@ module.exports = {
   subaliases: ["s", "l", "d", "li"],
   category: 8,
   async music(message, serverQueue, queue, pool) {
-    const args = message.content.split(/ +/);
+    const args = message.content.slice(message.prefix.length).split(/ +/);
     if (args[1] !== undefined && (args[1].toLowerCase() === "save" || args[1].toLowerCase() === "s")) return await this.save(message, serverQueue, pool, args);
     if (args[1] !== undefined && (args[1].toLowerCase() === "load" || args[1].toLowerCase() === "l")) return await this.load(message, serverQueue, pool, args, queue);
     if (args[1] !== undefined && (args[1].toLowerCase() === "delete" || args[1].toLowerCase() === "d")) return await this.delete(message, pool, args);

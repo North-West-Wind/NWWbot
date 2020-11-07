@@ -1,6 +1,6 @@
 {
   "name": "nwwbot",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "description": "NorthWestWind's bot!",
   "main": "app-2.js",
   "scripts": {
@@ -15,6 +15,7 @@
   "dependencies": {
     "@discordjs/opus": "^0.3.2",
     "@fasetto/krunker.io": "^0.4.2",
+    "@justalk/pornhub-api": "github:North-West-Wind/PORNHUB-API",
     "akaneko": "^3.3.0",
     "aki-api": "^5.1.1",
     "anser": "^2.0.0",

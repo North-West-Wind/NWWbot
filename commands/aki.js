@@ -107,7 +107,7 @@ module.exports = {
     await msg.react(this.stop);
 
     await ended.set(msg.id, false);
-    
+
     function pushEnded(ended) {
       ended.set(msg.id, true);
       if (msg != null && msg.deleted != true) {
@@ -204,13 +204,14 @@ module.exports = {
                   "Please wait patiently",
                   message.client.user.displayAvatarURL()
                 );
-
-              msg.edit(embed);
+              await msg.edit(embed);
+              msg.channel.startTyping();
               await msg.react(this.probably);
               await msg.react(this.probablyNot);
               await msg.react(this.unknown);
               await msg.react(this.back);
               await msg.react(this.stop);
+              msg.channel.stopTyping(true);
             }
             found = false; // not found, time to reset on our side
           }
@@ -250,47 +251,40 @@ module.exports = {
                 message.client.user.displayAvatarURL()
               );
 
-            msg.edit(embed);
+            await msg.edit(embed);
+            msg.channel.startTyping();
 
             const probably = msg.reactions.cache.get(this.probably);
             try {
-                await probably.remove();
-              
+              await probably.remove();
+
             } catch (error) {
               console.error("Failed to remove reactions.");
             }
             const probablyNot = msg.reactions.cache.get(this.probablyNot);
             try {
-                await probablyNot.remove();
-              
+              await probablyNot.remove();
             } catch (error) {
               console.error("Failed to remove reactions.");
             }
             const unknown = msg.reactions.cache.get(this.unknown);
             try {
-           
-                await unknown.remove();
-              
+              await unknown.remove();
             } catch (error) {
               console.error("Failed to remove reactions.");
             }
             const back = msg.reactions.cache.get(this.back);
             try {
-        
-                await back.remove();
-              
+              await back.remove();
             } catch (error) {
               console.error("Failed to remove reactions.");
             }
             const stop = msg.reactions.cache.get(this.stop);
             try {
-      
-                await stop.remove();
-              
+              await stop.remove();
             } catch (error) {
               console.error("Failed to remove reactions.");
             }
-
             if (aki.currentStep >= 419) {
               embed.setTitle("My Final Guess is... 🤔");
             } else {
@@ -308,7 +302,7 @@ module.exports = {
             if (image != null) {
               embed.setImage(image);
             }
-
+            msg.channel.stopTyping(true);
             msg = await msg.edit(embed);
 
             // done with the game, we can't do anything else.
@@ -343,7 +337,7 @@ module.exports = {
     // assign the function
     collector.on("collect", collectorFunction);
 
-    collector.on("end", async() => {
+    collector.on("end", async () => {
       // remove the user from the set
       const isEnded = await ended.get(msg.id);
       if (isEnded == false) {
@@ -357,11 +351,11 @@ module.exports = {
           );
         msg.edit(embed);
         if (msg != null && msg.deleted != true) {
-        msg.reactions.removeAll().catch(console.error);
-      }
+          msg.reactions.removeAll().catch(console.error);
+        }
       }
       await ended.delete(msg.id);
-      
+
     });
   },
   async region(message) {

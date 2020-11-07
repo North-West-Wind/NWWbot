@@ -8,7 +8,7 @@ module.exports = {
   category: 8,
   args: 2,
   async music(message, serverQueue, queue, pool) {
-    const args = message.content.split(/ +/);
+    const args = message.content.slice(message.prefix.length).split(/ +/);
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to alter the queue when the bot is playing!");
     var queueIndex = parseInt(args[1]);
     var dest = parseInt(args[2]);

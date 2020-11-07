@@ -7,7 +7,7 @@ module.exports = {
   category: 8,
   args: 1,
   async music(message, serverQueue, queue, pool) {
-    const args = message.content.split(/ +/);
+    const args = message.content.slice(message.prefix.length).split(/ +/);
     if(args[2] && !isNaN(parseInt(args[2])) && parseInt(args[2]) < 1) return message.channel.send("The delete count must be larger than 0!");
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to alter the queue when the bot is playing!");
     var queueIndex = parseInt(args[1]);
