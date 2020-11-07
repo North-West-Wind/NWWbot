@@ -5,8 +5,7 @@ const Discord = require("discord.js");
 const { validMSURL, findValueByPrefix } = require("../function.js");
 const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
-const nodefetch = require("node-fetch");
-const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
+const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const PNGtoPDF = (doc, url) => {
     return new Promise((resolve, reject) => {
         const rs = require("request-stream");
