@@ -47,6 +47,7 @@ module.exports = {
             const attachment = new Discord.MessageAttachment(wordCanvas.toBuffer(), "word-image.png");
             var msg = await message.channel.send(`Type the following word within 60 seconds:\n**Word ${++num}/${words.length}:**`, attachment);
             const collected = await message.channel.awaitMessages(filter, { time: 60000, max: 1, error: ["time"] });
+            await msg.delete();
             if (!collected || !collected.first() || !collected.first().content || collected.first().content !== words[i]) {
               con.query(`UPDATE currency SET last_worked = '${currentDateSql}' WHERE user_id = '${message.author.id}'`, async(err) => {
                 if (err) {
@@ -54,7 +55,6 @@ module.exports = {
                   return await message.reply("there was an error trying to update your bank account!");
                 }
               });
-              await msg.delete();
               if (collected && collected.first()) collected.first().delete();
               return await message.channel.send("You didn't type the word within 60 seconds and failed your job. Better luck next time!");
             }
