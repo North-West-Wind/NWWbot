@@ -36,9 +36,8 @@ const StreamConcat = require('stream-concat');
 const ph = require("@justalk/pornhub-api");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
 const requestStream = (url) => new Promise((resolve, reject) => {
-  const request = require("request");
-  const stream = request.get(url);
-  stream.on("response", res => stream.statusCode = res.statusCode).on("error", reject).on("end", () => resolve(stream));
+  const rs = require("request-stream");
+  rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
 });
 function createEmbed(message, songs) {
   const Embed = new Discord.MessageEmbed()

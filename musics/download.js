@@ -5,9 +5,8 @@ const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search 
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const Discord = require("discord.js");
 const requestStream = (url) => new Promise((resolve, reject) => {
-  const request = require("request");
-  const stream = request.get(url);
-  stream.on("response", res => stream.statusCode = res.statusCode).on("error", reject).on("end", () => resolve(stream));
+  const rs = require("request-stream");
+  rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
 });
 module.exports = {
     name: "download",
