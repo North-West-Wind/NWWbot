@@ -4,7 +4,11 @@ const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validS
 const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search } = require("./play.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const Discord = require("discord.js");
-const fs = require("fs");
+const requestStream = (url) => new Promise((resolve, reject) => {
+  const request = require("request");
+  const stream = request.get(url);
+  stream.on("response", res => stream.statusCode = res.statusCode).on("error", reject).on("end", () => resolve(stream));
+});
 module.exports = {
     name: "download",
     description: "Download the soundtrack from the server queue or online.",
@@ -44,7 +48,7 @@ module.exports = {
             switch (song.type) {
                 case 2:
                 case 4:
-                    stream = await fetch(song.url).then(res => res.body);
+                    stream = await requestStream(song.url);
                     break;
                 case 3:
                     stream = await scdl.download(song.url);
@@ -52,19 +56,17 @@ module.exports = {
                 case 5:
                     const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 30000 }).then(res => res.json());
                     if (mp3.error) throw new Error(mp3.message);
-                    stream = await fetch(mp3.url).then(res => res.body);
+                    stream = await requestStream(mp3.url);
                     break;
                 case 6:
-                    const fetched = await fetch(song.download);
-                    stream = fetched.body;
-                    if(fetched.statusCode != 200) {
+                    stream = await requestStream(song.download);
+                    if(stream.statusCode != 200) {
                       const g = await module.exports.addPHURL(message, args);
                       if(g.error) throw "Failed to find video";
                       song = g;
                       serverQueue.songs[0] = song;
                       updateQueue(message, serverQueue, queue, pool);
-                      const fetched2 = await fetch(song.download);
-                      stream = fetched2.body;
+                      stream = await requestStream(song.download);
                       if(stream.statusCode != 200) throw new Error("Received HTTP Status Code: " + stream.statusCode);
                     }
                     break;
@@ -72,6 +74,7 @@ module.exports = {
                     stream = ytdl(song.url, { highWaterMark: 1 << 25, filter: "audioonly", quality: "lowestaudio", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
                     break;
             }
+            if(stream.statusCode && stream.statusCode != 200) throw new Error("Received HTTP Status Code " + stream.statusCode);
         } catch (err) {
             message.channel.stopTyping(true);
             console.error(err);
