@@ -21,6 +21,7 @@ var spotifyApi = new SpotifyWebApi({
   clientSecret: process.env.SPOTSECRET,
   redirectUri: "https://nwws.ml"
 });
+const fs = require("fs");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const mm = require("music-metadata");
 const ytsr = require("ytsr");
@@ -94,11 +95,11 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   if (serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;
   try {
-    const silence = await fetch("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3").then(res => res.body);
+    const silence = await fetch("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3").then(res => res.buffer()).then(buf => fs.createReadStream(buf));
     switch (song.type) {
       case 2:
       case 4:
-        const a = await fetch(song.url).then(res => res.body);
+        const a = await fetch(song.url).then(res => res.buffer()).then(buf => fs.createReadStream(buf));
         dispatcher = serverQueue.connection.play(new StreamConcat([a, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
       case 3:
@@ -108,12 +109,12 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
         if (serverQueue.textChannel) serverQueue.textChannel.send("Musescore's MP3 takes a while to load (14 - 60 seconds).\nI recommend using `?muse <link | keywords>` to get the MP3 file in your DM and chuck the link of the attachment into `?play <link>`");
         const c = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 90000 }).then(res => res.json());
         if (c.error) throw new Error(c.message);
-        const d = await fetch(c.url).then(res => res.body);
+        const d = await fetch(c.url).then(res => res.buffer()).then(buf => fs.createReadStream(buf));
         dispatcher = serverQueue.connection.play(new StreamConcat([d, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
       case 6:
         var f = await fetch(song.download);
-        var i = f.body;
+        var i = await f.buffer().then(buf => fs.createReadStream(buf));
         if (f.statusCode != 200) {
           const g = await module.exports.addPHURL(message, args);
           if (g.error) throw "Failed to find video";
@@ -121,7 +122,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
           serverQueue.songs[0] = song;
           updateQueue(message, serverQueue, queue, pool);
           f = await fetch(song.download);
-          i = f.body;
+          i = await f.buffer().then(buf => fs.createReadStream(buf));
           if (f.statusCode != 200) throw new Error("Received HTTP Status Code: " + f.statusCode);
         }
         dispatcher = serverQueue.connection.play(new StreamConcat([i, silence], { highWaterMark: 1 << 25 }), { seek: seek });
