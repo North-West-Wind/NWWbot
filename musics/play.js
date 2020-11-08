@@ -61,7 +61,6 @@ function updateQueue(message, serverQueue, queue, pool) {
     con.query(query, (err) => {
       if (err && !message.dummy) message.reply("there was an error trying to update the queue!");
       else if (err) return;
-      console.log("Updated song queue of " + message.guild.name);
     });
     con.release();
   });
@@ -162,7 +161,6 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   skipped = 0;
   dispatcher.on("finish", async () => {
     dispatcher = null;
-    console.log("Music ended! In " + guild.name);
     if (serverQueue.looping) serverQueue.songs.push(song);
     else if (!serverQueue.repeating) serverQueue.songs.shift();
     updateQueue(message, serverQueue, queue, pool);
@@ -205,10 +203,10 @@ module.exports = {
   async music(message, serverQueue, queue, pool) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
     const voiceChannel = message.member.voice.channel;
-    if (!voiceChannel) return message.channel.send("You need to be in a voice channel to play music!");
-    if (!voiceChannel.permissionsFor(message.client.user).has(3145728)) return message.channel.send("I can't play in your voice channel!");
+    if (!voiceChannel) return await message.channel.send("You need to be in a voice channel to play music!");
+    if (!voiceChannel.permissionsFor(message.client.user).has(3145728)) return await message.channel.send("I can't play in your voice channel!");
     if (!args[1] && message.attachments.size < 1) {
-      if (!serverQueue || !serverQueue.songs || serverQueue.songs.length < 1) return message.channel.send("No song queue was found for this server! Please provide a link or keywords to get a music played!");
+      if (!serverQueue || !serverQueue.songs || serverQueue.songs.length < 1) return await message.channel.send("No song queue was found for this server! Please provide a link or keywords to get a music played!");
       if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) return await migrate(message, serverQueue, queue, pool);
       try {
         if (message.guild.me.voice.channel && message.guild.me.voice.channelID === voiceChannel.id) serverQueue.connection = message.guild.me.voice.connection;
@@ -217,9 +215,8 @@ module.exports = {
           serverQueue.connection = await voiceChannel.join();
         }
       } catch (err) {
-        message.reply("there was an error trying to connect to the voice channel!");
-        if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
-        return console.error(err);
+        console.error(err);
+        return message.reply("there was an error trying to connect to the voice channel!");
       }
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.playing = true;
@@ -228,24 +225,23 @@ module.exports = {
       play(message.guild, serverQueue.songs[0], queue, pool);
       return;
     }
-    var songs = [];
-    var result = { error: true };
-    if (validYTURL(args.slice(1).join(" "))) {
-      if (validYTPlaylistURL(args.slice(1).join(" "))) result = await this.addYTPlaylist(message, args);
-      else result = await this.addYTURL(message, args);
-    } else if (validSPURL(args.slice(1).join(" "))) result = await this.addSPURL(message, args);
-    else if (validSCURL(args.slice(1).join(" "))) result = await this.addSCURL(message, args);
-    else if (validGDURL(args.slice(1).join(" "))) result = await this.addGDURL(message, args);
-    else if (validMSURL(args.slice(1).join(" "))) result = await this.addMSURL(message, args);
-    else if (validPHURL(args.slice(1).join(" "))) result = await this.addPHURL(message, args);
-    else if (validURL(args.slice(1).join(" "))) result = await this.addURL(message, args);
-    else if (message.attachments.size > 0) result = await this.addAttachment(message);
-    else result = await this.search(message, args);
-    if (result.error) return;
-    songs = result.songs;
-    if (!songs || songs.length < 1) return message.reply("there was an error trying to add the soundtrack!");
-    const Embed = createEmbed(message, songs);
     try {
+      var songs = [];
+      var result = { error: true };
+      if (validYTPlaylistURL(args.slice(1).join(" "))) result = await this.addYTPlaylist(message, args);
+      else if (validYTURL(args.slice(1).join(" "))) result = await this.addYTURL(message, args);
+      else if (validSPURL(args.slice(1).join(" "))) result = await this.addSPURL(message, args);
+      else if (validSCURL(args.slice(1).join(" "))) result = await this.addSCURL(message, args);
+      else if (validGDURL(args.slice(1).join(" "))) result = await this.addGDURL(message, args);
+      else if (validMSURL(args.slice(1).join(" "))) result = await this.addMSURL(message, args);
+      else if (validPHURL(args.slice(1).join(" "))) result = await this.addPHURL(message, args);
+      else if (validURL(args.slice(1).join(" "))) result = await this.addURL(message, args);
+      else if (message.attachments.size > 0) result = await this.addAttachment(message);
+      else result = await this.search(message, args);
+      if (result.error) return;
+      songs = result.songs;
+      if (!songs || songs.length < 1) return await message.reply("there was an error trying to add the soundtrack!");
+      const Embed = createEmbed(message, songs);
       if (!serverQueue) {
         serverQueue = {
           textChannel: message.channel,
@@ -259,10 +255,7 @@ module.exports = {
           looping: false,
           repeating: false
         };
-      } else {
-        if (!message.guild.me.voice.channel || !serverQueue.playing) serverQueue.songs = songs.concat(serverQueue.songs);
-        else serverQueue.songs = serverQueue.songs.concat(songs);
-      }
+      } else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
       updateQueue(message, serverQueue, queue, pool);
       if (!message.guild.me.voice.channel) {
         serverQueue.voiceChannel = voiceChannel;
@@ -275,8 +268,8 @@ module.exports = {
       else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
     } catch (err) {
       message.reply("there was an error trying to connect to the voice channel!");
-      await message.guild.me.voice.channel.leave();
-      return console.error(err);
+      if(message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
+      console.error(err);
     }
   },
   play: play,
@@ -369,15 +362,10 @@ module.exports = {
     return { error: false, songs: songs };
   },
   async addSPURL(message, args) {
-    var d = await spotifyApi.clientCredentialsGrant();
-
-    await spotifyApi.setAccessToken(d.body.access_token);
-    await spotifyApi.setRefreshToken(process.env.SPOTREFRESH);
-
-    var refreshed = await spotifyApi
-      .refreshAccessToken()
-      .catch(console.error);
-
+    const d = await spotifyApi.clientCredentialsGrant();
+    spotifyApi.setAccessToken(d.body.access_token);
+    spotifyApi.setRefreshToken(process.env.SPOTREFRESH);
+    const refreshed = await spotifyApi.refreshAccessToken().catch(console.error);
     console.log("Refreshed Spotify Access Token");
     await spotifyApi.setAccessToken(refreshed.body.access_token);
     var url_array = args.slice(1).join(" ").replace("https://", "").split("/");
@@ -444,9 +432,9 @@ module.exports = {
         var tracks;
         var image;
         if (!highlight) {
-          const album = await spotifyApi.getAlbums([musicID]).catch(err => console.log("Something went wrong!", err));
+          const album = await spotifyApi.getAlbums([musicID]);
           image = album.body.albums[0].images[0].url;
-          let data = await spotifyApi.getAlbumTracks(musicID, { limit: 50 }).catch(err => console.log("Something went wrong!", err));
+          let data = await spotifyApi.getAlbumTracks(musicID, { limit: 50 });
           tracks = data.body.items;
           async function checkAll() {
             if (!data.body.next) return;
@@ -457,7 +445,7 @@ module.exports = {
           }
           await checkAll();
         } else {
-          const data = await spotifyApi.getTracks([musicID]).catch(err => console.log("Something went wrong!", err));
+          const data = await spotifyApi.getTracks([musicID]);
           tracks = data.body.tracks;
         }
         var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);

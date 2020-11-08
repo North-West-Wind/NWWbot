@@ -378,76 +378,30 @@ module.exports = {
       const bw = body.player.stats.Bedwars;
 
       //overall
-
-      if (!bw.coins) {
-        var coins = 0;
-      } else {
-        var coins = bw.coins;
-      }
-
-      if (!bw.winstreak) {
-        var winstreak = 0;
-      } else {
-        var winstreak = bw.winstreak;
-      }
-
-      if (!bw.games_played_bedwars) {
-        var played = 0;
-      } else {
-        var played = bw.games_played_bedwars;
-      }
-
-      if (!bw.kills_bedwars) {
-        var kills = 0;
-      } else {
-        var kills = bw.kills_bedwars;
-      }
-
-      if (!bw.wins_bedwars) {
-        var wins = 0;
-      } else {
-        var wins = bw.wins_bedwars;
-      }
-
-      if (!bw.deaths_bedwars) {
-        var deaths = 0;
-      } else {
-        var deaths = bw.deaths_bedwars;
-      }
-
-      if (!bw.losses_bedwars) {
-        var loss = 0;
-      } else {
-        var loss = bw.losses_bedwars;
-      }
-
+      var coins = 0;
+      var winstreak = 0;
+      var played = 0;
+      var kills = 0;
+      var wins = 0;
+      var deaths = 0;
+      var loss = 0;
+      var final = 0;
+      var bed = 0;
+      var fdeath = 0;
+      var bedlost = 0;
+      if (bw.coins) coins = bw.coins;
+      if (bw.winstreak) winstreak = bw.winstreak;
+      if (bw.games_played_bedwars) played = bw.games_played_bedwars;
+      if (bw.kills_bedwars) kills = bw.kills_bedwars;
+      if (bw.wins_bedwars) wins = bw.wins_bedwars;
+      if (bw.deaths_bedwars) deaths = bw.deaths_bedwars;
+      if (bw.losses_bedwars) loss = bw.losses_bedwars;
       const kdr = Math.round((kills / deaths) * 100) / 100;
       const wlr = Math.round((wins / loss) * 100) / 100;
-
-      if (!bw.final_kills_bedwars) {
-        var final = 0;
-      } else {
-        var final = bw.final_kills_bedwars;
-      }
-
-      if (!bw.beds_broken_bedwars) {
-        var bed = 0;
-      } else {
-        var bed = bw.beds_broken_bedwars;
-      }
-
-      if (!bw.final_deaths_bedwars) {
-        var fdeath = 0;
-      } else {
-        var fdeath = bw.final_deaths_bedwars;
-      }
-
-      if (!bw.beds_lost_bedwars) {
-        var bedlost = 0;
-      } else {
-        var bedlost = bw.beds_lost_bedwars;
-      }
-
+      if (bw.final_kills_bedwars) final = bw.final_kills_bedwars;
+      if (bw.beds_broken_bedwars) bed = bw.beds_broken_bedwars;
+      if (bw.final_deaths_bedwars) fdeath = bw.final_deaths_bedwars;
+      if (bw.beds_lost_bedwars) bedlost = bw.beds_lost_bedwars;
       const fkdr = Math.round((final / fdeath) * 100) / 100;
       const bbr = Math.round((bed / bedlost) * 100) / 100;
 
@@ -456,14 +410,8 @@ module.exports = {
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Bedwars - **Overall**")
-        .setThumbnail(
-          "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FBedWars.png?v=1579257358530"
-        )
-        .addField(
-          "Level",
-          body.player.achievements.bedwars_level,
-          true
-        )
+        .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FBedWars.png?v=1579257358530")
+        .addField("Level", body.player.achievements.bedwars_level, true)
         .addField("Coins", numberWithCommas(coins), true)
         .addField("Game played", numberWithCommas(played), true)
         .addField("Wins", wins, true)
@@ -478,97 +426,42 @@ module.exports = {
         .addField("Final kills", final, true)
         .addField("Final deaths", fdeath, true)
         .addField("Final KDR", fkdr, true)
-
         .setTimestamp()
-        .setFooter(
-          "Have a nice day! :)",
-          message.client.user.displayAvatarURL()
-        );
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 
       //solo
-
-      if (!bw.eight_one_games_played_bedwars) {
-        var playedSolo = 0;
-      } else {
-        var playedSolo = bw.eight_one_games_played_bedwars;
-      }
-
-      if (!bw.eight_one_wins_bedwars) {
-        var winsSolo = 0;
-      } else {
-        var winsSolo = bw.eight_one_wins_bedwars;
-      }
-
-      if (!bw.eight_one_losses_bedwars) {
-        var lossSolo = 0;
-      } else {
-        var lossSolo = bw.eight_one_losses_bedwars;
-      }
-      var wlrSolo = Math.round((winsSolo / lossSolo) * 100) / 100;
-
-      if (!bw.eight_one_kills_bedwars) {
-        var killsSolo = 0;
-      } else {
-        var killsSolo = bw.eight_one_kills_bedwars;
-      }
-
-      if (!bw.eight_one_deaths_bedwars) {
-        var deathsSolo = 0;
-      } else {
-        var deathsSolo = bw.eight_one_deaths_bedwars;
-      }
-
-      var kdrSolo =
-        Math.round((killsSolo / deathsSolo) * 100) / 100;
-
-      if (!bw.eight_one_beds_broken_bedwars) {
-        var bedSolo = 0;
-      } else {
-        var bedSolo = bw.eight_one_beds_broken_bedwars;
-      }
-
-      if (!bw.eight_one_beds_lost_bedwars) {
-        var bedlostSolo = 0;
-      } else {
-        var bedlostSolo = bw.eight_one_beds_lost_bedwars;
-      }
-
-      var bbrSolo = Math.round((bedSolo / bedlostSolo) * 100) / 100;
-
-      if (!bw.eight_one_final_kills_bedwars) {
-        var finalSolo = 0;
-      } else {
-        var finalSolo = bw.eight_one_final_kills_bedwars;
-      }
-
-      if (!bw.eight_one_final_deaths_bedwars) {
-        var fdeathSolo = 0;
-      } else {
-        var fdeathSolo = bw.eight_one_final_deaths_bedwars;
-      }
-
-      if (!bw.eight_one_winstreak) {
-        var winstSolo = 0;
-      } else {
-        var winstSolo = bw.eight_one_winstreak;
-      }
-
-      var fkdrSolo =
-        Math.round((finalSolo / fdeathSolo) * 100) / 100;
+      var playedSolo = 0;
+      var winsSolo = 0;
+      var lossSolo = 0;
+      var killsSolo = 0;
+      var deathsSolo = 0;
+      var bedSolo = 0;
+      var bedlostSolo = 0;
+      var finalSolo = 0;
+      var fdeathSolo = 0;
+      var winstSolo = 0;
+      if (bw.eight_one_games_played_bedwars) playedSolo = bw.eight_one_games_played_bedwars;
+      if (bw.eight_one_wins_bedwars) winsSolo = bw.eight_one_wins_bedwars;
+      if (bw.eight_one_losses_bedwars) lossSolo = bw.eight_one_losses_bedwars;
+      const wlrSolo = Math.round((winsSolo / lossSolo) * 100) / 100;
+      if (bw.eight_one_kills_bedwars) killsSolo = bw.eight_one_kills_bedwars;
+      if (bw.eight_one_deaths_bedwars) deathsSolo = bw.eight_one_deaths_bedwars;
+      const kdrSolo = Math.round((killsSolo / deathsSolo) * 100) / 100;
+      if (bw.eight_one_beds_broken_bedwars) bedSolo = bw.eight_one_beds_broken_bedwars;
+      if (bw.eight_one_beds_lost_bedwars) bedlostSolo = bw.eight_one_beds_lost_bedwars;
+      const bbrSolo = Math.round((bedSolo / bedlostSolo) * 100) / 100;
+      if (bw.eight_one_final_kills_bedwars) finalSolo = bw.eight_one_final_kills_bedwars;
+      if (bw.eight_one_final_deaths_bedwars) fdeathSolo = bw.eight_one_final_deaths_bedwars;
+      if (bw.eight_one_winstreak) winstSolo = bw.eight_one_winstreak;
+      const fkdrSolo = Math.round((finalSolo / fdeathSolo) * 100) / 100;
 
       const EmbedSolo = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Bedwars - **Solo**")
-        .setThumbnail(
-          "https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FBedWars.png?v=1579257358530"
-        )
-        .addField(
-          "Level",
-          body.player.achievements.bedwars_level,
-          true
-        )
+        .setThumbnail("https://cdn.glitch.com/0ee8e202-4c9f-43f0-b5eb-2c1dacae0079%2FBedWars.png?v=1579257358530")
+        .addField("Level", body.player.achievements.bedwars_level, true)
         .addField("Winstreak", winstSolo, true)
         .addField("Game played", numberWithCommas(playedSolo), true)
         .addField("Wins", winsSolo, true)
@@ -583,12 +476,8 @@ module.exports = {
         .addField("Final kills", finalSolo, true)
         .addField("Final deaths", fdeathSolo, true)
         .addField("Final KDR", fkdrSolo, true)
-
         .setTimestamp()
-        .setFooter(
-          "Have a nice day! :)",
-          message.client.user.displayAvatarURL()
-        );
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 
       //double
 
