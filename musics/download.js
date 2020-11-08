@@ -44,7 +44,7 @@ module.exports = {
             switch (song.type) {
                 case 2:
                 case 4:
-                    stream = await fetch(song.url).then(res => res.arrayBuffer()).then(buf => fs.createReadStream(buf));
+                    stream = await fetch(song.url).then(res => res.body);
                     break;
                 case 3:
                     stream = await scdl.download(song.url);
@@ -52,11 +52,11 @@ module.exports = {
                 case 5:
                     const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 30000 }).then(res => res.json());
                     if (mp3.error) throw new Error(mp3.message);
-                    stream = await fetch(mp3.url).then(res => res.arrayBuffer()).then(buf => fs.createReadStream(buf));
+                    stream = await fetch(mp3.url).then(res => res.body);
                     break;
                 case 6:
                     const fetched = await fetch(song.download);
-                    stream = await fetched.arrayBuffer().then(buf => fs.createReadStream(buf));
+                    stream = fetched.body;
                     if(fetched.statusCode != 200) {
                       const g = await module.exports.addPHURL(message, args);
                       if(g.error) throw "Failed to find video";
@@ -64,7 +64,7 @@ module.exports = {
                       serverQueue.songs[0] = song;
                       updateQueue(message, serverQueue, queue, pool);
                       const fetched2 = await fetch(song.download);
-                      stream = await fetched2.arrayBuffer().then(buf => fs.createReadStream(buf));
+                      stream = fetched2.body;
                       if(stream.statusCode != 200) throw new Error("Received HTTP Status Code: " + stream.statusCode);
                     }
                     break;
