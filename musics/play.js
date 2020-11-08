@@ -211,7 +211,7 @@ module.exports = {
       try {
         if (message.guild.me.voice.channel && message.guild.me.voice.channelID === voiceChannel.id) serverQueue.connection = message.guild.me.voice.connection;
         else {
-          await message.guild.me.voice.channel.leave();
+          if(message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
           serverQueue.connection = await voiceChannel.join();
         }
       } catch (err) {
