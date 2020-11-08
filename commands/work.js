@@ -45,7 +45,6 @@ module.exports = {
             ctx.fillStyle = "#ffffff";
             ctx.fillText(txt, wordCanvas.width / 2 - ctx.measureText(txt).width / 2, wordCanvas.height / 2);
             const attachment = new Discord.MessageAttachment(wordCanvas.toBuffer(), "word-image.png");
-            await msg.delete();
             var msg = await message.channel.send(`Type the following word within 60 seconds:\n**Word ${++num}/${words.length}:**`, attachment);
             const collected = await message.channel.awaitMessages(filter, { time: 60000, max: 1, error: ["time"] });
             if (!collected || !collected.first() || !collected.first().content || collected.first().content !== words[i]) {
