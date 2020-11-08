@@ -677,8 +677,7 @@ module.exports = {
     }
   },
   async addURL(message, args) {
-    const linkArr = args.slice(1).join(" ").split("/");
-    var title = linkArr[linkArr.length - 1].split(".").slice(-1).join(".").replace(/_/g, " ");
+    var title = args.slice(1).join(" ").split("/").slice(-1)[0].split(".").slice(0, -1).join(".").replace(/_/g, " ");
     try {
       var stream = await fetch(args.slice(1).join(" ")).then(res => res.body);
       var metadata = await mm.parseStream(stream, {}, { duration: true });
