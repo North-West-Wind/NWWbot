@@ -67,7 +67,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   const serverQueue = queue.get(guild.id);
   const args = ["0", song.url];
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
-  if(!serverQueue.voiceChannel && guild.me.voice && guild.me.voice.channel) serverQueue.voiceChannel = guild.me.voice.channel;
+  if (!serverQueue.voiceChannel && guild.me.voice && guild.me.voice.channel) serverQueue.voiceChannel = guild.me.voice.channel;
   if (!song || !serverQueue.voiceChannel) {
     if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
     return updateQueue(message, serverQueue, queue, pool);
@@ -95,36 +95,37 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   else serverQueue.startTime = -seek * 1000;
   try {
     const silence = await fetch("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3").then(res => res.body);
-    switch(song.type) {
+    switch (song.type) {
       case 2:
       case 4:
         const a = await fetch(song.url).then(res => res.body);
         dispatcher = serverQueue.connection.play(new StreamConcat([a, silence], { highWaterMark: 1 << 25 }), { seek: seek });
-      break;
+        break;
       case 3:
         dispatcher = serverQueue.connection.play(await scdl.download(song.url));
-      break;
+        break;
       case 5:
+        if (serverQueue.textChannel) serverQueue.textChannel.send("Musescore's MP3 takes a while to load (14 - 60 seconds).\nI recommend using `?muse <link | keywords>` to get the MP3 file in your DM and chuck the link of the attachment into `?play <link>`");
         const c = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 90000 }).then(res => res.json());
         if (c.error) throw new Error(c.message);
         const d = await fetch(c.url).then(res => res.body);
         dispatcher = serverQueue.connection.play(new StreamConcat([d, silence], { highWaterMark: 1 << 25 }), { seek: seek });
-      break;
+        break;
       case 6:
         var f = await fetch(song.download);
         var i = f.body;
-        if(f.statusCode != 200) {
+        if (f.statusCode != 200) {
           const g = await module.exports.addPHURL(message, args);
-          if(g.error) throw "Failed to find video";
+          if (g.error) throw "Failed to find video";
           song = g;
           serverQueue.songs[0] = song;
           updateQueue(message, serverQueue, queue, pool);
           f = await fetch(song.download);
           i = f.body;
-          if(f.statusCode != 200) throw new Error("Received HTTP Status Code: " + f.statusCode);
+          if (f.statusCode != 200) throw new Error("Received HTTP Status Code: " + f.statusCode);
         }
         dispatcher = serverQueue.connection.play(new StreamConcat([i, silence], { highWaterMark: 1 << 25 }), { seek: seek });
-      break;
+        break;
       default:
         const h = { highWaterMark: 1 << 28, dlChunkSize: 0, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } };
         if (song.isLive) {
@@ -138,7 +139,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
         }
         if (!song.isLive) h.filter = "audioonly";
         dispatcher = serverQueue.connection.play(ytdl(song.url, h), { seek: seek });
-      break;
+        break;
     }
   } catch (err) {
     console.error(err);
@@ -267,7 +268,7 @@ module.exports = {
         serverQueue.playing = true;
         serverQueue.textChannel = message.channel;
       }
-      if(!serverQueue.playing) play(message.guild, serverQueue.songs[0], queue, pool);
+      if (!serverQueue.playing) play(message.guild, serverQueue.songs[0], queue, pool);
       if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
       else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
     } catch (err) {
@@ -278,10 +279,10 @@ module.exports = {
   },
   play: play,
   async addAttachment(message) {
-    var files = message.attachments;
-    var songs = [];
+    const files = message.attachments;
+    const songs = [];
     for (const file of files.values()) {
-      var stream = await fetch(file.url).then(res => res.body);
+      const stream = await fetch(file.url).then(res => res.body);
       try {
         var metadata = await mm.parseStream(stream, {}, { duration: true });
       } catch (err) {
@@ -289,14 +290,12 @@ module.exports = {
         return { error: true };
       }
       if (!metadata) {
-        message.channel.send(
-          "An error occured while parsing the audio file into stream! Maybe it is not link to the file?"
-        );
+        message.channel.send("An error occured while parsing the audio file into stream! Maybe it is not link to the file?");
         return { error: true };
       }
-      var length = Math.round(metadata.format.duration);
-      var songLength = moment.duration(length, "seconds").format();
-      var song = {
+      const length = Math.round(metadata.format.duration);
+      const songLength = moment.duration(length, "seconds").format();
+      songs.push({
         title: file.name.split(".")[0].replace(/_/g, " "),
         url: file.url,
         type: 2,
@@ -304,8 +303,7 @@ module.exports = {
         volume: 1,
         thumbnail: "https://www.flaticon.com/svg/static/icons/svg/2305/2305904.svg",
         isLive: false
-      };
-      songs.push(song);
+      });
     }
     return { error: false, songs };
   },
@@ -313,37 +311,28 @@ module.exports = {
     try {
       var playlistInfo = await ytpl(args.slice(1).join(" "), { limit: Infinity });
     } catch (err) {
-      if (err.message === "This playlist is private.") {
-        message.channel.send("The playlist is private!");
-        return { error: true };
-      } else {
+      if (err.message === "This playlist is private.") message.channel.send("The playlist is private!");
+      else {
         console.error(err);
-        message.reply(
-          "there was an error trying to fetch your playlist!"
-        );
-        return { error: true };
+        message.reply("there was an error trying to fetch your playlist!");
       }
+      return { error: true };
     }
-    var videos = playlistInfo.items;
-    var songs = [];
+    const videos = playlistInfo.items;
+    const songs = [];
     var mesg = await message.channel.send(`Processing track: **0/${videos.length}**`);
-    var interval = setInterval(async () => {
-      if (songs.length < videos.length) await mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`).catch(() => { });
-    }, 1000);
-    for (const video of videos) {
-      var info = {
-        title: video.title,
-        url: video.url_simple,
-        type: 0,
-        time: video.duration,
-        thumbnail: video.thumbnail,
-        volume: 1,
-        isLive: false
-      };
-      songs.push(info);
-    }
-    mesg.edit(`Track processing completed`).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
+    var interval = setInterval(() => (songs.length < videos.length) ? mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`).catch(() => { }) : undefined, 1000);
+    for (const video of videos) songs.push({
+      title: video.title,
+      url: video.url_simple,
+      type: 0,
+      time: video.duration,
+      thumbnail: video.thumbnail,
+      volume: 1,
+      isLive: false
+    });
     clearInterval(interval);
+    mesg.edit(`Track processing completed`).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
     return { error: false, songs: songs };
   },
   async addYTURL(message, args, type = 0) {
@@ -389,20 +378,11 @@ module.exports = {
 
     console.log("Refreshed Spotify Access Token");
     await spotifyApi.setAccessToken(refreshed.body.access_token);
-
     var url_array = args.slice(1).join(" ").replace("https://", "").split("/");
     var musicID = url_array[2].split("?")[0];
-
-    if (url_array[2].split("?")[1] !== undefined)
-      var highlight =
-        url_array[2].split("?")[1].split("=")[0] === "highlight";
-    else var highlight = false;
-
-    if (highlight)
-      musicID = url_array[2]
-        .split("?")[1]
-        .split("=")[1]
-        .split(":")[2];
+    var highlight = false;
+    if (url_array[2].split("?")[1]) highlight = url_array[2].split("?")[1].split("=")[0] === "highlight";
+    if (highlight) musicID = url_array[2].split("?")[1].split("=")[1].split(":")[2];
     var type = url_array[1];
     var songs = [];
     switch (type) {
@@ -412,10 +392,7 @@ module.exports = {
         async function checkAll() {
           if (musics.body.tracks.next) {
             var offset = musics.body.tracks.offset + 50;
-            musics = await spotifyApi.getPlaylist(musicID, {
-              limit: 50,
-              offset: offset
-            });
+            musics = await spotifyApi.getPlaylist(musicID, { limit: 50, offset: offset });
             tracks = tracks.concat(musics.body.tracks.items);
             return await checkAll();
           }
@@ -424,262 +401,160 @@ module.exports = {
         var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);
         for (var i = 0; i < tracks.length; i++) {
           await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`).catch(() => { });
-          var matched;
+          var results = [];
           try {
-            var searched = await ytsr(
-              tracks[i].track.artists[0].name +
-              " - " +
-              tracks[i].track.name,
-              { limit: 20 }
-            );
-            var results = searched.items.filter(
-              x => x.type === "video" && x.duration.split(":").length < 3
-            );
+            const searched = await ytsr(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
+            results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
           } catch (err) {
             try {
-              var searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
-              var results = searched.map(x => {
-                return {
-                  live: false,
-                  duration: x.durationFormatted,
-                  link: `https://www.youtube.com/watch?v=${x.id}`
-                }
+              const searched = await ytsr2.search(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
+              results = searched.map(x => {
+                return { live: false, duration: x.durationFormatted, link: `https://www.youtube.com/watch?v=${x.id}` };
               });
             } catch (err) {
-              return console.error(err);
+              return { error: true };
             }
           }
+          var o = 0;
           for (var s = 0; s < results.length; s++) {
-            if (results.length == 0) break;
             if (isGoodMusicVideoContent(results[s])) {
-              var songLength = !results[s].live ? results[s].duration : "∞";
-              matched = {
-                title: tracks[i].track.name,
-                url: results[s].link,
-                type: 1,
-                spot:
-                  tracks[i].track.external_urls.spotify,
-                thumbnail:
-                  tracks[i].track.album.images[0].url,
-                time: songLength,
-                volume: 1,
-                isLive: results[s].live
-              };
-              songs.push(matched);
-              break;
+              o = s;
+              s = results.length - 1;
             }
             if (s + 1 == results.length) {
-              var songLength = !results[0].live ? results[0].duration : "∞";
-              matched = {
+              const songLength = !results[o].live ? results[o].duration : "∞";
+              songs.push({
                 title: tracks[i].track.name,
-                url: results[0].link,
+                url: results[o].link,
                 type: 1,
-                spot:
-                  tracks[i].track.external_urls.spotify,
-                thumbnail:
-                  tracks[i].track.album.images[0].url,
+                spot: tracks[i].track.external_urls.spotify,
+                thumbnail: tracks[i].track.album.images[0].url,
                 time: songLength,
                 volume: 1,
-                isLive: results[s].live
-              };
-              songs.push(matched);
+                isLive: results[o].live
+              });
             }
           }
         }
         mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
         break;
       case "album":
+        var tracks;
+        var image;
         if (!highlight) {
-          var album = await spotifyApi
-            .getAlbums([musicID])
-            .catch(err => console.log("Something went wrong!", err));
-          var image = album.body.albums[0].images[0].url;
-          var data = await spotifyApi
-            .getAlbumTracks(musicID, {
-              limit: 50
-            })
-            .catch(err => console.log("Something went wrong!", err));
-
-          var tracks = data.body.items;
+          const album = await spotifyApi.getAlbums([musicID]).catch(err => console.log("Something went wrong!", err));
+          image = album.body.albums[0].images[0].url;
+          let data = await spotifyApi.getAlbumTracks(musicID, { limit: 50 }).catch(err => console.log("Something went wrong!", err));
+          tracks = data.body.items;
           async function checkAll() {
-            if (data.body.next) {
-              var offset = data.body.offset + 50;
-              data = await spotifyApi.getAlbumTracks(musicID, {
-                limit: 50,
-                offset: offset
-              });
-              tracks = tracks.concat(data.body.items);
-              return await checkAll();
-            }
+            if (!data.body.next) return;
+            var offset = data.body.offset + 50;
+            data = await spotifyApi.getAlbumTracks(musicID, { limit: 50, offset: offset });
+            tracks = tracks.concat(data.body.items);
+            return await checkAll();
           }
           await checkAll();
         } else {
-          var data = await spotifyApi
-            .getTracks([musicID])
-            .catch(err => console.log("Something went wrong!", err));
-
-          var tracks = data.body.tracks;
+          const data = await spotifyApi.getTracks([musicID]).catch(err => console.log("Something went wrong!", err));
+          tracks = data.body.tracks;
         }
         var mesg = await message.channel.send(`Processing track: **0/${tracks.length}**`);
         for (var i = 0; i < tracks.length; i++) {
           await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`).catch(() => { });
-          var matched;
+          var results = [];
           try {
-            var searched = await ytsr(
-              tracks[i].track.artists[0].name +
-              " - " +
-              tracks[i].track.name,
-              { limit: 20 }
-            );
-            var results = searched.items.filter(
-              x => x.type === "video" && x.duration.split(":").length < 3
-            );
+            const searched = await ytsr(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
+            results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
           } catch (err) {
             try {
-              var searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
-              var results = searched.map(x => {
-                return {
-                  live: false,
-                  duration: x.durationFormatted,
-                  link: `https://www.youtube.com/watch?v=${x.id}`
-                }
+              const searched = await ytsr2.search(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
+              results = searched.map(x => {
+                return { live: false, duration: x.durationFormatted, link: `https://www.youtube.com/watch?v=${x.id}` };
               });
             } catch (err) {
-              return console.error(err);
+              return { error: true };
             }
           }
+          var o = 0;
           for (var s = 0; s < results.length; s++) {
-            if (results.length == 0) break;
             if (isGoodMusicVideoContent(results[s])) {
-              var songLength = !results[s].live ? results[s].duration : "∞";
-              matched = {
-                title: tracks[i].name,
-                url: results[s].link,
-                type: 1,
-                spot: tracks[i].external_urls.spotify,
-                thumbnail: highlight
-                  ? tracks[i].album.images[0].url
-                  : image,
-                time: songLength,
-                volume: 1,
-                isLive: results[s].live
-              };
-              songs.push(matched);
-              break;
+              o = s;
+              s = results.length - 1;
             }
             if (s + 1 == results.length) {
-              var songLength = !results[0].live ? results[0].duration : "∞";
-              matched = {
+              const songLength = !results[o].live ? results[o].duration : "∞";
+              songs.push({
                 title: tracks[i].name,
-                url: results[0].link,
+                url: results[o].link,
                 type: 1,
                 spot: tracks[i].external_urls.spotify,
-                thumbnail: highlight
-                  ? tracks[i].album.images[0].url
-                  : image,
+                thumbnail: highlight ? tracks[i].album.images[o].url : image,
                 time: songLength,
                 volume: 1,
-                isLive: results[s].live
-              };
-              songs.push(matched);
+                isLive: results[o].live
+              });
             }
           }
         }
         mesg.edit("Track processing completed").then(msg => msg.delete({ timeout: 10000 })).catch(() => { });
         break;
       case "track":
-        var data = await spotifyApi.getTracks([musicID]);
-        var tracks = data.body.tracks;
-
+        var tracks = await spotifyApi.getTracks([musicID]).body.tracks;
         for (var i = 0; i < tracks.length; i++) {
-          var matched;
+          var results;
           try {
-            var searched = await ytsr(
-              tracks[i].track.artists[0].name +
-              " - " +
-              tracks[i].track.name,
-              { limit: 20 }
-            );
-            var results = searched.items.filter(
-              x => x.type === "video" && x.duration.split(":").length < 3
-            );
+            const searched = await ytsr(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
+            results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
           } catch (err) {
             try {
-              var searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
-              var results = searched.map(x => {
-                return {
-                  live: false,
-                  duration: x.durationFormatted,
-                  link: `https://www.youtube.com/watch?v=${x.id}`
-                }
-              });
+              const searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
+              results = searched.map(x => { return { live: false, duration: x.durationFormatted, link: `https://www.youtube.com/watch?v=${x.id}` }; });
             } catch (err) {
-              return console.error(err);
+              return { error: true };
             }
           }
+          var o = 0;
           for (var s = 0; s < results.length; s++) {
-            if (results.length == 0) break;
             if (isGoodMusicVideoContent(results[s])) {
-              var songLength = !results[s].live ? results[s].duration : "∞";
-              matched = {
-                title: tracks[i].name,
-                url: results[s].link,
-                type: 1,
-                spot: tracks[i].external_urls.spotify,
-                thumbnail: tracks[i].album.images[0].url,
-                time: songLength,
-                volume: 1,
-                isLive: results[s].live
-              };
-              songs.push(matched);
-              break;
+              o = s;
+              s = results.length - 1;
             }
             if (s + 1 == results.length) {
-              var songLength = !results[0].live ? results[0].duration : "∞";
-              matched = {
+              const songLength = !results[o].live ? results[o].duration : "∞";
+              songs.push({
                 title: tracks[i].name,
-                url: results[0].link,
+                url: results[o].link,
                 type: 1,
                 spot: tracks[i].external_urls.spotify,
-                thumbnail: tracks[i].album.images[0].url,
+                thumbnail: tracks[i].album.images[o].url,
                 time: songLength,
                 volume: 1,
-                isLive: results[s].live
-              };
-              songs.push(matched);
+                isLive: results[o].live
+              });
             }
           }
-          break;
         }
         break;
     }
     return { error: false, songs: songs };
   },
   async addSCURL(message, args) {
-    var res = await fetch(
-      `https://api.soundcloud.com/resolve?url=${args.slice(1).join(" ")}&client_id=${process.env.SCID
-      }`
-    );
+    const res = await fetch(`https://api.soundcloud.com/resolve?url=${args.slice(1).join(" ")}&client_id=${process.env.SCID}`);
     if (res.status !== 200) {
-      message.channel.send(
-        "A problem occured while fetching the track information! Status Code: " +
-        res.status
-      );
+      message.channel.send("A problem occured while fetching the track information! Status Code: " + res.status);
       return { error: true };
     }
-    var data = await res.json();
+    const data = await res.json();
     if (data.kind == "user") {
-      message.channel.send(
-        "What do you think you can do with a user?"
-      );
+      message.channel.send("What do you think you can do with a user?");
       return { error: true };
     }
+    const songs = [];
     if (data.kind == "playlist") {
-      var songs = [];
       for (const track of data.tracks) {
-        var length = Math.round(track.duration / 1000);
-        var songLength = moment.duration(length, "seconds").format();
-        var song = {
+        const length = Math.round(track.duration / 1000);
+        const songLength = moment.duration(length, "seconds").format();
+        songs.push({
           title: track.title,
           type: 3,
           id: track.id,
@@ -688,24 +563,21 @@ module.exports = {
           url: track.permalink_url,
           volume: 1,
           isLive: false
-        };
-        songs.push(song);
+        });
       }
     } else {
-      var length = Math.round(data.duration / 1000);
-      var songLength = moment.duration(length, "seconds").format();
-      var songs = [
-        {
-          title: data.title,
-          type: 3,
-          id: data.id,
-          time: songLength,
-          thumbnail: data.artwork_url,
-          url: data.permalink_url,
-          volume: 1,
-          isLive: false
-        }
-      ];
+      const length = Math.round(data.duration / 1000);
+      const songLength = moment.duration(length, "seconds").format();
+      songs.push({
+        title: data.title,
+        type: 3,
+        id: data.id,
+        time: songLength,
+        thumbnail: data.artwork_url,
+        url: data.permalink_url,
+        volume: 1,
+        isLive: false
+      });
     }
     return { error: false, songs: songs };
   },
@@ -726,15 +598,12 @@ module.exports = {
     }
     var link = "https://drive.google.com/uc?export=download&id=" + id;
     var stream = await fetch(link).then(res => res.body);
+    var title = "No Title";
     try {
       var metadata = await mm.parseStream(stream, {}, { duration: true });
       var html = await rp(args.slice(1).join(" "));
       var $ = cheerio.load(html);
-      var titleArr = $("title").text().split(" - ");
-      titleArr.splice(-1, 1);
-      var titleArr2 = titleArr.join(" - ").split(".");
-      titleArr2.splice(-1, 1);
-      var title = titleArr2.join(".");
+      title = $("title").text().split(" - ").slice(-1).join(" - ").split(".").slice(-1).join(".");
     } catch (err) {
       message.reply("there was an error trying to parse your link!");
       return { error: true };
@@ -789,7 +658,7 @@ module.exports = {
       if (video.error) throw new Error(video.error);
       var download = "-1";
       for (const property in video.download_urls) if (parseInt(property) < parseInt(download) || parseInt(download) < 0) download = property;
-      if(parseInt(download) < 1) throw "Cannot get any video quality";
+      if (parseInt(download) < 1) throw "Cannot get any video quality";
       var songLength = moment.duration(video.duration, "seconds").format();
       var song = {
         title: video.title,
@@ -803,25 +672,17 @@ module.exports = {
       };
       return { error: false, songs: [song] };
     } catch (err) {
-      if(!message.dummy) message.reply("there was an error processing the link!");
+      if (!message.dummy) message.reply("there was an error processing the link!");
       return { error: true };
     }
   },
   async addURL(message, args) {
-    var linkArr = args.slice(1).join(" ").split("/");
-    if (linkArr[linkArr.length - 1].split("?").length == 1) {
-      var title = linkArr[linkArr.length - 1]
-        .split(".")[0]
-        .replace(/_/g, " ");
-    } else {
-      linkArr = args.slice(1).join(" ").split("?");
-      var title = linkArr[linkArr.length - 1]
-        .split(".")[0]
-        .replace(/_/g, " ");
-    }
+    const linkArr = args.slice(1).join(" ").split("/");
+    var title = linkArr[linkArr.length - 1].split(".").slice(-1).join(".").replace(/_/g, " ");
     try {
       var stream = await fetch(args.slice(1).join(" ")).then(res => res.body);
       var metadata = await mm.parseStream(stream, {}, { duration: true });
+      if (metadata.common.title) title = metadata.common.title;
     } catch (err) {
       message.channel.send("The audio format is not supported!");
       return { error: true };
@@ -830,9 +691,9 @@ module.exports = {
       message.reply("there was an error while parsing the audio file into stream! Maybe it is not link to the file?");
       return { error: true };
     }
-    var length = Math.round(metadata.format.duration);
-    var songLength = moment.duration(length, "seconds").format();
-    var song = {
+    const length = Math.round(metadata.format.duration);
+    const songLength = moment.duration(length, "seconds").format();
+    const song = {
       title: title,
       url: args.slice(1).join(" "),
       type: 2,
@@ -841,7 +702,7 @@ module.exports = {
       thumbnail: "https://www.flaticon.com/svg/static/icons/svg/2305/2305904.svg",
       isLive: false
     };
-    var songs = [song];
+    const songs = [song];
     return { error: false, songs: songs };
   },
   async search(message, args) {
