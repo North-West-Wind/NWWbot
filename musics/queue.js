@@ -423,7 +423,7 @@ module.exports = {
               repeating: false
             };
           } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-          updateQueue(message, queueContruct, queue, pool);
+          updateQueue(message, serverQueue, queue, pool);
           message.channel.send(`The queue of this server has been synchronize to the queue of the server **${guild.name}**.`);
         }
       );
