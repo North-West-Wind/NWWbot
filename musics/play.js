@@ -128,7 +128,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
         dispatcher = serverQueue.connection.play(new StreamConcat([f, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
       default:
-        const h = { highWaterMark: 1 << 28, dlChunkSize: 0, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } };
+        const h = { highWaterMark: 1 << 28, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } };
         if (song.isLive) {
           const j = await module.exports.addYTURL(message, args, song.type);
           if (j.error) throw "Failed to find video";
@@ -138,7 +138,10 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
             updateQueue(message, serverQueue, queue, pool);
           }
         }
-        if (!song.isLive) h.filter = "audioonly";
+        if (!song.isLive) {
+          h.filter = "audioonly";
+          h.dlChunkSize = 0;
+        }
         dispatcher = serverQueue.connection.play(ytdl(song.url, h), { seek: seek });
         break;
     }
