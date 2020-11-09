@@ -1,14 +1,13 @@
 const scdl = require("soundcloud-downloader");
-const request = require("request-stream");
 const ytdl = require("ytdl-core");
 const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL } = require("../function.js");
 const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search } = require("./play.js");
-const requestStream = url => {
-    return new Promise((resolve, reject) => {
-        request.get(url, (err, res) => err ? reject(err) : resolve(res));
-    });
-};
+const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const Discord = require("discord.js");
+const requestStream = (url) => new Promise((resolve, reject) => {
+  const rs = require("request-stream");
+  rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
+});
 module.exports = {
     name: "download",
     description: "Download the soundtrack from the server queue or online.",
@@ -74,6 +73,7 @@ module.exports = {
                     stream = ytdl(song.url, { highWaterMark: 1 << 25, filter: "audioonly", quality: "lowestaudio", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
                     break;
             }
+            if(stream.statusCode && stream.statusCode != 200) throw new Error("Received HTTP Status Code " + stream.statusCode);
         } catch (err) {
             message.channel.stopTyping(true);
             console.error(err);
@@ -92,17 +92,22 @@ module.exports = {
     },
     async downloadFromArgs(message, args) {
         var result = { error: true };
-        if (validYTPlaylistURL(args.slice(1).join(" "))) result = await addYTPlaylist(message, args);
-        else if (validYTURL(args.slice(1).join(" "))) result = await addYTURL(message, args);
-        else if (validSPURL(args.slice(1).join(" "))) result = await addSPURL(message, args);
-        else if (validSCURL(args.slice(1).join(" "))) result = await addSCURL(message, args);
-        else if (validGDURL(args.slice(1).join(" "))) return message.channel.send("Why should I download the file from a URL when you can access it?");
-        else if (validMSURL(args.slice(1).join(" "))) result = await addMSURL(message, args);
-        else if (validPHURL(args.slice(1).join(" "))) result = await addPHURL(message, args);
-        else if (validURL(args.slice(1).join(" "))) return message.channel.send("Why should I download the file from a URL when you can access it?");
-        else result = await search(message, args);
-        if (result.error) return;
-        if (result.msg) result.msg.delete({ timeout: 10000 });
-        for (const song of result.songs) await this.download(message, song);
+        try {
+            if (validYTPlaylistURL(args.slice(1).join(" "))) result = await addYTPlaylist(message, args);
+            else if (validYTURL(args.slice(1).join(" "))) result = await addYTURL(message, args);
+            else if (validSPURL(args.slice(1).join(" "))) result = await addSPURL(message, args);
+            else if (validSCURL(args.slice(1).join(" "))) result = await addSCURL(message, args);
+            else if (validGDURL(args.slice(1).join(" "))) return message.channel.send("Wait. You should be able to access this file?");
+            else if (validMSURL(args.slice(1).join(" "))) result = await addMSURL(message, args);
+            else if (validPHURL(args.slice(1).join(" "))) result = await addPHURL(message, args);
+            else if (validURL(args.slice(1).join(" "))) return message.channel.send("Wait. You should be able to access this file?");
+            else result = await search(message, args);
+            if (result.error) return;
+            if (result.msg) result.msg.delete({ timeout: 10000 });
+            for (const song of result.songs) await this.download(message, song);
+        } catch(err) {
+            message.reply("there was an error trying to download the soundtack!");
+            console.error(err);
+        }
     }
 }

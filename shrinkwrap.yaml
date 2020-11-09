@@ -41,7 +41,6 @@ dependencies:
   reddit-wrapper-v2: 1.1.6
   request: 2.88.2
   request-promise-native: 1.0.9
-  request-stream: 1.2.2
   serp: 2.1.0
   simple-node-logger: 18.12.24
   simple-youtube-api: 5.2.1
@@ -3486,13 +3485,6 @@ packages:
       request: ^2.34
     resolution:
       integrity: sha512-HCHI3DJJUakkOr8fNoCc73E5nU5bqITjOYFMDrKHYOXWXrgD/SBaC7LjwuPymUprRyuF06UK7hd/lMHkmUXglQ==
-  /request-stream/1.2.2:
-    dependencies:
-      debug: 2.6.9
-      xtend: 4.0.2
-    dev: false
-    resolution:
-      integrity: sha1-G60CxiD1rz1gRAAlRm6c4CwbbdU=
   /request/2.88.2:
     dependencies:
       aws-sign2: 0.7.0
@@ -4455,7 +4447,6 @@ specifiers:
   reddit-wrapper-v2: ^1.1.6
   request: ^2.88.2
   request-promise-native: ^1.0.9
-  request-stream: ^1.2.2
   serp: ^2.1.0
   simple-node-logger: ^18.12.24
   simple-youtube-api: ^5.2.1

@@ -16,80 +16,7 @@ module.exports = {
     switch (args[0]) {
       case "stats":
         if (!args[1]) return message.channel.send("Please enter the username and try again.");
-        try {
-          var user = await Krunker.GetProfile(args.join(" "));
-        } catch (e) {
-          if (e instanceof UserNotFoundError)
-            console.log("Sorry ):\nWe couldn't find that user!");
-          else
-            console.log(e.message);
-        }
-
-        var level = user.level;
-        var name = user.name;
-        var kills = user.kills;
-        var deaths = user.deaths;
-        var score = user.score;
-        var kdr = user.kdr;
-        var wins = user.wins;
-        var loses = user.loses;
-        var wlr = user.wl;
-        var clan = user.clan;
-        var playTime = user.playTime;
-        var featured = user.featured;
-        var hacker = user.hacker ? "Yes" : "No";
-        var spk = user.spk;
-        var played = user.totalGamesPlayed;
-        var kr = user.funds;
-
-        var kpg = user.kpg;
-        var following = user.following;
-        var followers = user.followers;
-        var shots = user.shots;
-        var hits = user.hits;
-        var nukes = user.nukes;
-        var melee = user.meleeKills;
-        var lastClass = user.lastPlayedClass;
-
-        const Embed = new Discord.MessageEmbed()
-          .setTitle(name)
-          .setDescription("Krunker stats")
-          .setColor(console.color())
-          .setThumbnail("https://camo.githubusercontent.com/ae9a850fda4698b130cb55c496473ad5ee81d4a4/68747470733a2f2f692e696d6775722e636f6d2f6c734b783064772e706e67")
-          .addField("Level", level, true)
-          .addField("Krunkies", kr, true)
-          .addField("Scores", score, true)
-
-          .addField("Kills", kills, true)
-          .addField("Deaths", deaths, true)
-          .addField("KDR", kdr, true)
-
-          .addField("Wins", wins, true)
-          .addField("Loses", loses, true)
-          .addField("WLR", wlr, true)
-
-          .addField("Shots", shots, true)
-          .addField("Hits", hits, true)
-          .addField("Clan", clan, true)
-
-          .addField("Nukes", nukes, true)
-          .addField("Melee Kills", melee, true)
-          .addField("Score/Kill", spk, true)
-
-          .addField("Time played", playTime, true)
-          .addField("Games played", played, true)
-          .addField("Kills/Game", kpg, true)
-
-          .addField("Following", following, true)
-          .addField("Followers", followers, true)
-          .addField("Last Played Class", lastClass, true)
-
-          .addField("Featured?", featured, true)
-          .addField("Hacker?", hacker, true)
-          .setTimestamp()
-          .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-        message.channel.send(Embed);
-        break;
+        return await this.profile(message, args.slice(1).join(" "));
       case "server":
         var msg = await message.channel.send("Loading servers...");
         msg.channel.startTyping();
@@ -286,7 +213,46 @@ module.exports = {
         }
         break;
       default:
-        return message.channel.send("That's not a valid subcommand!" + ` Subcommands: \`${this.subcommands.join("`, `")}\``)
+        return await this.profile(message, args.join(" "));
+    }
+  },
+  async profile(message, username) {
+    try {
+      const user = await Krunker.GetProfile(username);
+      const Embed = new Discord.MessageEmbed()
+        .setTitle(user.name)
+        .setDescription("Krunker stats")
+        .setColor(console.color())
+        .setThumbnail("https://camo.githubusercontent.com/ae9a850fda4698b130cb55c496473ad5ee81d4a4/68747470733a2f2f692e696d6775722e636f6d2f6c734b783064772e706e67")
+        .addField("Level", user.level, true)
+        .addField("Krunkies", user.funds, true)
+        .addField("Scores", user.score, true)
+        .addField("Kills", user.kills, true)
+        .addField("Deaths", user.deaths, true)
+        .addField("KDR", user.kdr, true)
+        .addField("Wins", user.wins, true)
+        .addField("Loses", user.loses, true)
+        .addField("WLR", user.wl, true)
+        .addField("Shots", user.shots, true)
+        .addField("Hits", user.hits, true)
+        .addField("Clan", user.clan ? user.clan : "No clan", true)
+        .addField("Nukes", user.nukes, true)
+        .addField("Melee Kills", user.meleeKills, true)
+        .addField("Score/Kill", user.spk, true)
+        .addField("Time played", user.playTime, true)
+        .addField("Games played", user.totalGamesPlayed, true)
+        .addField("Kills/Game", user.kpg, true)
+        .addField("Following", user.following, true)
+        .addField("Followers", user.followers, true)
+        .addField("Last Played Class", user.lastPlayedClass, true)
+        .addField("Featured?", user.featured ? user.featured : "No", true)
+        .addField("Hacker?", user.hacker ? "Yes" : "No", true)
+        .setTimestamp()
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+      await message.channel.send(Embed);
+    } catch (e) {
+      if (e instanceof UserNotFoundError) await message.channel.send("Cannot find this user!");
+      else await message.reply("there was an error fetch the user profile!");
     }
   }
 };

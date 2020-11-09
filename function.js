@@ -1,4 +1,3 @@
-const request = require("request");
 const superms = require("ms");
 module.exports = {
   twoDigits(d) {
@@ -124,23 +123,6 @@ module.exports = {
       buf.unshift(["&#", str[i].charCodeAt(), ";"].join(""));
     }
     return buf.join("");
-  },
-
-  search(options, callback) {
-    var url =
-      "http://api.serpstack.com/search?access_key=" +
-      options.key +
-      "&query=" +
-      options.qs.q;
-    request(
-      {
-        url: url,
-        json: true
-      },
-      function (error, response, body) {
-        callback(error, body);
-      }
-    );
   },
   shuffleArray(array, start) {
     let temp = array.splice(0, start);

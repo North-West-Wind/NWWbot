@@ -1,30 +1,32 @@
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
-const rs = require("request-stream");
 const Discord = require("discord.js");
 const { validMSURL, findValueByPrefix } = require("../function.js");
 const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
-const nodefetch = require("node-fetch");
-const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
+const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const PNGtoPDF = (doc, url) => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
         const rs = require("request-stream");
-        rs(url, (err, res) => {
-            if(err) reject(err);
+        rs.get(url, {}, (err, res) => {
+            if(err) return reject(err);
             const chunks = [];
             res.on("data", chunk => chunks.push(chunk));
             res.on("end", () => {
                 try {
-                    doc.image(Buffer.concat(chunks))
+                    doc.image(Buffer.concat(chunks), 0, 0, { width: doc.page.width, height: doc.page.height });
                     resolve();
-                } catch(err) {
+                } catch (err) {
                     reject(err);
                 }
             });
         });
     })
 }
+const requestStream = (url) => new Promise((resolve, reject) => {
+  const rs = require("request-stream");
+  rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
+});
 
 module.exports = {
     name: "musescore",
@@ -65,20 +67,20 @@ module.exports = {
         await msg.react("📥");
         msg.channel.stopTyping(true);
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
-        msg.reactions.removeAll().catch(console.error);
+        msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
-            var mesg = await message.author.send("Generating files... (It will take a minute or two)");
             try {
+                var mesg = await message.author.send("Generating files... (It will take a minute or two)");
                 var hasPDF = true;
                 const doc = new PDFDocument();
                 var ext = "svg";
                 for (let i = 0; i < data.pageCount; i++) {
                     try {
-                        if(ext === "svg") SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.${ext}`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                        else PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.${ext}`);
+                        if (ext === "svg") SVGtoPDF(doc, await fetch(`https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.${ext}`).then(res => res.text()), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                        else await PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${data.important}/score_${i}.${ext}`);
                         if (i + 1 < data.pageCount) doc.addPage();
-                    } catch(err) {
-                        if(ext === "svg") {
+                    } catch (err) {
+                        if (ext === "svg") {
                             ext = "png";
                             i = -1;
                         } else {
@@ -90,22 +92,26 @@ module.exports = {
                 doc.end();
                 const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(args.join(" "))}`, { timeout: 90000 }).then(res => res.json());
                 if (mp3.error) throw new Error(mp3.message);
-                rs(mp3.url, async (err, res) => {
-                    try {
-                        const attachments = [];
-                        if (!err && res) attachments.push(new Discord.MessageAttachment(res, `${data.title.replace(/ +/g, "_")}.mp3`));
-                        if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title.replace(/ +/g, "_")}.pdf`));
-                        if(attachments.length < 1) {
-                            await mesg.edit("Failed to generate files!");
-                        }
-                        await mesg.delete();
-                        await message.author.send(attachments);
-                    } catch(err) {
-                        message.reply("did you block me? I cannot DM you!");
+                const mscz = await fetch(`https://north-utils.glitch.me/musescore-mscz/${encodeURIComponent(args.join(" "))}`, { timeout: 90000 }).then(res => res.json());
+                if (mscz.error) throw new Error(mscz.message);
+                try {
+                    const res = await requestStream(mp3.url).catch(console.error);
+                    const re = await requestStream(`https://musescore.now.sh/api/mscz?id=${data.id}&token=${mscz.token}`).catch(console.error);
+                    const attachments = [];
+                    if (res && res.statusCode == 200) attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
+                    if (re && re.statusCode == 200) attachments.push(new Discord.MessageAttachment(re, `${data.title}.mscz`));
+                    if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title}.pdf`));
+                    if (attachments.length < 1) {
+                        await mesg.edit("Failed to generate files!");
+                        return;
                     }
-                });
+                    await mesg.delete();
+                    await message.author.send(attachments);
+                } catch (err) {
+                    await message.reply("did you block me? I cannot DM you!");
+                }
             } catch (err) {
-                await mesg.edit("Failed to generate files!");
+                await message.channel.send("Failed to generate files!");
             }
         }
     },
@@ -177,7 +183,7 @@ module.exports = {
                 .setTimestamp()
                 .setFooter(`Currently on page ${++num}/${scores.length}`, message.client.user.displayAvatarURL());
             allEmbeds.push(em);
-            importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl, title: data.title });
+            importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl, title: data.title, id: data.id });
         }
         if (allEmbeds.length < 1) return message.channel.send("No score was found!");
         const filter = (reaction, user) => {
@@ -235,18 +241,18 @@ module.exports = {
                     collector.emit("end");
                     break;
                 case "📥":
-                    var mesg = await message.author.send("Generating files... (It will take a minute or two)");
                     try {
+                        var mesg = await message.author.send("Generating files... (It will take a minute or two)");
                         var hasPDF = true;
                         const doc = new PDFDocument();
                         var ext = "svg";
                         for (let i = 0; i < importants[s].pages; i++) {
                             try {
-                                if(ext === "svg") SVGtoPDF(doc, await rp(`https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.${ext}`), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                                else PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.${ext}`);
+                                if (ext === "svg") SVGtoPDF(doc, await fetch(`https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.${ext}`).then(res => res.text()), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                                else await PNGtoPDF(doc, `https://musescore.com/static/musescore/scoredata/gen/${importants[s].important}/score_${i}.${ext}`);
                                 if (i + 1 < importants[s].pages) doc.addPage();
-                            } catch(err) {
-                                if(ext === "svg") {
+                            } catch (err) {
+                                if (ext === "svg") {
                                     ext = "png";
                                     i = -1;
                                 } else {
@@ -258,22 +264,25 @@ module.exports = {
                         doc.end();
                         const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(importants[s].url)}`, { timeout: 90000 }).then(res => res.json());
                         if (mp3.error) throw new Error(mp3.message);
-                        rs(mp3.url, async (err, res) => {
-                            try {
-                                const attachments = [];
-                                if (!err && res) attachments.push(new Discord.MessageAttachment(res, `${importants[s].title.replace(/ +/g, "_")}.mp3`));
-                                if(hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${importants[s].title.replace(/ +/g, "_")}.pdf`));
-                                if(attachments.length < 1) {
-                                    await mesg.edit("Failed to generate files!");
-                                }
-                                await mesg.delete();
-                                await message.author.send(attachments);
-                            } catch(err) {
-                                message.reply("did you block me? I cannot DM you!");
+                        const mscz = await fetch(`https://north-utils.glitch.me/musescore-mscz/${encodeURIComponent(importants[s].url)}`, { timeout: 90000 }).then(res => res.json());
+                        if (mscz.error) throw new Error(mscz.message);
+                        try {
+                            const res = await requestStream(mp3.url).catch(console.error);
+                            const re = await requestStream(`https://musescore.now.sh/api/mscz?id=${importants[s].id}&token=${mscz.token}`).catch(console.error);
+                            const attachments = [];
+                            if (res && res.statusCode == 200) attachments.push(new Discord.MessageAttachment(res, `${importants[s].title}.mp3`));
+                            if (re && re.statusCode == 200) attachments.push(new Discord.MessageAttachment(re, `${importants[s].title}.mscz`));
+                            if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${importants[s].title}.pdf`));
+                            if (attachments.length < 1) {
+                                await mesg.edit("Failed to generate files!");
                             }
-                        });
+                            await mesg.delete();
+                            await message.author.send(attachments);
+                        } catch (err) {
+                            await message.reply("did you block me? I cannot DM you!");
+                        }
                     } catch (err) {
-                        await mesg.edit("Failed to generate files!");
+                        await message.channel.send("Failed to generate files!");
                     }
                     break;
             }

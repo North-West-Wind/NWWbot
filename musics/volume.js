@@ -25,10 +25,7 @@ module.exports = {
       if(serverQueue.volume < 0) serverQueue.volume = 0;
       message.channel.send("Volume has been changed to **" + (serverQueue.volume * 100) + "%**.");
     }
-    if(serverQueue.connection && serverQueue.playing && serverQueue.connection.dispatcher) {
-      serverQueue.connection.dispatcher.setVolume(serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume);
-      console.log(`Set volume of ${message.guild.name} to ${serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume}`);
-    }
+    if(serverQueue.connection && serverQueue.playing && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.setVolume(serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume);
     updateQueue(message, serverQueue, queue, null);
   }
 }
