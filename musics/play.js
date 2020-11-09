@@ -165,9 +165,8 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   var oldSkipped = skipped;
   skipped = 0;
   dispatcher.on("finish", async () => {
-    dispatcher = null;
     if (serverQueue.looping) serverQueue.songs.push(song);
-    else if (!serverQueue.repeating) serverQueue.songs.shift();
+    if (!serverQueue.repeating) serverQueue.songs.shift();
     updateQueue(message, serverQueue, queue, pool);
     if (Date.now() - now < 1000 && serverQueue.textChannel) {
       serverQueue.textChannel.send(`There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist. ${oldSkipped < 2 ? "" : `(${oldSkipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
