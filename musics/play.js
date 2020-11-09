@@ -343,7 +343,7 @@ module.exports = {
       return { error: true };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
-    var songLength = songInfo.videoDetails.isLiveContent ? "∞" : moment.duration(length, "seconds").format();
+    var songLength = length == 0 ? "∞" : moment.duration(length, "seconds").format();
     var thumbnails = songInfo.videoDetails.thumbnail.thumbnails;
     var thumbUrl = thumbnails[thumbnails.length - 1].url;
     var maxWidth = 0;
@@ -361,7 +361,7 @@ module.exports = {
         time: songLength,
         thumbnail: thumbUrl,
         volume: 1,
-        isLive: songInfo.videoDetails.isLiveContent
+        isLive: !length == 0
       }
     ];
     return { error: false, songs: songs };
