@@ -138,11 +138,13 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
             updateQueue(message, serverQueue, queue, pool);
           }
         }
+        const i = {};
         if (!song.isLive) {
           h.filter = "audioonly";
           h.dlChunkSize = 0;
+          i.seek = seek;
         }
-        dispatcher = serverQueue.connection.play(ytdl(song.url, h), { seek: seek });
+        dispatcher = serverQueue.connection.play(ytdl(song.url, h), i);
         break;
     }
   } catch (err) {
