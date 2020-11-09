@@ -346,6 +346,10 @@ module.exports = {
       return { error: true };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
+    if(length == 0) {
+      await message.channel.send("Livestreams are broken right now. Please don't use it.");
+      return { error: true };
+    }
     var songLength = length == 0 ? "∞" : moment.duration(length, "seconds").format();
     var thumbnails = songInfo.videoDetails.thumbnail.thumbnails;
     var thumbUrl = thumbnails[thumbnails.length - 1].url;
