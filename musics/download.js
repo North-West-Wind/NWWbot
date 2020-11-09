@@ -1,7 +1,7 @@
 const scdl = require("soundcloud-downloader");
 const ytdl = require("ytdl-core");
-const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, isEquivalent } = require("../function.js");
-const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search } = require("./play.js");
+const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent } = require("../function.js");
+const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search, updateQueue } = require("./play.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const Discord = require("discord.js");
 const requestStream = (url) => new Promise((resolve, reject) => {
@@ -14,16 +14,17 @@ module.exports = {
     usage: "[index | link | keywords]",
     aliases: ["dl"],
     category: 8,
-    async music(message, serverQueue) {
+    async music(message, serverQueue, queue, pool) {
         const args = message.content.slice(message.prefix.length).split(/ +/);
-        if (isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, args);
+        if (isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, serverQueue, queue, pool, args);
         if (!serverQueue) return message.channel.send("There is nothing playing.");
         if (!serverQueue.songs) serverQueue.songs = [];
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the song queue.");
         let song = serverQueue.songs[parseInt(args[1]) > serverQueue.songs.length ? 0 : parseInt(args[1])];
-        await this.download(message, song);
+        await this.download(message, serverQueue, song);
     },
-    async download(message, song) {
+    async download(message, serverQueue, queue, pool, song) {
+        const args = message.content.slice(message.prefix.length).split(/ +/);
         try {
             if (song.isLive) {
                 const args = ["0", song.url];
@@ -90,7 +91,7 @@ module.exports = {
             console.error(err);
         }
     },
-    async downloadFromArgs(message, args) {
+    async downloadFromArgs(message, serverQueue, queue, pool, args) {
         var result = { error: true };
         try {
             if (validYTPlaylistURL(args.slice(1).join(" "))) result = await addYTPlaylist(message, args);
@@ -104,7 +105,7 @@ module.exports = {
             else result = await search(message, args);
             if (result.error) return;
             if (result.msg) result.msg.delete({ timeout: 10000 });
-            for (const song of result.songs) await this.download(message, song);
+            for (const song of result.songs) await this.download(message, serverQueue, queue, pool, song);
         } catch(err) {
             message.reply("there was an error trying to download the soundtack!");
             console.error(err);
