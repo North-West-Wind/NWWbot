@@ -39,6 +39,10 @@ const requestStream = (url) => new Promise((resolve, reject) => {
   const rs = require("request-stream");
   rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
 });
+const requestYTDLStream = (url, opts) => new Promise((resolve, reject) => {
+  const stream = ytdl(url, opts);
+  stream.on("finish", () => resolve(stream)).on("error", err => reject(err));
+});
 function createEmbed(message, songs) {
   const Embed = new Discord.MessageEmbed()
     .setColor(console.color())
@@ -144,7 +148,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
           h.dlChunkSize = 0;
           i.seek = seek;
         }
-        dispatcher = serverQueue.connection.play(ytdl(song.url, h), i);
+        dispatcher = serverQueue.connection.play(await requestYTDLStream(song.url, h), i);
         break;
     }
   } catch (err) {

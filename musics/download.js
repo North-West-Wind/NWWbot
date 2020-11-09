@@ -20,7 +20,7 @@ module.exports = {
         if (!serverQueue) return message.channel.send("There is nothing playing.");
         if (!serverQueue.songs) serverQueue.songs = [];
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the song queue.");
-        let song = serverQueue.songs[parseInt(args[1]) > serverQueue.songs.length ? 0 : parseInt(args[1])];
+        let song = serverQueue.songs[!(!isNaN(parseInt(args[1])) && parseInt(args[1]) > serverQueue.songs.length) ? 0 : parseInt(args[1])];
         await this.download(message, serverQueue, queue, pool, song);
     },
     async download(message, serverQueue, queue, pool, song) {
@@ -85,7 +85,7 @@ module.exports = {
             await message.channel.send("The file may not appear just yet. Please be patient!");
             message.channel.stopTyping(true);
             let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
-            message.channel.send(attachment).catch((err) => message.reply(`there was an error trying to send the soundtrack! (${err.message})`));
+            await message.channel.send(attachment).catch((err) => message.reply(`there was an error trying to send the soundtrack! (${err.message})`));
         } catch (err) {
             message.reply(`there was an error trying to send the soundtrack!`);
             console.error(err);
