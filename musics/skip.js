@@ -13,16 +13,14 @@ module.exports = {
     if (!serverQueue) return message.channel.send("There is no song that I could skip!");
     if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
     if (serverQueue.repeating) skipped = 0;
-    else {
-      if (args[1] && isNaN(parseInt(args[1]))) message.channel.send(`**${args[1]}** is not a integer. Will skip 1 song instead.`);
-      else if (args[1]) skipped = parseInt(args[1]);
-      for (var i = 0; i < skipped; i++) {
-        if(serverQueue.looping) {
-          var song = serverQueue.songs[0];
-          serverQueue.songs.push(song);
-        }
-        serverQueue.songs.shift();
+    else if (args[1] && isNaN(parseInt(args[1]))) message.channel.send(`**${args[1]}** is not a integer. Will skip 1 song instead.`);
+    else if (args[1]) skipped = parseInt(args[1]);
+    for (var i = 0; i < skipped; i++) {
+      if(serverQueue.looping) {
+        var song = serverQueue.songs[0];
+        serverQueue.songs.push(song);
       }
+      serverQueue.songs.shift();
     }
     updateQueue(message, serverQueue, queue, pool);
     message.channel.send(`Skipped **${Math.max(1, skipped)}** track${skipped > 1 ? "s" : ""}!`);

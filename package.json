@@ -11,7 +11,7 @@
     "npm": "6.14.6"
   },
   "author": "NorthWestWind",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@discordjs/opus": "^0.3.2",
     "@fasetto/krunker.io": "^0.4.2",
