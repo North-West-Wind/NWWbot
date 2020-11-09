@@ -16,19 +16,19 @@ module.exports = {
     category: 8,
     async music(message, serverQueue, queue, pool) {
         const args = message.content.slice(message.prefix.length).split(/ +/);
-        if (isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, serverQueue, queue, pool, args);
+        if (args[1] && isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, serverQueue, queue, pool, args);
         if (!serverQueue) return message.channel.send("There is nothing playing.");
         if (!serverQueue.songs) serverQueue.songs = [];
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the song queue.");
         let song = serverQueue.songs[parseInt(args[1]) > serverQueue.songs.length ? 0 : parseInt(args[1])];
-        await this.download(message, serverQueue, song);
+        await this.download(message, serverQueue, queue, pool, song);
     },
     async download(message, serverQueue, queue, pool, song) {
         const args = message.content.slice(message.prefix.length).split(/ +/);
         try {
             if (song.isLive) {
-                const args = ["0", song.url];
-                const result = await addYTURL({ dummy: true }, args, song.type);
+                const argss = ["0", song.url];
+                const result = await addYTURL({ dummy: true }, argss, song.type);
                 if (result.error) throw "Failed to find video";
                 if (!isEquivalent(result.songs[0], song)) {
                     song = result.songs[0];
