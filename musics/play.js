@@ -89,7 +89,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
       if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
     }
     if (serverQueue.looping) serverQueue.songs.push(song);
-    else if (!serverQueue.repeating) serverQueue.songs.shift();
+    if (!serverQueue.repeating) serverQueue.songs.shift();
     updateQueue(message, serverQueue, queue, pool);
     play(guild, serverQueue.songs[0], queue, pool, skipped);
   }
