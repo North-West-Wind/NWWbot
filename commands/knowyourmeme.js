@@ -23,7 +23,6 @@ function getSearchURL(term) {
 function makeRequest(url) {
   return new Promise(async(resolve, reject) => {
     const res = await fetch(url, { headers: { "User-Agent": config.USER_AGENT } });
-    if (res.statusCode != 200) reject(new Error("Received HTTP Status Code " + res.statusCode));
     resolve(await res.text());
   });
 }

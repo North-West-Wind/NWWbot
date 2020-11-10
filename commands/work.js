@@ -68,7 +68,6 @@ module.exports = {
               return await message.reply("there was an error trying to update your bank account!");
             }
           });
-          await msg.delete();
           await message.channel.send(`<@${message.author.id}> worked and gained **$${gain}**!${(doubling ? " The money you gained is doubled!" : "")}`);
         }
       });

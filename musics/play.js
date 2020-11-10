@@ -136,12 +136,11 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
             updateQueue(message, serverQueue, queue, pool);
           }
         }
-        if (!song.isLive && !song.isPastLive) {
-          const info = await ytdl.getInfo(song.url);
-          console.log("This is a debug code. I log nothing.");
-          dispatcher = serverQueue.connection.play(ytdl.downloadFromInfo(info, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 }), { seek: seek });
-        } else if (song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
-        else dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }));
+        const info = await ytdl.getInfo(song.url, { requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } });
+        console.log("This is a debug code. I log nothing.");
+        if (!song.isLive && !song.isPastLive) dispatcher = serverQueue.connection.play(ytdl.downloadFromInfo(info, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 }), { seek: seek });
+        else if (song.isPastLive) dispatcher = serverQueue.connection.play(ytdl.downloadFromInfo(info, { highWaterMark: 1 << 25 }), { seek: seek });
+        else dispatcher = serverQueue.connection.play(ytdl.downloadFromInfo(info, { highWaterMark: 1 << 25 }));
         break;
     }
   } catch (err) {
