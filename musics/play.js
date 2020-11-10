@@ -69,7 +69,9 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   const serverQueue = queue.get(guild.id);
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!serverQueue.voiceChannel && guild.me.voice && guild.me.voice.channel) serverQueue.voiceChannel = guild.me.voice.channel;
+  serverQueue.playing = true;
   if (!song || !serverQueue.voiceChannel) {
+    serverQueue.playing = false;
     if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
     return updateQueue(message, serverQueue, queue, pool);
   }
@@ -86,6 +88,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
       serverQueue.voiceChannel = null;
       serverQueue.textChannel = null;
       if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
+      return;
     }
     if (serverQueue.looping) serverQueue.songs.push(song);
     if (!serverQueue.repeating) serverQueue.songs.shift();
@@ -136,11 +139,9 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
             updateQueue(message, serverQueue, queue, pool);
           }
         }
-        const info = await ytdl.getInfo(song.url, { requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } });
-        console.log("This is a debug code. I log nothing.");
-        if (!song.isLive && !song.isPastLive) dispatcher = serverQueue.connection.play(ytdl.downloadFromInfo(info, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 }), { seek: seek });
-        else if (song.isPastLive) dispatcher = serverQueue.connection.play(ytdl.downloadFromInfo(info, { highWaterMark: 1 << 25 }), { seek: seek });
-        else dispatcher = serverQueue.connection.play(ytdl.downloadFromInfo(info, { highWaterMark: 1 << 25 }));
+        if (!song.isLive && !song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
+        else if (song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
+        else dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }));
         break;
     }
   } catch (err) {
@@ -260,7 +261,6 @@ module.exports = {
       if (!message.guild.me.voice.channel) {
         serverQueue.voiceChannel = voiceChannel;
         serverQueue.connection = await voiceChannel.join();
-        serverQueue.playing = true;
         serverQueue.textChannel = message.channel;
       }
       if (!serverQueue.playing) play(message.guild, serverQueue.songs[0], queue, pool);
