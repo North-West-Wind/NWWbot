@@ -39,10 +39,6 @@ const requestStream = (url) => new Promise((resolve, reject) => {
   const rs = require("request-stream");
   rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
 });
-const requestYTDLStream = (url, opts) => new Promise((resolve, reject) => {
-  const stream = ytdl(url, opts);
-  stream.on("finish", () => resolve(stream)).on("error", err => reject(err));
-});
 function createEmbed(message, songs) {
   const Embed = new Discord.MessageEmbed()
     .setColor(console.color())
@@ -132,7 +128,6 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
         dispatcher = serverQueue.connection.play(new StreamConcat([f, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
       default:
-        const h = { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } };
         if (song.isLive) {
           const j = await module.exports.addYTURL(message, args, song.type);
           if (j.error) throw "Failed to find video";
@@ -142,13 +137,8 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
             updateQueue(message, serverQueue, queue, pool);
           }
         }
-        const i = {};
-        if (!song.isLive) {
-          h.filter = "audioonly";
-          h.dlChunkSize = 0;
-          i.seek = seek;
-        }
-        dispatcher = serverQueue.connection.play(await requestYTDLStream(song.url, h), i);
+        if (!song.isLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
+        else dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }));
         break;
     }
   } catch (err) {

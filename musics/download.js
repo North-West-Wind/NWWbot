@@ -5,9 +5,18 @@ const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search,
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const Discord = require("discord.js");
 const requestStream = (url) => new Promise((resolve, reject) => {
-  const rs = require("request-stream");
-  rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
+    const rs = require("request-stream");
+    rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
 });
+const requestYTDLStream = (url, opts) => {
+    const timeoutMS = opts.timeout && !isNaN(parseInt(opts.timeout)) ? parseInt(opts.timeout) : 30000;
+    const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${timeoutMS}ms`)), timeoutMS));
+    const getStream = new Promise((resolve, reject) => {
+        const stream = ytdl(url, opts);
+        stream.on("finish", () => resolve(stream)).on("error", err => reject(err));
+    });
+    return Promise.race([timeout, getStream]);
+};
 module.exports = {
     name: "download",
     description: "Download the soundtrack from the server queue or online.",
@@ -60,21 +69,21 @@ module.exports = {
                     break;
                 case 6:
                     stream = await requestStream(song.download);
-                    if(stream.statusCode != 200) {
-                      const g = await module.exports.addPHURL(message, args);
-                      if(g.error) throw "Failed to find video";
-                      song = g;
-                      serverQueue.songs[0] = song;
-                      updateQueue(message, serverQueue, queue, pool);
-                      stream = await requestStream(song.download);
-                      if(stream.statusCode != 200) throw new Error("Received HTTP Status Code: " + stream.statusCode);
+                    if (stream.statusCode != 200) {
+                        const g = await module.exports.addPHURL(message, args);
+                        if (g.error) throw "Failed to find video";
+                        song = g;
+                        serverQueue.songs[0] = song;
+                        updateQueue(message, serverQueue, queue, pool);
+                        stream = await requestStream(song.download);
+                        if (stream.statusCode != 200) throw new Error("Received HTTP Status Code: " + stream.statusCode);
                     }
                     break;
                 default:
-                    stream = ytdl(song.url, { highWaterMark: 1 << 25, filter: "audioonly", quality: "lowestaudio", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
+                    stream = await requestYTDLStream(song.url, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
                     break;
             }
-            if(stream.statusCode && stream.statusCode != 200) throw new Error("Received HTTP Status Code " + stream.statusCode);
+            if (stream.statusCode && stream.statusCode != 200) throw new Error("Received HTTP Status Code " + stream.statusCode);
         } catch (err) {
             message.channel.stopTyping(true);
             console.error(err);
@@ -106,7 +115,7 @@ module.exports = {
             if (result.error) return;
             if (result.msg) result.msg.delete({ timeout: 10000 });
             for (const song of result.songs) await this.download(message, serverQueue, queue, pool, song);
-        } catch(err) {
+        } catch (err) {
             message.reply("there was an error trying to download the soundtack!");
             console.error(err);
         }

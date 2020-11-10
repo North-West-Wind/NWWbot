@@ -8,15 +8,14 @@ module.exports = {
   name: "krunker",
   description: "Connect to the Krunker.io API and display stats.",
   aliases: ["kr"],
-  usage: "<subcommand> <username | search term | [version]>",
+  usage: "<subcommand> [search term | version]",
   args: 1,
   category: 7,
   subcommands: ["stats", "server", "changelog"],
   async execute(message, args) {
     switch (args[0]) {
       case "stats":
-        if (!args[1]) return message.channel.send("Please enter the username and try again.");
-        return await this.profile(message, args.slice(1).join(" "));
+        return await message.channel.send(`Sorry! Krunker added ReCaptcha to their social page. Now it is inaccessible :(.\nHowever here are some different subcommands you can try out: \`${this.subcommands.slice(1).join("`, `")}\``);
       case "server":
         var msg = await message.channel.send("Loading servers...");
         msg.channel.startTyping();
@@ -213,7 +212,7 @@ module.exports = {
         }
         break;
       default:
-        return await this.profile(message, args.join(" "));
+        return await message.channel.send(`Sorry! Krunker added ReCaptcha to their social page. Now it is inaccessible :(.\nHowever here are some different subcommands you can try out: \`${this.subcommands.slice(1).join("`, `")}\``);
     }
   },
   async profile(message, username) {
