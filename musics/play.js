@@ -68,13 +68,13 @@ function updateQueue(message, serverQueue, queue, pool) {
 
 async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   const serverQueue = queue.get(guild.id);
-  const args = ["0", song.url];
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!serverQueue.voiceChannel && guild.me.voice && guild.me.voice.channel) serverQueue.voiceChannel = guild.me.voice.channel;
   if (!song || !serverQueue.voiceChannel) {
     if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
     return updateQueue(message, serverQueue, queue, pool);
   }
+  const args = ["0", song.url];
   var dispatcher;
   async function skip() {
     skipped++;
@@ -137,7 +137,11 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
             updateQueue(message, serverQueue, queue, pool);
           }
         }
-        if (!song.isLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
+        if (!song.isLive && !song.isPastLive) {
+          const info = await ytdl.getInfo(song.url);
+          const format = ytdl.chooseFormat(info.formats, { filter: "audioonly" });
+          dispatcher = serverQueue.connection.play(await requestStream(format.url), { seek: seek });
+        } else if (song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
         else dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }));
         break;
     }
@@ -336,10 +340,6 @@ module.exports = {
       return { error: true };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
-    if(length == 0) {
-      await message.channel.send("Livestreams are broken right now. Please don't use it.");
-      return { error: true };
-    }
     var songLength = length == 0 ? "∞" : moment.duration(length, "seconds").format();
     var thumbnails = songInfo.videoDetails.thumbnail.thumbnails;
     var thumbUrl = thumbnails[thumbnails.length - 1].url;
@@ -358,7 +358,8 @@ module.exports = {
         time: songLength,
         thumbnail: thumbUrl,
         volume: 1,
-        isLive: length == 0
+        isLive: length == 0,
+        isPastLive: songInfo.videoDetails.isLiveContent
       }
     ];
     return { error: false, songs: songs };
@@ -704,11 +705,11 @@ module.exports = {
       .setFooter("Choose your song by typing the number, or type anything else to cancel.", message.client.user.displayAvatarURL());
     const results = [];
     try {
-      var searched = await ytsr(args.slice(1).join(" "), { limit: 20 });
+      const searched = await ytsr(args.slice(1).join(" "), { limit: 20 });
       var video = searched.items.filter(x => x.type === "video");
     } catch (err) {
       try {
-        var searched = await ytsr2.search(args.slice(1).join(" "), { limit: 20 });
+        const searched = await ytsr2.search(args.slice(1).join(" "), { limit: 20 });
         var video = searched.map(x => {
           return {
             live: false,
@@ -733,7 +734,6 @@ module.exports = {
     Embed.setDescription(results.join("\n"));
     var msg = await message.channel.send(Embed)
     var filter = x => x.author.id === message.author.id;
-
     var collected = await msg.channel.awaitMessages(filter, { max: 1, time: 30000, error: ["time"] });
     if (!collected || !collected.first() || !collected.first().content) {
       const Ended = new Discord.MessageEmbed()
@@ -746,39 +746,23 @@ module.exports = {
     }
     const content = collected.first().content;
     collected.first().delete();
-    if (
-      isNaN(parseInt(content)) ||
-      (parseInt(content) < 1 && parseInt(content) > results.length)
-    ) {
+    if (isNaN(parseInt(content)) || (parseInt(content) < 1 && parseInt(content) > results.length)) {
       const cancelled = new Discord.MessageEmbed()
         .setColor(console.color())
         .setTitle("Action cancelled.")
         .setTimestamp()
-        .setFooter(
-          "Have a nice day! :)",
-          message.client.user.displayAvatarURL()
-        );
-
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       await msg.edit(cancelled).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
       return { error: true };
     }
-
     var s = parseInt(content) - 1;
-
     const chosenEmbed = new Discord.MessageEmbed()
       .setColor(console.color())
       .setTitle("Music chosen:")
       .setThumbnail(video[s].thumbnail)
-      .setDescription(
-        `**[${decodeHtmlEntity(video[s].title)}](${video[s].link
-        })** : **${video[s].duration}**`
-      )
+      .setDescription(`**[${decodeHtmlEntity(video[s].title)}](${video[s].link})** : **${video[s].duration}**`)
       .setTimestamp()
-      .setFooter(
-        "Have a nice day :)",
-        message.client.user.displayAvatarURL()
-      );
-
+      .setFooter("Have a nice day :)", message.client.user.displayAvatarURL());
     await msg.edit(chosenEmbed).catch(() => { });
     var length = !video[s].live ? video[s].duration : "∞";
     var song = {

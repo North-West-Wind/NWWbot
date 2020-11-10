@@ -1000,7 +1000,7 @@ module.exports = {
             timeout = setTimeout(() => {
                 message.client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
                 timeout = undefined;
-            }, 60000);
+            }, 10000);
         }
         if (message.guild !== null && !message.channel.permissionsFor(message.guild.me).has(84992)) return message.author.send("I don't have the required permissions! Please tell your server admin that I need at least the permissions to `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
         try {
