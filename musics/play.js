@@ -358,7 +358,7 @@ module.exports = {
         time: songLength,
         thumbnail: thumbUrl,
         volume: 1,
-        isLive: !length == 0
+        isLive: length == 0
       }
     ];
     return { error: false, songs: songs };
