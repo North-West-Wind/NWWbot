@@ -27,6 +27,6 @@ module.exports = {
         if(Math.round(parsed / 1000) > Math.floor(ms(serverQueue.songs[0].time) / 1000)) return message.channel.send("The time specified should not be larger than the maximum length of the soudtrack!");
         serverQueue.connection.dispatcher.destroy();
         play(message.guild, serverQueue.songs[0], queue, pool, 0, Math.round(parsed / 1000));
-        message.channel.send(`Seeked to **${moment.duration(Math.round(parsed / 1000), "seconds").format()}**`);
+        message.channel.send(`Seeked to **${parsed == 0 ? "0:00" : moment.duration(Math.round(parsed / 1000), "seconds").format()}**`);
     }
 }
