@@ -61,7 +61,7 @@ module.exports = {
           }
           var doubling = false;
           if (results[0].doubling && results[0].doubling - Date.now() > 0) doubling = true;
-          var newCurrency = Math.round((parseInt(results[0].currency) + (doubling ? gain * 2 : gain) + Number.EPSILON) * 100) / 100;
+          var newCurrency = Math.round((Number(results[0].currency) + (doubling ? gain * 2 : gain) + Number.EPSILON) * 100) / 100;
           con.query(`UPDATE currency SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? `, doubling = NULL` : "")} WHERE user_id = '${message.author.id}'`, async(err) => {
             if (err) {
               console.error(err);

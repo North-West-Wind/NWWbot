@@ -17,7 +17,12 @@ module.exports = {
         if(serverQueue.songs[0].time === "∞") return message.channel.send("This command does not work for live videos.");
         const args = message.content.slice(message.prefix.length).split(/ +/);
         if(args.length < 2) return message.channel.send("You didn't provide the time to skip to!");
-        const parsed = ms(args.slice(1).join(" "));
+        var parsed = ms(args.slice(1).join(" "));
+        if(args.slice(1).join(" ").endsWith("%")) {
+            const percentage = Number(args.slice(1).join(" ").slice(0, -1));
+            if(isNaN(percentage) || percentage > 100 || percentage < 0) return await message.channel.send("The given percentage is not valid!");
+            parsed = ms(serverQueue.songs[0].time) * (percentage / 100);
+        }
         if(!parsed) return message.channel.send("The given time is not valid!");
         if(Math.round(parsed / 1000) > Math.floor(ms(serverQueue.songs[0].time) / 1000)) return message.channel.send("The time specified should not be larger than the maximum length of the soudtrack!");
         serverQueue.connection.dispatcher.destroy();
