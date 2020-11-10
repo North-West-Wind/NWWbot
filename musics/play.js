@@ -138,9 +138,8 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
         }
         if (!song.isLive && !song.isPastLive) {
           const info = await ytdl.getInfo(song.url);
-          const format = ytdl.chooseFormat(info.formats, { filter: "audioonly" });
-          console.log(format.url);
-          dispatcher = serverQueue.connection.play(await requestStream(format.url), { seek: seek });
+          console.log("This is a debug code. I log nothing.");
+          dispatcher = serverQueue.connection.play(ytdl.downloadFromInfo(info, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 }), { seek: seek });
         } else if (song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
         else dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }));
         break;
