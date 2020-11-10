@@ -27,8 +27,7 @@ const ytsr = require("ytsr");
 const ytsr2 = require("youtube-sr");
 const ytpl = require("ytpl");
 const moment = require("moment");
-const formatSetup = require("moment-duration-format");
-formatSetup(moment);
+require("moment-duration-format")(moment);
 const scdl = require("soundcloud-downloader");
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
@@ -140,6 +139,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
         if (!song.isLive && !song.isPastLive) {
           const info = await ytdl.getInfo(song.url);
           const format = ytdl.chooseFormat(info.formats, { filter: "audioonly" });
+          console.log(format.url);
           dispatcher = serverQueue.connection.play(await requestStream(format.url), { seek: seek });
         } else if (song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
         else dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }));
