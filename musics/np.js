@@ -18,7 +18,6 @@ module.exports = {
   description: "Display the music being played.",
   aliases: ["nowplaying"],
   category: 8,
-  npMsg: [],
   async music(message, serverQueue) {
     if (!serverQueue) return message.channel.send("There is nothing playing.");
     if (serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");
@@ -49,7 +48,6 @@ module.exports = {
     else info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLive: **${isLive ? "Yes" : "No"}**\nVolume: **${serverQueue.songs[0].volume ? (`${serverQueue.volume * serverQueue.songs[0].volume * 100}% (Local) | ${serverQueue.volume * 100}% (Global)`) : `${serverQueue.volume * 100}%`}**\nType: **${type[serverQueue.songs[0].type]}**`, serverQueue.songs[0].thumbnail];
     embed.setDescription(`${info[0]}\n\n${positionTime} \`${processBar.join("")}\` ${serverQueue.songs[0].time}`).setThumbnail(info[1]);
     const msg = await message.channel.send(embed);
-    if(song.id) this.npMsg.push({ msg: msg, id: song.id });
-    else setTimeout(() => msg.edit("**[Outdated Now-Playing Information]**"), 30000);
+    setTimeout(() => msg.edit({ content: "**[Outdated Now-Playing Information]**", embed: null }), 60000);
   }
 }

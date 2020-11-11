@@ -165,12 +165,6 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   dispatcher.on("finish", async () => {
     if (serverQueue.looping) serverQueue.songs.push(song);
     if (!serverQueue.repeating) serverQueue.songs.shift();
-    const npMsg = require("./np.js").npMsg;
-    npMsg.forEach((x, index) => {
-      if (x.id !== song.id) return;
-      x.msg.edit("**[Outdated Now-Playing Information]**");
-      npMsg.splice(index, 1);
-    })
     updateQueue(message, serverQueue, queue, pool);
     if (Date.now() - now < 1000 && serverQueue.textChannel) {
       serverQueue.textChannel.send(`There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist. ${oldSkipped < 2 ? "" : `(${oldSkipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
@@ -756,7 +750,7 @@ module.exports = {
     });
     var num = 0;
     if (video.length > 0) {
-      Embed.setDescription(video.map(x => `${++num} - **[${decodeHtmlEntity(x.title)}](${x.link})** : **${x.duration}**`).join("\n"));
+      Embed.setDescription(video.map(x => `${++num} - **[${decodeHtmlEntity(x.title)}](${x.link})** : **${x.duration}**`).slice(0, 10).join("\n"));
       allEmbeds.push(Embed);
     }
     const scEm = new Discord.MessageEmbed()
@@ -768,8 +762,8 @@ module.exports = {
       var scSearched = await scdl.search("tracks", args.slice(1).join(" "));
       num = 0;
       if(scSearched.collection.length > 0) {
-        scEm.setDescription(scSearched.collection.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).join("\n"));
-        allEmbeds.push(Embed);
+        scEm.setDescription(scSearched.collection.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).slice(0, 10).join("\n"));
+        allEmbeds.push(scEm);
       }
     } catch(err) {
       console.error(err);
@@ -793,55 +787,58 @@ module.exports = {
       return { error: true };
     }
     const results = ytResults.concat(scResults);
-    var s = 0;
     var msg = await message.channel.send(allEmbeds[0]);
-    await msg.react("⏮");
-    await msg.react("◀");
-    await msg.react("▶");
-    await msg.react("⏭");
-    await msg.react("⏹");
-    const collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
-    collector.on("collect", function (reaction, user) {
-      reaction.users.remove(user.id);
-      switch (reaction.emoji.name) {
-        case "⏮":
-          s = 0;
-          msg.edit(allEmbeds[s]);
-          break;
-        case "◀":
-          s -= 1;
-          if (s < 0) {
-            s = allEmbeds.length - 1;
-          }
-          msg.edit(allEmbeds[s]);
-          break;
-        case "▶":
-          s += 1;
-          if (s > allEmbeds.length - 1) {
+    var collector = undefined;
+    if(allEmbeds.length > 1) {
+      var s = 0;
+      await msg.react("⏮");
+      await msg.react("◀");
+      await msg.react("▶");
+      await msg.react("⏭");
+      await msg.react("⏹");
+      collector = await msg.createReactionCollector((reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id), { idle: 60000, errors: ["time"] });
+      collector.on("collect", function (reaction, user) {
+        reaction.users.remove(user.id);
+        switch (reaction.emoji.name) {
+          case "⏮":
             s = 0;
-          }
-          msg.edit(allEmbeds[s]);
-          break;
-        case "⏭":
-          s = allEmbeds.length - 1;
-          msg.edit(allEmbeds[s]);
-          break;
-        case "⏹":
-          collector.emit("end");
-          break;
-      }
-    });
-    collector.on("end", () => msg.reactions.removeAll().catch(console.error));
-    var filter = x => x.author.id === message.author.id;
-    var collected = await msg.channel.awaitMessages(filter, { max: 1, time: 60000, error: ["time"] });
-    collector.emit("end");
+            msg.edit(allEmbeds[s]);
+            break;
+          case "◀":
+            s -= 1;
+            if (s < 0) {
+              s = allEmbeds.length - 1;
+            }
+            msg.edit(allEmbeds[s]);
+            break;
+          case "▶":
+            s += 1;
+            if (s > allEmbeds.length - 1) {
+              s = 0;
+            }
+            msg.edit(allEmbeds[s]);
+            break;
+          case "⏭":
+            s = allEmbeds.length - 1;
+            msg.edit(allEmbeds[s]);
+            break;
+          case "⏹":
+            collector.emit("end");
+            break;
+        }
+      });
+      collector.on("end", () => msg.reactions.removeAll().catch(console.error));
+    }
+    const filter = x => x.author.id === message.author.id;
+    const collected = await msg.channel.awaitMessages(filter, { max: 1, time: 60000, error: ["time"] });
+    if(collector) collector.emit("end");
     if (!collected || !collected.first() || !collected.first().content) {
       const Ended = new Discord.MessageEmbed()
         .setColor(console.color())
         .setTitle("Cannot parse your choice.")
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-      await msg.edit(Ended).then(msg => setTimeout(() => msg.edit("**[Added Track: No track added]**"), 30000));
+      await msg.edit(Ended).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**", embed: null }), 30000));
       return { error: true };
     }
     const content = collected.first().content;
@@ -852,7 +849,7 @@ module.exports = {
         .setTitle("Action cancelled.")
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-      await msg.edit(cancelled).then(msg => setTimeout(() => msg.edit("**[Added Track: No track added]**"), 30000));
+      await msg.edit(cancelled).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**", embed: null }), 30000));
       return { error: true };
     }
     const o = parseInt(content) - 1;
