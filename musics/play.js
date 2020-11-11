@@ -748,7 +748,7 @@ module.exports = {
         title: decodeHtmlEntity(x.title),
         url: x.link,
         type: 0,
-        time: !video[s].live ? video[s].duration : "∞",
+        time: !x.live ? x.duration : "∞",
         thumbnail: x.thumbnail,
         volume: 1,
         isLive: x.live
