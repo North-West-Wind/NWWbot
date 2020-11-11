@@ -715,12 +715,12 @@ module.exports = {
     return { error: false, songs: songs };
   },
   async search(message, args) {
+    const allEmbeds = [];
     const Embed = new Discord.MessageEmbed()
-      .setTitle("Search result of " + args.slice(1).join(" "))
+      .setTitle(`Search result of ${args.slice(1).join(" ")} on YouTube`)
       .setColor(console.color())
       .setTimestamp()
       .setFooter("Choose your song by typing the number, or type anything else to cancel.", message.client.user.displayAvatarURL());
-    const results = [];
     try {
       const searched = await ytsr(args.slice(1).join(" "), { limit: 20 });
       var video = searched.items.filter(x => x.type === "video");
@@ -742,23 +742,106 @@ module.exports = {
         return { error: true };
       }
     }
+    const ytResults = video.map(x => {
+      return {
+        id: ID(),
+        title: decodeHtmlEntity(x.title),
+        url: x.link,
+        type: 0,
+        time: !video[s].live ? video[s].duration : "∞",
+        thumbnail: x.thumbnail,
+        volume: 1,
+        isLive: x.live
+      };
+    });
     var num = 0;
-    for (let i = 0; i < Math.min(video.length, 10); i++) try {
-      results.push(`${++num} - **[${decodeHtmlEntity(video[i].title)}](${video[i].link})** : **${video[i].duration}**`);
-    } catch (err) {
-      --num;
+    if (video.length > 0) {
+      Embed.setDescription(video.map(x => `${++num} - **[${decodeHtmlEntity(x.title)}](${x.link})** : **${x.duration}**`).join("\n"));
+      allEmbeds.push(Embed);
     }
-    Embed.setDescription(results.join("\n"));
-    var msg = await message.channel.send(Embed)
+    const scEm = new Discord.MessageEmbed()
+      .setTitle(`Search result of ${args.slice(1).join(" ")} on SoundCloud`)
+      .setColor(console.color())
+      .setTimestamp()
+      .setFooter("Choose your song by typing the number, or type anything else to cancel.", message.client.user.displayAvatarURL());
+    try {
+      var scSearched = await scdl.search("tracks", args.slice(1).join(" "));
+      num = 0;
+      if(scSearched.collection.length > 0) {
+        scEm.setDescription(scSearched.collection.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).join("\n"));
+        allEmbeds.push(Embed);
+      }
+    } catch(err) {
+      console.error(err);
+      message.reply("there was an error trying to search the videos!");
+      return { error: true };
+    }
+    const scResults = scSearched.collection.map(x => {
+      return {
+        id: ID(),
+        title: x.title,
+        url: x.permalink_url,
+        type: 3,
+        time: moment.duration(Math.floor(x.duration / 1000), "seconds").format(),
+        thumbnail: x.artwork_url,
+        volume: 1,
+        isLive: false
+      };
+    });
+    if (allEmbeds.length < 1) {
+      message.channel.send("Cannot find any result with the given string.");
+      return { error: true };
+    }
+    const results = ytResults.concat(scResults);
+    var s = 0;
+    var msg = await message.channel.send(allEmbeds[0]);
+    await msg.react("⏮");
+    await msg.react("◀");
+    await msg.react("▶");
+    await msg.react("⏭");
+    await msg.react("⏹");
+    const collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
+    collector.on("collect", function (reaction, user) {
+      reaction.users.remove(user.id);
+      switch (reaction.emoji.name) {
+        case "⏮":
+          s = 0;
+          msg.edit(allEmbeds[s]);
+          break;
+        case "◀":
+          s -= 1;
+          if (s < 0) {
+            s = allEmbeds.length - 1;
+          }
+          msg.edit(allEmbeds[s]);
+          break;
+        case "▶":
+          s += 1;
+          if (s > allEmbeds.length - 1) {
+            s = 0;
+          }
+          msg.edit(allEmbeds[s]);
+          break;
+        case "⏭":
+          s = allEmbeds.length - 1;
+          msg.edit(allEmbeds[s]);
+          break;
+        case "⏹":
+          collector.emit("end");
+          break;
+      }
+    });
+    collector.on("end", () => msg.reactions.removeAll().catch(console.error));
     var filter = x => x.author.id === message.author.id;
-    var collected = await msg.channel.awaitMessages(filter, { max: 1, time: 30000, error: ["time"] });
+    var collected = await msg.channel.awaitMessages(filter, { max: 1, time: 60000, error: ["time"] });
+    collector.emit("end");
     if (!collected || !collected.first() || !collected.first().content) {
       const Ended = new Discord.MessageEmbed()
         .setColor(console.color())
         .setTitle("Cannot parse your choice.")
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-      msg.edit(Ended).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
+      await msg.edit(Ended).then(msg => setTimeout(() => msg.edit("**[Added Track: No track added]**"), 30000));
       return { error: true };
     }
     const content = collected.first().content;
@@ -769,30 +852,19 @@ module.exports = {
         .setTitle("Action cancelled.")
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-      await msg.edit(cancelled).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
+      await msg.edit(cancelled).then(msg => setTimeout(() => msg.edit("**[Added Track: No track added]**"), 30000));
       return { error: true };
     }
-    var s = parseInt(content) - 1;
+    const o = parseInt(content) - 1;
     const chosenEmbed = new Discord.MessageEmbed()
       .setColor(console.color())
       .setTitle("Music chosen:")
-      .setThumbnail(video[s].thumbnail)
-      .setDescription(`**[${decodeHtmlEntity(video[s].title)}](${video[s].link})** : **${video[s].duration}**`)
+      .setThumbnail(results[s * ytResults.length + o].thumbnail)
+      .setDescription(`**[${decodeHtmlEntity(results[s * ytResults.length + o].title)}](${results[s * ytResults.length + o].url})** : **${results[s * ytResults.length + o].time}**`)
       .setTimestamp()
       .setFooter("Have a nice day :)", message.client.user.displayAvatarURL());
     await msg.edit(chosenEmbed).catch(() => { });
-    var length = !video[s].live ? video[s].duration : "∞";
-    var song = {
-      id: ID(),
-      title: decodeHtmlEntity(video[s].title),
-      url: video[s].link,
-      type: 0,
-      time: length,
-      thumbnail: video[s].thumbnail,
-      volume: 1,
-      isLive: video[s].live
-    };
-    return { error: false, songs: [song], msg, embed: Embed };
+    return { error: false, songs: [results[s * ytResults.length + o]], msg, embed: Embed };
   },
   updateQueue: updateQueue,
   createEmbed: createEmbed
