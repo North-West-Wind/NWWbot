@@ -10,7 +10,8 @@ const {
   validSCURL,
   validMSURL,
   validPHURL,
-  isEquivalent
+  isEquivalent,
+  ID
 } = require("../function.js");
 const { parseBody } = require("../commands/musescore.js");
 const { migrate } = require("./migrate.js");
@@ -164,6 +165,12 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   dispatcher.on("finish", async () => {
     if (serverQueue.looping) serverQueue.songs.push(song);
     if (!serverQueue.repeating) serverQueue.songs.shift();
+    const npMsg = require("./np.js").npMsg;
+    npMsg.forEach((x, index) => {
+      if (x.id !== song.id) return;
+      x.msg.edit("**[Outdated Now-Playing Information]**");
+      npMsg.splice(index, 1);
+    })
     updateQueue(message, serverQueue, queue, pool);
     if (Date.now() - now < 1000 && serverQueue.textChannel) {
       serverQueue.textChannel.send(`There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist. ${oldSkipped < 2 ? "" : `(${oldSkipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
@@ -212,7 +219,7 @@ module.exports = {
       try {
         if (message.guild.me.voice.channel && message.guild.me.voice.channelID === voiceChannel.id) serverQueue.connection = message.guild.me.voice.connection;
         else {
-          if(message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
+          if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
           serverQueue.connection = await voiceChannel.join();
         }
       } catch (err) {
@@ -268,7 +275,7 @@ module.exports = {
       else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
     } catch (err) {
       message.reply("there was an error trying to connect to the voice channel!");
-      if(message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
+      if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
       console.error(err);
     }
   },
@@ -291,6 +298,7 @@ module.exports = {
       const length = Math.round(metadata.format.duration);
       const songLength = moment.duration(length, "seconds").format();
       songs.push({
+        id: ID(),
         title: (file.name ? file.name.split(".").slice(0, -1).join(".") : file.url.split("/").slice(-1)[0].split(".").slice(0, -1).join(".")).replace(/_/g, " "),
         url: file.url,
         type: 2,
@@ -318,6 +326,7 @@ module.exports = {
     var mesg = await message.channel.send(`Processing track: **0/${videos.length}**`);
     var interval = setInterval(() => (songs.length < videos.length) ? mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`).catch(() => { }) : undefined, 1000);
     for (const video of videos) songs.push({
+      id: ID(),
       title: video.title,
       url: video.url_simple,
       type: 0,
@@ -350,6 +359,7 @@ module.exports = {
     }
     var songs = [
       {
+        id: ID(),
         title: decodeHtmlEntity(songInfo.videoDetails.title),
         url: songInfo.videoDetails.video_url,
         type: type,
@@ -415,6 +425,7 @@ module.exports = {
             if (s + 1 == results.length) {
               const songLength = !results[o].live ? results[o].duration : "∞";
               songs.push({
+                id: ID(),
                 title: tracks[i].track.name,
                 url: results[o].link,
                 type: 1,
@@ -475,6 +486,7 @@ module.exports = {
             if (s + 1 == results.length) {
               const songLength = !results[o].live ? results[o].duration : "∞";
               songs.push({
+                id: ID(),
                 title: tracks[i].name,
                 url: results[o].link,
                 type: 1,
@@ -513,6 +525,7 @@ module.exports = {
             if (s + 1 == results.length) {
               const songLength = !results[o].live ? results[o].duration : "∞";
               songs.push({
+                id: ID(),
                 title: tracks[i].name,
                 url: results[o].link,
                 type: 1,
@@ -546,6 +559,7 @@ module.exports = {
         const length = Math.round(track.duration / 1000);
         const songLength = moment.duration(length, "seconds").format();
         songs.push({
+          id: ID(),
           title: track.title,
           type: 3,
           id: track.id,
@@ -560,6 +574,7 @@ module.exports = {
       const length = Math.round(data.duration / 1000);
       const songLength = moment.duration(length, "seconds").format();
       songs.push({
+        id: ID(),
         title: data.title,
         type: 3,
         id: data.id,
@@ -606,6 +621,7 @@ module.exports = {
     var length = Math.round(metadata.format.duration);
     var songLength = moment.duration(length, "seconds").format();
     var song = {
+      id: ID(),
       title: title,
       url: link,
       type: 4,
@@ -632,6 +648,7 @@ module.exports = {
     var data = parseBody(body);
     var songLength = data.duration;
     var song = {
+      id: ID(),
       title: data.title,
       url: args.slice(1).join(" "),
       type: 5,
@@ -652,6 +669,7 @@ module.exports = {
       if (parseInt(download) < 1) throw "Cannot get any video quality";
       var songLength = moment.duration(video.duration, "seconds").format();
       var song = {
+        id: ID(),
         title: video.title,
         url: args.slice(1).join(" "),
         type: 6,
@@ -684,6 +702,7 @@ module.exports = {
     const length = Math.round(metadata.format.duration);
     const songLength = moment.duration(length, "seconds").format();
     const song = {
+      id: ID(),
       title: title,
       url: args.slice(1).join(" "),
       type: 2,
@@ -764,6 +783,7 @@ module.exports = {
     await msg.edit(chosenEmbed).catch(() => { });
     var length = !video[s].live ? video[s].duration : "∞";
     var song = {
+      id: ID(),
       title: decodeHtmlEntity(video[s].title),
       url: video[s].link,
       type: 0,

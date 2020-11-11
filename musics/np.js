@@ -18,6 +18,7 @@ module.exports = {
   description: "Display the music being played.",
   aliases: ["nowplaying"],
   category: 8,
+  npMsg: [],
   async music(message, serverQueue) {
     if (!serverQueue) return message.channel.send("There is nothing playing.");
     if (serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");
@@ -26,9 +27,8 @@ module.exports = {
     var processBar = [];
     for (let i = 0; i < 20; i++) processBar.push("═");
     var progress = 0;
-    var isLive = false;
-    if (serverQueue.songs[0].time === "∞") isLive = true;
-    else var length = ms(serverQueue.songs[0].time);
+    const isLive = serverQueue.songs[0].isLive;
+    const length = isLive ? 0 : ms(serverQueue.songs[0].time);
     if (isLive) {
       processBar.splice(19, 1, "■");
       var positionTime = "∞";
@@ -46,8 +46,10 @@ module.exports = {
       .setTimestamp()
       .setFooter(`Looping: ${serverQueue.looping ? "Enabled" : "Disabled"} | Repeating: ${serverQueue.repeating ? "Enabled" : "Disabled"}`, message.client.user.displayAvatarURL());
     if (serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
-    else info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLive: **${serverQueue.songs[0].isLive ? "Yes" : "No"}**\nVolume: **${serverQueue.songs[0].volume ? (`${serverQueue.volume * serverQueue.songs[0].volume * 100}% (Local) | ${serverQueue.volume * 100}% (Global)`) : `${serverQueue.volume * 100}%`}**\nType: **${type[serverQueue.songs[0].type]}**`, serverQueue.songs[0].thumbnail];
+    else info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLive: **${isLive ? "Yes" : "No"}**\nVolume: **${serverQueue.songs[0].volume ? (`${serverQueue.volume * serverQueue.songs[0].volume * 100}% (Local) | ${serverQueue.volume * 100}% (Global)`) : `${serverQueue.volume * 100}%`}**\nType: **${type[serverQueue.songs[0].type]}**`, serverQueue.songs[0].thumbnail];
     embed.setDescription(`${info[0]}\n\n${positionTime} \`${processBar.join("")}\` ${serverQueue.songs[0].time}`).setThumbnail(info[1]);
-    return message.channel.send(embed);
+    const msg = await message.channel.send(embed);
+    if(song.id) this.npMsg.push({ msg: msg, id: song.id });
+    else setTimeout(() => msg.edit("**[Outdated Now-Playing Information]**"), 30000);
   }
 }

@@ -4,48 +4,13 @@ const converter = require("number-to-words");
 const { createCanvas, loadImage } = require("canvas");
 const fs = require("fs");
 const moment = require("moment");
-const formatSetup = require("moment-duration-format");
-formatSetup(moment);
-
+require("moment-duration-format")(moment);
+const COLOR = ["Yellow", "Blue", "Green", "Red", "Special"];
+const NUMBER = ["Reverse", "Skip", "Draw 2", "Draw 4", "Change Color"];
 function toString(x) {
-  let colorStr = "";
+  let colorStr = COLOR[x.color];
   let number = x.number;
-  switch (x.color) {
-    case 0:
-      colorStr = "Yellow";
-      break;
-    case 1:
-      colorStr = "Blue";
-      break;
-    case 2:
-      colorStr = "Green";
-      break;
-    case 3:
-      colorStr = "Red";
-      break;
-    case 4:
-      colorStr = "Special";
-      break;
-  }
-  if (x.number > 9) {
-    switch (x.number) {
-      case 10:
-        number = "Reverse";
-        break;
-      case 11:
-        number = "Skip";
-        break;
-      case 12:
-        number = "Draw 2";
-        break;
-      case 13:
-        number = "Draw 4";
-        break;
-      case 14:
-        number = "Change Color";
-        break;
-    }
-  }
+  if (x.number > 9) number = NUMBER[x.number - 10];
   return `**${colorStr}** - **${number}**`;
 }
 
@@ -57,7 +22,7 @@ async function canvasImg(assets, cards) {
     let img = await loadImage(url);
     ctx.drawImage(img, (i % 5) * 165, Math.floor(i / 5) * 256, 165, 256);
   }
-  return await canvas.toBuffer();
+  return canvas.toBuffer();
 }
 
 module.exports = {
@@ -66,9 +31,7 @@ module.exports = {
   category: 3,
   async execute(message) {
     const color = console.color();
-    var msg = await message.channel.send(
-      "Alright, we will start an UNO game. Who will be invited? Please mention them!"
-    );
+    var msg = await message.channel.send("Alright, we will start an UNO game. Who will be invited? Please mention them!");
     var collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
     if (!collected || !collected.first()) return msg.edit("Don't make me wait too long. I'm busy.");
     await collected.first().delete();
@@ -88,34 +51,23 @@ module.exports = {
         return message.channel.send(`**${member.user.tag}** is already in another game!`);
       }
       participants.push(member.user);
-      var em = new Discord.MessageEmbed()
+      const em = new Discord.MessageEmbed()
         .setAuthor(message.author.tag, message.author.displayAvatarURL())
         .setColor(color)
         .setTitle(`${message.author.tag} invited you to play UNO!`)
-        .setDescription(
-          `Server: **${message.guild.name}**\nChannel: **${message.channel.name}**\nAccept invitation?\n\n✅Accept\n❌Decline`
-        )
+        .setDescription(`Server: **${message.guild.name}**\nChannel: **${message.channel.name}**\nAccept invitation?\n\n✅Accept\n❌Decline`)
         .setTimestamp()
-        .setFooter(
-          "Please decide in 30 seconds.",
-          message.client.user.displayAvatarURL()
-        );
-      var mesg = await member.user.send(em).catch(err => {
-        message.channel.send(
-          `Failed to send invitation to **${member.user.tag}**.`
-        );
-        responses += 1;
-      });
+        .setFooter("Please decide in 30 seconds.", message.client.user.displayAvatarURL());
+      try {
+        var mesg = await member.user.send(em);
+      } catch(err) {
+        message.channel.send(`Failed to send invitation to **${member.user.tag}**.`);
+        responses += collected.first().mentions.members.length;
+        return;
+      }
       await mesg.react("✅");
       await mesg.react("❌");
-      var rCollected = await mesg
-        .awaitReactions(
-          (r, u) => ["✅", "❌"].includes(r.emoji.name) && u.id === member.id,
-          { max: 1, time: 30000, errors: ["time"] }
-        )
-        .catch(async err => {
-          mesg.reactions.removeAll().catch(() => { });
-        });
+      var rCollected = await mesg.awaitReactions((r, u) => ["✅", "❌"].includes(r.emoji.name) && u.id === member.id, { max: 1, time: 30000, errors: ["time"] }).catch(() => mesg.reactions.removeAll().catch(() => { }));
       responses += 1;
       mesg.reactions.removeAll().catch(() => { });
       if (!rCollected || !rCollected.first()) {
@@ -123,44 +75,28 @@ module.exports = {
         message.channel.send(`**${member.user.tag}** is not active now.`);
         return await mesg.edit(em);
       }
-      var reaction = rCollected.first();
+      em.setFooter("Head to the channel now.", message.client.user.displayAvatarURL());
+      const reaction = rCollected.first();
       if (reaction.emoji.name === "✅") {
         message.channel.send(`**${member.user.tag}** accepted the invitation!`);
-        em.setDescription(
-          `Server: **${message.guild.name}**\nChannel: **${message.channel.name}**\n` +
-          "You accepted the invitation!"
-        ).setFooter(
-          "Head to the channel now.",
-          message.client.user.displayAvatarURL()
-        );
-        mesg.edit(em);
+        em.setDescription(`Server: **${message.guild.name}**\nChannel: **${message.channel.name}**\nYou accepted the invitation!`);
         accepted += 1;
       } else {
         message.channel.send(`**${member.user.tag}** declined the invitation!`);
-        em.setDescription(
-          `Server: **${message.guild.name}**\nChannel: **${message.channel.name}**\n` +
-          "You declined the invitation!"
-        ).setFooter(
-          "Head to the channel now.",
-          message.client.user.displayAvatarURL()
-        );
-        mesg.edit(em);
+        em.setDescription(`Server: **${message.guild.name}**\nChannel: **${message.channel.name}**\n"You declined the invitation!`);
       }
+      mesg.edit(em);
     });
 
     let assets;
     var check = setInterval(async () => {
       if (responses >= collected.first().mentions.members.size) {
         clearInterval(check);
-        if (responses !== accepted) {
-          return message.channel.send(
-            "The game cannot start as someone didn't accept the invitation!"
-          );
-        } else if(ingame) {
-          return message.channel.send("The game cannot start as somebody is in another game!");
-        } else {
-          let readFile = await fs.readFileSync("./.glitch-assets", "utf8");
-          let arr = readFile.split("\n");
+        if (responses !== accepted) return message.channel.send("The game cannot start as someone didn't accept the invitation!");
+        else if(ingame) return message.channel.send("The game cannot start as somebody is in another game!");
+        else {
+          const readFile = await fs.readFileSync("./.glitch-assets", "utf8");
+          const arr = readFile.split("\n");
           for (let i = 0; i < arr.length - 1; i++) arr[i] = JSON.parse(arr[i]);
           assets = arr.filter(x => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map(x => {
             return {
@@ -168,8 +104,8 @@ module.exports = {
               url: x.url
             };
           });
-          let mesg = await message.channel.send("The game will start soon!");
-          var nano = Date.now();
+          const mesg = await message.channel.send("The game will start soon!");
+          const nano = Date.now();
           try {
             mesg = await prepare(mesg, nano);
             await handle(mesg, nano);
@@ -177,50 +113,32 @@ module.exports = {
         }
       }
     }, 1000);
-
-    var players = new Discord.Collection();
+    const players = new Discord.Collection();
 
     async function prepare(mesg, nano) {
       var uno = console.uno;
       var order = shuffleArray(participants);
-      message.channel.send(
-        "The order has been decided!" +
-        order.map(x => `\n${order.indexOf(x) + 1}. **${x.tag}**`)
-      );
-      for (const participant of order) {
-        let cards = console.card.random(7);
-        players.set(participant.id, { user: participant, card: cards });
-      }
-
+      message.channel.send(`The order has been decided!${order.map(x => `\n${order.indexOf(x) + 1}. **${x.tag}**`)}`);
+      for (const participant of order) players.set(participant.id, { user: participant, card: console.card.random(7) });
       for (const [key, player] of players) {
-        var readCard = player.card.map(x => toString(x));
         let em = new Discord.MessageEmbed()
           .setColor(color)
           .setTitle(`The cards have been distributed!`)
           .attachFiles([{ attachment: await canvasImg(assets, player.card), name: "canvas.png" }])
           .setImage("attachment://canvas.png")
-          .setDescription(
-            `Your cards:\n\n${readCard.join("\n")}`
-          )
+          .setDescription(`Your cards:\n\n${player.card.map(x => toString(x)).join("\n")}`)
           .setTimestamp()
-          .setFooter(
-            "Game started.",
-            message.client.user.displayAvatarURL()
-          );
+          .setFooter("Game started.", message.client.user.displayAvatarURL());
         player.user.send(em);
       }
-      var numbersOnly = console.card.filter(
-        x => x.color < 4 && x.number < 10
-      );
-      var initial = numbersOnly.random();
-      let card = toString(initial);
+      const initial = console.card.filter(x => x.color < 4 && x.number < 10).random();
       uno.set(nano, { players: players, card: initial, cards: 1 });
       let em = new Discord.MessageEmbed()
         .setColor(color)
         .setTitle("The 1st card has been placed!")
         .setThumbnail(message.client.user.displayAvatarURL())
         .setImage(assets.find(x => x.id === twoDigits(initial.color) + twoDigits(initial.number)).url)
-        .setDescription(`The card is ${card}`)
+        .setDescription(`The card is ${toString(initial)}`)
         .setTimestamp()
         .setFooter(`Placed by ${message.client.user.tag}`, message.client.user.displayAvatarURL());
       mesg.delete();
@@ -260,31 +178,22 @@ module.exports = {
           }
           let placeable = player.card.filter(x => {
             if (top.number === 12) {
-              if (drawCard > 0)
-                return x.number === 12 || x.number === 13;
+              if (drawCard > 0) return x.number === 12 || x.number === 13;
               return x.color === 4 || x.color === top.color || x.number === 12;
-            }
-            if (top.number === 13) {
-              if (drawCard > 0)
-                return x.color === 4 && x.number === 13;
+            } else if (top.number === 13) {
+              if (drawCard > 0) return x.color === 4 && x.number === 13;
               return x.color === top.color;
             }
-            return (x.color === 4) || (x.color === top.color || x.number === top.number)
+            return (x.color === 4) || (x.color === top.color || x.number === top.number);
           });
-          let readCard = player.card.map(x => toString(x));
-          let em = new Discord.MessageEmbed()
+          const em = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle(`It's your turn now!`)
-            .setDescription(
-              `The current card is ${toString(top)}\nYour cards:\n\n${readCard.join("\n")}\n\n📥 Place\n📤 Draw\n⏹️ Stop\nIf you draw, you will draw **${drawCard > 0 ? drawCard + " cards" : "1 card"}**.`
-            )
+            .setDescription(`The current card is ${toString(top)}\nYour cards:\n\n${player.card.map(x => toString(x)).join("\n")}\n\n📥 Place\n📤 Draw\n⏹️ Stop\nIf you draw, you will draw **${drawCard > 0 ? drawCard + " cards" : "1 card"}**.`)
             .attachFiles([{ attachment: await canvasImg(assets, player.card), name: "yourCard.png" }])
             .setImage("attachment://yourCard.png")
             .setTimestamp()
-            .setFooter(
-              "Please decide in 2 minutes.",
-              message.client.user.displayAvatarURL()
-            );
+            .setFooter("Please decide in 2 minutes.", message.client.user.displayAvatarURL());
           let mssg = await player.user.send(em);
           await mssg.react("📥");
           await mssg.react("📤");
@@ -292,9 +201,9 @@ module.exports = {
           try {
             var collected = await mssg.awaitReactions((r, u) => ["📥", "📤", "⏹️"].includes(r.emoji.name) && u.id === player.user.id, { time: 120 * 1000, max: 1, errors: ["time"] });
           } catch (err) { }
-          let newCard = console.card.random(drawCard > 0 ? drawCard : 1);
-          let card = !newCard.length ? [toString(newCard)] : newCard.map(x => toString(x));
-          let draw = new Discord.MessageEmbed()
+          const newCard = console.card.random(drawCard > 0 ? drawCard : 1);
+          const card = !newCard.length ? [toString(newCard)] : newCard.map(x => toString(x));
+          const draw = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle(`${player.user.tag} drew a card!`)
             .setThumbnail(message.client.user.displayAvatarURL())
@@ -345,7 +254,7 @@ module.exports = {
             let keys = [];
             let placeCard = placeable.map(x => {
               keys.push(console.card.findKey(f => f === x));
-              return toString(x) + ` : **${console.card.findKey(f => f === x)}**`
+              return toString(x) + ` : **${console.card.findKey(f => f === x)}**`;
             });
             em = new Discord.MessageEmbed()
               .setColor(color)

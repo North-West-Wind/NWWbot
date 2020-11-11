@@ -351,14 +351,14 @@ module.exports = {
   },
   ms(val, options) {
     if (typeof val === "string" && superms(val) === undefined) {
-      if(val.split(":").length > 1) {
+      if (val.split(":").length > 1) {
         const nums = val.split(":").reverse();
         const units = ["s", "m", "h", "d"];
         const mses = [];
-        for(const num of nums) {
+        for (const num of nums) {
           const str = `${parseInt(num)}${units[nums.indexOf(num)]}`;
           const parsed = superms(str);
-          if(parsed === undefined) return undefined;
+          if (parsed === undefined) return undefined;
           mses.push(parsed);
         }
         return mses.reduce((acc, c) => acc + c);
@@ -381,36 +381,29 @@ module.exports = {
   },
   findValueByPrefix(object, prefix) {
     for (var property in object) {
-      if (object[property] && 
-         property.toString().startsWith(prefix)) {
-         return object[property];
+      if (object[property] &&
+        property.toString().startsWith(prefix)) {
+        return object[property];
       }
     }
     return undefined;
   },
   isEquivalent(a, b) {
-    // Create arrays of property names
     var aProps = Object.getOwnPropertyNames(a);
     var bProps = Object.getOwnPropertyNames(b);
-
-    // If number of properties is different,
-    // objects are not equivalent
     if (aProps.length != bProps.length) {
-        return false;
+      return false;
     }
 
     for (var i = 0; i < aProps.length; i++) {
-        var propName = aProps[i];
-
-        // If values of same property are not equal,
-        // objects are not equivalent
-        if (a[propName] !== b[propName]) {
-            return false;
-        }
+      var propName = aProps[i];
+      if (a[propName] !== b[propName]) {
+        return false;
+      }
     }
-
-    // If we made it this far, objects
-    // are considered equivalent
     return true;
-}
+  },
+  ID() {
+    return '_' + Math.random().toString(36).substr(2, 9);
+  }
 };
