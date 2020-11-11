@@ -255,13 +255,6 @@ module.exports = {
           break;
       }
     });
-    collector.on("end", function () {
-      msg.reactions.removeAll().catch(console.error);
-      setTimeout(
-        () =>
-          msg.edit({ embed: null, content: `**[Meme: ${results[s].name}]**` }),
-        10000
-      );
-    });
+    collector.on("end", () => msg.reactions.removeAll().catch(console.error));
   }
 };
