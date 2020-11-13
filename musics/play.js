@@ -789,8 +789,8 @@ module.exports = {
     const results = ytResults.concat(scResults);
     var msg = await message.channel.send(allEmbeds[0]);
     var collector = undefined;
+    var s = 0;
     if(allEmbeds.length > 1) {
-      var s = 0;
       await msg.react("⏮");
       await msg.react("◀");
       await msg.react("▶");
