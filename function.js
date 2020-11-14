@@ -456,7 +456,7 @@ module.exports = {
     });
     return { msg: msg, collector: collector };
   },
-  commonCollectorListener(reaction, user, s, allEmbeds, msg) {
+  commonCollectorListener(reaction, user, s, allEmbeds, msg, collector) {
       reaction.users.remove(user.id);
       switch (reaction.emoji.name) {
         case "⏮":
