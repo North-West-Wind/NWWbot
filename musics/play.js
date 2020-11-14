@@ -794,7 +794,11 @@ module.exports = {
       await msg.react("⏭");
       await msg.react("⏹");
       const collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
-      collector.on("collect", (reaction, user) => commonCollectorListener(reaction, user, s, allEmbeds, msg, collector));
+      collector.on("collect", async(reaction, user) => {
+        const result = await commonCollectorListener(reaction, user, s, allEmbeds, msg, collector);
+        s = result.s;
+        msg = result.msg;
+      });
       collector.on("end", async() => msg.reactions.removeAll().catch(console.error));
     }
     const filter = x => x.author.id === message.author.id;
