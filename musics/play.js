@@ -324,7 +324,16 @@ module.exports = {
     try {
       var songInfo = await ytdl.getInfo(args.slice(1).join(" "), { requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } });
     } catch (err) {
-      if (!message.dummy) message.channel.send("No video was found!");
+      if (!message.dummy) message.channel.send("Failed to get video data!");
+      if (err.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
+        console.error("Received 429 error. Changing ytdl-core cookie...");
+        cookie.id++;
+        if (!process.env[`COOKIE${cookie.id}`]) {
+          cookie.cookie = process.env.COOKIE;
+          cookie.id = 0;
+        }
+        else cookie.cookie = process.env[`COOKIE${cookie.id}`];
+      } else console.error(err);
       return { error: true };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
