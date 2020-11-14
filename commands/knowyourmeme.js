@@ -18,7 +18,7 @@ const makeRequest = (url) => new Promise(async (resolve, reject) => {
 });
 
 async function findAllSearchResult(term) {
-  const body;
+  let body;
   try {
     body = await makeRequest(getSearchURL(term));
   } catch (e) {
