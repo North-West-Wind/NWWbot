@@ -792,7 +792,7 @@ module.exports = {
     }
     const content = collected.first().content;
     collected.first().delete();
-    if (isNaN(parseInt(content)) || (parseInt(content) < 1 && parseInt(content) > results.length)) {
+    if (isNaN(parseInt(content)) || parseInt(content) < 1 || parseInt(content) > results.length) {
       const cancelled = new Discord.MessageEmbed()
         .setColor(console.color())
         .setTitle("Action cancelled.")
