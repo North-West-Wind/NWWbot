@@ -456,34 +456,35 @@ module.exports = {
     });
     return { msg: msg, collector: collector };
   },
-  commonCollectorListener(reaction, user, s, allEmbeds, msg, collector) {
+  async commonCollectorListener(reaction, user, s, allEmbeds, msg, collector) {
       reaction.users.remove(user.id);
       switch (reaction.emoji.name) {
         case "⏮":
           s = 0;
-          msg.edit(allEmbeds[s]);
+          await msg.edit(allEmbeds[s]);
           break;
         case "◀":
           s -= 1;
           if (s < 0) {
             s = allEmbeds.length - 1;
           }
-          msg.edit(allEmbeds[s]);
+          await msg.edit(allEmbeds[s]);
           break;
         case "▶":
           s += 1;
           if (s > allEmbeds.length - 1) {
             s = 0;
           }
-          msg.edit(allEmbeds[s]);
+          await msg.edit(allEmbeds[s]);
           break;
         case "⏭":
           s = allEmbeds.length - 1;
-          msg.edit(allEmbeds[s]);
+          await msg.edit(allEmbeds[s]);
           break;
         case "⏹":
           collector.emit("end");
           break;
       }
+    return { s, msg };
     }
 };
