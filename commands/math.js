@@ -1,5 +1,6 @@
 const math = require("mathjs");
 const Discord = require("discord.js");
+const { createEmbedScrolling } = require("../function.js");
 
 module.exports = {
     name: "math",
@@ -190,51 +191,6 @@ module.exports = {
         .setTimestamp()
         .setFooter("Have a nice day! :D", message.client.user.displayAvatarURL());
         const allEmbeds = [em, em2, em3];
-        var s = 0;
-        var msg = await message.channel.send(allEmbeds[0]);
-  
-        await msg.react("⏮");
-        await msg.react("◀");
-        await msg.react("▶");
-        await msg.react("⏭");
-        await msg.react("⏹");
-        var collector = await msg.createReactionCollector((r, u) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(r.emoji.name) && u.id === message.author.id, {
-          idle: 60000,
-          errors: ["time"]
-        });
-  
-        collector.on("collect", function(reaction, user) {
-          reaction.users.remove(user.id);
-          switch (reaction.emoji.name) {
-            case "⏮":
-              s = 0;
-              msg.edit(allEmbeds[s]);
-              break;
-            case "◀":
-              s -= 1;
-              if (s < 0) {
-                s = allEmbeds.length - 1;
-              }
-              msg.edit(allEmbeds[s]);
-              break;
-            case "▶":
-              s += 1;
-              if (s > allEmbeds.length - 1) {
-                s = 0;
-              }
-              msg.edit(allEmbeds[s]);
-              break;
-            case "⏭":
-              s = allEmbeds.length - 1;
-              msg.edit(allEmbeds[s]);
-              break;
-            case "⏹":
-              collector.emit("end");
-              break;
-          }
-        });
-        collector.on("end", function() {
-          msg.reactions.removeAll().catch(console.error);
-        });
+        await createEmbedScrolling(message, allEmbeds);
     }
 }

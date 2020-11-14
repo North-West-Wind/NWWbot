@@ -1,18 +1,5 @@
 const Discord = require("discord.js");
-const {
-  validURL,
-  validYTURL,
-  validSPURL,
-  validGDURL,
-  isGoodMusicVideoContent,
-  decodeHtmlEntity,
-  validYTPlaylistURL,
-  validSCURL,
-  validMSURL,
-  validPHURL,
-  isEquivalent,
-  ID
-} = require("../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, createEmbedScrolling } = require("../function.js");
 const { parseBody } = require("../commands/musescore.js");
 const { migrate } = require("./migrate.js");
 const ytdl = require("ytdl-core");
@@ -786,49 +773,11 @@ module.exports = {
       message.channel.send("Cannot find any result with the given string.");
       return { error: true };
     }
-    const results = ytResults.concat(scResults);
-    var msg = await message.channel.send(allEmbeds[0]);
+    const results = [ytResults, scResults];
     var collector = undefined;
     var s = 0;
-    if(allEmbeds.length > 1) {
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      collector = await msg.createReactionCollector((reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id), { idle: 60000, errors: ["time"] });
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", () => msg.reactions.removeAll().catch(console.error));
-    }
+    if(allEmbeds.length > 1) var { msg, collector } = await createEmbedScrolling(message, allEmbeds);
+    else var msg = await message.channel.send(allEmbeds[0]);
     const filter = x => x.author.id === message.author.id;
     const collected = await msg.channel.awaitMessages(filter, { max: 1, time: 60000, error: ["time"] });
     if(collector) collector.emit("end");
@@ -856,12 +805,12 @@ module.exports = {
     const chosenEmbed = new Discord.MessageEmbed()
       .setColor(console.color())
       .setTitle("Music chosen:")
-      .setThumbnail(results[s * ytResults.length + o].thumbnail)
-      .setDescription(`**[${decodeHtmlEntity(results[s * ytResults.length + o].title)}](${results[s * ytResults.length + o].url})** : **${results[s * ytResults.length + o].time}**`)
+      .setThumbnail(results[s][o].thumbnail)
+      .setDescription(`**[${decodeHtmlEntity(results[s][o].title)}](${results[s][o].url})** : **${results[s][o].time}**`)
       .setTimestamp()
       .setFooter("Have a nice day :)", message.client.user.displayAvatarURL());
     await msg.edit(chosenEmbed).catch(() => { });
-    return { error: false, songs: [results[s * ytResults.length + o]], msg, embed: Embed };
+    return { error: false, songs: [results[s][o]], msg, embed: Embed };
   },
   updateQueue: updateQueue,
   createEmbed: createEmbed

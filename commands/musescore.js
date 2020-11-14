@@ -186,20 +186,10 @@ module.exports = {
             importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl, title: data.title, id: data.id });
         }
         if (allEmbeds.length < 1) return message.channel.send("No score was found!");
-        const filter = (reaction, user) => {
-            return (
-                ["◀", "▶", "⏮", "⏭", "⏹", "📥"].includes(
-                    reaction.emoji.name
-                ) && user.id === message.author.id
-            );
-        };
-
+        const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹", "📥"].includes(reaction.emoji.name) && user.id === message.author.id);
         var s = 0;
         await msg.delete();
-        msg = await message.channel.send(
-            allEmbeds[0]
-        );
-
+        msg = await message.channel.send(allEmbeds[0]);
         await msg.react("📥");
         await msg.react("⏮");
         await msg.react("◀");

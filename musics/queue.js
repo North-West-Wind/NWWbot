@@ -35,50 +35,7 @@ module.exports = {
       allEmbeds.push(queueEmbed);
     }
     if (allEmbeds.length == 1) message.channel.send(allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
-    else {
-      var s = 0;
-      var msg = await message.channel.send(allEmbeds[0]);
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      const collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", function () {
-        msg.reactions.removeAll().catch(console.error);
-        setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000)
-      });
-    }
+    else await createEmbedScrolling(message, allEmbeds, 3);
   },
   save(message, serverQueue, pool, args) {
     if (!serverQueue) return message.channel.send("There is no queue playing in this server right now!");

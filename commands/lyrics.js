@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
 const solenolyrics = require("solenolyrics");
+const { createEmbedScrolling } = require("../function.js");
 
 module.exports = {
   name: "lyrics",
@@ -24,7 +25,7 @@ module.exports = {
     
     var lyricsArr = lyrics.split("\n\n");
     if(lyricsArr.length === 1) lyricsArr = lyrics.split("\n");
-    var allEmbeds = [];
+    const allEmbeds = [];
     for(let i = 0; i < lyricsArr.length; i++) {
       var str = [];
       if(lyricsArr[i].length >= 2048) {
@@ -40,7 +41,7 @@ module.exports = {
             }
           }
           recheck();
-          var em = new Discord.MessageEmbed()
+          const em = new Discord.MessageEmbed()
           .setThumbnail(icon)
           .setColor(console.color())
           .setTitle(title)
@@ -73,62 +74,7 @@ module.exports = {
       .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       allEmbeds.push(em);
     }
-    const filter = (reaction, user) => {
-      return (
-        ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
-        user.id === message.author.id
-      );
-    };
-    if (allEmbeds.length == 1) {
-      message.channel.send(allEmbeds[0]);
-    } else {
-      var s = 0;
-      var msg = await message.channel.send(allEmbeds[0]);
-
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      var collector = await msg.createReactionCollector(filter, {
-        idle: 60000,
-        errors: ["time"]
-      });
-
-      collector.on("collect", function(reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", function() {
-        msg.reactions.removeAll().catch(console.error);
-        setTimeout(() => msg.edit({ embed: null, content: `**[Lyrics of ${title}**]` }), 10000);
-      });
-    }
+    if (allEmbeds.length == 1) await message.channel.send(allEmbeds[0]);
+    else await createEmbedScrolling(message, allEmbeds, 2);
   }
 }

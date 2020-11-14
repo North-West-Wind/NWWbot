@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const { createEmbedScrolling } = require("../function.js");
 
 module.exports = {
   name: "invites",
@@ -8,12 +9,6 @@ module.exports = {
   aliases: ["inv"],
   async execute(message, args, pool) {
 		if(message.guild.id !== "622311594654695434") return;
-    const filter = (reaction, user) => {
-      return (
-        ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
-        user.id === message.author.id
-      );
-    };
     if (!args[0]) {
       const guild = message.guild;
       if(!guild.me.hasPermission(32)) return message.channel.send("I don't have the permission to fetch all server invites!");
@@ -47,8 +42,8 @@ module.exports = {
           );
         return message.channel.send(em);
       } else {
-        let pages = Math.ceil(invitedStr.length / 10);
-        let allEmbeds = [];
+        const pages = Math.ceil(invitedStr.length / 10);
+        const allEmbeds = [];
         for (let i = 0; i < pages; i++) {
           let em = new Discord.MessageEmbed()
             .setColor(console.color())
@@ -61,52 +56,7 @@ module.exports = {
             );
           allEmbeds.push(em);
         }
-        var s = 0;
-        var msg = await message.channel.send(allEmbeds[0]);
-
-        await msg.react("⏮");
-        await msg.react("◀");
-        await msg.react("▶");
-        await msg.react("⏭");
-        await msg.react("⏹");
-        var collector = await msg.createReactionCollector(filter, {
-          idle: 60000,
-          errors: ["time"]
-        });
-
-        collector.on("collect", function(reaction, user) {
-          reaction.users.remove(user.id);
-          switch (reaction.emoji.name) {
-            case "⏮":
-              s = 0;
-              msg.edit(allEmbeds[s]);
-              break;
-            case "◀":
-              s -= 1;
-              if (s < 0) {
-                s = allEmbeds.length - 1;
-              }
-              msg.edit(allEmbeds[s]);
-              break;
-            case "▶":
-              s += 1;
-              if (s > allEmbeds.length - 1) {
-                s = 0;
-              }
-              msg.edit(allEmbeds[s]);
-              break;
-            case "⏭":
-              s = allEmbeds.length - 1;
-              msg.edit(allEmbeds[s]);
-              break;
-            case "⏹":
-              collector.emit("end");
-              break;
-          }
-        });
-        collector.on("end", function() {
-          msg.reactions.removeAll().catch(console.error);
-        });
+        await createEmbedScrolling(message, allEmbeds);
       }
     } else if (args[0].toLowerCase() === "me") {
       const guild = message.guild;

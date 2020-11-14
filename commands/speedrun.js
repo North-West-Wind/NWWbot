@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
 const fetch = require("node-fetch");
+const { createEmbedScrolling } = require("../function.js");
 
 module.exports = {
   name: "speedrun",
@@ -28,45 +29,25 @@ module.exports = {
       if (result.data.length > 1) {
         message.channel.stopTyping(true);
         var msg = await message.channel.send(em);
-        var choices = [
-          "1️⃣",
-          "2️⃣",
-          "3️⃣",
-          "4️⃣",
-          "5️⃣",
-          "6️⃣",
-          "7️⃣",
-          "8️⃣",
-          "9️⃣",
-          "🔟",
-          "⏹"
-        ];
+        var choices = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "⏹"];
         for (var i = 0; i < games.length; i++) await msg.react(choices[i]);
         await msg.react(choices[10]);
-        var collected = await msg.awaitReactions((reaction, user) => choices.includes(reaction.emoji.name) && user.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+        const collected = await msg.awaitReactions((reaction, user) => choices.includes(reaction.emoji.name) && user.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
         await msg.reactions.removeAll().catch(console.error);
-        if (collected === undefined) {
-          em.setTitle("Timed Out")
-            .setDescription("Please try again.")
-            .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+        if (!collected) {
+          em.setTitle("Timed Out").setDescription("Please try again.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
           return await msg.edit(em);
         }
-        em.setTitle("Loading...")
-          .setDescription("This will take a while.")
-          .setTimestamp()
-          .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+        em.setTitle("Loading...").setDescription("This will take a while.").setTimestamp().setFooter("Please be patient.", message.client.user.displayAvatarURL());
         await msg.edit(em);
         message.channel.startTyping();
-        var reaction = collected.first();
+        const reaction = collected.first();
         if (reaction.emoji.name === choices[10]) {
-          em.setTitle("Action Cancelled.")
-            .setDescription("")
-            .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+          em.setTitle("Action Cancelled.").setDescription("").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
           return await msg.edit(em);
         }
         var index = choices.indexOf(reaction.emoji.name);
         var id = result.data[index].id;
-
       } else {
         var msg = await message.channel.send(em);
         var index = 0;
@@ -112,63 +93,9 @@ module.exports = {
     }
     if (allEmbeds.length == 1) await msg.edit(allEmbeds[0]);
     else if (allEmbeds.length < 1) {
-      em.setTitle(result && result.data[0] ? result.data[index ? index : 0].names.international : gameFetch.data.names.international)
-        .setDescription("No record was found for this game!")
-        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+      em.setTitle(result && result.data[0] ? result.data[index ? index : 0].names.international : gameFetch.data.names.international).setDescription("No record was found for this game!").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       await msg.edit(em);
-    } else {
-      const filter = (reaction, user) => {
-        return (
-          ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
-          user.id === message.author.id
-        );
-      };
-      var s = 0;
-      var msg = await msg.edit(allEmbeds[0]);
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      var collector = await msg.createReactionCollector(filter, {
-        idle: 60000,
-        errors: ["time"]
-      });
-
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", function () {
-        msg.reactions.removeAll().catch(console.error);
-      });
-    }
+    } else await createEmbedScrolling(message, allEmbeds);
     message.channel.stopTyping(true);
   }
 };

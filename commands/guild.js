@@ -1,6 +1,6 @@
 const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_ } = require("../function.js");
 const Discord = require("discord.js");
-const { ms } = require("../function.js");
+const { ms, createEmbedScrolling } = require("../function.js");
 const nameToUuid = (str) => {
 	return new Promise((resolve, reject) => {
 		require("mojang-api").nameToUuid(str, function (err, res) { if(err) reject(err); else resolve(res); })
@@ -394,57 +394,7 @@ module.exports = {
 								.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
 								allEmbeds.push(em);
 							}
-							const filter = (reaction, user) => {
-								return (
-									["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
-									user.id === message.author.id
-								);
-							};
-							var msg = await message.channel.send(allEmbeds[0]);
-							var s = 0;
-							await msg.react("⏮");
-							await msg.react("◀");
-							await msg.react("▶");
-							await msg.react("⏭");
-							await msg.react("⏹");
-							var collector = await msg.createReactionCollector(filter, {
-								idle: 60000,
-								errors: ["time"]
-							});
-
-							collector.on("collect", function (reaction, user) {
-								reaction.users.remove(user.id);
-								switch (reaction.emoji.name) {
-									case "⏮":
-										s = 0;
-										msg.edit(allEmbeds[s]);
-										break;
-									case "◀":
-										s -= 1;
-										if (s < 0) {
-											s = allEmbeds.length - 1;
-										}
-										msg.edit(allEmbeds[s]);
-										break;
-									case "▶":
-										s += 1;
-										if (s > allEmbeds.length - 1) {
-											s = 0;
-										}
-										msg.edit(allEmbeds[s]);
-										break;
-									case "⏭":
-										s = allEmbeds.length - 1;
-										msg.edit(allEmbeds[s]);
-										break;
-									case "⏹":
-										collector.emit("end");
-										break;
-								}
-							});
-							collector.on("end", function () {
-								msg.reactions.removeAll().catch(console.error);
-							});
+							await createEmbedScrolling(message, allEmbeds);
 						}
 					});
 					con.release();

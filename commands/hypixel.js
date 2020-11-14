@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { numberWithCommas, readableDateTime } = require("../function.js");
+const { numberWithCommas, readableDateTime, createEmbedScrolling } = require("../function.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: 1000 });
 const MojangAPI = require("mojang-api");
 const nameToUuid = (name) => new Promise((resolve, reject) => MojangAPI.nameToUuid(name, (err, res) => err ? reject(err) : resolve(res)));
@@ -296,43 +296,7 @@ module.exports = {
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       for (var i = 0; i < 10; i++) topPlayer.addField(members[i].name, members[i].exp);
       const allEmbeds = [Embed, topPlayer];
-      var s = 0;
-      var msg = await message.channel.send(allEmbeds[0]);
-
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      const collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
-
-      collector.on("collect", async (reaction, user) => {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            await msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) s = allEmbeds.length - 1;
-            await msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) s = 0;
-            await msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            await msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", () => msg.reactions.removeAll().catch(console.error));
+      await createEmbedScrolling(message, allEmbeds);
     } else if (args[0] === "achievements" || args[0] === "ach") {
       await message.author.send("**Long list incoming!**");
       body.player.achievementsOneTime.forEach(item => message.author.send(item.replace(/_/g, " ").charAt(0).toUpperCase() + item2.substring(1)));
@@ -789,53 +753,7 @@ module.exports = {
         EmbedTri,
         Embed4
       ];
-      var s = 0;
-
-      var msg = await message.channel.send(allEmbeds[0]);
-
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      var collector = await msg.createReactionCollector(filter, {
-        idle: 60000,
-        errors: ["time"]
-      });
-
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", function () {
-        msg.reactions.removeAll().catch(console.error);
-      });
+      await createEmbedScrolling(message, allEmbeds);
     } else if (args[0] === "duels" || args[0] === "du") {
       const du = body.player.stats.Duels;
 
@@ -2115,52 +2033,7 @@ module.exports = {
         EmbedCom,
         EmbedBri
       ];
-      var s = 0;
-      var msg = await message.channel.send(allEmbeds[0]);
-
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      var collector = await msg.createReactionCollector(filter, {
-        idle: 60000,
-        errors: ["time"]
-      });
-
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", function () {
-        msg.reactions.removeAll().catch(console.error);
-      });
+      await createEmbedScrolling(message, allEmbeds);
     } else if (args[0] === "skywars" || args[0] === "sw") {
       const sw = body.player.stats.SkyWars;
 
@@ -2553,53 +2426,7 @@ module.exports = {
         teamEmbed,
         rankedEmbed
       ];
-
-      var s = 0;
-      var msg = await message.channel.send(allEmbeds[0]);
-
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      var collector = await msg.createReactionCollector(filter, {
-        idle: 60000,
-        errors: ["time"]
-      });
-
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", function () {
-        msg.reactions.removeAll().catch(console.error);
-      });
+      await createEmbedScrolling(message, allEmbeds);
     } else if (args[0] === "blitz" || args[0] === "sg") {
       var hg = body.player.stats.HungerGames;
 
@@ -2929,52 +2756,7 @@ module.exports = {
         Embed5,
         Embed6
       ];
-      var s = 0;
-      var msg = await message.channel.send(allEmbeds[0]);
-
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      var collector = await msg.createReactionCollector(filter, {
-        idle: 60000,
-        errors: ["time"]
-      });
-
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", function () {
-        msg.reactions.removeAll().catch(console.error);
-      });
+      await createEmbedScrolling(message, allEmbeds);
     } else if (args[0] === "murdermystery" || args[0] === "mm") {
       var mm = body.player.stats.MurderMystery;
 
@@ -3370,53 +3152,7 @@ module.exports = {
         infection,
         showdown
       ];
-
-      var s = 0;
-      var msg = await message.channel.send(allEmbeds[0]);
-
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      var collector = await msg.createReactionCollector(filter, {
-        idle: 60000,
-        errors: ["time"]
-      });
-
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", function () {
-        msg.reactions.removeAll().catch(console.error);
-      });
+      await createEmbedScrolling(message, allEmbeds);
     } else if (args[0] === "buildbattle" || args[0] === "bb") {
       var bb = body.player.stats.BuildBattle;
 
@@ -3961,53 +3697,8 @@ module.exports = {
           message.client.user.displayAvatarURL()
         );
 
-      var allEmbeds = [Embed, Embed2, Embed3, Embed4, Embed5];
-      var s = 0;
-      var msg = await message.channel.send(allEmbeds[0]);
-
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      var collector = await msg.createReactionCollector(filter, {
-        idle: 60000,
-        errors: ["time"]
-      });
-
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", function () {
-        msg.reactions.removeAll().catch(console.error);
-      });
+      const allEmbeds = [Embed, Embed2, Embed3, Embed4, Embed5];
+      await createEmbedScrolling(message, allEmbeds);
     } else if (args[0] === "smashhero" || args[0] === "sh") {
       var sh = body.player.stats.SuperSmash;
 
@@ -4212,53 +3903,8 @@ module.exports = {
           message.client.user.displayAvatarURL()
         );
 
-      var allEmbeds = [Embed, Embed2, Embed1, Embed3, Embed4];
-      var s = 0;
-      var msg = await message.channel.send(allEmbeds[0]);
-
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      var collector = await msg.createReactionCollector(filter, {
-        idle: 60000,
-        errors: ["time"]
-      });
-
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", function () {
-        msg.reactions.removeAll().catch(console.error);
-      });
+      const allEmbeds = [Embed, Embed2, Embed1, Embed3, Embed4];
+      await createEmbedScrolling(message, allEmbeds);
     } else if (args[0] === "speeduhc" || args[0] === "suhc") {
       var uhc = body.player.stats.SpeedUHC;
 
@@ -4569,53 +4215,8 @@ module.exports = {
           message.client.user.displayAvatarURL()
         );
 
-      var allEmbeds = [Embed, Embed1, Embed2, Embed3, Embed4, Embed5, Embed6, Embed7, Embed8];
-      var s = 0;
-      var msg = await message.channel.send(allEmbeds[0]);
-
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      var collector = await msg.createReactionCollector(filter, {
-        idle: 60000,
-        errors: ["time"]
-      });
-
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", function () {
-        msg.reactions.removeAll().catch(console.error);
-      });
+      const allEmbeds = [Embed, Embed1, Embed2, Embed3, Embed4, Embed5, Embed6, Embed7, Embed8];
+      await createEmbedScrolling(message, allEmbeds);
     } else if (args[0] === "arena" || args[0] === "are") {
       var ar = body.player.stats.Arena;
 
@@ -4767,53 +4368,8 @@ module.exports = {
           message.client.user.displayAvatarURL()
         );
 
-      var allEmbeds = [Embed, Embed1, Embed2, Embed4];
-      var s = 0;
-      var msg = await message.channel.send(allEmbeds[0]);
-
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      var collector = await msg.createReactionCollector(filter, {
-        idle: 60000,
-        errors: ["time"]
-      });
-
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", function () {
-        msg.reactions.removeAll().catch(console.error);
-      });
+      const allEmbeds = [Embed, Embed1, Embed2, Embed4];
+      await createEmbedScrolling(message, allEmbeds);
     } else if (args[0] === "pit" || args[0] === "p") {
       var pit = body.player.stats.Pit.pit_stats_ptl;
 
@@ -4878,7 +4434,7 @@ module.exports = {
     } else if (args[0] === "skyblock" || args[0] === "sb") {
       var sb = body.player.stats.SkyBlock;
       let error = false;
-      var allEmbeds = [];
+      const allEmbeds = [];
 
       var magmaBoss = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bosstimer/magma/estimatedSpawn").then(resp => resp.json().catch(err => {
         console.error("Fetching failed.");
@@ -5032,56 +4588,7 @@ module.exports = {
 
         allEmbeds.push(Embed);
       }
-
-
-      var s = 0;
-      var msg = await message.channel.send(allEmbeds[0]);
-
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      var collector = await msg.createReactionCollector(filter, {
-        idle: 60000,
-        errors: ["time"]
-      });
-
-      collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id);
-        switch (reaction.emoji.name) {
-          case "⏮":
-            s = 0;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "◀":
-            s -= 1;
-            if (s < 0) {
-              s = allEmbeds.length - 1;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) {
-              s = 0;
-            }
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏭":
-            s = allEmbeds.length - 1;
-            msg.edit(allEmbeds[s]);
-            break;
-          case "⏹":
-            collector.emit("end");
-            break;
-        }
-      });
-      collector.on("end", async function () {
-        msg.reactions.removeAll().catch(console.error);
-        await msg.edit({ content: "Loading simplier version...", embed: null });
-        await msg.edit("https://sky.shiiyu.moe/stats/" + res[0].name);
-      });
+      await createEmbedScrolling(message, allEmbeds, 1);
     }
   }
 };
