@@ -794,7 +794,7 @@ module.exports = {
       await msg.react("⏭");
       await msg.react("⏹");
       const collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
-      collector.on("collect", (reaction, user) => commonCollectorListener(reaction, user, s));
+      collector.on("collect", (reaction, user) => commonCollectorListener(reaction, user, s, allEmbeds, msg));
       collector.on("end", async() => msg.reactions.removeAll().catch(console.error));
     }
     const filter = x => x.author.id === message.author.id;
@@ -811,7 +811,7 @@ module.exports = {
     }
     const content = collected.first().content;
     collected.first().delete();
-    if (isNaN(parseInt(content)) || parseInt(content) < 1 || parseInt(content) > results.length) {
+    if (isNaN(parseInt(content)) || parseInt(content) < 1 || parseInt(content) > results[s].length) {
       const cancelled = new Discord.MessageEmbed()
         .setColor(console.color())
         .setTitle("Action cancelled.")
