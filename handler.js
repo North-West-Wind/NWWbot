@@ -16,7 +16,7 @@ const mysql_config = {
     charset: "utf8mb4"
 };
 var pool = mysql.createPool(mysql_config);
-const { setTimeout_, getRandomNumber, twoDigits } = require("./function.js");
+const { setTimeout_, getRandomNumber, twoDigits, jsDate2Mysql } = require("./function.js");
 const profile = (str) => {
     return new Promise((resolve, reject) => {
         require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); });
@@ -28,42 +28,22 @@ formatSetup(moment);
 var timeout = undefined;
 console.prefixes = {};
 function messageLevel(message) {
-    var exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
-    var currentDate = new Date();
-
-    var date = currentDate.getDate();
-    var month = currentDate.getMonth();
-    var year = currentDate.getFullYear();
-    var hour = currentDate.getHours();
-    var minute = currentDate.getMinutes();
-    var second = currentDate.getSeconds();
-
-    var sqlDate =
-        year +
-        "-" +
-        twoDigits(month + 1) +
-        "-" +
-        twoDigits(date) +
-        " " +
-        twoDigits(hour) +
-        ":" +
-        twoDigits(minute) +
-        ":" +
-        twoDigits(second);
-
+    if(!message || !message.author || !message.author.id || !message.guild) return;
+    const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
+    const sqlDate = jsDate2Mysql(new Date());
     pool.getConnection(function (err, con) {
         if (err) return console.error(err);
-        con.query("SELECT * FROM leveling WHERE user = " + message.author.id + " AND guild = " + message.guild.id, function (err, results, fields) {
-            if (results.length < 1) {
-                con.query("INSERT INTO leveling(user, guild, exp, last) VALUES ('" + message.author.id + "', '" + message.guild.id + "', '" + exp + "', '" + sqlDate + "')", function (err, result) {
+        con.query(`SELECT * FROM leveling WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`, (err, results) => {
+            if (err) console.error(err);
+            if (results.length < 1) con.query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${message.author.id}', '${message.guild.id}', ${exp}, '${sqlDate}')`, function (err) {
                     if (err) console.error(err);
-                })
-            } else {
+                });
+            else {
                 if (new Date() - results[0].last < 60000) return;
-                var newExp = parseInt(results[0].exp) + exp;
-                con.query("UPDATE leveling SET exp = '" + newExp + "', last = '" + sqlDate + "' WHERE user = '" + message.author.id + "' AND guild = '" + message.guild.id + "'", function (err, result) {
+                const newExp = parseInt(results[0].exp) + exp;
+                con.query(`UPDATE leveling SET exp = ${newExp}, last = '${sqlDate}' WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`, function (err) {
                     if (err) console.error(err);
-                })
+                });
             }
         })
         con.release();
@@ -978,12 +958,10 @@ module.exports = {
     },
     async message(message) {
         message.prefix = message.client.prefix;
+        messageLevel(message);
         if (message.guild && console.prefixes[message.guild.id] && message.client.id === 0) message.prefix = console.prefixes[message.guild.id];
         if (!message.content.startsWith(message.prefix) || message.author.bot) {
-            if (!message.author.bot) {
-                messageLevel(message);
-                if (Math.floor(Math.random() * 1000) === 69) cleverbot(message.content).then(response => message.channel.send(response));
-            }
+            if (!message.author.bot && Math.floor(Math.random() * 1000) === 69) cleverbot(message.content).then(response => message.channel.send(response));
             return;
         };
         const args = message.content.slice(message.prefix.length).split(/ +/);
