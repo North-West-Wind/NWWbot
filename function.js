@@ -446,7 +446,7 @@ module.exports = {
           break;
       }
     });
-    collector.on("end", () => {
+    collector.on("end", async() => {
       msg.reactions.removeAll().catch(console.error);
       if(id == 1) {
         await msg.edit({ content: "Loading simplier version...", embed: null });
