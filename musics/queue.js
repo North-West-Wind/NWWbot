@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
 const { updateQueue } = require("./play.js");
+const { createEmbedScrolling } = require("../function.js");
 module.exports = {
   name: "queue",
   description: "Display the current song queue.",
