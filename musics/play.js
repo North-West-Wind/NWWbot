@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, createEmbedScrolling } = require("../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, commonCollectorListener } = require("../function.js");
 const { parseBody } = require("../commands/musescore.js");
 const { migrate } = require("./migrate.js");
 const ytdl = require("ytdl-core");
@@ -785,8 +785,18 @@ module.exports = {
     const results = [ytResults, scResults];
     var collector = undefined;
     var s = 0;
-    if(allEmbeds.length > 1) var { msg, collector } = await createEmbedScrolling(message, allEmbeds);
-    else var msg = await message.channel.send(allEmbeds[0]);
+    var msg = await message.channel.send(allEmbeds[0]);
+    if(allEmbeds.length > 1) {
+      const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
+      await msg.react("⏮");
+      await msg.react("◀");
+      await msg.react("▶");
+      await msg.react("⏭");
+      await msg.react("⏹");
+      const collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
+      collector.on("collect", (reaction, user) => commonCollectorListener(reaction, user, s));
+      collector.on("end", async() => msg.reactions.removeAll().catch(console.error));
+    }
     const filter = x => x.author.id === message.author.id;
     const collected = await msg.channel.awaitMessages(filter, { max: 1, time: 60000, error: ["time"] });
     if(collector) collector.emit("end");
