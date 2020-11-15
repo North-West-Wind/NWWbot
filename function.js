@@ -406,7 +406,7 @@ module.exports = {
   ID() {
     return '_' + Math.random().toString(36).substr(2, 9);
   },
-  async createEmbedScrolling(message, allEmbeds, id) {
+  async createEmbedScrolling(message, allEmbeds, id, additionalData = undefined) {
     const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
     var s = 0;
     var msg = await message.channel.send(allEmbeds[0]);
@@ -452,7 +452,7 @@ module.exports = {
         await msg.edit({ content: "Loading simplier version...", embed: null });
         await msg.edit("https://sky.shiiyu.moe/stats/" + res[0].name);
       } else if(id == 2) setTimeout(() => msg.edit({ embed: null, content: `**[Lyrics of ${title}**]` }), 10000);
-      else if(id == 3) setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000);
+      else if(id == 3) setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${additionalData.songArray.length} tracks in total]**` }), 60000);
     });
     return { msg: msg, collector: collector };
   },

@@ -17,17 +17,11 @@ module.exports = {
     if (args[1] !== undefined && (args[1].toLowerCase() === "sync" || args[1].toLowerCase() === "sy")) return await this.sync(message, serverQueue, pool, args, queue);
     if (!serverQueue || serverQueue.songs.length < 1) return message.channel.send("There is nothing playing.");
     var index = 0;
-    var songArray = serverQueue.songs.map(song => {
-      var str;
-      if (song.type === 1) str = `**${++index} - ** **[${song.title}](${song.spot})** : **${song.time}**`;
-      else str = `**${++index} - ** **[${song.title}](${song.url})** : **${song.time}**`;
-      return str;
-    });
+    const songArray = serverQueue.songs.map(song => (song.type === 1) ? `**${++index} - ** **[${song.title}](${song.spot})** : **${song.time}**` : `**${++index} - ** **[${song.title}](${song.url})** : **${song.time}**`);
     const allEmbeds = [];
-    const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
     for (let i = 0; i < Math.ceil(songArray.length / 10); i++) {
-      var pageArray = songArray.slice(i * 10, i * 10 + 10);
-      var queueEmbed = new Discord.MessageEmbed()
+      const pageArray = songArray.slice(i * 10, i * 10 + 10);
+      const queueEmbed = new Discord.MessageEmbed()
         .setColor(console.color())
         .setTitle(`Song queue for ${message.guild.name} [${i + 1}/${Math.ceil(songArray.length / 10)}]`)
         .setDescription(`There are ${songArray.length} tracks in total.\n\n${pageArray.join("\n")}`)
@@ -36,7 +30,7 @@ module.exports = {
       allEmbeds.push(queueEmbed);
     }
     if (allEmbeds.length == 1) message.channel.send(allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
-    else await createEmbedScrolling(message, allEmbeds, 3);
+    else await createEmbedScrolling(message, allEmbeds, 3, { songArray: songArray });
   },
   save(message, serverQueue, pool, args) {
     if (!serverQueue) return message.channel.send("There is no queue playing in this server right now!");
