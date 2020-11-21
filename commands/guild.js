@@ -49,7 +49,6 @@ module.exports = {
 		if (!args[1]) return message.channel.send("You didn't mention any user!");
 		let user = await findUser(message, args[1]);
 		if (!user) return;
-		if (err) return message.reply("there was an error connecting to the database!");
 		altGetData(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`, async (err, result) => {
 			if (err) return message.reply("there was an error fetchinbg the player!");
 			let channel = await message.client.channels.fetch("723479832452661269");
@@ -294,7 +293,6 @@ module.exports = {
 				}
 				let uuid = await nameToUuid(args[3]);
 				if (!uuid || !uuid[0]) return message.reply("there was an error trying to find the player in Minecraft!");
-				if (err) return message.reply("there was an error trying to connect to the database!");
 				altGetData(`INSERT INTO gtimer(user, dc_rank, mc, endAt) VALUES('${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid[0].id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`, (err) => {
 					if (err) {
 						console.error(err);
@@ -321,7 +319,6 @@ module.exports = {
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
 				let userd = await findUser(args[2]);
 				if (!userd) return;
-				if (err) return message.reply("there was an error trying to connect to the database!");
 				altGetData(`SELECT * FROM gtimer WHERE user = '${userd.id}'`, (err, results) => {
 					if (err) return message.reply("there was an error trying to fetch data from the database!");
 					if (results.length == 0) return message.channel.send("No timer was found.");
@@ -332,7 +329,6 @@ module.exports = {
 				});
 				break;
 			case "list":
-				if (err) return message.reply("there was an error trying to connect to the database!");
 				altGetData(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
 					if (err) return message.reply("there was an error trying to fetch data from the database!");
 					let now = Date.now();

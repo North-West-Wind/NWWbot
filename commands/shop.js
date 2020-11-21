@@ -7,12 +7,6 @@ module.exports = {
   category: 2,
   execute(message) {
     const color = console.color();
-      if (err) {
-        console.error(err);
-        return message.reply(
-          "there was an error trying to connect to the database!"
-        );
-      }
       mainMenu();
       function mainMenu(msg = undefined) {
         var mesg = msg;

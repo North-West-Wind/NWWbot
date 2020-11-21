@@ -28,12 +28,6 @@ module.exports = {
   },
   async create(message) {
     const filter = m => m.author.id === message.author.id;
-    if (err) {
-      console.error(err);
-      return message.reply(
-        "there was an error trying to connect to the database!"
-      );
-    }
     var msg = await message.channel.send(
       'Starting a poll. Type "cancel" to cancel.\n\n`Please enter where you want to host your poll.(Mention the channel)`'
     );
@@ -478,12 +472,6 @@ module.exports = {
     });
   },
   async list(message) {
-    if (err) {
-      console.error(err);
-      return message.reply(
-        "there was an error trying to connect to the database!"
-      );
-    }
     altGetData(
       "SELECT * FROM poll WHERE guild = " + message.guild.id,
       function (err, results) {

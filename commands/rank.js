@@ -6,12 +6,6 @@ module.exports = {
     "Display your rank in the server. However, this command requires a DLC to work. Leveling system was inspired by MEE6.",
   category: 3,
   async execute(message) {
-    if (err) {
-      console.error(err);
-      return message.reply(
-        "there was an error trying to connect to the database!"
-      );
-    }
     altGetData(
       "SELECT * FROM leveling WHERE user = " +
       message.author.id +

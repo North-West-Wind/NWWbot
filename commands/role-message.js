@@ -121,7 +121,6 @@ module.exports = {
       roles: JSON.stringify(roles),
       emojis: JSON.stringify(emojis)
     });
-      if(err) return message.reply("there was an error while trying to connect to the database!");
       altGetData(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${message.author.id}', '${moment(now.getTime() + (7 * 24 * 3600 * 1000)).format("YYYY-MM-DD HH:mm:ss")}', '${JSON.stringify(roles)}', '${JSON.stringify(emojis)}')`, (err, result) => {
         if(err) return message.reply("there was an error while inserting the data into the database!");
         message.channel.send("Successfully created record for message. The message will expire after 7 days.");
