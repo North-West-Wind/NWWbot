@@ -41,7 +41,7 @@ module.exports = {
                     console.error("Failed to fetch timer list message");
                     return;
                 }
-                getData("SELECT * FROM gtimer ORDER BY endAt ASC").then(res => {
+                getData("SELECT * FROM gtimer ORDER BY endAt ASC").then(async res => {
                     if (res.error) return console.error(new Error(res.err));
                     const results = res.results;
                     let now = Date.now();
@@ -188,7 +188,7 @@ module.exports = {
                     let title = `${dc} - ${rank} [${username}]`;
                     setTimeout_(async () => {
                         let asuna = await client.users.fetch("461516729047318529");
-                        getData(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`).then(ress => {
+                        getData(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`).then(async ress => {
                             if (ress.error) return console.error(new Error(ress.err));
                             const resultss = ress.results;
                             if (resultss.length == 0) return;
@@ -221,7 +221,7 @@ module.exports = {
                 var millisec = result.expiration - currentDate;
                 async function expire(length) {
                     setTimeout_(() => {
-                        getData(`SELECT id, expiration FROM rolemsg WHERE id = '${result.id}'`).then(ress => {
+                        getData(`SELECT id, expiration FROM rolemsg WHERE id = '${result.id}'`).then(async ress => {
                             if (ress.error) return console.error(new Error(ress.err));
                             const resultss = ress.results;
                             if (resultss.length == 0) return;
@@ -354,7 +354,7 @@ module.exports = {
                 if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
                 var currentDate = new Date();
                 var time = result.endAt - currentDate;
-                setTimeout_(async function () {
+                setTimeout_(async () => {
                     try {
                         var channel = await client.channels.fetch(result.channel);
                     } catch (err) {
