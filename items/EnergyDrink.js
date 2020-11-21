@@ -1,9 +1,9 @@
-const { twoDigits } = require("../function.js");
+const { twoDigits, altGetData } = require("../function.js");
 
 module.exports = {
   name: "EnergyDrink",
-  async run(message, args, msg, con, em, itemObject) {
-    con.query("SELECT doubling FROM currency WHERE user_id = '" + message.author.id + "'", function(err, results) {
+  async run(message, msg, em, itemObject) {
+    altGetData("SELECT doubling FROM currency WHERE user_id = '" + message.author.id + "'", function(err, results) {
       if(err) {
         em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
         console.error(err);
@@ -30,14 +30,14 @@ module.exports = {
             twoDigits(minute) +
             ":" +
             twoDigits(second);
-          con.query(`UPDATE currency SET doubling = '${newDateSql}' WHERE user_id = '${message.author.id}'`, function(err) {
+          altGetData(`UPDATE currency SET doubling = '${newDateSql}' WHERE user_id = '${message.author.id}'`, function(err) {
             if(err) {
               em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
               console.error(err);
               return msg.edit(em);
             }
             itemObject["2"] -= 1;
-            con.query(`UPDATE inventory SET items = '${escape(JSON.stringify(itemObject))}' WHERE id = '${message.author.id}'`, function(err) {
+            altGetData(`UPDATE inventory SET items = '${escape(JSON.stringify(itemObject))}' WHERE id = '${message.author.id}'`, function(err) {
               if(err) {
                 em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
                 console.error(err);
@@ -67,14 +67,14 @@ module.exports = {
             twoDigits(minute) +
             ":" +
             twoDigits(second);
-          con.query(`UPDATE currency SET doubling = '${newDateSql}' WHERE user_id = '${message.author.id}'`, function(err) {
+          altGetData(`UPDATE currency SET doubling = '${newDateSql}' WHERE user_id = '${message.author.id}'`, function(err) {
             if(err) {
               em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
               console.error(err);
               return msg.edit(em);
             }
             itemObject["2"] -= 1;
-            con.query(`UPDATE inventory SET items = '${escape(JSON.stringify(itemObject))}' WHERE id = '${message.author.id}'`, function(err) {
+            altGetData(`UPDATE inventory SET items = '${escape(JSON.stringify(itemObject))}' WHERE id = '${message.author.id}'`, function(err) {
               if(err) {
                 em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
                 console.error(err);
@@ -105,14 +105,14 @@ module.exports = {
           twoDigits(minute) +
           ":" +
           twoDigits(second);
-        con.query(`UPDATE currency SET doubling = '${newDateSql}' WHERE user_id = '${message.author.id}'`, function(err) {
+        altGetData(`UPDATE currency SET doubling = '${newDateSql}' WHERE user_id = '${message.author.id}'`, function(err) {
           if(err) {
             em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
             console.error(err);
             return msg.edit(em);
           }
           itemObject["2"] -= 1;
-          con.query(`UPDATE inventory SET items = '${escape(JSON.stringify(itemObject))}' WHERE id = '${message.author.id}'`, function(err) {
+          altGetData(`UPDATE inventory SET items = '${escape(JSON.stringify(itemObject))}' WHERE id = '${message.author.id}'`, function(err) {
             if(err) {
               em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
               console.error(err);

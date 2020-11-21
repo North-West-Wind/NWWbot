@@ -1,20 +1,27 @@
 const Discord = require("discord.js");
 const { updateQueue } = require("./play.js");
-const { createEmbedScrolling } = require("../function.js");
+const { createEmbedScrolling, altGetData } = require("../function.js");
 module.exports = {
   name: "queue",
   description: "Display the current song queue.",
   aliases: ["q"],
-  subcommands: ["save", "load", "delete", "list"],
-  subaliases: ["s", "l", "d", "li"],
+  subcommands: ["save", "load", "delete", "list", "sync"],
+  subaliases: ["s", "l", "d", "li", "sy"],
   category: 8,
-  async music(message, serverQueue, queue, pool) {
+  async music(message, serverQueue, queue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
-    if (args[1] !== undefined && (args[1].toLowerCase() === "save" || args[1].toLowerCase() === "s")) return await this.save(message, serverQueue, pool, args);
-    if (args[1] !== undefined && (args[1].toLowerCase() === "load" || args[1].toLowerCase() === "l")) return await this.load(message, serverQueue, pool, args, queue);
-    if (args[1] !== undefined && (args[1].toLowerCase() === "delete" || args[1].toLowerCase() === "d")) return await this.delete(message, pool, args);
-    if (args[1] !== undefined && (args[1].toLowerCase() === "list" || args[1].toLowerCase() === "li")) return await this.list(message, pool);
-    if (args[1] !== undefined && (args[1].toLowerCase() === "sync" || args[1].toLowerCase() === "sy")) return await this.sync(message, serverQueue, pool, args, queue);
+    if (args[1]) switch(args[1].toLowerCase()) {
+      case "save":
+      case "s": return await this.save(message, serverQueue, args);
+      case "load":
+      case "l": return await this.load(message, serverQueue, args, queue);
+      case "delete":
+      case "d": return await this.delete(message, args);
+      case "list":
+      case "li": return await this.list(message);
+      case "sync":
+      case "sy": return await this.sync(message, serverQueue, args, queue);
+    }
     if (!serverQueue || serverQueue.songs.length < 1) return message.channel.send("There is nothing playing.");
     var index = 0;
     const songArray = serverQueue.songs.map(song => (song.type === 1) ? `**${++index} - ** **[${song.title}](${song.spot})** : **${song.time}**` : `**${++index} - ** **[${song.title}](${song.url})** : **${song.time}**`);
@@ -32,11 +39,9 @@ module.exports = {
     if (allEmbeds.length == 1) message.channel.send(allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
     else await createEmbedScrolling(message, allEmbeds, 3, { songArray: songArray });
   },
-  save(message, serverQueue, pool, args) {
+  save(message, serverQueue, args) {
     if (!serverQueue) return message.channel.send("There is no queue playing in this server right now!");
-    pool.getConnection(function (err, con) {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`SELECT * FROM queue WHERE user = '${message.author.id}'`, async (err, results) => {
+      altGetData(`SELECT * FROM queue WHERE user = '${message.author.id}'`, async (err, results) => {
         if (err) return message.reply("there was an error trying to fetch data from the database!");
         if (results.length >= 10) return message.channel.send("You have already stored 10 queues! Delete some of them to save this queue.");
         if (!args[2]) return message.channel.send("Please provide the name of the queue.");
@@ -62,20 +67,16 @@ module.exports = {
             } else return await msg.edit({ content: `Action cancelled. The queue ${args.slice(2).join(" ")} will not be overrided.`, embed: null });
           }
         }
-        con.query(query, (err) => {
+        altGetData(query, (err) => {
           if (err) return message.reply("there was an error trying to store the queue!");
           message.channel.send(`The song queue has been stored with the name **${args.slice(2).join(" ")}**!\nSlots used: **${query.substring(0, 6) == "INSERT" ? results.length + 1 : results.length}/10**`);
         });
       });
-      con.release();
-    });
   },
-  load(message, serverQueue, pool, args, queue) {
+  load(message, serverQueue, args, queue) {
     if (serverQueue && serverQueue.playing) return message.channel.send("Someone is listening to the music. Don't ruin their day.");
     if (!args[2]) return message.channel.send("Please provide the name of the queue.");
-    pool.getConnection((err, con) => {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`SELECT * FROM queue WHERE name = '${args.slice(2).join(" ")}' AND user = '${message.author.id}'`, (err, results) => {
+      altGetData(`SELECT * FROM queue WHERE name = '${args.slice(2).join(" ")}' AND user = '${message.author.id}'`, (err, results) => {
         if (err) return message.reply("there was an error trying to fetch queues from the database!");
         if (results.length == 0) return message.channel.send("No queue was found!");
         if (!serverQueue) {
@@ -94,32 +95,24 @@ module.exports = {
             repeating: false
           };
         } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-        updateQueue(message, serverQueue, queue, pool);
+        updateQueue(message, serverQueue, queue);
         message.channel.send(`The queue **${results[0].name}** has been loaded.`);
       }
       );
-      con.release();
-    });
   },
-  delete(message, pool, args) {
+  delete(message, args) {
     if (!args[2]) return message.channel.send("Please provide the name of the queue.");
-    pool.getConnection((err, con) => {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`SELECT * FROM queue WHERE name = '${args.slice(2).join(" ")}' AND user = '${message.author.id}'`, (err, results) => {
+      altGetData(`SELECT * FROM queue WHERE name = '${args.slice(2).join(" ")}' AND user = '${message.author.id}'`, (err, results) => {
         if (err) return message.reply("there was an error trying to fetch queues from the database!");
         if (results.length == 0) return message.channel.send("No queue was found!");
-        con.query(`DELETE FROM queue WHERE id = ${results[0].id}`, (err) => {
+        altGetData(`DELETE FROM queue WHERE id = ${results[0].id}`, (err) => {
           if (err) return message.reply("there was an error trying to delete the queue!");
           message.channel.send(`The stored queue **${results[0].name}** has been deleted.`);
         });
       });
-      con.release();
-    });
   },
-  list(message, pool) {
-    pool.getConnection((err, con) => {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`SELECT * FROM queue WHERE user = '${message.author.id}'`, async (err, results) => {
+  list(message) {
+      altGetData(`SELECT * FROM queue WHERE user = '${message.author.id}'`, async (err, results) => {
         if (err) return message.reply("there was an error trying to fetch the queues from the database!");
         const queues = [];
         var num = 0;
@@ -183,10 +176,8 @@ module.exports = {
           setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${JSON.parse(unescape(results.queue)).length} tracks in total]**` }), 60000);
         });
       });
-      con.release();
-    });
   },
-  async sync(message, serverQueue, pool, args, queue) {
+  async sync(message, serverQueue, args, queue) {
     if (serverQueue && serverQueue.playing) return message.channel.send("Someone is listening to the music. Don't ruin their day.");
     if (!args[2]) return message.channel.send("Please provide the name or ID of the server.");
     const guild = await message.client.guilds.cache.find(x => x.name.toLowerCase() === args.slice(2).join(" ").toLowerCase() || x.id == args[2]);
@@ -196,9 +187,7 @@ module.exports = {
     } catch (e) {
       return message.channel.send("You are not in that server!");
     }
-    pool.getConnection((err, con) => {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`SELECT queue FROM servers WHERE id = '${guild.id}'`, (err, results) => {
+      altGetData(`SELECT queue FROM servers WHERE id = '${guild.id}'`, (err, results) => {
         if (err) return message.reply("there was an error trying to fetch queues from the database!");
         if (results.length == 0) return message.channel.send("No queue was found!");
         if (!serverQueue) {
@@ -217,10 +206,8 @@ module.exports = {
             repeating: false
           };
         } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-        updateQueue(message, serverQueue, queue, pool);
+        updateQueue(message, serverQueue, queue);
         message.channel.send(`The queue of this server has been synchronize to the queue of the server **${guild.name}**.`);
       });
-      con.release();
-    });
   }
 };

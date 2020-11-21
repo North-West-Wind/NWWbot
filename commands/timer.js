@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { jsDate2Mysql, ms } = require("../function.js");
+const { jsDate2Mysql, ms, altGetData } = require("../function.js");
 
 module.exports = {
   name: "timer",
@@ -8,18 +8,18 @@ module.exports = {
   subcommands: ["create", "edit", "delete"],
   category: 4,
   args: 1,
-  async execute(message, args, pool) {
+  async execute(message, args) {
     if (!this.subcommands.includes(args[0])) return message.channel.send(`What is that subcommand? This are the subcommands: **${this.subcommands.join(", ")}**`);
     switch (args[0]) {
       case "create":
-        return await this.create(message, pool);
+        return await this.create(message);
       case "edit":
-        return await this.edit(message, args, pool);
+        return await this.edit(message, args);
       case "delete":
-        return await this.delete(message, args, pool);
+        return await this.delete(message, args);
     }
   },
-  async create(message, pool) {
+  async create(message) {
     let msg = await message.channel.send("What will be the title of the timer?");
     let title = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 60000, errors: ["time"] }).catch(() => { });
     if (!title || !title.first() || !title.first().content) return message.channel.send("Timed out. You didn't provide the title in time!");
@@ -79,18 +79,14 @@ module.exports = {
           msg = await msg.edit(em);
           message.author.send(`Your timer in **${message.guild.name}** has ended! https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`);
         } catch (err) { }
-        pool.getConnection((err, con) => {
-          if (err) return message.reply("there was an error trying to connect to the database!");
-          con.query(`SELECT * FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`, (err, results) => {
+          altGetData(`SELECT * FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`, (err, results) => {
             if (err) return message.reply("there was an error trying to fetch data from the database!");
             if (results.length < 1) return;
-            con.query(`DELETE FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`, (err) => {
+            altGetData(`DELETE FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`, (err) => {
               if (err) return message.reply("there was an error trying to delete the timer!");
               console.log("Deleted a timed out timer from the database.");
             });
           });
-          con.release();
-        });
         console.timers.delete(msg.id);
         return;
       }
@@ -127,21 +123,15 @@ module.exports = {
       }
       count = 0;
     }, 1000);
-    pool.getConnection((err, con) => {
-      if(err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`INSERT INTO timer(guild, channel, author, msg, title, endAt) VALUES('${message.guild.id}', '${msg.channel.id}', '${message.author.id}', '${msg.id}', '${escape(title)}', '${jsDate2Mysql(new Date(Date.now() + time))}')`, (err) => {
+      altGetData(`INSERT INTO timer(guild, channel, author, msg, title, endAt) VALUES('${message.guild.id}', '${msg.channel.id}', '${message.author.id}', '${msg.id}', '${escape(title)}', '${jsDate2Mysql(new Date(Date.now() + time))}')`, (err) => {
         if (err) return message.reply("there was an error trying to update the timer!");
         message.channel.send("The timer has been recorded!");
         console.timers.set(msg.id, id);
       });
-      con.release();
-    });
   },
-  edit(message, args, pool) {
+  edit(message, args) {
     if (!args[1]) return message.channel.send("You didn't provide a message ID!");
-    pool.getConnection((err, con) => {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`SELECT * FROM timer WHERE msg='${args[1]}'`, async (err, results) => {
+      altGetData(`SELECT * FROM timer WHERE msg='${args[1]}'`, async (err, results) => {
         if (err) return message.reply("there was an error trying to fetch data from the database!");
         if (results.length === 0) return message.channel.send("No timer was found!");
         if (results[0].author != message.author.id) return message.channel.send("This timer is not yours!");
@@ -212,18 +202,14 @@ module.exports = {
               msg = await msg.edit(em);
               message.author.send(`Your timer in **${message.guild.name}** has ended! https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`);
             } catch (err) { }
-            pool.getConnection((err, con) => {
-              if (err) return message.reply("there was an error trying to connect to the database!");
-              con.query(`SELECT * FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`, (err, results) => {
+              altGetData(`SELECT * FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`, (err, results) => {
                 if (err) return message.reply("there was an error trying to fetch data from the database!");
                 if (results.length < 1) return;
-                con.query(`DELETE FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`, (err) => {
+                altGetData(`DELETE FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`, (err) => {
                   if (err) return message.reply("there was an error trying to delete the timer!");
                   console.log("Deleted a timed out timer from the database.");
                 });
               });
-              con.release();
-            });
             console.timers.delete(msg.id);
             return;
           }
@@ -260,31 +246,25 @@ module.exports = {
           }
           count = 0;
         }, 1000);
-        con.query(`UPDATE timers SET channel = '${msg.channel.id}', msg = '${msg.id}', title = '${escape(title)}', endAt = '${jsDate2Mysql(new Date(Date.now() + time))}' WHERE msg = '${mesg.id}'`, (err) => {
+        altGetData(`UPDATE timers SET channel = '${msg.channel.id}', msg = '${msg.id}', title = '${escape(title)}', endAt = '${jsDate2Mysql(new Date(Date.now() + time))}' WHERE msg = '${mesg.id}'`, (err) => {
           if (err) return message.reply("there was an error trying to update the timer!");
           message.channel.send("The timer has been recorded!");
           console.timers.delete(mesg.id);
           console.timers.set(msg.id, id);
         });
       });
-      con.release();
-    });
   },
-  delete(message, args, pool) {
+  delete(message, args) {
     if(!args[1]) return message.channel.send("You didn't provide a message ID!");
-    pool.getConnection((err, con) => {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`SELECT * FROM timer WHERE msg='${args[1]}'`, async (err, results) => {
+      altGetData(`SELECT * FROM timer WHERE msg='${args[1]}'`, async (err, results) => {
         if (err) return message.reply("there was an error trying to fetch data from the database!");
         if (results.length === 0) return message.channel.send("No timer was found!");
         if (results[0].author != message.author.id) return message.channel.send("This timer is not yours!");
         if (results[0].guild != message.guild.id) return message.channel.send("The timer is not on this server!");
-        con.query(`DELETE FROM timers WHERE msg = '${args[1]}' AND author = '${message.author.id}'`, (err) => {
+        altGetData(`DELETE FROM timers WHERE msg = '${args[1]}' AND author = '${message.author.id}'`, (err) => {
           if(err) return message.reply("there was an error trying to delete the timer!");
           message.channel.send(`Timer ${unescape(results[0].title)} deleted.`);
         });
       });
-      con.release();
-    });
   }
 }

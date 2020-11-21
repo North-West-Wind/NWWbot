@@ -1,12 +1,12 @@
 const Discord = require("discord.js");
+const { altGetData } = require("../function.js");
 
 module.exports = {
   name: "shop",
   description: "Spend the money you gained from work or lottery.",
   category: 2,
-  execute(message, args, pool) {
+  execute(message) {
     const color = console.color();
-    pool.getConnection(function(err, con) {
       if (err) {
         console.error(err);
         return message.reply(
@@ -16,7 +16,7 @@ module.exports = {
       mainMenu();
       function mainMenu(msg = undefined) {
         var mesg = msg;
-        con.query(
+        altGetData(
           "SELECT * FROM currency WHERE user_id = " + message.author.id,
           async function(err, results) {
             if (err) {
@@ -78,7 +78,7 @@ module.exports = {
 
             function shopMenu() {
               var allItems = [];
-              con.query("SELECT * FROM shop", async function(
+              altGetData("SELECT * FROM shop", async function(
                 err,
                 results
               ) {
@@ -155,7 +155,7 @@ module.exports = {
             }
 
             async function viewItem(msg, id) {
-              con.query(
+              altGetData(
                 "SELECT * FROM shop WHERE id = " + id,
                 async (err, result) => {
                   if (err) {
@@ -249,7 +249,7 @@ module.exports = {
                             message.client.user.displayAvatarURL()
                           );
                         var paid = cash - result[0].buy_price;
-                        con.query(
+                        altGetData(
                           "UPDATE currency SET currency = " +
                             paid +
                             " WHERE user_id = '" +
@@ -257,7 +257,7 @@ module.exports = {
                             "'",
                           async function(err) {
                             if (err) itemEmbed.setTitle("Failed to purchase!");
-                            con.query(
+                            altGetData(
                               "SELECT * FROM inventory WHERE id = '" +
                                 message.author.id +
                                 "'",
@@ -270,7 +270,7 @@ module.exports = {
                                 };
                                 if (IResult.length === 0) {
                                   itemObject[result[0].id.toString()] += 1;
-                                  con.query(
+                                  altGetData(
                                     `INSERT INTO inventory VALUES('${
                                       message.author.id
                                     }', '${escape(
@@ -301,7 +301,7 @@ module.exports = {
                                         : oldItems[id];
                                   }
                                   itemObject[result[0].id.toString()] += 1;
-                                  con.query(
+                                  altGetData(
                                     `UPDATE inventory SET items = '${escape(
                                       JSON.stringify(itemObject)
                                     )}' WHERE id = '${message.author.id}'`,
@@ -358,7 +358,5 @@ module.exports = {
           }
         );
       }
-      con.release();
-    });
   }
 };

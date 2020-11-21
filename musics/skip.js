@@ -6,7 +6,7 @@ module.exports = {
   usage: "[amount]",
   aliases: ["s"],
   category: 8,
-  async music(message, serverQueue, queue, pool) {
+  async music(message, serverQueue, queue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
     var skipped = 1;
     const guild = message.guild;
@@ -25,11 +25,11 @@ module.exports = {
       }
       serverQueue.songs.shift();
     }
-    updateQueue(message, serverQueue, queue, pool);
+    updateQueue(message, serverQueue, queue);
     message.channel.send(`Skipped **${Math.max(1, skipped)}** track${skipped > 1 ? "s" : ""}!`);
     if (message.member.voice.channel && serverQueue.playing) {
       if (!serverQueue.connection) serverQueue.connection = await message.member.voice.channel.join();
-      play(guild, serverQueue.songs[0], queue, pool);
+      play(guild, serverQueue.songs[0], queue);
     }
   }
 }

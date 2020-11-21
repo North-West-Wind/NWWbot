@@ -1,4 +1,5 @@
 const moment = require("moment");
+const { altGetData } = require("../function.js");
 module.exports = {
   name: "role-message",
   description: "Allows you to create a message for users to react and join a role.",
@@ -8,15 +9,15 @@ module.exports = {
   aliases: ["role-msg", "rm"],
   category: 0,
   args: 1,
-  async execute(message, args, pool) {
+  async execute(message, args) {
     if(args[0] === "create" || args[0] === "cr") {
-      return await this.create(message, pool, console.rm);
+      return await this.create(message);
     }
     if(args[0] === "refresh" || args[0] === "re") {
-      return await this.refresh(message, args, pool);
+      return await this.refresh(message, args);
     }
   },
-  async create(message, pool, rm) {
+  async create(message) {
     var msg = await message.channel.send("Please enter the message you want to send.");
     var collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 120000, max: 1, errors: ["time"] }).catch(console.error);
     if(collected.first() === undefined) {
@@ -111,7 +112,7 @@ module.exports = {
       mesg.react(emoji);
     }
     var now = new Date();
-    rm.push({
+    console.rm.push({
       id: mesg.id,
       guild: message.guild.id,
       channel: channel.id,
@@ -120,18 +121,17 @@ module.exports = {
       roles: JSON.stringify(roles),
       emojis: JSON.stringify(emojis)
     });
-    pool.getConnection((err, con) => {
       if(err) return message.reply("there was an error while trying to connect to the database!");
-      con.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${message.author.id}', '${moment(now.getTime() + (7 * 24 * 3600 * 1000)).format("YYYY-MM-DD HH:mm:ss")}', '${JSON.stringify(roles)}', '${JSON.stringify(emojis)}')`, (err, result) => {
+      altGetData(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${message.author.id}', '${moment(now.getTime() + (7 * 24 * 3600 * 1000)).format("YYYY-MM-DD HH:mm:ss")}', '${JSON.stringify(roles)}', '${JSON.stringify(emojis)}')`, (err, result) => {
         if(err) return message.reply("there was an error while inserting the data into the database!");
         message.channel.send("Successfully created record for message. The message will expire after 7 days.");
         async function expire(length) {
           setTimeout(() => {
-            con.query(`SELECT expiration FROM rolemsg WHERE id = '${result.id}'`, (err, results) => {
+            altGetData(`SELECT expiration FROM rolemsg WHERE id = '${result.id}'`, (err, results) => {
               if(results.length == 0) return;
               var date = new Date();
               if(results[0].expiration - date <= 0) {
-                con.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`, async(err) => {
+                altGetData(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`, async(err) => {
                   if(err) return console.error(err);
                   var channel = await message.client.channels.fetch(results[0].channel);
                   var msg = await channel.messages.fetch(results[0].id);
@@ -146,21 +146,15 @@ module.exports = {
         }
         expire(7 * 24 * 3600 * 1000);
       });
-      con.release();
-    });
   },
-  async refresh(message, args, pool) {
-    pool.getConnection((err, con) => {
-      if(err) return message.reply("there was an error while trying to connect to the database!");
-      con.query(`SELECT * FROM rolemsg WHERE id = '${args[1]}' AND guild = '${message.guild.id}' AND author = '${message.author.id}'`, (err, results) => {
+  async refresh(message, args) {
+      altGetData(`SELECT * FROM rolemsg WHERE id = '${args[1]}' AND guild = '${message.guild.id}' AND author = '${message.author.id}'`, (err, results) => {
         if(err) return message.reply("there was an error while finding your message!");
         if(results.length == 0) return message.channel.send("No message was found with that ID!");
-        con.query(`UPDATE rolemsg SET expiration = '${moment(Date.now() + (7 * 24 * 3600 * 1000)).format("YYYY-MM-DD HH:mm:ss")}' WHERE id = '${results[0].id}'`, (err) => {
+        altGetData(`UPDATE rolemsg SET expiration = '${moment(Date.now() + (7 * 24 * 3600 * 1000)).format("YYYY-MM-DD HH:mm:ss")}' WHERE id = '${results[0].id}'`, (err) => {
           if(err) return message.reply("there was an error while refreshing the message!");
           message.channel.send("The message has been refreshed. It will last for 7 more days.")
         });
       });
-      con.release();
-    });
   }
 }

@@ -2,7 +2,7 @@ var queue = new Map();
 
 module.exports = {
   name: "main",
-  async music(message, commandName, pool) {
+  async music(message, commandName) {
     const command =
       console.commands.get(commandName) ||
       console.commands.find(
@@ -12,7 +12,7 @@ module.exports = {
     const serverQueue = queue.get(message.guild.id);
 
     try {
-      await command.music(message, serverQueue, queue, pool);
+      await command.music(message, serverQueue, queue);
     } catch (error) {
       console.error(error);
       message.reply("there was an error trying to execute that command!");

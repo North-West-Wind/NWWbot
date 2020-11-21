@@ -13,7 +13,7 @@ const config = {
 const getSearchURL = (term) => (config.BASE_URL + config.SEARCH_URL + term.split(" ").map(s => encodeURIComponent(s)).join("+"));
 const makeRequest = (url) => new Promise(async (resolve, reject) => {
   const res = await fetch(url, { headers: { "User-Agent": config.USER_AGENT } });
-  if(res.statusCode && res.statusCode != 200) reject(new Error("Received HTTP Status Code: " + res.statusCode));
+  if(!res.ok) reject(new Error("Received Non-200 HTTP Status Code"));
   resolve(await res.text());
 });
 

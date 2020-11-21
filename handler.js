@@ -1,22 +1,7 @@
 const cleverbot = require("cleverbot-free");
 const { Image, createCanvas, loadImage } = require("canvas");
 const Discord = require("discord.js");
-const mysql = require("mysql");
-const mysql_config = {
-    connectTimeout: 60 * 60 * 1000,
-    acquireTimeout: 60 * 60 * 1000,
-    timeout: 60 * 60 * 1000,
-    connectionLimit: 1000,
-    host: process.env.DBHOST,
-    user: process.env.DBUSER,
-    password: process.env.DBPW,
-    database: process.env.DBNAME,
-    supportBigNumbers: true,
-    bigNumberStrings: true,
-    charset: "utf8mb4"
-};
-var pool = mysql.createPool(mysql_config);
-const { setTimeout_, getRandomNumber, twoDigits, jsDate2Mysql } = require("./function.js");
+const { setTimeout_, getRandomNumber, jsDate2Mysql, getData } = require("./function.js");
 const profile = (str) => {
     return new Promise((resolve, reject) => {
         require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); });
@@ -28,26 +13,19 @@ formatSetup(moment);
 var timeout = undefined;
 console.prefixes = {};
 function messageLevel(message) {
-    if(!message || !message.author || !message.author.id || !message.guild) return;
+    if (!message || !message.author || !message.author.id || !message.guild) return;
     const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
     const sqlDate = jsDate2Mysql(new Date());
-    pool.getConnection(function (err, con) {
-        if (err) return console.error(err);
-        con.query(`SELECT * FROM leveling WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`, (err, results) => {
-            if (err) console.error(err);
-            if (results.length < 1) con.query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${message.author.id}', '${message.guild.id}', ${exp}, '${sqlDate}')`, function (err) {
-                    if (err) console.error(err);
-                });
-            else {
-                if (new Date() - results[0].last < 60000) return;
-                const newExp = parseInt(results[0].exp) + exp;
-                con.query(`UPDATE leveling SET exp = ${newExp}, last = '${sqlDate}' WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`, function (err) {
-                    if (err) console.error(err);
-                });
-            }
-        })
-        con.release();
-    });
+    getData(`SELECT * FROM leveling WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`).then(res => {
+        if (res.error) return console.error(new Error(res.err));
+        const results = res.results;
+        if (results.length < 1) getData(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${message.author.id}', '${message.guild.id}', ${exp}, '${sqlDate}')`).then(ress => (ress.error) ? console.error(new Error(ress.err)) : 0);
+        else {
+            if (new Date() - results[0].last < 60000) return;
+            const newExp = parseInt(results[0].exp) + exp;
+            getData(`UPDATE leveling SET exp = ${newExp}, last = '${sqlDate}' WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`).then(ress => (ress.error) ? console.error(new Error(ress.err)) : 0);
+        }
+    })
 }
 module.exports = {
     async ready(client) {
@@ -63,111 +41,108 @@ module.exports = {
                     console.error("Failed to fetch timer list message");
                     return;
                 }
-                pool.getConnection((err, con) => {
-                    if (err) return console.error(err);
-                    con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
-                        if (err) return console.error(err);
-                        let now = Date.now();
-                        let tmp = [];
-                        for (const result of results) {
-                            let mc = await profile(result.mc);
-                            let username = "undefined";
-                            if (mc) username = mc.name;
-                            const str = result.user;
-                            let dc = "0";
-                            try {
-                                var user = await client.users.fetch(str);
-                                dc = user.id;
-                            } catch (err) { }
-                            let rank = unescape(result.dc_rank);
-                            let title = `<@${dc}> - ${rank} [${username}]`;
-                            let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                            tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
+                getData("SELECT * FROM gtimer ORDER BY endAt ASC").then(res => {
+                    if (res.error) return console.error(new Error(res.err));
+                    const results = res.results;
+                    let now = Date.now();
+                    let tmp = [];
+                    for (const result of results) {
+                        let mc = await profile(result.mc);
+                        let username = "undefined";
+                        if (mc) username = mc.name;
+                        const str = result.user;
+                        let dc = "0";
+                        try {
+                            var user = await client.users.fetch(str);
+                            dc = user.id;
+                        } catch (err) { }
+                        let rank = unescape(result.dc_rank);
+                        let title = `<@${dc}> - ${rank} [${username}]`;
+                        let seconds = Math.round((result.endAt.getTime() - now) / 1000);
+                        tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
+                    }
+                    if (tmp.length <= 10) {
+                        timerMsg.reactions.removeAll().catch(console.error);
+                        let description = "";
+                        let num = 0;
+                        for (const result of tmp) {
+                            description += `${++num}. ${result.title} : ${result.time}\n`;
                         }
-                        if (tmp.length <= 10) {
-                            timerMsg.reactions.removeAll().catch(console.error);
-                            let description = "";
-                            let num = 0;
-                            for (const result of tmp) {
-                                description += `${++num}. ${result.title} : ${result.time}\n`;
+                        const em = new Discord.MessageEmbed()
+                            .setColor(console.color())
+                            .setTitle("Rank Expiration Timers")
+                            .setDescription(description)
+                            .setTimestamp()
+                            .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+                        timerMsg.edit({ content: "", embed: em });
+                    } else {
+                        const allEmbeds = [];
+                        for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
+                            let desc = "";
+                            for (let num = 0; num < 10; num++) {
+                                if (!tmp[i + num]) break;
+                                desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
                             }
                             const em = new Discord.MessageEmbed()
                                 .setColor(console.color())
-                                .setTitle("Rank Expiration Timers")
-                                .setDescription(description)
+                                .setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
+                                .setDescription(desc)
                                 .setTimestamp()
                                 .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
-                            timerMsg.edit({ content: "", embed: em });
-                        } else {
-                            const allEmbeds = [];
-                            for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
-                                let desc = "";
-                                for (let num = 0; num < 10; num++) {
-                                    if (!tmp[i + num]) break;
-                                    desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
-                                }
-                                const em = new Discord.MessageEmbed()
-                                    .setColor(console.color())
-                                    .setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
-                                    .setDescription(desc)
-                                    .setTimestamp()
-                                    .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
-                                allEmbeds.push(em);
-                            }
-                            const filter = (reaction, user) => {
-                                return (
-                                    ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name)
-                                );
-                            };
-                            var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
-                            var s = 0;
-                            await msg.react("⏮");
-                            await msg.react("◀");
-                            await msg.react("▶");
-                            await msg.react("⏭");
-                            await msg.react("⏹");
-                            var collector = await msg.createReactionCollector(filter, {
-                                time: 29000,
-                                errors: ["time"]
-                            });
-
-                            collector.on("collect", function (reaction, user) {
-                                reaction.users.remove(user.id);
-                                switch (reaction.emoji.name) {
-                                    case "⏮":
-                                        s = 0;
-                                        msg.edit(allEmbeds[s]);
-                                        break;
-                                    case "◀":
-                                        s -= 1;
-                                        if (s < 0) {
-                                            s = allEmbeds.length - 1;
-                                        }
-                                        msg.edit(allEmbeds[s]);
-                                        break;
-                                    case "▶":
-                                        s += 1;
-                                        if (s > allEmbeds.length - 1) {
-                                            s = 0;
-                                        }
-                                        msg.edit(allEmbeds[s]);
-                                        break;
-                                    case "⏭":
-                                        s = allEmbeds.length - 1;
-                                        msg.edit(allEmbeds[s]);
-                                        break;
-                                    case "⏹":
-                                        collector.emit("end");
-                                        break;
-                                }
-                            });
-                            collector.on("end", function () {
-                                msg.reactions.removeAll().catch(console.error);
-                            });
+                            allEmbeds.push(em);
                         }
-                    });
-                    con.release();
-                });
+                        const filter = (reaction, user) => {
+                            return (
+                                ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name)
+                            );
+                        };
+                        var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
+                        var s = 0;
+                        await msg.react("⏮");
+                        await msg.react("◀");
+                        await msg.react("▶");
+                        await msg.react("⏭");
+                        await msg.react("⏹");
+                        var collector = await msg.createReactionCollector(filter, {
+                            time: 29000,
+                            errors: ["time"]
+                        });
+
+                        collector.on("collect", function (reaction, user) {
+                            reaction.users.remove(user.id);
+                            switch (reaction.emoji.name) {
+                                case "⏮":
+                                    s = 0;
+                                    msg.edit(allEmbeds[s]);
+                                    break;
+                                case "◀":
+                                    s -= 1;
+                                    if (s < 0) {
+                                        s = allEmbeds.length - 1;
+                                    }
+                                    msg.edit(allEmbeds[s]);
+                                    break;
+                                case "▶":
+                                    s += 1;
+                                    if (s > allEmbeds.length - 1) {
+                                        s = 0;
+                                    }
+                                    msg.edit(allEmbeds[s]);
+                                    break;
+                                case "⏭":
+                                    s = allEmbeds.length - 1;
+                                    msg.edit(allEmbeds[s]);
+                                    break;
+                                case "⏹":
+                                    collector.emit("end");
+                                    break;
+                            }
+                        });
+                        collector.on("end", function () {
+                            msg.reactions.removeAll().catch(console.error);
+                        });
+                    }
+                })
             }, 30000);
         }
 
@@ -175,416 +150,338 @@ module.exports = {
             client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
         else
             client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
-        pool.getConnection(function (err, con) {
-            if (err) return console.error(err);
-            const { setQueue } = require("./musics/main.js");
-            if (id === 0) {
-                con.query("SELECT id, queue, looping, repeating, prefix FROM servers", function (err, results) {
-                    if (err) return console.error(err);
-                    var count = 0;
-                    results.forEach(result => {
-                        if (result.queue !== null || result.looping !== null || result.repeating !== null) {
-                            var parsed = [];
-                            try {
-                                if (result.queue !== null) parsed = JSON.parse(unescape(result.queue));
-                            } catch (err) {
-                                console.log(`Error parsing queue of ${result.id}`);
-                                parsed = [];
-                            }
-                            var queue = parsed;
-                            setQueue(result.id, queue, result.looping === 1 ? true : false, result.repeating === 1 ? true : false);
-                            count += 1;
-                        }
-                        if (result.prefix) try { console.prefixes[result.id] = result.prefix; } catch (err) { }
-                    });
-                    console.log(`[${id}] ` + "Set " + count + " queues");
-                });
-            } else {
-                con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, res) => {
-                    if (err) return console.error(err);
-                    console.log(`[${id}] Found ${res.length} guild timers`);
-                    res.forEach(async result => {
-                        let endAfter = result.endAt.getTime() - Date.now();
-                        let mc = await profile(result.mc);
-                        let username = "undefined";
-                        if (mc) username = mc.name;
-                        let dc = `<@${result.user}>`;
-                        let rank = unescape(result.dc_rank);
-                        let title = `${dc} - ${rank} [${username}]`;
-                        setTimeout_(async () => {
-                            let asuna = await client.users.fetch("461516729047318529");
-                            con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, async (err, results) => {
-                                if (err) return console.error(err);
-                                if (results.length == 0) return;
-                                try {
-                                    asuna.send(title + " expired");
-                                    var user = await client.users.fetch(result.user);
-                                    user.send(`Your rank **${rank}** in War of Underworld has expired.`);
-                                } catch (err) {
-                                    console.error("Failed to DM user")
-                                }
-                                con.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`, (err) => {
-                                    if (err) return console.error(err);
-                                    console.log("A guild timer expired");
-                                });
-                            });
-                        }, endAfter);
-
-                    });
-                });
-            }
-            con.query("SELECT * FROM rolemsg ORDER BY expiration", (err, res) => {
-                if (err) return console.error(err);
-                console.log(`[${id}] ` + "Found " + res.length + " role messages.");
-                res.forEach(async result => {
-                    if (id === 0 && result.guild == "622311594654695434") return;
-                    if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
-                    console.rm.push(result);
-
-                    var currentDate = new Date();
-                    var millisec = result.expiration - currentDate;
-                    async function expire(length) {
-                        setTimeout_(() => {
-                            con.query(`SELECT id, expiration FROM rolemsg WHERE id = '${result.id}'`, async (err, results) => {
-                                if (err) return console.error(err);
-                                if (results.length == 0) return;
-                                var date = new Date();
-                                var deleted = false;
-                                try {
-                                    var channel = await client.channels.fetch(results[0].channel);
-                                    var msg = await channel.messages.fetch(results[0].id);
-                                } catch (err) {
-                                    var deleted = true;
-                                }
-                                if (results[0].expiration - date <= 0) {
-                                    con.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`, async (err) => {
-                                        if (err) return console.error(err);
-                                        console.log("Deleted an expired role-message.");
-                                        if (!deleted)
-                                            msg.reactions.removeAll().catch(() => console.error("Failed to remove reactions but nevermind."));
-                                    });
-                                } else {
-                                    expire(results[0].expiration - date);
-                                }
-                            });
-                        }, length);
-                    }
-                    expire(millisec);
-                });
-            });
-            con.query("SELECT * FROM giveaways ORDER BY endAt ASC", function (
-                err,
-                results
-            ) {
-                console.log(`[${id}] ` + "Found " + results.length + " giveaways");
-                results.forEach(async result => {
-                    if (id === 0 && result.guild == "622311594654695434") return;
-                    if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
-                    var currentDate = new Date();
-                    var millisec = result.endAt - currentDate;
-                    if (err) return console.error(err);
-                    setTimeout_(async function () {
-                        try {
-                            var channel = await client.channels.fetch(result.channel);
-                        } catch (err) {
-                            console.log("Failed fetching guild/channel of giveaway.");
-                            return console.error(err);
-                        }
-                        try {
-                            var msg = await channel.messages.fetch(result.id);
-                        } catch (err) {
-                            con.query("DELETE FROM giveaways WHERE id = " + result.id, function (
-                                err,
-                                con
-                            ) {
-                                if (err) return console.error(err);
-                                console.log("Deleted an ended giveaway record.");
-                            });
-                            return;
-                        }
-                        if (msg.deleted) {
-                            con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
-                                err,
-                                con
-                            ) {
-                                if (err) return console.error(err);
-                                console.log("Deleted an ended giveaway record.");
-                            });
-                            return;
-                        } else {
-                            var fetchUser = await client.users.fetch(result.author);
-                            var endReacted = [];
-                            var peopleReacted = await msg.reactions.cache.get(result.emoji);
-                            try {
-                                await peopleReacted.users.fetch();
-                            } catch (err) {
-                                con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
-                                    err
-                                ) {
-                                    if (err) return console.error(err);
-                                    console.log("Deleted an ended giveaway record.");
-                                });
-                            }
-                            try {
-                                for (const user of peopleReacted.users.cache.values()) {
-                                    const data = user.id;
-                                    endReacted.push(data);
-                                }
-                            } catch (err) {
-                                return console.error(err);
-                            }
-
-                            const remove = endReacted.indexOf(id === 0 ? "649611982428962819" : "653133256186789891");
-                            if (remove > -1) {
-                                endReacted.splice(remove, 1);
-                            }
-
-                            if (endReacted.length === 0) {
-                                con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
-                                    err
-                                ) {
-                                    if (err) return console.error(err);
-                                    console.log("Deleted an ended giveaway record.");
-                                });
-                                const Ended = new Discord.MessageEmbed()
-                                    .setColor(parseInt(result.color))
-                                    .setTitle(unescape(result.item))
-                                    .setDescription("Giveaway ended")
-                                    .addField("Winner(s)", "None. Cuz no one reacted.")
-                                    .setTimestamp()
-                                    .setFooter(
-                                        "Hosted by " +
-                                        fetchUser.username +
-                                        "#" +
-                                        fetchUser.discriminator,
-                                        fetchUser.displayAvatarURL()
-                                    );
-                                msg.edit(Ended);
-                                msg.reactions.removeAll().catch(err => console.error(err));
-                                return;
-                            } else {
-                                var index = Math.floor(Math.random() * endReacted.length);
-                                var winners = [];
-                                var winnerMessage = "";
-                                var winnerCount = result.winner;
-
-                                for (var i = 0; i < winnerCount; i++) {
-                                    winners.push(endReacted[index]);
-                                    index = Math.floor(Math.random() * endReacted.length);
-                                }
-
-                                for (var i = 0; i < winners.length; i++) {
-                                    winnerMessage += "<@" + winners[i] + "> ";
-                                }
-
-                                const Ended = new Discord.MessageEmbed()
-                                    .setColor(parseInt(result.color))
-                                    .setTitle(unescape(result.item))
-                                    .setDescription("Giveaway ended")
-                                    .addField("Winner(s)", winnerMessage)
-                                    .setTimestamp()
-                                    .setFooter(
-                                        "Hosted by " +
-                                        fetchUser.username +
-                                        "#" +
-                                        fetchUser.discriminator,
-                                        fetchUser.displayAvatarURL()
-                                    );
-                                msg.edit(Ended);
-                                var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
-                                msg.channel.send(
-                                    "Congratulation, " +
-                                    winnerMessage +
-                                    "! You won **" +
-                                    unescape(result.item) +
-                                    "**!\n" +
-                                    link
-                                );
-                                msg.reactions
-                                    .removeAll()
-                                    .catch(error =>
-                                        console.error("Failed to clear reactions: ", error)
-                                    );
-
-                                con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
-                                    err
-                                ) {
-                                    if (err) return console.error(err);
-                                    console.log("Deleted an ended giveaway record.");
-                                });
-                            }
-                        }
-                    }, millisec);
-                });
-            });
-            con.query("SELECT * FROM poll ORDER BY endAt ASC", function (
-                err,
-                results
-            ) {
-                if (err) return console.error(err);
-                console.log(`[${id}] ` + "Found " + results.length + " polls.");
+        if (err) return console.error(err);
+        const { setQueue } = require("./musics/main.js");
+        if (id === 0) {
+            getData("SELECT id, queue, looping, repeating, prefix FROM servers").then(res => {
+                if (res.error) return console.error(new Error(res.err));
+                const results = res.results;
+                var count = 0;
                 results.forEach(result => {
-                    if (id === 0 && result.guild == "622311594654695434") return;
-                    if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
-                    var currentDate = new Date();
-                    var time = result.endAt - currentDate;
-                    setTimeout_(async function () {
+                    if (result.queue !== null || result.looping !== null || result.repeating !== null) {
+                        var parsed = [];
                         try {
-                            var channel = await client.channels.fetch(result.channel);
+                            if (result.queue !== null) parsed = JSON.parse(unescape(result.queue));
                         } catch (err) {
-                            console.log("Failed fetching guild/channel of giveaway.");
-                            return console.error(err);
+                            console.log(`Error parsing queue of ${result.id}`);
+                            parsed = [];
                         }
-                        try {
-                            var msg = await channel.messages.fetch(result.id);
-                        } catch (err) {
-                            con.query("DELETE FROM poll WHERE id = " + result.id, function (
-                                err
-                            ) {
-                                if (err) return console.error(err);
-                                console.log("Deleted an ended poll.");
-                            });
-                            return;
-                        }
-
-                        if (msg.deleted) {
-                            con.query("DELETE FROM poll WHERE id = " + msg.id, function (
-                                err
-                            ) {
-                                if (err) return console.error(err);
-                                console.log("Deleted an ended poll.");
-                            });
-                            return;
-                        } else {
-                            var author = await client.users.fetch(result.author);
-                            var allOptions = await JSON.parse(result.options);
-
-                            var pollResult = [];
-                            var end = [];
-                            for (const emoji of msg.reactions.cache.values()) {
-                                await pollResult.push(emoji.count);
-                                var mesg =
-                                    "**" +
-                                    (emoji.count - 1) +
-                                    "** - `" +
-                                    unescape(allOptions[pollResult.length - 1]) +
-                                    "`";
-                                await end.push(mesg);
-                            }
-                            var pollMsg = "⬆**Poll**⬇";
-                            const Ended = new Discord.MessageEmbed()
-                                .setColor(parseInt(result.color))
-                                .setTitle(unescape(result.title))
-                                .setDescription(
-                                    "Poll ended. Here are the results:\n\n\n" +
-                                    end
-                                        .join("\n\n")
-                                        .replace(/#quot;/g, "'")
-                                        .replace(/#dquot;/g, '"')
-                                )
-                                .setTimestamp()
-                                .setFooter(
-                                    "Hosted by " + author.username + "#" + author.discriminator,
-                                    author.displayAvatarURL()
-                                );
-                            msg.edit(pollMsg, Ended);
-                            var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
-
-                            msg.channel.send("A poll has ended!\n" + link);
-                            msg.reactions.removeAll().catch(err => {
-                                console.error(err);
-                            });
-                            con.query("DELETE FROM poll WHERE id = " + msg.id, function (
-                                err
-                            ) {
-                                if (err) return console.error(err);
-                                console.log("Deleted an ended poll.");
-                            });
-                        }
-                    }, time);
+                        var queue = parsed;
+                        setQueue(result.id, queue, result.looping === 1 ? true : false, result.repeating === 1 ? true : false);
+                        count += 1;
+                    }
+                    if (result.prefix) try { console.prefixes[result.id] = result.prefix; } catch (err) { }
                 });
-            });
-            con.query("SELECT * FROM timer", (err, results) => {
-                if (err) console.error(err);
-                console.log(`[${id}] ` + `Found ${results.length} timers.`);
+                console.log(`[${id}] ` + "Set " + count + " queues");
+            })
+        } else {
+            getData("SELECT * FROM gtimer ORDER BY endAt ASC").then(res => {
+                if (res.error) return console.error(new Error(res.err));
+                const results = res.results;
                 results.forEach(async result => {
-                    if (id === 0 && result.guild == "622311594654695434") return;
-                    if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
-                    let time = result.endAt - new Date();
-                    let em = new Discord.MessageEmbed();
+                    let endAfter = result.endAt.getTime() - Date.now();
+                    let mc = await profile(result.mc);
+                    let username = "undefined";
+                    if (mc) username = mc.name;
+                    let dc = `<@${result.user}>`;
+                    let rank = unescape(result.dc_rank);
+                    let title = `${dc} - ${rank} [${username}]`;
+                    setTimeout_(async () => {
+                        let asuna = await client.users.fetch("461516729047318529");
+                        getData(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`).then(ress => {
+                            if (ress.error) return console.error(new Error(ress.err));
+                            const resultss = ress.results;
+                            if (resultss.length == 0) return;
+                            try {
+                                asuna.send(title + " expired");
+                                var user = await client.users.fetch(result.user);
+                                user.send(`Your rank **${rank}** in War of Underworld has expired.`);
+                            } catch (err) {
+                                console.error("Failed to DM user")
+                            }
+                            getData(`DELETE id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`).then(resss => {
+                                if (resss.error) return console.error(resss.err);
+                                console.log("A guild timer expired");
+                            });
+                        });
+                    }, endAfter);
+                });
+            })
+        }
+        getData("SELECT * FROM rolemsg ORDER BY expiration").then(res => {
+            if (res.error) return console.error(new Error(res.err));
+            const results = res.results;
+            console.log(`[${id}] ` + "Found " + results.length + " role messages.");
+            results.forEach(async result => {
+                if (id === 0 && result.guild == "622311594654695434") return;
+                if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
+                console.rm.push(result);
+
+                var currentDate = new Date();
+                var millisec = result.expiration - currentDate;
+                async function expire(length) {
+                    setTimeout_(() => {
+                        getData(`SELECT id, expiration FROM rolemsg WHERE id = '${result.id}'`).then(ress => {
+                            if (ress.error) return console.error(new Error(ress.err));
+                            const resultss = ress.results;
+                            if (resultss.length == 0) return;
+                            var date = new Date();
+                            var deleted = false;
+                            try {
+                                var channel = await client.channels.fetch(resultss[0].channel);
+                                var msg = await channel.messages.fetch(resultss[0].id);
+                            } catch (err) {
+                                var deleted = true;
+                            }
+                            if (resultss[0].expiration - date <= 0) {
+                                getData(`DELETE FROM rolemsg WHERE id = '${resultss[0].id}'`).then(resss => {
+                                    if (resss.error) return console.error(new Error(resss.err));
+                                    console.log("Deleted an expired role-message.");
+                                    if (!deleted) msg.reactions.removeAll().catch(() => console.error("Failed to remove reactions but nevermind."));
+                                });
+                            } else expire(resultss[0].expiration - date);
+                        });
+                    }, length);
+                }
+                expire(millisec);
+            });
+        });
+        getData("SELECT * FROM giveaways ORDER BY endAt ASC").then(res => {
+            if (res.error) return console.error(new Error(res.err));
+            const results = res.results;
+            console.log(`[${id}] ` + "Found " + results.length + " giveaways");
+            results.forEach(async result => {
+                if (id === 0 && result.guild == "622311594654695434") return;
+                if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
+                var currentDate = new Date();
+                var millisec = result.endAt - currentDate;
+                if (err) return console.error(err);
+                setTimeout_(async function () {
                     try {
                         var channel = await client.channels.fetch(result.channel);
-                        var msg = await channel.messages.fetch(result.msg);
-                        var author = await client.users.fetch(result.author);
-                        var guild = await client.guilds.resolve(result.guild);
-                    } catch (err) { return; }
-                    if (!channel) time = 0;
-                    if (!guild) time = 0;
-                    if (!msg) time = 0;
-                    else if (msg.author.id !== client.user.id) time = 0;
-                    else if (msg.embeds.length !== 1) time = 0;
-                    else if (!msg.embeds[0].color || !msg.embeds[0].title || !msg.embeds[0].timestamp || !msg.embeds[0].footer || !msg.embeds[0].description || msg.embeds[0].author || msg.embeds[0].fields.length !== 0 || msg.embeds[0].files.length !== 0 || msg.embeds[0].image || msg.embeds[0].thumbnail || msg.embeds[0].type != "rich") time = 0;
-                    if (msg.embeds[0].color && msg.embeds[0].title && msg.embeds[0].footer && msg.embeds[0].timestamp) {
-                        em.setTitle(msg.embeds[0].title).setColor(msg.embeds[0].color).setFooter(msg.embeds[0].footer.text, msg.embeds[0].footer.iconURL).setTimestamp(msg.embeds[0].timestamp);
+                    } catch (err) {
+                        console.log("Failed fetching guild/channel of giveaway.");
+                        return console.error(err);
                     }
-                    let count = 0;
-                    let timerid = setInterval(async () => {
-                        time -= 1000;
-                        if (time <= 0) {
-                            clearInterval(timerid);
-                            em.setDescription("The timer has ended.");
-                            msg = await msg.edit(em);
-                            author.send(`Your timer in **${guild.name}** has ended! https://discord.com/channels/${guild.id}/${channel.id}/${msg.id}`);
-                            con.query(`SELECT * FROM timer WHERE guild = '${guild.id}' AND channel = '${channel.id}' AND author = '${author.id}' AND msg = '${msg.id}'`, (err, results) => {
-                                if (err) return console.error(err);
-                                if (results.length < 1) return;
-                                con.query(`DELETE FROM timer WHERE guild = '${guild.id}' AND channel = '${channel.id}' AND author = '${author.id}' AND msg = '${msg.id}'`, (err) => {
-                                    if (err) return console.error(err);
-                                    console.log("Deleted a timed out timer from the database.");
-                                });
+                    try {
+                        var msg = await channel.messages.fetch(result.id);
+                    } catch (err) {
+                        getData("DELETE FROM giveaways WHERE id = " + result.id).then(ress => {
+                            if (ress.err) return console.error(ress.err);
+                            console.log("Deleted an ended giveaway record.");
+                        });
+                        return;
+                    }
+                    if (msg.deleted) {
+                        getData("DELETE FROM giveaways WHERE id = " + msg.id).then(ress => {
+                            if (ress.err) return console.error(ress.err);
+                            console.log("Deleted an ended giveaway record.");
+                        });
+                        return;
+                    } else {
+                        var fetchUser = await client.users.fetch(result.author);
+                        var endReacted = [];
+                        var peopleReacted = await msg.reactions.cache.get(result.emoji);
+                        try {
+                            await peopleReacted.users.fetch();
+                        } catch (err) {
+                            getData("DELETE FROM giveaways WHERE id = " + msg.id).then(ress => {
+                                if (ress.err) return console.error(ress.err);
+                                console.log("Deleted an ended giveaway record.");
                             });
+                        }
+                        try {
+                            for (const user of peopleReacted.users.cache.values()) {
+                                const data = user.id;
+                                endReacted.push(data);
+                            }
+                        } catch (err) {
+                            return console.error(err);
+                        }
 
-                            return;
+                        const remove = endReacted.indexOf(id === 0 ? "649611982428962819" : "653133256186789891");
+                        if (remove > -1) endReacted.splice(remove, 1);
+                        if (endReacted.length === 0) {
+                            getData("DELETE FROM giveaways WHERE id = " + msg.id).then(ress => {
+                                if (ress.err) return console.error(ress.err);
+                                console.log("Deleted an ended giveaway record.");
+                            });
+                            const Ended = new Discord.MessageEmbed()
+                                .setColor(parseInt(result.color))
+                                .setTitle(unescape(result.item))
+                                .setDescription("Giveaway ended")
+                                .addField("Winner(s)", "None. Cuz no one reacted.")
+                                .setTimestamp()
+                                .setFooter("Hosted by " + fetchUser.tag, fetchUser.displayAvatarURL());
+                            msg.edit(Ended);
+                            msg.reactions.removeAll().catch(err => console.error(err));
+                        } else {
+                            var index = Math.floor(Math.random() * endReacted.length);
+                            var winners = [];
+                            var winnerMessage = "";
+                            var winnerCount = result.winner;
+                            for (var i = 0; i < winnerCount; i++) {
+                                winners.push(endReacted[index]);
+                                index = Math.floor(Math.random() * endReacted.length);
+                            }
+                            for (var i = 0; i < winners.length; i++) winnerMessage += "<@" + winners[i] + "> ";
+                            const Ended = new Discord.MessageEmbed()
+                                .setColor(parseInt(result.color))
+                                .setTitle(unescape(result.item))
+                                .setDescription("Giveaway ended")
+                                .addField("Winner(s)", winnerMessage)
+                                .setTimestamp()
+                                .setFooter("Hosted by " + fetchUser.tag, fetchUser.displayAvatarURL());
+                            msg.edit(Ended);
+                            var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+                            msg.channel.send(`Congratulation, ${winnerMessage}! You won **${unescape(result.item)}**!\n${link}`);
+                            msg.reactions.removeAll().catch(() => console.error("Failed to clear reactions"));
+                            getData("DELETE FROM giveaways WHERE id = " + msg.id).then(ress => {
+                                if (ress.err) return console.error(ress.err);
+                                console.log("Deleted an ended giveaway record.");
+                            });
                         }
-                        if (count < 4) {
-                            count++;
-                            return;
+                    }
+                }, millisec);
+            });
+        });
+        getData("SELECT * FROM poll ORDER BY endAt ASC").then(res => {
+            if (res.error) return console.error(new Error(res.err));
+            const results = res.results;
+            console.log(`[${id}] ` + "Found " + results.length + " polls.");
+            results.forEach(result => {
+                if (id === 0 && result.guild == "622311594654695434") return;
+                if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
+                var currentDate = new Date();
+                var time = result.endAt - currentDate;
+                setTimeout_(async function () {
+                    try {
+                        var channel = await client.channels.fetch(result.channel);
+                    } catch (err) {
+                        console.log("Failed fetching guild/channel of giveaway.");
+                        return console.error(err);
+                    }
+                    try {
+                        var msg = await channel.messages.fetch(result.id);
+                    } catch (err) {
+                        getData("DELETE FROM poll WHERE id = " + result.id).then(ress => {
+                            if (ress.err) return console.error(ress.err);
+                            console.log("Deleted an ended poll record.");
+                        });
+                        return;
+                    }
+
+                    if (msg.deleted) return getData("DELETE FROM poll WHERE id = " + msg.id).then(ress => {
+                        if (ress.err) return console.error(ress.err);
+                        console.log("Deleted an ended poll record.");
+                    });
+                    else {
+                        var author = await client.users.fetch(result.author);
+                        var allOptions = await JSON.parse(result.options);
+
+                        var pollResult = [];
+                        var end = [];
+                        for (const emoji of msg.reactions.cache.values()) {
+                            pollResult.push(emoji.count);
+                            var mesg = `**${(emoji.count - 1)}** - \`${unescape(allOptions[pollResult.length - 1])}\``;
+                            end.push(mesg);
                         }
-                        let sec = Math.floor(time / 1000);
-                        var dd = Math.floor(sec / 86400);
-                        var dh = Math.floor((sec % 86400) / 3600);
-                        var dm = Math.floor(((sec % 86400) % 3600) / 60);
-                        var ds = Math.floor(((sec % 86400) % 3600) % 60);
-                        var d = "";
-                        var h = "";
-                        var m = "";
-                        var s = "";
-                        if (dd !== 0) {
-                            d = " " + dd + " days";
-                        }
-                        if (dh !== 0) {
-                            h = " " + dh + " hours";
-                        }
-                        if (dm !== 0) {
-                            m = " " + dm + " minutes";
-                        }
-                        if (ds !== 0) {
-                            s = " " + ds + " seconds";
-                        }
-                        em.setDescription(`(The timer updates every **5 seconds**)\nThis is a timer and it will last for\n**${d + h + m + s}**`);
+                        var pollMsg = "⬆**Poll**⬇";
+                        const Ended = new Discord.MessageEmbed()
+                            .setColor(parseInt(result.color))
+                            .setTitle(unescape(result.title))
+                            .setDescription(`Poll ended. Here are the results:\n\n\n${end.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')}`)
+                            .setTimestamp()
+                            .setFooter("Hosted by " + author.tag, author.displayAvatarURL());
+                        msg.edit(pollMsg, Ended);
+                        var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+
+                        msg.channel.send("A poll has ended!\n" + link);
+                        msg.reactions.removeAll().catch(console.error);
+                        getData("DELETE FROM poll WHERE id = " + msg.id).then(ress => {
+                            if (ress.err) return console.error(ress.err);
+                            console.log("Deleted an ended poll record.");
+                        });
+                    }
+                }, time);
+            });
+        });
+        getData("SELECT * FROM timer").then(res => {
+            if (res.error) return console.error(new Error(res.err));
+            const results = res.results;
+            console.log(`[${id}] ` + `Found ${results.length} timers.`);
+            results.forEach(async result => {
+                if (id === 0 && result.guild == "622311594654695434") return;
+                if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
+                let time = result.endAt - new Date();
+                let em = new Discord.MessageEmbed();
+                try {
+                    var channel = await client.channels.fetch(result.channel);
+                    var msg = await channel.messages.fetch(result.msg);
+                    var author = await client.users.fetch(result.author);
+                    var guild = await client.guilds.resolve(result.guild);
+                } catch (err) { return; }
+                if (!channel) time = 0;
+                if (!guild) time = 0;
+                if (!msg) time = 0;
+                else if (msg.author.id !== client.user.id) time = 0;
+                else if (msg.embeds.length !== 1) time = 0;
+                else if (!msg.embeds[0].color || !msg.embeds[0].title || !msg.embeds[0].timestamp || !msg.embeds[0].footer || !msg.embeds[0].description || msg.embeds[0].author || msg.embeds[0].fields.length !== 0 || msg.embeds[0].files.length !== 0 || msg.embeds[0].image || msg.embeds[0].thumbnail || msg.embeds[0].type != "rich") time = 0;
+                if (msg.embeds[0].color && msg.embeds[0].title && msg.embeds[0].footer && msg.embeds[0].timestamp) {
+                    em.setTitle(msg.embeds[0].title).setColor(msg.embeds[0].color).setFooter(msg.embeds[0].footer.text, msg.embeds[0].footer.iconURL).setTimestamp(msg.embeds[0].timestamp);
+                }
+                let count = 0;
+                let timerid = setInterval(async () => {
+                    time -= 1000;
+                    if (time <= 0) {
+                        clearInterval(timerid);
+                        em.setDescription("The timer has ended.");
                         msg = await msg.edit(em);
-                        count = 0;
-                    }, 1000);
-                    console.timers.set(result.msg, timerid);
-                });
+                        author.send(`Your timer in **${guild.name}** has ended! https://discord.com/channels/${guild.id}/${channel.id}/${msg.id}`);
+                        getData(`SELECT * FROM timer WHERE guild = '${guild.id}' AND channel = '${channel.id}' AND author = '${author.id}' AND msg = '${msg.id}'`).then(ress => {
+                            if (ress.error) return console.error(ress.err);
+                            const resultss = ress.results;
+                            if (resultss.length < 1) return;
+                            getData(`DELETE FROM timer WHERE guild = '${guild.id}' AND channel = '${channel.id}' AND author = '${author.id}' AND msg = '${msg.id}'`).then(resss => {
+                                if (resss.error) return console.error(resss.err);
+                                console.log("Deleted a timed out timer from the database.");
+                            });
+                        });
+                        return;
+                    }
+                    if (count < 4) return count++;
+                    let sec = Math.floor(time / 1000);
+                    var dd = Math.floor(sec / 86400);
+                    var dh = Math.floor((sec % 86400) / 3600);
+                    var dm = Math.floor(((sec % 86400) % 3600) / 60);
+                    var ds = Math.floor(((sec % 86400) % 3600) % 60);
+                    var d = "";
+                    var h = "";
+                    var m = "";
+                    var s = "";
+                    if (dd !== 0) {
+                        d = " " + dd + " days";
+                    }
+                    if (dh !== 0) {
+                        h = " " + dh + " hours";
+                    }
+                    if (dm !== 0) {
+                        m = " " + dm + " minutes";
+                    }
+                    if (ds !== 0) {
+                        s = " " + ds + " seconds";
+                    }
+                    em.setDescription(`(The timer updates every **5 seconds**)\nThis is a timer and it will last for\n**${d + h + m + s}**`);
+                    msg = await msg.edit(em);
+                    count = 0;
+                }, 1000);
+                console.timers.set(result.msg, timerid);
             });
-            con.query("SELECT * FROM nolog", (err, results) => {
-                if (err) return console.error(err);
-                results.forEach(result => {
-                    console.noLog.push(result.id);
-                });
-            });
-            con.release();
+        });
+        getData("SELECT * FROM nolog").then(res => {
+            if (res.error) return console.error(new Error(res.err));
+            const results = res.results;
+            results.forEach(result => console.noLog.push(result.id));
         });
         if (id === 1) client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
     },
@@ -611,277 +508,250 @@ module.exports = {
             }
         }).catch(() => { });
         if (member.user.bot) return;
-        pool.getConnection(function (err, con) {
-            if (err) return console.error(err);
-            con.query(
-                `SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id = '${guild.id}'`, async (err, result) => {
-                    if (!result[0] || !result[0].wel_channel || !result[0].welcome) {
-                        if (!result[0]) {
-                            if (err) return console.error(err);
-                            con.query(`SELECT * FROM servers WHERE id = '${guild.id}'`, (err, result) => {
-                                if (err) return console.error(err);
-                                if (result.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
-                                else con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`, (err) => {
-                                    if (err) return console.error(err);
-                                    console.log("Inserted record for " + guild.name);
-                                });
-                            });
-                            if (err) return console.error(err);
+        if (err) return console.error(err);
+        getData(`SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id = '${guild.id}'`).then(res => {
+            if (res.error) return console.error(new Error(res.err));
+            const result = res.results;
+            if (!result[0] || !result[0].wel_channel || !result[0].welcome) {
+                if (!result[0]) {
+                    getData(`SELECT * FROM servers WHERE id = '${guild.id}'`).then(ress => {
+                        if (ress.error) return console.error(new Error(ress.err));
+                        const results = ress.results;
+                        if (results.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
+                        else getData(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`).then(resss => {
+                            if (resss.error) return console.error(resss.err);
+                            console.log("Inserted record for " + guild.name);
+                        });
+                    });
+                    if (err) return console.error(err);
+                }
+            } else {
+                const channel = guild.channels.resolve(result[0].wel_channel);
+                if (!channel || !channel.permissionsFor(guild.me).has(18432)) return;
+                const splitMessage = result[0].welcome.split(" ");
+                const messageArray = [];
+                for (const word of splitMessage) {
+                    if (word.match(/^\{\#\w+\}$/)) {
+                        const str = word.replace(/[\{\#\}]/g, "");
+                        if (isNaN(parseInt(str))) {
+                            const mentionedChannel = guild.channels.find(x => x.name === str);
+                            if (!mentionedChannel) messageArray.push("#" + str);
+                            else messageArray.push(mentionedChannel);
+                        } else {
+                            const mentionedChannel = guild.channels.resolve(str);
+                            if (!mentionedChannel) messageArray.push("<#" + str + ">");
+                            else messageArray.push(mentionedChannel);
                         }
-                    } else {
-                        const channel = guild.channels.resolve(result[0].wel_channel);
-                        if (!channel || !channel.permissionsFor(guild.me).has(18432)) return;
-                        const splitMessage = result[0].welcome.split(" ");
-                        const messageArray = [];
-                        for (const word of splitMessage) {
-                            if (word.match(/^\{\#\w+\}$/)) {
-                                const str = word.replace(/[\{\#\}]/g, "");
-                                if (isNaN(parseInt(str))) {
-                                    const mentionedChannel = guild.channels.find(x => x.name === str);
-                                    if (!mentionedChannel) messageArray.push("#" + str);
-                                    else messageArray.push(mentionedChannel);
-                                } else {
-                                    const mentionedChannel = guild.channels.resolve(str);
-                                    if (!mentionedChannel) messageArray.push("<#" + str + ">");
-                                    else messageArray.push(mentionedChannel);
-                                }
-                            } else if (word.match(/^\{\@\&\w+\}$/)) {
-                                const str = word.replace(/[\{\@\&\}]/g, "");
-                                if (isNaN(parseInt(str))) {
-                                    const mentionedRole = guild.roles.find(x => x.name === str);
-                                    if (!mentionedRole) messageArray.push("@" + str);
-                                    else messageArray.push(mentionedRole);
-                                } else {
-                                    const mentionedRole = guild.roles.get(str);
-                                    if (!mentionedRole) messageArray.push("<@&" + str + ">");
-                                    else messageArray.push(mentionedRole);
-                                }
-                            } else if (word.match(/^\{\@\w+\}$/)) {
-                                const str = word.replace(/[\{\@\}]/g, "");
-                                if (isNaN(parseInt(str))) {
-                                    const mentionedUser = client.users.find(x => x.name === str);
-                                    if (!mentionedUser) messageArray.push("@" + str);
-                                    else messageArray.push(mentionedUser);
-                                } else {
-                                    const mentionedUser = client.users.get(str);
-                                    if (!mentionedUser) messageArray.push("<@" + str + ">");
-                                    else messageArray.push(mentionedUser);
-                                }
-                            } else messageArray.push(word);
+                    } else if (word.match(/^\{\@\&\w+\}$/)) {
+                        const str = word.replace(/[\{\@\&\}]/g, "");
+                        if (isNaN(parseInt(str))) {
+                            const mentionedRole = guild.roles.find(x => x.name === str);
+                            if (!mentionedRole) messageArray.push("@" + str);
+                            else messageArray.push(mentionedRole);
+                        } else {
+                            const mentionedRole = guild.roles.get(str);
+                            if (!mentionedRole) messageArray.push("<@&" + str + ">");
+                            else messageArray.push(mentionedRole);
                         }
-                        const welcomeMessage = messageArray.join(" ").replace(/{user}/ig, member);
-                        if (result[0].welcome) try {
-                            await channel.send(welcomeMessage);
+                    } else if (word.match(/^\{\@\w+\}$/)) {
+                        const str = word.replace(/[\{\@\}]/g, "");
+                        if (isNaN(parseInt(str))) {
+                            const mentionedUser = client.users.find(x => x.name === str);
+                            if (!mentionedUser) messageArray.push("@" + str);
+                            else messageArray.push(mentionedUser);
+                        } else {
+                            const mentionedUser = client.users.get(str);
+                            if (!mentionedUser) messageArray.push("<@" + str + ">");
+                            else messageArray.push(mentionedUser);
+                        }
+                    } else messageArray.push(word);
+                }
+                const welcomeMessage = messageArray.join(" ").replace(/{user}/ig, member);
+                if (result[0].welcome) try {
+                    await channel.send(welcomeMessage);
+                } catch (err) {
+                    console.error(err);
+                }
+                if (result[0].wel_img) {
+                    var img = new Image();
+                    img.onload = async () => {
+                        var height = img.height;
+                        var width = img.width;
+                        const canvas = createCanvas(width, height);
+                        const ctx = canvas.getContext("2d");
+                        const applyText = (canvas, text) => {
+                            const ctx = canvas.getContext("2d");
+                            let fontSize = canvas.width / 12;
+                            do {
+                                ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
+                            } while (ctx.measureText(text).width > canvas.width * 9 / 10);
+                            return ctx.font;
+                        };
+                        const welcomeText = (canvas, text) => {
+                            const ctx = canvas.getContext("2d");
+                            let fontSize = canvas.width / 24;
+                            do {
+                                ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
+                            } while (ctx.measureText(text).width > canvas.width * 3 / 4);
+                            return ctx.font;
+                        };
+                        const avatar = await loadImage(member.user.displayAvatarURL({ format: "png" }));
+                        ctx.drawImage(img, 0, 0, width, height);
+                        var txt = member.user.tag;
+                        ctx.font = applyText(canvas, txt);
+                        ctx.strokeStyle = "black";
+                        ctx.lineWidth = canvas.width / 102.4;
+                        ctx.strokeText(txt, canvas.width / 2 - ctx.measureText(txt).width / 2, (canvas.height * 3) / 4);
+                        ctx.fillStyle = "#ffffff";
+                        ctx.fillText(txt, canvas.width / 2 - ctx.measureText(txt).width / 2, (canvas.height * 3) / 4);
+                        var welcome = "Welcome to the server!";
+                        ctx.font = welcomeText(canvas, welcome);
+                        ctx.strokeStyle = "black";
+                        ctx.lineWidth = canvas.width / 204.8;
+                        ctx.strokeText(welcome, canvas.width / 2 - ctx.measureText(welcome).width / 2, (canvas.height * 6) / 7);
+                        ctx.fillStyle = "#ffffff";
+                        ctx.fillText(welcome, canvas.width / 2 - ctx.measureText(welcome).width / 2, (canvas.height * 6) / 7);
+                        ctx.beginPath();
+                        ctx.lineWidth = canvas.width / 51.2;
+                        ctx.arc(canvas.width / 2, canvas.height / 3, canvas.height / 5, 0, Math.PI * 2, true);
+                        ctx.closePath();
+                        ctx.strokeStyle = "#dfdfdf";
+                        ctx.stroke();
+                        ctx.clip();
+                        ctx.drawImage(avatar, canvas.width / 2 - canvas.height / 5, canvas.height / 3 - canvas.height / 5, canvas.height / 2.5, canvas.height / 2.5);
+                        var attachment = new Discord.MessageAttachment(canvas.toBuffer(), "welcome-image.png");
+                        try {
+                            if (id === 1) await channel.send(new Discord.MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
+                            await channel.send(attachment);
                         } catch (err) {
                             console.error(err);
                         }
-                        if (result[0].wel_img) {
-                            var img = new Image();
-                            img.onload = async() => {
-                                var height = img.height;
-                                var width = img.width;
-                                const canvas = createCanvas(width, height);
-                                const ctx = canvas.getContext("2d");
-                                const applyText = (canvas, text) => {
-                                    const ctx = canvas.getContext("2d");
-                                    let fontSize = canvas.width / 12;
-                                    do {
-                                        ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
-                                    } while (ctx.measureText(text).width > canvas.width * 9 / 10);
-                                    return ctx.font;
-                                };
-                                const welcomeText = (canvas, text) => {
-                                    const ctx = canvas.getContext("2d");
-                                    let fontSize = canvas.width / 24;
-                                    do {
-                                        ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
-                                    } while (ctx.measureText(text).width > canvas.width * 3 / 4);
-                                    return ctx.font;
-                                };
-                                const avatar = await loadImage(member.user.displayAvatarURL({ format: "png" }));
-                                ctx.drawImage(img, 0, 0, width, height);
-                                var txt = member.user.tag;
-                                ctx.font = applyText(canvas, txt);
-                                ctx.strokeStyle = "black";
-                                ctx.lineWidth = canvas.width / 102.4;
-                                ctx.strokeText(txt, canvas.width / 2 - ctx.measureText(txt).width / 2, (canvas.height * 3) / 4);
-                                ctx.fillStyle = "#ffffff";
-                                ctx.fillText(txt, canvas.width / 2 - ctx.measureText(txt).width / 2, (canvas.height * 3) / 4);
-                                var welcome = "Welcome to the server!";
-                                ctx.font = welcomeText(canvas, welcome);
-                                ctx.strokeStyle = "black";
-                                ctx.lineWidth = canvas.width / 204.8;
-                                ctx.strokeText(welcome, canvas.width / 2 - ctx.measureText(welcome).width / 2, (canvas.height * 6) / 7);
-                                ctx.fillStyle = "#ffffff";
-                                ctx.fillText(welcome, canvas.width / 2 - ctx.measureText(welcome).width / 2, (canvas.height * 6) / 7);
-                                ctx.beginPath();
-                                ctx.lineWidth = canvas.width / 51.2;
-                                ctx.arc(canvas.width / 2, canvas.height / 3, canvas.height / 5, 0, Math.PI * 2, true);
-                                ctx.closePath();
-                                ctx.strokeStyle = "#dfdfdf";
-                                ctx.stroke();
-                                ctx.clip();
-                                ctx.drawImage(avatar, canvas.width / 2 - canvas.height / 5, canvas.height / 3 - canvas.height / 5, canvas.height / 2.5, canvas.height / 2.5);
-                                var attachment = new Discord.MessageAttachment(canvas.toBuffer(), "welcome-image.png");
-                                try {
-                                    if (id === 1) await channel.send(new Discord.MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
-                                    await channel.send(attachment);
-                                } catch (err) {
-                                    console.error(err);
-                                }
-                            };
-                            var url = result[0].wel_img;
-                            try {
-                                let urls = JSON.parse(result[0].wel_img);
-                                if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
-                            } catch (err) { }
-                            img.src = url;
-                        }
-                    }
-                    if (result[0] && result[0].autorole !== "[]") {
-                        var roleArray = JSON.parse(result[0].autorole);
-                        for (var i = 0; i < roleArray.length; i++) {
-                            var roleID = roleArray[i];
-                            var role = undefined;
-                            if (isNaN(parseInt(roleID))) role = await guild.roles.find(x => x.name === roleID);
-                            else role = await guild.roles.fetch(roleID);
-                            if (!role) continue;
-                            try {
-                                await member.roles.add(roleID);
-                                console.log(`Added ${member.displayName} to ${role.name}`)
-                            } catch (err) {
-                                console.error(err);
-                            }
-                        }
-                    }
-                    con.release();
-                    if (err) return console.error(err);
+                    };
+                    var url = result[0].wel_img;
+                    try {
+                        let urls = JSON.parse(result[0].wel_img);
+                        if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
+                    } catch (err) { }
+                    img.src = url;
                 }
-            );
+            }
+            if (result[0] && result[0].autorole !== "[]") {
+                var roleArray = JSON.parse(result[0].autorole);
+                for (var i = 0; i < roleArray.length; i++) {
+                    var roleID = roleArray[i];
+                    var role = undefined;
+                    if (isNaN(parseInt(roleID))) role = await guild.roles.find(x => x.name === roleID);
+                    else role = await guild.roles.fetch(roleID);
+                    if (!role) continue;
+                    try {
+                        await member.roles.add(roleID);
+                        console.log(`Added ${member.displayName} to ${role.name}`)
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }
+            }
         });
     },
     async guildMemberRemove(member) {
         const client = member.client;
         const guild = member.guild;
-        pool.getConnection(function (err, con) {
-            if (err) return console.error(err);
-            con.query(`SELECT leave_msg, leave_channel FROM servers WHERE id = '${guild.id}'`, async (err, result) => {
-                if (err) return console.error(err);
-                if (!result[0] || !result[0].leave_msg || !result[0].leave_channel) {
-                    if (!result[0]) {
-                        con.query(`SELECT * FROM servers WHERE id = '${guild.id}'`, (err, result) => {
-                            if (err) return console.error(err);
-                            if (result.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
-                            else con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`, (err) => {
-                                if (err) return console.error(err);
-                                console.log("Inserted record for " + guild.name);
-                            });
+        getData(`SELECT leave_msg, leave_channel FROM servers WHERE id = '${guild.id}'`).then(res => {
+            if (res.error) return console.error(new Error(res.err));
+            const result = res.results;
+            if (!result[0] || !result[0].leave_msg || !result[0].leave_channel) {
+                if (!result[0]) {
+                    getData(`SELECT * FROM servers WHERE id = '${guild.id}'`).then(ress => {
+                        if (ress.error) return console.error(new Error(ress.err));
+                        const results = ress.results;
+                        if (results.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
+                        else getData(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`).then(resss => {
+                            if (resss.error) return console.error(new Error(resss.err));
+                            console.log("Inserted record for " + guild.name);
                         });
-                    }
-                } else {
-                    if (guild.me.hasPermission(128)) {
-                        const fetchedLogs = await guild.fetchAuditLogs({
-                            limit: 1,
-                            type: 'MEMBER_KICK',
-                        });
-                        const kickLog = fetchedLogs.entries.first();
-                        if (kickLog && kickLog.target.id === member.user.id && kickLog.executor.id !== kickLog.target.id) return;
-                    } else console.log("Can't view audit logs of " + guild.name);
-                    const channel = guild.channels.resolve(result[0].leave_channel);
-                    const splitMessage = result[0].leave_msg.split(" ");
-                    const messageArray = [];
-                    for (const word of splitMessage) {
-                        if (word.match(/^\{\#\w+\}$/)) {
-                            const str = word.replace(/[\{\#\}]/g, "");
-                            if (isNaN(parseInt(str))) {
-                                const mentionedChannel = guild.channels.find(x => x.name === str);
-                                if (!mentionedChannel) messageArray.push("#" + str);
-                                else messageArray.push(mentionedChannel);
-                            } else {
-                                const mentionedChannel = guild.channels.resolve(str);
-                                if (!mentionedChannel) messageArray.push("<#" + str + ">");
-                                else messageArray.push(mentionedChannel);
-                            }
-                        } else if (word.match(/^\{\@\&\w+\}$/)) {
-                            const str = word.replace(/[\{\@\&\}]/g, "");
-                            if (isNaN(parseInt(str))) {
-                                const mentionedRole = guild.roles.find(x => x.name === str);
-                                if (!mentionedRole) messageArray.push("@" + str);
-                                else messageArray.push(mentionedRole);
-                            } else {
-                                const mentionedRole = guild.roles.get(str);
-                                if (!mentionedRole) messageArray.push("<@&" + str + ">");
-                                else messageArray.push(mentionedRole);
-                            }
-                        } else if (word.match(/^\{\@\w+\}$/)) {
-                            const str = word.replace(/[\{\@\}]/g, "");
-                            if (isNaN(parseInt(str))) {
-                                const mentionedUser = client.users.find(x => x.name === str);
-                                if (!mentionedUser) messageArray.push("@" + str);
-                                else messageArray.push(mentionedUser);
-                            } else {
-                                const mentionedUser = client.users.get(str);
-                                if (!mentionedUser) messageArray.push("<@" + str + ">");
-                                else messageArray.push(mentionedUser);
-                            }
-                        } else messageArray.push(word);
-                    }
-                    const leaveMessage = messageArray.join(" ").replace(/{user}/gi, `**${member.user.tag}**`);
-                    try {
-                        await channel.send(leaveMessage);
-                    } catch (err) {
-                        console.error(err);
-                    }
+                    });
                 }
-            });
-            con.release();
+            } else {
+                if (guild.me.hasPermission(128)) {
+                    const fetchedLogs = await guild.fetchAuditLogs({
+                        limit: 1,
+                        type: 'MEMBER_KICK',
+                    });
+                    const kickLog = fetchedLogs.entries.first();
+                    if (kickLog && kickLog.target.id === member.user.id && kickLog.executor.id !== kickLog.target.id) return;
+                } else console.log("Can't view audit logs of " + guild.name);
+                const channel = guild.channels.resolve(result[0].leave_channel);
+                const splitMessage = result[0].leave_msg.split(" ");
+                const messageArray = [];
+                for (const word of splitMessage) {
+                    if (word.match(/^\{\#\w+\}$/)) {
+                        const str = word.replace(/[\{\#\}]/g, "");
+                        if (isNaN(parseInt(str))) {
+                            const mentionedChannel = guild.channels.find(x => x.name === str);
+                            if (!mentionedChannel) messageArray.push("#" + str);
+                            else messageArray.push(mentionedChannel);
+                        } else {
+                            const mentionedChannel = guild.channels.resolve(str);
+                            if (!mentionedChannel) messageArray.push("<#" + str + ">");
+                            else messageArray.push(mentionedChannel);
+                        }
+                    } else if (word.match(/^\{\@\&\w+\}$/)) {
+                        const str = word.replace(/[\{\@\&\}]/g, "");
+                        if (isNaN(parseInt(str))) {
+                            const mentionedRole = guild.roles.find(x => x.name === str);
+                            if (!mentionedRole) messageArray.push("@" + str);
+                            else messageArray.push(mentionedRole);
+                        } else {
+                            const mentionedRole = guild.roles.get(str);
+                            if (!mentionedRole) messageArray.push("<@&" + str + ">");
+                            else messageArray.push(mentionedRole);
+                        }
+                    } else if (word.match(/^\{\@\w+\}$/)) {
+                        const str = word.replace(/[\{\@\}]/g, "");
+                        if (isNaN(parseInt(str))) {
+                            const mentionedUser = client.users.find(x => x.name === str);
+                            if (!mentionedUser) messageArray.push("@" + str);
+                            else messageArray.push(mentionedUser);
+                        } else {
+                            const mentionedUser = client.users.get(str);
+                            if (!mentionedUser) messageArray.push("<@" + str + ">");
+                            else messageArray.push(mentionedUser);
+                        }
+                    } else messageArray.push(word);
+                }
+                const leaveMessage = messageArray.join(" ").replace(/{user}/gi, `**${member.user.tag}**`);
+                try {
+                    await channel.send(leaveMessage);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
         });
     },
     async guildCreate(guild) {
         console.log("Joined a new guild: " + guild.name);
         console.invites[guild.id] = await guild.fetchInvites();
-
-        pool.getConnection(function (err, con) {
+        if (err) return console.error(err);
+        getData("SELECT * FROM servers WHERE id = " + guild.id).then(res => {
+            if (res.error) return console.error(new Error(res.err));
+            const result = res.results;
             if (err) return console.error(err);
-            con.query("SELECT * FROM servers WHERE id = " + guild.id, function (
-                err,
-                result
-            ) {
-                if (err) return console.error(err);
-                if (result.length > 0) {
-                    console.log(
-                        "Found row inserted for this server before. Cancelling row insert..."
-                    );
-                } else {
-                    con.query(
-                        "INSERT INTO servers (id, autorole, giveaway) VALUES (" +
-                        guild.id +
-                        ", '[]', '🎉')",
-                        function (err) {
-                            if (err) return console.error(err);
-                            console.log("Inserted record for " + guild.name);
-                        }
-                    );
+            if (result.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
+            else {
+                getData(`INSERT INTO servers (id, autorole, giveaway) VALUES (${guild.id}, '[]', '🎉')`).then(ress => {
+                    if (ress.error) return console.error(new Error(ress.err));
+                    console.log("Inserted record for " + guild.name);
                 }
-            });
-
-            if (err) return console.error(err);
-            con.release();
+                );
+            }
         });
     },
     async guildDelete(guild) {
         console.log("Left a guild: " + guild.name);
         delete console.invites[guild.id];
-        pool.getConnection(function (err, con) {
-            if (err) return console.error(err);
-            con.query("DELETE FROM servers WHERE id=" + guild.id, function (
-                err
-            ) {
-                if (err) return console.error(err);
-                console.log("Deleted record for " + guild.name);
-            });
-            if (err) return console.error(err);
-            con.release();
+        getData("DELETE FROM servers WHERE id=" + guild.id).then(res => {
+            if (res.error) return console.error(new Error(res.err));
+            console.log("Deleted record for " + guild.name);
         });
     },
     async voiceStateUpdate(oldState, newState) {
@@ -891,37 +761,24 @@ module.exports = {
         if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel)) return await mainMusic.stop(guild);
         if (!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
         if (guild.me.voice.channel.members.size <= 1) {
-            var pendingExit = await exit.find(x => x === guild.id);
-            if (pendingExit) return;
+            if (exit.find(x => x === guild.id)) return;
             exit.push(guild.id);
-            setTimeout(async function () {
-                var shouldExit = exit.find(x => x === guild.id);
-                if (!shouldExit) return;
-                return await mainMusic.stop(guild);
-            }, 30000);
-        } else {
-            var index = exit.indexOf(guild.id);
-            if (index !== -1) {
-                exit.splice(index, 1);
-            }
-        }
+            setTimeout(async () => (exit.find(x => x === guild.id)) ? mainMusic.stop(guild) : 0, 30000);
+        } else if (exit.indexOf(guild.id) !== -1) exit.splice(index, 1);
     },
     async guildMemberUpdate(oldMember, newMember) {
         const client = oldMember.client || newMember.client;
-        if (oldMember.premiumSinceTimestamp !== null || newMember.premiumSinceTimestamp === null) return;
-        pool.getConnection(function (err, con) {
-            if (err) return console.error(err);
-            con.query("SELECT boost_msg, boost_channel FROM servers WHERE id = '" + newMember.guild.id + "'", async function (err, result) {
-                if (err) return console.error(err);
-                if (result[0] === undefined || result[0].boost_msg === null || result[0].boost_channel === null) return;
-                try {
-                    var channel = await client.channels.fetch(result[0].boost_channel);
-                } catch (err) {
-                    return console.error(err);
-                }
-                channel.send(result[0].boost_msg.replace(/{user}/g, `<@${newMember.id}>`));
-            });
-            con.release();
+        if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
+        getData("SELECT boost_msg, boost_channel FROM servers WHERE id = '" + newMember.guild.id + "'").then(res => {
+            if (res.error) return console.error(new Error(res.err));
+            const result = res.results;
+            if (result[0] === undefined || result[0].boost_msg === null || result[0].boost_channel === null) return;
+            try {
+                var channel = await client.channels.fetch(result[0].boost_channel);
+            } catch (err) {
+                return console.error(err);
+            }
+            channel.send(result[0].boost_msg.replace(/{user}/g, `<@${newMember.id}>`));
         });
     },
     async messageReactionAdd(r, user) {
@@ -948,13 +805,7 @@ module.exports = {
         var roleMessage = console.rm.find(x => x.id === message.id);
         if (!roleMessage) return;
         console.rm.splice(console.rm.indexOf(roleMessage), 1);
-        pool.getConnection((err, con) => {
-            if (err) return console.error(err);
-            con.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`, (err) => {
-                if (err) return console.error(err);
-            });
-            con.release();
-        });
+        getData(`DELETE FROM rolemsg WHERE id = '${message.id}'`).then(res => (res.error) ? console.error(new Error(res.err)) : 0);
     },
     async message(message) {
         message.prefix = message.client.prefix;
@@ -982,8 +833,8 @@ module.exports = {
         }
         if (message.guild !== null && !message.channel.permissionsFor(message.guild.me).has(84992)) return message.author.send("I don't have the required permissions! Please tell your server admin that I need at least the permissions to `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
         try {
-            if (command.category === 8) await require("./musics/main.js").music(message, commandName, pool);
-            else await command.execute(message, args, pool);
+            if (command.category === 8) await require("./musics/main.js").music(message, commandName);
+            else await command.execute(message, args);
         } catch (error) {
             console.error(`Error running command ${command.name}`);
             console.error(error);

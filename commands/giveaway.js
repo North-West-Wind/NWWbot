@@ -1,7 +1,7 @@
 const { ms } = require("../function.js");
 const Discord = require("discord.js");
 
-const { twoDigits, setTimeout_ } = require("../function.js");
+const { twoDigits, setTimeout_, altGetData } = require("../function.js");
 
 module.exports = {
   name: "giveaway",
@@ -11,7 +11,7 @@ module.exports = {
   aliases: ["g"],
   subcommands: ["create", "end", "list"],
   category: 4,
-  async execute(message, args, pool) {
+  async execute(message, args) {
     const guild = message.guild;
     const prefix = message.prefix;
 
@@ -183,184 +183,148 @@ module.exports = {
           var sOrNot = "winners";
         }
 
-        pool.getConnection(function (err, con) {
-          if (err) {
-            console.error(err);
-            return message.reply(
-              "there was an error trying to execute that command!"
-            );
-          }
-          con.query(
-            `SELECT giveaway FROM servers WHERE id = '${guild.id}'`,
-            function (err, result) {
-              if (err) {
-                console.error(err);
-                return message.reply("there was an error trying to find the giveaway!");
-              }
-              const color = console.color();
-              var Embed = new Discord.MessageEmbed()
-                .setColor(color)
-                .setTitle(item)
-                .setDescription(
-                  "React with " +
-                  result[0].giveaway +
-                  " to participate!\n" +
-                  "**" +
-                  winnerCount +
-                  " " +
-                  sOrNot +
-                  "** will win\n" +
-                  "This giveaway will end at: \n**" +
-                  readableTime +
-                  "**"
-                )
-                .setTimestamp()
-                .setFooter(
-                  "Hosted by " +
-                  message.author.username +
-                  "#" +
-                  message.author.discriminator,
-                  message.author.displayAvatarURL()
-                );
+        if (err) {
+          console.error(err);
+          return message.reply(
+            "there was an error trying to execute that command!"
+          );
+        }
+        altGetData(
+          `SELECT giveaway FROM servers WHERE id = '${guild.id}'`,
+          function (err, result) {
+            if (err) {
+              console.error(err);
+              return message.reply("there was an error trying to find the giveaway!");
+            }
+            const color = console.color();
+            var Embed = new Discord.MessageEmbed()
+              .setColor(color)
+              .setTitle(item)
+              .setDescription(
+                "React with " +
+                result[0].giveaway +
+                " to participate!\n" +
+                "**" +
+                winnerCount +
+                " " +
+                sOrNot +
+                "** will win\n" +
+                "This giveaway will end at: \n**" +
+                readableTime +
+                "**"
+              )
+              .setTimestamp()
+              .setFooter(
+                "Hosted by " +
+                message.author.username +
+                "#" +
+                message.author.discriminator,
+                message.author.displayAvatarURL()
+              );
 
-              const giveawayMsg =
-                result[0].giveaway + "**GIVEAWAY**" + result[0].giveaway;
-              channel.send(giveawayMsg, Embed).then(msg => {
-                con.query(
-                  "INSERT INTO giveaways VALUES('" +
-                  msg.id +
-                  "', '" +
-                  guild.id +
-                  "', '" +
-                  channel.id +
-                  "', '" +
-                  escape(item) +
-                  "', '" +
-                  winnerCount +
-                  "', '" +
-                  newDateSql +
-                  "', '" +
-                  result[0].giveaway +
-                  "', '" +
-                  message.author.id +
-                  "', '" +
-                  color +
-                  "')",
-                  function (err) {
-                    if (err) {
-                      console.error(err);
-                      return message.reply(
-                        "there was an error trying to execute that command!"
-                      );
-                    }
-                    console.log(
-                      "Inserted record for " +
-                      item +
-                      " giveaway in channel " +
-                      channel.name +
-                      " of server " +
-                      guild.name
+            const giveawayMsg =
+              result[0].giveaway + "**GIVEAWAY**" + result[0].giveaway;
+            channel.send(giveawayMsg, Embed).then(msg => {
+              altGetData(
+                "INSERT INTO giveaways VALUES('" +
+                msg.id +
+                "', '" +
+                guild.id +
+                "', '" +
+                channel.id +
+                "', '" +
+                escape(item) +
+                "', '" +
+                winnerCount +
+                "', '" +
+                newDateSql +
+                "', '" +
+                result[0].giveaway +
+                "', '" +
+                message.author.id +
+                "', '" +
+                color +
+                "')",
+                function (err) {
+                  if (err) {
+                    console.error(err);
+                    return message.reply(
+                      "there was an error trying to execute that command!"
                     );
                   }
-                );
+                  console.log(
+                    "Inserted record for " +
+                    item +
+                    " giveaway in channel " +
+                    channel.name +
+                    " of server " +
+                    guild.name
+                  );
+                }
+              );
 
-                msg.react(result[0].giveaway);
-                setTimeout_(function () {
-                  if (msg.deleted) {
-                    con.query(
-                      "DELETE FROM giveaways WHERE id = " + msg.id,
-                      function (err) {
-                        if (err) {
-                          console.error(err);
-                          return message.reply(
-                            "there was an error trying to delete the giveaway!"
-                          );
-                        }
-                        console.log("Deleted an ended giveaway record.");
+              msg.react(result[0].giveaway);
+              setTimeout_(function () {
+                if (msg.deleted) {
+                  altGetData(
+                    "DELETE FROM giveaways WHERE id = " + msg.id,
+                    function (err) {
+                      if (err) {
+                        console.error(err);
+                        return message.reply(
+                          "there was an error trying to delete the giveaway!"
+                        );
                       }
-                    );
-                    return;
-                  } else {
-                    con.query(
-                      "SELECT * FROM giveaways WHERE id = " + msg.id,
-                      function (err, res) {
-                        if (err) {
-                          console.error(err);
-                          return message.reply(
-                            "there was an error trying to find the giveaway!"
-                          );
+                      console.log("Deleted an ended giveaway record.");
+                    }
+                  );
+                  return;
+                } else {
+                  altGetData(
+                    "SELECT * FROM giveaways WHERE id = " + msg.id,
+                    function (err, res) {
+                      if (err) {
+                        console.error(err);
+                        return message.reply(
+                          "there was an error trying to find the giveaway!"
+                        );
+                      }
+                      if (res.length < 1) {
+                        return;
+                      } else {
+                        var peopleReacted = msg.reactions.cache.get(
+                          result[0].giveaway
+                        );
+                        for (const user of peopleReacted.users.cache.values()) {
+                          const data = user.id;
+                          reacted.push(data);
                         }
-                        if (res.length < 1) {
-                          return;
-                        } else {
-                          var peopleReacted = msg.reactions.cache.get(
-                            result[0].giveaway
-                          );
-                          for (const user of peopleReacted.users.cache.values()) {
-                            const data = user.id;
-                            reacted.push(data);
-                          }
 
-                          const remove = reacted.indexOf(message.client.user.id);
-                          if (remove > -1) {
-                            reacted.splice(remove, 1);
-                          }
+                        const remove = reacted.indexOf(message.client.user.id);
+                        if (remove > -1) {
+                          reacted.splice(remove, 1);
+                        }
 
-                          if (reacted.length === 0) {
-                            con.query(
-                              "DELETE FROM giveaways WHERE id = " + msg.id,
-                              function (err) {
-                                if (err) {
-                                  console.error(err);
-                                  return message.reply(
-                                    "there was an error trying to execute that command!"
-                                  );
-                                }
-                                console.log(
-                                  "Deleted an ended giveaway record."
+                        if (reacted.length === 0) {
+                          altGetData(
+                            "DELETE FROM giveaways WHERE id = " + msg.id,
+                            function (err) {
+                              if (err) {
+                                console.error(err);
+                                return message.reply(
+                                  "there was an error trying to execute that command!"
                                 );
                               }
-                            );
-                            const Ended = new Discord.MessageEmbed()
-                              .setColor(console.color())
-                              .setTitle(item)
-                              .setDescription("Giveaway ended")
-                              .addField("Winner(s)", "Nobody reacted.")
-                              .setTimestamp()
-                              .setFooter(
-                                "Hosted by " +
-                                message.author.username +
-                                "#" +
-                                message.author.discriminator,
-                                message.author.displayAvatarURL()
+                              console.log(
+                                "Deleted an ended giveaway record."
                               );
-                            msg.edit(giveawayMsg, Ended);
-                            msg.reactions
-                              .removeAll()
-                              .catch(err => console.error(err));
-                            return;
-                          }
-
-                          var index = Math.floor(
-                            Math.random() * reacted.length
+                            }
                           );
-                          var winners = [];
-                          var winnerMessage = "";
-
-                          for (var i = 0; i < winnerCount; i++) {
-                            winners.push(reacted[index]);
-                            index = Math.floor(Math.random() * reacted.length);
-                          }
-
-                          for (var i = 0; i < winners.length; i++) {
-                            winnerMessage += "<@" + winners[i] + "> ";
-                          }
-
                           const Ended = new Discord.MessageEmbed()
                             .setColor(console.color())
                             .setTitle(item)
                             .setDescription("Giveaway ended")
-                            .addField("Winner(s)", winnerMessage)
+                            .addField("Winner(s)", "Nobody reacted.")
                             .setTimestamp()
                             .setFooter(
                               "Hosted by " +
@@ -370,59 +334,91 @@ module.exports = {
                               message.author.displayAvatarURL()
                             );
                           msg.edit(giveawayMsg, Ended);
-                          var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
-                          msg.channel.send(
-                            "Congratulation, " +
-                            winnerMessage +
-                            "! You won **" +
-                            item +
-                            "**!\n" +
-                            link
-                          );
                           msg.reactions
                             .removeAll()
-                            .catch(error =>
-                              console.error(
-                                "Failed to clear reactions: ",
-                                error
-                              )
-                            );
-
-                          con.query(
-                            "DELETE FROM giveaways WHERE id = " + msg.id,
-                            function (err) {
-                              if (err) {
-                                console.error(err);
-                                return message.reply(
-                                  "there was an error trying to execute that command!"
-                                );
-                              }
-                              console.log("Deleted an ended giveaway record.");
-                            }
-                          );
+                            .catch(err => console.error(err));
+                          return;
                         }
-                      }
-                    );
-                  }
-                }, time);
-              });
-            }
-          );
 
-          con.release();
-        });
+                        var index = Math.floor(
+                          Math.random() * reacted.length
+                        );
+                        var winners = [];
+                        var winnerMessage = "";
+
+                        for (var i = 0; i < winnerCount; i++) {
+                          winners.push(reacted[index]);
+                          index = Math.floor(Math.random() * reacted.length);
+                        }
+
+                        for (var i = 0; i < winners.length; i++) {
+                          winnerMessage += "<@" + winners[i] + "> ";
+                        }
+
+                        const Ended = new Discord.MessageEmbed()
+                          .setColor(console.color())
+                          .setTitle(item)
+                          .setDescription("Giveaway ended")
+                          .addField("Winner(s)", winnerMessage)
+                          .setTimestamp()
+                          .setFooter(
+                            "Hosted by " +
+                            message.author.username +
+                            "#" +
+                            message.author.discriminator,
+                            message.author.displayAvatarURL()
+                          );
+                        msg.edit(giveawayMsg, Ended);
+                        var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+                        msg.channel.send(
+                          "Congratulation, " +
+                          winnerMessage +
+                          "! You won **" +
+                          item +
+                          "**!\n" +
+                          link
+                        );
+                        msg.reactions
+                          .removeAll()
+                          .catch(error =>
+                            console.error(
+                              "Failed to clear reactions: ",
+                              error
+                            )
+                          );
+
+                        altGetData(
+                          "DELETE FROM giveaways WHERE id = " + msg.id,
+                          function (err) {
+                            if (err) {
+                              console.error(err);
+                              return message.reply(
+                                "there was an error trying to execute that command!"
+                              );
+                            }
+                            console.log("Deleted an ended giveaway record.");
+                          }
+                        );
+                      }
+                    }
+                  );
+                }
+              }, time);
+            });
+          }
+        );
         return;
       }
-      return await this.create(message, pool);
+      return await this.create(message);
     }
     if (args[0] === "end") {
-      return await this.end(message, args, pool);
+      return await this.end(message, args);
     }
     if (args[0] === "list") {
-      return await this.list(message, args, pool);
+      return await this.list(message, args);
     }
   },
-  async create(message, pool) {
+  async create(message) {
     const filter = user => user.author.id === message.author.id;
     const guild = message.guild;
     var item;
@@ -431,8 +427,8 @@ module.exports = {
     var reacted = [];
     var mesg = await message.channel.send('Giveaway creation started. Type "cancel" to cancel.\n\n`Which channel do you want the giveaway be in? (Please mention the channel)`');
     const collected = await message.channel.awaitMessages(filter, { time: 30000, max: 1, errors: ["time"] });
-    if(collected && collected.first()) await collected.first().delete();
-    else if(!collected.first().content) return mesg.edit("30 seconds have passed. Giveaway cancelled.");
+    if (collected && collected.first()) await collected.first().delete();
+    else if (!collected.first().content) return mesg.edit("30 seconds have passed. Giveaway cancelled.");
     if (collected.first().content === "cancel") return mesg.edit("Cancelled giveaway.");
     var channelID = collected
       .first()
@@ -471,8 +467,8 @@ module.exports = {
         max: 1,
         errors: ["time"]
       });
-    if(collected2 && collected2.first()) await collected2.first().delete();
-    else if(!collected2.first().content) return mesg.edit("30 seconds have passed. Giveaway cancelled.");
+    if (collected2 && collected2.first()) await collected2.first().delete();
+    else if (!collected2.first().content) return mesg.edit("30 seconds have passed. Giveaway cancelled.");
     if (collected2.first().content === "cancel") {
       return mesg.edit("Cancelled giveaway.");
     }
@@ -534,8 +530,8 @@ module.exports = {
         max: 1,
         errors: ["time"]
       })
-    if(collected3 && collected3.first()) await collected3.first().delete();
-    else if(!collected3.first().content) return mesg.edit("30 seconds have passed. Giveaway cancelled.");
+    if (collected3 && collected3.first()) await collected3.first().delete();
+    else if (!collected3.first().content) return mesg.edit("30 seconds have passed. Giveaway cancelled.");
     if (collected3.first().content === "cancel") {
       return mesg.edit("Cancelled giveaway.");
     }
@@ -567,8 +563,8 @@ module.exports = {
         max: 1,
         errors: ["time"]
       })
-    if(collected4 && collected4.first()) await collected4.first().delete();
-    else if(!collected4.first().content) return mesg.edit("30 seconds have passed. Giveaway cancelled.");
+    if (collected4 && collected4.first()) await collected4.first().delete();
+    else if (!collected4.first().content) return mesg.edit("30 seconds have passed. Giveaway cancelled.");
     if (collected4.first().content === "cancel") {
       return mesg.edit("Cancelled giveaway.");
     }
@@ -652,219 +648,154 @@ module.exports = {
     time = ms(collected2.first().content);
     item = collected4.first().content;
 
-    pool.getConnection(function (err, con) {
-      if (err) {
-        console.error(err);
-        return message.reply(
-          "there was an error trying to execute that command!"
-        );
-      }
-      con.query(
-        `SELECT giveaway FROM servers WHERE id = '${guild.id}'`,
-        function (err, result) {
-          if(err) {
-            console.error(err);
-            return message.reply("there was an error trying to find the giveaway!");
-          }
-          const color = console.color();
-          var Embed = new Discord.MessageEmbed()
-            .setColor(color)
-            .setTitle(item)
-            .setDescription(
-              "React with " +
-              result[0].giveaway +
-              " to participate!\n" +
-              "**" +
-              winnerCount +
-              " " +
-              sOrNot +
-              "** will win\n" +
-              "This giveaway will end at: \n**" +
-              readableTime +
-              "**"
-            )
-            .setTimestamp()
-            .setFooter(
-              "Hosted by " +
-              message.author.username +
-              "#" +
-              message.author.discriminator,
-              message.author.displayAvatarURL()
-            );
-
-          const giveawayMsg =
+    if (err) {
+      console.error(err);
+      return message.reply(
+        "there was an error trying to execute that command!"
+      );
+    }
+    altGetData(
+      `SELECT giveaway FROM servers WHERE id = '${guild.id}'`,
+      function (err, result) {
+        if (err) {
+          console.error(err);
+          return message.reply("there was an error trying to find the giveaway!");
+        }
+        const color = console.color();
+        var Embed = new Discord.MessageEmbed()
+          .setColor(color)
+          .setTitle(item)
+          .setDescription(
+            "React with " +
             result[0].giveaway +
-            "**GIVEAWAY**" +
-            result[0].giveaway;
-          channel
-            .send(giveawayMsg, Embed)
-            .then(msg => {
-              con.query(
-                "INSERT INTO giveaways VALUES('" +
-                msg.id +
-                "', '" +
-                guild.id +
-                "', '" +
-                channel.id +
-                "', '" +
-                escape(item) +
-                "', '" +
-                winnerCount +
-                "', '" +
-                newDateSql +
-                "', '" +
-                result[0].giveaway +
-                "', '" +
-                message.author.id +
-                "', '" +
-                color +
-                "')",
-                function (err, result) {
-                  if (err) {
-                    console.error(err);
-                    return message.reply(
-                      "there was an error trying to execute that command!"
-                    );
-                  }
-                  console.log(
-                    "Inserted record for " +
-                    item +
-                    " giveaway in channel " +
-                    channel.name +
-                    " of server " +
-                    guild.name
+            " to participate!\n" +
+            "**" +
+            winnerCount +
+            " " +
+            sOrNot +
+            "** will win\n" +
+            "This giveaway will end at: \n**" +
+            readableTime +
+            "**"
+          )
+          .setTimestamp()
+          .setFooter(
+            "Hosted by " +
+            message.author.username +
+            "#" +
+            message.author.discriminator,
+            message.author.displayAvatarURL()
+          );
+
+        const giveawayMsg =
+          result[0].giveaway +
+          "**GIVEAWAY**" +
+          result[0].giveaway;
+        channel
+          .send(giveawayMsg, Embed)
+          .then(msg => {
+            altGetData(
+              "INSERT INTO giveaways VALUES('" +
+              msg.id +
+              "', '" +
+              guild.id +
+              "', '" +
+              channel.id +
+              "', '" +
+              escape(item) +
+              "', '" +
+              winnerCount +
+              "', '" +
+              newDateSql +
+              "', '" +
+              result[0].giveaway +
+              "', '" +
+              message.author.id +
+              "', '" +
+              color +
+              "')",
+              function (err, result) {
+                if (err) {
+                  console.error(err);
+                  return message.reply(
+                    "there was an error trying to execute that command!"
                   );
                 }
-              );
+                console.log(
+                  "Inserted record for " +
+                  item +
+                  " giveaway in channel " +
+                  channel.name +
+                  " of server " +
+                  guild.name
+                );
+              }
+            );
 
-              msg.react(result[0].giveaway);
-              setTimeout_(function () {
-                if (msg.deleted) {
-                  con.query(
-                    "DELETE FROM giveaways WHERE id = " +
-                    msg.id,
-                    function (err, con) {
-                      if (err) {
-                        console.error(err);
-                        return message.reply(
-                          "there was an error trying to execute that command!"
-                        );
-                      }
-                      console.log(
-                        "Deleted an ended giveaway record."
+            msg.react(result[0].giveaway);
+            setTimeout_(function () {
+              if (msg.deleted) {
+                altGetData(
+                  "DELETE FROM giveaways WHERE id = " +
+                  msg.id,
+                  function (err) {
+                    if (err) {
+                      console.error(err);
+                      return message.reply(
+                        "there was an error trying to execute that command!"
                       );
                     }
-                  );
-                  return;
-                } else {
-                  con.query(
-                    "SELECT * FROM giveaways WHERE id = " +
-                    msg.id,
-                    function (err, res) {
-                      if (err) {
-                        console.error(err);
-                        return message.reply(
-                          "there was an error trying to execute that command!"
+                    console.log(
+                      "Deleted an ended giveaway record."
+                    );
+                  }
+                );
+                return;
+              } else {
+                altGetData(
+                  "SELECT * FROM giveaways WHERE id = " +
+                  msg.id,
+                  function (err, res) {
+                    if (err) {
+                      console.error(err);
+                      return message.reply(
+                        "there was an error trying to execute that command!"
+                      );
+                    }
+                    if (res.length < 1) {
+                      return;
+                    } else {
+                      var peopleReacted = msg.reactions.cache.get(
+                        result[0].giveaway
+                      );
+                      for (const user of peopleReacted.users.cache.values()) {
+                        const data = user.id;
+                        reacted.push(data);
+                      }
+
+                      const remove = reacted.indexOf(message.client.user.id);
+                      if (remove > -1) {
+                        reacted.splice(
+                          remove,
+                          1
                         );
                       }
-                      if (res.length < 1) {
-                        return;
-                      } else {
-                        var peopleReacted = msg.reactions.cache.get(
-                          result[0].giveaway
-                        );
-                        for (const user of peopleReacted.users.cache.values()) {
-                          const data = user.id;
-                          reacted.push(data);
-                        }
 
-                        const remove = reacted.indexOf(message.client.user.id);
-                        if (remove > -1) {
-                          reacted.splice(
-                            remove,
-                            1
-                          );
-                        }
-
-                        if (
-                          reacted.length === 0
-                        ) {
-                          con.query(
-                            `DELETE FROM giveaways WHERE id = '${msg.id}'`,
-                            function (err) {
-                              if (err) {
-                                console.error(err);
-                                return message.reply("there was an error trying to execute that command!");
-                              }
-                              console.log(
-                                "Deleted an ended giveaway record."
-                              );
+                      if (
+                        reacted.length === 0
+                      ) {
+                        altGetData(
+                          `DELETE FROM giveaways WHERE id = '${msg.id}'`,
+                          function (err) {
+                            if (err) {
+                              console.error(err);
+                              return message.reply("there was an error trying to execute that command!");
                             }
-                          );
-                          const Ended = new Discord.MessageEmbed()
-                            .setColor(console.color())
-                            .setTitle(item)
-                            .setDescription(
-                              "Giveaway ended"
-                            )
-                            .addField(
-                              "Winner(s)",
-                              "Nobody reacted."
-                            )
-                            .setTimestamp()
-                            .setFooter(
-                              "Hosted by " +
-                              message.author
-                                .username +
-                              "#" +
-                              message.author
-                                .discriminator,
-                              message.author.displayAvatarURL()
+                            console.log(
+                              "Deleted an ended giveaway record."
                             );
-                          msg.edit(
-                            giveawayMsg,
-                            Ended
-                          );
-                          msg.reactions
-                            .removeAll()
-                            .catch(err =>
-                              console.error(err)
-                            );
-                          return;
-                        }
-
-                        var index = Math.floor(
-                          Math.random() *
-                          reacted.length
+                          }
                         );
-                        var winners = [];
-                        var winnerMessage = "";
-
-                        for (
-                          var i = 0;
-                          i < winnerCount;
-                          i++
-                        ) {
-                          winners.push(
-                            reacted[index]
-                          );
-                          index = Math.floor(
-                            Math.random() *
-                            reacted.length
-                          );
-                        }
-
-                        for (
-                          var i = 0;
-                          i < winners.length;
-                          i++
-                        ) {
-                          winnerMessage +=
-                            "<@" +
-                            winners[i] +
-                            "> ";
-                        }
-
                         const Ended = new Discord.MessageEmbed()
                           .setColor(console.color())
                           .setTitle(item)
@@ -873,7 +804,7 @@ module.exports = {
                           )
                           .addField(
                             "Winner(s)",
-                            winnerMessage
+                            "Nobody reacted."
                           )
                           .setTimestamp()
                           .setFooter(
@@ -889,301 +820,353 @@ module.exports = {
                           giveawayMsg,
                           Ended
                         );
-                        var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
-                        msg.channel.send(
-                          "Congratulation, " +
-                          winnerMessage +
-                          "! You won **" +
-                          item +
-                          "**!\n" +
-                          link
-                        );
                         msg.reactions
                           .removeAll()
-                          .catch(error =>
-                            console.error(
-                              "Failed to clear reactions: ",
-                              error
-                            )
+                          .catch(err =>
+                            console.error(err)
                           );
+                        return;
+                      }
 
-                        con.query(
-                          "DELETE FROM giveaways WHERE id = " +
-                          msg.id,
-                          function (err, con) {
-                            if (err) {
-                              console.error(
-                                err
-                              );
-                              return message.reply(
-                                "there was an error trying to execute that command!"
-                              );
-                            }
-                            console.log(
-                              "Deleted an ended giveaway record."
-                            );
-                          }
+                      var index = Math.floor(
+                        Math.random() *
+                        reacted.length
+                      );
+                      var winners = [];
+                      var winnerMessage = "";
+
+                      for (
+                        var i = 0;
+                        i < winnerCount;
+                        i++
+                      ) {
+                        winners.push(
+                          reacted[index]
+                        );
+                        index = Math.floor(
+                          Math.random() *
+                          reacted.length
                         );
                       }
-                    }
-                  );
-                }
-              }, time);
-            });
-        }
-      );
 
-      con.release();
-    });
+                      for (
+                        var i = 0;
+                        i < winners.length;
+                        i++
+                      ) {
+                        winnerMessage +=
+                          "<@" +
+                          winners[i] +
+                          "> ";
+                      }
+
+                      const Ended = new Discord.MessageEmbed()
+                        .setColor(console.color())
+                        .setTitle(item)
+                        .setDescription(
+                          "Giveaway ended"
+                        )
+                        .addField(
+                          "Winner(s)",
+                          winnerMessage
+                        )
+                        .setTimestamp()
+                        .setFooter(
+                          "Hosted by " +
+                          message.author
+                            .username +
+                          "#" +
+                          message.author
+                            .discriminator,
+                          message.author.displayAvatarURL()
+                        );
+                      msg.edit(
+                        giveawayMsg,
+                        Ended
+                      );
+                      var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+                      msg.channel.send(
+                        "Congratulation, " +
+                        winnerMessage +
+                        "! You won **" +
+                        item +
+                        "**!\n" +
+                        link
+                      );
+                      msg.reactions
+                        .removeAll()
+                        .catch(error =>
+                          console.error(
+                            "Failed to clear reactions: ",
+                            error
+                          )
+                        );
+
+                      altGetData(
+                        "DELETE FROM giveaways WHERE id = " +
+                        msg.id,
+                        function (err) {
+                          if (err) {
+                            console.error(
+                              err
+                            );
+                            return message.reply(
+                              "there was an error trying to execute that command!"
+                            );
+                          }
+                          console.log(
+                            "Deleted an ended giveaway record."
+                          );
+                        }
+                      );
+                    }
+                  }
+                );
+              }
+            }, time);
+          });
+      }
+    );
   },
-  async end(message, args, pool) {
+  async end(message, args) {
     if (!args[1]) {
       return message.channel.send("You didn't provide any message ID!");
     }
     var msgID = args[1];
-    pool.getConnection(function (err, con) {
-      if (err) {
-        console.error(err);
-        return message.reply(
-          "there was an error trying to execute that command!"
-        );
-      }
-      con.query(
-        "SELECT * FROM giveaways WHERE id = '" + msgID + "'",
-        async function (err, result) {
-          if (err) {
-            console.error(err);
-            return message.reply(
-              "there was an error trying to execute that command!"
-            );
-          }
-          if (result.length < 1 || !result) {
-            return message.channel.send("No giveaway was found!");
-          }
+    if (err) {
+      console.error(err);
+      return message.reply(
+        "there was an error trying to execute that command!"
+      );
+    }
+    altGetData(
+      "SELECT * FROM giveaways WHERE id = '" + msgID + "'",
+      async function (err, result) {
+        if (err) {
+          console.error(err);
+          return message.reply(
+            "there was an error trying to execute that command!"
+          );
+        }
+        if (result.length < 1 || !result) {
+          return message.channel.send("No giveaway was found!");
+        }
 
-          if (result[0].author !== message.author.id) {
-            return message.channel.send(
-              "You cannot end a giveaway that is not hosted by you!"
-            );
-          }
+        if (result[0].author !== message.author.id) {
+          return message.channel.send(
+            "You cannot end a giveaway that is not hosted by you!"
+          );
+        }
 
-          if (err) {
-            console.error(err);
-            return message.reply(
-              "there was an error trying to execute that command!"
-            );
-          }
+        if (err) {
+          console.error(err);
+          return message.reply(
+            "there was an error trying to execute that command!"
+          );
+        }
+        try {
+          var channel = await message.client.channels.fetch(
+            result[0].channel
+          );
+        } catch (err) {
+          console.log("Failed fetching guild/channel of giveaway.");
+          return console.error(err);
+        }
+        try {
+          var msg = await channel.messages.fetch(result[0].id);
+        } catch (err) {
+          altGetData(
+            "DELETE FROM giveaways WHERE id = " + result[0].id,
+            function (err) {
+              if (err) return console.log(err);
+              console.log("Deleted an ended giveaway record.");
+            }
+          );
+          return;
+        }
+        if (msg.deleted) {
+          altGetData("DELETE FROM giveaways WHERE id = " + msg.id, function (err) {
+            if (err) return console.log(err);
+            console.log("Deleted an ended giveaway record.");
+          });
+          return;
+        } else {
+          var fetchUser = await message.client.users.fetch(result[0].author);
+          var endReacted = [];
+          var peopleReacted = await msg.reactions.cache.get(result[0].emoji);
+          await peopleReacted.users.fetch();
           try {
-            var channel = await message.client.channels.fetch(
-              result[0].channel
-            );
+            for (const user of peopleReacted.users.cache.values()) {
+              const data = user.id;
+              endReacted.push(data);
+            }
           } catch (err) {
-            console.log("Failed fetching guild/channel of giveaway.");
             return console.error(err);
           }
-          try {
-            var msg = await channel.messages.fetch(result[0].id);
-          } catch (err) {
-            con.query(
-              "DELETE FROM giveaways WHERE id = " + result[0].id,
-              function (err, con) {
-                if (err) return console.log(err);
-                console.log("Deleted an ended giveaway record.");
-              }
-            );
-            return;
+
+          const remove = endReacted.indexOf(message.client.user.id);
+          if (remove > -1) {
+            endReacted.splice(remove, 1);
           }
-          if (msg.deleted) {
-            con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (err) {
+
+          if (endReacted.length === 0) {
+            altGetData("DELETE FROM giveaways WHERE id = " + msg.id, function (
+              err,
+              result
+            ) {
               if (err) return console.log(err);
               console.log("Deleted an ended giveaway record.");
             });
+            const Ended = new Discord.MessageEmbed()
+              .setColor(parseInt(result[0].color))
+              .setTitle(unescape(result[0].item))
+              .setDescription("Giveaway ended")
+              .addField("Winner(s)", "None. Cuz no one reacted.")
+              .setTimestamp()
+              .setFooter(
+                "Hosted by " +
+                fetchUser.username +
+                "#" +
+                fetchUser.discriminator,
+                fetchUser.displayAvatarURL()
+              );
+            msg.edit(Ended);
+            msg.reactions.removeAll().catch(err => console.error(err));
             return;
           } else {
-            var fetchUser = await message.client.users.fetch(result[0].author);
-            var endReacted = [];
-            var peopleReacted = await msg.reactions.cache.get(result[0].emoji);
-            await peopleReacted.users.fetch();
-            try {
-              for (const user of peopleReacted.users.cache.values()) {
-                const data = user.id;
-                endReacted.push(data);
-              }
-            } catch (err) {
-              return console.error(err);
+            var index = Math.floor(Math.random() * endReacted.length);
+            var winners = [];
+            var winnerMessage = "";
+            var winnerCount = result[0].winner;
+
+            for (var i = 0; i < winnerCount; i++) {
+              winners.push(endReacted[index]);
+              index = Math.floor(Math.random() * endReacted.length);
             }
 
-            const remove = endReacted.indexOf(message.client.user.id);
-            if (remove > -1) {
-              endReacted.splice(remove, 1);
+            for (var i = 0; i < winners.length; i++) {
+              winnerMessage += "<@" + winners[i] + "> ";
             }
 
-            if (endReacted.length === 0) {
-              con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
-                err,
-                result
-              ) {
-                if (err) return console.log(err);
-                console.log("Deleted an ended giveaway record.");
-              });
-              const Ended = new Discord.MessageEmbed()
-                .setColor(parseInt(result[0].color))
-                .setTitle(unescape(result[0].item))
-                .setDescription("Giveaway ended")
-                .addField("Winner(s)", "None. Cuz no one reacted.")
-                .setTimestamp()
-                .setFooter(
-                  "Hosted by " +
-                  fetchUser.username +
-                  "#" +
-                  fetchUser.discriminator,
-                  fetchUser.displayAvatarURL()
-                );
-              msg.edit(Ended);
-              msg.reactions.removeAll().catch(err => console.error(err));
-              return;
-            } else {
-              var index = Math.floor(Math.random() * endReacted.length);
-              var winners = [];
-              var winnerMessage = "";
-              var winnerCount = result[0].winner;
-
-              for (var i = 0; i < winnerCount; i++) {
-                winners.push(endReacted[index]);
-                index = Math.floor(Math.random() * endReacted.length);
-              }
-
-              for (var i = 0; i < winners.length; i++) {
-                winnerMessage += "<@" + winners[i] + "> ";
-              }
-
-              const Ended = new Discord.MessageEmbed()
-                .setColor(parseInt(result[0].color))
-                .setTitle(unescape(result[0].item))
-                .setDescription("Giveaway ended")
-                .addField("Winner(s)", winnerMessage)
-                .setTimestamp()
-                .setFooter(
-                  "Hosted by " +
-                  fetchUser.username +
-                  "#" +
-                  fetchUser.discriminator,
-                  fetchUser.displayAvatarURL()
-                );
-              msg.edit(Ended);
-              var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
-              msg.channel.send(
-                "Congratulation, " +
-                winnerMessage +
-                "! You won **" +
-                unescape(result[0].item) +
-                "**!\n" +
-                link
+            const Ended = new Discord.MessageEmbed()
+              .setColor(parseInt(result[0].color))
+              .setTitle(unescape(result[0].item))
+              .setDescription("Giveaway ended")
+              .addField("Winner(s)", winnerMessage)
+              .setTimestamp()
+              .setFooter(
+                "Hosted by " +
+                fetchUser.username +
+                "#" +
+                fetchUser.discriminator,
+                fetchUser.displayAvatarURL()
               );
-              msg.reactions
-                .removeAll()
-                .catch(error =>
-                  console.error("Failed to clear reactions: ", error)
-                );
+            msg.edit(Ended);
+            var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+            msg.channel.send(
+              "Congratulation, " +
+              winnerMessage +
+              "! You won **" +
+              unescape(result[0].item) +
+              "**!\n" +
+              link
+            );
+            msg.reactions
+              .removeAll()
+              .catch(error =>
+                console.error("Failed to clear reactions: ", error)
+              );
 
-              con.query("DELETE FROM giveaways WHERE id = " + msg.id, function (
-                err,
-                con
-              ) {
-                if (err) return console.log(err);
-                message.channel.send("Ended a giveaway!");
-                console.log("Deleted an ended giveaway record.");
-              });
-            }
+            altGetData("DELETE FROM giveaways WHERE id = " + msg.id, function (err) {
+              if (err) return console.log(err);
+              message.channel.send("Ended a giveaway!");
+              console.log("Deleted an ended giveaway record.");
+            });
           }
         }
-      );
-      con.release();
-    });
+      }
+    );
   },
-  async list(message, args, pool) {
+  async list(message) {
     const guild = message.guild;
-    pool.getConnection(function (err, con) {
+    if (err) {
+      console.error(err);
+      return message.reply(
+        "there was an error trying to execute that command!"
+      );
+    }
+    altGetData(`SELECT * FROM giveaways WHERE guild = '${guild.id}'`, function (
+      err,
+      results
+    ) {
       if (err) {
         console.error(err);
-        return message.reply(
-          "there was an error trying to execute that command!"
-        );
+        return message.reply("there was an error trying to execute that command!");
       }
-      con.query(`SELECT * FROM giveaways WHERE guild = '${guild.id}'`, function (
-        err,
-        results
-      ) {
-        if (err) {
-          console.error(err);
-          return message.reply("there was an error trying to execute that command!");
+      const Embed = new Discord.MessageEmbed()
+        .setColor(console.color())
+        .setTitle("Giveaway list")
+        .setDescription(
+          "**" + guild.name + "** - " + results.length + " giveaways"
+        )
+        .setTimestamp()
+        .setFooter(
+          "Have a nice day! :)",
+          message.client.user.displayAvatarURL()
+        );
+
+      if (results.length > 25) {
+        for (var i = 0; i < 25; i++) {
+          var newDate = new Date(results[i].endAt);
+          var date = newDate.getDate();
+          var month = newDate.getMonth();
+          var year = newDate.getFullYear();
+          var hour = newDate.getHours();
+          var minute = newDate.getMinutes();
+          var second = newDate.getSeconds();
+
+          var readableTime =
+            twoDigits(date) +
+            "/" +
+            twoDigits(month + 1) +
+            "/" +
+            twoDigits(year) +
+            " " +
+            twoDigits(hour) +
+            ":" +
+            twoDigits(minute) +
+            ":" +
+            twoDigits(second) +
+            " UTC";
+          Embed.addField(readableTime, unescape(results[i].item));
         }
-        const Embed = new Discord.MessageEmbed()
-          .setColor(console.color())
-          .setTitle("Giveaway list")
-          .setDescription(
-            "**" + guild.name + "** - " + results.length + " giveaways"
-          )
-          .setTimestamp()
-          .setFooter(
-            "Have a nice day! :)",
-            message.client.user.displayAvatarURL()
-          );
+      } else {
+        results.forEach(result => {
+          var newDate = new Date(result.endAt);
+          var date = newDate.getDate();
+          var month = newDate.getMonth();
+          var year = newDate.getFullYear();
+          var hour = newDate.getHours();
+          var minute = newDate.getMinutes();
+          var second = newDate.getSeconds();
 
-        if (results.length > 25) {
-          for (var i = 0; i < 25; i++) {
-            var newDate = new Date(results[i].endAt);
-            var date = newDate.getDate();
-            var month = newDate.getMonth();
-            var year = newDate.getFullYear();
-            var hour = newDate.getHours();
-            var minute = newDate.getMinutes();
-            var second = newDate.getSeconds();
-
-            var readableTime =
-              twoDigits(date) +
-              "/" +
-              twoDigits(month + 1) +
-              "/" +
-              twoDigits(year) +
-              " " +
-              twoDigits(hour) +
-              ":" +
-              twoDigits(minute) +
-              ":" +
-              twoDigits(second) +
-              " UTC";
-            Embed.addField(readableTime, unescape(results[i].item));
-          }
-        } else {
-          results.forEach(result => {
-            var newDate = new Date(result.endAt);
-            var date = newDate.getDate();
-            var month = newDate.getMonth();
-            var year = newDate.getFullYear();
-            var hour = newDate.getHours();
-            var minute = newDate.getMinutes();
-            var second = newDate.getSeconds();
-
-            var readableTime =
-              twoDigits(date) +
-              "/" +
-              twoDigits(month + 1) +
-              "/" +
-              twoDigits(year) +
-              " " +
-              twoDigits(hour) +
-              ":" +
-              twoDigits(minute) +
-              ":" +
-              twoDigits(second) +
-              " UTC";
-            Embed.addField(readableTime, unescape(result.item));
-          });
-        }
-        message.channel.send(Embed);
-      });
-      con.release();
+          var readableTime =
+            twoDigits(date) +
+            "/" +
+            twoDigits(month + 1) +
+            "/" +
+            twoDigits(year) +
+            " " +
+            twoDigits(hour) +
+            ":" +
+            twoDigits(minute) +
+            ":" +
+            twoDigits(second) +
+            " UTC";
+          Embed.addField(readableTime, unescape(result.item));
+        });
+      }
+      message.channel.send(Embed);
     });
   }
 };

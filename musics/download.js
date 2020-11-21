@@ -23,16 +23,16 @@ module.exports = {
     usage: "[index | link | keywords]",
     aliases: ["dl"],
     category: 8,
-    async music(message, serverQueue, queue, pool) {
+    async music(message, serverQueue, queue) {
         const args = message.content.slice(message.prefix.length).split(/ +/);
-        if (args[1] && isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, serverQueue, queue, pool, args);
+        if (args[1] && isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, serverQueue, queue, args);
         if (!serverQueue) return message.channel.send("There is nothing playing.");
         if (!serverQueue.songs) serverQueue.songs = [];
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the song queue.");
         let song = serverQueue.songs[!(!isNaN(parseInt(args[1])) && parseInt(args[1]) > serverQueue.songs.length) ? 0 : parseInt(args[1])];
-        await this.download(message, serverQueue, queue, pool, song);
+        await this.download(message, serverQueue, queue, song);
     },
-    async download(message, serverQueue, queue, pool, song) {
+    async download(message, serverQueue, queue, song) {
         const args = message.content.slice(message.prefix.length).split(/ +/);
         try {
             if (song.isLive) {
@@ -42,7 +42,7 @@ module.exports = {
                 if (!isEquivalent(result.songs[0], song)) {
                     song = result.songs[0];
                     serverQueue.songs[0] = song;
-                    updateQueue(message, serverQueue, queue, pool);
+                    updateQueue(message, serverQueue, queue);
                     if (song.isLive) return await message.channel.send("Livestream downloading is not supported and recommended! Come back later when the livestream is over.");
                 }
             }
@@ -74,7 +74,7 @@ module.exports = {
                         if (g.error) throw "Failed to find video";
                         song = g;
                         serverQueue.songs[0] = song;
-                        updateQueue(message, serverQueue, queue, pool);
+                        updateQueue(message, serverQueue, queue);
                         stream = await requestStream(song.download);
                         if (stream.statusCode != 200) throw new Error("Received HTTP Status Code: " + stream.statusCode);
                     }
@@ -100,7 +100,7 @@ module.exports = {
             console.error(err);
         }
     },
-    async downloadFromArgs(message, serverQueue, queue, pool, args) {
+    async downloadFromArgs(message, serverQueue, queue, args) {
         var result = { error: true };
         try {
             if (validYTPlaylistURL(args.slice(1).join(" "))) result = await addYTPlaylist(message, args);
@@ -114,7 +114,7 @@ module.exports = {
             else result = await search(message, args);
             if (result.error) return;
             if (result.msg) result.msg.delete({ timeout: 10000 });
-            for (const song of result.songs) await this.download(message, serverQueue, queue, pool, song);
+            for (const song of result.songs) await this.download(message, serverQueue, queue, song);
         } catch (err) {
             message.reply("there was an error trying to download the soundtack!");
             console.error(err);

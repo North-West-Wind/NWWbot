@@ -1,11 +1,10 @@
-const { execute } = require("../commands/inventory.js");
-const { elegantPair } = require("../function.js");
+const { elegantPair, altGetData } = require("../function.js");
 const id = "1";
 
 module.exports = {
   name: "MarkSeven",
-  async run(message, args, msg, con, em, itemObject) {
-    con.query("SELECT * FROM lottery WHERE id = '" + message.author.id + "'", async function(err, results) {
+  async run(message, msg, em, itemObject) {
+    altGetData("SELECT * FROM lottery WHERE id = '" + message.author.id + "'", async function(err, results) {
       if(err) {
         em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
         return msg.edit(em);
@@ -52,7 +51,7 @@ module.exports = {
       var fourth = elegantPair(first, second);
       var fifth = elegantPair(third, numbers[6]);
       var final = elegantPair(fourth, fifth);
-      con.query("INSERT INTO lottery VALUES('" + message.author.id + "', " + final + ")", function(err) {
+      altGetData("INSERT INTO lottery VALUES('" + message.author.id + "', " + final + ")", function(err) {
         if(err) {
           em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
           console.error(err);
@@ -60,7 +59,7 @@ module.exports = {
         }
         itemObject[id] -= 1;
         var str = JSON.stringify(itemObject);
-        con.query(`UPDATE inventory SET items = '${escape(str)}' WHERE id = '${message.author.id}'`, function(err) {
+        altGetData(`UPDATE inventory SET items = '${escape(str)}' WHERE id = '${message.author.id}'`, function(err) {
           if(err) {
             em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
             console.error(err);
