@@ -17,7 +17,7 @@ function messageLevel(message) {
     const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
     const sqlDate = jsDate2Mysql(new Date());
     getData(`SELECT * FROM leveling WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`).then(res => {
-        if (res.error) return console.error(new Error(res.err));
+        if (res.error) return;
         const results = res.results;
         if (results.length < 1) getData(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${message.author.id}', '${message.guild.id}', ${exp}, '${sqlDate}')`).then(ress => (ress.error) ? console.error(new Error(ress.err)) : 0);
         else {
