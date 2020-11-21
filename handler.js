@@ -150,7 +150,6 @@ module.exports = {
             client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
         else
             client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
-        if (err) return console.error(err);
         const { setQueue } = require("./musics/main.js");
         if (id === 0) {
             getData("SELECT id, queue, looping, repeating, prefix FROM servers").then(res => {
@@ -508,7 +507,6 @@ module.exports = {
             }
         }).catch(() => { });
         if (member.user.bot) return;
-        if (err) return console.error(err);
         getData(`SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id = '${guild.id}'`).then(async res => {
             if (res.error) return console.error(new Error(res.err));
             const result = res.results;
