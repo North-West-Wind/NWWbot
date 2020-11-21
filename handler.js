@@ -509,7 +509,7 @@ module.exports = {
         }).catch(() => { });
         if (member.user.bot) return;
         if (err) return console.error(err);
-        getData(`SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id = '${guild.id}'`).then(res => {
+        getData(`SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id = '${guild.id}'`).then(async res => {
             if (res.error) return console.error(new Error(res.err));
             const result = res.results;
             if (!result[0] || !result[0].wel_channel || !result[0].welcome) {
@@ -769,7 +769,7 @@ module.exports = {
     async guildMemberUpdate(oldMember, newMember) {
         const client = oldMember.client || newMember.client;
         if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
-        getData("SELECT boost_msg, boost_channel FROM servers WHERE id = '" + newMember.guild.id + "'").then(res => {
+        getData("SELECT boost_msg, boost_channel FROM servers WHERE id = '" + newMember.guild.id + "'").then(async res => {
             if (res.error) return console.error(new Error(res.err));
             const result = res.results;
             if (result[0] === undefined || result[0].boost_msg === null || result[0].boost_channel === null) return;
