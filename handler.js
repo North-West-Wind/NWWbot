@@ -656,7 +656,7 @@ module.exports = {
     async guildMemberRemove(member) {
         const client = member.client;
         const guild = member.guild;
-        getData(`SELECT leave_msg, leave_channel FROM servers WHERE id = '${guild.id}'`).then(res => {
+        getData(`SELECT leave_msg, leave_channel FROM servers WHERE id = '${guild.id}'`).then(async res => {
             if (res.error) return console.error(new Error(res.err));
             const result = res.results;
             if (!result[0] || !result[0].leave_msg || !result[0].leave_channel) {
