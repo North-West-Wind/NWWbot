@@ -13,7 +13,7 @@ module.exports = {
     serverQueue.paused = true;
     if(serverQueue.connection.dispatcher)
     serverQueue.connection.dispatcher.pause(true);
-    updateQueue(message, serverQueue, queue);
+    updateQueue(message, serverQueue, queue, pool);
     return message.channel.send("The song playback has been stopped.");
   } else {
     return message.channel.send("The song playback is already stopped.");

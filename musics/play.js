@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, commonCollectorListener, altGetData } = require("../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, commonCollectorListener } = require("../function.js");
 const { parseBody } = require("../commands/musescore.js");
 const { migrate } = require("./migrate.js");
 const ytdl = require("ytdl-core");
@@ -38,18 +38,22 @@ function createEmbed(message, songs) {
   return Embed;
 }
 
-function updateQueue(message, serverQueue, queue, flag = 0) {
+function updateQueue(message, serverQueue, queue, pool) {
   if (!serverQueue) queue.delete(message.guild.id);
   else queue.set(message.guild.id, serverQueue);
-  if (!flag) return;
-  const query = `UPDATE servers SET queue = ${!serverQueue ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`;
-  altGetData(query, (err) => {
-    if (err && !message.dummy) message.reply("there was an error trying to update the queue!");
+  if (pool) pool.getConnection(function (err, con) {
+    if (err && !message.dummy) message.reply("there was an error trying to connect to the database!");
     else if (err) return;
+    const query = `UPDATE servers SET queue = ${!serverQueue ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`;
+    con.query(query, (err) => {
+      if (err && !message.dummy) message.reply("there was an error trying to update the queue!");
+      else if (err) return;
+    });
+    con.release();
   });
 }
 
-async function play(guild, song, queue, skipped = 0, seek = 0) {
+async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   const serverQueue = queue.get(guild.id);
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!serverQueue.voiceChannel && guild.me.voice && guild.me.voice.channel) serverQueue.voiceChannel = guild.me.voice.channel;
@@ -57,7 +61,7 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
   if (!song || !serverQueue.voiceChannel) {
     serverQueue.playing = false;
     if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
-    return updateQueue(message, serverQueue, queue);
+    return updateQueue(message, serverQueue, queue, pool);
   }
   const args = ["0", song.url];
   var dispatcher;
@@ -76,8 +80,8 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
     }
     if (serverQueue.looping) serverQueue.songs.push(song);
     if (!serverQueue.repeating) serverQueue.songs.shift();
-    updateQueue(message, serverQueue, queue);
-    play(guild, serverQueue.songs[0], queue, skipped);
+    updateQueue(message, serverQueue, queue, pool);
+    play(guild, serverQueue.songs[0], queue, pool, skipped);
   }
   if (!serverQueue.connection && skipped === 0) serverQueue.connection = await serverQueue.voiceChannel.join();
   if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
@@ -107,7 +111,7 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
           if (g.error) throw "Failed to find video";
           song = g;
           serverQueue.songs[0] = song;
-          updateQueue(message, serverQueue, queue);
+          updateQueue(message, serverQueue, queue, pool);
           f = await requestStream(song.download);
           if (f.statusCode != 200) throw new Error("Received HTTP Status Code: " + f.statusCode);
         }
@@ -120,7 +124,7 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
           if (!isEquivalent(j.songs[0], song)) {
             song = j.songs[0];
             serverQueue.songs[0] = song;
-            updateQueue(message, serverQueue, queue);
+            updateQueue(message, serverQueue, queue, pool);
           }
         }
         if (!song.isLive && !song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
@@ -148,7 +152,7 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
   dispatcher.on("finish", async () => {
     if (serverQueue.looping) serverQueue.songs.push(song);
     if (!serverQueue.repeating) serverQueue.songs.shift();
-    updateQueue(message, serverQueue, queue);
+    updateQueue(message, serverQueue, queue, pool);
     if (Date.now() - now < 1000 && serverQueue.textChannel) {
       serverQueue.textChannel.send(`There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist. ${oldSkipped < 2 ? "" : `(${oldSkipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
       if (++oldSkipped >= 3) {
@@ -161,7 +165,7 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
         if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
       }
     } else oldSkipped = 0;
-    play(guild, serverQueue.songs[0], queue, oldSkipped);
+    play(guild, serverQueue.songs[0], queue, pool, oldSkipped);
   }).on("error", async error => {
     if (error.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
       console.error("Received 429 error. Changing ytdl-core cookie...");
@@ -185,14 +189,14 @@ module.exports = {
   aliases: ["p"],
   usage: "[link | keywords | attachment]",
   category: 8,
-  async music(message, serverQueue, queue) {
+  async music(message, serverQueue, queue, pool) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) return await message.channel.send("You need to be in a voice channel to play music!");
     if (!voiceChannel.permissionsFor(message.client.user).has(3145728)) return await message.channel.send("I can't play in your voice channel!");
     if (!args[1] && message.attachments.size < 1) {
       if (!serverQueue || !serverQueue.songs || serverQueue.songs.length < 1) return await message.channel.send("No song queue was found for this server! Please provide a link or keywords to get a music played!");
-      if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) return await migrate(message, serverQueue, queue);
+      if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) return await migrate(message, serverQueue, queue, pool);
       try {
         if (message.guild.me.voice.channel && message.guild.me.voice.channelID === voiceChannel.id) serverQueue.connection = message.guild.me.voice.connection;
         else {
@@ -206,8 +210,8 @@ module.exports = {
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.playing = true;
       serverQueue.textChannel = message.channel;
-      updateQueue(message, serverQueue, queue);
-      play(message.guild, serverQueue.songs[0], queue);
+      updateQueue(message, serverQueue, queue, pool);
+      play(message.guild, serverQueue.songs[0], queue, pool);
       return;
     }
     try {
@@ -241,13 +245,13 @@ module.exports = {
           repeating: false
         };
       } else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
-      updateQueue(message, serverQueue, queue);
+      updateQueue(message, serverQueue, queue, pool);
       if (!message.guild.me.voice.channel) {
         serverQueue.voiceChannel = voiceChannel;
         serverQueue.connection = await voiceChannel.join();
         serverQueue.textChannel = message.channel;
       }
-      if (!serverQueue.playing) play(message.guild, serverQueue.songs[0], queue);
+      if (!serverQueue.playing) play(message.guild, serverQueue.songs[0], queue, pool);
       if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
       else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
     } catch (err) {
@@ -753,11 +757,11 @@ module.exports = {
     try {
       var scSearched = await scdl.search("tracks", args.slice(1).join(" "));
       num = 0;
-      if (scSearched.collection.length > 0) {
+      if(scSearched.collection.length > 0) {
         scEm.setDescription(scSearched.collection.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).slice(0, 10).join("\n"));
         allEmbeds.push(scEm);
       }
-    } catch (err) {
+    } catch(err) {
       console.error(err);
       message.reply("there was an error trying to search the videos!");
       return { error: true };
@@ -782,7 +786,7 @@ module.exports = {
     var collector = undefined;
     var s = 0;
     var msg = await message.channel.send(allEmbeds[0]);
-    if (allEmbeds.length > 1) {
+    if(allEmbeds.length > 1) {
       const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
       await msg.react("⏮");
       await msg.react("◀");
@@ -790,16 +794,16 @@ module.exports = {
       await msg.react("⏭");
       await msg.react("⏹");
       const collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
-      collector.on("collect", async (reaction, user) => {
+      collector.on("collect", async(reaction, user) => {
         const result = await commonCollectorListener(reaction, user, s, allEmbeds, msg, collector);
         s = result.s;
         msg = result.msg;
       });
-      collector.on("end", async () => msg.reactions.removeAll().catch(console.error));
+      collector.on("end", async() => msg.reactions.removeAll().catch(console.error));
     }
     const filter = x => x.author.id === message.author.id;
     const collected = await msg.channel.awaitMessages(filter, { max: 1, time: 60000, error: ["time"] });
-    if (collector) collector.emit("end");
+    if(collector) collector.emit("end");
     if (!collected || !collected.first() || !collected.first().content) {
       const Ended = new Discord.MessageEmbed()
         .setColor(console.color())

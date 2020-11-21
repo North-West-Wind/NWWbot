@@ -1,20 +1,25 @@
 const randomWords = require("random-words");
 const Canvas = require("canvas");
 const Discord = require("discord.js");
-const { getRandomNumber, applyText, jsDate2Mysql, altGetData } = require("../function.js");
+const { getRandomNumber, applyText, jsDate2Mysql } = require("../function.js");
 
 module.exports = {
   name: "work",
   description:
     "Work in the server and gain virtual money. By working more, you will gain experience and level up. That can make you gain more.",
   category: 2,
-  execute(message) {
+  execute(message, args, pool) {
     const currentDateSql = jsDate2Mysql(new Date());
-      altGetData(`SELECT * FROM currency WHERE user_id = '${message.author.id}'`, async (err, results) => {
+    pool.getConnection(async(err, con) => {
+      if (err) {
+        console.error(err);
+        return await message.reply("there was an error trying to connect to the database!");
+      }
+      con.query(`SELECT * FROM currency WHERE user_id = '${message.author.id}'`, async (err, results) => {
         if (err) return message.reply("there was an error trying to fetch your currency!");
         if (results.length == 0) {
           const gain = Math.round((getRandomNumber(1, 1.5) + Number.EPSILON) * 100) / 100;
-          altGetData(`INSERT INTO currency (user_id, currency, worked, last_worked, bank) VALUES(${message.author.id}, ${gain}, 1, '${currentDateSql}', 0.00)`, (err) => {
+          con.query(`INSERT INTO currency (user_id, currency, worked, last_worked, bank) VALUES(${message.author.id}, ${gain}, 1, '${currentDateSql}', 0.00)`, (err) => {
             if (err) {
               console.error(err);
               return message.reply("there was an error trying to execute that command!");
@@ -44,7 +49,7 @@ module.exports = {
             const collected = await message.channel.awaitMessages(filter, { time: 60000, max: 1, error: ["time"] });
             await msg.delete();
             if (!collected || !collected.first() || !collected.first().content || collected.first().content !== words[i]) {
-              altGetData(`UPDATE currency SET last_worked = '${currentDateSql}' WHERE user_id = '${message.author.id}'`, async(err) => {
+              con.query(`UPDATE currency SET last_worked = '${currentDateSql}' WHERE user_id = '${message.author.id}'`, async(err) => {
                 if (err) {
                   console.error(err);
                   return await message.reply("there was an error trying to update your bank account!");
@@ -57,7 +62,7 @@ module.exports = {
           var doubling = false;
           if (results[0].doubling && results[0].doubling - Date.now() > 0) doubling = true;
           var newCurrency = Math.round((Number(results[0].currency) + (doubling ? gain * 2 : gain) + Number.EPSILON) * 100) / 100;
-          altGetData(`UPDATE currency SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? `, doubling = NULL` : "")} WHERE user_id = '${message.author.id}'`, async(err) => {
+          con.query(`UPDATE currency SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? `, doubling = NULL` : "")} WHERE user_id = '${message.author.id}'`, async(err) => {
             if (err) {
               console.error(err);
               return await message.reply("there was an error trying to update your bank account!");
@@ -66,5 +71,7 @@ module.exports = {
           await message.channel.send(`<@${message.author.id}> worked and gained **$${gain}**!${(doubling ? " The money you gained is doubled!" : "")}`);
         }
       });
+      con.release();
+    });
   }
 };

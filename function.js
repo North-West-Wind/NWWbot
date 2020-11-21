@@ -1,5 +1,4 @@
 const superms = require("ms");
-const fetch = require("node-fetch");
 module.exports = {
   twoDigits(d) {
     if (0 <= d && d < 10) return "0" + d.toString();
@@ -487,17 +486,5 @@ module.exports = {
           break;
       }
     return { s, msg };
-    },
-    async getData(query) {
-      var result = { error: true };
-      const res = await fetch(`https://North-API.northwestwind.repl.co/api/db/${encodeURIComponent(query)}/${process.env.KEY}`);
-      if (!res.ok) result.err = "Received Non-200 HTTP Status Code";
-      else result = await res.json();
-      return result;
-    },
-    async altGetData(query, cb) {
-      const res = await this.getData(query);
-      if (cb && {}.toString.call(cb) === '[object Function]') cb(res.err, res.results, res.fields);
-      return { err: res.err, results: res.results, fields: res.fields };
     }
 };

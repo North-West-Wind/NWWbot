@@ -1,15 +1,29 @@
 const Discord = require("discord.js");
-const { altGetData } = require("../function.js");
+
 module.exports = {
   name: "bank",
   description:
     "Display your Discord Economy status. You can also deposit or withdraw money with this command.",
   category: 2,
-  async execute(message) {
-      altGetData(`SELECT * FROM currency WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`).then(async(err, results) => {
+  async execute(message, args, pool) {
+    pool.getConnection(async function (err, con) {
+      if (err) {
+        console.error(err);
+        return message.reply(
+          "there was an error trying to connect to the database!"
+        );
+      }
+      con.query(
+        "SELECT * FROM currency WHERE user_id = " +
+        message.author.id +
+        " AND guild = " +
+        message.guild.id,
+        async function (err, results) {
           if (err) {
             console.error(err);
-            return message.reply("there was an error trying to fetch your currency!");
+            return message.reply(
+              "there was an error trying to fetch your currency!"
+            );
           }
           if (results.length == 0) {
             return message.channel.send(
@@ -38,8 +52,15 @@ module.exports = {
             MainPage();
 
             async function MainPage() {
-              altGetData(`SELECT * FROM currency WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`).then(async(err, newResults) => {
-                  if (err) return message.reply("there was an error trying to fetch data from the database!")
+              con.query(
+                "SELECT * FROM currency WHERE user_id = " +
+                message.author.id +
+                " AND guild = " +
+                message.guild.id,
+                async function (err, newResults) {
+                  if (err) {
+                    message.reply("there was an error trying to fetch data from the database!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.")
+                  }
                   cash = newResults[0].currency;
                   bank = newResults[0].bank;
                   const embed = new Discord.MessageEmbed()
@@ -49,7 +70,10 @@ module.exports = {
                     .addField("Bank", "$" + bank)
                     .addField("Cash", "$" + cash)
                     .setTimestamp()
-                    .setFooter('You can try to "deposit" or "withdraw"!', message.client.user.displayAvatarURL());
+                    .setFooter(
+                      'You can try to "deposit" or "withdraw"!',
+                      message.client.user.displayAvatarURL()
+                    );
                   msg.edit(embed);
                   await msg.react("1️⃣");
                   await msg.react("2️⃣");
@@ -108,7 +132,7 @@ module.exports = {
                         var newCurrency =
                           Number(newResults[0].currency) - deposits;
                         var newBank = Number(newResults[0].bank) + deposits;
-                        altGetData(
+                        con.query(
                           "UPDATE currency SET `currency` = '" +
                           newCurrency +
                           "', `bank` = '" +
@@ -116,7 +140,8 @@ module.exports = {
                           "' WHERE user_id = " +
                           message.author.id +
                           " AND guild = " +
-                          message.guild.id).then(async(err) => {
+                          message.guild.id,
+                          async function (err) {
                             if (err) {
                               console.error(err);
                               return message.reply(
@@ -150,7 +175,7 @@ module.exports = {
                         var newCurrency =
                           Number(newResults[0].currency) - deposits;
                         var newBank = Number(newResults[0].bank) + deposits;
-                        altGetData(
+                        con.query(
                           "UPDATE currency SET `currency` = '" +
                           newCurrency +
                           "', `bank` = '" +
@@ -158,7 +183,8 @@ module.exports = {
                           "' WHERE user_id = " +
                           message.author.id +
                           " AND guild = " +
-                          message.guild.id).then(async(err) => {
+                          message.guild.id,
+                          async function (err) {
                             if (err) {
                               console.error(err);
                               return message.reply(
@@ -192,7 +218,7 @@ module.exports = {
                         var newCurrency =
                           Number(newResults[0].currency) - deposits;
                         var newBank = Number(newResults[0].bank) + deposits;
-                        altGetData(
+                        con.query(
                           "UPDATE currency SET `currency` = '" +
                           newCurrency +
                           "', `bank` = '" +
@@ -200,7 +226,8 @@ module.exports = {
                           "' WHERE user_id = " +
                           message.author.id +
                           " AND guild = " +
-                          message.guild.id).then(async(err) => {
+                          message.guild.id,
+                          async function (err) {
                             if (err) {
                               console.error(err);
                               return message.reply(
@@ -248,7 +275,7 @@ module.exports = {
                       var newCurrency =
                         Number(newResults[0].currency) - deposits;
                       var newBank = Number(newResults[0].bank) + deposits;
-                      altGetData(
+                      con.query(
                         "UPDATE currency SET `currency` = '" +
                         newCurrency +
                         "', `bank` = '" +
@@ -256,7 +283,8 @@ module.exports = {
                         "' WHERE user_id = " +
                         message.author.id +
                         " AND guild = " +
-                        message.guild.id).then(async(err) => {
+                        message.guild.id,
+                        async function (err) {
                           if (err) {
                             console.error(err);
                             return message.reply(
@@ -306,17 +334,12 @@ module.exports = {
                     amount.first().delete().catch(() => {});
 
                     if (isNaN(parseInt(amount.first().content))) {
-                      altGetData(
+                      con.query(
                         "SELECT * FROM currency WHERE user_id = " +
                         message.author.id +
                         " AND guild = " +
-                        message.guild.id).then(async(err) => {
-                          if (err) {
-                            console.error(err);
-                            return message.reply(
-                              "there was an error trying to execute that command!"
-                            );
-                          }
+                        message.guild.id,
+                        async function (err, results, fields) {
                           if (amount.first().content === "quarter") {
                             var deposits =
                               Math.round(
@@ -327,7 +350,7 @@ module.exports = {
                             var newCurrency =
                               Number(newResults[0].currency) + deposits;
                             var newBank = Number(newResults[0].bank) - deposits;
-                            altGetData(
+                            con.query(
                               "UPDATE currency SET `currency` = '" +
                               newCurrency +
                               "', `bank` = '" +
@@ -335,7 +358,8 @@ module.exports = {
                               "' WHERE user_id = " +
                               message.author.id +
                               " AND guild = " +
-                              message.guild.id).then(async(err) => {
+                              message.guild.id,
+                              async function (err, result) {
                                 if (err) {
                                   console.error(err);
                                   return message.reply(
@@ -371,7 +395,7 @@ module.exports = {
                             var newCurrency =
                               Number(newResults[0].currency) + deposits;
                             var newBank = Number(newResults[0].bank) - deposits;
-                            altGetData(
+                            con.query(
                               "UPDATE currency SET `currency` = '" +
                               newCurrency +
                               "', `bank` = '" +
@@ -379,7 +403,8 @@ module.exports = {
                               "' WHERE user_id = " +
                               message.author.id +
                               " AND guild = " +
-                              message.guild.id).then(async(err) => {
+                              message.guild.id,
+                              async function (err, result) {
                                 if (err) {
                                   console.error(err);
                                   return message.reply(
@@ -414,7 +439,7 @@ module.exports = {
                             var newCurrency =
                               Number(newResults[0].currency) + deposits;
                             var newBank = Number(newResults[0].bank) - deposits;
-                            altGetData(
+                            con.query(
                               "UPDATE currency SET `currency` = '" +
                               newCurrency +
                               "', `bank` = '" +
@@ -422,7 +447,8 @@ module.exports = {
                               "' WHERE user_id = " +
                               message.author.id +
                               " AND guild = " +
-                              message.guild.id).then(async(err) => {
+                              message.guild.id,
+                              async function (err, result) {
                                 if (err) {
                                   console.error(err);
                                   return message.reply(
@@ -474,7 +500,7 @@ module.exports = {
                       var newCurrency =
                         Number(newResults[0].currency) + deposits;
                       var newBank = Number(newResults[0].bank) - deposits;
-                      altGetData(
+                      con.query(
                         "UPDATE currency SET `currency` = '" +
                         newCurrency +
                         "', `bank` = '" +
@@ -482,7 +508,8 @@ module.exports = {
                         "' WHERE user_id = " +
                         message.author.id +
                         " AND guild = " +
-                        message.guild.id).then(async(err) => {
+                        message.guild.id,
+                        async function (err, result) {
                           if (err) {
                             console.error(err);
                             return message.reply(
@@ -514,5 +541,7 @@ module.exports = {
           }
         }
       );
+      con.release();
+    });
   }
 };
