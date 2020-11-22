@@ -1,6 +1,6 @@
 {
-	"prefix": "?",
-	"prefix2": ">",
+	"prefix0": "?",
+	"prefix1": ">",
 	"emotes": [
 		"acorn",
 		"face-alien",

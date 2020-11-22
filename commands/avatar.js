@@ -14,18 +14,16 @@ module.exports = {
         .setImage(message.author.displayAvatarURL({ size: 4096 }))
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-      return message.channel.send(Embed);
+      return await message.channel.send(Embed);
     }
-
-    var user = await findUser(message, args[0]);
-    if(!user) return;
-
-      const Embed = new Discord.MessageEmbed()
-        .setColor(console.color())
-        .setTitle(user.username + "'s avatar: ")
-        .setImage(user.displayAvatarURL({ size: 4096 }))
-        .setTimestamp()
-        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-      return message.channel.send(Embed);
+    const user = await console.findUser(message, args[0]);
+    if (!user) return;
+    const Embed = new Discord.MessageEmbed()
+      .setColor(console.color())
+      .setTitle(user.username + "'s avatar: ")
+      .setImage(user.displayAvatarURL({ size: 4096 }))
+      .setTimestamp()
+      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+    return message.channel.send(Embed);
   }
 };

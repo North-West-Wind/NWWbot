@@ -1,4 +1,3 @@
-const superms = require("ms");
 module.exports = {
   twoDigits(d) {
     if (0 <= d && d < 10) return "0" + d.toString();
@@ -140,54 +139,22 @@ module.exports = {
     return array;
   },
   async findUser(message, str) {
-    if (isNaN(parseInt(str))) {
-      if (!str.startsWith("<@")) {
-        message.channel.send("**" + str + "** is neither a mention or ID.");
-        return;
-      }
-    }
-
-    const userID = str
-      .replace(/<@/g, "")
-      .replace(/!/g, "")
-      .replace(/>/g, "");
-
-    // Assuming we mention someone in the message, this will return the user
-    // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
-
+    if (isNaN(parseInt(str))) if (!str.startsWith("<@")) return message.channel.send("**" + str + "** is neither a mention or ID.");
+    const userID = str.replace(/<@/g, "").replace(/!/g, "").replace(/>/g, "");
     try {
-      var user = await message.client.users.fetch(userID);
+      return await message.client.users.fetch(userID);
     } catch (err) {
-      message.channel.send("No user was found!");
-      return;
+      return await message.channel.send("No user was found!");
     }
-
-    return user;
   },
   async findMember(message, str) {
-    if (isNaN(parseInt(str))) {
-      if (!str.startsWith("<@")) {
-        message.channel.send("**" + str + "** is neither a mention or ID.");
-        return;
-      }
-    }
-
-    const userID = str
-      .replace(/<@/g, "")
-      .replace(/!/g, "")
-      .replace(/>/g, "");
-
-    // Assuming we mention someone in the message, this will return the user
-    // Read more about mentions over at https://discord.js.org/#/docs/main/master/class/MessageMentions
-
+    if (isNaN(parseInt(str))) if (!str.startsWith("<@")) return message.channel.send("**" + str + "** is neither a mention or ID.");
+    const userID = str.replace(/<@/g, "").replace(/!/g, "").replace(/>/g, "");
     try {
-      var member = await message.guild.members.fetch(userID);
+      return await message.guild.members.fetch(userID);
     } catch (err) {
-      message.channel.send("No user was found!");
-      return;
+      return await message.channel.send("No user was found!");
     }
-
-    return member;
   },
   async findRole(message, str) {
     var roleID = str.replace(/<@&/g, "").replace(/>/g, "");
@@ -350,6 +317,7 @@ module.exports = {
     return dateTime;
   },
   ms(val, options) {
+    const superms = require("ms");
     if (typeof val === "string" && superms(val) === undefined) {
       if (val.split(":").length > 1) {
         const nums = val.split(":").reverse();
@@ -509,5 +477,10 @@ module.exports = {
         cb(err)
       })
     })
-  }
+  },
+  genPermMsg(permissions, id) {
+    if (id == 0) return `You need the permissions \`${new Discord.Permissions(permissions).toArray().join("`, `")}\` to use this command.`;
+    else return `I need the permissions \`${new Discord.Permissions(permissions).toArray().join("`, `")}\` to run this command.`;
+  },
+  color: () => Math.floor(Math.random() * 16777214) + 1
 };

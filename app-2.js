@@ -1,36 +1,24 @@
 require("dotenv").config();
-
-const { twoDigits } = require("./function.js");
-const { ready, guildMemberAdd, guildMemberRemove, guildCreate, guildDelete, voiceStateUpdate, guildMemberUpdate, messageReactionAdd, messageReactionRemove, messageDelete, message } = require("./handler.js");
+const functions = require("./function.js");
+const { setup: addListener } = require("./handler.js");
 console.realLog = console.log;
 console.realError = console.error;
 delete console["log"];
 delete console["error"];
 console.log = async function (str) {
   console.realLog(str);
-  try {
-    var logChannel = await client.channels.fetch("678847137391312917");
-    if (logChannel)
-      logChannel.send("`" + str + "`");
-  } catch (err) {
-    return console.realError(err)
-  }
+  const logChannel = await client.channels.fetch("678847137391312917").catch(console.realError);
+  if (logChannel) logChannel.send("`" + str + "`");
 }
 console.error = async function (str) {
   console.realError(str);
-  try {
-    var logChannel = await client.channels.fetch("678847137391312917");
-    if (logChannel)
-      logChannel.send(`\`ERROR!\`${(str.message ? `\n\`${str.message}\`` : `\n\`${str}\``)}`);
-  } catch (err) {
-    return console.realError(err)
-  }
+  const logChannel = await client.channels.fetch("678847137391312917").catch(console.realError);
+  if (logChannel) logChannel.send(`\`ERROR!\`${(str.message ? `\n\`${str.message}\`` : `\n\`${str}\``)}`);
 }
-console.color = () => Math.floor(Math.random() * 16777214) + 1;
+for (const property in functions) console[property] = functions[property];
 
 const fs = require("fs");
 const Discord = require("discord.js");
-const { prefix, prefix2 } = require("./config.json");
 const { registerFont } = require("canvas");
 
 const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
@@ -50,26 +38,18 @@ console.uno = new Discord.Collection();
 console.timers = new Discord.Collection();
 console.mathgames = new Discord.Collection();
 console.noLog = [];
+console.rm = [];
+console.invites = {};
+console.exit = [];
+console.migrating = [];
 
-client.prefix = prefix;
-alice.prefix = prefix2;
-client.id = 0;
-alice.id = 1;
-
-for (let i = 0; i < 4; i++) {
-  for (let s = 0; s < 13; s++) {
-    console.card.set(twoDigits(i) + twoDigits(s), { color: i, number: s });
-  }
-}
+for (let i = 0; i < 4; i++) for (let s = 0; s < 13; s++) console.card.set(twoDigits(i) + twoDigits(s), { color: i, number: s });
 console.card.set("0413", { color: 4, number: 13 });
 console.card.set("0414", { color: 4, number: 14 });
 
-const commandFiles = fs
-  .readdirSync("./commands")
-  .filter(file => file.endsWith(".js"));
-const musicCommandFiles = fs
-  .readdirSync("./musics")
-  .filter(file => file.endsWith(".js") && !file.startsWith("main"));
+const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
+const musicCommandFiles = fs.readdirSync("./musics").filter(file => file.endsWith(".js") && !file.startsWith("main"));
+const itemFiles = fs.readdirSync("./items").filter(file => file.endsWith(".js"));
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
@@ -80,42 +60,9 @@ for (const file of musicCommandFiles) {
   console.commands.set(command.name, command);
 }
 
-const itemFiles = fs
-  .readdirSync("./items")
-  .filter(file => file.endsWith(".js"));
-
 for (const file of itemFiles) {
   const item = require(`./items/${file}`);
   console.items.set(item.name.toLowerCase(), item);
 }
-
-console.rm = [];
-console.invites = {};
-console.exit = [];
-console.migrating = [];
-client.once("ready", () => ready(client));
-client.on("guildMemberAdd", guildMemberAdd);
-client.on("guildMemberRemove", guildMemberRemove);
-client.on("guildCreate", guildCreate);
-client.on("guildDelete", guildDelete);
-client.on("voiceStateUpdate", voiceStateUpdate);
-client.on("guildMemberUpdate", guildMemberUpdate);
-client.on("messageReactionAdd", messageReactionAdd);
-client.on("messageReactionRemove", messageReactionRemove);
-client.on("messageDelete", messageDelete);
-client.on("message", message);
-
-alice.once("ready", () => ready(alice));
-alice.on("guildMemberAdd", guildMemberAdd);
-alice.on("guildMemberRemove", guildMemberRemove);
-alice.on("guildCreate", guildCreate);
-alice.on("guildDelete", guildDelete);
-alice.on("voiceStateUpdate", voiceStateUpdate);
-alice.on("guildMemberUpdate", guildMemberUpdate);
-alice.on("messageReactionAdd", messageReactionAdd);
-alice.on("messageReactionRemove", messageReactionRemove);
-alice.on("messageDelete", messageDelete);
-alice.on("message", message);
-
-client.login(process.env.TOKEN);
-alice.login(process.env.TOKEN2);
+addListener(client, 0);
+addListener(alice, 1);
