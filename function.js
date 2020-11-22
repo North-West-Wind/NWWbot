@@ -4,127 +4,41 @@ module.exports = {
     if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
     return d.toString();
   },
-  SumArray(arr) {
-    return arr.reduce((a, b) => a + b);
-  },
-
+  SumArray: (arr) => arr.reduce((a, b) => a + b),
   setTimeout_(fn, delay) {
     var maxDelay = Math.pow(2, 31) - 1;
-
     if (delay > maxDelay) {
       var args = arguments;
       args[1] -= maxDelay;
-
-      return setTimeout(function () {
-        this.setTimeout_.apply(fn, args);
-      }, maxDelay);
+      return setTimeout(() => this.setTimeout_.apply(fn, args), maxDelay);
     }
-
     return setTimeout.apply(fn, arguments);
   },
-  validURL(str) {
-    var pattern = new RegExp(
-      "^(https?:\\/\\/)?" + // protocol
-      "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
-      "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
-      "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
-      "(\\?.*)?" + // query string
-      "(\\#[-a-z\\d_]*)?$",
-      "i"
-    ); // fragment locator
-    if (str.slice(8).search("open.spotify.com") === 0 || pattern.test(str))
-      return true;
-    else return false;
-  },
-  validYTURL(str) {
-    var pattern = new RegExp(
-      /^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/.+/
-    ); // fragment locator
-    return str.match(pattern);
-  },
-  validYTPlaylistURL(str) {
-    var pattern = new RegExp(
-      /^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/playlist\?list=\w+/
-    );
-    return str.match(pattern);
-  },
-  validSPURL(str) {
-    var pattern = new RegExp(/^(spotify:|https:\/\/[a-z]+\.spotify\.com\/)/);
-    return str.match(pattern);
-  },
-  validGDURL(str) {
-    var pattern1 = new RegExp(/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing/);
-    var pattern2 = new RegExp(/https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/);
-    if (str.match(pattern1)) return true;
-    else if (str.match(pattern2)) return true;
-    else return false;
-  },
-  validImgurURL(str) {
-    var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/;
-    return str.match(pattern);
-  },
-  validImgurVideoURL(str) {
-    var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/;
-    return str.match(pattern);
-  },
-  validImgur4wordsURL(str) {
-    var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w\/)?(\w*\w*)+(\.[a-zA-Z0-9]*)?$/;
-    return str.match(pattern);
-  },
-  validImgurAURL(str) {
-    var pattern = /^https?:\/\/(\w+\.)?imgur.com\/(\w\/)?(\w*\w*)$/;
-    return str.match(pattern);
-  },
-  validNotImgurURL(str) {
-    var pattern = /^https?:\/\/imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/;
-    return str.match(pattern);
-  },
-  validRedditURL(str) {
-    var pattern = /^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z]{3})?$/;
-    return str.match(pattern);
-  },
-  validRedditVideoURL(str) {
-    var pattern = /^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/;
-    return str.match(pattern);
-  },
-  validGfyURL(str) {
-    var pattern = /^(http(s)?:\/\/)?((w){3}.)?gfycat(.com)?\/\w*/;
-    return str.match(pattern);
-  },
-  validRedGifURL(str) {
-    var pattern = /^https?:\/\/(\w+\.)?redgifs.com\/(\w*\/)?(\w*\w*)$/;
-    return str.match(pattern);
-  },
-  validSCURL(str) {
-    var pattern = /^http(s)?:\/\/(soundcloud\.com|snd\.sc)\/(.+)?/;
-    return str.match(pattern);
-  },
-  validMSURL(str) {
-    var pattern = /^(https?:\/\/)?musescore\.com\/(user|[\w%\-_.!~*'()]+)\/([0-9]{1,}\/scores\/[0-9]{1,}\/?|[\w%\-_.!~*'()]+\/?)$/;
-    return str.match(pattern);
-  },
-  validPHURL(str) {
-    var pattern = /^(https?:\/\/)(\w+\.)?pornhub\.com\/view_video\.php\?viewkey=\w+\/?$/;
-    return str.match(pattern);
-  },
-  decodeHtmlEntity(str) {
-    return str
-      .replace(/&#(\d+);/g, function (match, dec) {
-        return String.fromCharCode(dec);
-      })
-      .replace(/&quot;/g, `"`)
-      .replace(/&amp;/g, `&`);
-  },
-
+  validURL: (str) => !!str.match(/^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?.*)?(\#[-a-z\d_]*)?$/i),
+  validYTURL: (str) => !!str.match(/^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/.+/),
+  validYTPlaylistURL: (str) => !!str.match(/^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/playlist\?list=\w+/),
+  validSPURL: (str) => !!str.match(/^(spotify:|https:\/\/[a-z]+\.spotify\.com\/)/),
+  validGDURL: (str) => !!str.match(/^(https?)?:\/\/drive\.google\.com\/(file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing|open\?id=(?<id1>.*?)$)/),
+  validImgurURL: (str) => !!str.match(/^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/),
+  validImgurVideoURL: (str) => !!str.match(/^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/),
+  validImgur4wordsURL: (str) => !!str.match(/^https?:\/\/(\w+\.)?imgur.com\/(\w\/)?(\w*\w*)+(\.[a-zA-Z0-9]*)?$/),
+  validImgurAURL: (str) => !!str.match(/^https?:\/\/(\w+\.)?imgur.com\/(\w\/)?(\w*\w*)$/),
+  validNotImgurURL: (str) => !!str.match(/^https?:\/\/imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/),
+  validRedditURL: (str) => !!str.match(/^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z]{3})?$/),
+  validRedditVideoURL: (str) => !!str.match(/^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/),
+  validGfyURL: (str) => !!str.match(/^(http(s)?:\/\/)?((w){3}.)?gfycat(.com)?\/\w*/),
+  validRedGifURL: (str) => !!str.match(/^https?:\/\/(\w+\.)?redgifs.com\/(\w*\/)?(\w*\w*)$/),
+  validSCURL: (str) => !!str.match(/^http(s)?:\/\/(soundcloud\.com|snd\.sc)\/(.+)?/),
+  validMSURL: (str) => !!str.match(/^(https?:\/\/)?musescore\.com\/(user|[\w%\-_.!~*'()]+)\/([0-9]{1,}\/scores\/[0-9]{1,}\/?|[\w%\-_.!~*'()]+\/?)$/),
+  validPHURL: (str) => !!str.match(/^(https?:\/\/)(\w+\.)?pornhub\.com\/view_video\.php\?viewkey=\w+\/?$/),
+  decodeHtmlEntity: (str) => str.replace(/&#(\d+);/g, (_match, dec) => String.fromCharCode(dec)).replace(/&quot;/g, `"`).replace(/&amp;/g, `&`),
   encodeHtmlEntity(str) {
-    var buf = [];
-    for (var i = str.length - 1; i >= 0; i--) {
-      buf.unshift(["&#", str[i].charCodeAt(), ";"].join(""));
-    }
+    const buf = [];
+    for (var i = str.length - 1; i >= 0; i--) buf.unshift(["&#", str[i].charCodeAt(), ";"].join(""));
     return buf.join("");
   },
   shuffleArray(array, start) {
-    let temp = array.splice(0, start);
+    const temp = array.splice(0, start);
     var i;
     var j;
     var x;
@@ -135,96 +49,72 @@ module.exports = {
       array[j] = x;
     }
     array = temp.concat(array);
-    temp = [];
     return array;
   },
   async findUser(message, str) {
-    if (isNaN(parseInt(str))) if (!str.startsWith("<@")) return message.channel.send("**" + str + "** is neither a mention or ID.");
+    if (isNaN(parseInt(str))) if (!str.startsWith("<@")) {
+      await message.channel.send("**" + str + "** is neither a mention or ID.");
+      return;
+    }
     const userID = str.replace(/<@/g, "").replace(/!/g, "").replace(/>/g, "");
     try {
       return await message.client.users.fetch(userID);
     } catch (err) {
-      return await message.channel.send("No user was found!");
+      await message.channel.send("No user was found!");
     }
+    return;
   },
   async findMember(message, str) {
-    if (isNaN(parseInt(str))) if (!str.startsWith("<@")) return message.channel.send("**" + str + "** is neither a mention or ID.");
+    if (isNaN(parseInt(str))) if (!str.startsWith("<@")) {
+      await message.channel.send("**" + str + "** is neither a mention or ID.");
+      return;
+    }
     const userID = str.replace(/<@/g, "").replace(/!/g, "").replace(/>/g, "");
     try {
       return await message.guild.members.fetch(userID);
     } catch (err) {
-      return await message.channel.send("No user was found!");
+      await message.channel.send("No user was found!");
     }
+    return;
   },
   async findRole(message, str) {
     var roleID = str.replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
       var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === str);
-      if (role === null) {
-        message.channel.send("No role was found with the name " + str);
+      if (!role) {
+        await message.channel.send("No role was found with the name " + str);
         return null;
       }
     } else {
       var role = await message.guild.roles.cache.get(roleID);
-      if (role === null) {
-        message.channel.send("No role was found!");
+      if (!role) {
+        await message.channel.send("No role was found!");
         return null;
       }
     }
     return role;
   },
-  getRandomNumber(min, max) {
-    return Math.random() * (max - min) + min;
-  },
+  getRandomNumber: (min, max) => Math.random() * (max - min) + min,
   applyText(canvas, text) {
     const ctx = canvas.getContext("2d");
-
-    //calculate largest font size
-    let fontSize = canvas.width / 12;
-
-    //reduce font size loop
-    do {
-      //reduce font size
-      ctx.font = `${(fontSize -= 5)}px sans-serif`;
-      // Compare pixel width of the text to the canvas minus the approximate avatar size
-    } while (ctx.measureText(text).width > canvas.width - 100);
-
-    // Return the result to use in the actual canvas
+    var fontSize = canvas.width / 12;
+    do ctx.font = `${(fontSize -= 5)}px sans-serif`;
+    while (ctx.measureText(text).width > canvas.width - 100);
     return ctx.font;
   },
   numberWithCommas(x) {
     x = x.toString();
-    var pattern = /(-?\d+)(\d{3})/;
+    const pattern = /(-?\d+)(\d{3})/;
     while (pattern.test(x)) x = x.replace(pattern, "$1,$2");
     return x;
   },
   isGoodMusicVideoContent(videoSearchResultItem) {
-    const contains = (string, content) => {
-      return !!~(string || "").indexOf(content);
-    };
-    return (
-      contains(
-        videoSearchResultItem.author
-          ? videoSearchResultItem.author.name
-          : undefined,
-        "VEVO"
-      ) ||
-      contains(
-        videoSearchResultItem.author
-          ? videoSearchResultItem.author.name.toLowerCase()
-          : undefined,
-        "official"
-      ) ||
-      contains(videoSearchResultItem.title.toLowerCase(), "official") ||
-      !contains(videoSearchResultItem.title.toLowerCase(), "extended")
-    );
+    const contains = (string, content) => !!~(string || "").indexOf(content);
+    return (contains(videoSearchResultItem.author ? videoSearchResultItem.author.name : undefined, "VEVO") || contains(videoSearchResultItem.author ? videoSearchResultItem.author.name.toLowerCase() : undefined, "official") || contains(videoSearchResultItem.title.toLowerCase(), "official") || !contains(videoSearchResultItem.title.toLowerCase(), "extended"));
   },
-  elegantPair(x, y) {
-    return x >= y ? x * x + x + y : y * y + x;
-  },
+  elegantPair: (x, y) => x >= y ? x * x + x + y : y * y + x,
   elegantUnpair(z) {
-    var sqrtz = Math.floor(Math.sqrt(z)),
-      sqz = sqrtz * sqrtz;
+    const sqrtz = Math.floor(Math.sqrt(z)), sqz = sqrtz * sqrtz;
     return z - sqz >= sqrtz ? [sqrtz, z - sqz - sqrtz] : [z - sqz, sqrtz];
   },
   jsDate2Mysql(newDate) {
@@ -254,40 +144,26 @@ module.exports = {
     return newDateSql;
   },
   getWithWeight(input) {
-    var array = [];
-    for (var item in input) {
-      if (input.hasOwnProperty(item)) {
-        for (var i = 0; i < input[item]; i++) {
-          array.push(item);
-        }
-      }
-    }
+    const array = [];
+    for (const item in input) if (input.hasOwnProperty(item)) for (var i = 0; i < input[item]; i++) array.push(item);
     return array[Math.floor(Math.random() * array.length)];
   },
   hexToRgb(hex) {
-    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
-    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
-      return r + r + g + g + b + b;
-    });
+    hex = hex.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i, (_m, r, g, b) => (r + r + g + g + b + b));
 
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
       r: parseInt(result[1], 16),
       g: parseInt(result[2], 16),
       b: parseInt(result[3], 16)
     } : null;
   },
-  decimalToRgb(decimal) {
-    return {
-      r: (decimal >> 16) & 0xff,
-      g: (decimal >> 8) & 0xff,
-      b: decimal & 0xff,
-    };
-  },
-  readableDate(date) {
-    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear}`;
-  },
+  decimalToRgb: (decimal) => ({
+    r: (decimal >> 16) & 0xff,
+    g: (decimal >> 8) & 0xff,
+    b: decimal & 0xff,
+  }),
+  readableDate: (date) => `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear}`,
   readableDateTime(date) {
     function twoDigits(d) {
       if (0 <= d && d < 10) return "0" + d.toString();
@@ -348,32 +224,20 @@ module.exports = {
     } else return superms(val, options);
   },
   findValueByPrefix(object, prefix) {
-    for (var property in object) {
-      if (object[property] &&
-        property.toString().startsWith(prefix)) {
-        return object[property];
-      }
-    }
+    for (const property in object) if (object[property] && property.toString().startsWith(prefix)) return object[property];
     return undefined;
   },
   isEquivalent(a, b) {
     var aProps = Object.getOwnPropertyNames(a);
     var bProps = Object.getOwnPropertyNames(b);
-    if (aProps.length != bProps.length) {
-      return false;
-    }
-
+    if (aProps.length != bProps.length) return false;
     for (var i = 0; i < aProps.length; i++) {
       var propName = aProps[i];
-      if (a[propName] !== b[propName]) {
-        return false;
-      }
+      if (a[propName] !== b[propName]) return false;
     }
     return true;
   },
-  ID() {
-    return '_' + Math.random().toString(36).substr(2, 9);
-  },
+  ID: () => '_' + Math.random().toString(36).substr(2, 9),
   async createEmbedScrolling(message, allEmbeds, id, additionalData = undefined) {
     const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
     var s = 0;
@@ -433,16 +297,12 @@ module.exports = {
         break;
       case "◀":
         s -= 1;
-        if (s < 0) {
-          s = allEmbeds.length - 1;
-        }
+        if (s < 0) s = allEmbeds.length - 1;
         await msg.edit(allEmbeds[s]);
         break;
       case "▶":
         s += 1;
-        if (s > allEmbeds.length - 1) {
-          s = 0;
-        }
+        if (s > allEmbeds.length - 1) s = 0;
         await msg.edit(allEmbeds[s]);
         break;
       case "⏭":
@@ -461,13 +321,9 @@ module.exports = {
       enc = null
     }
     cb = cb || function () { }
-
     var str = ''
-
-    return new Promise(function (resolve, reject) {
-      stream.on('data', function (data) {
-        str += (typeof enc === 'string') ? data.toString(enc) : data.toString()
-      })
+    return new Promise((resolve, reject) => {
+      stream.on('data', (data) => str += (typeof enc === 'string') ? data.toString(enc) : data.toString());
       stream.on('end', function () {
         resolve(str)
         cb(null, str)

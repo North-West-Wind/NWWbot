@@ -8,23 +8,13 @@ delete console["log"];
 delete console["error"];
 console.log = async function (str) {
   console.realLog(str);
-  try {
-    var logChannel = await client.channels.fetch("678847137391312917");
-    if (logChannel)
-      logChannel.send("`" + str + "`");
-  } catch (err) {
-    return console.realError(err)
-  }
+  const logChannel = await client.channels.fetch("678847137391312917").catch(console.realError);
+  if (logChannel) logChannel.send("`" + str + "`");
 }
-console.error = async function (str) {
-  console.realError(str);
-  try {
-    var logChannel = await client.channels.fetch("678847137391312917");
-    if (logChannel)
-      logChannel.send(`\`ERROR!\`${(str.message ? `\n\`${str.message}\`` : `\n\`${str}\``)}`);
-  } catch (err) {
-    return console.realError(err)
-  }
+console.error = async function (err) {
+  console.realError(err);
+  const logChannel = await client.channels.fetch("678847137391312917").catch(console.realError);
+  if (logChannel) logChannel.send(`\`ERROR!\n\`${(err.message ? `\`${err.message}\`` : `\`${err}\``)}`);
 }
 for (const property in functions) console[property] = functions[property];
 
@@ -34,10 +24,7 @@ const { prefix0, prefix1 } = require("./config.json");
 const { registerFont } = require("canvas");
 
 const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
-for (const file of fontFiles) {
-  const style = file.split(/[\-\.]/)[1];
-  registerFont(`./fonts/${file}`, { family: "NotoSans", style: style.toLowerCase() })
-}
+for (const file of fontFiles) registerFont(`./fonts/${file}`, { family: "NotoSans", style: file.split(/[\-\.]/)[1].toLowerCase() });
 registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
 
 const alice = new Discord.Client({ restRequestTimeout: 60000, messageCacheMaxSize: 50, messageCacheLifetime: 3600, messageSweepInterval: 300 });
@@ -56,20 +43,12 @@ alice.prefix = prefix1;
 client.id = 0;
 alice.id = 1;
 
-for (let i = 0; i < 4; i++) {
-  for (let s = 0; s < 13; s++) {
-    console.card.set(console.twoDigits(i) + console.twoDigits(s), { color: i, number: s });
-  }
-}
+for (let i = 0; i < 4; i++) for (let s = 0; s < 13; s++) console.card.set(console.twoDigits(i) + console.twoDigits(s), { color: i, number: s });
 console.card.set("0413", { color: 4, number: 13 });
 console.card.set("0414", { color: 4, number: 14 });
 
-const commandFiles = fs
-  .readdirSync("./commands")
-  .filter(file => file.endsWith(".js"));
-const musicCommandFiles = fs
-  .readdirSync("./musics")
-  .filter(file => file.endsWith(".js") && !file.startsWith("main"));
+const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
+const musicCommandFiles = fs.readdirSync("./musics").filter(file => file.endsWith(".js") && !file.startsWith("main"));
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
@@ -80,9 +59,7 @@ for (const file of musicCommandFiles) {
   console.commands.set(command.name, command);
 }
 
-const itemFiles = fs
-  .readdirSync("./items")
-  .filter(file => file.endsWith(".js"));
+const itemFiles = fs.readdirSync("./items").filter(file => file.endsWith(".js"));
 
 for (const file of itemFiles) {
   const item = require(`./items/${file}`);
