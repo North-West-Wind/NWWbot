@@ -81,7 +81,7 @@ module.exports = {
                     else for (let i = 0; i < pdfapi.pdf.length; i++) {
                         const page = pdfapi.pdf[i];
                         try {
-                            const ext = page.split("?")[0].split(".").slice(-1);
+                            const ext = page.split("?")[0].split(".").slice(-1)[0];
                             if (ext === "svg") SVGtoPDF(doc, await streamToString(await requestStream(page)), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
                             else await PNGtoPDF(doc, page);
                             if (i + 1 < data.pageCount) doc.addPage();
@@ -127,7 +127,7 @@ module.exports = {
                     else for (let i = 0; i < pdfapi.pdf.length; i++) {
                         const page = pdfapi.pdf[i];
                         try {
-                            const ext = page.split("?")[0].split(".").slice(-1);
+                            const ext = page.split("?")[0].split(".").slice(-1)[0];
                             if (ext === "svg") SVGtoPDF(doc, await streamToString(await requestStream(page)), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
                             else await PNGtoPDF(doc, page);
                             if (i + 1 < data.pageCount) doc.addPage();

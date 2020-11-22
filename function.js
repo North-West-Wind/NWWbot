@@ -446,68 +446,68 @@ module.exports = {
           break;
       }
     });
-    collector.on("end", async() => {
+    collector.on("end", async () => {
       msg.reactions.removeAll().catch(console.error);
-      if(id == 1) {
+      if (id == 1) {
         await msg.edit({ content: "Loading simplier version...", embed: null });
         await msg.edit("https://sky.shiiyu.moe/stats/" + res[0].name);
-      } else if(id == 2) setTimeout(() => msg.edit({ embed: null, content: `**[Lyrics of ${title}**]` }), 10000);
-      else if(id == 3) setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${additionalData.songArray.length} tracks in total]**` }), 60000);
+      } else if (id == 2) setTimeout(() => msg.edit({ embed: null, content: `**[Lyrics of ${title}**]` }), 10000);
+      else if (id == 3) setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${additionalData.songArray.length} tracks in total]**` }), 60000);
     });
     return { msg: msg, collector: collector };
   },
   async commonCollectorListener(reaction, user, s, allEmbeds, msg, collector) {
-      reaction.users.remove(user.id);
-      switch (reaction.emoji.name) {
-        case "⏮":
-          s = 0;
-          await msg.edit(allEmbeds[s]);
-          break;
-        case "◀":
-          s -= 1;
-          if (s < 0) {
-            s = allEmbeds.length - 1;
-          }
-          await msg.edit(allEmbeds[s]);
-          break;
-        case "▶":
-          s += 1;
-          if (s > allEmbeds.length - 1) {
-            s = 0;
-          }
-          await msg.edit(allEmbeds[s]);
-          break;
-        case "⏭":
+    reaction.users.remove(user.id);
+    switch (reaction.emoji.name) {
+      case "⏮":
+        s = 0;
+        await msg.edit(allEmbeds[s]);
+        break;
+      case "◀":
+        s -= 1;
+        if (s < 0) {
           s = allEmbeds.length - 1;
-          await msg.edit(allEmbeds[s]);
-          break;
-        case "⏹":
-          collector.emit("end");
-          break;
-      }
+        }
+        await msg.edit(allEmbeds[s]);
+        break;
+      case "▶":
+        s += 1;
+        if (s > allEmbeds.length - 1) {
+          s = 0;
+        }
+        await msg.edit(allEmbeds[s]);
+        break;
+      case "⏭":
+        s = allEmbeds.length - 1;
+        await msg.edit(allEmbeds[s]);
+        break;
+      case "⏹":
+        collector.emit("end");
+        break;
+    }
     return { s, msg };
   },
   streamToString(stream, enc, cb) {
     if (typeof enc === 'function') {
-        cb = enc
-        enc = null
+      cb = enc
+      enc = null
     }
-    cb = cb || function () {}
+    cb = cb || function () { }
 
     var str = ''
 
-    return new Promise (function (resolve, reject) {
-        stream.on('data', function (data) {
-            str += (typeof enc === 'string') ? data.toString(enc) : data.toString()
-        })
-        stream.on('end', function () {
-            resolve(str)
-            cb(null, str)
-        })
-        stream.on('error', function (err) {
-            reject(err)
-            cb(err)
-        })
+    return new Promise(function (resolve, reject) {
+      stream.on('data', function (data) {
+        str += (typeof enc === 'string') ? data.toString(enc) : data.toString()
+      })
+      stream.on('end', function () {
+        resolve(str)
+        cb(null, str)
+      })
+      stream.on('error', function (err) {
+        reject(err)
+        cb(err)
+      })
     })
-}
+  }
 };
