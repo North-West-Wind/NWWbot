@@ -1,7 +1,7 @@
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const Discord = require("discord.js");
-const { validMSURL, findValueByPrefix } = require("../function.js");
+const { validMSURL, findValueByPrefix, streamToString } = require("../function.js");
 const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
@@ -82,7 +82,7 @@ module.exports = {
                         const page = pdfapi.pdf[i];
                         try {
                             const ext = page.split("?")[0].split(".").slice(-1);
-                            if (ext === "svg") SVGtoPDF(doc, await fetch(page).then(res => res.text()), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                            if (ext === "svg") SVGtoPDF(doc, await streamToString(await requestStream(page)), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
                             else await PNGtoPDF(doc, page);
                             if (i + 1 < data.pageCount) doc.addPage();
                         } catch (err) {
@@ -128,7 +128,7 @@ module.exports = {
                         const page = pdfapi.pdf[i];
                         try {
                             const ext = page.split("?")[0].split(".").slice(-1);
-                            if (ext === "svg") SVGtoPDF(doc, await fetch(page).then(res => res.text()), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                            if (ext === "svg") SVGtoPDF(doc, await streamToString(await requestStream(page)), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
                             else await PNGtoPDF(doc, page);
                             if (i + 1 < data.pageCount) doc.addPage();
                         } catch (err) {
@@ -208,7 +208,7 @@ module.exports = {
                 .setTitle(data.title)
                 .setURL(data.url)
                 .setThumbnail(data.thumbnail)
-                .setDescription(`Description: **${data.description}**\n\nClick 🎵 to download MP3\nClick 📰 to download PDF\nClick 📥 to download both`)
+                .setDescription(`Description: **${data.description}**\n\nTo download, please copy the URL and use \`${message.prefix}${this.name} <link>\``)
                 .addField("ID", data.id, true)
                 .addField("Author", data.user.name, true)
                 .addField("Duration", data.duration, true)
@@ -223,13 +223,10 @@ module.exports = {
             importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl, title: data.title, id: data.id });
         }
         if (allEmbeds.length < 1) return message.channel.send("No score was found!");
-        const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹", "📥", "🎵", "📰"].includes(reaction.emoji.name) && user.id === message.author.id);
+        const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
         var s = 0;
         await msg.delete();
         msg = await message.channel.send(allEmbeds[0]);
-        await msg.react("🎵");
-        await msg.react("📰");
-        await msg.react("📥");
         await msg.react("⏮");
         await msg.react("◀");
         await msg.react("▶");
@@ -269,47 +266,6 @@ module.exports = {
                 case "⏹":
                     collector.emit("end");
                     break;
-                case "📥":
-                    return message.channel.send("Please copy the URL and use `?muse <link>`");
-                    /*try {
-                        var mesg = await message.author.send("Generating files... (This will take a while. It depends on the length of the score.)");
-                        var hasPDF = true;
-                        const doc = new PDFDocument();
-                        const pdfapi = await fetch(`https://north-utils.glitch.me/musescore-pdf/${encodeURIComponent(importants[s].url)}`, { timeout: 60000 * data.pageCount }).then(res => res.json());
-                        if (pdfapi.error) hasPDF = false;
-                        else for (let i = 0; i < pdfapi.pdf.length; i++) {
-                            const page = pdfapi.pdf[i];
-                            try {
-                                const ext = page.split("?")[0].split(".").slice(-1);
-                                if (ext === "svg") SVGtoPDF(doc, await fetch(page).then(res => res.text()), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                                else await PNGtoPDF(doc, page);
-                                if (i + 1 < importants[s].pages) doc.addPage();
-                            } catch (err) {
-                                hasPDF = false;
-                                break;
-                            }
-                        }
-                        doc.end();
-                        const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(importants[s].url)}`, { timeout: 90000 }).then(res => res.json());
-                        try {
-                            const attachments = [];
-                            if (!mp3.error) try {
-                                const res = await requestStream(mp3.url).catch(console.error);
-                                if (res && res.statusCode == 200) attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
-                            } catch (err) { }
-                            if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${importants[s].title}.pdf`));
-                            if (attachments.length < 1) {
-                                await mesg.edit("Failed to generate files!");
-                            }
-                            await mesg.delete();
-                            await message.author.send(attachments);
-                        } catch (err) {
-                            await message.reply("did you block me? I cannot DM you!");
-                        }
-                    } catch (err) {
-                        await message.channel.send("Failed to generate files!");
-                    }
-                    break;*/
             }
         });
         collector.on("end", function () {
