@@ -984,22 +984,5 @@ module.exports = {
             console.error(error);
             message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
         }
-    },
-    setup(client, id) {
-        const prefixes = require("./config.json");
-        client.prefix = prefixes[`prefix${id}`];
-        client.id = id;
-        client.once("ready", () => this.ready(client));
-        client.on("guildMemberAdd", this.guildMemberAdd);
-        client.on("guildMemberRemove", this.guildMemberRemove);
-        client.on("guildCreate", this.guildCreate);
-        client.on("guildDelete", this.guildDelete);
-        client.on("voiceStateUpdate", this.voiceStateUpdate);
-        client.on("guildMemberUpdate", this.guildMemberUpdate);
-        client.on("messageReactionAdd", this.messageReactionAdd);
-        client.on("messageReactionRemove", this.messageReactionRemove);
-        client.on("messageDelete", this.messageDelete);
-        client.on("message", this.message);
-        client.login(process.env[`TOKEN${id}`]);
     }
 }
