@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const { twoDigits } = require("./function.js");
+const functions = require("./function.js");
 const { ready, guildMemberAdd, guildMemberRemove, guildCreate, guildDelete, voiceStateUpdate, guildMemberUpdate, messageReactionAdd, messageReactionRemove, messageDelete, message } = require("./handler.js");
 console.realLog = console.log;
 console.realError = console.error;
