@@ -16,7 +16,7 @@ const mysql_config = {
     charset: "utf8mb4"
 };
 const pool = mysql.createPool(mysql_config);
-const { setTimeout_, getRandomNumber, twoDigits, jsDate2Mysql } = require("./function.js");
+const { setTimeout_, getRandomNumber, jsDate2Mysql } = require("./function.js");
 const profile = (str) => {
     return new Promise((resolve, reject) => {
         require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); });
@@ -669,7 +669,7 @@ module.exports = {
                                 }
                             } else messageArray.push(word);
                         }
-                        const welcomeMessage = messageArray.join(" ").replace(/{user}/ig, member);
+                        const welcomeMessage = messageArray.join(" ").replace(/\{user\}/ig, member);
                         if (result[0].welcome) try {
                             await channel.send(welcomeMessage);
                         } catch (err) {
@@ -826,7 +826,7 @@ module.exports = {
                             }
                         } else messageArray.push(word);
                     }
-                    const leaveMessage = messageArray.join(" ").replace(/{user}/gi, `**${member.user.tag}**`);
+                    const leaveMessage = messageArray.join(" ").replace(/\{user\}/gi, `**${member.user.tag}**`);
                     try {
                         await channel.send(leaveMessage);
                     } catch (err) {
@@ -891,13 +891,10 @@ module.exports = {
         if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel)) return await mainMusic.stop(guild);
         if (!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
         if (guild.me.voice.channel.members.size <= 1) {
-            var pendingExit = await exit.find(x => x === guild.id);
-            if (pendingExit) return;
+            if (exit.find(x => x === guild.id)) return;
             exit.push(guild.id);
             setTimeout(async function () {
-                var shouldExit = exit.find(x => x === guild.id);
-                if (!shouldExit) return;
-                return await mainMusic.stop(guild);
+                if (exit.find(x => x === guild.id)) mainMusic.stop(guild);
             }, 30000);
         } else {
             var index = exit.indexOf(guild.id);
@@ -908,18 +905,16 @@ module.exports = {
     },
     async guildMemberUpdate(oldMember, newMember) {
         const client = oldMember.client || newMember.client;
-        if (oldMember.premiumSinceTimestamp !== null || newMember.premiumSinceTimestamp === null) return;
+        if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
         pool.getConnection(function (err, con) {
             if (err) return console.error(err);
-            con.query("SELECT boost_msg, boost_channel FROM servers WHERE id = '" + newMember.guild.id + "'", async function (err, result) {
+            con.query(`SELECT boost_msg, boost_channel FROM servers WHERE id = '${newMember.guild.id}'`, async function (err, result) {
                 if (err) return console.error(err);
-                if (result[0] === undefined || result[0].boost_msg === null || result[0].boost_channel === null) return;
+                if (!result[0] || !result[0].boost_msg || !result[0].boost_channel) return;
                 try {
-                    var channel = await client.channels.fetch(result[0].boost_channel);
-                } catch (err) {
-                    return console.error(err);
-                }
-                channel.send(result[0].boost_msg.replace(/{user}/g, `<@${newMember.id}>`));
+                    const channel = await client.channels.fetch(result[0].boost_channel);
+                    channel.send(result[0].boost_msg.replace(/\{user\}/gi, `<@${newMember.id}>`));
+                } catch (err) {}
             });
             con.release();
         });
