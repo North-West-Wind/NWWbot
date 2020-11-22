@@ -1,6 +1,6 @@
 require("dotenv").config();
 const functions = require("./function.js");
-const { setup: addListener } = require("./handler.js");
+const { setup } = require("./handler.js");
 console.realLog = console.log;
 console.realError = console.error;
 delete console["log"];
@@ -43,7 +43,7 @@ console.invites = {};
 console.exit = [];
 console.migrating = [];
 
-for (let i = 0; i < 4; i++) for (let s = 0; s < 13; s++) console.card.set(twoDigits(i) + twoDigits(s), { color: i, number: s });
+for (let i = 0; i < 4; i++) for (let s = 0; s < 13; s++) console.card.set(console.twoDigits(i) + console.twoDigits(s), { color: i, number: s });
 console.card.set("0413", { color: 4, number: 13 });
 console.card.set("0414", { color: 4, number: 14 });
 
@@ -64,5 +64,5 @@ for (const file of itemFiles) {
   const item = require(`./items/${file}`);
   console.items.set(item.name.toLowerCase(), item);
 }
-addListener(client, 0);
-addListener(alice, 1);
+setup(client, 0);
+setup(alice, 1);
