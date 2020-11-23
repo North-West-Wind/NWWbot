@@ -379,7 +379,7 @@ module.exports = {
         }
       }, time);
 
-      con.release();
+      
     });
   },
   async end(message, args) {
@@ -482,7 +482,7 @@ module.exports = {
           console.log("Deleted an ended poll.");
         });
       });
-      con.release();
+      
     });
   },
   async list(message, args) {
@@ -567,7 +567,7 @@ module.exports = {
           message.channel.send(Embed);
         }
       );
-      con.release();
+      
     });
   }
 };

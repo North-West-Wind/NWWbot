@@ -23,7 +23,7 @@ module.exports = {
           if (err) return message.reply("there was an error trying to update the status!");
           message.channel.send("The song queue is now being looped.");
         });
-        con.release();
+        
       });
     } else {
       serverQueue.looping = false;
@@ -33,7 +33,7 @@ module.exports = {
           if (err) return message.reply("there was an error trying to update the status!");
           message.channel.send("The song queue is no longer being looped.");
         });
-        con.release();
+        
       });
     }
     updateQueue(message, serverQueue, queue, 1);

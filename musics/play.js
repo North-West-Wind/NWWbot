@@ -49,7 +49,7 @@ function updateQueue(message, serverQueue, queue, flag) {
       if (err && !message.dummy) message.reply("there was an error trying to update the queue!");
       else if (err) return;
     });
-    con.release();
+    
   });
 }
 

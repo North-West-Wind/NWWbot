@@ -101,7 +101,7 @@ module.exports = {
           }
         }
       );
-      con.release();
+      
     });
   }
 };

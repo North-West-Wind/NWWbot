@@ -100,7 +100,7 @@ module.exports = {
           }
         }
       );
-      con.release();
+      
     });
   },
   new(message) {
@@ -153,7 +153,7 @@ module.exports = {
               }
             );
           });
-        con.release();
+        
       });
     });
   },
@@ -208,7 +208,7 @@ module.exports = {
           return await mesg.edit(login);
         }
       );
-      con.release();
+      
     });
     function end(msg, panelEmbed) {
       panelEmbed
@@ -376,7 +376,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
 
@@ -409,7 +409,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 2) return await welcome(msg, panelEmbed);
@@ -505,7 +505,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 1) {
@@ -538,7 +538,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 2) return await welcome(msg, panelEmbed);
@@ -647,7 +647,7 @@ module.exports = {
               }
             );
           });
-          con.release();
+          
         });
       }
       if (receivedID == 1) {
@@ -680,7 +680,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 2) return await welcome(msg, panelEmbed);
@@ -781,7 +781,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 1) {
@@ -814,7 +814,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 2) return await welcome(msg, panelEmbed);
@@ -924,7 +924,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
 
@@ -959,7 +959,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 2) return await leave(msg, panelEmbed);
@@ -1052,7 +1052,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 1) {
@@ -1085,7 +1085,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 2) return await leave(msg, panelEmbed);
@@ -1158,7 +1158,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 1) {
@@ -1191,7 +1191,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 2) return await start(msg, panelEmbed);
@@ -1299,7 +1299,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
 
@@ -1334,7 +1334,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 2) return await boost(msg, panelEmbed);
@@ -1428,7 +1428,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 1) {
@@ -1462,7 +1462,7 @@ module.exports = {
               }, 3000);
             }
           );
-          con.release();
+          
         });
       }
       if (receivedID == 2) return await boost(msg, panelEmbed);

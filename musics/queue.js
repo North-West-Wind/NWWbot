@@ -67,7 +67,7 @@ module.exports = {
           message.channel.send(`The song queue has been stored with the name **${args.slice(2).join(" ")}**!\nSlots used: **${query.substring(0, 6) == "INSERT" ? results.length + 1 : results.length}/10**`);
         });
       });
-      con.release();
+      
     });
   },
   load(message, serverQueue, args, queue) {
@@ -98,7 +98,7 @@ module.exports = {
         message.channel.send(`The queue **${results[0].name}** has been loaded.`);
       }
       );
-      con.release();
+      
     });
   },
   delete(message, args) {
@@ -113,7 +113,7 @@ module.exports = {
           message.channel.send(`The stored queue **${results[0].name}** has been deleted.`);
         });
       });
-      con.release();
+      
     });
   },
   list(message) {
@@ -183,7 +183,7 @@ module.exports = {
           setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${JSON.parse(unescape(results.queue)).length} tracks in total]**` }), 60000);
         });
       });
-      con.release();
+      
     });
   },
   async sync(message, serverQueue, args, queue) {
@@ -220,7 +220,7 @@ module.exports = {
         updateQueue(message, serverQueue, queue);
         message.channel.send(`The queue of this server has been synchronize to the queue of the server **${guild.name}**.`);
       });
-      con.release();
+      
     });
   }
 };

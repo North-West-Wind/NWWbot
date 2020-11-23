@@ -97,7 +97,7 @@ module.exports = {
 						break;
 				}
 			});
-			con.release();
+			
 		})
 	},
 	async splash(message) {
@@ -306,7 +306,7 @@ module.exports = {
 						}
 						message.channel.send("Timer recorded.");
 					});
-					con.release();
+					
 				});
 				msg = await msg.edit(`Timer created with the title **${title}** and will last for **${d + h + m + s}**`);
 				setTimeout_(async() => {
@@ -322,7 +322,7 @@ module.exports = {
 								console.log("A guild timer expired");
 							});
 						});
-						con.release();
+						
 					});
 				}, time);
 				break;
@@ -340,7 +340,7 @@ module.exports = {
 							message.channel.send(`Deleted ${results.length} timers.`);
 						});
 					});
-					con.release();
+					
 				});
 				break;
 			case "list":
@@ -397,7 +397,7 @@ module.exports = {
 							await createEmbedScrolling(message, allEmbeds);
 						}
 					});
-					con.release();
+					
 				});
 				break;
 			default:

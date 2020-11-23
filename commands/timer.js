@@ -89,7 +89,7 @@ module.exports = {
               console.log("Deleted a timed out timer from the database.");
             });
           });
-          con.release();
+          
         });
         console.timers.delete(msg.id);
         return;
@@ -134,7 +134,7 @@ module.exports = {
         message.channel.send("The timer has been recorded!");
         console.timers.set(msg.id, id);
       });
-      con.release();
+      
     });
   },
   edit(message, args) {
@@ -222,7 +222,7 @@ module.exports = {
                   console.log("Deleted a timed out timer from the database.");
                 });
               });
-              con.release();
+              
             });
             console.timers.delete(msg.id);
             return;
@@ -267,7 +267,7 @@ module.exports = {
           console.timers.set(msg.id, id);
         });
       });
-      con.release();
+      
     });
   },
   delete(message, args) {
@@ -284,7 +284,7 @@ module.exports = {
           message.channel.send(`Timer ${unescape(results[0].title)} deleted.`);
         });
       });
-      con.release();
+      
     });
   }
 }

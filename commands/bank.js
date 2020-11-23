@@ -541,7 +541,7 @@ module.exports = {
           }
         }
       );
-      con.release();
+      
     });
   }
 };

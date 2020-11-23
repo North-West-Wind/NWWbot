@@ -127,7 +127,7 @@ module.exports = {
         );
         if (err) return message.reply("there was an error trying to execute that command!");
 
-        con.release();
+        
       });
     } else {
       confirmationEmbed
