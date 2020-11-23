@@ -6,8 +6,8 @@ module.exports = {
   description: "Display your inventory.",
   aliases: ["e"],
   category: 2,
-  async execute(message, args, pool) {
-    pool.getConnection(function(err, con) {
+  async execute(message, args) {
+    console.getConnection(function(err, con) {
       if (err) {
         console.error(err);
         return message.reply(

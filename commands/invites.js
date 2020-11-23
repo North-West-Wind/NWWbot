@@ -7,7 +7,7 @@ module.exports = {
   usage: "[subcommand]",
   subcommands: ["me", "toggle"],
   aliases: ["inv"],
-  async execute(message, args, pool) {
+  async execute(message, args) {
 		if(message.guild.id !== "622311594654695434") return;
     if (!args[0]) {
       const guild = message.guild;
@@ -75,7 +75,7 @@ module.exports = {
       .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       message.channel.send(em);
     } else if (args[0].toLowerCase() === "toggle") {
-      pool.getConnection((err, con) => {
+      console.getConnection((err, con) => {
         if(err) return message.reply("there was an error trying to remember your decision. Please try again later.");
         con.query(`SELECT * FROM nolog WHERE id = '${message.author.id}'`, (err, result) => {
           if(err) return message.reply("there was an error trying to get your previous decision!");

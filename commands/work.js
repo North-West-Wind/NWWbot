@@ -8,9 +8,9 @@ module.exports = {
   description:
     "Work in the server and gain virtual money. By working more, you will gain experience and level up. That can make you gain more.",
   category: 2,
-  execute(message, args, pool) {
+  execute(message, args) {
     const currentDateSql = jsDate2Mysql(new Date());
-    pool.getConnection(async(err, con) => {
+    console.getConnection(async(err, con) => {
       if (err) {
         console.error(err);
         return await message.reply("there was an error trying to connect to the database!");

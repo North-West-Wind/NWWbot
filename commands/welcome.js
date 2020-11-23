@@ -7,7 +7,7 @@ module.exports = {
   description: "Test the welcome message and image.",
   category: 6,
   usage: "[user | user ID]",
-  async execute(message, args, pool) {
+  async execute(message, args) {
     let member = message.member;
     if (args[0]) {
       member = await findMember(message, args[0]);
@@ -15,14 +15,14 @@ module.exports = {
     }
     const guild = message.guild;
     const id = message.client.id;
-    pool.getConnection(function (err, con) {
+    console.getConnection(function (err, con) {
       if (err) return console.error(err);
       con.query(
         `SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id = '${guild.id}'`,
         async function (err, result) {
           if (!result[0] || !result[0].wel_channel || !result[0].welcome) {
             if (!result[0]) {
-              pool.getConnection(function (err, con) {
+              console.getConnection(function (err, con) {
                 if (err) return console.error(err);
                 con.query(`SELECT * FROM servers WHERE id = '${guild.id}'`, (err, result) => {
                   if (err) return console.error(err);

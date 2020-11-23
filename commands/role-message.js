@@ -8,15 +8,15 @@ module.exports = {
   aliases: ["role-msg", "rm"],
   category: 0,
   args: 1,
-  async execute(message, args, pool) {
+  async execute(message, args) {
     if(args[0] === "create" || args[0] === "cr") {
-      return await this.create(message, pool, console.rm);
+      return await this.create(message, console.rm);
     }
     if(args[0] === "refresh" || args[0] === "re") {
-      return await this.refresh(message, args, pool);
+      return await this.refresh(message, args);
     }
   },
-  async create(message, pool, rm) {
+  async create(message, rm) {
     var msg = await message.channel.send("Please enter the message you want to send.");
     var collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 120000, max: 1, errors: ["time"] }).catch(console.error);
     if(collected.first() === undefined) {
@@ -120,7 +120,7 @@ module.exports = {
       roles: JSON.stringify(roles),
       emojis: JSON.stringify(emojis)
     });
-    pool.getConnection((err, con) => {
+    console.getConnection((err, con) => {
       if(err) return message.reply("there was an error while trying to connect to the database!");
       con.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${message.author.id}', '${moment(now.getTime() + (7 * 24 * 3600 * 1000)).format("YYYY-MM-DD HH:mm:ss")}', '${JSON.stringify(roles)}', '${JSON.stringify(emojis)}')`, (err, result) => {
         if(err) return message.reply("there was an error while inserting the data into the database!");
@@ -149,8 +149,8 @@ module.exports = {
       con.release();
     });
   },
-  async refresh(message, args, pool) {
-    pool.getConnection((err, con) => {
+  async refresh(message, args) {
+    console.getConnection((err, con) => {
       if(err) return message.reply("there was an error while trying to connect to the database!");
       con.query(`SELECT * FROM rolemsg WHERE id = '${args[1]}' AND guild = '${message.guild.id}' AND author = '${message.author.id}'`, (err, results) => {
         if(err) return message.reply("there was an error while finding your message!");

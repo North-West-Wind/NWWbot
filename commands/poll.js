@@ -8,7 +8,7 @@ module.exports = {
   subcommands: ["create", "end", "list"],
   category: 4,
   args: 1,
-  async execute(message, args, pool) {
+  async execute(message, args) {
     if (!args[0]) {
       return message.channel.send(
         `Proper usage: ${message.prefix}${this.name} ${
@@ -18,18 +18,18 @@ module.exports = {
     }
 
     if (args[0] === "create") {
-      return await this.create(message, args, pool);
+      return await this.create(message, args);
     }
     if (args[0] === "end") {
-      return await this.end(message, args, pool);
+      return await this.end(message, args);
     }
     if (args[0] === "list") {
-      return await this.list(message, args, pool);
+      return await this.list(message, args);
     }
   },
-  async create(message, args, pool) {
+  async create(message, args) {
     const filter = m => m.author.id === message.author.id;
-    pool.getConnection(async function(err, con) {
+    console.getConnection(async function(err, con) {
       if (err) {
         console.error(err);
         return message.reply(
@@ -382,12 +382,12 @@ module.exports = {
       con.release();
     });
   },
-  async end(message, args, pool) {
+  async end(message, args) {
     if (!args[1]) {
       return message.channel.send("Please provide the ID of the message!");
     }
     var msgID = args[1];
-    pool.getConnection(function(err, con) {
+    console.getConnection(function(err, con) {
       if (err) {
         console.error(err);
         return message.reply(
@@ -485,8 +485,8 @@ module.exports = {
       con.release();
     });
   },
-  async list(message, args, pool) {
-    pool.getConnection(function(err, con) {
+  async list(message, args) {
+    console.getConnection(function(err, con) {
       if (err) {
         console.error(err);
         return message.reply(

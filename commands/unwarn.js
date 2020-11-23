@@ -7,13 +7,13 @@ module.exports = {
   usage: "<user | user ID>",
   category: 1,
   args: 1,
-  async execute(message, args, pool) {
+  async execute(message, args) {
     if (!message.guild) return message.channel.send("This command only works in a server.");
     if (!message.member.permissions.has(4)) return message.channel.send("You don't have the permission to use this command!");
     if (!message.guild.me.permissions.has(4)) return message.channel.send("I don't have the permission to unwarn user!");
     const user = await findUser(message, args[0]);
     if (!user) return;
-    pool.getConnection(async function(err, con) {
+    console.getConnection(async function(err, con) {
       if (err) {
         console.error(err);
         return message.reply(

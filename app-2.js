@@ -30,6 +30,22 @@ registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
 const alice = new Discord.Client({ restRequestTimeout: 60000, messageCacheMaxSize: 50, messageCacheLifetime: 3600, messageSweepInterval: 300 });
 const client = new Discord.Client({ restRequestTimeout: 60000, messageCacheMaxSize: 50, messageCacheLifetime: 3600, messageSweepInterval: 300 });
 
+const mysql = require("mysql");
+const mysql_config = {
+    connectTimeout: 60 * 60 * 1000,
+    acquireTimeout: 60 * 60 * 1000,
+    timeout: 60 * 60 * 1000,
+    connectionLimit: 1000,
+    host: process.env.DBHOST,
+    user: process.env.DBUSER,
+    password: process.env.DBPW,
+    database: process.env.DBNAME,
+    supportBigNumbers: true,
+    bigNumberStrings: true,
+    charset: "utf8mb4"
+};
+
+console.pool = mysql.createPool(mysql_config);
 console.commands = new Discord.Collection();
 console.items = new Discord.Collection();
 console.card = new Discord.Collection();
@@ -37,6 +53,10 @@ console.uno = new Discord.Collection();
 console.timers = new Discord.Collection();
 console.mathgames = new Discord.Collection();
 console.noLog = [];
+console.rm = [];
+console.invites = {};
+console.exit = [];
+console.migrating = [];
 
 client.prefix = prefix0;
 alice.prefix = prefix1;
@@ -49,7 +69,7 @@ console.card.set("0414", { color: 4, number: 14 });
 
 const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
 const musicCommandFiles = fs.readdirSync("./musics").filter(file => file.endsWith(".js") && !file.startsWith("main"));
-
+const itemFiles = fs.readdirSync("./items").filter(file => file.endsWith(".js"));
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
   console.commands.set(command.name, command);
@@ -58,18 +78,11 @@ for (const file of musicCommandFiles) {
   const command = require(`./musics/${file}`);
   console.commands.set(command.name, command);
 }
-
-const itemFiles = fs.readdirSync("./items").filter(file => file.endsWith(".js"));
-
 for (const file of itemFiles) {
   const item = require(`./items/${file}`);
   console.items.set(item.name.toLowerCase(), item);
 }
 
-console.rm = [];
-console.invites = {};
-console.exit = [];
-console.migrating = [];
 client.once("ready", () => ready(client));
 client.on("guildMemberAdd", guildMemberAdd);
 client.on("guildMemberRemove", guildMemberRemove);

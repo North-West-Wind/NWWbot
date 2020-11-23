@@ -1,27 +1,8 @@
 const cleverbot = require("cleverbot-free");
 const { Image, createCanvas, loadImage } = require("canvas");
 const Discord = require("discord.js");
-const mysql = require("mysql");
-const mysql_config = {
-    connectTimeout: 60 * 60 * 1000,
-    acquireTimeout: 60 * 60 * 1000,
-    timeout: 60 * 60 * 1000,
-    connectionLimit: 1000,
-    host: process.env.DBHOST,
-    user: process.env.DBUSER,
-    password: process.env.DBPW,
-    database: process.env.DBNAME,
-    supportBigNumbers: true,
-    bigNumberStrings: true,
-    charset: "utf8mb4"
-};
-const pool = mysql.createPool(mysql_config);
 const { setTimeout_, getRandomNumber, jsDate2Mysql } = require("./function.js");
-const profile = (str) => {
-    return new Promise((resolve, reject) => {
-        require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); });
-    })
-}
+const profile = (str) => new Promise((resolve, reject) => require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); }));
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
@@ -31,7 +12,7 @@ function messageLevel(message) {
     if(!message || !message.author || !message.author.id || !message.guild) return;
     const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
     const sqlDate = jsDate2Mysql(new Date());
-    pool.getConnection(function (err, con) {
+    console.getConnection(function (err, con) {
         if (err) return console.error(err);
         con.query(`SELECT * FROM leveling WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`, (err, results) => {
             if (err) console.error(err);
@@ -63,7 +44,7 @@ module.exports = {
                     console.error("Failed to fetch timer list message");
                     return;
                 }
-                pool.getConnection((err, con) => {
+                console.getConnection((err, con) => {
                     if (err) return console.error(err);
                     con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
                         if (err) return console.error(err);
@@ -175,7 +156,7 @@ module.exports = {
             client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
         else
             client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
             if (err) return console.error(err);
             const { setQueue } = require("./musics/main.js");
             if (id === 0) {
@@ -611,7 +592,7 @@ module.exports = {
             }
         }).catch(() => { });
         if (member.user.bot) return;
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
             if (err) return console.error(err);
             con.query(
                 `SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id = '${guild.id}'`, async (err, result) => {
@@ -763,7 +744,7 @@ module.exports = {
     async guildMemberRemove(member) {
         const client = member.client;
         const guild = member.guild;
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
             if (err) return console.error(err);
             con.query(`SELECT leave_msg, leave_channel FROM servers WHERE id = '${guild.id}'`, async (err, result) => {
                 if (err) return console.error(err);
@@ -841,7 +822,7 @@ module.exports = {
         console.log("Joined a new guild: " + guild.name);
         console.invites[guild.id] = await guild.fetchInvites();
 
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
             if (err) return console.error(err);
             con.query("SELECT * FROM servers WHERE id = " + guild.id, function (
                 err,
@@ -872,7 +853,7 @@ module.exports = {
     async guildDelete(guild) {
         console.log("Left a guild: " + guild.name);
         delete console.invites[guild.id];
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
             if (err) return console.error(err);
             con.query("DELETE FROM servers WHERE id=" + guild.id, function (
                 err
@@ -906,7 +887,7 @@ module.exports = {
     async guildMemberUpdate(oldMember, newMember) {
         const client = oldMember.client || newMember.client;
         if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
             if (err) return console.error(err);
             con.query(`SELECT boost_msg, boost_channel FROM servers WHERE id = '${newMember.guild.id}'`, async function (err, result) {
                 if (err) return console.error(err);
@@ -943,7 +924,7 @@ module.exports = {
         var roleMessage = console.rm.find(x => x.id === message.id);
         if (!roleMessage) return;
         console.rm.splice(console.rm.indexOf(roleMessage), 1);
-        pool.getConnection((err, con) => {
+        console.getConnection((err, con) => {
             if (err) return console.error(err);
             con.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`, (err) => {
                 if (err) return console.error(err);
@@ -977,8 +958,8 @@ module.exports = {
         }
         if (message.guild !== null && !message.channel.permissionsFor(message.guild.me).has(84992)) return message.author.send("I don't have the required permissions! Please tell your server admin that I need at least the permissions to `" + ["SEND_MESSAGES", "VIEW_CHANNEL", "EMBED_LINKS", "READ_MESSAGE_HISTORY"].join("`, `") + "`!")
         try {
-            if (command.category === 8) await require("./musics/main.js").music(message, commandName, pool);
-            else await command.execute(message, args, pool);
+            if (command.category === 8) await require("./musics/main.js").music(message, commandName);
+            else await command.execute(message, args);
         } catch (error) {
             console.error(`Error running command ${command.name}`);
             console.error(error);

@@ -23,7 +23,7 @@ module.exports = {
 	subcommands: ["splash", "invite", "lottery"],
 	subaliases: ["sp", "in", "lot"],
 	args: 1,
-	async execute(message, args, pool) {
+	async execute(message, args) {
 		if(message.guild.id !== "622311594654695434") return;
 		switch (args[0]) {
 			case "sp":
@@ -31,25 +31,25 @@ module.exports = {
 				return await this.splash(message);
 			case "in":
 			case "invite":
-				return await this.invite(message, args, pool);
+				return await this.invite(message, args);
 			case "lot":
 			case "lottery":
-				return await this.lottery(message, args, pool);
+				return await this.lottery(message, args);
 			case "tim":
 			case "timer":
-				return await this.timer(message, args, pool);
+				return await this.timer(message, args);
 			default:
 				return message.channel.send("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${message.prefix}${this.name} ${this.usage}`);
 		}
 	},
-	async invite(message, args, pool) {
+	async invite(message, args) {
 		if (message.guild.id != "622311594654695434") return message.channel.send("Please use this command in the server War of Underworld. Thank you.");
 		let divine = message.guild.roles.fetch("640148120579211265");
 		if (message.member.roles.highest.position < divine.position) return message.channel.send("You don't have the role to use this command!")
 		if (!args[1]) return message.channel.send("You didn't mention any user!");
 		let user = await findUser(message, args[1]);
 		if (!user) return;
-		pool.getConnection((err, con) => {
+		console.getConnection((err, con) => {
 			if (err) return message.reply("there was an error connecting to the database!");
 			con.query(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`, async (err, result) => {
 				if (err) return message.reply("there was an error fetchinbg the player!");
@@ -220,7 +220,7 @@ module.exports = {
 
 		await msg.edit("The message has been sent!");
 	},
-	async lottery(message, args, pool) {
+	async lottery(message, args) {
 		let items = {
 			"1": 65,
 			"2": 5,
@@ -257,7 +257,7 @@ module.exports = {
 		}
 		message.channel.send(prize);
 	},
-	async timer(message, args, pool) {
+	async timer(message, args) {
 		if (!message.member.hasPermission(8) || !message.guild) return;
 		switch (args[1]) {
 			case "create":
@@ -297,7 +297,7 @@ module.exports = {
 				}
 				let uuid = await nameToUuid(args[3]);
 				if (!uuid || !uuid[0]) return message.reply("there was an error trying to find the player in Minecraft!");
-				pool.getConnection((err, con) => {
+				console.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
 					con.query(`INSERT INTO gtimer(user, dc_rank, mc, endAt) VALUES('${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid[0].id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`, (err) => {
 						if (err) {
@@ -311,7 +311,7 @@ module.exports = {
 				msg = await msg.edit(`Timer created with the title **${title}** and will last for **${d + h + m + s}**`);
 				setTimeout_(async() => {
 					let asuna = await message.client.users.fetch("461516729047318529");
-					pool.getConnection((err, con) => {
+					console.getConnection((err, con) => {
 						if(err) return asuna.send(title + " expired");
 						con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`, (err, results) => {
 							if(err) return asuna.send(title + " expired");
@@ -330,7 +330,7 @@ module.exports = {
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
 				let userd = await findUser(args[2]);
 				if (!userd) return;
-				pool.getConnection((err, con) => {
+				console.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
 					con.query(`SELECT * FROM gtimer WHERE user = '${userd.id}'`, (err, results) => {
 						if (err) return message.reply("there was an error trying to fetch data from the database!");
@@ -344,7 +344,7 @@ module.exports = {
 				});
 				break;
 			case "list":
-				pool.getConnection((err, con) => {
+				console.getConnection((err, con) => {
 					if (err) return message.reply("there was an error trying to connect to the database!");
 					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
 						if (err) return message.reply("there was an error trying to fetch data from the database!");

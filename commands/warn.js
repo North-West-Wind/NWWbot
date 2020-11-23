@@ -7,7 +7,7 @@ module.exports = {
   args: 1,
   usage: "<user | user ID> [reason]",
   category: 1,
-  async execute(message, args, pool) {
+  async execute(message, args) {
     if (!message.guild) return message.channel.send("This command only works in a server.");
     if (!message.member.permissions.has(4)) return message.channel.send("You don't have the permission to use this command!");
     if (!message.guild.me.permissions.has(4)) return message.channel.send("I don't have the permission to warn user!");
@@ -44,7 +44,7 @@ module.exports = {
       );
     message.channel.send(warnSuccessfulEmbed);
     message.delete();
-    pool.getConnection(async function (err, con) {
+    console.getConnection(async function (err, con) {
       if (err) {
         console.error(err);
         return message.reply("there was an error trying to connect to the database!");

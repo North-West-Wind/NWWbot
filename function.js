@@ -1,3 +1,5 @@
+const { polygon } = require("pdfkit");
+
 module.exports = {
   twoDigits(d) {
     if (0 <= d && d < 10) return "0" + d.toString();
@@ -338,5 +340,16 @@ module.exports = {
     if (id == 0) return `You need the permissions \`${new Discord.Permissions(permissions).toArray().join("`, `")}\` to use this command.`;
     else return `I need the permissions \`${new Discord.Permissions(permissions).toArray().join("`, `")}\` to run this command.`;
   },
-  color: () => Math.floor(Math.random() * 16777214) + 1
+  color: () => Math.floor(Math.random() * 16777214) + 1,
+  getConnection(cb) {
+    if (typeof cb !== 'function') return;
+    console.pool.getConnection((err, con) => {
+      cb(err, con);
+      if (console.conTimeout) console.conTimeout.refresh();
+      else console.conTimeout = setTimeout(() => {
+        con.release();
+        console.conTimeout = undefined;
+      }, 30000);
+    })
+  }
 };

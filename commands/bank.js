@@ -5,8 +5,8 @@ module.exports = {
   description:
     "Display your Discord Economy status. You can also deposit or withdraw money with this command.",
   category: 2,
-  async execute(message, args, pool) {
-    pool.getConnection(async function (err, con) {
+  async execute(message) {
+    console.getConnection(async function (err, con) {
       if (err) {
         console.error(err);
         return message.reply(

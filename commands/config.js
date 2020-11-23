@@ -11,7 +11,7 @@ module.exports = {
   usage: "[subcommand]",
   subcommands: ["new", "panel"],
   category: 1,
-  async execute(message, args, pool) {
+  async execute(message, args) {
     if (message.channel instanceof Discord.DMChannel) {
       return message.channel.send("Direct messages is not configurable.");
     }
@@ -24,13 +24,13 @@ module.exports = {
     const guild = message.guild;
 
     if (args[0] === "new") {
-      return await this.new(message, pool);
+      return await this.new(message);
     }
     if (args[0] === "panel") {
-      return await this.panel(message, pool);
+      return await this.panel(message);
     }
 
-    pool.getConnection(function (err, con) {
+    console.getConnection(function (err, con) {
       if (err) {
         console.error(err);
         return message.reply(
@@ -103,12 +103,12 @@ module.exports = {
       con.release();
     });
   },
-  new(message, pool) {
+  new(message) {
     const guild = message.guild;
     require("crypto").randomBytes(24, function (err, buffer) {
       if (err) return message.reply("there was an error trying to generate a token!");
       var generated = buffer.toString("hex");
-      pool.getConnection(function (err, con) {
+      console.getConnection(function (err, con) {
         if (err) {
           console.error(err);
           return message.reply(
@@ -157,7 +157,7 @@ module.exports = {
       });
     });
   },
-  async panel(message, pool) {
+  async panel(message) {
     const msgFilter = x => x.author.id === message.author.id;
     const filter = (reaction, user) =>
       welcomeEmoji.includes(reaction.emoji.name) &&
@@ -178,7 +178,7 @@ module.exports = {
       .catch(err => timedOut(mesg, login));
     var receivedToken = loginToken.first().content;
     loginToken.first().delete();
-    pool.getConnection(function (err, con) {
+    console.getConnection(function (err, con) {
       if (err) return message.reply("there was an error trying to connect to the database!");
       con.query(
         "SELECT * FROM servers WHERE token = '" +
@@ -353,7 +353,7 @@ module.exports = {
 
         msgCollected.first().delete();
 
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET welcome = '" +
@@ -389,7 +389,7 @@ module.exports = {
           );
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET welcome = NULL WHERE id = " + message.guild.id,
@@ -482,7 +482,7 @@ module.exports = {
             start(msg, panelEmbed);
           }, 3000);
         }
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET wel_channel = '" +
@@ -517,7 +517,7 @@ module.exports = {
           );
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET wel_channel = NULL WHERE id = " +
@@ -612,7 +612,7 @@ module.exports = {
           }, 3000);
         }
         msgCollected.first().delete();
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(`SELECT wel_img FROM servers WHERE id = '${message.guild.id}'`, (err, results) => {
             if (err) return message.reply("there was an error trying to fetch data from the database!");
@@ -660,7 +660,7 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
 
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET wel_img = NULL WHERE id = " + message.guild.id,
@@ -758,7 +758,7 @@ module.exports = {
             collectedArgs[i].replace(/<@&/g, "").replace(/>/g, "")
           );
         }
-        pool.getConnection(async function (err, con) {
+        console.getConnection(async function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET autorole = '" +
@@ -794,7 +794,7 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
 
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET autorole = '[]' WHERE id = " + message.guild.id,
@@ -901,7 +901,7 @@ module.exports = {
 
         msgCollected.first().delete();
 
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET leave_msg = '" +
@@ -938,7 +938,7 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
 
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET leave_msg = NULL WHERE id = " +
@@ -1029,7 +1029,7 @@ module.exports = {
             start(msg, panelEmbed);
           }, 3000);
         }
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET leave_channel = '" +
@@ -1064,7 +1064,7 @@ module.exports = {
           );
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET leave_channel = NULL WHERE id = " +
@@ -1136,7 +1136,7 @@ module.exports = {
           .awaitMessages(msgFilter, { idle: 60000, max: 1, error: ["time"] })
           .catch(err => timedOut(msg, panelEmbed));
         msgCollected.first().delete();
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           con.query(
             "UPDATE servers SET giveaway = '" +
             msgCollected.first().content +
@@ -1171,7 +1171,7 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
 
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET giveaway = '🎉' WHERE id = " + message.guild.id,
@@ -1276,7 +1276,7 @@ module.exports = {
 
         msgCollected.first().delete();
 
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET boost_msg = '" +
@@ -1313,7 +1313,7 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
 
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET boost_msg = NULL WHERE id = " +
@@ -1405,7 +1405,7 @@ module.exports = {
           }, 3000);
         }
 
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET boost_channel = '" +
@@ -1441,7 +1441,7 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
 
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) return message.reply("there was an error trying to connect to the database!");
           con.query(
             "UPDATE servers SET boost_channel = NULL WHERE id = " +

@@ -6,7 +6,7 @@ module.exports = {
   description: "Toggle loop of the song queue.",
   category: 8,
   aliases: ["lp"],
-  music(message, serverQueue, queue, pool) {
+  music(message, serverQueue, queue) {
     if(!serverQueue) {
       queue = setQueue(message.guild, [], false, false);
       serverQueue = queue.get(message.guild.id);
@@ -17,7 +17,7 @@ module.exports = {
         serverQueue.repeating = false;
         message.channel.send("Disabled repeat to prevent conflict.");
       }
-      pool.getConnection(function (err, con) {
+      console.getConnection(function (err, con) {
         if (err) return message.reply("there was an error trying to connect to the database!");
         con.query("UPDATE servers SET looping = 1, repeating = NULL WHERE id = '" + message.guild.id + "'", function (err) {
           if (err) return message.reply("there was an error trying to update the status!");
@@ -27,7 +27,7 @@ module.exports = {
       });
     } else {
       serverQueue.looping = false;
-      pool.getConnection(function (err, con) {
+      console.getConnection(function (err, con) {
         if (err) return message.reply("there was an error trying to connect to the database!");
         con.query("UPDATE servers SET looping = NULL WHERE id = '" + message.guild.id + "'", function (err) {
           if (err) return message.reply("there was an error trying to update the status!");
@@ -36,6 +36,6 @@ module.exports = {
         con.release();
       });
     }
-    updateQueue(message, serverQueue, queue, null);
+    updateQueue(message, serverQueue, queue, 1);
   }
 }

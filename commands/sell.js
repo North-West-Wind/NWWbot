@@ -7,7 +7,7 @@ module.exports = {
   usage: "<price> <item>",
   args: 2,
   category: 9,
-  async execute(message, args, pool) {
+  async execute(message, args) {
     if (isNaN(Number(args[0])))
       return message.channel.send(args[0] + " is not a valid price!");
 
@@ -75,7 +75,7 @@ module.exports = {
         twoDigits(minute) +
         ":" +
         twoDigits(second);
-      pool.getConnection(function(err, con) {
+      console.getConnection(function(err, con) {
         con.query(
           "SELECT currency FROM currency WHERE user_id = " +
             message.author.id +

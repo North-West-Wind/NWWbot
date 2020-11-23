@@ -11,7 +11,7 @@ module.exports = {
   aliases: ["g"],
   subcommands: ["create", "end", "list"],
   category: 4,
-  async execute(message, args, pool) {
+  async execute(message, args) {
     const guild = message.guild;
     const prefix = message.prefix;
 
@@ -183,7 +183,7 @@ module.exports = {
           var sOrNot = "winners";
         }
 
-        pool.getConnection(function (err, con) {
+        console.getConnection(function (err, con) {
           if (err) {
             console.error(err);
             return message.reply(
@@ -413,16 +413,16 @@ module.exports = {
         });
         return;
       }
-      return await this.create(message, pool);
+      return await this.create(message);
     }
     if (args[0] === "end") {
-      return await this.end(message, args, pool);
+      return await this.end(message, args);
     }
     if (args[0] === "list") {
-      return await this.list(message, args, pool);
+      return await this.list(message, args);
     }
   },
-  async create(message, pool) {
+  async create(message) {
     const filter = user => user.author.id === message.author.id;
     const guild = message.guild;
     var item;
@@ -652,7 +652,7 @@ module.exports = {
     time = ms(collected2.first().content);
     item = collected4.first().content;
 
-    pool.getConnection(function (err, con) {
+    console.getConnection(function (err, con) {
       if (err) {
         console.error(err);
         return message.reply(
@@ -936,12 +936,12 @@ module.exports = {
       con.release();
     });
   },
-  async end(message, args, pool) {
+  async end(message, args) {
     if (!args[1]) {
       return message.channel.send("You didn't provide any message ID!");
     }
     var msgID = args[1];
-    pool.getConnection(function (err, con) {
+    console.getConnection(function (err, con) {
       if (err) {
         console.error(err);
         return message.reply(
@@ -1101,9 +1101,9 @@ module.exports = {
       con.release();
     });
   },
-  async list(message, args, pool) {
+  async list(message, args) {
     const guild = message.guild;
-    pool.getConnection(function (err, con) {
+    console.getConnection(function (err, con) {
       if (err) {
         console.error(err);
         return message.reply(
