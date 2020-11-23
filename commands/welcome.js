@@ -33,7 +33,7 @@ module.exports = {
                   });
                 });
                 if (err) return console.error(err);
-                
+                con.release();
               });
             }
           } else {
@@ -166,7 +166,7 @@ module.exports = {
               }
             }
           }
-          
+          con.release();
           if (err) return console.error(err);
         }
       );

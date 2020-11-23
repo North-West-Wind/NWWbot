@@ -16,14 +16,18 @@ function messageLevel(message) {
         if (err) return console.error(err);
         con.query(`SELECT * FROM leveling WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`, (err, results) => {
             if (err) console.error(err);
-            if (results.length < 1) con.query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${message.author.id}', '${message.guild.id}', ${exp}, '${sqlDate}')`, () => {});
+            if (results.length < 1) con.query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${message.author.id}', '${message.guild.id}', ${exp}, '${sqlDate}')`, function (err) {
+                    if (err) console.error(err);
+                });
             else {
                 if (new Date() - results[0].last < 60000) return;
                 const newExp = parseInt(results[0].exp) + exp;
-                con.query(`UPDATE leveling SET exp = ${newExp}, last = '${sqlDate}' WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`, () => {});
+                con.query(`UPDATE leveling SET exp = ${newExp}, last = '${sqlDate}' WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`, function (err) {
+                    if (err) console.error(err);
+                });
             }
         })
-        
+        con.release();
     });
 }
 module.exports = {
@@ -143,7 +147,7 @@ module.exports = {
                             });
                         }
                     });
-                    
+                    con.release();
                 });
             }, 30000);
         }
@@ -561,7 +565,7 @@ module.exports = {
                     console.noLog.push(result.id);
                 });
             });
-            
+            con.release();
         });
         if (id === 1) client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
     },
@@ -731,7 +735,7 @@ module.exports = {
                             }
                         }
                     }
-                    
+                    con.release();
                     if (err) return console.error(err);
                 }
             );
@@ -811,7 +815,7 @@ module.exports = {
                     }
                 }
             });
-            
+            con.release();
         });
     },
     async guildCreate(guild) {
@@ -843,7 +847,7 @@ module.exports = {
             });
 
             if (err) return console.error(err);
-            
+            con.release();
         });
     },
     async guildDelete(guild) {
@@ -858,7 +862,7 @@ module.exports = {
                 console.log("Deleted record for " + guild.name);
             });
             if (err) return console.error(err);
-            
+            con.release();
         });
     },
     async voiceStateUpdate(oldState, newState) {
@@ -893,7 +897,7 @@ module.exports = {
                     channel.send(result[0].boost_msg.replace(/\{user\}/gi, `<@${newMember.id}>`));
                 } catch (err) {}
             });
-            
+            con.release();
         });
     },
     async messageReactionAdd(r, user) {
@@ -925,7 +929,7 @@ module.exports = {
             con.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`, (err) => {
                 if (err) return console.error(err);
             });
-            
+            con.release();
         });
     },
     async message(message) {

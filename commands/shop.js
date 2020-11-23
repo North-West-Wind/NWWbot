@@ -358,7 +358,7 @@ module.exports = {
           }
         );
       }
-      
+      con.release();
     });
   }
 };

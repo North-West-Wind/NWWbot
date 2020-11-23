@@ -18,7 +18,7 @@ module.exports = {
                 message.channel.send("Changes have been saved properly!");
                 console.log(`Changed prefix of ${message.guild.name} to ${console.prefixes[message.guild.id]}`);
             });
-            
+            con.release();
         });
     }
 }

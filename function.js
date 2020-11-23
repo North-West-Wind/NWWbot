@@ -343,15 +343,6 @@ module.exports = {
   color: () => Math.floor(Math.random() * 16777214) + 1,
   getConnection(cb) {
     if (typeof cb !== 'function') return;
-    console.pool.getConnection((err, con) => {
-      cb(err, con);
-      if (console.conTimeout) console.conTimeout.refresh();
-      else console.conTimeout = setTimeout(() => {
-        try {
-          con.release();
-        } catch(err) {}
-        console.conTimeout = undefined;
-      }, 30000);
-    })
+    console.pool.getConnection((err, con) => cb(err, con));
   }
 };

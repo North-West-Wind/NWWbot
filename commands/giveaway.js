@@ -409,7 +409,7 @@ module.exports = {
             }
           );
 
-          
+          con.release();
         });
         return;
       }
@@ -933,7 +933,7 @@ module.exports = {
         }
       );
 
-      
+      con.release();
     });
   },
   async end(message, args) {
@@ -1098,7 +1098,7 @@ module.exports = {
           }
         }
       );
-      
+      con.release();
     });
   },
   async list(message, args) {
@@ -1183,7 +1183,7 @@ module.exports = {
         }
         message.channel.send(Embed);
       });
-      
+      con.release();
     });
   }
 };

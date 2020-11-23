@@ -71,7 +71,7 @@ module.exports = {
           await message.channel.send(`<@${message.author.id}> worked and gained **$${gain}**!${(doubling ? " The money you gained is doubled!" : "")}`);
         }
       });
-      
+      con.release();
     });
   }
 };

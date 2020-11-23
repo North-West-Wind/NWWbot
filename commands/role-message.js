@@ -146,7 +146,7 @@ module.exports = {
         }
         expire(7 * 24 * 3600 * 1000);
       });
-      
+      con.release();
     });
   },
   async refresh(message, args) {
@@ -160,7 +160,7 @@ module.exports = {
           message.channel.send("The message has been refreshed. It will last for 7 more days.")
         });
       });
-      
+      con.release();
     });
   }
 }
