@@ -347,7 +347,9 @@ module.exports = {
       cb(err, con);
       if (console.conTimeout) console.conTimeout.refresh();
       else console.conTimeout = setTimeout(() => {
-        con.release();
+        try {
+          con.release();
+        } catch(err) {}
         console.conTimeout = undefined;
       }, 30000);
     })
