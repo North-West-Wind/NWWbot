@@ -1,9 +1,6 @@
 const Discord = require("discord.js")
 const { Krunker: Api, UserNotFoundError } = require("@fasetto/krunker.io");
 const Krunker = new Api();
-const nodefetch = require("node-fetch");
-const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
-const puppeteer = require("puppeteer");
 
 module.exports = {
   name: "krunker",
@@ -21,18 +18,7 @@ module.exports = {
         var msg = await message.channel.send("Loading servers...");
         msg.channel.startTyping();
         try {
-          const serverStr = await new Promise((resolve, reject) => {
-            console.getConnection((err, con) => {
-              if (err) return reject(err);
-              con.query("SELECT string FROM functions WHERE id = 1", (err, results) => {
-                if (err) return reject(err);
-                if (results.length < 1) return reject(new Error("Not found"));
-                resolve(results);
-              });
-              con.release();
-            });
-          });
-          const servers = await (Object.getPrototypeOf(async function(){}).constructor(serverStr))();
+          const servers = await (Object.getPrototypeOf(async function(){}).constructor("p", await console.getStr(1)))(console.p);
           if (servers.error) throw new Error(servers.message);
           var official = [];
           var custom = [];
@@ -47,23 +33,15 @@ module.exports = {
           official.sort(function (a, b) {
             var nameA = a[0];
             var nameB = b[0];
-            if (nameA < nameB) {
-              return -1;
-            }
-            if (nameA > nameB) {
-              return 1;
-            }
+            if (nameA < nameB) return -1;
+            if (nameA > nameB) return 1;
             return 0;
           });
           custom.sort(function (a, b) {
             var nameA = a[0];
             var nameB = b[0];
-            if (nameA < nameB) {
-              return -1;
-            }
-            if (nameA > nameB) {
-              return 1;
-            }
+            if (nameA < nameB) return -1;
+            if (nameA > nameB) return 1;
             return 0;
           });
           const allEmbeds = [];
@@ -73,9 +51,7 @@ module.exports = {
           const customColor = console.color();
           for (let i = 0; i < officialPage; i++) {
             var str = "";
-            for (let j = i * 25; j < i * 25 + 25; j++) {
-              if (official[j]) str += `${j + 1}. **[${official[j][4].i}](https://krunker.io/?game=${official[j][0]})** - **${official[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${official[j][2]}/${official[j][3]}**\n`
-            }
+            for (let j = i * 25; j < i * 25 + 25; j++) if (official[j]) str += `${j + 1}. **[${official[j][4].i}](https://krunker.io/?game=${official[j][0]})** - **${official[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${official[j][2]}/${official[j][3]}**\n`
             str += `\nReact with 🎲 to get a random official game!\nReact with 🔗 to get a random official game in the specified region!\nReact with ⏩ to warp to a page!`
             const em = new Discord.MessageEmbed()
               .setTitle(`Official Games (${i + 1}/${officialPage})`)
@@ -87,9 +63,7 @@ module.exports = {
           }
           for (let i = 0; i < customPage; i++) {
             var str = "";
-            for (let j = i * 25; j < i * 25 + 25; j++) {
-              if (custom[j]) str += `${j + 1}. **[${custom[j][4].i}](https://krunker.io/?game=${custom[j][0]})** - **${custom[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${custom[j][2]}/${custom[j][3]}**\n`
-            }
+            for (let j = i * 25; j < i * 25 + 25; j++) if (custom[j]) str += `${j + 1}. **[${custom[j][4].i}](https://krunker.io/?game=${custom[j][0]})** - **${custom[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${custom[j][2]}/${custom[j][3]}**\n`
             str += `\nReact with 🎲 to get a random custom game!\nReact with 🔗 to get a random custom game in the specified region!\nReact with ⏩ to warp to a page!`
             const em = new Discord.MessageEmbed()
               .setTitle(`Custom Games (${i + 1}/${customPage})`)
@@ -162,16 +136,12 @@ module.exports = {
                 break;
               case "◀":
                 s -= 1;
-                if (s < 0) {
-                  s = allEmbeds.length - 1;
-                }
+                if (s < 0) s = allEmbeds.length - 1;
                 msg.edit(allEmbeds[s]);
                 break;
               case "▶":
                 s += 1;
-                if (s > allEmbeds.length - 1) {
-                  s = 0;
-                }
+                if (s > allEmbeds.length - 1) s = 0;
                 msg.edit(allEmbeds[s]);
                 break;
               case "⏭":
@@ -202,8 +172,8 @@ module.exports = {
         var msg = await message.channel.send("Loading changelogs...");
         msg.channel.startTyping();
         try {
-          const changelogs = await fetch("https://north-utils.glitch.me/krunker-changelog", { timeout: 30000 }).then(res => res.json());
-          if (changelogs.error) throw new Error(changelogs.error);
+          const changelogs = await (Object.getPrototypeOf(async function(){}).constructor("p", await console.getStr(2)))(console.p);
+          if (changelogs.error) throw new Error(changelogs.message);
           var changelog = {};
           changelog[Object.keys(changelogs).find(x => x.includes("UPDATE"))] = changelogs[Object.keys(changelogs).find(x => x.includes("UPDATE"))];
           if (args[1]) {

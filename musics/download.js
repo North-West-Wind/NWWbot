@@ -2,8 +2,8 @@ const scdl = require("soundcloud-downloader");
 const ytdl = require("ytdl-core");
 const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent } = require("../function.js");
 const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search, updateQueue } = require("./play.js");
-const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const Discord = require("discord.js");
+const { getMP3 } = require("../commands/musescore.js");
 const requestStream = (url) => new Promise((resolve, reject) => {
     const rs = require("request-stream");
     rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
@@ -63,7 +63,7 @@ module.exports = {
                     stream = await scdl.download(song.url);
                     break;
                 case 5:
-                    const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 30000 }).then(res => res.json());
+                    const mp3 = await getMP3(song.url);
                     if (mp3.error) throw new Error(mp3.message);
                     stream = await requestStream(mp3.url);
                     break;

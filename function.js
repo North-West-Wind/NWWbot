@@ -344,5 +344,16 @@ module.exports = {
   getConnection(cb) {
     if (typeof cb !== 'function') return;
     console.pool.getConnection((err, con) => cb(err, con));
-  }
+  },
+  getStr: (id) => new Promise((resolve, reject) => {
+    console.getConnection((err, con) => {
+      if (err) return reject(err);
+      con.query("SELECT string FROM functions WHERE id = " + id, (err, results) => {
+        if (err) return reject(err);
+        if (results.length < 1 || !results[0].string) return reject(new Error("Not found"));
+        resolve(results[0].string);
+      });
+      con.release();
+    });
+  })
 };

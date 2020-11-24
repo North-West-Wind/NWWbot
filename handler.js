@@ -95,11 +95,7 @@ module.exports = {
                                     .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
                                 allEmbeds.push(em);
                             }
-                            const filter = (reaction, user) => {
-                                return (
-                                    ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name)
-                                );
-                            };
+                            const filter = (reaction, user) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name);
                             var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
                             var s = 0;
                             await msg.react("⏮");
@@ -152,10 +148,8 @@ module.exports = {
             }, 30000);
         }
 
-        if (id === 0)
-            client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
-        else
-            client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
+        if (id === 0) { client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true }); console.p = require("puppeteer"); }
+        else client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         console.getConnection(function (err, con) {
             if (err) return console.error(err);
             const { setQueue } = require("./musics/main.js");
@@ -164,15 +158,10 @@ module.exports = {
                     if (err) return console.error(err);
                     var count = 0;
                     results.forEach(result => {
-                        if (result.queue !== null || result.looping !== null || result.repeating !== null) {
-                            var parsed = [];
-                            try {
-                                if (result.queue !== null) parsed = JSON.parse(unescape(result.queue));
-                            } catch (err) {
-                                console.log(`Error parsing queue of ${result.id}`);
-                                parsed = [];
-                            }
-                            var queue = parsed;
+                        if (result.queue || result.looping !== null || result.repeating !== null) {
+                            var queue = [];
+                            try { if (result.queue !== null) queue = JSON.parse(unescape(result.queue)); }
+                            catch (err) { console.error(`Error parsing queue of ${result.id}`); }
                             setQueue(result.id, queue, result.looping === 1 ? true : false, result.repeating === 1 ? true : false);
                             count += 1;
                         }

@@ -14,7 +14,7 @@ console.log = async function (str) {
 console.error = async function (err) {
   console.realError(err);
   const logChannel = await client.channels.fetch("678847137391312917").catch(console.realError);
-  if (logChannel) logChannel.send(`\`ERROR!\n\`\`${(err.message ? err.message : err)}\``);
+  if (logChannel) logChannel.send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``);
 }
 for (const property in functions) console[property] = functions[property];
 

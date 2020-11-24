@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, commonCollectorListener } = require("../function.js");
-const { parseBody } = require("../commands/musescore.js");
+const { parseBody, getMP3 } = require("../commands/musescore.js");
 const { migrate } = require("./migrate.js");
 const ytdl = require("ytdl-core");
 var SpotifyWebApi = require("spotify-web-api-node");
@@ -98,8 +98,7 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
         dispatcher = serverQueue.connection.play(await scdl.download(song.url));
         break;
       case 5:
-        if (serverQueue.textChannel) serverQueue.textChannel.send("Musescore's MP3 takes a while to load (14 - 60 seconds).\nI recommend using `?muse <link | keywords>` to get the MP3 file in your DM and chuck the link of the attachment into `?play <link>`");
-        const c = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 90000 }).then(res => res.json());
+        const c = await getMP3(song.url);
         if (c.error) throw new Error(c.message);
         const d = await requestStream(c.url);
         dispatcher = serverQueue.connection.play(new StreamConcat([d, silence], { highWaterMark: 1 << 25 }), { seek: seek });

@@ -1,10 +1,10 @@
 const rp = require("request-promise-native");
+const fetch = require("node-fetch");
 const cheerio = require("cheerio");
 const Discord = require("discord.js");
 const { validMSURL, findValueByPrefix, streamToString } = require("../function.js");
 const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
-const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const PNGtoPDF = (doc, url) => {
     return new Promise(async (resolve, reject) => {
         const rs = require("request-stream");
@@ -74,24 +74,8 @@ module.exports = {
             try {
                 var mesg = await message.author.send("Generating files... (This will take a while. It depends on the length of the score.)");
                 if (collected.first().emoji.name === "📥") {
-                    var hasPDF = true;
-                    const doc = new PDFDocument();
-                    const pdfapi = await fetch(`https://north-utils.glitch.me/musescore-pdf/${encodeURIComponent(args.join(" "))}`, { timeout: 60000 * data.pageCount }).then(res => res.json());
-                    if (pdfapi.error) hasPDF = false;
-                    else for (let i = 0; i < pdfapi.pdf.length; i++) {
-                        const page = pdfapi.pdf[i];
-                        try {
-                            const ext = page.split("?")[0].split(".").slice(-1)[0];
-                            if (ext === "svg") SVGtoPDF(doc, await streamToString(await requestStream(page)), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                            else await PNGtoPDF(doc, page);
-                            if (i + 1 < data.pageCount) doc.addPage();
-                        } catch (err) {
-                            hasPDF = false;
-                            break;
-                        }
-                    }
-                    doc.end();
-                    const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(args.join(" "))}`, { timeout: 90000 }).then(res => res.json());
+                    const { doc, hasPDF } = await this.getPDF(args.join(" "), data);
+                    const mp3 = await this.getMP3(args.join(" "));
                     try {
                         const attachments = [];
                         if (!mp3.error) try {
@@ -106,7 +90,7 @@ module.exports = {
                         await message.reply("did you block me? I cannot DM you!");
                     }
                 } else if (collected.first().emoji.name === "🎵") {
-                    const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(args.join(" "))}`, { timeout: 90000 }).then(res => res.json());
+                    const mp3 = await this.getMP3(args.join(" "));
                     try {
                         const attachments = [];
                         if (!mp3.error) try {
@@ -120,23 +104,7 @@ module.exports = {
                         await message.reply("did you block me? I cannot DM you!");
                     }
                 } else {
-                    var hasPDF = true;
-                    const doc = new PDFDocument();
-                    const pdfapi = await fetch(`https://north-utils.glitch.me/musescore-pdf/${encodeURIComponent(args.join(" "))}`, { timeout: 60000 * data.pageCount }).then(res => res.json());
-                    if (pdfapi.error) hasPDF = false;
-                    else for (let i = 0; i < pdfapi.pdf.length; i++) {
-                        const page = pdfapi.pdf[i];
-                        try {
-                            const ext = page.split("?")[0].split(".").slice(-1)[0];
-                            if (ext === "svg") SVGtoPDF(doc, await streamToString(await requestStream(page)), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                            else await PNGtoPDF(doc, page);
-                            if (i + 1 < data.pageCount) doc.addPage();
-                        } catch (err) {
-                            hasPDF = false;
-                            break;
-                        }
-                    }
-                    doc.end();
+                    const { doc, hasPDF } = await this.getPDF(args.join(" "), data);
                     try {
                         const attachments = [];
                         if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title}.pdf`));
@@ -148,6 +116,7 @@ module.exports = {
                     }
                 }
             } catch (err) {
+                console.error(err);
                 await message.channel.send("Failed to generate files!");
             }
         }
@@ -156,7 +125,7 @@ module.exports = {
         const $ = cheerio.load(body);
         const meta = $('meta[property="og:image"]')[0];
         const image = meta.attribs.content;
-        const important = image.split("/").slice(7, 12).join("/");
+        const firstPage = image.split("@")[0];
         const stores = Array.from($('div[class^="js-"]'));
         const found = stores.find(x => x.attribs && x.attribs.class && x.attribs.class.match(/^js-\w+$/) && findValueByPrefix(x.attribs, "data-"));
         const store = findValueByPrefix(found.attribs, "data-");
@@ -171,9 +140,9 @@ module.exports = {
         const pageCount = data.score.pages_count;
         const created = data.score.date_created;
         const updated = data.score.date_updated;
-        const description = data.score.truncated_description ? data.score.truncated_description : "No Description";
+        const description = data.score.truncated_description;
         const tags = data.score.tags;
-        return { id, title, thumbnail, parts, url, user, duration, pageCount, created, updated, description, tags, important };
+        return { id, title, thumbnail, parts, url, user, duration, pageCount, created, updated, description, tags, firstPage };
     },
     async search(message, args) {
         try {
@@ -247,16 +216,12 @@ module.exports = {
                     break;
                 case "◀":
                     s -= 1;
-                    if (s < 0) {
-                        s = allEmbeds.length - 1;
-                    }
+                    if (s < 0) s = allEmbeds.length - 1;
                     msg.edit(allEmbeds[s]);
                     break;
                 case "▶":
                     s += 1;
-                    if (s > allEmbeds.length - 1) {
-                        s = 0;
-                    }
+                    if (s > allEmbeds.length - 1) s = 0;
                     msg.edit(allEmbeds[s]);
                     break;
                 case "⏭":
@@ -271,5 +236,46 @@ module.exports = {
         collector.on("end", function () {
             msg.reactions.removeAll().catch(() => { });
         });
+    },
+    getMP3: async (url) => await (Object.getPrototypeOf(async function () { }).constructor("p", "url", await console.getStr(3)))(console.p, url),
+    getPDF: async (url, data) => {
+        if (!data) {
+            const res = await rp({ uri: request.params.link, resolveWithFullResponse: true });
+            data = this.parseBody(res.body);
+        }
+        var result = { error: true };
+        var score = data.firstPage.slice(0, -3) + "svg";
+        var fetched = await fetch(score);
+        if (!fetched.ok) {
+            score = score.slice(0, -3) + "png";
+            var fetched = await fetch(score);
+            if (!fetched.ok) {
+                result.message = "Received Non-200 HTTP Status Code ";
+                return result;
+            }
+        }
+        var pdf = [score];
+        if (data.pageCount > 1) {
+            const pdfapi = await (Object.getPrototypeOf(async function () { }).constructor("p", "url", "cheerio", "firstPage", "pageCount", await console.getStr(4)))(console.p, url, cheerio, score, data.pageCount);
+            console.log(pdfapi);
+            if (pdfapi.error) return { doc: undefined, hasPDF: false };
+            pdf = pdfapi.pdf;
+        }
+        const doc = new PDFDocument();
+        var hasPDF = true;
+        for (let i = 0; i < pdf.length; i++) {
+            const page = pdf[i];
+            try {
+                const ext = page.split("?")[0].split(".").slice(-1)[0];
+                if (ext === "svg") SVGtoPDF(doc, await streamToString(await requestStream(page)), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                else await PNGtoPDF(doc, page);
+                if (i + 1 < data.pageCount) doc.addPage();
+            } catch (err) {
+                hasPDF = false;
+                break;
+            }
+        }
+        doc.end();
+        return { doc: doc, hasPDF: hasPDF };
     }
 }
