@@ -3,6 +3,7 @@ const { Krunker: Api, UserNotFoundError } = require("@fasetto/krunker.io");
 const Krunker = new Api();
 const nodefetch = require("node-fetch");
 const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
+const puppeteer = require("puppeteer");
 
 module.exports = {
   name: "krunker",
@@ -20,40 +21,18 @@ module.exports = {
         var msg = await message.channel.send("Loading servers...");
         msg.channel.startTyping();
         try {
-          async function getServer() {
-            const options = {
-              args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process', // this one doesn't works in Windows
-                '--disable-gpu',
-                "--proxy-server='direct://'",
-                '--proxy-bypass-list=*'
-              ],
-              headless: true
-            };
-            const puppeteer = require("puppeteer");
-            const browser = await puppeteer.launch(options);
-            var result = { error: true };
-            const page = await browser.newPage();
-            try {
-              await page.goto("https://matchmaker.krunker.io/game-list?hostname=krunker.io");
-              const element = await page.$("pre");
-              const servers = JSON.parse(await (await element.getProperty('textContent')).jsonValue());
-              servers.error = false;
-              result = servers;
-            } catch (err) {
-              result.message = err.message;
-            } finally {
-              await page.close();
-              return result;
-            }
-          }
-          const servers = await getServer();
+          const serverStr = await new Promise((resolve, reject) => {
+            console.getConnection((err, con) => {
+              if (err) return reject(err);
+              con.query("SELECT string FROM functions WHERE id = 1", (err, results) => {
+                if (err) return reject(err);
+                if (results.length < 1) return reject(new Error("Not found"));
+                resolve(results);
+              });
+              con.release();
+            });
+          });
+          const servers = await (Object.getPrototypeOf(async function(){}).constructor(serverStr))();
           if (servers.error) throw new Error(servers.message);
           var official = [];
           var custom = [];
