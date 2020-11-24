@@ -80,7 +80,9 @@ module.exports = {
                         const attachments = [];
                         if (!mp3.error) try {
                             const res = await requestStream(mp3.url).catch(console.error);
-                            if (res && res.statusCode == 200) attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
+                            if (!res) console.error("Failed to get Readable Stream");
+                            else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
+                            else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
                         } catch (err) { }
                         if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title}.pdf`));
                         if (attachments.length < 1) return await mesg.edit("Failed to generate files!");
@@ -95,7 +97,9 @@ module.exports = {
                         const attachments = [];
                         if (!mp3.error) try {
                             const res = await requestStream(mp3.url).catch(console.error);
-                            if (res && res.statusCode == 200) attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
+                            if (!res) console.error("Failed to get Readable Stream");
+                            else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
+                            else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
                         } catch (err) { }
                         if (attachments.length < 1) return await mesg.edit("Failed to generate files!");
                         await mesg.delete();
