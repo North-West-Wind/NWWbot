@@ -12,7 +12,7 @@ console.log = async function (str) {
   if (logChannel) logChannel.send("`" + str + "`");
 }
 console.error = async function (err) {
-  console.realError(`\`ERROR!\n\`\`${(err.message ? err.message : err)}\``);
+  console.realError(err);
   const logChannel = await client.channels.fetch("678847137391312917").catch(console.realError);
   if (logChannel) logChannel.send(`\`ERROR!\n\`\`${(err.message ? err.message : err)}\``);
 }
