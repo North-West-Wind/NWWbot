@@ -5,24 +5,22 @@ const Discord = require("discord.js");
 const { validMSURL, findValueByPrefix, streamToString } = require("../function.js");
 const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
-const PNGtoPDF = (doc, url) => {
-    return new Promise(async (resolve, reject) => {
-        const rs = require("request-stream");
-        rs.get(url, {}, (err, res) => {
-            if (err) return reject(err);
-            const chunks = [];
-            res.on("data", chunk => chunks.push(chunk));
-            res.on("end", () => {
-                try {
-                    doc.image(Buffer.concat(chunks), 0, 0, { width: doc.page.width, height: doc.page.height });
-                    resolve();
-                } catch (err) {
-                    reject(err);
-                }
-            });
+const PNGtoPDF = (doc, url) => new Promise(async (resolve, reject) => {
+    const rs = require("request-stream");
+    rs.get(url, {}, (err, res) => {
+        if (err) return reject(err);
+        const chunks = [];
+        res.on("data", chunk => chunks.push(chunk));
+        res.on("end", () => {
+            try {
+                doc.image(Buffer.concat(chunks), 0, 0, { width: doc.page.width, height: doc.page.height });
+                resolve();
+            } catch (err) {
+                reject(err);
+            }
         });
-    })
-}
+    });
+});
 const requestStream = (url) => new Promise((resolve, reject) => {
     const rs = require("request-stream");
     rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
@@ -244,7 +242,7 @@ module.exports = {
     getMP3: async (url) => await (Object.getPrototypeOf(async function () { }).constructor("p", "url", await console.getStr(3)))(console.p, url),
     getPDF: async (url, data) => {
         if (!data) {
-            const res = await rp({ uri: request.params.link, resolveWithFullResponse: true });
+            const res = await rp({ uri: url, resolveWithFullResponse: true });
             data = this.parseBody(res.body);
         }
         var result = { error: true };
@@ -261,7 +259,6 @@ module.exports = {
         var pdf = [score];
         if (data.pageCount > 1) {
             const pdfapi = await (Object.getPrototypeOf(async function () { }).constructor("p", "url", "cheerio", "firstPage", "pageCount", await console.getStr(4)))(console.p, url, cheerio, score, data.pageCount);
-            console.log(pdfapi);
             if (pdfapi.error) return { doc: undefined, hasPDF: false };
             pdf = pdfapi.pdf;
         }
