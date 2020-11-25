@@ -7,7 +7,7 @@ module.exports = {
   name: "work",
   description: "Work in the server and gain virtual money. By working more, you will gain experience and level up. That can make you gain more.",
   category: 2,
-  execute(message) {
+  async execute(message) {
     const currentDateSql = jsDate2Mysql(new Date());
     const con = await message.pool.getConnection();
     var [results] = await con.query(`SELECT * FROM currency WHERE user_id = '${message.author.id}'`);
