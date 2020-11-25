@@ -7,7 +7,7 @@ module.exports = {
     category: 1,
     aliases: ["pre"],
     permission: 32,
-    execute(message, args) {
+    async execute(message, args) {
         if (!args[0]) return await message.channel.send(`The prefix of this server is \`${message.prefix}\`. Use \`${message.prefix}prefix [prefix]\` to change the prefix.`);
         if (!message.guild) return await message.channel.send("You are not in a server!");
         if (!message.member.hasPermission(this.permission)) return await message.channel.send(genPermMsg(this.permission, 0));
