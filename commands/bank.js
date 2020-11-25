@@ -135,6 +135,6 @@ module.exports = {
         }
       }
     }
-    message.pool.releaseConnection(con);
+    con.release();
   }
 };

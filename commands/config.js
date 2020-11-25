@@ -46,7 +46,7 @@ module.exports = {
         }
       });
     }
-    message.pool.releaseConnection(con);
+    con.release();
   },
   new(message) {
     const guild = message.guild;
@@ -70,7 +70,7 @@ module.exports = {
         console.error(err);
         message.reply("there was an error trying to update the token!");
       }
-      message.pool.releaseConnection(con);
+      con.release();
     });
   },
   async panel(message) {

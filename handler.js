@@ -22,7 +22,7 @@ const mysql_config = {
 };
 console.pool = mysql.createPool(mysql_config);
 const pool = mysql.createPool(mysql_config).promise();
-pool.on("connection", con => con.on("error", () => pool.releaseConnection(con)));
+pool.on("connection", con => con.on("error", () => con.release()));
 var timeout = undefined;
 console.prefixes = {};
 async function messageLevel(message) {
@@ -38,7 +38,7 @@ async function messageLevel(message) {
             const newExp = parseInt(results[0].exp) + exp;
             await con.query(`UPDATE leveling SET exp = ${newExp}, last = '${sqlDate}' WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`).catch(console.error);
         }
-        pool.releaseConnection(con);
+        con.release();
     } catch (err) {
         console.error(err);
     }
@@ -384,7 +384,7 @@ module.exports = {
             var [results] = await con.query("SELECT * FROM nolog");
             console.noLog = results.map(x => x.id);
             if (id === 1) client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
-            pool.releaseConnection(con);
+            con.release();
         } catch (err) { console.error(err); };
     },
     async guildMemberAdd(member) {
@@ -510,7 +510,7 @@ module.exports = {
                     }
                 }
             }
-            pool.releaseConnection(con);
+            con.release();
         } catch (err) { console.error(err) };
     },
     async guildMemberRemove(member) {
@@ -542,7 +542,7 @@ module.exports = {
                     console.error(err);
                 }
             }
-            pool.releaseConnection(con);
+            con.release();
         } catch (err) { console.error(err) };
     },
     async guildCreate(guild) {
@@ -555,7 +555,7 @@ module.exports = {
             await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
             console.log("Inserted record for " + guild.name);
         }
-        pool.releaseConnection(con);
+        con.release();
     },
     async guildDelete(guild) {
         console.log("Left a guild: " + guild.name);
