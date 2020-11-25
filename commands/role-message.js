@@ -74,7 +74,7 @@ module.exports = {
       await message.pool.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${message.author.id}', '${moment(now.getTime() + (7 * 24 * 3600 * 1000)).format("YYYY-MM-DD HH:mm:ss")}', '${JSON.stringify(roles)}', '${JSON.stringify(emojis)}')`);
       await message.channel.send("Successfully created record for message. The message will expire after 7 days.");
       async function expire(length) {
-        setTimeout_(() => {
+        setTimeout_(async() => {
           const con = await message.pool.getConnection();
           var [results] = await con.query(`SELECT expiration FROM rolemsg WHERE id = '${mesg.id}'`);
           if (results.length == 0) return;

@@ -29,23 +29,6 @@ registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
 
 const alice = new Discord.Client({ restRequestTimeout: 60000, messageCacheMaxSize: 50, messageCacheLifetime: 3600, messageSweepInterval: 300 });
 const client = new Discord.Client({ restRequestTimeout: 60000, messageCacheMaxSize: 50, messageCacheLifetime: 3600, messageSweepInterval: 300 });
-
-const mysql = require("mysql2");
-const mysql_config = {
-  connectTimeout: 60 * 60 * 1000,
-  acquireTimeout: 60 * 60 * 1000,
-  timeout: 60 * 60 * 1000,
-  connectionLimit: 1000,
-  host: process.env.DBHOST,
-  user: process.env.DBUSER,
-  password: process.env.DBPW,
-  database: process.env.DBNAME,
-  supportBigNumbers: true,
-  bigNumberStrings: true,
-  charset: "utf8mb4"
-};
-
-console.pool = mysql.createPool(mysql_config).promise();
 console.commands = new Discord.Collection();
 console.items = new Discord.Collection();
 console.card = new Discord.Collection();
