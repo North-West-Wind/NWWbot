@@ -1,7 +1,7 @@
 const cleverbot = require("cleverbot-free");
 const { Image, createCanvas, loadImage } = require("canvas");
 const Discord = require("discord.js");
-const { setTimeout_, getRandomNumber, jsDate2Mysql, replaceMsgContent } = require("./function.js");
+const { setTimeout_, getRandomNumber, jsDate2Mysql, replaceMsgContent, readableDateTimeText } = require("./function.js");
 const profile = (str) => new Promise((resolve, reject) => require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); }));
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
@@ -201,7 +201,7 @@ module.exports = {
                 var currentDate = new Date();
                 var millisec = result.expiration - currentDate;
                 async function expire(length) {
-                    setTimeout_(() => {
+                    setTimeout_(async() => {
                         const [results] = await con.query(`SELECT id, expiration FROM rolemsg WHERE id = '${result.id}'`);
                         if (results.length == 0) return;
                         var date = new Date();
@@ -229,7 +229,7 @@ module.exports = {
                 var currentDate = new Date();
                 var millisec = result.endAt - currentDate;
                 if (err) return console.error(err);
-                setTimeout_(async function () {
+                setTimeout_(async () => {
                     try {
                         var channel = await client.channels.fetch(result.channel);
                         var msg = await channel.messages.fetch(result.id);
@@ -306,7 +306,7 @@ module.exports = {
                 if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
                 var currentDate = new Date();
                 var time = result.endAt - currentDate;
-                setTimeout_(async function () {
+                setTimeout_(async () => {
                     try {
                         var channel = await client.channels.fetch(result.channel);
                         var msg = await channel.messages.fetch(result.id);
@@ -375,20 +375,7 @@ module.exports = {
                         return console.log("Deleted a timed out timer from the database.");
                     }
                     if (count < 4) return count++;
-                    let sec = Math.floor(time / 1000);
-                    var dd = Math.floor(sec / 86400);
-                    var dh = Math.floor((sec % 86400) / 3600);
-                    var dm = Math.floor(((sec % 86400) % 3600) / 60);
-                    var ds = Math.floor(((sec % 86400) % 3600) % 60);
-                    var d = "";
-                    var h = "";
-                    var m = "";
-                    var s = "";
-                    if (dd !== 0) d = " " + dd + " days";
-                    if (dh !== 0) h = " " + dh + " hours";
-                    if (dm !== 0) m = " " + dm + " minutes";
-                    if (ds !== 0) s = " " + ds + " seconds";
-                    em.setDescription(`(The timer updates every **5 seconds**)\nThis is a timer and it will last for\n**${d + h + m + s}**`);
+                    em.setDescription(`(The timer updates every **5 seconds**)\nThis is a timer and it will last for\n**${readableDateTimeText(time)}**`);
                     msg = await msg.edit(em);
                     count = 0;
                 }, 1000);
