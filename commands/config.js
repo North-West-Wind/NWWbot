@@ -19,278 +19,127 @@ module.exports = {
       message.channel.send(`You don\'t have the permission to use this command.`);
       return;
     }
-    if(!message.channel.permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
+    if (!message.channel.permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
 
     const guild = message.guild;
 
-    if (args[0] === "new") {
-      return await this.new(message);
+    if (args[0] === "new") return await this.new(message);
+    if (args[0] === "panel") return await this.panel(message);
+    const con = await message.pool.getConnection();
+    var [result] = await con.query(`SELECT * FROM servers WHERE id='${guild.id}'`);
+    if (!result[0]) try {
+      await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+      console.log("Inserted record for " + guild.name);
+    } catch (err) {
+      message.reply("there was an error trying to insert record for your server!");
+      console.error(err);
     }
-    if (args[0] === "panel") {
-      return await this.panel(message);
-    }
-
-    console.getConnection(function (err, con) {
-      if (err) {
-        console.error(err);
-        return message.reply(
-          "there was an error trying to connect to the database!"
-        );
-      }
-      con.query(
-        "SELECT * FROM servers WHERE id='" + guild.id + "'",
-        async function (err, result) {
-          if (err) {
-            console.error(err);
-            return message.reply(
-              "there was an error trying to execute that command!"
-            );
-          }
-          if (!result[0]) {
-            con.query(
-              "INSERT INTO servers (id, autorole, giveaway) VALUES (" +
-              guild.id +
-              ", '[]', '🎉')",
-              function (err) {
-                if (err) {
-                  message.reply("there was an error trying to insert record for your server!");
-                  return console.error(err);
-                }
-                console.log("Inserted record for " + guild.name);
-              }
-            );
-          }
-          if (result[0].token !== null) {
-            return message.author.send(
-              "Token was created for **" +
-              guild.name +
-              "** before.\nToken: `" +
-              result[0].token +
-              "`"
-            );
-          } else {
-            require("crypto").randomBytes(24, function (err, buffer) {
-              if (err) return message.reply("there was an error trying to generate a token!");
-              var generated = buffer.toString("hex");
-
-              con.query(
-                "UPDATE servers SET token = '" +
-                generated +
-                "' WHERE id = '" +
-                guild.id +
-                "'",
-                function (err) {
-                  if (err) {
-                    console.error(err);
-                    return message.reply(
-                      "there was an error trying to update the token!"
-                    );
-                  }
-                  console.log("Created token for server " + guild.name);
-                  message.author.send(
-                    "Created token for guild - **" +
-                    guild.name +
-                    "**\nToken: `" +
-                    generated +
-                    "`"
-                  );
-                }
-              );
-            });
-          }
+    if (result[0] && result[0].token !== null) message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${result[0].token}\``);
+    else {
+      require("crypto").randomBytes(24, function (err, buffer) {
+        if (err) return message.reply("there was an error trying to generate a token!");
+        var generated = buffer.toString("hex");
+        try {
+          await con.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
+          console.log("Created token for server " + guild.name);
+          message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
+        } catch (err) {
+          console.error(err);
+          message.reply("there was an error trying to update the token!");
         }
-      );
-      con.release();
-    });
+      });
+    }
+    message.pool.releaseConnection(con);
   },
   new(message) {
     const guild = message.guild;
     require("crypto").randomBytes(24, function (err, buffer) {
       if (err) return message.reply("there was an error trying to generate a token!");
       var generated = buffer.toString("hex");
-      console.getConnection(function (err, con) {
-        if (err) {
-          console.error(err);
-          return message.reply(
-            "there was an error trying to connect to the database!"
-          );
-        }
-        con.query(
-          "SELECT * FROM servers WHERE id='" + guild.id + "'",
-          async function (err, result) {
-            if (err) {
-              console.error(err);
-              return message.reply(
-                "there was an error trying to execute that command!"
-              );
-            }
-            if (!result[0]) {
-              con.query(
-                "INSERT INTO servers (id, autorole, giveaway) VALUES (" +
-                guild.id +
-                ", '[]', '🎉')",
-                function (err) {
-                  if (err) {
-                    message.reply("there was an error trying to insert record for your server!");
-                    return console.error(err);
-                  }
-                  console.log("Inserted record for " + guild.name);
-                }
-              );
-            }
-            con.query(
-              "UPDATE servers SET token = '" +
-              generated +
-              "' WHERE id = '" +
-              guild.id +
-              ", '[]', '🎉')",
-              function (err) {
-                if (err) {
-                  message.reply("there was an error trying to insert record for your server!");
-                  return console.error(err);
-                }
-                console.log("Inserted record for " + guild.name);
-              }
-            );
-          });
-        con.release();
-      });
+      const con = await message.pool.getConnection();
+      var [result] = await con.query(`SELECT * FROM servers WHERE id='${guild.id}'`);
+      if (!result[0]) try {
+        await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+        console.log("Inserted record for " + guild.name);
+      } catch (err) {
+        message.reply("there was an error trying to insert record for your server!");
+        console.error(err);
+      }
+      try {
+        await con.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
+        console.log("Created token for server " + guild.name);
+        message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
+      } catch (err) {
+        console.error(err);
+        message.reply("there was an error trying to update the token!");
+      }
+      message.pool.releaseConnection(con);
     });
   },
   async panel(message) {
     const msgFilter = x => x.author.id === message.author.id;
-    const filter = (reaction, user) =>
-      welcomeEmoji.includes(reaction.emoji.name) &&
-      user.id === message.author.id &&
-      !user.bot;
+    const filter = (reaction, user) => welcomeEmoji.includes(reaction.emoji.name) && user.id === message.author.id && !user.bot;
     const login = new Discord.MessageEmbed()
       .setColor(console.color())
       .setTitle(message.guild.name + "'s Configuration Panel")
       .setDescription("Please login with the token.")
       .setTimestamp()
-      .setFooter(
-        "Please enter within 60 seconds.",
-        message.client.user.displayAvatarURL()
-      );
+      .setFooter("Please enter within 60 seconds.", message.client.user.displayAvatarURL());
     var mesg = await message.channel.send(login);
-    var loginToken = await message.channel
-      .awaitMessages(msgFilter, { idle: 60000, max: 1, error: ["time"] })
-      .catch(err => timedOut(mesg, login));
-    var receivedToken = loginToken.first().content;
+    const loginToken = await message.channel.awaitMessages(msgFilter, { idle: 60000, max: 1, error: ["time"] });
+    if (!loginToken.first() || !loginToken.first().content) return timedOut();
+    const receivedToken = loginToken.first().content;
     loginToken.first().delete();
-    console.getConnection(function (err, con) {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(
-        "SELECT * FROM servers WHERE token = '" +
-        receivedToken +
-        "' AND id = " +
-        message.guild.id,
-        async function (err, results) {
-          if (err) return message.reply("there was an error trying to fetch data from the database!");
-          if (results.length < 1) {
-            login
-              .setDescription("Wrong token.")
-              .setFooter(
-                "Try again when you have the correct one for your server.",
-                message.client.user.displayAvatarURL()
-              );
-            return await mesg.edit(login);
-          }
-          const panelEmbed = new Discord.MessageEmbed()
-            .setColor(console.color())
-            .setTitle(message.guild.name + "'s Configuration Panel")
-            .setDescription("Please choose an option to configure:\n\n1️⃣ Welcome Message\n2️⃣ Leave Message\n3️⃣ Giveaway Emoji\n⏹ Quit")
-            .setTimestamp()
-            .setFooter(
-              "Try again when you have the correct one for your server.",
-              message.client.user.displayAvatarURL()
-            );
-          return await mesg.edit(login);
-        }
-      );
-      con.release();
-    });
+    var [results] = await message.pool.query(`SELECT * FROM servers WHERE token = '${receivedToken}' AND id = '${message.guild.id}'`);
+    if (results.length < 1) {
+      login.setDescription("Invalid token.").setFooter("Try again when you have the correct one for your server.", message.client.user.displayAvatarURL());
+      return await mesg.edit(login);
+    }
+    const panelEmbed = new Discord.MessageEmbed()
+      .setColor(console.color())
+      .setTitle(message.guild.name + "'s Configuration Panel")
+      .setDescription("Please choose an option to configure:\n\n1️⃣ Welcome Message\n2️⃣ Leave Message\n3️⃣ Giveaway Emoji\n⏹ Quit")
+      .setTimestamp()
+      .setFooter("Try again when you have the correct one for your server.", message.client.user.displayAvatarURL());
+    return await mesg.edit(login);
     function end(msg, panelEmbed) {
-      panelEmbed
-        .setDescription("Panel shutted down.")
-        .setFooter(
-          "Have a nice day! :)",
-          message.client.user.displayAvatarURL()
-        );
+      panelEmbed.setDescription("Panel shutted down.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       msg.edit(panelEmbed);
       return msg.reactions.removeAll().catch(console.error);
     }
 
     function timedOut(msg, panelEmbed) {
-      panelEmbed
-        .setDescription("Panel timed out.")
-        .setFooter(
-          "Have a nice day! :)",
-          message.client.user.displayAvatarURL()
-        );
+      panelEmbed.setDescription("Panel timed out.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       msg.edit(panelEmbed);
       return msg.reactions.removeAll().catch(console.error);
     }
 
     async function start(msg, panelEmbed) {
-      panelEmbed
-        .setDescription(
-          "Please choose an option to configure:\n\n1️⃣ Welcome Message\n2️⃣ Leave Message\n3️⃣ Boost Message\n4️⃣ Giveaway Emoji\n⏹ Quit"
-        )
-        .setFooter(
-          "Please choose within 60 seconds.",
-          message.client.user.displayAvatarURL()
-        );
-      msg.edit(panelEmbed);
+      panelEmbed.setDescription("Please choose an option to configure:\n\n1️⃣ Welcome Message\n2️⃣ Leave Message\n3️⃣ Boost Message\n4️⃣ Giveaway Emoji\n⏹ Quit")
+        .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
+      await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
-
-      for (var i = 0; i < panelEmoji.length; i++) {
-        await msg.react(panelEmoji[i]);
-      }
-      var collected = await msg
-        .awaitReactions(filter, {
-          idle: 6e4,
-          max: 1,
-          error: ["time"]
-        })
-        .catch(err => timedOut(msg, panelEmbed));
+      for (var i = 0; i < panelEmoji.length; i++) await msg.react(panelEmoji[i]);
+      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      if (!collected.first()) return timedOut();
 
       const reaction = collected.first();
       let receivedID = panelEmoji.indexOf(reaction.emoji.name);
-      if (receivedID == 0) {
-        return await welcome(msg, panelEmbed);
-      }
+      if (receivedID == 0) return await welcome(msg, panelEmbed);
       if (receivedID == 1) return await leave(msg, panelEmbed);
       if (receivedID == 2) return await boost(msg, panelEmbed);
       if (receivedID == 3) return await giveaway(msg, panelEmbed);
-      if (receivedID == 4) {
-        return await end(msg, panelEmbed);
-      }
+      if (receivedID == 4) return await end(msg, panelEmbed);
     }
 
     async function welcome(msg, panelEmbed) {
-      panelEmbed
-        .setDescription(
-          "**Welcome Message**\nPlease choose an option to configure:\n\n1️⃣ Message\n2️⃣ Channel\n3️⃣ Image\n4️⃣ Autorole\n⬅ Back\n⏹ Quit"
-        )
-        .setFooter(
-          "Please choose within 60 seconds.",
-          message.client.user.displayAvatarURL()
-        );
+      panelEmbed.setDescription("**Welcome Message**\nPlease choose an option to configure:\n\n1️⃣ Message\n2️⃣ Channel\n3️⃣ Image\n4️⃣ Autorole\n⬅ Back\n⏹ Quit")
+        .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
-
-      for (var i = 0; i < welcomeEmoji.length; i++) {
-        await msg.react(welcomeEmoji[i]);
-      }
-
-      var collected = await msg
-        .awaitReactions(filter, {
-          idle: 6e4,
-          max: 1,
-          error: ["time"]
-        })
-        .catch(() => timedOut(msg, panelEmbed));
+      for (var i = 0; i < welcomeEmoji.length; i++) await msg.react(welcomeEmoji[i]);
+      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      if (!collected.first()) return timedOut();
 
       const reaction = collected.first();
       let receivedID = welcomeEmoji.indexOf(reaction.emoji.name);
@@ -298,124 +147,56 @@ module.exports = {
       if (receivedID == 1) return await welcomeChannel(msg, panelEmbed);
       if (receivedID == 2) return await welcomeImage(msg, panelEmbed);
       if (receivedID == 3) return await welcomeAutorole(msg, panelEmbed);
-      if (receivedID == 4) {
-        return await start(msg, panelEmbed);
-      }
-
-      if (receivedID == 5) {
-        return await end(msg, panelEmbed);
-      }
+      if (receivedID == 4) return await start(msg, panelEmbed);
+      if (receivedID == 5) return await end(msg, panelEmbed);
     }
 
     async function welcomeMsg(msg, panelEmbed) {
-      panelEmbed
-        .setDescription(
-          "**Welcome Message/Message**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit"
-        )
-        .setFooter(
-          "Please choose within 60 seconds.",
-          message.client.user.displayAvatarURL()
-        );
+      panelEmbed.setDescription("**Welcome Message/Message**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
+        .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
-
-      for (var i = 0; i < yesNo.length; i++) {
-        await msg.react(yesNo[i]);
-      }
-
-      var collected = await msg
-        .awaitReactions(filter, {
-          idle: 6e4,
-          max: 1,
-          error: ["time"]
-        })
-        .catch(() => timedOut(msg, panelEmbed));
-
+      for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
+      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      if (!collected.first()) return timedOut();
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
       if (receivedID == 0) {
-        panelEmbed
-          .setDescription(
-            "**Welcome Message/Message/Set**\nPlease enter the Welcome Message in this channel."
-          )
-          .setFooter(
-            "Please enter within 120 seconds.",
-            msg.client.user.displayAvatarURL()
-          );
+        panelEmbed.setDescription("**Welcome Message/Message/Set**\nPlease enter the Welcome Message in this channel.")
+          .setFooter("Please enter within 2 minutes.", msg.client.user.displayAvatarURL());
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
-
-        var msgCollected = await msg.channel
-          .awaitMessages(msgFilter, { idle: 120000, max: 1, error: ["time"] })
-          .catch(err => timedOut(msg, panelEmbed));
-        if (msgCollected === undefined) return await timedOut(msg, panelEmbed);
+        const msgCollected = await msg.channel.awaitMessages(msgFilter, { idle: 120000, max: 1, error: ["time"] })
+        if (!msgCollected.first() || !msgCollected.first().content) return timedOut();
         const contents = msgCollected.first().content.replace(/'/g, "\\'");
-
         msgCollected.first().delete();
-
-        console.getConnection(function (err, con) {
-          if (err) return message.reply("there was an error trying to connect to the database!");
-          con.query(
-            "UPDATE servers SET welcome = '" +
-            contents +
-            "' WHERE id = " +
-            message.guild.id,
-            async function (err) {
-              if (err) return message.reply("there was an error trying to update the configuration!");
-              panelEmbed
-                .setDescription(
-                  "**Welcome Message/Message/Set**\nMessage received! Returning to panel main page in 3 seconds..."
-                )
-                .setFooter(
-                  "Please wait patiently.",
-                  msg.client.user.displayAvatarURL()
-                );
-              await msg.edit(panelEmbed);
-              return setTimeout(function () {
-                start(msg, panelEmbed);
-              }, 3000);
-            }
-          );
-          con.release();
-        });
-      }
-
-      if (receivedID == 1) {
-        panelEmbed
-          .setDescription("**Welcome Message/Message/Reset**\nResetting...")
-          .setFooter(
-            "Please wait patiently.",
-            msg.client.user.displayAvatarURL()
-          );
+        try {
+          message.pool.query(`UPDATE servers SET welcome = '${contents}' WHERE id = '${message.guild.id}'`);
+          panelEmbed.setDescription("**Welcome Message/Message/Set**\nMessage received! Returning to panel main page in 3 seconds...");
+        } catch (err) {
+          console.error(err);
+          panelEmbed.setDescription("**Welcome Message/Message/Set**\nFailed to update message! Returning to panel main page in 3 seconds...");
+        }
+        panelEmbed.setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
+        await msg.edit(panelEmbed);
+        setTimeout(() => start(msg, panelEmbed), 3000);
+      } else if (receivedID == 1) {
+        panelEmbed.setDescription("**Welcome Message/Message/Reset**\nResetting...")
+          .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
-        console.getConnection(function (err, con) {
-          if (err) return message.reply("there was an error trying to connect to the database!");
-          con.query(
-            "UPDATE servers SET welcome = NULL WHERE id = " + message.guild.id,
-            async function (err) {
-              if (err) return message.reply("there was an error trying to update the configuration!");
-              panelEmbed
-                .setDescription(
-                  "**Welcome Message/Message/Reset**\nWelcome Message was reset! Returning to panel main page in 3 seconds..."
-                )
-                .setFooter(
-                  "Please wait patiently.",
-                  msg.client.user.displayAvatarURL()
-                );
-              await msg.edit(panelEmbed);
-              return setTimeout(function () {
-                start(msg, panelEmbed);
-              }, 3000);
-            }
-          );
-          con.release();
-        });
-      }
-      if (receivedID == 2) return await welcome(msg, panelEmbed);
-      if (receivedID == 3) {
-        return await end(msg, panelEmbed);
-      }
+        try {
+          await message.pool.query(`UPDATE servers SET welcome = NULL WHERE id = '${message.guild.id}'`);
+          panelEmbed.setDescription("**Welcome Message/Message/Reset**\nWelcome Message was reset! Returning to panel main page in 3 seconds...");
+        } catch (err) {
+          console.error(err);
+          panelEmbed.setDescription("**Welcome Message/Message/Reset**\nFailed to reset message! Returning to panel main page in 3 seconds...");
+        }
+        panelEmbed.setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
+        await msg.edit(panelEmbed);
+        setTimeout(() => start(msg, panelEmbed), 3000);
+      } else if (receivedID == 2) return await welcome(msg, panelEmbed);
+      else if (receivedID == 3) return await end(msg, panelEmbed);
     }
 
     async function welcomeChannel(msg, panelEmbed) {
@@ -445,106 +226,49 @@ module.exports = {
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
       if (receivedID == 0) {
-        panelEmbed
-          .setDescription(
-            "**Welcome Message/Channel/Set**\nPlease mention the Welcome Channel in this channel."
-          )
-          .setFooter(
-            "Please enter within 60 seconds.",
-            msg.client.user.displayAvatarURL()
-          );
+        panelEmbed.setDescription("**Welcome Message/Channel/Set**\nPlease mention the Welcome Channel in this channel.")
+          .setFooter("Please enter within 60 seconds.", msg.client.user.displayAvatarURL());
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
 
-        var msgCollected = await msg.channel
-          .awaitMessages(msgFilter, { idle: 60000, max: 1, error: ["time"] })
-          .catch(err => timedOut(msg, panelEmbed));
-        if (msgCollected.first() === undefined) return await timedOut(msg, panelEmbed);
+        const msgCollected = await msg.channel.awaitMessages(msgFilter, { idle: 60000, max: 1, error: ["time"] });
+        if (!msgCollected.first()) return await timedOut(msg, panelEmbed);
 
-        const channelID = msgCollected
-          .first()
-          .content.replace(/<#/g, "")
-          .replace(/>/g, "");
+        const channelID = msgCollected.first().content.replace(/<#/g, "").replace(/>/g, "");
         msgCollected.first().delete();
         const channel = msg.guild.channels.resolve(channelID);
         if (!channel) {
-          panelEmbed
-            .setDescription(
-              "**Welcome Message/Channel/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds..."
-            )
-            .setFooter(
-              "Please wait patiently.",
-              msg.client.user.displayAvatarURL()
-            );
+          panelEmbed.setDescription("**Welcome Message/Channel/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...")
+            .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
-
-          return setTimeout(function () {
-            start(msg, panelEmbed);
-          }, 3000);
+          return setTimeout(() => start(msg, panelEmbed), 3000);
         }
-        console.getConnection(function (err, con) {
-          if (err) return message.reply("there was an error trying to connect to the database!");
-          con.query(
-            "UPDATE servers SET wel_channel = '" +
-            channelID +
-            "' WHERE id = " +
-            message.guild.id,
-            async function (err) {
-              if (err) return message.reply("there was an error trying to update the configuration!");
-              panelEmbed
-                .setDescription(
-                  "**Welcome Message/Channel/Set**\nChannel received! Returning to panel main page in 3 seconds..."
-                )
-                .setFooter(
-                  "Please wait patiently.",
-                  msg.client.user.displayAvatarURL()
-                );
-              await msg.edit(panelEmbed);
-              return setTimeout(function () {
-                start(msg, panelEmbed);
-              }, 3000);
-            }
-          );
-          con.release();
-        });
-      }
-      if (receivedID == 1) {
-        panelEmbed
-          .setDescription("**Welcome Message/Channel/Reset**\nResetting...")
-          .setFooter(
-            "Please wait patiently.",
-            msg.client.user.displayAvatarURL()
-          );
+        try {
+          await message.pool.query(`UPDATE servers SET wel_channel = '${channelID}' WHERE id = '${message.guild.id}'`);
+          panelEmbed.setDescription("**Welcome Message/Channel/Set**\nChannel received! Returning to panel main page in 3 seconds...");
+        } catch (err) {
+          console.error(err);
+          panelEmbed.setDescription("**Welcome Message/Channel/Set**\nFailed to update channel! Returning to panel main page in 3 seconds...");
+        }
+        panelEmbed.setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
+        await msg.edit(panelEmbed);
+        setTimeout(() => start(msg, panelEmbed), 3000);
+      } else if (receivedID == 1) {
+        panelEmbed.setDescription("**Welcome Message/Channel/Reset**\nResetting...")
+        .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
-        console.getConnection(function (err, con) {
-          if (err) return message.reply("there was an error trying to connect to the database!");
-          con.query(
-            "UPDATE servers SET wel_channel = NULL WHERE id = " +
-            message.guild.id,
-            async function (err) {
-              if (err) throw err;
-              panelEmbed
-                .setDescription(
-                  "**Welcome Message/Channel/Reset**\nWelcome Channel was reset! Returning to panel main page in 3 seconds..."
-                )
-                .setFooter(
-                  "Please wait patiently.",
-                  msg.client.user.displayAvatarURL()
-                );
-              await msg.edit(panelEmbed);
-              return setTimeout(function () {
-                start(msg, panelEmbed);
-              }, 3000);
-            }
-          );
-          con.release();
-        });
-      }
-      if (receivedID == 2) return await welcome(msg, panelEmbed);
-      if (receivedID == 3) {
-        return await end(msg, panelEmbed);
-      }
+        try {
+          await message.pool.query(`UPDATE servers SET wel_channel = NULL WHERE id = '${message.guild.id}'`);
+          panelEmbed.setDescription("**Welcome Message/Channel/Reset**\nWelcome Channel received! Returning to panel main page in 3 seconds...");
+        } catch (err) {
+          console.error(err);
+          panelEmbed.setDescription("**Welcome Message/Channel/Reset**\nFailed to reset channel! Returning to panel main page in 3 seconds...");
+        }
+        await msg.edit(panelEmbed);
+        setTimeout(() => start(msg, panelEmbed), 3000);
+      } else if (receivedID == 2) return await welcome(msg, panelEmbed);
+      else if (receivedID == 3) return await end(msg, panelEmbed);
     }
 
     async function welcomeImage(msg, panelEmbed) {
@@ -596,7 +320,7 @@ module.exports = {
             .first()
             .attachments.array.map(att => att.url).filter(att => iiu(att));
         }
-        if(attachment.length < 1) {
+        if (attachment.length < 1) {
           panelEmbed
             .setDescription(
               "**Welcome Message/Image/Set**\nNo image attachment was found! Returning to panel main page in 3 seconds..."
@@ -622,7 +346,7 @@ module.exports = {
                 let old = JSON.parse(results[0].wel_img);
                 urls = old.concat(attachment);
               } catch (err) {
-                if(iiu(result[0].wel_img)) urls.push(result[0].wel_img);
+                if (iiu(result[0].wel_img)) urls.push(result[0].wel_img);
               }
             }
             con.query(

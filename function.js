@@ -1,3 +1,4 @@
+const utils = require("@justalk/pornhub-api/src/utils");
 const { polygon } = require("pdfkit");
 
 module.exports = {
@@ -194,6 +195,25 @@ module.exports = {
       " UTC";
     return dateTime;
   },
+  readableDateTimeText(time) {
+    var sec = time / 1000;
+    var dd = Math.floor(sec / 86400);
+    var dh = Math.floor((sec % 86400) / 3600);
+    var dm = Math.floor(((sec % 86400) % 3600) / 60);
+    var ds = Math.floor(((sec % 86400) % 3600) % 60);
+    var dmi = Math.floor(time - dd * 86400000 - dh * 3600000 - dm * 60000 - ds * 1000);
+    var d = "";
+    var h = "";
+    var m = "";
+    var s = "";
+    var mi = "";
+    if (dd !== 0) d = " " + dd + " days";
+    if (dh !== 0) h = " " + dh + " hours";
+    if (dm !== 0) m = " " + dm + " minutes";
+    if (ds !== 0) s = " " + ds + " seconds";
+    if (dmi !== 0) mi = " " + dmi + " milliseconds";
+    return d + h + m + s + mi;
+  },
   ms(val, options) {
     const superms = require("ms");
     if (typeof val === "string" && superms(val) === undefined) {
@@ -346,14 +366,51 @@ module.exports = {
     console.pool.getConnection((err, con) => cb(err, con));
   },
   getStr: (id) => new Promise((resolve, reject) => {
-    console.getConnection((err, con) => {
+    console.pool.query("SELECT string FROM functions WHERE id = " + id, (err, results) => {
       if (err) return reject(err);
-      con.query("SELECT string FROM functions WHERE id = " + id, (err, results) => {
-        if (err) return reject(err);
-        if (results.length < 1 || !results[0].string) return reject(new Error("Not found"));
-        resolve(results[0].string);
-      });
-      con.release();
+      if (results.length < 1 || !results[0].string) return reject(new Error("Not found"));
+      resolve(results[0].string);
     });
-  })
+  }),
+  replaceMsgContent(msg, guild, client, member) {
+    const splitMessage = msg.split(" ");
+    const messageArray = [];
+    for (const word of splitMessage) {
+        if (word.match(/^\{\#\w+\}$/)) {
+            const str = word.replace(/[\{\#\}]/g, "");
+            if (isNaN(parseInt(str))) {
+                const mentionedChannel = guild.channels.find(x => x.name === str);
+                if (!mentionedChannel) messageArray.push("#" + str);
+                else messageArray.push(mentionedChannel);
+            } else {
+                const mentionedChannel = guild.channels.resolve(str);
+                if (!mentionedChannel) messageArray.push("<#" + str + ">");
+                else messageArray.push(mentionedChannel);
+            }
+        } else if (word.match(/^\{\@\&\w+\}$/)) {
+            const str = word.replace(/[\{\@\&\}]/g, "");
+            if (isNaN(parseInt(str))) {
+                const mentionedRole = guild.roles.find(x => x.name === str);
+                if (!mentionedRole) messageArray.push("@" + str);
+                else messageArray.push(mentionedRole);
+            } else {
+                const mentionedRole = guild.roles.get(str);
+                if (!mentionedRole) messageArray.push("<@&" + str + ">");
+                else messageArray.push(mentionedRole);
+            }
+        } else if (word.match(/^\{\@\w+\}$/)) {
+            const str = word.replace(/[\{\@\}]/g, "");
+            if (isNaN(parseInt(str))) {
+                const mentionedUser = client.users.find(x => x.name === str);
+                if (!mentionedUser) messageArray.push("@" + str);
+                else messageArray.push(mentionedUser);
+            } else {
+                const mentionedUser = client.users.get(str);
+                if (!mentionedUser) messageArray.push("<@" + str + ">");
+                else messageArray.push(mentionedUser);
+            }
+        } else messageArray.push(word);
+    }
+    return messageArray.join(" ").replace(/\{user\}/ig, member);
+  }
 };
