@@ -9,8 +9,8 @@ formatSetup(moment);
 const mysql = require("mysql2");
 const mysql_config = {
     connectTimeout: 60 * 60 * 1000,
-    acquireTimeout: 60 * 60 * 1000,
-    timeout: 60 * 60 * 1000,
+    //acquireTimeout: 60 * 60 * 1000,
+    //timeout: 60 * 60 * 1000,
     connectionLimit: 1000,
     host: process.env.DBHOST,
     user: process.env.DBUSER,

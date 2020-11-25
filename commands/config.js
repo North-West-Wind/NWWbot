@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
 const iiu = require("is-image-url");
+const { genPermMsg } = require("../function");
 var panelEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⏹"],
   welcomeEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⬅", "⏹"],
   yesNo = ["1️⃣", "2️⃣", "⬅", "⏹"],
@@ -11,14 +12,10 @@ module.exports = {
   usage: "[subcommand]",
   subcommands: ["new", "panel"],
   category: 1,
+  permission: 32,
   async execute(message, args) {
-    if (message.channel instanceof Discord.DMChannel) {
-      return message.channel.send("Direct messages is not configurable.");
-    }
-    if (!message.member.permissions.has(32)) {
-      message.channel.send(`You don\'t have the permission to use this command.`);
-      return;
-    }
+    if (!message.guild) return await message.channel.send("Direct messages is not configurable.");
+    if (!message.member.permissions.has(this.permission)) return await message.channel.send(genPermMsg(this.permission, 0));
     if (!message.channel.permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
 
     const guild = message.guild;
@@ -36,7 +33,7 @@ module.exports = {
     }
     if (result[0] && result[0].token !== null) message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${result[0].token}\``);
     else {
-      require("crypto").randomBytes(24, function (err, buffer) {
+      require("crypto").randomBytes(24, async(err, buffer) => {
         if (err) return message.reply("there was an error trying to generate a token!");
         var generated = buffer.toString("hex");
         try {
@@ -53,7 +50,7 @@ module.exports = {
   },
   new(message) {
     const guild = message.guild;
-    require("crypto").randomBytes(24, function (err, buffer) {
+    require("crypto").randomBytes(24, async(err, buffer) => {
       if (err) return message.reply("there was an error trying to generate a token!");
       var generated = buffer.toString("hex");
       const con = await message.pool.getConnection();
