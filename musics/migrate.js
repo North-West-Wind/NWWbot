@@ -52,7 +52,7 @@ module.exports = {
       queue.set(message.guild.id, serverQueue);
       msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`).catch(() => {});
       migrating.splice(migrating.indexOf(message.guild.id));
-      updateQueue(message, serverQueue, queue);
+      updateQueue(message, serverQueue, queue, 1);
       play(message.guild, serverQueue.songs[0], queue, seek);
     }, 3000);
   }

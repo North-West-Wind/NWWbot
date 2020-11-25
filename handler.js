@@ -161,7 +161,7 @@ module.exports = {
                         var queue = [];
                         try { if (result.queue !== null) queue = JSON.parse(unescape(result.queue)); }
                         catch (err) { console.error(`Error parsing queue of ${result.id}`); }
-                        setQueue(result.id, queue, result.looping === 1 ? true : false, result.repeating === 1 ? true : false);
+                        setQueue(result.id, queue, !!result.looping, !!result.repeating, pool);
                         count += 1;
                     }
                     if (result.prefix) try { console.prefixes[result.id] = result.prefix; } catch (err) { }
@@ -494,6 +494,7 @@ module.exports = {
                     img.src = url;
                 }
             }
+            con.release();
             if (result[0] && result[0].autorole !== "[]") {
                 const roleArray = JSON.parse(result[0].autorole);
                 for (var i = 0; i < roleArray.length; i++) {
@@ -510,7 +511,6 @@ module.exports = {
                     }
                 }
             }
-            con.release();
         } catch (err) { console.error(err) };
     },
     async guildMemberRemove(member) {

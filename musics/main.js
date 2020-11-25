@@ -3,14 +3,8 @@ var queue = new Map();
 module.exports = {
   name: "main",
   async music(message, commandName) {
-    const command =
-      console.commands.get(commandName) ||
-      console.commands.find(
-        cmd => cmd.aliases && cmd.aliases.includes(commandName)
-      );
-
+    const command = console.commands.get(commandName) || console.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
     const serverQueue = queue.get(message.guild.id);
-
     try {
       await command.music(message, serverQueue, queue);
     } catch (error) {
@@ -30,7 +24,7 @@ module.exports = {
     if (guild.me.voice.channel)
       guild.me.voice.channel.leave();
   },
-  setQueue(guild, songs, loopStatus, repeatStatus) {
+  setQueue(guild, songs, loopStatus, repeatStatus, pool) {
     const queueContruct = {
       textChannel: null,
       voiceChannel: null,
@@ -40,7 +34,8 @@ module.exports = {
       playing: false,
       paused: false,
       looping: loopStatus,
-      repeating: repeatStatus
+      repeating: repeatStatus,
+      pool: pool
     };
     return queue.set(guild, queueContruct);
   },

@@ -21,6 +21,7 @@ const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
 const ph = require("@justalk/pornhub-api");
+const { setQueue } = require("./main.js");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
 const requestStream = (url) => new Promise((resolve, reject) => {
   const rs = require("request-stream");
@@ -38,19 +39,15 @@ function createEmbed(message, songs) {
   return Embed;
 }
 
-function updateQueue(message, serverQueue, queue, flag) {
+async function updateQueue(message, serverQueue, queue, flag) {
   if (!serverQueue) queue.delete(message.guild.id);
   else queue.set(message.guild.id, serverQueue);
-  if (flag == 1) console.getConnection(function (err, con) {
-    if (err && !message.dummy) message.reply("there was an error trying to connect to the database!");
-    else if (err) return;
-    const query = `UPDATE servers SET queue = ${!serverQueue ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`;
-    con.query(query, (err) => {
-      if (err && !message.dummy) message.reply("there was an error trying to update the queue!");
-      else if (err) return;
-    });
-    con.release();
-  });
+  if (!flag && serverQueue && serverQueue.pool) try {
+    await serverQueue.pool.query(`UPDATE servers SET queue = ${!serverQueue ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`);
+  } catch(err) {
+    console.error(err);
+    if (!message.dummy) message.reply("there was an error trying to update the queue!");
+  }
 }
 
 async function play(guild, song, queue, skipped = 0, seek = 0) {
@@ -230,26 +227,14 @@ module.exports = {
       songs = result.songs;
       if (!songs || songs.length < 1) return await message.reply("there was an error trying to add the soundtrack!");
       const Embed = createEmbed(message, songs);
-      if (!serverQueue) {
-        serverQueue = {
-          textChannel: message.channel,
-          voiceChannel: voiceChannel,
-          connection: null,
-          songs: songs,
-          volume: 1,
-          playing: false,
-          paused: false,
-          startTime: 0,
-          looping: false,
-          repeating: false
-        };
-      } else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
-      updateQueue(message, serverQueue, queue);
+      if (!serverQueue) serverQueue = setQueue(message.guild, songs, false, false, message.pool);
+      else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
       if (!message.guild.me.voice.channel) {
         serverQueue.voiceChannel = voiceChannel;
         serverQueue.connection = await voiceChannel.join();
         serverQueue.textChannel = message.channel;
       }
+      updateQueue(message, serverQueue, queue);
       if (!serverQueue.playing) play(message.guild, serverQueue.songs[0], queue);
       if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
       else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
@@ -756,11 +741,11 @@ module.exports = {
     try {
       var scSearched = await scdl.search("tracks", args.slice(1).join(" "));
       num = 0;
-      if(scSearched.collection.length > 0) {
+      if (scSearched.collection.length > 0) {
         scEm.setDescription(scSearched.collection.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).slice(0, 10).join("\n"));
         allEmbeds.push(scEm);
       }
-    } catch(err) {
+    } catch (err) {
       console.error(err);
       message.reply("there was an error trying to search the videos!");
       return { error: true };
@@ -785,7 +770,7 @@ module.exports = {
     var collector = undefined;
     var s = 0;
     var msg = await message.channel.send(allEmbeds[0]);
-    if(allEmbeds.length > 1) {
+    if (allEmbeds.length > 1) {
       const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
       await msg.react("⏮");
       await msg.react("◀");
@@ -793,16 +778,16 @@ module.exports = {
       await msg.react("⏭");
       await msg.react("⏹");
       const collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
-      collector.on("collect", async(reaction, user) => {
+      collector.on("collect", async (reaction, user) => {
         const result = await commonCollectorListener(reaction, user, s, allEmbeds, msg, collector);
         s = result.s;
         msg = result.msg;
       });
-      collector.on("end", async() => msg.reactions.removeAll().catch(console.error));
+      collector.on("end", async () => msg.reactions.removeAll().catch(console.error));
     }
     const filter = x => x.author.id === message.author.id;
     const collected = await msg.channel.awaitMessages(filter, { max: 1, time: 60000, error: ["time"] });
-    if(collector) collector.emit("end");
+    if (collector) collector.emit("end");
     if (!collected || !collected.first() || !collected.first().content) {
       const Ended = new Discord.MessageEmbed()
         .setColor(console.color())

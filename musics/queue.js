@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const { updateQueue } = require("./play.js");
 const { createEmbedScrolling } = require("../function.js");
+const { setQueue } = require("./main.js");
 module.exports = {
   name: "queue",
   description: "Display the current song queue.",
@@ -32,158 +33,122 @@ module.exports = {
     if (allEmbeds.length == 1) message.channel.send(allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
     else await createEmbedScrolling(message, allEmbeds, 3, { songArray: songArray });
   },
-  save(message, serverQueue, args) {
+  async save(message, serverQueue, args) {
     if (!serverQueue) return message.channel.send("There is no queue playing in this server right now!");
-    console.getConnection(function (err, con) {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`SELECT * FROM queue WHERE user = '${message.author.id}'`, async (err, results) => {
-        if (err) return message.reply("there was an error trying to fetch data from the database!");
-        if (results.length >= 10) return message.channel.send("You have already stored 10 queues! Delete some of them to save this queue.");
-        if (!args[2]) return message.channel.send("Please provide the name of the queue.");
-        var query = `INSERT INTO queue(user, name, queue) VALUES('${message.author.id}', '${args.slice(2).join(" ")}', '${escape(JSON.stringify(serverQueue.songs))}')`;
-        for (const result of results) {
-          if (result.name === args.slice(2).join(" ")) {
-            var em = new Discord.MessageEmbed()
-              .setColor(console.color())
-              .setTitle("Warning")
-              .setDescription(`There is already a queue named **${args.slice(2).join(" ")}** stored. Do you want to override it?\n✅ Yes\n❌ No`)
-              .setTimestamp()
-              .setFooter("Please answer in 30 seconds.", message.client.user.displayAvatarURL());
-            var msg = await message.channel.send(em);
-            await msg.react("✅");
-            await msg.react("❌");
-            var collected = await msg.awaitReactions((r, u) => (["✅", "❌"].includes(r.emoji.name) && u.id === message.author.id), { time: 30000, max: 1, errors: ["time"] });
-            await msg.reactions.removeAll().catch(console.error);
-            if (!collected || !collected.first()) return msg.edit({ content: "I cannot receive your answer! I'll take that as a NO.", embed: null });
-            if (collected.first().emoji.name === "✅") {
-              await msg.edit({ content: `The queue ${args.slice(2).join(" ")} will be overridden.`, embed: null });
-              query = `UPDATE queue SET queue = '${escape(JSON.stringify(serverQueue.songs))}' WHERE id = ${result.id}`;
-              break;;
-            } else return await msg.edit({ content: `Action cancelled. The queue ${args.slice(2).join(" ")} will not be overrided.`, embed: null });
-          }
-        }
-        con.query(query, (err) => {
-          if (err) return message.reply("there was an error trying to store the queue!");
-          message.channel.send(`The song queue has been stored with the name **${args.slice(2).join(" ")}**!\nSlots used: **${query.substring(0, 6) == "INSERT" ? results.length + 1 : results.length}/10**`);
-        });
-      });
-      con.release();
-    });
+    const con = await message.pool.getConnection();
+    const [results] = await con.query(`SELECT * FROM queue WHERE user = '${message.author.id}'`);
+    if (results.length >= 10) return message.channel.send("You have already stored 10 queues! Delete some of them to save this queue.");
+    if (!args[2]) return message.channel.send("Please provide the name of the queue.");
+    var query = `INSERT INTO queue(user, name, queue) VALUES('${message.author.id}', '${args.slice(2).join(" ")}', '${escape(JSON.stringify(serverQueue.songs))}')`;
+    for (const result of results) {
+      if (result.name === args.slice(2).join(" ")) {
+        var em = new Discord.MessageEmbed()
+          .setColor(console.color())
+          .setTitle("Warning")
+          .setDescription(`There is already a queue named **${args.slice(2).join(" ")}** stored. Do you want to override it?\n✅ Yes\n❌ No`)
+          .setTimestamp()
+          .setFooter("Please answer in 30 seconds.", message.client.user.displayAvatarURL());
+        var msg = await message.channel.send(em);
+        await msg.react("✅");
+        await msg.react("❌");
+        var collected = await msg.awaitReactions((r, u) => (["✅", "❌"].includes(r.emoji.name) && u.id === message.author.id), { time: 30000, max: 1, errors: ["time"] });
+        await msg.reactions.removeAll().catch(console.error);
+        if (!collected || !collected.first()) return msg.edit({ content: "I cannot receive your answer! I'll take that as a NO.", embed: null });
+        if (collected.first().emoji.name === "✅") {
+          await msg.edit({ content: `The queue ${args.slice(2).join(" ")} will be overridden.`, embed: null });
+          query = `UPDATE queue SET queue = '${escape(JSON.stringify(serverQueue.songs))}' WHERE id = ${result.id}`;
+          break;;
+        } else return await msg.edit({ content: `Action cancelled. The queue ${args.slice(2).join(" ")} will not be overrided.`, embed: null });
+      }
+    }
+    await con.query(query);
+    con.release();
+    message.channel.send(`The song queue has been stored with the name **${args.slice(2).join(" ")}**!\nSlots used: **${query.substring(0, 6) == "INSERT" ? results.length + 1 : results.length}/10**`);
   },
-  load(message, serverQueue, args, queue) {
+  async load(message, serverQueue, args, queue) {
     if (serverQueue && serverQueue.playing) return message.channel.send("Someone is listening to the music. Don't ruin their day.");
     if (!args[2]) return message.channel.send("Please provide the name of the queue.");
-    console.getConnection((err, con) => {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`SELECT * FROM queue WHERE name = '${args.slice(2).join(" ")}' AND user = '${message.author.id}'`, (err, results) => {
-        if (err) return message.reply("there was an error trying to fetch queues from the database!");
-        if (results.length == 0) return message.channel.send("No queue was found!");
-        if (!serverQueue) {
-          var voiceChannel = null;
-          if (message.member.voice && message.member.voice.channel) voiceChannel = message.member.voice.channel;
-          serverQueue = {
-            textChannel: message.channel,
-            voiceChannel: voiceChannel,
-            connection: null,
-            songs: JSON.parse(unescape(results[0].queue)),
-            volume: 1,
-            playing: false,
-            paused: false,
-            startTime: 0,
-            looping: false,
-            repeating: false
-          };
-        } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-        updateQueue(message, serverQueue, queue);
-        message.channel.send(`The queue **${results[0].name}** has been loaded.`);
-      }
-      );
-      con.release();
-    });
+    const [results] = await message.pool.query(`SELECT * FROM queue WHERE name = '${args.slice(2).join(" ")}' AND user = '${message.author.id}'`);
+    if (results.length == 0) return message.channel.send("No queue was found!");
+    if (!serverQueue) {
+      var voiceChannel = null;
+      if (message.member.voice && message.member.voice.channel) voiceChannel = message.member.voice.channel;
+      serverQueue = setQueue(message.guild, JSON.parse(unescape(results[0].queue)), false, false, message.pool);
+    } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
+    updateQueue(message, serverQueue, queue);
+    message.channel.send(`The queue **${results[0].name}** has been loaded.`);
   },
-  delete(message, args) {
+  async delete(message, args) {
     if (!args[2]) return message.channel.send("Please provide the name of the queue.");
-    console.getConnection((err, con) => {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`SELECT * FROM queue WHERE name = '${args.slice(2).join(" ")}' AND user = '${message.author.id}'`, (err, results) => {
-        if (err) return message.reply("there was an error trying to fetch queues from the database!");
-        if (results.length == 0) return message.channel.send("No queue was found!");
-        con.query(`DELETE FROM queue WHERE id = ${results[0].id}`, (err) => {
-          if (err) return message.reply("there was an error trying to delete the queue!");
-          message.channel.send(`The stored queue **${results[0].name}** has been deleted.`);
-        });
-      });
-      con.release();
-    });
+    const con = await message.pool.getConnection();
+    await con.query(`SELECT * FROM queue WHERE name = '${args.slice(2).join(" ")}' AND user = '${message.author.id}'`);
+    if (results.length == 0) return message.channel.send("No queue was found!");
+    await con.query(`DELETE FROM queue WHERE id = ${results[0].id}`);
+    message.channel.send(`The stored queue **${results[0].name}** has been deleted.`);
+    con.release();
   },
   list(message) {
-    console.getConnection((err, con) => {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`SELECT * FROM queue WHERE user = '${message.author.id}'`, async (err, results) => {
-        if (err) return message.reply("there was an error trying to fetch the queues from the database!");
-        const queues = [];
-        var num = 0;
-        const allEmbeds = [];
-        for (const result of results) {
-          const queue = JSON.parse(unescape(result.queue));
-          queues.push(`${++num}. **${result.name}** : **${queue.length} tracks**`);
-          var queueNum = 0;
-          var pageArray = queue.map(song => {
-            var str;
-            if (song.type === 0 || song.type === 2 || song.type === 3 || !song.type) str = `**${++queueNum} - ** **[${song.title}](${song.url})** : **${song.time}**`;
-            else if (song.type === 1) str = `**${++queueNum} - ** **[${song.title}](${song.spot})** : **${song.time}**`;
-            return str;
-          }).slice(0, 10);
-          const queueEmbed = new Discord.MessageEmbed()
-            .setColor(console.color())
-            .setTitle(`Queue - ${result.name}`)
-            .setDescription(`There are ${queue.length} tracks in total.\n\n${pageArray.join("\n")}`)
-            .setTimestamp()
-            .setFooter(queue.length > pageArray.length ? "Cannot show all soundtracks here..." : "Here are all the soundtracks in this queue.", message.client.user.displayAvatarURL());
-          allEmbeds.push(queueEmbed);
+    const [results] = await message.pool.query(`SELECT * FROM queue WHERE user = '${message.author.id}'`);
+    const queues = [];
+    var num = 0;
+    const allEmbeds = [];
+    for (const result of results) {
+      const queue = JSON.parse(unescape(result.queue));
+      queues.push(`${++num}. **${result.name}** : **${queue.length} tracks**`);
+      var queueNum = 0;
+      var pageArray = queue.map(song => {
+        var str;
+        if (song.type === 0 || song.type === 2 || song.type === 3 || !song.type) str = `**${++queueNum} - ** **[${song.title}](${song.url})** : **${song.time}**`;
+        else if (song.type === 1) str = `**${++queueNum} - ** **[${song.title}](${song.spot})** : **${song.time}**`;
+        return str;
+      }).slice(0, 10);
+      const queueEmbed = new Discord.MessageEmbed()
+        .setColor(console.color())
+        .setTitle(`Queue - ${result.name}`)
+        .setDescription(`There are ${queue.length} tracks in total.\n\n${pageArray.join("\n")}`)
+        .setTimestamp()
+        .setFooter(queue.length > pageArray.length ? "Cannot show all soundtracks here..." : "Here are all the soundtracks in this queue.", message.client.user.displayAvatarURL());
+      allEmbeds.push(queueEmbed);
+    }
+    const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
+    const available = ["⬅", "⏹️"];
+    const em = new Discord.MessageEmbed()
+      .setColor(console.color())
+      .setTitle(`Stored queues of **${message.author.tag}**`)
+      .setDescription(`Slots used: **${results.length}/10**\n\n${queues.join("\n")}`)
+      .setTimestamp()
+      .setFooter("React to the numbers to view your queue.", message.client.user.displayAvatarURL());
+    allEmbeds.unshift(em);
+    var msg = await message.channel.send(em);
+    for (let i = 0; i < Math.min(num, 10); i++) {
+      await msg.react(emojis[i]);
+      available.push(emojis[i]);
+    }
+    await msg.react(available[1]);
+    const collector = msg.createReactionCollector((r, u) => available.includes(r.emoji.name) && u.id === message.author.id, { idle: 30000 });
+    var index = available.indexOf(reaction.emoji.name);
+    collector.on("collect", async function (reaction, user) {
+      reaction.users.remove(user.id);
+      if (index < 0 || index > num + 2 || index == 1) return collector.emit("end");
+      else if (index == 0) {
+        const back = await msg.reactions.cache.get(available[0]);
+        await back.remove().catch(console.error);
+        await msg.edit(allEmbeds[0]);
+      } else {
+        await msg.edit(allEmbeds[index - 1]);
+        const back = await msg.reactions.cache.get(available[0]);
+        if (!back) {
+          const stop = await msg.reactions.cache.get(available[1]);
+          if (stop) await stop.remove().catch(console.error);
+          await msg.react(available[0]);
+          await msg.react(available[1]);
         }
-        const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
-        const available = ["⬅", "⏹️"];
-        const em = new Discord.MessageEmbed()
-          .setColor(console.color())
-          .setTitle(`Stored queues of **${message.author.tag}**`)
-          .setDescription(`Slots used: **${results.length}/10**\n\n${queues.join("\n")}`)
-          .setTimestamp()
-          .setFooter("React to the numbers to view your queue.", message.client.user.displayAvatarURL());
-        allEmbeds.unshift(em);
-        var msg = await message.channel.send(em);
-        for (let i = 0; i < Math.min(num, 10); i++) {
-          await msg.react(emojis[i]);
-          available.push(emojis[i]);
-        }
-        await msg.react(available[1]);
-        const collector = msg.createReactionCollector((r, u) => available.includes(r.emoji.name) && u.id === message.author.id, { idle: 30000 });
-        var index = available.indexOf(reaction.emoji.name);
-        collector.on("collect", async function (reaction, user) {
-          reaction.users.remove(user.id);
-          if (index < 0 || index > num + 2 || index == 1) return collector.emit("end");
-          else if (index == 0) {
-            const back = await msg.reactions.cache.get(available[0]);
-            await back.remove().catch(console.error);
-            msg.edit(allEmbeds[0]);
-          } else {
-            msg.edit(allEmbeds[index - 1]);
-            const back = await msg.reactions.cache.get(available[0]);
-            if (!back) {
-              const stop = await msg.reactions.cache.get(available[1]);
-              if (stop) await stop.remove().catch(console.error);
-              await msg.react(available[0]);
-              await msg.react(available[1]);
-            }
-          }
-        });
-        collector.on("end", function () {
-          msg.reactions.removeAll().catch(console.error);
-          msg.edit(allEmbeds[0]);
-          setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${JSON.parse(unescape(results.queue)).length} tracks in total]**` }), 60000);
-        });
-      });
-      con.release();
+      }
+    });
+    collector.on("end", function () {
+      msg.reactions.removeAll().catch(console.error);
+      msg.edit(allEmbeds[0]);
+      setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${JSON.parse(unescape(results.queue)).length} tracks in total]**` }), 60000);
     });
   },
   async sync(message, serverQueue, args, queue) {
@@ -196,31 +161,14 @@ module.exports = {
     } catch (e) {
       return message.channel.send("You are not in that server!");
     }
-    console.getConnection((err, con) => {
-      if (err) return message.reply("there was an error trying to connect to the database!");
-      con.query(`SELECT queue FROM servers WHERE id = '${guild.id}'`, (err, results) => {
-        if (err) return message.reply("there was an error trying to fetch queues from the database!");
-        if (results.length == 0) return message.channel.send("No queue was found!");
-        if (!serverQueue) {
-          var voiceChannel = null;
-          if (message.member.voice && message.member.voice.channel) voiceChannel = message.member.voice.channel;
-          serverQueue = {
-            textChannel: message.channel,
-            voiceChannel: voiceChannel,
-            connection: null,
-            songs: JSON.parse(unescape(results[0].queue)),
-            volume: 1,
-            playing: false,
-            paused: false,
-            startTime: 0,
-            looping: false,
-            repeating: false
-          };
-        } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-        updateQueue(message, serverQueue, queue);
-        message.channel.send(`The queue of this server has been synchronize to the queue of the server **${guild.name}**.`);
-      });
-      con.release();
-    });
+    const [results] = await message.pool.query(`SELECT queue FROM servers WHERE id = '${guild.id}'`);
+    if (results.length == 0) return message.channel.send("No queue was found!");
+    if (!serverQueue) {
+      var voiceChannel = null;
+      if (message.member.voice && message.member.voice.channel) voiceChannel = message.member.voice.channel;
+      serverQueue = setQueue(message.guild, JSON.parse(unescape(results[0].queue)), false, false, message.pool);
+    } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
+    updateQueue(message, serverQueue, queue);
+    message.channel.send(`The queue of this server has been synchronize to the queue of the server **${guild.name}**.`);
   }
 };
