@@ -87,7 +87,7 @@ module.exports = {
     message.channel.send(`The stored queue **${results[0].name}** has been deleted.`);
     con.release();
   },
-  list(message) {
+  async list(message) {
     const [results] = await message.pool.query(`SELECT * FROM queue WHERE user = '${message.author.id}'`);
     const queues = [];
     var num = 0;

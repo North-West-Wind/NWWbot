@@ -6,7 +6,7 @@ module.exports = {
   description: "Toggle repeat of a song.",
   aliases: ["rep", "rp"],
   category: 8,
-  music(message, serverQueue, queue) {
+  async music(message, serverQueue, queue) {
     if(!serverQueue) {
       queue = setQueue(message.guild, [], false, false, message.pool);
       serverQueue = queue.get(message.guild.id);
