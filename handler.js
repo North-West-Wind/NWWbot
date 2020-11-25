@@ -581,7 +581,6 @@ module.exports = {
     async guildMemberUpdate(oldMember, newMember) {
         const client = oldMember.client || newMember.client;
         if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
-        if (err) return console.error(err);
         const [result] = await pool.query(`SELECT boost_msg, boost_channel FROM servers WHERE id = '${newMember.guild.id}'`);
         if (!result[0] || !result[0].boost_msg || !result[0].boost_channel) return;
         try {
