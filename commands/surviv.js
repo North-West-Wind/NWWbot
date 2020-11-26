@@ -27,15 +27,15 @@ module.exports = {
     args: 1,
     async execute(message, args) {
         try {
-            const body = { slug: args.join(" "), interval: "all", mapIdFilter: "-1" };
-            const hisBody = { slug: args.join(" "), offset: 0, count: 1, teamModeFilter: 7 };
+            const body = { slug: args.join(" ").toLowerCase(), interval: "all", mapIdFilter: "-1" };
+            const hisBody = { slug: args.join(" ").toLowerCase(), offset: 0, count: 1, teamModeFilter: 7 };
             const stats = await fetch("https://surviv.io/api/user_stats", { method: "POST", body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } }).then(res => res.json());
             const history = await fetch("https://surviv.io/api/match_history", { method: "POST", body: JSON.stringify(hisBody), headers: { 'Content-Type': 'application/json' } }).then(res => res.json());
             if (!stats.player_icon) stats.player_icon = "https://surviv.io/stats/img/ui/player.svg";
             else for (const emote of emotes) if (emote.replace(/-/g, "") === stats.player_icon.split("_")[1]) {
                 stats.player_icon = `https://surviv.io/img/emotes/${emote}.svg`;
                 break;
-            }
+            } else if (emotes.indexOf(emote) + 1 >= emotes.length) stats.player_icon = "https://surviv.io/stats/img/ui/player.svg";
             stats.modes.sort((a, b) => {
                 if (a.teamMode < b.teamMode) return -1;
                 if (a.teamMode > b.teamMode) return 1;
@@ -78,7 +78,8 @@ module.exports = {
             if(allEmbeds.length == 1) await message.channel.send(allEmbeds[0]);
             else await createEmbedScrolling(message, allEmbeds);
         } catch (err) {
-            return await message.channel.send("Cannot find that user!");
+            console.error(err);
+            await message.channel.send("Cannot find that user!");
         }
     }
 }

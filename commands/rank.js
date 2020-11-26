@@ -5,7 +5,7 @@ module.exports = {
   category: 3,
   async execute(message) {
     var [result] = await message.pool.query(`SELECT id FROM leveling WHERE guild = '${message.guild.id}' ORDER BY exp DESC`);
-    const user = result.find(x => x.id == message.author.id);
+    const user = result.find(x => x.user == message.author.id);
     if (!user) throw new Error("Not found");
     var expBackup = parseInt(user.exp);
     var exp = parseInt(user.exp);
