@@ -16,11 +16,11 @@ module.exports = {
       try {
         var posts = await Booru.search("rule34.paheal.net", args, { random: true });
       } catch (err) {
-        message.reply("there was an error trying to find rule34 with this tag!");
+        await message.reply("there was an error trying to find rule34 with this tag!");
         return { error: true };
       }
       var pickedPost = posts[Math.floor(Math.random() * posts.length)];
-      if (!pickedPost) return pick();
+      if (!pickedPost) return await pick();
       else return pickedPost;
     }
     var post = await pick();
