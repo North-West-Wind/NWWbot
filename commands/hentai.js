@@ -45,8 +45,8 @@ module.exports = {
       if (i !== -1) tag = this.tags[i];
     }
     if (tag === "random") return await this.random(message);
-    if (tag === "neko") var result = neko.lewdNeko();
-    else var result = neko.nsfw[tag]();
+    if (tag === "neko") var result = await neko.lewdNeko();
+    else var result = await neko.nsfw[tag]();
     const embed = new Discord.MessageEmbed()
       .setTitle("Tag: " + tag)
       .setColor(console.color())
@@ -58,8 +58,8 @@ module.exports = {
   async random(message) {
     var index = Math.floor(Math.random() * this.tags.length);
     var tag = this.tags[index];
-    if (tag === "neko") var result = neko.lewdNeko();
-    else var result = neko.nsfw[tag]();
+    if (tag === "neko") var result = await neko.lewdNeko();
+    else var result = await neko.nsfw[tag]();
     const embed = new Discord.MessageEmbed()
       .setTitle("Tag: " + tag)
       .setColor(console.color())
