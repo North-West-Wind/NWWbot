@@ -25,6 +25,7 @@ module.exports = {
     description: "Display the user's stats from Surviv.io.",
     usage: "<username>",
     args: 1,
+    aliases: ["survivio"],
     async execute(message, args) {
         try {
             const body = { slug: args.join(" ").toLowerCase(), interval: "all", mapIdFilter: "-1" };
