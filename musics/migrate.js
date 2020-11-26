@@ -20,7 +20,7 @@ module.exports = {
     if (!message.member.voice.channel.permissionsFor(message.guild.me).has(3145728)) return message.channel.send("I don't have the required permissions to play music here!");
     migrating.push(message.guild.id);
     if (exit.find(x => x === message.guild.id)) exit.splice(exit.indexOf(message.guild.id), 1);
-    var oldChannel = serverQueue.voiceChannel;
+    const oldChannel = serverQueue.voiceChannel;
     var seek = 0;
     if (serverQueue.connection && serverQueue.connection.dispatcher) {
       seek = Math.floor((serverQueue.connection.dispatcher.streamTime - serverQueue.startTime) / 1000);
@@ -31,29 +31,18 @@ module.exports = {
     serverQueue.voiceChannel = null;
     serverQueue.textChannel = null;
     if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
-  
-    var voiceChannel = message.member.voice.channel;
-    var msg = await message.channel.send("Migrating in 3 seconds...");
-  
+    const voiceChannel = message.member.voice.channel;
+    const msg = await message.channel.send("Migrating in 3 seconds...");
     setTimeout(async () => {
-      if (
-        !message.guild.me.voice.channel ||
-        message.guild.me.voice.channelID !== voiceChannel.id
-      ) {
-        var connection = await voiceChannel.join();
-      } else {
-        await message.guild.me.voice.channel.leave();
-        var connection = await voiceChannel.join();
-      }
+      if (!message.guild.me.voice.channel || message.guild.me.voice.channelID !== voiceChannel.id) serverQueue.connection = await voiceChannel.join();
+      else serverQueue.connection = message.guild.me.voice.connection;
       serverQueue.voiceChannel = voiceChannel;
-      serverQueue.connection = connection;
       serverQueue.playing = true;
       serverQueue.textChannel = message.channel;
-      queue.set(message.guild.id, serverQueue);
-      msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`).catch(() => {});
+      await msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`).catch(() => {});
       migrating.splice(migrating.indexOf(message.guild.id));
       updateQueue(message, serverQueue, queue, 1);
-      play(message.guild, serverQueue.songs[0], queue, seek);
+      play(message.guild, serverQueue.songs[0], queue, 0, seek);
     }, 3000);
   }
 }

@@ -16,7 +16,7 @@ const ytsr2 = require("youtube-sr");
 const ytpl = require("ytpl");
 const moment = require("moment");
 require("moment-duration-format")(moment);
-const scdl = require("soundcloud-downloader");
+const scdl = require("soundcloud-downloader").default;
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
@@ -180,8 +180,7 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
 
 module.exports = {
   name: "play",
-  description:
-    "Play music with the link or keywords provided. Only support YouTube videos currently.",
+  description: "Play music with the link or keywords provided. Only support YouTube videos currently.",
   aliases: ["p"],
   usage: "[link | keywords | attachment]",
   category: 8,
@@ -777,7 +776,7 @@ module.exports = {
       await msg.react("▶");
       await msg.react("⏭");
       await msg.react("⏹");
-      const collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
+      collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
       collector.on("collect", async (reaction, user) => {
         const result = await commonCollectorListener(reaction, user, s, allEmbeds, msg, collector);
         s = result.s;

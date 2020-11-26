@@ -1,4 +1,4 @@
-const scdl = require("soundcloud-downloader");
+const scdl = require("soundcloud-downloader").default;
 const ytdl = require("ytdl-core");
 const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent } = require("../function.js");
 const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search, updateQueue } = require("./play.js");

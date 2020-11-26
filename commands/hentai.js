@@ -87,7 +87,7 @@ module.exports = {
     else if(interval > 300000) return message.channel.send("The interval must be smaller than 5 minutes!");
     else if(amount < 1) return message.channel.send("The amount of message must be larger than 0!");
     else if(amount > 120) return message.channel.send("The amount of message must be smaller than 120!");
-    message.channel.send(`Auto-hentai initialized. **${amount} messages** with interval **${interval} milliseconds**`)
+    await message.channel.send(`Auto-hentai initialized. **${amount} messages** with interval **${interval} milliseconds**`);
     var counter = 0;
     var i = setInterval(async() => {
       if(counter === amount) {
