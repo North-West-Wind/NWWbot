@@ -2,7 +2,7 @@ const { MessageEmbed } = require("discord.js");
 const { readableDateTime, createEmbedScrolling } = require("../function.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const { emotes } = require("../config.json");
-const createModeEmbed = (mode, stats) => {
+const createModeEmbed = (message, mode, stats) => {
     const em = new MessageEmbed()
         .setColor(console.color())
         .setTitle(`${stats.username} - ${mode.teamMode == 1 ? "Solo" : (mode.teamMode == 2 ? "Duo" : "Squad")} Statistics`)
@@ -54,9 +54,9 @@ module.exports = {
                 .setTimestamp()
                 .setFooter("Made with Surviv.io API", message.client.user.displayAvatarURL());
             allEmbeds.push(overall);
-            if(stats.modes[0]) allEmbeds.push(createModeEmbed(stats.modes[0], stats));
-            if(stats.modes[1]) allEmbeds.push(createModeEmbed(stats.modes[1], stats));
-            if(stats.modes[2]) allEmbeds.push(createModeEmbed(stats.modes[2], stats));
+            if(stats.modes[0]) allEmbeds.push(createModeEmbed(message, stats.modes[0], stats));
+            if(stats.modes[1]) allEmbeds.push(createModeEmbed(message, stats.modes[1], stats));
+            if(stats.modes[2]) allEmbeds.push(createModeEmbed(message, stats.modes[2], stats));
             if(history[0]) {
                 const last = new MessageEmbed()
                     .setColor(console.color())
