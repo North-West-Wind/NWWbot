@@ -18,7 +18,9 @@ const mysql_config = {
     database: process.env.DBNAME,
     supportBigNumbers: true,
     bigNumberStrings: true,
-    charset: "utf8mb4"
+    charset: "utf8mb4",
+    waitForConnections: true,
+    queueLimit: 0
 };
 console.pool = mysql.createPool(mysql_config);
 const pool = mysql.createPool(mysql_config).promise();
