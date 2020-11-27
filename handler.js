@@ -112,7 +112,7 @@ module.exports = {
                         await msg.react("▶");
                         await msg.react("⏭");
                         await msg.react("⏹");
-                        var collector = await msg.createReactionCollector(filter, { time: 30000, errors: ["time"] });
+                        const collector = await msg.createReactionCollector(filter, { time: 30000, errors: ["time"] });
 
                         collector.on("collect", function (reaction, user) {
                             reaction.users.remove(user.id);

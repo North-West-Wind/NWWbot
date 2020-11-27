@@ -1,6 +1,3 @@
-const utils = require("@justalk/pornhub-api/src/utils");
-const { polygon } = require("pdfkit");
-
 module.exports = {
   twoDigits(d) {
     if (0 <= d && d < 10) return "0" + d.toString();
@@ -18,7 +15,7 @@ module.exports = {
     return setTimeout.apply(fn, arguments);
   },
   validURL: (str) => !!str.match(/^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?.*)?(\#[-a-z\d_]*)?$/i),
-  validYTURL: (str) => !!str.match(/^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/.+/),
+  validYTURL: (str) => !!str.match(/^(https?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/.+/),
   validYTPlaylistURL: (str) => !!str.match(/^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/playlist\?list=\w+/),
   validSPURL: (str) => !!str.match(/^(spotify:|https:\/\/[a-z]+\.spotify\.com\/)/),
   validGDURL: (str) => !!str.match(/^(https?)?:\/\/drive\.google\.com\/(file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing|open\?id=(?<id1>.*?)$)/),
@@ -31,7 +28,7 @@ module.exports = {
   validRedditVideoURL: (str) => !!str.match(/^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/),
   validGfyURL: (str) => !!str.match(/^(http(s)?:\/\/)?((w){3}.)?gfycat(.com)?\/\w*/),
   validRedGifURL: (str) => !!str.match(/^https?:\/\/(\w+\.)?redgifs.com\/(\w*\/)?(\w*\w*)$/),
-  validSCURL: (str) => !!str.match(/^http(s)?:\/\/(soundcloud\.com|snd\.sc)\/(.+)?/),
+  validSCURL: (str) => !!str.match(/^https?:\/\/(soundcloud\.com|snd\.sc)\/(.+)?/),
   validMSURL: (str) => !!str.match(/^(https?:\/\/)?musescore\.com\/(user|[\w%\-_.!~*'()]+)\/([0-9]{1,}\/scores\/[0-9]{1,}\/?|[\w%\-_.!~*'()]+\/?)$/),
   validPHURL: (str) => !!str.match(/^(https?:\/\/)(\w+\.)?pornhub\.com\/view_video\.php\?viewkey=\w+\/?$/),
   decodeHtmlEntity: (str) => str.replace(/&#(\d+);/g, (_match, dec) => String.fromCharCode(dec)).replace(/&quot;/g, `"`).replace(/&amp;/g, `&`),
