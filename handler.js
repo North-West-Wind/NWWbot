@@ -1,6 +1,7 @@
 const cleverbot = require("cleverbot-free");
 const { Image, createCanvas, loadImage } = require("canvas");
 const Discord = require("discord.js");
+const MojangAPI = require("mojang-api");
 const { setTimeout_, getRandomNumber, jsDate2Mysql, replaceMsgContent, readableDateTimeText } = require("./function.js");
 const profile = (str) => new Promise((resolve, reject) => require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); }));
 const moment = require("moment");
@@ -145,7 +146,7 @@ module.exports = {
                 } catch (err) {
                     console.error(err);
                 }
-            }, 30000);
+            }, 1800000);
         }
 
         if (id === 0) { client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true }); console.p = require("puppeteer"); }
@@ -642,6 +643,33 @@ module.exports = {
         };
         const args = message.content.slice(message.prefix.length).split(/ +/);
         const commandName = args.shift().toLowerCase();
+        if (message.client.id == 1 && message.channel.id == "647630951169523762") {
+            if (args.length > 1 || !message.content) return;
+            const mcName = message.content;
+            console.log("Received name: " + mcName);
+            const dcUserID = message.author.id;
+            MojangAPI.nameToUuid(message.content, async function(err, res) {
+                if (err) return message.channel.send("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
+                const mcUuid = res[0].id;
+                const con = await pool.getConnection();
+                try {
+                    var [results] = await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
+                    if (results.length == 0) {
+                        await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
+                        message.channel.send("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                        console.log("Inserted record for mc-name.");
+                    } else {
+                        await con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
+                        message.channel.send("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                        console.log("Updated record for mc-name.");
+                    }
+                } catch (err) {
+                    await message.channel.send("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
+                }
+                con.release();
+            });
+            return;
+        }
         if (commandName === "guild" && message.client.id === 0) return;
         const command = console.commands.get(commandName) || console.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
