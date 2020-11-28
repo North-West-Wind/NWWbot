@@ -358,7 +358,7 @@ module.exports = {
     else return `I need the permissions \`${new Discord.Permissions(permissions).toArray().join("`, `")}\` to run this command.`;
   },
   color: () => Math.floor(Math.random() * 16777214) + 1,
-  getStr: (pool, id) => new Promise((resolve, reject) => {
+  getStr: (pool, id) => new Promise(async(resolve, reject) => {
     try {
       var [results] = await pool.query("SELECT string FROM functions WHERE id = " + id);
       if (results.length < 1 || !results[0].string) return reject(new Error("Not found"));
