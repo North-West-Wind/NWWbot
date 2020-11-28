@@ -91,4 +91,4 @@ alice.on("messageDelete", messageDelete);
 alice.on("message", message);
 
 client.login(process.env.TOKEN0);
-setTimeout(() => alice.login(process.env.TOKEN1), 30000);
+alice.login(process.env.TOKEN1);
