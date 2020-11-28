@@ -39,11 +39,11 @@ function createEmbed(message, songs) {
   return Embed;
 }
 
-async function updateQueue(message, serverQueue, queue, flag) {
+async function updateQueue(message, serverQueue, queue) {
   if (!serverQueue) queue.delete(message.guild.id);
   else queue.set(message.guild.id, serverQueue);
-  if (!flag && serverQueue && serverQueue.pool) try {
-    await serverQueue.pool.query(`UPDATE servers SET queue = ${!serverQueue ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`);
+  try {
+    await serverQueue.pool.query(`UPDATE servers SET looping = ${serverQueue.looping ? 1 : "NULL"}, repeating = ${serverQueue.repeating ? 1 : "NULL"}, queue = ${!serverQueue || !serverQueue.songs || serverQueue.songs.length < 1 ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`);
   } catch(err) {
     console.error(err);
     if (!message.dummy) message.reply("there was an error trying to update the queue!");

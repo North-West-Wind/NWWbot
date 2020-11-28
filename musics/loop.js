@@ -8,32 +8,20 @@ module.exports = {
   aliases: ["lp"],
   async music(message, serverQueue, queue) {
     if(!serverQueue) {
-      queue = setQueue(message.guild, [], false, false, message.pool);
+      queue = setQueue(message.guild.id, [], false, false, message.pool);
       serverQueue = queue.get(message.guild.id);
     }
-    if (!serverQueue.looping) {
-      serverQueue.looping = true;
-      if (serverQueue.repeating) {
+    serverQueue.looping = !serverQueue.looping;
+    if (serverQueue.repeating && serverQueue.looping) {
         serverQueue.repeating = false;
-        message.channel.send("Disabled repeat to prevent conflict.");
-      }
-      try {
-        await message.pool.query(`UPDATE servers SET looping = 1, repeating = NULL WHERE id = '${message.guild.id}'`);
-        await message.channel.send("The song queue is now being looped.");
-      } catch(err) {
-        console.error(err);
-        await message.reply("there was an error trying to update the status!");
-      }
-    } else {
-      serverQueue.looping = false;
-      try {
-        await message.pool.query(`UPDATE servers SET looping = NULL WHERE id = '${message.guild.id}'`);
-        await message.channel.send("The song queue is no longer being looped.");
-      } catch(err) {
-        console.error(err);
-        await message.reply("there was an error trying to update the status!");
-      }
+        message.channel.send("Disabled repeating to prevent conflict.");
     }
-    updateQueue(message, serverQueue, queue, 1);
+    try {
+      await updateQueue(message, serverQueue, queue);
+      if (serverQueue.looping) await message.channel.send("The song queue is now being looped.");
+      else await message.channel.send("The song queue is no longer being looped.");
+    } catch (err) {
+      await message.reply("there was an error trying to update the status!");
+    }
   }
 }
