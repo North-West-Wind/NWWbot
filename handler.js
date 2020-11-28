@@ -23,8 +23,23 @@ const mysql_config = {
     queueLimit: 0
 };
 console.pool = mysql.createPool(mysql_config);
-const pool = mysql.createPool(mysql_config).promise();
-pool.on("connection", con => con.on("error", () => con.release()));
+const pool = {
+    query: async(sql) => {
+        const fetch = require("node-fetch");
+        const result = await fetch(`https://North-API.northwestwind.repl.co/api/db?query=${encodeURIComponent(sql)}&key=${process.env.KEY}`).then(res => res.json());
+        if (result.error) throw new Error(result.err);
+        return Object.values(result).slice(1);
+    },
+    getConnection: () => ({
+        query: async(sql) => {
+            const fetch = require("node-fetch");
+            const result = await fetch(`https://North-API.northwestwind.repl.co/api/db?query=${encodeURIComponent(sql)}&key=${process.env.KEY}`).then(res => res.json());
+            if (result.error) throw new Error(result.err);
+            return Object.values(result).slice(1);
+        },
+        release: () => {}
+    }),
+}
 var timeout = undefined;
 console.prefixes = {};
 async function messageLevel(message) {
