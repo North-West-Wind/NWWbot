@@ -70,7 +70,7 @@ module.exports = {
         msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
             try {
-                var mesg = await message.author.send("Generating files... (This will take a while. It depends on the length of the score.)");
+                var mesg = await message.channel.send("Generating files... (This will take a while. It depends on the length of the score.)");
                 if (collected.first().emoji.name === "📥") {
                     const { doc, hasPDF } = await this.getPDF(message.pool, args.join(" "), data);
                     const mp3 = await this.getMP3(message.pool, args.join(" "));
@@ -85,9 +85,9 @@ module.exports = {
                         if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title}.pdf`));
                         if (attachments.length < 1) return await mesg.edit("Failed to generate files!");
                         await mesg.delete();
-                        await message.author.send(attachments);
+                        await message.channel.send(attachments);
                     } catch (err) {
-                        await message.reply("did you block me? I cannot DM you!");
+                        await message.reply("there was an error trying to send the files!");
                     }
                 }
             } catch (err) {
