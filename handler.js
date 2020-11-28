@@ -26,14 +26,14 @@ console.pool = mysql.createPool(mysql_config);
 const pool = {
     query: async(sql) => {
         const fetch = require("node-fetch");
-        const result = await fetch(`https://North-API.northwestwind.repl.co/api/db?query=${encodeURIComponent(sql)}&key=${process.env.KEY}`);
+        const result = await fetch(`https://North-API.northwestwind.repl.co/api/db?query=${encodeURIComponent(sql)}&key=${process.env.KEY}`).then(res => res.json());
         if (result.error) throw new Error(result.err);
         return Object.values(result).slice(1);
     },
     getConnection: () => ({
         query: async(sql) => {
             const fetch = require("node-fetch");
-            const result = await fetch(`https://North-API.northwestwind.repl.co/api/db?query=${encodeURIComponent(sql)}&key=${process.env.KEY}`);
+            const result = await fetch(`https://North-API.northwestwind.repl.co/api/db?query=${encodeURIComponent(sql)}&key=${process.env.KEY}`).then(res => res.json());
             if (result.error) throw new Error(result.err);
             return Object.values(result).slice(1);
         },
