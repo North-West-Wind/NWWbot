@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, commonCollectorListener } = require("../function.js");
 const { parseBody, getMP3 } = require("../commands/musescore.js");
-const { migrate } = require("./migrate.js");
+const { music } = require("./migrate.js");
 const ytdl = require("ytdl-core");
 var SpotifyWebApi = require("spotify-web-api-node");
 var spotifyApi = new SpotifyWebApi({
@@ -95,7 +95,7 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
         dispatcher = serverQueue.connection.play(await scdl.download(song.url));
         break;
       case 5:
-        const c = await getMP3(song.url);
+        const c = await getMP3(serverQueue.pool, song.url);
         if (c.error) throw new Error(c.message);
         const d = await requestStream(c.url);
         dispatcher = serverQueue.connection.play(new StreamConcat([d, silence], { highWaterMark: 1 << 25 }), { seek: seek });
@@ -191,7 +191,7 @@ module.exports = {
     if (!voiceChannel.permissionsFor(message.client.user).has(3145728)) return await message.channel.send("I can't play in your voice channel!");
     if (!args[1] && message.attachments.size < 1) {
       if (!serverQueue || !serverQueue.songs || serverQueue.songs.length < 1) return await message.channel.send("No song queue was found for this server! Please provide a link or keywords to get a music played!");
-      if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) return await migrate(message, serverQueue, queue);
+      if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) return await music(message, serverQueue, queue);
       try {
         if (message.guild.me.voice.channel && message.guild.me.voice.channelID === voiceChannel.id) serverQueue.connection = message.guild.me.voice.connection;
         else {

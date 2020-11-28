@@ -63,7 +63,7 @@ module.exports = {
                     stream = await scdl.download(song.url);
                     break;
                 case 5:
-                    const mp3 = await getMP3(song.url);
+                    const mp3 = await getMP3(message.pool, song.url);
                     if (mp3.error) throw new Error(mp3.message);
                     stream = await requestStream(mp3.url);
                     break;

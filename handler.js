@@ -17,12 +17,10 @@ const mysql_config = {
     password: process.env.DBPW,
     database: process.env.DBNAME,
     supportBigNumbers: true,
-    bigNumberStrings: true,
     charset: "utf8mb4",
     waitForConnections: true,
     queueLimit: 0
 };
-console.pool = mysql.createPool(mysql_config);
 const pool = mysql.createPool(mysql_config).promise();
 pool.on("connection", con => con.on("error", () => con.release()));
 var timeout = undefined;

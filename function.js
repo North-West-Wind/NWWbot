@@ -358,16 +358,14 @@ module.exports = {
     else return `I need the permissions \`${new Discord.Permissions(permissions).toArray().join("`, `")}\` to run this command.`;
   },
   color: () => Math.floor(Math.random() * 16777214) + 1,
-  getConnection(cb) {
-    if (typeof cb !== 'function') return;
-    console.pool.getConnection((err, con) => cb(err, con));
-  },
-  getStr: (id) => new Promise((resolve, reject) => {
-    console.pool.query("SELECT string FROM functions WHERE id = " + id, (err, results) => {
-      if (err) return reject(err);
+  getStr: (pool, id) => new Promise((resolve, reject) => {
+    try {
+      var [results] = await pool.query("SELECT string FROM functions WHERE id = " + id);
       if (results.length < 1 || !results[0].string) return reject(new Error("Not found"));
       resolve(results[0].string);
-    });
+    } catch (err) {
+      reject(err);
+    }
   }),
   replaceMsgContent(msg, guild, client, member) {
     const splitMessage = msg.split(" ");

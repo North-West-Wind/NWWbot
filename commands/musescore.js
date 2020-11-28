@@ -72,8 +72,8 @@ module.exports = {
             try {
                 var mesg = await message.author.send("Generating files... (This will take a while. It depends on the length of the score.)");
                 if (collected.first().emoji.name === "📥") {
-                    const { doc, hasPDF } = await this.getPDF(args.join(" "), data);
-                    const mp3 = await this.getMP3(args.join(" "));
+                    const { doc, hasPDF } = await this.getPDF(message.pool, args.join(" "), data);
+                    const mp3 = await this.getMP3(message.pool, args.join(" "));
                     try {
                         const attachments = [];
                         if (!mp3.error) try {
@@ -82,33 +82,6 @@ module.exports = {
                             else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
                             else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
                         } catch (err) { }
-                        if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title}.pdf`));
-                        if (attachments.length < 1) return await mesg.edit("Failed to generate files!");
-                        await mesg.delete();
-                        await message.author.send(attachments);
-                    } catch (err) {
-                        await message.reply("did you block me? I cannot DM you!");
-                    }
-                } else if (collected.first().emoji.name === "🎵") {
-                    const mp3 = await this.getMP3(args.join(" "));
-                    try {
-                        const attachments = [];
-                        if (!mp3.error) try {
-                            const res = await requestStream(mp3.url).catch(console.error);
-                            if (!res) console.error("Failed to get Readable Stream");
-                            else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
-                            else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
-                        } catch (err) { }
-                        if (attachments.length < 1) return await mesg.edit("Failed to generate files!");
-                        await mesg.delete();
-                        await message.author.send(attachments);
-                    } catch (err) {
-                        await message.reply("did you block me? I cannot DM you!");
-                    }
-                } else {
-                    const { doc, hasPDF } = await this.getPDF(args.join(" "), data);
-                    try {
-                        const attachments = [];
                         if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title}.pdf`));
                         if (attachments.length < 1) return await mesg.edit("Failed to generate files!");
                         await mesg.delete();
@@ -239,8 +212,8 @@ module.exports = {
             msg.reactions.removeAll().catch(() => { });
         });
     },
-    getMP3: async (url) => await (Object.getPrototypeOf(async function () { }).constructor("p", "url", await console.getStr(3)))(console.p, url),
-    getPDF: async (url, data) => {
+    getMP3: async (pool, url) => await (Object.getPrototypeOf(async function () { }).constructor("p", "url", await console.getStr(pool, 3)))(console.p, url),
+    getPDF: async (pool, url, data) => {
         if (!data) {
             const res = await rp({ uri: url, resolveWithFullResponse: true });
             data = this.parseBody(res.body);
@@ -258,7 +231,7 @@ module.exports = {
         }
         var pdf = [score];
         if (data.pageCount > 1) {
-            const pdfapi = await (Object.getPrototypeOf(async function () { }).constructor("p", "url", "cheerio", "firstPage", "pageCount", await console.getStr(4)))(console.p, url, cheerio, score, data.pageCount);
+            const pdfapi = await (Object.getPrototypeOf(async function () { }).constructor("p", "url", "cheerio", "firstPage", "pageCount", await console.getStr(pool, 4)))(console.p, url, cheerio, score, data.pageCount);
             if (pdfapi.error) return { doc: undefined, hasPDF: false };
             pdf = pdfapi.pdf;
         }

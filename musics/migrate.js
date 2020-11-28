@@ -5,9 +5,6 @@ module.exports = {
   description: "Move the bot to the channel you are in. Use when changing voice channel.",
   category: 8,
   async music(message, serverQueue, queue) {
-    return await this.migrate(message, serverQueue, queue);
-  },
-  async migrate(message, serverQueue, queue) {
     const exit = console.exit;
     const migrating = console.migrating;
     if (migrating.find(x => x === message.guild.id)) return message.channel.send("I'm on my way!").then(msg => msg.delete(10000));
