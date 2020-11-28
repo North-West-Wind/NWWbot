@@ -62,11 +62,9 @@ module.exports = {
             .setTimestamp()
             .setFooter("Have a nice day! :)");
         msg = await msg.edit({ content: "", embed: em });
-        await msg.react("🎵");
-        await msg.react("📰");
         await msg.react("📥");
         msg.channel.stopTyping(true);
-        const collected = await msg.awaitReactions((r, u) => ["📥", "🎵", "📰"].includes(r.emoji.name) && u.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+        const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
         msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
             try {
