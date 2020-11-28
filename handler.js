@@ -443,7 +443,7 @@ module.exports = {
             } else {
                 const channel = guild.channels.resolve(result[0].wel_channel);
                 if (!channel || !channel.permissionsFor(guild.me).has(18432)) return;
-                const welcomeMessage = replaceMsgContent(result[0].welcome, guild, client, member);
+                const welcomeMessage = replaceMsgContent(result[0].welcome, guild, client, member, "welcome");
                 if (result[0].welcome) try {
                     await channel.send(welcomeMessage);
                 } catch (err) {
@@ -553,7 +553,7 @@ module.exports = {
                     if (kickLog && kickLog.target.id === member.user.id && kickLog.executor.id !== kickLog.target.id) return;
                 } else console.log("Can't view audit logs of " + guild.name);
                 const channel = guild.channels.resolve(result[0].leave_channel);
-                const leaveMessage = replaceMsgContent(result[0].leave_msg, guild, client, member);
+                const leaveMessage = replaceMsgContent(result[0].leave_msg, guild, client, member, "leave");
                 try {
                     await channel.send(leaveMessage);
                 } catch (err) {

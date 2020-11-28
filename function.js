@@ -367,7 +367,7 @@ module.exports = {
       reject(err);
     }
   }),
-  replaceMsgContent(msg, guild, client, member) {
+  replaceMsgContent(msg, guild, client, member, flag) {
     const splitMessage = msg.split(" ");
     const messageArray = [];
     for (const word of splitMessage) {
@@ -406,6 +406,7 @@ module.exports = {
             }
         } else messageArray.push(word);
     }
-    return messageArray.join(" ").replace(/\{user\}/ig, member);
+    if (flag === "welcome") return messageArray.join(" ").replace(/\{user\}/ig, member);
+    else if (flag === "leave") return messageArray.join(" ").replace(/\{user\}/ig, member.user.tag);
   }
 };
