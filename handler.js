@@ -182,15 +182,21 @@ module.exports = {
                     let title = `${dc} - ${rank} [${username}]`;
                     setTimeout_(async () => {
                         let asuna = await client.users.fetch("461516729047318529");
-                        const [results] = await con.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
-                        if (results.length == 0) return;
+                        const conn = await pool.getConnection();
                         try {
-                            asuna.send(title + " expired");
-                            var user = await client.users.fetch(result.user);
-                            user.send(`Your rank **${rank}** in War of Underworld has expired.`);
-                        } catch (err) { console.error("Failed to DM user"); }
-                        await con.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
-                        console.log("A guild timer expired.");
+                            const [results] = await conn.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
+                            if (results.length == 0) return;
+                            try {
+                                asuna.send(title + " expired");
+                                var user = await client.users.fetch(result.user);
+                                user.send(`Your rank **${rank}** in War of Underworld has expired.`);
+                            } catch (err) { console.error("Failed to DM user"); }
+                            await conn.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
+                            console.log("A guild timer expired.");
+                        } catch(err) {
+                            console.error(err);
+                        }
+                        conn.release();
                     }, endAfter);
                 });
             }
@@ -204,21 +210,27 @@ module.exports = {
                 var millisec = result.expiration - currentDate;
                 async function expire(length) {
                     setTimeout_(async() => {
-                        const [results] = await con.query(`SELECT id, expiration FROM rolemsg WHERE id = '${result.id}'`);
-                        if (results.length == 0) return;
-                        var date = new Date();
-                        var deleted = false;
+                        const conn = await pool.getConnection();
                         try {
-                            const channel = await client.channels.fetch(results[0].channel);
-                            var msg = await channel.messages.fetch(results[0].id);
-                        } catch (err) {
-                            deleted = true;
+                            const [results] = await conn.query(`SELECT id, expiration FROM rolemsg WHERE id = '${result.id}'`);
+                            if (results.length == 0) return;
+                            var date = new Date();
+                            var deleted = false;
+                            try {
+                                const channel = await client.channels.fetch(results[0].channel);
+                                var msg = await channel.messages.fetch(results[0].id);
+                            } catch (err) {
+                                deleted = true;
+                            }
+                            if (results[0].expiration - date <= 0) {
+                                await conn.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`);
+                                console.log("Deleted an expired role-message.");
+                                if (!deleted) msg.reactions.removeAll().catch(() => { });
+                            } else expire(results[0].expiration - date);
+                        } catch(err) {
+                            console.error(err);
                         }
-                        if (results[0].expiration - date <= 0) {
-                            await con.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`);
-                            console.log("Deleted an expired role-message.");
-                            if (!deleted) msg.reactions.removeAll().catch(() => { });
-                        } else expire(results[0].expiration - date);
+                        conn.release();
                     }, length);
                 }
                 expire(millisec);
@@ -238,7 +250,7 @@ module.exports = {
                         if (msg.deleted) throw new Error("Deleted");
                     } catch (err) {
                         if (channel || (msg && msg.deleted)) {
-                            await con.query("DELETE FROM giveaways WHERE id = " + result.id);
+                            await pool.query("DELETE FROM giveaways WHERE id = " + result.id);
                             return console.log("Deleted an ended giveaway record.");
                         }
                     }
@@ -248,7 +260,7 @@ module.exports = {
                     try {
                         await peopleReacted.users.fetch();
                     } catch (err) {
-                        await con.query("DELETE FROM giveaways WHERE id = " + msg.id);
+                        await pool.query("DELETE FROM giveaways WHERE id = " + msg.id);
                         return console.log("Deleted an ended giveaway record.");
                     }
                     try {
@@ -264,7 +276,7 @@ module.exports = {
                     if (remove > -1) endReacted.splice(remove, 1);
 
                     if (endReacted.length === 0) {
-                        await con.query("DELETE FROM giveaways WHERE id = " + msg.id);
+                        await pool.query("DELETE FROM giveaways WHERE id = " + msg.id);
                         console.log("Deleted an ended giveaway record.");
                         const Ended = new Discord.MessageEmbed()
                             .setColor(parseInt(result.color))
@@ -296,7 +308,7 @@ module.exports = {
                         const link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
                         await msg.channel.send(`Congratulation, ${winnerMessage}! You won **${unescape(result.item)}**!\n${link}`);
                         msg.reactions.removeAll().catch(() => { });
-                        await con.query("DELETE FROM giveaways WHERE id = " + result.id);
+                        await pool.query("DELETE FROM giveaways WHERE id = " + result.id);
                         console.log("Deleted an ended giveaway record.");
                     }
                 }, millisec);
@@ -315,7 +327,7 @@ module.exports = {
                         if (msg.deleted) throw new Error("Deleted");
                     } catch (err) {
                         if (channel || (msg && msg.deleted)) {
-                            await con.query("DELETE FROM poll WHERE id = " + result.id);
+                            await pool.query("DELETE FROM poll WHERE id = " + result.id);
                             return console.log("Deleted an ended poll.");
                         }
                     }
@@ -339,7 +351,7 @@ module.exports = {
                     const link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
                     await msg.channel.send("A poll has ended!\n" + link);
                     msg.reactions.removeAll().catch(() => { });
-                    await con.query("DELETE FROM poll WHERE id = " + result.id);
+                    await pool.query("DELETE FROM poll WHERE id = " + result.id);
                     console.log("Deleted an ended poll.");
                 }, time);
             });
@@ -371,10 +383,16 @@ module.exports = {
                         em.setDescription("The timer has ended.");
                         msg = await msg.edit(em);
                         author.send(`Your timer in **${guild.name}** has ended! https://discord.com/channels/${guild.id}/${channel.id}/${msg.id}`);
-                        var res = await con.query(`SELECT * FROM timer WHERE guild = '${guild.id}' AND channel = '${channel.id}' AND author = '${author.id}' AND msg = '${msg.id}'`);
-                        if (res.length < 1) return;
-                        await con.query(`DELETE FROM timer WHERE guild = '${guild.id}' AND channel = '${channel.id}' AND author = '${author.id}' AND msg = '${msg.id}'`);
-                        return console.log("Deleted a timed out timer from the database.");
+                        const conn = await pool.getConnection();
+                        try {
+                            var [res] = await conn.query(`SELECT * FROM timer WHERE guild = '${guild.id}' AND channel = '${channel.id}' AND author = '${author.id}' AND msg = '${msg.id}'`);
+                            if (res.length < 1) return;
+                            await conn.query(`DELETE FROM timer WHERE guild = '${guild.id}' AND channel = '${channel.id}' AND author = '${author.id}' AND msg = '${msg.id}'`);
+                            return console.log("Deleted a timed out timer from the database.");
+                        } catch(err) {
+                            console.error(err);
+                        }
+                        conn.release();
                     }
                     if (count < 4) return count++;
                     em.setDescription(`(The timer updates every **5 seconds**)\nThis is a timer and it will last for\n**${readableDateTimeText(time)}**`);
