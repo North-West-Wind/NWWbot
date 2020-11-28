@@ -7,7 +7,7 @@ module.exports = {
   usage: "<target> <destination>",
   category: 8,
   args: 2,
-  async music(message, serverQueue, queue, pool) {
+  async music(message, serverQueue, queue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to alter the queue when the bot is playing!");
     var queueIndex = parseInt(args[1]);
@@ -32,13 +32,13 @@ module.exports = {
       );
     var title = serverQueue.songs[targetIndex].title;
     arrayMove.mutate(serverQueue.songs, targetIndex, destIndex);
-    updateQueue(message, serverQueue, queue, pool);
+    updateQueue(message, serverQueue, queue);
     message.channel.send(
       `**${title}** has been moved from **#${queueIndex}** to **#${dest}**.`
     );
     if (targetIndex === 0 || destIndex === 0) {
       if (serverQueue.playing) {
-        play(message.guild, serverQueue.songs[0], queue, pool);
+        play(message.guild, serverQueue.songs[0], queue);
       }
     }
   }

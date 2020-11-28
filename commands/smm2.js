@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const fetch = require("node-fetch");
-const { readableDateTime } = require("../function.js");
+const { readableDateTime, createEmbedScrolling } = require("../function.js");
 const styles = {
     M3: "Super Mario Bros. 3",
     W3: "Super Mario 3D World",
@@ -68,57 +68,6 @@ module.exports = {
           await message.channel.send("Cannot find any courses!");
           return message.channel.stopTyping(true);
         }
-        const filter = (reaction, user) => {
-          return (
-            ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
-            user.id === message.author.id
-          );
-        };
-        var msg = await message.channel.send(allEmbeds[0]);
-        var s = 0;
-        await msg.react("⏮");
-        await msg.react("◀");
-        await msg.react("▶");
-        await msg.react("⏭");
-        await msg.react("⏹");
-        message.channel.stopTyping(true);
-        var collector = await msg.createReactionCollector(filter, {
-          idle: 60000,
-          errors: ["time"]
-        });
-
-        collector.on("collect", function(reaction, user) {
-          reaction.users.remove(user.id);
-          switch (reaction.emoji.name) {
-            case "⏮":
-              s = 0;
-              msg.edit(allEmbeds[s]);
-              break;
-            case "◀":
-              s -= 1;
-              if (s < 0) {
-                s = allEmbeds.length - 1;
-              }
-              msg.edit(allEmbeds[s]);
-              break;
-            case "▶":
-              s += 1;
-              if (s > allEmbeds.length - 1) {
-                s = 0;
-              }
-              msg.edit(allEmbeds[s]);
-              break;
-            case "⏭":
-              s = allEmbeds.length - 1;
-              msg.edit(allEmbeds[s]);
-              break;
-            case "⏹":
-              collector.emit("end");
-              break;
-          }
-        });
-        collector.on("end", function() {
-          msg.reactions.removeAll().catch(console.error);
-        });
+        await createEmbedScrolling(message, allEmbeds);
     }
 }

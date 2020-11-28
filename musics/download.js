@@ -1,38 +1,48 @@
-const scdl = require("soundcloud-downloader");
+const scdl = require("soundcloud-downloader").default;
 const ytdl = require("ytdl-core");
-const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL } = require("../function.js");
-const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search } = require("./play.js");
-const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
+const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent } = require("../function.js");
+const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search, updateQueue } = require("./play.js");
 const Discord = require("discord.js");
+const { getMP3 } = require("../commands/musescore.js");
 const requestStream = (url) => new Promise((resolve, reject) => {
-  const rs = require("request-stream");
-  rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
+    const rs = require("request-stream");
+    rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
 });
+const requestYTDLStream = (url, opts) => {
+    const timeoutMS = opts.timeout && !isNaN(parseInt(opts.timeout)) ? parseInt(opts.timeout) : 30000;
+    const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${timeoutMS}ms`)), timeoutMS));
+    const getStream = new Promise((resolve, reject) => {
+        const stream = ytdl(url, opts);
+        stream.on("finish", () => resolve(stream)).on("error", err => reject(err));
+    });
+    return Promise.race([timeout, getStream]);
+};
 module.exports = {
     name: "download",
     description: "Download the soundtrack from the server queue or online.",
     usage: "[index | link | keywords]",
     aliases: ["dl"],
     category: 8,
-    async music(message, serverQueue) {
+    async music(message, serverQueue, queue) {
         const args = message.content.slice(message.prefix.length).split(/ +/);
-        if (isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, args);
+        if (args[1] && isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, serverQueue, queue, args);
         if (!serverQueue) return message.channel.send("There is nothing playing.");
         if (!serverQueue.songs) serverQueue.songs = [];
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the song queue.");
-        let song = serverQueue.songs[parseInt(args[1]) > serverQueue.songs.length ? 0 : parseInt(args[1])];
-        await this.download(message, song);
+        let song = serverQueue.songs[!(!isNaN(parseInt(args[1])) && parseInt(args[1]) > serverQueue.songs.length) ? 0 : parseInt(args[1])];
+        await this.download(message, serverQueue, queue, song);
     },
-    async download(message, song) {
+    async download(message, serverQueue, queue, song) {
+        const args = message.content.slice(message.prefix.length).split(/ +/);
         try {
             if (song.isLive) {
-                const args = ["0", song.url];
-                const result = await addYTURL({ dummy: true }, args, song.type);
+                const argss = ["0", song.url];
+                const result = await addYTURL({ dummy: true }, argss, song.type);
                 if (result.error) throw "Failed to find video";
                 if (!isEquivalent(result.songs[0], song)) {
                     song = result.songs[0];
                     serverQueue.songs[0] = song;
-                    updateQueue(message, serverQueue, queue, pool);
+                    updateQueue(message, serverQueue, queue);
                     if (song.isLive) return await message.channel.send("Livestream downloading is not supported and recommended! Come back later when the livestream is over.");
                 }
             }
@@ -53,27 +63,27 @@ module.exports = {
                     stream = await scdl.download(song.url);
                     break;
                 case 5:
-                    const mp3 = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 30000 }).then(res => res.json());
+                    const mp3 = await getMP3(song.url);
                     if (mp3.error) throw new Error(mp3.message);
                     stream = await requestStream(mp3.url);
                     break;
                 case 6:
                     stream = await requestStream(song.download);
-                    if(stream.statusCode != 200) {
-                      const g = await module.exports.addPHURL(message, args);
-                      if(g.error) throw "Failed to find video";
-                      song = g;
-                      serverQueue.songs[0] = song;
-                      updateQueue(message, serverQueue, queue, pool);
-                      stream = await requestStream(song.download);
-                      if(stream.statusCode != 200) throw new Error("Received HTTP Status Code: " + stream.statusCode);
+                    if (stream.statusCode != 200) {
+                        const g = await module.exports.addPHURL(message, args);
+                        if (g.error) throw "Failed to find video";
+                        song = g;
+                        serverQueue.songs[0] = song;
+                        updateQueue(message, serverQueue, queue);
+                        stream = await requestStream(song.download);
+                        if (stream.statusCode != 200) throw new Error("Received HTTP Status Code: " + stream.statusCode);
                     }
                     break;
                 default:
-                    stream = ytdl(song.url, { highWaterMark: 1 << 25, filter: "audioonly", quality: "lowestaudio", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
+                    stream = await requestYTDLStream(song.url, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
                     break;
             }
-            if(stream.statusCode && stream.statusCode != 200) throw new Error("Received HTTP Status Code " + stream.statusCode);
+            if (stream.statusCode && stream.statusCode != 200) throw new Error("Received HTTP Status Code " + stream.statusCode);
         } catch (err) {
             message.channel.stopTyping(true);
             console.error(err);
@@ -84,13 +94,13 @@ module.exports = {
             await message.channel.send("The file may not appear just yet. Please be patient!");
             message.channel.stopTyping(true);
             let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
-            message.channel.send(attachment).catch((err) => message.reply(`there was an error trying to send the soundtrack! (${err.message})`));
+            await message.channel.send(attachment).catch((err) => message.reply(`there was an error trying to send the soundtrack! (${err.message})`));
         } catch (err) {
             message.reply(`there was an error trying to send the soundtrack!`);
             console.error(err);
         }
     },
-    async downloadFromArgs(message, args) {
+    async downloadFromArgs(message, serverQueue, queue, args) {
         var result = { error: true };
         try {
             if (validYTPlaylistURL(args.slice(1).join(" "))) result = await addYTPlaylist(message, args);
@@ -104,8 +114,8 @@ module.exports = {
             else result = await search(message, args);
             if (result.error) return;
             if (result.msg) result.msg.delete({ timeout: 10000 });
-            for (const song of result.songs) await this.download(message, song);
-        } catch(err) {
+            for (const song of result.songs) await this.download(message, serverQueue, queue, song);
+        } catch (err) {
             message.reply("there was an error trying to download the soundtack!");
             console.error(err);
         }

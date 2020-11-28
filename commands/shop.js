@@ -4,9 +4,9 @@ module.exports = {
   name: "shop",
   description: "Spend the money you gained from work or lottery.",
   category: 2,
-  execute(message, args, pool) {
+  execute(message, args) {
     const color = console.color();
-    pool.getConnection(function(err, con) {
+    console.getConnection(function(err, con) {
       if (err) {
         console.error(err);
         return message.reply(

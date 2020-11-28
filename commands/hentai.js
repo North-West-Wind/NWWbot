@@ -4,68 +4,62 @@ const { ms } = require("../function.js");
 
 module.exports = {
   name: "hentai",
-  description:
-    "Return something very NSFW. Require NSFW channel.",
+  description: "Return something very NSFW. Require NSFW channel.",
   usage: "[tag | auto] [amount] [interval]",
   aliases: ["h"],
   tags: [
     "ass",
     "bdsm",
+    "blowjob",
     "cum",
-    "femdom",
     "doujin",
+    "feet",
+    "femdom",
+    "foxgirl",
+    "gifs",
+    "glasses",
     "hentai",
+    "netorare",
     "maid",
+    "masturbation",
     "orgy",
     "panties",
-    "netorare",
+    "pussy",
+    "school",
+    "tentacles",
+    "thighs",
+    "uglyBastard",
+    "uniform",
+    "yuri",
     "neko"
   ],
   category: 5,
   async execute(message, args) {
-    if (!message.channel.nsfw) {
-      return message.channel.send("Please use an NSFW channel to use this command!")
-    }
+    if (!message.channel.nsfw) return message.channel.send("Please use an NSFW channel to use this command!");
     var tag = "random";
     if (args.length >= 1) {
       if (args[0].toLowerCase() === "tags") return await this.tagsList(message); 
       else if (args[0].toLowerCase() === "auto") return await this.auto(message, args);
-
       const testTag = args[0];
       const i = this.tags.findIndex(t => testTag === t);
-
-      if (i !== -1) {
-        tag = this.tags[i];
-      }
+      if (i !== -1) tag = this.tags[i];
     }
-    if (tag === "random") {
-      return await this.random(message);
-    }
-
-    if (tag === "neko") {
-      var result = neko.lewdNeko();
-    } else {
-      var result = neko.nsfw[tag]();
-    }
-
+    if (tag === "random") return await this.random(message);
+    if (tag === "neko") var result = await neko.lewdNeko();
+    else var result = await neko.nsfw[tag]();
     const embed = new Discord.MessageEmbed()
       .setTitle("Tag: " + tag)
       .setColor(console.color())
       .setImage(result)
       .setTimestamp()
       .setFooter("Made with Akaneko", message.client.user.displayAvatarURL());
-    message.channel.send(embed);
-
-
+    await message.channel.send(embed);
   },
   async random(message) {
     var index = Math.floor(Math.random() * this.tags.length);
     var tag = this.tags[index];
-    if (tag === "neko") {
-      var result = neko.lewdNeko();
-    } else {
-      var result = neko.nsfw[tag]();
-    }
+    if (tag === "neko") var result = await neko.lewdNeko();
+    else var result = await neko.nsfw[tag]();
     const embed = new Discord.MessageEmbed()
       .setTitle("Tag: " + tag)
       .setColor(console.color())
@@ -93,11 +87,11 @@ module.exports = {
     else if(interval > 300000) return message.channel.send("The interval must be smaller than 5 minutes!");
     else if(amount < 1) return message.channel.send("The amount of message must be larger than 0!");
     else if(amount > 120) return message.channel.send("The amount of message must be smaller than 120!");
-    message.channel.send(`Auto-hentai initialized. **${amount} messages** with interval **${interval} milliseconds**`)
+    await message.channel.send(`Auto-hentai initialized. **${amount} messages** with interval **${interval} milliseconds**`);
     var counter = 0;
     var i = setInterval(async() => {
       if(counter === amount) {
-        message.channel.send("Auto-hentai ended. Thank you for using that!");
+        await message.channel.send("Auto-hentai ended. Thank you for using that!");
         return clearInterval(i);
       }
       await this.random(message);

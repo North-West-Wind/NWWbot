@@ -1,14 +1,14 @@
-const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_ } = require("../function.js");
+const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_, readableDateTimeText } = require("../function.js");
 const Discord = require("discord.js");
-const { ms } = require("../function.js");
+const { ms, createEmbedScrolling } = require("../function.js");
 const nameToUuid = (str) => {
 	return new Promise((resolve, reject) => {
-		require("mojang-api").nameToUuid(str, function (err, res) { if(err) reject(err); else resolve(res); })
+		require("mojang-api").nameToUuid(str, function (err, res) { if (err) reject(err); else resolve(res); })
 	});
 }
 const profile = (str) => {
 	return new Promise((resolve, reject) => {
-		require("mojang-api").profile(str, function (err, res) { if(err) reject(err); else resolve(res); });
+		require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); });
 	})
 }
 const moment = require("moment");
@@ -23,82 +23,76 @@ module.exports = {
 	subcommands: ["splash", "invite", "lottery"],
 	subaliases: ["sp", "in", "lot"],
 	args: 1,
-	async execute(message, args, pool) {
-		if(message.guild.id !== "622311594654695434") return;
+	async execute(message, args) {
+		if (message.guild.id !== "622311594654695434") return;
 		switch (args[0]) {
 			case "sp":
 			case "splash":
 				return await this.splash(message);
 			case "in":
 			case "invite":
-				return await this.invite(message, args, pool);
+				return await this.invite(message, args);
 			case "lot":
 			case "lottery":
-				return await this.lottery(message, args, pool);
+				return await this.lottery(message, args);
 			case "tim":
 			case "timer":
-				return await this.timer(message, args, pool);
+				return await this.timer(message, args);
 			default:
 				return message.channel.send("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${message.prefix}${this.name} ${this.usage}`);
 		}
 	},
-	async invite(message, args, pool) {
+	async invite(message, args) {
 		if (message.guild.id != "622311594654695434") return message.channel.send("Please use this command in the server War of Underworld. Thank you.");
-		let divine = message.guild.roles.fetch("640148120579211265");
+		const divine = message.guild.roles.fetch("640148120579211265");
 		if (message.member.roles.highest.position < divine.position) return message.channel.send("You don't have the role to use this command!")
 		if (!args[1]) return message.channel.send("You didn't mention any user!");
-		let user = await findUser(message, args[1]);
+		const user = await findUser(message, args[1]);
 		if (!user) return;
-		pool.getConnection((err, con) => {
-			if (err) return message.reply("there was an error connecting to the database!");
-			con.query(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`, async (err, result) => {
-				if (err) return message.reply("there was an error fetchinbg the player!");
-				let channel = await message.client.channels.fetch("723479832452661269");
-				let noname = false;
-				if (result.length < 1) {
-					noname = true;
-				}
-				let em = new Discord.MessageEmbed()
-					.setColor(console.color())
-					.setTitle("Please choose an operation:")
-					.setDescription("1️⃣: Accept\n2️⃣: Decline (Already in another guild)\n3️⃣: Decline (Already in guild)\n4️⃣: Decline (Banned)")
-					.setTimestamp()
-					.setFooter("Please choose within 2 minutes.", message.client.user.displayAvatarURL());
+		try {
+			await message.pool.query(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`);
+			const channel = await message.client.channels.fetch("723479832452661269");
+			var noname = false;
+			if (result.length < 1) noname = true;
+			const em = new Discord.MessageEmbed()
+				.setColor(console.color())
+				.setTitle("Please choose an operation:")
+				.setDescription("1️⃣: Accept\n2️⃣: Decline (Already in another guild)\n3️⃣: Decline (Already in guild)\n4️⃣: Decline (Banned)")
+				.setTimestamp()
+				.setFooter("Please choose within 2 minutes.", message.client.user.displayAvatarURL());
 
-				let msg = await message.channel.send(em);
-				await msg.react("1️⃣");
-				await msg.react("2️⃣");
-				await msg.react("3️⃣");
-				await msg.react("4️⃣");
+			const msg = await message.channel.send(em);
+			await msg.react("1️⃣");
+			await msg.react("2️⃣");
+			await msg.react("3️⃣");
+			await msg.react("4️⃣");
 
-				let collected = undefined;
-				collected = await msg.awaitReactions((r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.author.id, { max: 1, time: 120000, errors: ["time"] }).catch(console.error);
-				await msg.reactions.removeAll().catch(console.error);
-				if (!collected || !collected.first()) {
-					return message.channel.send("No operation chosen in 2 minutes. Please try again.");
-				}
-				const reaction = collected.first();
-				switch (reaction.emoji.name) {
-					case "1️⃣":
-						await msg.edit({ content: "Request Accpected", embed: null });
-						channel.send(`✅ | <@${user.id}> Congratulations ! You have been invited to the guild. Please accept the invite in Hypixel in 5 minutes ! If you can't join our guild right now, you will need to find guild officers to invite you again later.` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
-						break;
-					case "2️⃣":
-						await msg.edit({ content: "Request Declined (Already in another guild)", embed: null });
-						channel.send(`❌ | <@${user.id}> Sorry, you are not allow to join our guild because you are already in another guild. Please read the pinned message in <#724271012492869642>!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
-						break;
-					case "3️⃣":
-						await msg.edit({ content: "Request Declined (Already in guild)", embed: null });
-						channel.send(`❌ | <@${user.id}> Sorry, you are already in our guild. If you keep spamming requests, you will get banned!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
-						break;
-					case "4️⃣":
-						await msg.edit({ content: "Request Declined (Already in guild)", embed: null });
-						channel.send(`❌ | <@${user.id}> Sorry, you are banned from our guild. Good luck finding another one!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
-						break;
-				}
-			});
-			con.release();
-		})
+			const collected = await msg.awaitReactions((r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.author.id, { max: 1, time: 120000, errors: ["time"] }).catch(console.error);
+			await msg.reactions.removeAll().catch(console.error);
+			if (!collected || !collected.first()) return await message.channel.send("No operation chosen in 2 minutes. Please try again.");
+			const reaction = collected.first();
+			switch (reaction.emoji.name) {
+				case "1️⃣":
+					await msg.edit({ content: "Request Accpected", embed: null });
+					channel.send(`✅ | <@${user.id}> Congratulations ! You have been invited to the guild. Please accept the invite in Hypixel in 5 minutes ! If you can't join our guild right now, you will need to find guild officers to invite you again later.` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
+					break;
+				case "2️⃣":
+					await msg.edit({ content: "Request Declined (Already in another guild)", embed: null });
+					channel.send(`❌ | <@${user.id}> Sorry, you are not allow to join our guild because you are already in another guild. Please read the pinned message in <#724271012492869642>!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
+					break;
+				case "3️⃣":
+					await msg.edit({ content: "Request Declined (Already in guild)", embed: null });
+					channel.send(`❌ | <@${user.id}> Sorry, you are already in our guild. If you keep spamming requests, you will get banned!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
+					break;
+				case "4️⃣":
+					await msg.edit({ content: "Request Declined (Already in guild)", embed: null });
+					channel.send(`❌ | <@${user.id}> Sorry, you are banned from our guild. Good luck finding another one!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
+					break;
+			}
+		} catch (err) {
+			console.error(err);
+			await message.reply("there was an error fetching the player!");
+		}
 	},
 	async splash(message) {
 		let msg = await message.channel.send("Which channel do you want the message to be announced?");
@@ -220,7 +214,7 @@ module.exports = {
 
 		await msg.edit("The message has been sent!");
 	},
-	async lottery(message, args, pool) {
+	async lottery(message, args) {
 		let items = {
 			"1": 65,
 			"2": 5,
@@ -257,7 +251,7 @@ module.exports = {
 		}
 		message.channel.send(prize);
 	},
-	async timer(message, args, pool) {
+	async timer(message, args) {
 		if (!message.member.hasPermission(8) || !message.guild) return;
 		switch (args[1]) {
 			case "create":
@@ -274,184 +268,102 @@ module.exports = {
 				time.first().delete();
 				if (isNaN(duration)) return message.channel.send("The duration given is not valid!");
 				time = duration;
-				let sec = Math.floor(time / 1000);
-				var dd = Math.floor(sec / 86400);
-				var dh = Math.floor((sec % 86400) / 3600);
-				var dm = Math.floor(((sec % 86400) % 3600) / 60);
-				var ds = Math.floor(((sec % 86400) % 3600) % 60);
-				var d = "";
-				var h = "";
-				var m = "";
-				var s = "";
-				if (dd !== 0) {
-					d = " " + dd + " days";
-				}
-				if (dh !== 0) {
-					h = " " + dh + " hours";
-				}
-				if (dm !== 0) {
-					m = " " + dm + " minutes";
-				}
-				if (ds !== 0) {
-					s = " " + ds + " seconds";
-				}
 				let uuid = await nameToUuid(args[3]);
 				if (!uuid || !uuid[0]) return message.reply("there was an error trying to find the player in Minecraft!");
-				pool.getConnection((err, con) => {
-					if (err) return message.reply("there was an error trying to connect to the database!");
-					con.query(`INSERT INTO gtimer(user, dc_rank, mc, endAt) VALUES('${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid[0].id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`, (err) => {
-						if (err) {
-							console.error(err);
-							return message.reply("there was an error trying to insert the timer to the database!");
-						}
-						message.channel.send("Timer recorded.");
-					});
-					con.release();
-				});
-				msg = await msg.edit(`Timer created with the title **${title}** and will last for **${d + h + m + s}**`);
-				setTimeout_(async() => {
+				try {
+					await message.pool.query(`INSERT INTO gtimer(user, dc_rank, mc, endAt) VALUES('${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid[0].id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`);
+					message.channel.send("Timer recorded.");
+				} catch (err) {
+					console.error(err);
+					await message.reply("there was an error trying to insert the timer to the database!");
+				}
+				msg = await msg.edit(`Timer created with the title **${title}** and will last for **${readableDateTimeText(time)}**`);
+				setTimeout_(async () => {
 					let asuna = await message.client.users.fetch("461516729047318529");
-					pool.getConnection((err, con) => {
-						if(err) return asuna.send(title + " expired");
-						con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`, (err, results) => {
-							if(err) return asuna.send(title + " expired");
-							if(results.length == 0) return;
-							asuna.send(title + " expired");
-							con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`, (err) => {
-								if(err) return console.error(err);
-								console.log("A guild timer expired");
-							});
-						});
-						con.release();
-					});
+					const con = await message.pool.getConnection();
+					try {
+						var [results] = await con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
+						if (results.length == 0) throw new Error("Not found");
+						await con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
+					} catch (err) {
+						console.error(err);
+					}
+					con.release();
+					await asuna.send(title + " expired");
 				}, time);
 				break;
 			case "delete":
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
 				let userd = await findUser(args[2]);
 				if (!userd) return;
-				pool.getConnection((err, con) => {
-					if (err) return message.reply("there was an error trying to connect to the database!");
-					con.query(`SELECT * FROM gtimer WHERE user = '${userd.id}'`, (err, results) => {
-						if (err) return message.reply("there was an error trying to fetch data from the database!");
-						if (results.length == 0) return message.channel.send("No timer was found.");
-						con.query(`DELETE FROM gtimer WHERE user = '${userd.id}'`, (err) => {
-							if (err) return message.reply("there was an error trying to delete the timer!");
-							message.channel.send(`Deleted ${results.length} timers.`);
-						});
-					});
-					con.release();
-				});
+				const con = await message.pool.getConnection();
+				try {
+					var [results] = await con.query(`SELECT * FROM gtimer WHERE user = '${userd.id}'`);
+					if (results.length == 0) return message.channel.send("No timer was found.");
+					await con.query(`DELETE FROM gtimer WHERE user = '${userd.id}'`);
+					await message.channel.send(`Deleted ${results.length} timers.`);
+				} catch (err) {
+					console.error(err);
+					await message.reply("there was an error trying to delete the timer!");
+				}
+				con.release();
 				break;
 			case "list":
-				pool.getConnection((err, con) => {
-					if (err) return message.reply("there was an error trying to connect to the database!");
-					con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`, async (err, results) => {
-						if (err) return message.reply("there was an error trying to fetch data from the database!");
-						let now = Date.now();
-						let tmp = [];
-						for(const result of results) {
-							let mc = await profile(result.mc);
-							let username = "undefined";
-							if (mc) username = mc.name;
-							const str = result.user;
-							let dc = "0";
-							try {
-								var user = await message.client.users.fetch(str);
-								dc = user.id;
-							} catch (err) { }
-							let rank = unescape(result.dc_rank);
-							let title = `<@${dc}> - ${rank} [${username}]`;
-							let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-							tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
-						}
-						if (tmp.length <= 10) {
-							let description = "";
-							let num = 0;
-							for(const result of tmp) {
-								description += `${++num}. ${result.title} : ${result.time}\n`;
-							}
-							const em = new Discord.MessageEmbed()
+				try {
+					await message.pool.query(`SELECT * FROM gtimer ORDER BY endAt ASC`,);
+					let now = Date.now();
+					let tmp = [];
+					for (const result of results) {
+						let mc = await profile(result.mc);
+						let username = "undefined";
+						if (mc) username = mc.name;
+						const str = result.user;
+						let dc = "0";
+						try {
+							const user = await message.client.users.fetch(str);
+							dc = user.id;
+						} catch (err) { }
+						let rank = unescape(result.dc_rank);
+						let title = `<@${dc}> - ${rank} [${username}]`;
+						let seconds = Math.round((result.endAt.getTime() - now) / 1000);
+						tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
+					}
+					if (tmp.length <= 10) {
+						let description = "";
+						let num = 0;
+						for (const result of tmp) description += `${++num}. ${result.title} : ${result.time}\n`;
+						const em = new Discord.MessageEmbed()
 							.setColor(console.color())
 							.setTitle("Rank Expiration Timers")
 							.setDescription(description)
 							.setTimestamp()
 							.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-							message.channel.send(em);
-						} else {
-							const allEmbeds = [];
-							for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
-								let desc = "";
-								for(let num = 0; num < 10; num++) {
-									if(!tmp[i + num]) break;
-									desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
-								}
-								const em = new Discord.MessageEmbed()
+						await message.channel.send(em);
+					} else {
+						const allEmbeds = [];
+						for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
+							let desc = "";
+							for (let num = 0; num < 10; num++) {
+								if (!tmp[i + num]) break;
+								desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
+							}
+							const em = new Discord.MessageEmbed()
 								.setColor(console.color())
 								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
 								.setDescription(desc)
 								.setTimestamp()
 								.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-								allEmbeds.push(em);
-							}
-							const filter = (reaction, user) => {
-								return (
-									["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) &&
-									user.id === message.author.id
-								);
-							};
-							var msg = await message.channel.send(allEmbeds[0]);
-							var s = 0;
-							await msg.react("⏮");
-							await msg.react("◀");
-							await msg.react("▶");
-							await msg.react("⏭");
-							await msg.react("⏹");
-							var collector = await msg.createReactionCollector(filter, {
-								idle: 60000,
-								errors: ["time"]
-							});
-
-							collector.on("collect", function (reaction, user) {
-								reaction.users.remove(user.id);
-								switch (reaction.emoji.name) {
-									case "⏮":
-										s = 0;
-										msg.edit(allEmbeds[s]);
-										break;
-									case "◀":
-										s -= 1;
-										if (s < 0) {
-											s = allEmbeds.length - 1;
-										}
-										msg.edit(allEmbeds[s]);
-										break;
-									case "▶":
-										s += 1;
-										if (s > allEmbeds.length - 1) {
-											s = 0;
-										}
-										msg.edit(allEmbeds[s]);
-										break;
-									case "⏭":
-										s = allEmbeds.length - 1;
-										msg.edit(allEmbeds[s]);
-										break;
-									case "⏹":
-										collector.emit("end");
-										break;
-								}
-							});
-							collector.on("end", function () {
-								msg.reactions.removeAll().catch(console.error);
-							});
+							allEmbeds.push(em);
 						}
-					});
-					con.release();
-				});
+						await createEmbedScrolling(message, allEmbeds);
+					}
+				} catch (err) {
+					console.error(err);
+					await message.reply("there was an error trying to fetch data from the database!");
+				}
 				break;
 			default:
-				message.channel.send("That is not a sub-subcommand!");
+				await message.channel.send("That is not a sub-subcommand!");
 		}
 	}
 }

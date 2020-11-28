@@ -45,10 +45,10 @@ module.exports = {
         try {
             const res = await fetch(selected).then(res => res.body);
             const attachment = new Discord.MessageAttachment(res, `axolotl.${selected.split(".")[selected.split(".").length - 1]}`);
-            message.channel.send(attachment);
+            await message.channel.send(attachment);
         } catch(err) {
             console.error(err);
-            return message.reply("there was an error fetching the axolotls!");
+            return await message.reply("there was an error fetching the axolotls!");
         }
     }
 }

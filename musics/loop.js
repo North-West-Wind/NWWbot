@@ -6,9 +6,9 @@ module.exports = {
   description: "Toggle loop of the song queue.",
   category: 8,
   aliases: ["lp"],
-  music(message, serverQueue, queue, pool) {
+  async music(message, serverQueue, queue) {
     if(!serverQueue) {
-      queue = setQueue(message.guild, [], false, false);
+      queue = setQueue(message.guild, [], false, false, message.pool);
       serverQueue = queue.get(message.guild.id);
     }
     if (!serverQueue.looping) {
@@ -17,25 +17,23 @@ module.exports = {
         serverQueue.repeating = false;
         message.channel.send("Disabled repeat to prevent conflict.");
       }
-      pool.getConnection(function (err, con) {
-        if (err) return message.reply("there was an error trying to connect to the database!");
-        con.query("UPDATE servers SET looping = 1, repeating = NULL WHERE id = '" + message.guild.id + "'", function (err) {
-          if (err) return message.reply("there was an error trying to update the status!");
-          message.channel.send("The song queue is now being looped.");
-        });
-        con.release();
-      });
+      try {
+        await message.pool.query(`UPDATE servers SET looping = 1, repeating = NULL WHERE id = '${message.guild.id}'`);
+        await message.channel.send("The song queue is now being looped.");
+      } catch(err) {
+        console.error(err);
+        await message.reply("there was an error trying to update the status!");
+      }
     } else {
       serverQueue.looping = false;
-      pool.getConnection(function (err, con) {
-        if (err) return message.reply("there was an error trying to connect to the database!");
-        con.query("UPDATE servers SET looping = NULL WHERE id = '" + message.guild.id + "'", function (err) {
-          if (err) return message.reply("there was an error trying to update the status!");
-          message.channel.send("The song queue is no longer being looped.");
-        });
-        con.release();
-      });
+      try {
+        await message.pool.query(`UPDATE servers SET looping = NULL WHERE id = '${message.guild.id}'`);
+        await message.channel.send("The song queue is no longer being looped.");
+      } catch(err) {
+        console.error(err);
+        await message.reply("there was an error trying to update the status!");
+      }
     }
-    updateQueue(message, serverQueue, queue, null);
+    updateQueue(message, serverQueue, queue, 1);
   }
 }

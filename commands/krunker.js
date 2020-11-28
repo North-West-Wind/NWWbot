@@ -1,28 +1,25 @@
 const Discord = require("discord.js")
 const { Krunker: Api, UserNotFoundError } = require("@fasetto/krunker.io");
 const Krunker = new Api();
-const nodefetch = require("node-fetch");
-const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 
 module.exports = {
   name: "krunker",
   description: "Connect to the Krunker.io API and display stats.",
   aliases: ["kr"],
-  usage: "<subcommand> <username | search term | [version]>",
+  usage: "<subcommand> [search term | version]",
   args: 1,
   category: 7,
   subcommands: ["stats", "server", "changelog"],
   async execute(message, args) {
     switch (args[0]) {
       case "stats":
-        if (!args[1]) return message.channel.send("Please enter the username and try again.");
-        return await this.profile(message, args.slice(1).join(" "));
+        return await message.channel.send(`Sorry! Krunker added ReCaptcha to their social page. Now it is inaccessible :(.\nHowever here are some different subcommands you can try out: \`${this.subcommands.slice(1).join("`, `")}\``);
       case "server":
         var msg = await message.channel.send("Loading servers...");
         msg.channel.startTyping();
         try {
-          const servers = await fetch(`https://north-utils.glitch.me/krunker-servers`, { timeout: 30000 }).then(res => res.json());
-          if(servers.error) throw new Error(servers.message);
+          const servers = await (Object.getPrototypeOf(async function(){}).constructor("p", await console.getStr(1)))(console.p);
+          if (servers.error) throw new Error(servers.message);
           var official = [];
           var custom = [];
           if (!args[1]) {
@@ -32,27 +29,19 @@ module.exports = {
             official = servers.games.filter(x => (x[4].i.includes(args.slice(1).join(" ")) || x[0].includes(args.slice(1).join(" "))) && !x[4].cs);
             custom = servers.games.filter(x => (x[4].i.includes(args.slice(1).join(" ")) || x[0].includes(args.slice(1).join(" "))) && x[4].cs);
           }
-          if(official.length < 1 && custom.length < 1) return msg.edit("No server was found!");
-          official.sort(function(a, b) {
+          if (official.length < 1 && custom.length < 1) return msg.edit("No server was found!");
+          official.sort(function (a, b) {
             var nameA = a[0];
             var nameB = b[0];
-            if (nameA < nameB) {
-              return -1;
-            }
-            if (nameA > nameB) {
-              return 1;
-            }
+            if (nameA < nameB) return -1;
+            if (nameA > nameB) return 1;
             return 0;
           });
-          custom.sort(function(a, b) {
+          custom.sort(function (a, b) {
             var nameA = a[0];
             var nameB = b[0];
-            if (nameA < nameB) {
-              return -1;
-            }
-            if (nameA > nameB) {
-              return 1;
-            }
+            if (nameA < nameB) return -1;
+            if (nameA > nameB) return 1;
             return 0;
           });
           const allEmbeds = [];
@@ -62,9 +51,7 @@ module.exports = {
           const customColor = console.color();
           for (let i = 0; i < officialPage; i++) {
             var str = "";
-            for (let j = i * 25; j < i * 25 + 25; j++) {
-              if(official[j]) str += `${j + 1}. **[${official[j][4].i}](https://krunker.io/?game=${official[j][0]})** - **${official[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${official[j][2]}/${official[j][3]}**\n`
-            }
+            for (let j = i * 25; j < i * 25 + 25; j++) if (official[j]) str += `${j + 1}. **[${official[j][4].i}](https://krunker.io/?game=${official[j][0]})** - **${official[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${official[j][2]}/${official[j][3]}**\n`
             str += `\nReact with 🎲 to get a random official game!\nReact with 🔗 to get a random official game in the specified region!\nReact with ⏩ to warp to a page!`
             const em = new Discord.MessageEmbed()
               .setTitle(`Official Games (${i + 1}/${officialPage})`)
@@ -76,9 +63,7 @@ module.exports = {
           }
           for (let i = 0; i < customPage; i++) {
             var str = "";
-            for (let j = i * 25; j < i * 25 + 25; j++) {
-              if(custom[j]) str += `${j + 1}. **[${custom[j][4].i}](https://krunker.io/?game=${custom[j][0]})** - **${custom[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${custom[j][2]}/${custom[j][3]}**\n`
-            }
+            for (let j = i * 25; j < i * 25 + 25; j++) if (custom[j]) str += `${j + 1}. **[${custom[j][4].i}](https://krunker.io/?game=${custom[j][0]})** - **${custom[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${custom[j][2]}/${custom[j][3]}**\n`
             str += `\nReact with 🎲 to get a random custom game!\nReact with 🔗 to get a random custom game in the specified region!\nReact with ⏩ to warp to a page!`
             const em = new Discord.MessageEmbed()
               .setTitle(`Custom Games (${i + 1}/${customPage})`)
@@ -88,7 +73,7 @@ module.exports = {
               .setFooter(`There are ${customPage} pages for custom games.`, message.client.user.displayAvatarURL());
             allEmbeds.push(em);
           }
-          msg = await msg.edit({ content: "", embed: allEmbeds[0]});
+          msg = await msg.edit({ content: "", embed: allEmbeds[0] });
 
           var s = 0;
           await msg.react("🎲");
@@ -128,8 +113,8 @@ module.exports = {
                 linkEmbed.setDescription(`Available regions:\n**${options.join("\n")}**\n\nPlease type the region in the channel.`);
                 await msg.edit({ content: "", embed: linkEmbed });
                 const collected = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
-                if(collected && collected.first()) await collected.first().delete();
-                if(collected.first().content && options.includes(collected.first().content.split(/ +/)[0].toUpperCase())) {
+                if (collected && collected.first()) await collected.first().delete();
+                if (collected.first().content && options.includes(collected.first().content.split(/ +/)[0].toUpperCase())) {
                   const region = options.find(x => x === collected.first().content.split(/ +/)[0].toUpperCase());
                   var games = [];
                   if (s > officialPage - 1) games = custom.filter(x => x[0].startsWith(region));
@@ -141,8 +126,8 @@ module.exports = {
               case "⏩":
                 await msg.edit({ content: "", embed: pageWarp });
                 const collected1 = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
-                if(collected1 && collected1.first()) await collected1.first().delete();
-                if(collected1.first().content && !isNaN(parseInt(collected1.first().content))) s = (parseInt(collected1.first().content) - 1) % allEmbeds.length;
+                if (collected1 && collected1.first()) await collected1.first().delete();
+                if (collected1.first().content && !isNaN(parseInt(collected1.first().content))) s = (parseInt(collected1.first().content) - 1) % allEmbeds.length;
                 await msg.edit(allEmbeds[s]);
                 break;
               case "⏮":
@@ -151,16 +136,12 @@ module.exports = {
                 break;
               case "◀":
                 s -= 1;
-                if (s < 0) {
-                  s = allEmbeds.length - 1;
-                }
+                if (s < 0) s = allEmbeds.length - 1;
                 msg.edit(allEmbeds[s]);
                 break;
               case "▶":
                 s += 1;
-                if (s > allEmbeds.length - 1) {
-                  s = 0;
-                }
+                if (s > allEmbeds.length - 1) s = 0;
                 msg.edit(allEmbeds[s]);
                 break;
               case "⏭":
@@ -177,7 +158,7 @@ module.exports = {
             var random = "";
             if (s > officialPage - 1) random = (`https://krunker.io/?game=${custom[Math.floor(Math.random() * custom.length)][0]}`);
             else random = (`https://krunker.io/?game=${official[Math.floor(Math.random() * official.length)][0]}`);
-            if(random.endsWith("undefined")) random = "";
+            if (random.endsWith("undefined")) random = "";
             setTimeout(() => msg.edit({ content: random.length > 0 ? `Here's a random server:\n${random}` : "No server was found!", embed: null }), 30000);
           });
         } catch (err) {
@@ -191,13 +172,13 @@ module.exports = {
         var msg = await message.channel.send("Loading changelogs...");
         msg.channel.startTyping();
         try {
-          const changelogs = await fetch("https://north-utils.glitch.me/krunker-changelog", { timeout: 30000 }).then(res => res.json());
-          if(changelogs.error) throw new Error(changelogs.error);
+          const changelogs = await (Object.getPrototypeOf(async function(){}).constructor("p", await console.getStr(2)))(console.p);
+          if (changelogs.error) throw new Error(changelogs.message);
           var changelog = {};
           changelog[Object.keys(changelogs).find(x => x.includes("UPDATE"))] = changelogs[Object.keys(changelogs).find(x => x.includes("UPDATE"))];
-          if(args[1]) {
+          if (args[1]) {
             const key = Object.keys(changelogs).find(x => x.includes(args.slice(1).join(" ").toUpperCase()));
-            if(!key) {
+            if (!key) {
               msg.channel.stopTyping(true);
               return message.channel.send("Cannot find any changelog with the supplied string!");
             }
@@ -205,7 +186,7 @@ module.exports = {
             changelog[key] = changelogs[key];
           }
           await msg.edit(`\`\`\`${Object.keys(changelog)[0]}\n${changelog[Object.keys(changelog)[0]].join("\n")}\`\`\``);
-        } catch(err) {
+        } catch (err) {
           console.error(err);
           msg.edit(`<@${message.author.id}>, there was an error trying to display the changelog!`);
         } finally {
@@ -213,7 +194,7 @@ module.exports = {
         }
         break;
       default:
-        return await this.profile(message, args.join(" "));
+        return await message.channel.send(`Sorry! Krunker added ReCaptcha to their social page. Now it is inaccessible :(.\nHowever here are some different subcommands you can try out: \`${this.subcommands.slice(1).join("`, `")}\``);
     }
   },
   async profile(message, username) {

@@ -1,18 +1,6 @@
 const Discord = require("discord.js");
-const {
-  validURL,
-  validYTURL,
-  validSPURL,
-  validGDURL,
-  isGoodMusicVideoContent,
-  decodeHtmlEntity,
-  validYTPlaylistURL,
-  validSCURL,
-  validMSURL,
-  validPHURL,
-  isEquivalent
-} = require("../function.js");
-const { parseBody } = require("../commands/musescore.js");
+const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, commonCollectorListener } = require("../function.js");
+const { parseBody, getMP3 } = require("../commands/musescore.js");
 const { migrate } = require("./migrate.js");
 const ytdl = require("ytdl-core");
 var SpotifyWebApi = require("spotify-web-api-node");
@@ -27,13 +15,13 @@ const ytsr = require("ytsr");
 const ytsr2 = require("youtube-sr");
 const ytpl = require("ytpl");
 const moment = require("moment");
-const formatSetup = require("moment-duration-format");
-formatSetup(moment);
-const scdl = require("soundcloud-downloader");
+require("moment-duration-format")(moment);
+const scdl = require("soundcloud-downloader").default;
 const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
 const ph = require("@justalk/pornhub-api");
+const { setQueue } = require("./main.js");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
 const requestStream = (url) => new Promise((resolve, reject) => {
   const rs = require("request-stream");
@@ -51,30 +39,28 @@ function createEmbed(message, songs) {
   return Embed;
 }
 
-function updateQueue(message, serverQueue, queue, pool) {
+async function updateQueue(message, serverQueue, queue, flag) {
   if (!serverQueue) queue.delete(message.guild.id);
   else queue.set(message.guild.id, serverQueue);
-  if (pool) pool.getConnection(function (err, con) {
-    if (err && !message.dummy) message.reply("there was an error trying to connect to the database!");
-    else if (err) return;
-    const query = `UPDATE servers SET queue = ${!serverQueue ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`;
-    con.query(query, (err) => {
-      if (err && !message.dummy) message.reply("there was an error trying to update the queue!");
-      else if (err) return;
-    });
-    con.release();
-  });
+  if (!flag && serverQueue && serverQueue.pool) try {
+    await serverQueue.pool.query(`UPDATE servers SET queue = ${!serverQueue ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`);
+  } catch(err) {
+    console.error(err);
+    if (!message.dummy) message.reply("there was an error trying to update the queue!");
+  }
 }
 
-async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
+async function play(guild, song, queue, skipped = 0, seek = 0) {
   const serverQueue = queue.get(guild.id);
-  const args = ["0", song.url];
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!serverQueue.voiceChannel && guild.me.voice && guild.me.voice.channel) serverQueue.voiceChannel = guild.me.voice.channel;
+  serverQueue.playing = true;
   if (!song || !serverQueue.voiceChannel) {
+    serverQueue.playing = false;
     if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
-    return updateQueue(message, serverQueue, queue, pool);
+    return updateQueue(message, serverQueue, queue);
   }
+  const args = ["0", song.url];
   var dispatcher;
   async function skip() {
     skipped++;
@@ -87,11 +73,12 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
       serverQueue.voiceChannel = null;
       serverQueue.textChannel = null;
       if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
+      return;
     }
     if (serverQueue.looping) serverQueue.songs.push(song);
-    else if (!serverQueue.repeating) serverQueue.songs.shift();
-    updateQueue(message, serverQueue, queue, pool);
-    play(guild, serverQueue.songs[0], queue, pool, skipped);
+    if (!serverQueue.repeating) serverQueue.songs.shift();
+    updateQueue(message, serverQueue, queue);
+    play(guild, serverQueue.songs[0], queue, skipped);
   }
   if (!serverQueue.connection && skipped === 0) serverQueue.connection = await serverQueue.voiceChannel.join();
   if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
@@ -108,8 +95,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
         dispatcher = serverQueue.connection.play(await scdl.download(song.url));
         break;
       case 5:
-        if (serverQueue.textChannel) serverQueue.textChannel.send("Musescore's MP3 takes a while to load (14 - 60 seconds).\nI recommend using `?muse <link | keywords>` to get the MP3 file in your DM and chuck the link of the attachment into `?play <link>`");
-        const c = await fetch(`https://north-utils.glitch.me/musescore/${encodeURIComponent(song.url)}`, { timeout: 90000 }).then(res => res.json());
+        const c = await getMP3(song.url);
         if (c.error) throw new Error(c.message);
         const d = await requestStream(c.url);
         dispatcher = serverQueue.connection.play(new StreamConcat([d, silence], { highWaterMark: 1 << 25 }), { seek: seek });
@@ -121,30 +107,25 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
           if (g.error) throw "Failed to find video";
           song = g;
           serverQueue.songs[0] = song;
-          updateQueue(message, serverQueue, queue, pool);
+          updateQueue(message, serverQueue, queue);
           f = await requestStream(song.download);
           if (f.statusCode != 200) throw new Error("Received HTTP Status Code: " + f.statusCode);
         }
         dispatcher = serverQueue.connection.play(new StreamConcat([f, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
       default:
-        const h = { highWaterMark: 1 << 28, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } };
         if (song.isLive) {
           const j = await module.exports.addYTURL(message, args, song.type);
           if (j.error) throw "Failed to find video";
           if (!isEquivalent(j.songs[0], song)) {
             song = j.songs[0];
             serverQueue.songs[0] = song;
-            updateQueue(message, serverQueue, queue, pool);
+            updateQueue(message, serverQueue, queue);
           }
         }
-        const i = {};
-        if (!song.isLive) {
-          h.filter = "audioonly";
-          h.dlChunkSize = 0;
-          i.seek = seek;
-        }
-        dispatcher = serverQueue.connection.play(ytdl(song.url, h), i);
+        if (!song.isLive && !song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
+        else if (song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
+        else dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }));
         break;
     }
   } catch (err) {
@@ -165,10 +146,9 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
   var oldSkipped = skipped;
   skipped = 0;
   dispatcher.on("finish", async () => {
-    dispatcher = null;
     if (serverQueue.looping) serverQueue.songs.push(song);
-    else if (!serverQueue.repeating) serverQueue.songs.shift();
-    updateQueue(message, serverQueue, queue, pool);
+    if (!serverQueue.repeating) serverQueue.songs.shift();
+    updateQueue(message, serverQueue, queue);
     if (Date.now() - now < 1000 && serverQueue.textChannel) {
       serverQueue.textChannel.send(`There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist. ${oldSkipped < 2 ? "" : `(${oldSkipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
       if (++oldSkipped >= 3) {
@@ -181,7 +161,7 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
         if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
       }
     } else oldSkipped = 0;
-    play(guild, serverQueue.songs[0], queue, pool, oldSkipped);
+    play(guild, serverQueue.songs[0], queue, oldSkipped);
   }).on("error", async error => {
     if (error.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
       console.error("Received 429 error. Changing ytdl-core cookie...");
@@ -200,23 +180,22 @@ async function play(guild, song, queue, pool, skipped = 0, seek = 0) {
 
 module.exports = {
   name: "play",
-  description:
-    "Play music with the link or keywords provided. Only support YouTube videos currently.",
+  description: "Play music with the link or keywords provided. Only support YouTube videos currently.",
   aliases: ["p"],
   usage: "[link | keywords | attachment]",
   category: 8,
-  async music(message, serverQueue, queue, pool) {
+  async music(message, serverQueue, queue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) return await message.channel.send("You need to be in a voice channel to play music!");
     if (!voiceChannel.permissionsFor(message.client.user).has(3145728)) return await message.channel.send("I can't play in your voice channel!");
     if (!args[1] && message.attachments.size < 1) {
       if (!serverQueue || !serverQueue.songs || serverQueue.songs.length < 1) return await message.channel.send("No song queue was found for this server! Please provide a link or keywords to get a music played!");
-      if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) return await migrate(message, serverQueue, queue, pool);
+      if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) return await migrate(message, serverQueue, queue);
       try {
         if (message.guild.me.voice.channel && message.guild.me.voice.channelID === voiceChannel.id) serverQueue.connection = message.guild.me.voice.connection;
         else {
-          if(message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
+          if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
           serverQueue.connection = await voiceChannel.join();
         }
       } catch (err) {
@@ -226,8 +205,8 @@ module.exports = {
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.playing = true;
       serverQueue.textChannel = message.channel;
-      updateQueue(message, serverQueue, queue, pool);
-      play(message.guild, serverQueue.songs[0], queue, pool);
+      updateQueue(message, serverQueue, queue);
+      play(message.guild, serverQueue.songs[0], queue);
       return;
     }
     try {
@@ -247,33 +226,20 @@ module.exports = {
       songs = result.songs;
       if (!songs || songs.length < 1) return await message.reply("there was an error trying to add the soundtrack!");
       const Embed = createEmbed(message, songs);
-      if (!serverQueue) {
-        serverQueue = {
-          textChannel: message.channel,
-          voiceChannel: voiceChannel,
-          connection: null,
-          songs: songs,
-          volume: 1,
-          playing: true,
-          paused: false,
-          startTime: 0,
-          looping: false,
-          repeating: false
-        };
-      } else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
-      updateQueue(message, serverQueue, queue, pool);
+      if (!serverQueue) serverQueue = setQueue(message.guild, songs, false, false, message.pool);
+      else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
       if (!message.guild.me.voice.channel) {
         serverQueue.voiceChannel = voiceChannel;
         serverQueue.connection = await voiceChannel.join();
-        serverQueue.playing = true;
         serverQueue.textChannel = message.channel;
       }
-      if (!serverQueue.playing) play(message.guild, serverQueue.songs[0], queue, pool);
-      if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
-      else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
+      updateQueue(message, serverQueue, queue);
+      if (!serverQueue.playing) play(message.guild, serverQueue.songs[0], queue);
+      if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
+      else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
     } catch (err) {
       message.reply("there was an error trying to connect to the voice channel!");
-      if(message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
+      if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
       console.error(err);
     }
   },
@@ -296,6 +262,7 @@ module.exports = {
       const length = Math.round(metadata.format.duration);
       const songLength = moment.duration(length, "seconds").format();
       songs.push({
+        id: ID(),
         title: (file.name ? file.name.split(".").slice(0, -1).join(".") : file.url.split("/").slice(-1)[0].split(".").slice(0, -1).join(".")).replace(/_/g, " "),
         url: file.url,
         type: 2,
@@ -323,6 +290,7 @@ module.exports = {
     var mesg = await message.channel.send(`Processing track: **0/${videos.length}**`);
     var interval = setInterval(() => (songs.length < videos.length) ? mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`).catch(() => { }) : undefined, 1000);
     for (const video of videos) songs.push({
+      id: ID(),
       title: video.title,
       url: video.url_simple,
       type: 0,
@@ -337,13 +305,22 @@ module.exports = {
   },
   async addYTURL(message, args, type = 0) {
     try {
-      var songInfo = await ytdl.getInfo(args.slice(1).join(" "), { requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
+      var songInfo = await ytdl.getInfo(args.slice(1).join(" "), { requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } });
     } catch (err) {
-      if (!message.dummy) message.channel.send("No video was found!");
+      if (!message.dummy) message.channel.send("Failed to get video data!");
+      if (err.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
+        console.error("Received 429 error. Changing ytdl-core cookie...");
+        cookie.id++;
+        if (!process.env[`COOKIE${cookie.id}`]) {
+          cookie.cookie = process.env.COOKIE;
+          cookie.id = 0;
+        }
+        else cookie.cookie = process.env[`COOKIE${cookie.id}`];
+      } else console.error(err);
       return { error: true };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
-    var songLength = songInfo.videoDetails.isLiveContent ? "∞" : moment.duration(length, "seconds").format();
+    var songLength = length == 0 ? "∞" : moment.duration(length, "seconds").format();
     var thumbnails = songInfo.videoDetails.thumbnail.thumbnails;
     var thumbUrl = thumbnails[thumbnails.length - 1].url;
     var maxWidth = 0;
@@ -355,13 +332,15 @@ module.exports = {
     }
     var songs = [
       {
+        id: ID(),
         title: decodeHtmlEntity(songInfo.videoDetails.title),
         url: songInfo.videoDetails.video_url,
         type: type,
         time: songLength,
         thumbnail: thumbUrl,
         volume: 1,
-        isLive: songInfo.videoDetails.isLiveContent
+        isLive: length == 0,
+        isPastLive: songInfo.videoDetails.isLiveContent
       }
     ];
     return { error: false, songs: songs };
@@ -419,6 +398,7 @@ module.exports = {
             if (s + 1 == results.length) {
               const songLength = !results[o].live ? results[o].duration : "∞";
               songs.push({
+                id: ID(),
                 title: tracks[i].track.name,
                 url: results[o].link,
                 type: 1,
@@ -479,6 +459,7 @@ module.exports = {
             if (s + 1 == results.length) {
               const songLength = !results[o].live ? results[o].duration : "∞";
               songs.push({
+                id: ID(),
                 title: tracks[i].name,
                 url: results[o].link,
                 type: 1,
@@ -517,6 +498,7 @@ module.exports = {
             if (s + 1 == results.length) {
               const songLength = !results[o].live ? results[o].duration : "∞";
               songs.push({
+                id: ID(),
                 title: tracks[i].name,
                 url: results[o].link,
                 type: 1,
@@ -550,6 +532,7 @@ module.exports = {
         const length = Math.round(track.duration / 1000);
         const songLength = moment.duration(length, "seconds").format();
         songs.push({
+          id: ID(),
           title: track.title,
           type: 3,
           id: track.id,
@@ -564,6 +547,7 @@ module.exports = {
       const length = Math.round(data.duration / 1000);
       const songLength = moment.duration(length, "seconds").format();
       songs.push({
+        id: ID(),
         title: data.title,
         type: 3,
         id: data.id,
@@ -610,6 +594,7 @@ module.exports = {
     var length = Math.round(metadata.format.duration);
     var songLength = moment.duration(length, "seconds").format();
     var song = {
+      id: ID(),
       title: title,
       url: link,
       type: 4,
@@ -636,6 +621,7 @@ module.exports = {
     var data = parseBody(body);
     var songLength = data.duration;
     var song = {
+      id: ID(),
       title: data.title,
       url: args.slice(1).join(" "),
       type: 5,
@@ -656,6 +642,7 @@ module.exports = {
       if (parseInt(download) < 1) throw "Cannot get any video quality";
       var songLength = moment.duration(video.duration, "seconds").format();
       var song = {
+        id: ID(),
         title: video.title,
         url: args.slice(1).join(" "),
         type: 6,
@@ -688,6 +675,7 @@ module.exports = {
     const length = Math.round(metadata.format.duration);
     const songLength = moment.duration(length, "seconds").format();
     const song = {
+      id: ID(),
       title: title,
       url: args.slice(1).join(" "),
       type: 2,
@@ -700,18 +688,18 @@ module.exports = {
     return { error: false, songs: songs };
   },
   async search(message, args) {
+    const allEmbeds = [];
     const Embed = new Discord.MessageEmbed()
-      .setTitle("Search result of " + args.slice(1).join(" "))
+      .setTitle(`Search result of ${args.slice(1).join(" ")} on YouTube`)
       .setColor(console.color())
       .setTimestamp()
       .setFooter("Choose your song by typing the number, or type anything else to cancel.", message.client.user.displayAvatarURL());
-    const results = [];
     try {
-      var searched = await ytsr(args.slice(1).join(" "), { limit: 20 });
+      const searched = await ytsr(args.slice(1).join(" "), { limit: 20 });
       var video = searched.items.filter(x => x.type === "video");
     } catch (err) {
       try {
-        var searched = await ytsr2.search(args.slice(1).join(" "), { limit: 20 });
+        const searched = await ytsr2.search(args.slice(1).join(" "), { limit: 20 });
         var video = searched.map(x => {
           return {
             live: false,
@@ -727,73 +715,108 @@ module.exports = {
         return { error: true };
       }
     }
+    const ytResults = video.map(x => {
+      return {
+        id: ID(),
+        title: decodeHtmlEntity(x.title),
+        url: x.link,
+        type: 0,
+        time: !x.live ? x.duration : "∞",
+        thumbnail: x.thumbnail,
+        volume: 1,
+        isLive: x.live
+      };
+    });
     var num = 0;
-    for (let i = 0; i < Math.min(video.length, 10); i++) try {
-      results.push(`${++num} - **[${decodeHtmlEntity(video[i].title)}](${video[i].link})** : **${video[i].duration}**`);
-    } catch (err) {
-      --num;
+    if (video.length > 0) {
+      Embed.setDescription(video.map(x => `${++num} - **[${decodeHtmlEntity(x.title)}](${x.link})** : **${x.duration}**`).slice(0, 10).join("\n"));
+      allEmbeds.push(Embed);
     }
-    Embed.setDescription(results.join("\n"));
-    var msg = await message.channel.send(Embed)
-    var filter = x => x.author.id === message.author.id;
-
-    var collected = await msg.channel.awaitMessages(filter, { max: 1, time: 30000, error: ["time"] });
+    const scEm = new Discord.MessageEmbed()
+      .setTitle(`Search result of ${args.slice(1).join(" ")} on SoundCloud`)
+      .setColor(console.color())
+      .setTimestamp()
+      .setFooter("Choose your song by typing the number, or type anything else to cancel.", message.client.user.displayAvatarURL());
+    try {
+      var scSearched = await scdl.search("tracks", args.slice(1).join(" "));
+      num = 0;
+      if (scSearched.collection.length > 0) {
+        scEm.setDescription(scSearched.collection.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).slice(0, 10).join("\n"));
+        allEmbeds.push(scEm);
+      }
+    } catch (err) {
+      console.error(err);
+      message.reply("there was an error trying to search the videos!");
+      return { error: true };
+    }
+    const scResults = scSearched.collection.map(x => {
+      return {
+        id: ID(),
+        title: x.title,
+        url: x.permalink_url,
+        type: 3,
+        time: moment.duration(Math.floor(x.duration / 1000), "seconds").format(),
+        thumbnail: x.artwork_url,
+        volume: 1,
+        isLive: false
+      };
+    });
+    if (allEmbeds.length < 1) {
+      message.channel.send("Cannot find any result with the given string.");
+      return { error: true };
+    }
+    const results = [ytResults, scResults];
+    var collector = undefined;
+    var s = 0;
+    var msg = await message.channel.send(allEmbeds[0]);
+    if (allEmbeds.length > 1) {
+      const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
+      await msg.react("⏮");
+      await msg.react("◀");
+      await msg.react("▶");
+      await msg.react("⏭");
+      await msg.react("⏹");
+      collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
+      collector.on("collect", async (reaction, user) => {
+        const result = await commonCollectorListener(reaction, user, s, allEmbeds, msg, collector);
+        s = result.s;
+        msg = result.msg;
+      });
+      collector.on("end", async () => msg.reactions.removeAll().catch(console.error));
+    }
+    const filter = x => x.author.id === message.author.id;
+    const collected = await msg.channel.awaitMessages(filter, { max: 1, time: 60000, error: ["time"] });
+    if (collector) collector.emit("end");
     if (!collected || !collected.first() || !collected.first().content) {
       const Ended = new Discord.MessageEmbed()
         .setColor(console.color())
         .setTitle("Cannot parse your choice.")
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-      msg.edit(Ended).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
+      await msg.edit(Ended).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**", embed: null }), 30000));
       return { error: true };
     }
     const content = collected.first().content;
     collected.first().delete();
-    if (
-      isNaN(parseInt(content)) ||
-      (parseInt(content) < 1 && parseInt(content) > results.length)
-    ) {
+    if (isNaN(parseInt(content)) || parseInt(content) < 1 || parseInt(content) > results[s].length) {
       const cancelled = new Discord.MessageEmbed()
         .setColor(console.color())
         .setTitle("Action cancelled.")
         .setTimestamp()
-        .setFooter(
-          "Have a nice day! :)",
-          message.client.user.displayAvatarURL()
-        );
-
-      await msg.edit(cancelled).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
+        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+      await msg.edit(cancelled).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**", embed: null }), 30000));
       return { error: true };
     }
-
-    var s = parseInt(content) - 1;
-
+    const o = parseInt(content) - 1;
     const chosenEmbed = new Discord.MessageEmbed()
       .setColor(console.color())
       .setTitle("Music chosen:")
-      .setThumbnail(video[s].thumbnail)
-      .setDescription(
-        `**[${decodeHtmlEntity(video[s].title)}](${video[s].link
-        })** : **${video[s].duration}**`
-      )
+      .setThumbnail(results[s][o].thumbnail)
+      .setDescription(`**[${decodeHtmlEntity(results[s][o].title)}](${results[s][o].url})** : **${results[s][o].time}**`)
       .setTimestamp()
-      .setFooter(
-        "Have a nice day :)",
-        message.client.user.displayAvatarURL()
-      );
-
+      .setFooter("Have a nice day :)", message.client.user.displayAvatarURL());
     await msg.edit(chosenEmbed).catch(() => { });
-    var length = !video[s].live ? video[s].duration : "∞";
-    var song = {
-      title: decodeHtmlEntity(video[s].title),
-      url: video[s].link,
-      type: 0,
-      time: length,
-      thumbnail: video[s].thumbnail,
-      volume: 1,
-      isLive: video[s].live
-    };
-    return { error: false, songs: [song], msg, embed: Embed };
+    return { error: false, songs: [results[s][o]], msg, embed: Embed };
   },
   updateQueue: updateQueue,
   createEmbed: createEmbed

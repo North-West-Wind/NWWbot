@@ -7,7 +7,7 @@ module.exports = {
     usage: "<link | keywords>",
     category: 8,
     args: 1,
-    async music(message, serverQueue, queue, pool) {
+    async music(message, serverQueue, queue) {
         const args = message.content.slice(message.prefix.length).split(/ +/);
         try {
             var songs = [];
@@ -40,11 +40,11 @@ module.exports = {
                     repeating: false
                 };
             } else serverQueue.songs = serverQueue.songs.concat(songs);
-            updateQueue(message, serverQueue, queue, pool);
-            if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
-            else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
+            updateQueue(message, serverQueue, queue);
+            if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
+            else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
         } catch(err) {
-            message.reply("there was an error trying to connect to the voice channel!");
+            message.reply("there was an error trying to add the soundtrack to the queue!");
             console.error(err);
         }
     }
