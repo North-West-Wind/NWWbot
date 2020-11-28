@@ -636,13 +636,7 @@ module.exports = {
     async message(message) {
         message.prefix = message.client.prefix;
         messageLevel(message);
-        if (message.guild && console.prefixes[message.guild.id] && message.client.id === 0) message.prefix = console.prefixes[message.guild.id];
-        if (!message.content.startsWith(message.prefix) || message.author.bot) {
-            if (!message.author.bot && Math.floor(Math.random() * 1000) === 69) cleverbot(message.content).then(response => message.channel.send(response));
-            return;
-        };
         const args = message.content.slice(message.prefix.length).split(/ +/);
-        const commandName = args.shift().toLowerCase();
         if (message.client.id == 1 && message.channel.id == "647630951169523762") {
             if (args.length > 1 || !message.content) return;
             const mcName = message.content;
@@ -670,6 +664,12 @@ module.exports = {
             });
             return;
         }
+        if (message.guild && console.prefixes[message.guild.id] && message.client.id === 0) message.prefix = console.prefixes[message.guild.id];
+        if (!message.content.startsWith(message.prefix) || message.author.bot) {
+            if (!message.author.bot && Math.floor(Math.random() * 1000) === 69) cleverbot(message.content).then(response => message.channel.send(response));
+            return;
+        };
+        const commandName = args.shift().toLowerCase();
         if (commandName === "guild" && message.client.id === 0) return;
         const command = console.commands.get(commandName) || console.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
