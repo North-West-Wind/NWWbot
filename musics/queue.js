@@ -16,7 +16,9 @@ module.exports = {
     if (args[1] !== undefined && (args[1].toLowerCase() === "delete" || args[1].toLowerCase() === "d")) return await this.delete(message, args);
     if (args[1] !== undefined && (args[1].toLowerCase() === "list" || args[1].toLowerCase() === "li")) return await this.list(message);
     if (args[1] !== undefined && (args[1].toLowerCase() === "sync" || args[1].toLowerCase() === "sy")) return await this.sync(message, serverQueue, args, queue);
-    if (!serverQueue || serverQueue.songs.length < 1) return message.channel.send("There is nothing playing.");
+    if (!serverQueue) return message.channel.send("There is nothing playing.");
+    if (!serverQueue.songs) setQueue(message.guild.id, [], !!serverQueue.looping, !!serverQueue.repeating, message.pool);
+    if (!serverQueue.songs.length < 1) return message.channel.send("There is nothing playing.");
     var index = 0;
     const songArray = serverQueue.songs.map(song => (song.type === 1) ? `**${++index} - ** **[${song.title}](${song.spot})** : **${song.time}**` : `**${++index} - ** **[${song.title}](${song.url})** : **${song.time}**`);
     const allEmbeds = [];
@@ -73,9 +75,9 @@ module.exports = {
     if (!serverQueue) {
       var voiceChannel = null;
       if (message.member.voice && message.member.voice.channel) voiceChannel = message.member.voice.channel;
-      serverQueue = setQueue(message.guild, JSON.parse(unescape(results[0].queue)), false, false, message.pool);
+      serverQueue = setQueue(message.guild.id, JSON.parse(unescape(results[0].queue)), false, false, message.pool);
     } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-    updateQueue(message, serverQueue, queue);
+    updateQueue(message, serverQueue, queue, message.pool);
     message.channel.send(`The queue **${results[0].name}** has been loaded.`);
   },
   async delete(message, args) {
@@ -163,12 +165,9 @@ module.exports = {
     }
     const [results] = await message.pool.query(`SELECT queue FROM servers WHERE id = '${guild.id}'`);
     if (results.length == 0) return message.channel.send("No queue was found!");
-    if (!serverQueue) {
-      var voiceChannel = null;
-      if (message.member.voice && message.member.voice.channel) voiceChannel = message.member.voice.channel;
-      serverQueue = setQueue(message.guild, JSON.parse(unescape(results[0].queue)), false, false, message.pool);
-    } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-    updateQueue(message, serverQueue, queue);
+    if (!serverQueue) serverQueue = setQueue(message.guild.id, JSON.parse(unescape(results[0].queue)), false, false, message.pool);
+    else serverQueue.songs = JSON.parse(unescape(results[0].queue));
+    updateQueue(message, serverQueue, queue, message.pool);
     message.channel.send(`The queue of this server has been synchronize to the queue of the server **${guild.name}**.`);
   }
 };

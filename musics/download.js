@@ -42,7 +42,7 @@ module.exports = {
                 if (!isEquivalent(result.songs[0], song)) {
                     song = result.songs[0];
                     serverQueue.songs[0] = song;
-                    updateQueue(message, serverQueue, queue);
+                    updateQueue(message, serverQueue, queue, message.pool);
                     if (song.isLive) return await message.channel.send("Livestream downloading is not supported and recommended! Come back later when the livestream is over.");
                 }
             }
@@ -74,7 +74,7 @@ module.exports = {
                         if (g.error) throw "Failed to find video";
                         song = g;
                         serverQueue.songs[0] = song;
-                        updateQueue(message, serverQueue, queue);
+                        updateQueue(message, serverQueue, queue, message.pool);
                         stream = await requestStream(song.download);
                         if (stream.statusCode != 200) throw new Error("Received HTTP Status Code: " + stream.statusCode);
                     }

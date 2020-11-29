@@ -12,7 +12,7 @@ module.exports = {
         var oldSong = serverQueue.songs[0];
         serverQueue.songs.reverse();
         message.channel.send("The queue has been reversed!");
-        updateQueue(message, serverQueue, queue);
+        updateQueue(message, serverQueue, queue, message.pool);
         if (oldSong != serverQueue.songs[0] && serverQueue.playing) {
           if (serverQueue.connection && serverQueue.connection.dispatcher) {
             serverQueue.connection.dispatcher.destroy();

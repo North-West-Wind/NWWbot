@@ -1,4 +1,5 @@
 const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL } = require("../function.js");
+const { setQueue } = require("./main.js");
 const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDURL, addMSURL, addPHURL, addURL, search, updateQueue, createEmbed } = require("./play.js");
 
 module.exports = {
@@ -26,21 +27,9 @@ module.exports = {
             songs = result.songs;
             if (!songs || songs.length < 1) return await message.reply("there was an error trying to add the soundtrack!");
             const Embed = createEmbed(message, songs);
-            if (!serverQueue) {
-                serverQueue = {
-                    textChannel: null,
-                    voiceChannel: null,
-                    connection: null,
-                    songs: songs,
-                    volume: 1,
-                    playing: false,
-                    paused: false,
-                    startTime: 0,
-                    looping: false,
-                    repeating: false
-                };
-            } else serverQueue.songs = serverQueue.songs.concat(songs);
-            updateQueue(message, serverQueue, queue);
+            if (!serverQueue) serverQueue = setQueue(message.guild.id, songs, false, false, message.pool);
+            else serverQueue.songs = serverQueue.songs.concat(songs);
+            updateQueue(message, serverQueue, queue, message.pool);
             if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
             else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
         } catch(err) {

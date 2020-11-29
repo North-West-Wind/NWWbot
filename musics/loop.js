@@ -17,7 +17,7 @@ module.exports = {
         message.channel.send("Disabled repeating to prevent conflict.");
     }
     try {
-      await updateQueue(message, serverQueue, queue);
+      await updateQueue(message, serverQueue, queue, message.pool);
       if (serverQueue.looping) await message.channel.send("The song queue is now being looped.");
       else await message.channel.send("The song queue is no longer being looped.");
     } catch (err) {

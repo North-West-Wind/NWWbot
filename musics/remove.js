@@ -23,7 +23,7 @@ module.exports = {
     var oldSong = serverQueue.songs[0];
     var title = song.title;
     var removed = await serverQueue.songs.splice(deleteIndex, args[2] && !isNaN(parseInt(args[2])) ? parseInt(args[2]) : 1);
-    updateQueue(message, serverQueue, queue);
+    updateQueue(message, serverQueue, queue, message.pool);
     message.channel.send(
       `${removed.length > 1 ? `**${removed.length} tracks** have` : `**${title}** has`} been removed from the queue.`
     );

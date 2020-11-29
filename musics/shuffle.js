@@ -9,7 +9,7 @@ module.exports = {
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to shuffle the queue when the bot is playing!");
     if(serverQueue.playing) await shuffleArray(serverQueue.songs, 1);
     else await shuffleArray(serverQueue.songs, 0);
-    updateQueue(message, serverQueue, queue);
+    updateQueue(message, serverQueue, queue, message.pool);
     message.channel.send("Song queue has been shuffled.");
   }
 };

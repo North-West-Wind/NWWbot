@@ -25,7 +25,7 @@ module.exports = {
       }
       serverQueue.songs.shift();
     }
-    updateQueue(message, serverQueue, queue);
+    updateQueue(message, serverQueue, queue, message.pool);
     message.channel.send(`Skipped **${Math.max(1, skipped)}** track${skipped > 1 ? "s" : ""}!`);
     if (message.member.voice.channel && serverQueue.playing) {
       if (!serverQueue.connection) serverQueue.connection = await message.member.voice.channel.join();
