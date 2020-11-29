@@ -67,6 +67,7 @@ module.exports = {
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
         msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
+            console.log(`Downloading ${args.join(" ")} in server ${message.guild.name}...`);
             try {
                 var mesg = await message.channel.send("Generating files... (This will take a while. It depends on the length of the score.)");
                 if (collected.first().emoji.name === "📥") {
@@ -84,11 +85,14 @@ module.exports = {
                         if (attachments.length < 1) return await mesg.edit("Failed to generate files!");
                         await mesg.delete();
                         await message.channel.send(attachments);
+                        console.log(`Completed download ${args.join(" ")} in server ${message.guild.name}`);
                     } catch (err) {
+                        console.log(`Failed download ${args.join(" ")} in server ${message.guild.name}`);
                         await message.reply("there was an error trying to send the files!");
                     }
                 }
             } catch (err) {
+                console.log(`Failed download ${args.join(" ")} in server ${message.guild.name}`);
                 console.error(err);
                 await message.channel.send("Failed to generate files!");
             }
