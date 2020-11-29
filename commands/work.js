@@ -43,7 +43,7 @@ module.exports = {
           if (collected && collected.first()) collected.first().delete();
           await message.channel.send("You didn't type the word within 60 seconds and failed your job. Better luck next time!");
           failed = true;
-          break;
+          return;
         }
       }
       if (failed) {
