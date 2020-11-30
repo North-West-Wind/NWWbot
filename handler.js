@@ -168,9 +168,10 @@ module.exports = {
                     try {
                         await client.guilds.fetch(result.id);
                     } catch(err) {
-                        await con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
-                        console.log("Removed left servers");
-                        return;
+                        if (result.id != "543041459096387584") {
+                            await con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
+                            return console.log("Removed left servers");
+                        }
                     }
                     if (result.queue || result.looping || result.repeating) {
                         var queue = [];
