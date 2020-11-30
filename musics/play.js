@@ -56,10 +56,18 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!serverQueue.voiceChannel && guild.me.voice && guild.me.voice.channel) serverQueue.voiceChannel = guild.me.voice.channel;
   serverQueue.playing = true;
+  if (!song && serverQueue.songs.length > 0) {
+    const filtered = serverQueue.songs.filter(song => !!song);
+    if (serverQueue.songs.length !== filtered.length) {
+      serverQueue.songs = filtered;
+      updateQueue(message, serverQueue, queue, message.pool);
+      if (serverQueue.songs[0]) song = serverQueue.songs[0];
+    }
+  }
   if (!song || !serverQueue.voiceChannel) {
     serverQueue.playing = false;
     if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
-    return updateQueue(message, serverQueue, queue);
+    return updateQueue(message, serverQueue, queue, serverQueue.pool);
   }
   const args = ["0", song.url];
   var dispatcher;

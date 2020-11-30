@@ -20,7 +20,13 @@ module.exports = {
   category: 8,
   async music(message, serverQueue) {
     if (!serverQueue) return message.channel.send("There is nothing playing.");
+    if (!serverQueue.songs) serverQueue = setQueue(message.guild.id, [], !!serverQueue.looping, !!serverQueue.repeating, message.pool);
     if (serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");
+    const filtered = serverQueue.songs.filter(song => !!song);
+    if (serverQueue.songs.length !== filtered.length) {
+      serverQueue.songs = filtered;
+      updateQueue(message, serverQueue, queue, message.pool);
+    }
     var position = 0;
     if (serverQueue.connection && serverQueue.connection.dispatcher) position = (serverQueue.connection.dispatcher.streamTime - serverQueue.startTime);
     var processBar = [];
