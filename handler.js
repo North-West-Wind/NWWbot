@@ -691,6 +691,7 @@ module.exports = {
             else await command.execute(message, args);
         } catch (error) {
             console.error(`Error running command ${command.name}`);
+            if (command.name === "musescore") console.error(`Arguments: ${args.join(" ")}`);
             console.error(error);
             message.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
         }
