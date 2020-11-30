@@ -17,7 +17,7 @@ module.exports = {
     if (args[1] !== undefined && (args[1].toLowerCase() === "list" || args[1].toLowerCase() === "li")) return await this.list(message);
     if (args[1] !== undefined && (args[1].toLowerCase() === "sync" || args[1].toLowerCase() === "sy")) return await this.sync(message, serverQueue, args, queue);
     if (!serverQueue) return message.channel.send("There is nothing playing.");
-    if (!serverQueue.songs) setQueue(message.guild.id, [], !!serverQueue.looping, !!serverQueue.repeating, message.pool);
+    if (!serverQueue.songs) serverQueue = setQueue(message.guild.id, [], !!serverQueue.looping, !!serverQueue.repeating, message.pool);
     if (!serverQueue.songs.length < 1) return message.channel.send("There is nothing playing.");
     var index = 0;
     const songArray = serverQueue.songs.map(song => (song.type === 1) ? `**${++index} - ** **[${song.title}](${song.spot})** : **${song.time}**` : `**${++index} - ** **[${song.title}](${song.url})** : **${song.time}**`);

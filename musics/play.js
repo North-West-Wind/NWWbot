@@ -42,7 +42,7 @@ function createEmbed(message, songs) {
 async function updateQueue(message, serverQueue, queue, pool) {
   if (!serverQueue) queue.delete(message.guild.id);
   else queue.set(message.guild.id, serverQueue);
-  if (!pool) return;
+  if (!pool || !serverQueue) return;
   try {
     await pool.query(`UPDATE servers SET looping = ${serverQueue.looping ? 1 : "NULL"}, repeating = ${serverQueue.repeating ? 1 : "NULL"}, queue = ${!serverQueue || !serverQueue.songs || serverQueue.songs.length < 1 ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`);
   } catch(err) {
