@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const functions = require("./function.js");
-const { ready, guildMemberAdd, guildMemberRemove, guildCreate, guildDelete, voiceStateUpdate, guildMemberUpdate, messageReactionAdd, messageReactionRemove, messageDelete, message } = require("./handler.js");
+const { ready, guildMemberAdd, guildMemberRemove, guildCreate, guildDelete, voiceStateUpdate, guildMemberUpdate, messageReactionAdd, messageReactionRemove, messageDelete, message, setPool } = require("./handler.js");
 console.realLog = console.log;
 console.realError = console.error;
 delete console["log"];
@@ -12,6 +12,7 @@ console.log = async function (str) {
   if (logChannel) logChannel.send("`" + str + "`");
 }
 console.error = async function (err) {
+  if (["PROTOCOL_CONNECTION_LOST", "ECONNREFUSED"].includes(err.code)) setPool();
   console.realError(err);
   const logChannel = await client.channels.fetch("678847137391312917").catch(console.realError);
   if (logChannel) logChannel.send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``);

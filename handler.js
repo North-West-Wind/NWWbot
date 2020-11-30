@@ -22,7 +22,7 @@ const mysql_config = {
     waitForConnections: true,
     queueLimit: 0
 };
-const pool = mysql.createPool(mysql_config).promise();
+var pool = mysql.createPool(mysql_config).promise();
 pool.on("connection", con => con.on("error", () => con.release()));
 var timeout = undefined;
 console.prefixes = {};
@@ -45,6 +45,13 @@ async function messageLevel(message) {
     }
 }
 module.exports = {
+    setPool() {
+        if (pool) await pool.end();
+        const newpool = mysql.createPool(mysql_config).promise();
+        newpool.on("connection", con => con.on("error", () => con.release()));
+        pool = newpool;
+        console.log("Pool reset");
+    },
     async ready(client) {
         const id = client.id;
         console.log(`[${id}] Ready!`);
