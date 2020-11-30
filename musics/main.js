@@ -1,4 +1,4 @@
-var queue = new Map();
+const queue = new Map();
 
 module.exports = {
   name: "main",
@@ -9,7 +9,7 @@ module.exports = {
       await command.music(message, serverQueue, queue);
     } catch (error) {
       console.error(error);
-      message.reply("there was an error trying to execute that command!");
+      await message.reply("there was an error trying to execute that command!");
     }
   },
   stop(guild) {
@@ -37,7 +37,8 @@ module.exports = {
       repeating: repeatStatus,
       pool: pool
     };
-    return queue.set(guild, queueContruct);
+    queue.set(guild, queueContruct);
+    return queueContruct;
   },
   checkQueue() {
     return queue.size > 0;

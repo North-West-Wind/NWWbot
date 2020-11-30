@@ -158,13 +158,11 @@ module.exports = {
                 const [results] = await con.query("SELECT id, queue, looping, repeating, prefix FROM servers");
                 var count = 0;
                 results.forEach(result => {
-                    if (result.queue || result.looping !== null || result.repeating !== null) {
-                        var queue = [];
-                        try { if (result.queue !== null) queue = JSON.parse(unescape(result.queue)); }
-                        catch (err) { console.error(`Error parsing queue of ${result.id}`); }
-                        setQueue(result.id, queue, !!result.looping, !!result.repeating, pool);
-                        count += 1;
-                    }
+                    var queue = [];
+                    try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
+                    catch (err) { console.error(`Error parsing queue of ${result.id}`); }
+                    setQueue(result.id, queue, !!result.looping, !!result.repeating, pool);
+                    count += 1;
                     if (result.prefix) try { console.prefixes[result.id] = result.prefix; } catch (err) { }
                 });
                 console.log(`[${id}] ` + "Set " + count + " queues");
