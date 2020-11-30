@@ -168,7 +168,7 @@ module.exports = {
                     try {
                         await client.guilds.fetch(result.id);
                     } catch(err) {
-                        if (result.id != "543041459096387584") {
+                        if (result.id != "622311594654695434") {
                             await con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
                             return console.log("Removed left servers");
                         }
