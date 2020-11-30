@@ -45,7 +45,7 @@ async function messageLevel(message) {
     }
 }
 module.exports = {
-    setPool() {
+    async setPool() {
         if (pool) await pool.end();
         const newpool = mysql.createPool(mysql_config).promise();
         newpool.on("connection", con => con.on("error", () => con.release()));
