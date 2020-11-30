@@ -63,7 +63,7 @@
     "svg-to-pdfkit": "^0.1.8",
     "wikijs": "^6.0.0",
     "youtube-sr": "^2.0.4",
-    "ytdl-core": "^4.1.0",
+    "ytdl-core": "^4.1.1",
     "ytpl": "^1.0.1",
     "ytsr": "github:TimeForANinja/node-ytsr#wip-api-adjustments"
   }
