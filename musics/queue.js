@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { updateQueue } = require("./play.js");
+const { updateQueue } = require("./main.js");
 const { createEmbedScrolling } = require("../function.js");
 const { setQueue } = require("./main.js");
 module.exports = {
@@ -9,20 +9,20 @@ module.exports = {
   subcommands: ["save", "load", "delete", "list"],
   subaliases: ["s", "l", "d", "li"],
   category: 8,
-  async music(message, serverQueue, queue) {
+  async music(message, serverQueue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
     if (args[1] !== undefined && (args[1].toLowerCase() === "save" || args[1].toLowerCase() === "s")) return await this.save(message, serverQueue, args);
-    if (args[1] !== undefined && (args[1].toLowerCase() === "load" || args[1].toLowerCase() === "l")) return await this.load(message, serverQueue, args, queue);
+    if (args[1] !== undefined && (args[1].toLowerCase() === "load" || args[1].toLowerCase() === "l")) return await this.load(message, serverQueue, args);
     if (args[1] !== undefined && (args[1].toLowerCase() === "delete" || args[1].toLowerCase() === "d")) return await this.delete(message, args);
     if (args[1] !== undefined && (args[1].toLowerCase() === "list" || args[1].toLowerCase() === "li")) return await this.list(message);
-    if (args[1] !== undefined && (args[1].toLowerCase() === "sync" || args[1].toLowerCase() === "sy")) return await this.sync(message, serverQueue, args, queue);
+    if (args[1] !== undefined && (args[1].toLowerCase() === "sync" || args[1].toLowerCase() === "sy")) return await this.sync(message, serverQueue, args);
     if (!serverQueue) return message.channel.send("There is nothing playing.");
     if (!serverQueue.songs) serverQueue = setQueue(message.guild.id, [], !!serverQueue.looping, !!serverQueue.repeating, message.pool);
     if (serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");
     const filtered = serverQueue.songs.filter(song => !!song);
     if (serverQueue.songs.length !== filtered.length) {
       serverQueue.songs = filtered;
-      updateQueue(message, serverQueue, queue, message.pool);
+      updateQueue(message, serverQueue, message.pool);
     }
     var index = 0;
     const songArray = serverQueue.songs.map(song => (song.type === 1) ? `**${++index} - ** **[${song.title}](${song.spot})** : **${song.time}**` : `**${++index} - ** **[${song.title}](${song.url})** : **${song.time}**`);
@@ -72,7 +72,7 @@ module.exports = {
     con.release();
     message.channel.send(`The song queue has been stored with the name **${args.slice(2).join(" ")}**!\nSlots used: **${query.substring(0, 6) == "INSERT" ? results.length + 1 : results.length}/10**`);
   },
-  async load(message, serverQueue, args, queue) {
+  async load(message, serverQueue, args) {
     if (serverQueue && serverQueue.playing) return message.channel.send("Someone is listening to the music. Don't ruin their day.");
     if (!args[2]) return message.channel.send("Please provide the name of the queue.");
     const [results] = await message.pool.query(`SELECT * FROM queue WHERE name = '${args.slice(2).join(" ")}' AND user = '${message.author.id}'`);
@@ -82,7 +82,7 @@ module.exports = {
       if (message.member.voice && message.member.voice.channel) voiceChannel = message.member.voice.channel;
       serverQueue = setQueue(message.guild.id, JSON.parse(unescape(results[0].queue)), false, false, message.pool);
     } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-    updateQueue(message, serverQueue, queue, message.pool);
+    updateQueue(message, serverQueue, message.pool);
     message.channel.send(`The queue **${results[0].name}** has been loaded.`);
   },
   async delete(message, args) {
@@ -158,7 +158,7 @@ module.exports = {
       setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${JSON.parse(unescape(results.queue)).length} tracks in total]**` }), 60000);
     });
   },
-  async sync(message, serverQueue, args, queue) {
+  async sync(message, serverQueue, args) {
     if (serverQueue && serverQueue.playing) return message.channel.send("Someone is listening to the music. Don't ruin their day.");
     if (!args[2]) return message.channel.send("Please provide the name or ID of the server.");
     const guild = await message.client.guilds.cache.find(x => x.name.toLowerCase() === args.slice(2).join(" ").toLowerCase() || x.id == args[2]);
@@ -172,7 +172,7 @@ module.exports = {
     if (results.length == 0) return message.channel.send("No queue was found!");
     if (!serverQueue) serverQueue = setQueue(message.guild.id, JSON.parse(unescape(results[0].queue)), false, false, message.pool);
     else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-    updateQueue(message, serverQueue, queue, message.pool);
+    updateQueue(message, serverQueue, message.pool);
     message.channel.send(`The queue of this server has been synchronize to the queue of the server **${guild.name}**.`);
   }
 };

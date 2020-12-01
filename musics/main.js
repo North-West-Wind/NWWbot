@@ -1,4 +1,5 @@
-const queue = new Map();
+const Discord = require("discord.js");
+const queue = new Discord.Collection();
 
 module.exports = {
   name: "main",
@@ -10,6 +11,18 @@ module.exports = {
     } catch (error) {
       console.error(error);
       await message.reply("there was an error trying to execute that command!");
+    }
+  },
+  getQueues() { return queue; },
+  updateQueue(message, serverQueue, pool) {
+    if (!serverQueue) queue.delete(message.guild.id);
+    else queue.set(message.guild.id, serverQueue);
+    if (!pool || !serverQueue) return;
+    try {
+      await pool.query(`UPDATE servers SET looping = ${serverQueue.looping ? 1 : "NULL"}, repeating = ${serverQueue.repeating ? 1 : "NULL"}, queue = ${!serverQueue || !serverQueue.songs || serverQueue.songs.length < 1 ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`);
+    } catch(err) {
+      console.error(err);
+      if (!message.dummy) message.reply("there was an error trying to update the queue!");
     }
   },
   stop(guild) {

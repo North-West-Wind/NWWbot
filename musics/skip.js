@@ -1,4 +1,5 @@
-const { play, updateQueue } = require("./play.js");
+const { play } = require("./play.js");
+const { updateQueue } = require("./main.js");
 
 module.exports = {
   name: "skip",
@@ -6,7 +7,7 @@ module.exports = {
   usage: "[amount]",
   aliases: ["s"],
   category: 8,
-  async music(message, serverQueue, queue) {
+  async music(message, serverQueue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
     var skipped = 1;
     const guild = message.guild;
@@ -25,11 +26,11 @@ module.exports = {
       }
       serverQueue.songs.shift();
     }
-    updateQueue(message, serverQueue, queue, message.pool);
+    updateQueue(message, serverQueue, message.pool);
     message.channel.send(`Skipped **${Math.max(1, skipped)}** track${skipped > 1 ? "s" : ""}!`);
     if (message.member.voice.channel && serverQueue.playing) {
       if (!serverQueue.connection) serverQueue.connection = await message.member.voice.channel.join();
-      play(guild, serverQueue.songs[0], queue);
+      play(guild, serverQueue.songs[0]);
     }
   }
 }

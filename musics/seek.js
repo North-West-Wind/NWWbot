@@ -10,7 +10,7 @@ module.exports = {
     usage: "<time>",
     aliases: ["skipto"],
     category: 8,
-    async music(message, serverQueue, queue) {
+    async music(message, serverQueue) {
         if(!serverQueue) return message.channel.send("There is nothing playing.");
         if(serverQueue.songs.length < 1 || !serverQueue.connection || !serverQueue.connection.dispatcher || !serverQueue.playing) return message.channel.send("There is nothing in the queue.");
         if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to change the time of the soundtrack begins when the bot is playing!");
@@ -26,7 +26,7 @@ module.exports = {
         if(!parsed) return message.channel.send("The given time is not valid!");
         if(Math.round(parsed / 1000) > Math.floor(ms(serverQueue.songs[0].time) / 1000)) return message.channel.send("The time specified should not be larger than the maximum length of the soudtrack!");
         serverQueue.connection.dispatcher.destroy();
-        play(message.guild, serverQueue.songs[0], queue, 0, Math.round(parsed / 1000));
+        play(message.guild, serverQueue.songs[0], 0, Math.round(parsed / 1000));
         message.channel.send(`Seeked to **${parsed == 0 ? "0:00" : moment.duration(Math.round(parsed / 1000), "seconds").format()}**`);
     }
 }

@@ -8,6 +8,7 @@ const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const mysql = require("mysql2");
+const { updateQueue } = require("./musics/main.js");
 const mysql_config = {
     connectTimeout: 60 * 60 * 1000,
     //acquireTimeout: 60 * 60 * 1000,
@@ -50,6 +51,12 @@ module.exports = {
         const newpool = mysql.createPool(mysql_config).promise();
         newpool.on("connection", con => con.on("error", () => con.release()));
         pool = newpool;
+        const { getQueues } = require("./musics/main.js");
+        const queue = getQueues();
+        queue.forEach(serverQueue => {
+            serverQueue.pool = pool;
+            updateQueue({ dummy: true }, serverQueue, pool);
+        });
         console.log("Pool reset");
     },
     async ready(client) {

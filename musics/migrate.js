@@ -1,4 +1,5 @@
-const { play, updateQueue } = require("./play.js");
+const { play } = require("./play.js");
+const { updateQueue } = require("./main.js");
 
 module.exports = {
   name: "migrate",
@@ -38,8 +39,8 @@ module.exports = {
       serverQueue.textChannel = message.channel;
       await msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`).catch(() => {});
       migrating.splice(migrating.indexOf(message.guild.id));
-      updateQueue(message, serverQueue, queue, null);
-      play(message.guild, serverQueue.songs[0], queue, 0, seek);
+      updateQueue(message, serverQueue, null);
+      play(message.guild, serverQueue.songs[0], 0, seek);
     }, 3000);
   }
 }

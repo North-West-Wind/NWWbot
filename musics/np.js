@@ -3,6 +3,7 @@ const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const { ms } = require("../function.js");
+const { updateQueue } = require("./main.js");
 const type = [
   "YouTube",
   "Spotify",
@@ -25,7 +26,7 @@ module.exports = {
     const filtered = serverQueue.songs.filter(song => !!song);
     if (serverQueue.songs.length !== filtered.length) {
       serverQueue.songs = filtered;
-      updateQueue(message, serverQueue, queue, message.pool);
+      updateQueue(message, serverQueue, message.pool);
     }
     var position = 0;
     if (serverQueue.connection && serverQueue.connection.dispatcher) position = (serverQueue.connection.dispatcher.streamTime - serverQueue.startTime);

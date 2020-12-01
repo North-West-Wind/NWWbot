@@ -1,6 +1,6 @@
 const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL } = require("../function.js");
-const { setQueue } = require("./main.js");
-const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDURL, addMSURL, addPHURL, addURL, search, updateQueue, createEmbed } = require("./play.js");
+const { setQueue, updateQueue } = require("./main.js");
+const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDURL, addMSURL, addPHURL, addURL, search, createEmbed } = require("./play.js");
 
 module.exports = {
     name: "add",
@@ -29,7 +29,7 @@ module.exports = {
             const Embed = createEmbed(message, songs);
             if (!serverQueue) serverQueue = setQueue(message.guild.id, songs, false, false, message.pool);
             else serverQueue.songs = serverQueue.songs.concat(songs);
-            updateQueue(message, serverQueue, queue, message.pool);
+            updateQueue(message, serverQueue, message.pool);
             if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
             else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
         } catch(err) {

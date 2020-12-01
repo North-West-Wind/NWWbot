@@ -21,7 +21,7 @@ const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
 const ph = require("@justalk/pornhub-api");
-const { setQueue } = require("./main.js");
+const { setQueue, updateQueue } = require("./main.js");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
 const requestStream = (url) => new Promise((resolve, reject) => {
   const rs = require("request-stream");
@@ -39,20 +39,7 @@ function createEmbed(message, songs) {
   return Embed;
 }
 
-async function updateQueue(message, serverQueue, queue, pool) {
-  if (!serverQueue) queue.delete(message.guild.id);
-  else queue.set(message.guild.id, serverQueue);
-  if (!pool || !serverQueue) return;
-  try {
-    await pool.query(`UPDATE servers SET looping = ${serverQueue.looping ? 1 : "NULL"}, repeating = ${serverQueue.repeating ? 1 : "NULL"}, queue = ${!serverQueue || !serverQueue.songs || serverQueue.songs.length < 1 ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`);
-  } catch(err) {
-    console.error(err);
-    if (!message.dummy) message.reply("there was an error trying to update the queue!");
-  }
-}
-
-async function play(guild, song, queue, skipped = 0, seek = 0) {
-  const serverQueue = queue.get(guild.id);
+async function play(guild, song, skipped = 0, seek = 0) {
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!serverQueue.voiceChannel && guild.me.voice && guild.me.voice.channel) serverQueue.voiceChannel = guild.me.voice.channel;
   serverQueue.playing = true;
@@ -60,14 +47,14 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
     const filtered = serverQueue.songs.filter(song => !!song);
     if (serverQueue.songs.length !== filtered.length) {
       serverQueue.songs = filtered;
-      updateQueue(message, serverQueue, queue, message.pool);
+      updateQueue(message, serverQueue, message.pool);
       if (serverQueue.songs[0]) song = serverQueue.songs[0];
     }
   }
   if (!song || !serverQueue.voiceChannel) {
     serverQueue.playing = false;
     if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
-    return updateQueue(message, serverQueue, queue, serverQueue.pool);
+    return updateQueue(message, serverQueue, serverQueue.pool);
   }
   const args = ["0", song.url];
   var dispatcher;
@@ -86,8 +73,8 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
     }
     if (serverQueue.looping) serverQueue.songs.push(song);
     if (!serverQueue.repeating) serverQueue.songs.shift();
-    updateQueue(message, serverQueue, queue, serverQueue.pool);
-    play(guild, serverQueue.songs[0], queue, skipped);
+    updateQueue(message, serverQueue, serverQueue.pool);
+    play(guild, serverQueue.songs[0], skipped);
   }
   if (!serverQueue.connection && skipped === 0) serverQueue.connection = await serverQueue.voiceChannel.join();
   if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
@@ -116,7 +103,7 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
           if (g.error) throw "Failed to find video";
           song = g;
           serverQueue.songs[0] = song;
-          updateQueue(message, serverQueue, queue, serverQueue.pool);
+          updateQueue(message, serverQueue, serverQueue.pool);
           f = await requestStream(song.download);
           if (f.statusCode != 200) throw new Error("Received HTTP Status Code: " + f.statusCode);
         }
@@ -129,7 +116,7 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
           if (!isEquivalent(j.songs[0], song)) {
             song = j.songs[0];
             serverQueue.songs[0] = song;
-            updateQueue(message, serverQueue, queue, serverQueue.pool);
+            updateQueue(message, serverQueue, serverQueue.pool);
           }
         }
         if (!song.isLive && !song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
@@ -157,7 +144,7 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
   dispatcher.on("finish", async () => {
     if (serverQueue.looping) serverQueue.songs.push(song);
     if (!serverQueue.repeating) serverQueue.songs.shift();
-    updateQueue(message, serverQueue, queue, serverQueue.pool);
+    updateQueue(message, serverQueue, serverQueue.pool);
     if (Date.now() - now < 1000 && serverQueue.textChannel) {
       serverQueue.textChannel.send(`There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist. ${oldSkipped < 2 ? "" : `(${oldSkipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
       if (++oldSkipped >= 3) {
@@ -170,7 +157,7 @@ async function play(guild, song, queue, skipped = 0, seek = 0) {
         if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
       }
     } else oldSkipped = 0;
-    play(guild, serverQueue.songs[0], queue, oldSkipped);
+    play(guild, serverQueue.songs[0], oldSkipped);
   }).on("error", async error => {
     if (error.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
       console.error("Received 429 error. Changing ytdl-core cookie...");
@@ -193,14 +180,14 @@ module.exports = {
   aliases: ["p"],
   usage: "[link | keywords | attachment]",
   category: 8,
-  async music(message, serverQueue, queue) {
+  async music(message, serverQueue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) return await message.channel.send("You need to be in a voice channel to play music!");
     if (!voiceChannel.permissionsFor(message.client.user).has(3145728)) return await message.channel.send("I can't play in your voice channel!");
     if (!args[1] && message.attachments.size < 1) {
       if (!serverQueue || !serverQueue.songs || serverQueue.songs.length < 1) return await message.channel.send("No song queue was found for this server! Please provide a link or keywords to get a music played!");
-      if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) return await music(message, serverQueue, queue);
+      if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) return await music(message, serverQueue);
       try {
         if (message.guild.me.voice.channel && message.guild.me.voice.channelID === voiceChannel.id) serverQueue.connection = message.guild.me.voice.connection;
         else {
@@ -214,8 +201,8 @@ module.exports = {
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.playing = true;
       serverQueue.textChannel = message.channel;
-      updateQueue(message, serverQueue, queue, message.pool);
-      play(message.guild, serverQueue.songs[0], queue);
+      updateQueue(message, serverQueue, message.pool);
+      play(message.guild, serverQueue.songs[0]);
       return;
     }
     try {
@@ -242,8 +229,8 @@ module.exports = {
         serverQueue.connection = await voiceChannel.join();
         serverQueue.textChannel = message.channel;
       }
-      updateQueue(message, serverQueue, queue, message.pool);
-      if (!serverQueue.playing) play(message.guild, serverQueue.songs[0], queue);
+      updateQueue(message, serverQueue, message.pool);
+      if (!serverQueue.playing) play(message.guild, serverQueue.songs[0]);
       if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
       else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
     } catch (err) {
@@ -827,6 +814,5 @@ module.exports = {
     await msg.edit(chosenEmbed).catch(() => { });
     return { error: false, songs: [results[s][o]], msg, embed: Embed };
   },
-  updateQueue: updateQueue,
   createEmbed: createEmbed
 };

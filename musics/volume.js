@@ -1,4 +1,4 @@
-const { updateQueue } = require("./play");
+const { updateQueue } = require("./main.js");
 
 module.exports = {
   name: "volume",
@@ -6,7 +6,7 @@ module.exports = {
   usage: "[percentage]",
   aliases: ["vol"],
   category: 8,
-  async music(message, serverQueue, queue) {
+  async music(message, serverQueue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
     if(!args[1]) return message.channel.send(`The current volume is **${Math.round(serverQueue.volume * 100)}%** and the current volume of the soundtrack is **${Math.round(serverQueue.volume * (serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.songs[0].volume : 1) * 100)}%**`);
     if(!serverQueue) return message.channel.send("There is nothing playing. Volume didn't change.");
@@ -26,6 +26,6 @@ module.exports = {
       message.channel.send("Volume has been changed to **" + (serverQueue.volume * 100) + "%**.");
     }
     if(serverQueue.connection && serverQueue.playing && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.setVolume(serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume);
-    updateQueue(message, serverQueue, queue, null);
+    updateQueue(message, serverQueue, null);
   }
 }
