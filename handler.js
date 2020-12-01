@@ -170,7 +170,6 @@ module.exports = {
             const { setQueue } = require("./musics/main.js");
             if (id === 0) {
                 const [results] = await con.query("SELECT id, queue, looping, repeating, prefix FROM servers");
-                var count = 0;
                 results.forEach(async result => {
                     try {
                         await client.guilds.fetch(result.id);
@@ -185,11 +184,10 @@ module.exports = {
                         try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
                         catch (err) { console.error(`Error parsing queue of ${result.id}`); }
                         setQueue(result.id, queue, !!result.looping, !!result.repeating, pool);
-                        count += 1;
                     }
                     if (result.prefix) try { console.prefixes[result.id] = result.prefix; } catch (err) { }
                 });
-                console.log(`[${id}] ` + "Set " + count + " queues");
+                console.log(`[${id}] Found ${results.length} queues`);
             } else {
                 const [res] = await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
                 console.log(`[${id}] Found ${res.length} guild timers`);

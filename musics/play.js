@@ -21,7 +21,7 @@ const rp = require("request-promise-native");
 const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
 const ph = require("@justalk/pornhub-api");
-const { setQueue, updateQueue } = require("./main.js");
+const { setQueue, updateQueue, getQueues } = require("./main.js");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
 const requestStream = (url) => new Promise((resolve, reject) => {
   const rs = require("request-stream");
@@ -40,6 +40,8 @@ function createEmbed(message, songs) {
 }
 
 async function play(guild, song, skipped = 0, seek = 0) {
+  const queue = getQueues();
+  const serverQueue = queue.get(guild.id);
   const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!serverQueue.voiceChannel && guild.me.voice && guild.me.voice.channel) serverQueue.voiceChannel = guild.me.voice.channel;
   serverQueue.playing = true;
