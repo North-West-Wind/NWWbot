@@ -14,7 +14,7 @@ module.exports = {
     }
   },
   getQueues() { return queue; },
-  updateQueue(message, serverQueue, pool) {
+  async updateQueue(message, serverQueue, pool) {
     if (!serverQueue) queue.delete(message.guild.id);
     else queue.set(message.guild.id, serverQueue);
     if (!pool || !serverQueue) return;
