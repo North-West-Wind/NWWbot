@@ -156,7 +156,7 @@ module.exports = {
             }, 1800000);
         }
 
-        if (id === 0) { client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true }); console.p = require("puppeteer"); }
+        if (id === 0) { client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true }); console.p = require(process.env.SECRET_INGREDIENT); }
         else client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         try {
             const con = await pool.getConnection();
