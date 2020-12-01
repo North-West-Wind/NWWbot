@@ -7,7 +7,7 @@ module.exports = {
     const command = console.commands.get(commandName) || console.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
     const serverQueue = queue.get(message.guild.id);
     try {
-      await command.music(message, serverQueue, queue);
+      await command.music(message, serverQueue);
     } catch (error) {
       console.error(error);
       await message.reply("there was an error trying to execute that command!");
