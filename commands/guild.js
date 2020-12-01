@@ -50,7 +50,7 @@ module.exports = {
 		const user = await findUser(message, args[1]);
 		if (!user) return;
 		try {
-			await message.pool.query(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`);
+			const [result] = await message.pool.query(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`);
 			const channel = await message.client.channels.fetch("723479832452661269");
 			var noname = false;
 			if (result.length < 1) noname = true;
