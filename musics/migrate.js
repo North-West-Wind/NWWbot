@@ -1,11 +1,10 @@
-const { play } = require("./play.js");
 const { updateQueue } = require("./main.js");
 
 module.exports = {
   name: "migrate",
   description: "Move the bot to the channel you are in. Use when changing voice channel.",
   category: 8,
-  async music(message, serverQueue, queue) {
+  async music(message, serverQueue) {
     const exit = console.exit;
     const migrating = console.migrating;
     if (migrating.find(x => x === message.guild.id)) return message.channel.send("I'm on my way!").then(msg => msg.delete(10000));
@@ -40,6 +39,7 @@ module.exports = {
       await msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`).catch(() => {});
       migrating.splice(migrating.indexOf(message.guild.id));
       updateQueue(message, serverQueue, null);
+      const { play } = require("./play.js");
       play(message.guild, serverQueue.songs[0], 0, seek);
     }, 3000);
   }

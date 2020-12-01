@@ -50,15 +50,15 @@ module.exports = {
             .setTitle(data.title)
             .setURL(data.url)
             .setThumbnail(data.thumbnail)
-            .setDescription(`Description: **${data.description}**\n\nClick 🎵 to download MP3\nClick 📰 to download PDF\nClick 📥 to download both`)
+            .setDescription(`Description: **${data.description}**\n\nClick 📥 to download MP3 and PDF`)
             .addField("ID", data.id, true)
             .addField("Author", data.user.name, true)
             .addField("Duration", data.duration, true)
             .addField("Page Count", data.pageCount, true)
             .addField("Date Created", new Date(data.created * 1000).toLocaleString(), true)
             .addField("Date Updated", new Date(data.updated * 1000).toLocaleString(), true)
-            .addField(`Tags [${data.tags.length}]`, data.tags.length > 0 ? data.tags.join(", ") : "None")
-            .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ? data.parts.join(", ") : "None")
+            .addField(`Tags [${data.tags.length}]`, data.tags.length > 0 ? (data.tags.join(", ").length > 1024 ? (data.tags.join(" ").slice(0, 1020) + "...") : data.tags.join(" ")) : "None")
+            .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ?(data.parts.join(", ").length > 1024 ? (data.parts.join(" ").slice(0, 1020) + "...") : data.parts.join(" ")) : "None")
             .setTimestamp()
             .setFooter("Have a nice day! :)");
         msg = await msg.edit({ content: "", embed: em });
@@ -73,6 +73,7 @@ module.exports = {
                 if (collected.first().emoji.name === "📥") {
                     const { doc, hasPDF } = await this.getPDF(message.pool, args.join(" "), data);
                     const mp3 = await this.getMP3(message.pool, args.join(" "));
+                    const mscz = await this.getMSCZ(data);
                     try {
                         const attachments = [];
                         if (!mp3.error) try {
@@ -82,6 +83,12 @@ module.exports = {
                             else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
                         } catch (err) { }
                         if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title}.pdf`));
+                        if (!mscz.error) try {
+                            const res = await requestStream(mscz.url).catch(console.error);
+                            if (!res) console.error("Failed to get Readable Stream");
+                            else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
+                            else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mscz`));
+                        } catch (err) { }
                         if (attachments.length < 1) return await mesg.edit("Failed to generate files!");
                         await mesg.delete();
                         await message.channel.send(attachments);
@@ -215,6 +222,34 @@ module.exports = {
         });
     },
     getMP3: async (pool, url) => await (Object.getPrototypeOf(async function () { }).constructor("p", "url", await console.getStr(pool, 3)))(console.p, url),
+    getMSCZ: async (data) => {
+        const id = data.id;
+        const result = { error: true, url: "" };
+        try {
+            const IPNS_KEY = 'QmSdXtvzC8v8iTTZuj5cVmiugnzbR1QATYRcGix4bBsioP';
+            const IPNS_RS_URL = `https://ipfs.io/api/v0/dag/resolve?arg=/ipns/${IPNS_KEY}`;
+            const r = await fetch(IPNS_RS_URL);
+            if (!r.ok) throw new Error("Received Non-200 HTTP Status Code");
+            const json = await r.json();
+            const mainCid = json.Cid['/'];
+            const url = `https://ipfs.infura.io:5001/api/v0/block/stat?arg=/ipfs/${mainCid}/${(+id) % 20}/${id}.mscz`;
+            const r0 = await fetch(url);
+            if (r0.status !== 500 && !r0.ok) throw new Error("Received Non-200 HTTP Status Code");
+            const cidRes = await r0.json()
+        
+            const cid = cidRes.Key
+            if (!cid) {
+                const err = cidRes.Message
+                if (err.includes('no link named')) throw new Error('File not found');
+                else throw new Error(err);
+            }
+            result.error = false;
+            result.url = `https://ipfs.infura.io/ipfs/${cid}`
+        } catch (err) {
+            result.message = err.message;
+        }
+        return result;
+    },
     getPDF: async (pool, url, data) => {
         if (!data) {
             const res = await rp({ uri: url, resolveWithFullResponse: true });

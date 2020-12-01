@@ -20,10 +20,7 @@ module.exports = {
     else if (args[1] && isNaN(parseInt(args[1]))) message.channel.send(`**${args[1]}** is not a integer. Will skip 1 song instead.`);
     else if (args[1]) skipped = parseInt(args[1]);
     for (var i = 0; i < skipped; i++) {
-      if (serverQueue.looping) {
-        const song = serverQueue.songs[0];
-        serverQueue.songs.push(song);
-      }
+      if (serverQueue.looping) serverQueue.songs.push(serverQueue.songs[0]);
       serverQueue.songs.shift();
     }
     updateQueue(message, serverQueue, message.pool);
