@@ -23,8 +23,19 @@ const mysql_config = {
     waitForConnections: true,
     queueLimit: 0
 };
-var pool = mysql.createPool(mysql_config).promise();
-pool.on("connection", con => con.on("error", () => con.release()));
+const pool = {
+    getConnection: async() => {
+        const con = mysql.createConnection(mysql_config).promise();
+        con.release = async() => await con.end();
+        return con;
+    },
+    query: async(query) => {
+        const con = mysql.createConnection(mysql_config).promise();
+        const res = await con.query(query);
+        await con.end();
+        return res;
+    }
+}
 var timeout = undefined;
 console.prefixes = {};
 async function messageLevel(message) {
@@ -46,23 +57,6 @@ async function messageLevel(message) {
     }
 }
 module.exports = {
-    async setPool() {
-        try {
-            if (pool) await pool.end();
-        } catch(err) {
-            console.error("Failed to end old pool.");
-        }
-        const newpool = mysql.createPool(mysql_config).promise();
-        newpool.on("connection", con => con.on("error", () => con.release()));
-        pool = newpool;
-        const { getQueues } = require("./musics/main.js");
-        const queue = getQueues();
-        for(const [id, serverQueue] of queue) {
-            serverQueue.pool = pool;
-            updateQueue({ dummy: true, guild: { id: id } }, serverQueue, null);
-        }
-        console.log("Pool reset");
-    },
     async ready(client) {
         const id = client.id;
         console.log(`[${id}] Ready!`);
