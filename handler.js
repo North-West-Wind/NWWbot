@@ -53,10 +53,10 @@ module.exports = {
         pool = newpool;
         const { getQueues } = require("./musics/main.js");
         const queue = getQueues();
-        queue.forEach(serverQueue => {
+        for(const [id, serverQueue] of queue) {
             serverQueue.pool = pool;
-            updateQueue({ dummy: true }, serverQueue, pool);
-        });
+            updateQueue({ dummy: true, guild: { id: id } }, serverQueue, null);
+        }
         console.log("Pool reset");
     },
     async ready(client) {
