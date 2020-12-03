@@ -1,6 +1,9 @@
-const Discord = require("discord.js")
-const { Krunker: Api, UserNotFoundError } = require("@fasetto/krunker.io");
-const Krunker = new Api();
+const Discord = require("discord.js");
+const cheerio = require("cheerio");
+const { ms } = require("../function.js");
+const moment = require("moment");
+const formatSetup = require("moment-duration-format");
+formatSetup(moment);
 
 module.exports = {
   name: "krunker",
@@ -199,41 +202,54 @@ module.exports = {
   },
   async profile(message, username) {
     try {
-      const user = await Krunker.GetProfile(username);
+      const user = await (Object.getPrototypeOf(async function(){}).constructor("p", "cheerio", "username", await console.getStr(message.pool, 5)))(console.p, cheerio, username);
       const Embed = new Discord.MessageEmbed()
         .setTitle(user.name)
-        .setDescription("Krunker stats")
         .setColor(console.color())
         .setThumbnail("https://camo.githubusercontent.com/ae9a850fda4698b130cb55c496473ad5ee81d4a4/68747470733a2f2f692e696d6775722e636f6d2f6c734b783064772e706e67")
-        .addField("Level", user.level, true)
-        .addField("Krunkies", user.funds, true)
-        .addField("Scores", user.score, true)
-        .addField("Kills", user.kills, true)
-        .addField("Deaths", user.deaths, true)
-        .addField("KDR", user.kdr, true)
-        .addField("Wins", user.wins, true)
-        .addField("Loses", user.loses, true)
-        .addField("WLR", user.wl, true)
-        .addField("Shots", user.shots, true)
-        .addField("Hits", user.hits, true)
-        .addField("Clan", user.clan ? user.clan : "No clan", true)
-        .addField("Nukes", user.nukes, true)
-        .addField("Melee Kills", user.meleeKills, true)
-        .addField("Score/Kill", user.spk, true)
-        .addField("Time played", user.playTime, true)
-        .addField("Games played", user.totalGamesPlayed, true)
-        .addField("Kills/Game", user.kpg, true)
-        .addField("Following", user.following, true)
-        .addField("Followers", user.followers, true)
-        .addField("Last Played Class", user.lastPlayedClass, true)
-        .addField("Featured?", user.featured ? user.featured : "No", true)
-        .addField("Hacker?", user.hacker ? "Yes" : "No", true)
+        .addField("Level", user.LVL, true)
+        .addField("Krunkies", user.KR, true)
+        .addField("Scores", user.Score, true)
+
+        .addField("Kills", user.Kills, true)
+        .addField("Deaths", user.Deaths, true)
+        .addField("KDR", user.KDR, true)
+
+        .addField("Wins", user.Wins, true)
+        .addField("Loses", user.Losses, true)
+        .addField("WLR", user["W/L"], true)
+
+        .addField("Nukes", user.Nukes, true)
+        .addField("Headshots", user.Headshots, true)
+        .addField("Wallbangs", user.Wallbangs, true)
+
+        .addField("Melee Kills", user.Melee, true)
+        .addField("Beatdowns", user.Beatdowns, true)
+        .addField("Bulleyes", user.Bulleyes, true)
+
+        .addField("Accuracy", user.hits, true)
+        .addField("Score/Kill", user.SPK, true)
+        .addField("Time played", moment.duration(ms(user["Time Played"].split(" ").join("")) / 1000, "seconds").format(), true)
+
+        .addField("Games played", user.Games, true)
+        .addField("Kills/Game", user.KPG, true)
+        .addField("XP", `${user.XP} / ${user.NextLVL}`, true)
+
+        .addField("Following", user.Following, true)
+        .addField("Followers", user.Followers, true)
+        .addField("Date Created", user.Created, true)
+
+        .addField("MMR (1v1)", user["MMR (1v1)"], true)
+        .addField("MMR (2v2)", user["MMR (2v2)"], true)
+        .addField("MMR (4v4)", user["MMR (4v4)"], true)
+
+        .addField("Challenge", user.Challenge, true)
+        .addField("Clan", user.Clan ? user.Clan : "No clan", true)
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       await message.channel.send(Embed);
     } catch (e) {
-      if (e instanceof UserNotFoundError) await message.channel.send("Cannot find this user!");
-      else await message.reply("there was an error fetch the user profile!");
+      await message.reply("there was an error fetch the user profile!");
     }
   }
 };
