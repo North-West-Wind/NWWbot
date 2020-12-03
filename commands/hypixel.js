@@ -156,7 +156,7 @@ module.exports = {
       const url = `https://api.hypixel.net/player?name=${res[0].name}&key=${process.env.API}`;
       try {
         const response = await fetch(url);
-        if (response.statusCode != 200) throw new Error("Received HTTP Status Code " + response.statusCode);
+        if (!response.ok) throw new Error("Received HTTP Status Code " + response.status);
         const body = await response.json();
         if (!body.player) return message.reply("there was an error trying to read the player data!")
         var rank = "Non";
@@ -187,7 +187,7 @@ module.exports = {
           );
         }
         const resp = await fetch(guildurl);
-        if (resp.statusCode != 200) throw new Error("Received HTTP Status Code " + response.statusCode);
+        if (!resp.ok) throw new Error("Received HTTP Status Code " + resp.status);
         const stuff = await resp.json();
         const firstdate = new Date(body.player.firstLogin);
         const firstlogin = firstdate.toLocaleString();
@@ -216,7 +216,7 @@ module.exports = {
         if (stuff.guild) {
           const guild = `https://api.hypixel.net/guild?key=${process.env.API}&id=${stuff.guild}`;
           const gres = await fetch(guild);
-          if (gres.statusCode != 200) throw new Error("Received HTTP Status Code " + response.statusCode);
+          if (!gres.ok) throw new Error("Received HTTP Status Code " + gres.status);
           const gbody = await gres.json();
           Embed.addField("Guild", gbody.guild.name, true)
         }
@@ -231,7 +231,7 @@ module.exports = {
     const guildurl = `https://api.hypixel.net/findGuild?key=${process.env.API}&byUuid=${res[0].id}`;
     const url = `https://api.hypixel.net/player?name=${res[0].name}&key=${process.env.API}`;
     const response = await fetch(url);
-    if (response.statusCode != 200) throw new Error("Received HTTP Status Code " + response.statusCode);
+    if (!response.ok) throw new Error("Received HTTP Status Code " + response.status);
     const body = await response.json();
     var rank = "Non";
     if (body.player.rank === "ADMIN") rank = "[ADMIN]";
@@ -245,12 +245,12 @@ module.exports = {
     else if (body.player.newPackageRank === "MVP_PLUS_PLUS") rank = "[MVP++]";
     if (args[0] === "guild" || args[0] === "g") {
       const guildResponse = await fetch(guildurl);
-      if (guildResponse.statusCode != 200) throw new Error("Received HTTP Status Code " + guildResponse.statusCode);
+      if (!guildResponse.ok) throw new Error("Received HTTP Status Code " + guildResponse.status);
       const guildBody = await guildResponse.json();
       if (!guildBody.guild) return message.channel.send("This player doesn't have a guild!");
       const guildURL = `https://api.hypixel.net/guild?key=${process.env.API}&id=${guildBody.guild}`;
       const guRes = await fetch(guildURL);
-      if (guRes.statusCode != 200) throw new Error("Received HTTP Status Code " + guRes.statusCode);
+      if (!guRes.ok) throw new Error("Received HTTP Status Code " + guRes.status);
       const guBody = await guRes.json();
       const guildId = guBody.guild._id;
       const guildName = guBody.guild.name;

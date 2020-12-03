@@ -60,7 +60,7 @@ module.exports = {
     } else if (args[0] === "server" || args[0] === "srv") {
       const url = `https://api.mcsrvstat.us/2/${args.slice(1).join(" ")}`;
       const res = await fetch(url);
-      if (res.statusCode != 200) throw new Error("Received HTTP Status Code" + res.statusCode);
+      if (!res.ok) throw new Error("Received HTTP Status Code " + res.status);
       const body = await res.json();
       if (body.online) {
         const ip = body.ip;
