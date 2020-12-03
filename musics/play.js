@@ -198,6 +198,7 @@ module.exports = {
         }
       } catch (err) {
         console.error(err);
+        if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
         return message.reply("there was an error trying to connect to the voice channel!");
       }
       serverQueue.voiceChannel = voiceChannel;

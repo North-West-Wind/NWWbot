@@ -76,14 +76,14 @@ module.exports = {
                 try {
                     const attachments = [];
                     if (!mp3.error) try {
-                        const res = await requestStream(mp3.url).catch(console.error);
+                        const res = await requestStream(mp3.url);
                         if (!res) console.error("Failed to get Readable Stream");
                         else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
                         else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
                     } catch (err) { }
                     if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title}.pdf`));
                     if (!mscz.error) try {
-                        const res = await requestStream(mscz.url).catch(console.error);
+                        const res = await requestStream(mscz.url);
                         if (!res) console.error("Failed to get Readable Stream");
                         else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
                         else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mscz`));
