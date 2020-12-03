@@ -78,7 +78,13 @@ async function play(guild, song, skipped = 0, seek = 0) {
     updateQueue(message, serverQueue, serverQueue.pool);
     play(guild, serverQueue.songs[0], skipped);
   }
-  if (!serverQueue.connection && skipped === 0) serverQueue.connection = await serverQueue.voiceChannel.join();
+  if (!serverQueue.connection && skipped === 0) try {
+    serverQueue.connection = await serverQueue.voiceChannel.join();
+    if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
+  } catch (err) {
+    if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
+    if (serverQueue.textChannel) return await serverQueue.textChannel.send("An error occured while trying to connect to the channel! Disconnecting the bot...").then(msg => msg.delete({ timeout: 30000 }));
+  }
   if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;
   try {
@@ -196,10 +202,11 @@ module.exports = {
           if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
           serverQueue.connection = await voiceChannel.join();
         }
+        if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
       } catch (err) {
         console.error(err);
         if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
-        return message.reply("there was an error trying to connect to the voice channel!");
+        return await message.reply("there was an error trying to connect to the voice channel!");
       }
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.playing = true;
@@ -231,13 +238,14 @@ module.exports = {
         serverQueue.voiceChannel = voiceChannel;
         serverQueue.connection = await voiceChannel.join();
         serverQueue.textChannel = message.channel;
+        if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
       }
       updateQueue(message, serverQueue, message.pool);
       if (!serverQueue.playing) play(message.guild, serverQueue.songs[0]);
       if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
       else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
     } catch (err) {
-      message.reply("there was an error trying to connect to the voice channel!");
+      await message.reply("there was an error trying to connect to the voice channel!");
       if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
       console.error(err);
     }

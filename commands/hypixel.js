@@ -176,16 +176,8 @@ module.exports = {
         const REVERSE_PQ_PREFIX = -(BASE - 0.5 * GROWTH) / GROWTH;
         const REVERSE_CONST = REVERSE_PQ_PREFIX * REVERSE_PQ_PREFIX;
         const GROWTH_DIVIDES_2 = 2 / GROWTH;
-
-        if (exp < 0) {
-          var level = 1;
-        } else {
-          var level = Math.floor(
-            1 +
-            REVERSE_PQ_PREFIX +
-            Math.sqrt(REVERSE_CONST + GROWTH_DIVIDES_2 * exp)
-          );
-        }
+        var level = 1;
+        if (exp > 0) level = Math.floor(1 + REVERSE_PQ_PREFIX + Math.sqrt(REVERSE_CONST + GROWTH_DIVIDES_2 * exp));
         const resp = await fetch(guildurl);
         if (!resp.ok) throw new Error("Received HTTP Status Code " + resp.status);
         const stuff = await resp.json();
@@ -222,8 +214,10 @@ module.exports = {
         }
         await message.channel.send(Embed);
       } catch (err) {
+        console.error(err);
         await message.reply("there was an error trying to fetch the Hypixel player profile!");
       }
+      return;
     }
     args[1] = args[1].toLowerCase();
     const res = await nameToUuid(args);
