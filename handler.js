@@ -8,7 +8,6 @@ const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const mysql = require("mysql2");
-const { updateQueue } = require("./musics/main.js");
 const mysql_config = {
     connectTimeout: 60 * 60 * 1000,
     //acquireTimeout: 60 * 60 * 1000,
