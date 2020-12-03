@@ -34,7 +34,7 @@ module.exports = {
     if (result[0] && result[0].token !== null) message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${result[0].token}\``);
     else {
       try {
-        const buffer = new Promise((resolve, reject) => require("crypto").randomBytes(24, async (err, buffer) => err ? reject(err) : resolve(buffer)));
+        const buffer = await new Promise((resolve, reject) => require("crypto").randomBytes(24, async (err, buffer) => err ? reject(err) : resolve(buffer)));
         var generated = buffer.toString("hex");
         try {
           await con.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
