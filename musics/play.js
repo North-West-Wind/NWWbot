@@ -141,7 +141,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
     const Embed = new Discord.MessageEmbed()
       .setColor(console.color())
       .setTitle("Now playing:")
-      .setThumbnail(song.type === 2 ? undefined : song.thumbnail)
+      .setThumbnail(song.thumbnail)
       .setDescription(`**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**${seek > 0 ? ` | Starts From: **${moment.duration(seek, "seconds").format()}**` : ""}`)
       .setTimestamp()
       .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
