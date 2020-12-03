@@ -31,6 +31,7 @@ module.exports = {
     "uglyBastard",
     "uniform",
     "yuri",
+    "zettaiRyouiki",
     "neko"
   ],
   category: 5,
