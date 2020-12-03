@@ -58,7 +58,7 @@ module.exports = {
             .addField("Date Created", new Date(data.created * 1000).toLocaleString(), true)
             .addField("Date Updated", new Date(data.updated * 1000).toLocaleString(), true)
             .addField(`Tags [${data.tags.length}]`, data.tags.length > 0 ? (data.tags.join(", ").length > 1024 ? (data.tags.join(" ").slice(0, 1020) + "...") : data.tags.join(" ")) : "None")
-            .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ?(data.parts.join(", ").length > 1024 ? (data.parts.join(" ").slice(0, 1020) + "...") : data.parts.join(" ")) : "None")
+            .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ? (data.parts.join(", ").length > 1024 ? (data.parts.join(" ").slice(0, 1020) + "...") : data.parts.join(" ")) : "None")
             .setTimestamp()
             .setFooter("Have a nice day! :)");
         msg = await msg.edit({ content: "", embed: em });
@@ -70,33 +70,32 @@ module.exports = {
             console.log(`Downloading ${args.join(" ")} in server ${message.guild.name}...`);
             try {
                 var mesg = await message.channel.send("Generating files... (This will take a while. It depends on the length of the score.)");
-                if (collected.first().emoji.name === "📥") {
-                    const { doc, hasPDF } = await this.getPDF(message.pool, args.join(" "), data);
-                    const mp3 = await this.getMP3(message.pool, args.join(" "));
-                    const mscz = await this.getMSCZ(data);
-                    try {
-                        const attachments = [];
-                        if (!mp3.error) try {
-                            const res = await requestStream(mp3.url).catch(console.error);
-                            if (!res) console.error("Failed to get Readable Stream");
-                            else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
-                            else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
-                        } catch (err) { }
-                        if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title}.pdf`));
-                        if (!mscz.error) try {
-                            const res = await requestStream(mscz.url).catch(console.error);
-                            if (!res) console.error("Failed to get Readable Stream");
-                            else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
-                            else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mscz`));
-                        } catch (err) { }
-                        if (attachments.length < 1) return await mesg.edit("Failed to generate files!");
-                        await mesg.delete();
-                        await message.channel.send(attachments);
-                        console.log(`Completed download ${args.join(" ")} in server ${message.guild.name}`);
-                    } catch (err) {
-                        console.log(`Failed download ${args.join(" ")} in server ${message.guild.name}`);
-                        await message.reply("there was an error trying to send the files!");
-                    }
+                const { doc, hasPDF } = await this.getPDF(message.pool, args.join(" "), data);
+                const mp3 = await this.getMP3(message.pool, args.join(" "));
+                const mscz = await this.getMSCZ(data);
+                try {
+                    const attachments = [];
+                    if (!mp3.error) try {
+                        const res = await requestStream(mp3.url).catch(console.error);
+                        if (!res) console.error("Failed to get Readable Stream");
+                        else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
+                        else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
+                    } catch (err) { }
+                    if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title}.pdf`));
+                    if (!mscz.error) try {
+                        const res = await requestStream(mscz.url).catch(console.error);
+                        if (!res) console.error("Failed to get Readable Stream");
+                        else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
+                        else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mscz`));
+                    } catch (err) { }
+                    if (attachments.length < 1) return await mesg.edit("Failed to generate files!");
+                    await mesg.delete();
+                    await message.channel.send(attachments);
+                    console.log(`Completed download ${args.join(" ")} in server ${message.guild.name}`);
+                } catch (err) {
+                    console.log(`Failed download ${args.join(" ")} in server ${message.guild.name}`);
+                    console.error(err);
+                    await message.reply("there was an error trying to send the files!");
                 }
             } catch (err) {
                 console.log(`Failed download ${args.join(" ")} in server ${message.guild.name}`);
@@ -130,7 +129,7 @@ module.exports = {
     },
     async search(message, args) {
         try {
-            var response = await rp({ uri: `https://musescore.com/sheetmusic?text=${encodeURIComponent(args.join(" "))}`, resolveWithFullResponse: true });
+            const response = await rp({ uri: `https://musescore.com/sheetmusic?text=${encodeURIComponent(args.join(" "))}`, resolveWithFullResponse: true });
             if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
             var body = response.body;
         } catch (err) {
@@ -148,7 +147,7 @@ module.exports = {
         var scores = data.store.page.data.scores;
         for (const score of scores) {
             try {
-                var response = await rp({ uri: score.share.publicUrl, resolveWithFullResponse: true });
+                const response = await rp({ uri: score.share.publicUrl, resolveWithFullResponse: true });
                 if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
                 body = response.body;
             } catch (err) {
@@ -236,7 +235,7 @@ module.exports = {
             const r0 = await fetch(url);
             if (r0.status !== 500 && !r0.ok) throw new Error("Received Non-200 HTTP Status Code");
             const cidRes = await r0.json()
-        
+
             const cid = cidRes.Key
             if (!cid) {
                 const err = cidRes.Message
