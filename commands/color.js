@@ -2,9 +2,7 @@ const Discord = require("discord.js");
 const { createCanvas } = require("canvas");
 const { hexToRgb, decimalToRgb } = require("../function.js");
 function isArgsRgb(args, length) {
-    for(let i = 0; i < length; i++) {
-        if(isNaN(parseInt(args[i])) || parseInt(args[i]) > 255 || parseInt(args[i]) < 0) return false;
-    }
+    for(let i = 0; i < length; i++) if(isNaN(parseInt(args[i])) || parseInt(args[i]) > 255 || parseInt(args[i]) < 0) return false;
     return true;
 }
 

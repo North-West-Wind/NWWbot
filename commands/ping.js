@@ -1,61 +1,16 @@
 const Discord = require("discord.js");
-const { twoDigits } = require("../function.js");
+const { readableDateTime } = require("../function.js");
 
 module.exports = {
   name: "ping",
   description: "Ping the bot and it will show you something interesting (not really).",
   category: 6,
   execute(message) {
-    var msgDate = new Date(message.createdTimestamp);
+    const msgDate = new Date(message.createdTimestamp);
+    const msgTime = readableDateTime(msgDate)
 
-    var date = msgDate.getDate();
-    var month = msgDate.getMonth();
-    var year = msgDate.getFullYear();
-    var hour = msgDate.getHours();
-    var minute = msgDate.getMinutes();
-    var second = msgDate.getSeconds();
-    var millisecond = msgDate.getMilliseconds();
-
-    var msgTime =
-      twoDigits(date) +
-      "/" +
-      twoDigits(month + 1) +
-      "/" +
-      twoDigits(year) +
-      " " +
-      twoDigits(hour) +
-      ":" +
-      twoDigits(minute) +
-      ":" +
-      twoDigits(second) +
-      "." +
-      twoDigits(millisecond) +
-      " UTC";
-
-    var currentDate = new Date();
-    var cdate = currentDate.getDate();
-    var cmonth = currentDate.getMonth();
-    var cyear = currentDate.getFullYear();
-    var chour = currentDate.getHours();
-    var cminute = currentDate.getMinutes();
-    var csecond = currentDate.getSeconds();
-    var cmillisecond = currentDate.getMilliseconds();
-
-    var currentTime =
-      twoDigits(cdate) +
-      "/" +
-      twoDigits(cmonth + 1) +
-      "/" +
-      twoDigits(cyear) +
-      " " +
-      twoDigits(chour) +
-      ":" +
-      twoDigits(cminute) +
-      ":" +
-      twoDigits(csecond) +
-      "." +
-      twoDigits(cmillisecond) +
-      " UTC";
+    const currentDate = new Date();
+    const currentTime = readableDateTime(currentDate);
 
     const Embed = new Discord.MessageEmbed()
       .setColor(console.color())
@@ -65,7 +20,7 @@ module.exports = {
       .addField("Ping", "`" + (currentDate - msgDate) + "ms`")
       .setTimestamp()
       .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-    message.channel.send(Embed);
-    message.author.send("Pong! Don't question me. I'm online.")
+    await message.channel.send(Embed);
+    await message.author.send("Pong! Don't question me. I'm online.")
   }
 };

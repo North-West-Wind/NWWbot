@@ -2,9 +2,11 @@ const moment = require("moment");
 const { setTimeout_, genPermMsg, findRole } = require("../function.js");
 module.exports = {
   name: "role-message",
-  description: "Allows you to create a message for users to react and join a role.",
+  description: "Manage messages for users to react and join a role.",
   usage: "<subcommand>",
   subcommands: ["create", "refresh"],
+  subdesc: ["Create a role-message.", "Refresh an existing role-message."],
+  subusage: [null, "<subcommand> <ID>"],
   subaliases: ["cr", "re"],
   aliases: ["role-msg", "rm"],
   category: 0,

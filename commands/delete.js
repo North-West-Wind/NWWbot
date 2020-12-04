@@ -6,6 +6,8 @@ module.exports = {
   aliases: ["del"],
   usage: "[channel] <amount | subcommand | start> [end]",
   subcommands: ["all"],
+  subdesc: ["Deletes everything in the channel."],
+  subusage: ["[channel] <subcommand>"],
   category: 0,
   args: 1,
   async execute(message, args) {

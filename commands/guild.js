@@ -22,6 +22,7 @@ module.exports = {
 	aliases: ["gu"],
 	subcommands: ["splash", "invite", "lottery"],
 	subaliases: ["sp", "in", "lot"],
+	subdesc: ["Create a splash notification.", "Manage invites.", "Start a lottery."],
 	args: 1,
 	async execute(message, args) {
 		if (message.guild.id !== "622311594654695434") return;
@@ -34,7 +35,7 @@ module.exports = {
 				return await this.invite(message, args);
 			case "lot":
 			case "lottery":
-				return await this.lottery(message, args);
+				return await this.lottery(message);
 			case "tim":
 			case "timer":
 				return await this.timer(message, args);
@@ -214,7 +215,7 @@ module.exports = {
 
 		await msg.edit("The message has been sent!");
 	},
-	async lottery(message, args) {
+	async lottery(message) {
 		let items = {
 			"1": 65,
 			"2": 5,

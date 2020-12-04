@@ -72,18 +72,18 @@ async function setupGiveaway(message, channel, time, item, winnerCount) {
 
 module.exports = {
   name: "giveaway",
-  description: "Create, end or list giveaways on the server.",
+  description: "Manage giveaways on the server.",
   args: 1,
   usage: "<subcommand>",
   aliases: ["g"],
   subcommands: ["create", "end", "list"],
+  subdesc: ["Create a giveaway on the server.", "End a giveaway on the server.", "List all the giveaways on the server."],
+  subusage: ["<subcommand> [channel] [duration] [winner count] [item]", "<subcommand> <ID>"],
   category: 4,
   permission: 18432,
   async execute(message, args) {
-    const prefix = message.prefix;
     if (args[0] === "create") {
       if (args[1]) {
-        await message.channel.send("Single-line `giveaway create` command usage: `" + prefix + this.name + " create <channel> <duration> <winner count> <item>`");
         if (!args[2]) return await message.channel.send("Please provide the duration if you want to use this command in 1 line.");
         if (!args[3]) return await message.channel.send("Please provide the winner count if you want to use this command in 1 line.");
         if (!args[4]) return await message.channel.send("Please provide the items if you want to use this command in 1 line.");

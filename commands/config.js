@@ -11,6 +11,7 @@ module.exports = {
   description: "Generate a token for logging into the Configuration Panel.",
   usage: "[subcommand]",
   subcommands: ["new", "panel"],
+  subdesc: ["Generates a new token for the server.", "Opens the Configuration Panel."],
   category: 1,
   permission: 32,
   channelPermission: 8192,

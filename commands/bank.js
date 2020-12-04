@@ -4,8 +4,6 @@ module.exports = {
   name: "bank",
   description: "Display your Discord Economy status. You can also deposit or withdraw money with this command.",
   category: 2,
-  usage: "[subcommand]",
-  subcommands: ["deposit", "withdraw"],
   async execute(message) {
     const con = await message.pool.getConnection();
     var [results] = await con.query(`SELECT * FROM currency WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);

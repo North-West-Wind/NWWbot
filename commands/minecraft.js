@@ -10,6 +10,8 @@ module.exports = {
   usage: "[subcommand] <username | UUID | IP>",
   subcommands: ["profile", "server", "history"],
   subaliases: ["pro", "srv", "his"],
+  subdesc: ["Display the profile of a Minecraft player.", "Fetch information about a Minecraft server.", "Show the username history of a Minecraft player."],
+  subusage: [null, "<subcommand> <IP>", null],
   category: 7,
   args: 1,
   async execute(message, args) {

@@ -7,9 +7,11 @@ const Discord = require("discord.js");
 module.exports = {
     name: "ascii",
     description: "Generate ASCII arts from text or image.",
-    usage: "<subcommand> <text | attachment>",
+    usage: "<subcommand>",
     category: 3,
     subcomamnds: ["text", "image"],
+    subdesc: ["Generate ASCII art from text.", "Generate ASCII art from image."],
+    subusage: ["<subcommand> <text>", "<subcommand> <attachment>"],
     args: 2,
     async execute(message, args) {
         if (!args[0]) return await message.channel.send(`Please provide a subcommand!\nUsage: \`${message.prefix}${this.name} ${this.usage}\`\nAvailable Subcommands: \`${this.subcomamnds.join(", ")}\``);

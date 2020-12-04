@@ -3,9 +3,11 @@ const { setTimeout_, ms, jsDate2Mysql, readableDateTime, readableDateTimeText } 
 
 module.exports = {
   name: "poll",
-  description: "Create, end or list giveaways on the server.",
+  description: "Manage polls on the server.",
   usage: "<subcommand>",
   subcommands: ["create", "end", "list"],
+  subdesc: ["Create a poll on the server.", "End a poll on the server.", "List all the polls on the server."],
+  subusage: [null, "<subcommand> <ID>"],
   category: 4,
   args: 1,
   async execute(message, args) {

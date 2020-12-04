@@ -5,8 +5,12 @@ const { ms } = require("../function.js");
 module.exports = {
   name: "hentai",
   description: "Return something very NSFW. Require NSFW channel.",
-  usage: "[tag | auto] [amount] [interval]",
+  usage: "[tag | subcommand]",
   aliases: ["h"],
+  subcommands: ["auto"],
+  subaliases: ["a"],
+  subdesc: ["Automate Hentai images."],
+  subusage: ["<subcommand> <amount> <interval>"],
   tags: [
     "ass",
     "bdsm",

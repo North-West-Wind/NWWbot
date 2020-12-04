@@ -3,9 +3,11 @@ const { jsDate2Mysql, ms, readableDateTimeText } = require("../function.js");
 
 module.exports = {
   name: "timer",
-  description: "Let the bot countdown for you.",
+  description: "Manage your timers on the server.",
   usage: "<subcommand>",
   subcommands: ["create", "edit", "delete"],
+  subdesc: ["Create a timer on the server.", "Edit a timer on the server.", "Delete a timer on the server."],
+  subusage: [null, "<subcommand> <ID>", 1],
   category: 4,
   args: 1,
   async execute(message, args) {

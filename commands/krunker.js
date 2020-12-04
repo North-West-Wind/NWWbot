@@ -9,10 +9,12 @@ module.exports = {
   name: "krunker",
   description: "Connect to the Krunker.io API and display stats.",
   aliases: ["kr"],
-  usage: "<subcommand> [search term | version]",
+  usage: "<subcommand>",
   args: 1,
   category: 7,
   subcommands: ["stats", "server", "changelog"],
+  subdesc: ["Display the stats of a Krunker player.", "Show all available Krunker servers.", "Fetch the changelog of Krunker."],
+  subusage: ["<subcommand> <username>", "<subcommand> [search term]", "<subcommand> [version]"],
   async execute(message, args) {
     switch (args[0]) {
       case "stats":

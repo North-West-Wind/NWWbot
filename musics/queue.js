@@ -5,8 +5,10 @@ module.exports = {
   name: "queue",
   description: "Display the current song queue.",
   aliases: ["q"],
-  subcommands: ["save", "load", "delete", "list"],
-  subaliases: ["s", "l", "d", "li"],
+  subcommands: ["save", "load", "delete", "list", "export", "import"],
+  subdesc: ["Save the current queue to the database.", "Load a queue from the database.", "Delete a queue from the database.", "List all the queues of a user.", "Export a queue into a file.", "Import a queue from a file."],
+  subusage: ["<subcommand> <name>", 0, 0],
+  subaliases: ["s", "l", "d", "li", "ex", "im"],
   category: 8,
   async music(message, serverQueue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
@@ -15,6 +17,8 @@ module.exports = {
     if (args[1] && (args[1].toLowerCase() === "delete" || args[1].toLowerCase() === "d")) return await this.delete(message, args);
     if (args[1] && (args[1].toLowerCase() === "list" || args[1].toLowerCase() === "li")) return await this.list(message);
     if (args[1] && (args[1].toLowerCase() === "sync" || args[1].toLowerCase() === "sy")) return await this.sync(message, serverQueue, args);
+    if (args[1] && (args[1].toLowerCase() === "export" || args[1].toLowerCase() === "ex")) return await this.export(message, serverQueue);
+    if (args[1] && (args[1].toLowerCase() === "import" || args[1].toLowerCase() === "im")) return await this.import(message, serverQueue);
     if (!serverQueue) return message.channel.send("There is nothing playing.");
     if (!serverQueue.songs) serverQueue = setQueue(message.guild.id, [], !!serverQueue.looping, !!serverQueue.repeating, message.pool);
     if (serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");

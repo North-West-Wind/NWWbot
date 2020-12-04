@@ -8,6 +8,7 @@ module.exports = {
     usage: "<subcommand> <expression>",
     subcommands: ["evaluate", "derivative", "rationalize", "simplify", "help"],
     subaliases: ["eval", "ddx", "rat", "sim", "help"],
+    subdesc: ["Evaluate a Mathematical expression.", "Perform derivative with respect to x.", "Rationalize a Mathematical expression.", "Simplify a Mathematical expression.", "Display all available constants and operators for this command."],
     category: 4,
     args: 2,
     async execute(message, args) {
