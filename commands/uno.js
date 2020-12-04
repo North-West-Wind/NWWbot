@@ -1,12 +1,12 @@
-const Discord = require("discord.js");
-const { shuffleArray, twoDigits } = require("../function.js");
-const converter = require("number-to-words");
-const { createCanvas, loadImage } = require("canvas");
-const fs = require("fs");
-const moment = require("moment");
+var Discord = require("discord.js");
+var { shuffleArray, twoDigits } = require("../function.js");
+var converter = require("number-to-words");
+var { createCanvas, loadImage } = require("canvas");
+var fs = require("fs");
+var moment = require("moment");
 require("moment-duration-format")(moment);
-const COLOR = ["Yellow", "Blue", "Green", "Red", "Special"];
-const NUMBER = ["Reverse", "Skip", "Draw 2", "Draw 4", "Change Color"];
+var COLOR = ["Yellow", "Blue", "Green", "Red", "Special"];
+var NUMBER = ["Reverse", "Skip", "Draw 2", "Draw 4", "Change Color"];
 function toString(x) {
   let colorStr = COLOR[x.color];
   let number = x.number;
@@ -31,9 +31,11 @@ module.exports = {
   category: 3,
   usage: "[users]",
   async execute(message) {
-    const color = console.color();
-    if (message.mentions.users.size > 0) var msg = await message.channel.send(`You invited ${message.mentions.users.map(user => `<@${user.id}>`).join(" ")} to play UNO.`);
-    else {
+    var color = console.color();
+    if (message.mentions.members.size > 0) {
+      var msg = await message.channel.send(`You invited ${message.mentions.members.map(user => `<@${user.id}>`).join(" ")} to play UNO.`);
+      var mentions = message.mentions.members;
+    } else {
       var msg = await message.channel.send("Alright, we will start an UNO game. Who will be invited? Please mention them!");
       var collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
       if (!collected || !collected.first()) return msg.edit("Don't make me wait too long. I'm busy.");
@@ -41,13 +43,14 @@ module.exports = {
       if (!collected.first().mentions.members || !collected.first().mentions.members.size) return msg.edit("You didn't invite anyone!");
       else if (collected.first().mentions.members.find(x => x.user.bot)) return msg.edit("Bots cannot play with you!");
       else if (collected.first().mentions.members.find(x => x.id === message.author.id)) return msg.edit("Why would you invite yourself?");
-      msg.edit(`You invited ${collected.first().content} to play UNO.`);
+      await msg.edit(`You invited ${collected.first().content} to play UNO.`);
+      var mentions = collected.first().mentions.members;
     }
     var responses = 0;
     var accepted = 0;
     var ingame = false;
     var participants = [message.author];
-    collected.first().mentions.members.forEach(async member => {
+    mentions.forEach(async member => {
       var otherGames = console.uno.find(game => game.players.has(member.id));
       if(otherGames !== undefined) {
         responses++;
@@ -55,7 +58,7 @@ module.exports = {
         return message.channel.send(`**${member.user.tag}** is already in another game!`);
       }
       participants.push(member.user);
-      const em = new Discord.MessageEmbed()
+      var em = new Discord.MessageEmbed()
         .setAuthor(message.author.tag, message.author.displayAvatarURL())
         .setColor(color)
         .setTitle(`${message.author.tag} invited you to play UNO!`)
@@ -80,7 +83,7 @@ module.exports = {
         return await mesg.edit(em);
       }
       em.setFooter("Head to the channel now.", message.client.user.displayAvatarURL());
-      const reaction = rCollected.first();
+      var reaction = rCollected.first();
       if (reaction.emoji.name === "✅") {
         message.channel.send(`**${member.user.tag}** accepted the invitation!`);
         em.setDescription(`Server: **${message.guild.name}**\nChannel: **${message.channel.name}**\nYou accepted the invitation!`);
@@ -99,8 +102,8 @@ module.exports = {
         if (responses !== accepted) return message.channel.send("The game cannot start as someone didn't accept the invitation!");
         else if(ingame) return message.channel.send("The game cannot start as somebody is in another game!");
         else {
-          const readFile = await fs.readFileSync("./.glitch-assets", "utf8");
-          const arr = readFile.split("\n");
+          var readFile = await fs.readFileSync("./.glitch-assets", "utf8");
+          var arr = readFile.split("\n");
           for (let i = 0; i < arr.length - 1; i++) arr[i] = JSON.parse(arr[i]);
           assets = arr.filter(x => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map(x => {
             return {
@@ -109,7 +112,7 @@ module.exports = {
             };
           });
           var mesg = await message.channel.send("The game will start soon!");
-          const nano = Date.now();
+          var nano = Date.now();
           try {
             mesg = await prepare(mesg, nano);
             await handle(mesg, nano);
@@ -117,14 +120,14 @@ module.exports = {
         }
       }
     }, 1000);
-    const players = new Discord.Collection();
+    var players = new Discord.Collection();
 
     async function prepare(mesg, nano) {
       var uno = console.uno;
       var order = shuffleArray(participants);
       message.channel.send(`The order has been decided!${order.map(x => `\n${order.indexOf(x) + 1}. **${x.tag}**`)}`);
-      for (const participant of order) players.set(participant.id, { user: participant, card: console.card.random(7) });
-      for (const [key, player] of players) {
+      for (var participant of order) players.set(participant.id, { user: participant, card: console.card.random(7) });
+      for (var [key, player] of players) {
         let em = new Discord.MessageEmbed()
           .setColor(color)
           .setTitle(`The cards have been distributed!`)
@@ -135,7 +138,7 @@ module.exports = {
           .setFooter("Game started.", message.client.user.displayAvatarURL());
         player.user.send(em);
       }
-      const initial = console.card.filter(x => x.color < 4 && x.number < 10).random();
+      var initial = console.card.filter(x => x.color < 4 && x.number < 10).random();
       uno.set(nano, { players: players, card: initial, cards: 1 });
       let em = new Discord.MessageEmbed()
         .setColor(color)
@@ -164,7 +167,7 @@ module.exports = {
         }
         nores = 0;
         let i = -1;
-        for (const [key, player] of players) {
+        for (var [key, player] of players) {
           i++;
           let top = await uno.get(nano).card;
           if (skip) {
@@ -190,7 +193,7 @@ module.exports = {
             }
             return (x.color === 4) || (x.color === top.color || x.number === top.number);
           });
-          const em = new Discord.MessageEmbed()
+          var em = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle(`It's your turn now!`)
             .setDescription(`The current card is ${toString(top)}\nYour cards:\n\n${player.card.map(x => toString(x)).join("\n")}\n\n📥 Place\n📤 Draw\n⏹️ Stop\nIf you draw, you will draw **${drawCard > 0 ? drawCard + " cards" : "1 card"}**.`)
@@ -205,9 +208,9 @@ module.exports = {
           try {
             var collected = await mssg.awaitReactions((r, u) => ["📥", "📤", "⏹️"].includes(r.emoji.name) && u.id === player.user.id, { time: 120 * 1000, max: 1, errors: ["time"] });
           } catch (err) { }
-          const newCard = console.card.random(drawCard > 0 ? drawCard : 1);
-          const card = !newCard.length ? [toString(newCard)] : newCard.map(x => toString(x));
-          const draw = new Discord.MessageEmbed()
+          var newCard = console.card.random(drawCard > 0 ? drawCard : 1);
+          var card = !newCard.length ? [toString(newCard)] : newCard.map(x => toString(x));
+          var draw = new Discord.MessageEmbed()
             .setColor(color)
             .setTitle(`${player.user.tag} drew a card!`)
             .setThumbnail(message.client.user.displayAvatarURL())
@@ -333,7 +336,7 @@ module.exports = {
               await mssg.delete();
               mssg = await mssg.channel.send(em);
               let colors = ["🟥", "🟨", "🟦", "🟩"];
-              for (const rColor of colors) {
+              for (var rColor of colors) {
                 mssg.react(rColor);
               }
               try {
@@ -431,8 +434,8 @@ module.exports = {
               won = true;
               let data = await console.uno.get(nano);
               var scores = 0;
-              for(const p of Array.from(data.players.values())) {
-                for(const c of p.card) {
+              for(var p of Array.from(data.players.values())) {
+                for(var c of p.card) {
                   if(c.number < 10) scores += c.number;
                   else if(c.number < 13) scores += 20;
                   else scores += 50;
