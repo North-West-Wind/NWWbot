@@ -52,7 +52,7 @@ module.exports = {
     var participants = [message.author];
     mentions.forEach(async member => {
       var otherGames = console.uno.find(game => game.players.has(member.id));
-      if(otherGames !== undefined) {
+      if(!!otherGames) {
         responses++;
         ingame = true;
         return message.channel.send(`**${member.user.tag}** is already in another game!`);
@@ -69,7 +69,7 @@ module.exports = {
         var mesg = await member.user.send(em);
       } catch(err) {
         message.channel.send(`Failed to send invitation to **${member.user.tag}**.`);
-        responses += collected.first().mentions.members.length;
+        responses += mentions.members.length;
         return;
       }
       await mesg.react("✅");
@@ -96,30 +96,6 @@ module.exports = {
     });
 
     let assets;
-    var check = setInterval(async () => {
-      if (responses >= collected.first().mentions.members.size) {
-        clearInterval(check);
-        if (responses !== accepted) return message.channel.send("The game cannot start as someone didn't accept the invitation!");
-        else if(ingame) return message.channel.send("The game cannot start as somebody is in another game!");
-        else {
-          var readFile = await fs.readFileSync("./.glitch-assets", "utf8");
-          var arr = readFile.split("\n");
-          for (let i = 0; i < arr.length - 1; i++) arr[i] = JSON.parse(arr[i]);
-          assets = arr.filter(x => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map(x => {
-            return {
-              id: x.name.slice(0, -4),
-              url: x.url
-            };
-          });
-          var mesg = await message.channel.send("The game will start soon!");
-          var nano = Date.now();
-          try {
-            mesg = await prepare(mesg, nano);
-            await handle(mesg, nano);
-          } catch (err) { return console.error(err) }
-        }
-      }
-    }, 1000);
     var players = new Discord.Collection();
 
     async function prepare(mesg, nano) {
@@ -502,6 +478,28 @@ module.exports = {
           }
         }
       }
+    }
+    while (responses < mentions.size) {
+      if (responses !== accepted) return message.channel.send("The game cannot start as someone didn't accept the invitation!");
+      else if(ingame) return message.channel.send("The game cannot start as somebody is in another game!");
+      else {
+        var readFile = await fs.readFileSync("./.glitch-assets", "utf8");
+        var arr = readFile.split("\n");
+        for (let i = 0; i < arr.length - 1; i++) arr[i] = JSON.parse(arr[i]);
+        assets = arr.filter(x => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map(x => {
+          return {
+            id: x.name.slice(0, -4),
+            url: x.url
+          };
+        });
+        var mesg = await message.channel.send("The game will start soon!");
+        var nano = Date.now();
+        try {
+          mesg = await prepare(mesg, nano);
+          await handle(mesg, nano);
+        } catch (err) { return console.error(err) }
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 };

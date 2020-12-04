@@ -700,7 +700,7 @@ module.exports = {
       .setTitle(`Search result of ${args.slice(1).join(" ")} on YouTube`)
       .setColor(console.color())
       .setTimestamp()
-      .setFooter("Choose your song by typing the number, or type anything else to cancel.", message.client.user.displayAvatarURL());
+      .setFooter("Please do so within 60 seconds.", message.client.user.displayAvatarURL());
     try {
       const searched = await ytsr(args.slice(1).join(" "), { limit: 20 });
       var video = searched.items.filter(x => x.type === "video");
@@ -722,8 +722,7 @@ module.exports = {
         return { error: true };
       }
     }
-    const ytResults = video.map(x => {
-      return {
+    const ytResults = video.map(x => ({
         id: ID(),
         title: decodeHtmlEntity(x.title),
         url: x.link,
@@ -732,23 +731,22 @@ module.exports = {
         thumbnail: x.thumbnail,
         volume: 1,
         isLive: x.live
-      };
-    });
+      }));
     var num = 0;
     if (video.length > 0) {
-      Embed.setDescription(video.map(x => `${++num} - **[${decodeHtmlEntity(x.title)}](${x.link})** : **${x.duration}**`).slice(0, 10).join("\n"));
+      Embed.setDescription("Type **soundcloud** / **sc** to show the search results from SoundCloud.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + video.map(x => `${++num} - **[${decodeHtmlEntity(x.title)}](${x.link})** : **${x.duration}**`).slice(0, 10).join("\n"));
       allEmbeds.push(Embed);
     }
     const scEm = new Discord.MessageEmbed()
       .setTitle(`Search result of ${args.slice(1).join(" ")} on SoundCloud`)
       .setColor(console.color())
       .setTimestamp()
-      .setFooter("Choose your song by typing the number, or type anything else to cancel.", message.client.user.displayAvatarURL());
+      .setFooter("Please do so within 60 seconds.", message.client.user.displayAvatarURL());
     try {
       var scSearched = await scdl.search("tracks", args.slice(1).join(" "));
       num = 0;
       if (scSearched.collection.length > 0) {
-        scEm.setDescription(scSearched.collection.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).slice(0, 10).join("\n"));
+        scEm.setDescription("Type **youtube** / **yt** to show the search results from Youtube.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + scSearched.collection.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).slice(0, 10).join("\n"));
         allEmbeds.push(scEm);
       }
     } catch (err) {
@@ -756,8 +754,7 @@ module.exports = {
       message.reply("there was an error trying to search the videos!");
       return { error: true };
     }
-    const scResults = scSearched.collection.map(x => {
-      return {
+    const scResults = scSearched.collection.map(x => ({
         id: ID(),
         title: x.title,
         url: x.permalink_url,
@@ -766,64 +763,55 @@ module.exports = {
         thumbnail: x.artwork_url,
         volume: 1,
         isLive: false
-      };
-    });
+      }));
     if (allEmbeds.length < 1) {
       message.channel.send("Cannot find any result with the given string.");
       return { error: true };
     }
     const results = [ytResults, scResults];
-    var collector = undefined;
+    var val = { error: true };
     var s = 0;
     var msg = await message.channel.send(allEmbeds[0]);
-    if (allEmbeds.length > 1) {
-      const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
-      await msg.react("⏮");
-      await msg.react("◀");
-      await msg.react("▶");
-      await msg.react("⏭");
-      await msg.react("⏹");
-      collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
-      collector.on("collect", async (reaction, user) => {
-        const result = await commonCollectorListener(reaction, user, s, allEmbeds, msg, collector);
-        s = result.s;
-        msg = result.msg;
-      });
-      collector.on("end", async () => msg.reactions.removeAll().catch(console.error));
-    }
     const filter = x => x.author.id === message.author.id;
-    const collected = await msg.channel.awaitMessages(filter, { max: 1, time: 60000, error: ["time"] });
-    if (collector) collector.emit("end");
-    if (!collected || !collected.first() || !collected.first().content) {
-      const Ended = new Discord.MessageEmbed()
-        .setColor(console.color())
-        .setTitle("Cannot parse your choice.")
-        .setTimestamp()
-        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-      await msg.edit(Ended).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**", embed: null }), 30000));
-      return { error: true };
-    }
-    const content = collected.first().content;
-    collected.first().delete();
-    if (isNaN(parseInt(content)) || parseInt(content) < 1 || parseInt(content) > results[s].length) {
-      const cancelled = new Discord.MessageEmbed()
-        .setColor(console.color())
-        .setTitle("Action cancelled.")
-        .setTimestamp()
-        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-      await msg.edit(cancelled).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**", embed: null }), 30000));
-      return { error: true };
-    }
-    const o = parseInt(content) - 1;
-    const chosenEmbed = new Discord.MessageEmbed()
-      .setColor(console.color())
-      .setTitle("Music chosen:")
-      .setThumbnail(results[s][o].thumbnail)
-      .setDescription(`**[${decodeHtmlEntity(results[s][o].title)}](${results[s][o].url})** : **${results[s][o].time}**`)
-      .setTimestamp()
-      .setFooter("Have a nice day :)", message.client.user.displayAvatarURL());
-    await msg.edit(chosenEmbed).catch(() => { });
-    return { error: false, songs: [results[s][o]], msg, embed: Embed };
+    const collector = await msg.channel.createMessageCollector(filter, { time: 60000 });
+    collector.on("collect", async collected => {
+      if (isNaN(parseInt(collected.content))) {
+        switch(collected.content) {
+          case "youtube":
+          case "yt":
+            s = 0;
+            await msg.edit(allEmbeds[s]);
+            break;
+          case "soundcloud":
+          case "sc":
+            s = 1;
+            await msg.edit(allEmbeds[s]);
+            break;
+          default:
+            const cancelled = new Discord.MessageEmbed()
+              .setColor(console.color())
+              .setTitle("Action cancelled.")
+              .setTimestamp()
+              .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+            await msg.edit(cancelled).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**", embed: null }), 30000));
+            collector.emit("end");
+        }
+      } else {
+        const o = parseInt(collected.content) - 1;
+        const chosenEmbed = new Discord.MessageEmbed()
+          .setColor(console.color())
+          .setTitle("Music chosen:")
+          .setThumbnail(results[s][o].thumbnail)
+          .setDescription(`**[${decodeHtmlEntity(results[s][o].title)}](${results[s][o].url})** : **${results[s][o].time}**`)
+          .setTimestamp()
+          .setFooter("Have a nice day :)", message.client.user.displayAvatarURL());
+        await msg.edit(chosenEmbed).catch(() => { });
+        val = { error: false, songs: [results[s][o]], msg, embed: Embed };
+        collector.emit("end");
+      }
+    });
+    while (!collector.ended) await new Promise(resolve => setTimeout(resolve, 100));
+    return val;
   },
   createEmbed: createEmbed
 };
