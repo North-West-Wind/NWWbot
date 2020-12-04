@@ -5,7 +5,7 @@ module.exports = {
   name: "ping",
   description: "Ping the bot and it will show you something interesting (not really).",
   category: 6,
-  execute(message) {
+  async execute(message) {
     const msgDate = new Date(message.createdTimestamp);
     const msgTime = readableDateTime(msgDate)
 
