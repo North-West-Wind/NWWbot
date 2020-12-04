@@ -27,6 +27,7 @@ module.exports = {
       } catch(err) {
         await message.reply("did you block my DM?");
       }
+      return;
     }
     const name = args[0].toLowerCase();
     const command = commands.get(name) || commands.find(c => c.aliases && c.aliases.includes(name));
@@ -49,6 +50,7 @@ module.exports = {
         if (command.subusage && !isNaN(command.subusage[i])) str += `${message.prefix}${command.name} ${command.subusage[command.subusage[i]].replace("<subcommand>", command.subcommands[i])}`;
         else if (command.subusage && command.subusage[i]) str += `${message.prefix}${command.name} ${command.subusage[i].replace("<subcommand>", command.subcommands[i])}`;
         else str += `${message.prefix}${command.name} ${command.usage.replace(/(?!\s)[\<\[\w\s\|]*subcommand[\w\s\|\>\]]*/, command.subcommands[i])}`;
+        strs.push(str);
       }
       data.push(`**Subcommands:**\n${strs.join("\n")}\n`);
     }
