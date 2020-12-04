@@ -672,6 +672,7 @@ module.exports = {
     },
     async message(message) {
         message.prefix = message.client.prefix;
+        if (message.guild && console.prefixes[message.guild.id] && message.client.id === 0) message.prefix = console.prefixes[message.guild.id];
         messageLevel(message);
         const args = message.content.slice(message.prefix.length).split(/ +/);
         if (message.client.id == 1 && message.channel.id == "647630951169523762") {
@@ -701,7 +702,6 @@ module.exports = {
             });
             return;
         }
-        if (message.guild && console.prefixes[message.guild.id] && message.client.id === 0) message.prefix = console.prefixes[message.guild.id];
         if (!message.content.startsWith(message.prefix) || message.author.bot) {
             if (!message.author.bot && Math.floor(Math.random() * 1000) === 69) cleverbot(message.content).then(response => message.channel.send(response));
             return;
