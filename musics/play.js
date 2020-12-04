@@ -775,6 +775,7 @@ module.exports = {
     const filter = x => x.author.id === message.author.id;
     const collector = await msg.channel.createMessageCollector(filter, { time: 60000 });
     collector.on("collect", async collected => {
+      collected.delete().catch(() => { });
       if (isNaN(parseInt(collected.content))) {
         switch(collected.content) {
           case "youtube":
@@ -810,8 +811,11 @@ module.exports = {
         collector.emit("end");
       }
     });
-    while (!collector.ended) await new Promise(resolve => setTimeout(resolve, 100));
-    return val;
+    return new Promise(resolve => {
+      collector.on("end", () => {
+        resolve(val);
+      });
+    });
   },
   createEmbed: createEmbed
 };
