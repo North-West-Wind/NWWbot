@@ -29,16 +29,20 @@ module.exports = {
   name: "uno",
   description: "Play UNO with your friends!",
   category: 3,
+  usage: "[users]",
   async execute(message) {
     const color = console.color();
-    var msg = await message.channel.send("Alright, we will start an UNO game. Who will be invited? Please mention them!");
-    var collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
-    if (!collected || !collected.first()) return msg.edit("Don't make me wait too long. I'm busy.");
-    await collected.first().delete();
-    if (!collected.first().mentions.members || !collected.first().mentions.members.size) return msg.edit("You didn't invite anyone!");
-    else if (collected.first().mentions.members.find(x => x.user.bot)) return msg.edit("Bots cannot play with you!");
-    else if (collected.first().mentions.members.find(x => x.id === message.author.id)) return msg.edit("Why would you invite yourself?");
-    msg.edit(`You invited ${collected.first().content} to play UNO.`);
+    if (message.mentions.users.size() > 0) var msg = await message.channel.send(`You invited ${message.mentions.users.map(user => `<@${user.id}>`).join(" ")} to play UNO.`);
+    else {
+      var msg = await message.channel.send("Alright, we will start an UNO game. Who will be invited? Please mention them!");
+      var collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+      if (!collected || !collected.first()) return msg.edit("Don't make me wait too long. I'm busy.");
+      await collected.first().delete();
+      if (!collected.first().mentions.members || !collected.first().mentions.members.size) return msg.edit("You didn't invite anyone!");
+      else if (collected.first().mentions.members.find(x => x.user.bot)) return msg.edit("Bots cannot play with you!");
+      else if (collected.first().mentions.members.find(x => x.id === message.author.id)) return msg.edit("Why would you invite yourself?");
+      msg.edit(`You invited ${collected.first().content} to play UNO.`);
+    }
     var responses = 0;
     var accepted = 0;
     var ingame = false;
