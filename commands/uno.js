@@ -32,7 +32,7 @@ module.exports = {
   usage: "[users]",
   async execute(message) {
     const color = console.color();
-    if (message.mentions.users.size() > 0) var msg = await message.channel.send(`You invited ${message.mentions.users.map(user => `<@${user.id}>`).join(" ")} to play UNO.`);
+    if (message.mentions.users.size > 0) var msg = await message.channel.send(`You invited ${message.mentions.users.map(user => `<@${user.id}>`).join(" ")} to play UNO.`);
     else {
       var msg = await message.channel.send("Alright, we will start an UNO game. Who will be invited? Please mention them!");
       var collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
