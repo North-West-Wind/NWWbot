@@ -38,7 +38,7 @@ const pool = {
     }
 }
 var queries = [];
-setInterval(() => {
+setInterval(async() => {
     if (queries.length < 1) return;
     const con = await pool.getConnection();
     for (const query of queries) try {
