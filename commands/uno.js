@@ -104,7 +104,7 @@ module.exports = {
               url: x.url
             };
           });
-          const mesg = await message.channel.send("The game will start soon!");
+          var mesg = await message.channel.send("The game will start soon!");
           const nano = Date.now();
           try {
             mesg = await prepare(mesg, nano);

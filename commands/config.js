@@ -13,10 +13,11 @@ module.exports = {
   subcommands: ["new", "panel"],
   category: 1,
   permission: 32,
+  channelPermission: 8192,
   async execute(message, args) {
     if (!message.guild) return await message.channel.send("Direct messages is not configurable.");
     if (!message.member.permissions.has(this.permission)) return await message.channel.send(genPermMsg(this.permission, 0));
-    if (!message.channel.permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
+    if (!message.channel.permissionsFor(message.guild.me).has(this.channelPermission)) return message.channel.send(genPermMsg(this.channelPermission, 1));
 
     const guild = message.guild;
 

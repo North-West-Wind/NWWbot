@@ -585,20 +585,28 @@ module.exports = {
     async guildCreate(guild) {
         console.log("Joined a new guild: " + guild.name);
         console.invites[guild.id] = await guild.fetchInvites();
-        const con = await pool.getConnection();
-        const [result] = await con.query("SELECT * FROM servers WHERE id = " + guild.id);
-        if (result.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
-        else {
-            await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
-            console.log("Inserted record for " + guild.name);
+        try {
+            const con = await pool.getConnection();
+            const [result] = await con.query("SELECT * FROM servers WHERE id = " + guild.id);
+            if (result.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
+            else {
+                await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+                console.log("Inserted record for " + guild.name);
+            }
+            con.release();
+        } catch(err) {
+            console.error(err);
         }
-        con.release();
     },
     async guildDelete(guild) {
         console.log("Left a guild: " + guild.name);
         delete console.invites[guild.id];
-        await pool.query("DELETE FROM servers WHERE id=" + guild.id).catch(console.error);
-        console.log("Deleted record for " + guild.name);
+        try {
+            await pool.query("DELETE FROM servers WHERE id=" + guild.id);
+            console.log("Deleted record for " + guild.name);
+        } catch(err) {
+            console.error(err);
+        }
     },
     async voiceStateUpdate(oldState, newState) {
         const exit = console.exit;
