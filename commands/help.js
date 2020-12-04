@@ -6,7 +6,7 @@ module.exports = {
   usage: "[command]",
   cooldown: 5,
   category: 6,
-  execute(message, args) {
+  async execute(message, args) {
     const data = [];
     const { commands } = console;
 
