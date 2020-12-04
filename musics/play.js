@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, commonCollectorListener } = require("../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream } = require("../function.js");
 const { parseBody, getMP3 } = require("../commands/musescore.js");
 const { music } = require("./migrate.js");
 const ytdl = require("ytdl-core");
@@ -23,10 +23,6 @@ const StreamConcat = require('stream-concat');
 const ph = require("@justalk/pornhub-api");
 const { setQueue, updateQueue, getQueues } = require("./main.js");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
-const requestStream = (url) => new Promise((resolve, reject) => {
-  const rs = require("request-stream");
-  rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
-});
 function createEmbed(message, songs) {
   const Embed = new Discord.MessageEmbed()
     .setColor(console.color())

@@ -2,7 +2,7 @@ const rp = require("request-promise-native");
 const fetch = require("node-fetch");
 const cheerio = require("cheerio");
 const Discord = require("discord.js");
-const { validMSURL, findValueByPrefix, streamToString } = require("../function.js");
+const { validMSURL, findValueByPrefix, streamToString, requestStream } = require("../function.js");
 const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
 const PNGtoPDF = (doc, url) => new Promise(async (resolve, reject) => {
@@ -20,10 +20,6 @@ const PNGtoPDF = (doc, url) => new Promise(async (resolve, reject) => {
             }
         });
     });
-});
-const requestStream = (url) => new Promise((resolve, reject) => {
-    const rs = require("request-stream");
-    rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
 });
 
 module.exports = {

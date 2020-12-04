@@ -23,37 +23,46 @@ const mysql_config = {
     queueLimit: 0
 };
 const pool = {
-    getConnection: async() => {
+    getConnection: async () => {
         const con = mysql.createConnection(mysql_config).promise();
-        con.release = async() => await con.end();
+        con.release = async () => await con.end();
+        con.on("error", console.error);
         return con;
     },
-    query: async(query) => {
+    query: async (query) => {
         const con = mysql.createConnection(mysql_config).promise();
+        con.on("error", console.error);
         const res = await con.query(query);
         await con.end();
         return res;
     }
 }
+const queries = [];
+setInterval(() => {
+    const con = await pool.getConnection();
+    for (const query of queries) try {
+        const [results] = await con.query(`SELECT * FROM leveling WHERE user = '${query.author}' AND guild = '${query.guild}'`);
+        if (results.length < 1) await con.query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${query.author}', '${query.guild}', ${query.exp}, '${query.date}')`);
+        else {
+            if (new Date() - results[0].last < 60000) return;
+            const newExp = parseInt(results[0].exp) + query.exp;
+            await con.query(`UPDATE leveling SET exp = ${newExp}, last = '${query.date}' WHERE user = '${query.author}' AND guild = '${query.guild}'`);
+        }
+    } catch (err) { }
+    con.release();
+}, 60000);
 var timeout = undefined;
 console.prefixes = {};
 async function messageLevel(message) {
-    if (!message || !message.author || !message.author.id || !message.guild) return;
+    if (!message || !message.author || !message.author.id || !message.guild || message.author.bot) return;
     const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
     const sqlDate = jsDate2Mysql(new Date());
-    try {
-        const con = await pool.getConnection();
-        const [results] = await con.query(`SELECT * FROM leveling WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`).catch(console.error);
-        if (results.length < 1) await con.query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${message.author.id}', '${message.guild.id}', ${exp}, '${sqlDate}')`).catch(console.error);
-        else {
-            if (new Date() - results[0].last < 60000) return;
-            const newExp = parseInt(results[0].exp) + exp;
-            await con.query(`UPDATE leveling SET exp = ${newExp}, last = '${sqlDate}' WHERE user = '${message.author.id}' AND guild = '${message.guild.id}'`).catch(console.error);
-        }
-        con.release();
-    } catch (err) {
-        console.error(err);
-    }
+    queries.push({
+        author: message.author.id,
+        guild: message.guild.id,
+        exp: exp,
+        date: sqlDate
+    });
 }
 module.exports = {
     async ready(client) {
@@ -171,7 +180,7 @@ module.exports = {
                 filtered.forEach(async result => {
                     try {
                         await client.guilds.fetch(result.id);
-                    } catch(err) {
+                    } catch (err) {
                         if (result.id != "622311594654695434") {
                             await con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
                             return console.log("Removed left servers");
@@ -210,7 +219,7 @@ module.exports = {
                             } catch (err) { console.error("Failed to DM user"); }
                             await conn.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
                             console.log("A guild timer expired.");
-                        } catch(err) {
+                        } catch (err) {
                             console.error(err);
                         }
                         conn.release();
@@ -226,7 +235,7 @@ module.exports = {
                 var currentDate = new Date();
                 var millisec = result.expiration - currentDate;
                 async function expire(length) {
-                    setTimeout_(async() => {
+                    setTimeout_(async () => {
                         const conn = await pool.getConnection();
                         try {
                             const [results] = await conn.query(`SELECT id, expiration FROM rolemsg WHERE id = '${result.id}'`);
@@ -244,7 +253,7 @@ module.exports = {
                                 console.log("Deleted an expired role-message.");
                                 if (!deleted) msg.reactions.removeAll().catch(() => { });
                             } else expire(results[0].expiration - date);
-                        } catch(err) {
+                        } catch (err) {
                             console.error(err);
                         }
                         conn.release();
@@ -406,7 +415,7 @@ module.exports = {
                             if (res.length < 1) return;
                             await conn.query(`DELETE FROM timer WHERE guild = '${guild.id}' AND channel = '${channel.id}' AND author = '${author.id}' AND msg = '${msg.id}'`);
                             return console.log("Deleted a timed out timer from the database.");
-                        } catch(err) {
+                        } catch (err) {
                             console.error(err);
                         }
                         conn.release();
@@ -594,7 +603,7 @@ module.exports = {
                 console.log("Inserted record for " + guild.name);
             }
             con.release();
-        } catch(err) {
+        } catch (err) {
             console.error(err);
         }
     },
@@ -604,7 +613,7 @@ module.exports = {
         try {
             await pool.query("DELETE FROM servers WHERE id=" + guild.id);
             console.log("Deleted record for " + guild.name);
-        } catch(err) {
+        } catch (err) {
             console.error(err);
         }
     },
@@ -668,7 +677,7 @@ module.exports = {
             const mcName = message.content;
             console.log("Received name: " + mcName);
             const dcUserID = message.author.id;
-            MojangAPI.nameToUuid(message.content, async function(err, res) {
+            MojangAPI.nameToUuid(message.content, async function (err, res) {
                 if (err) return message.channel.send("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
                 const mcUuid = res[0].id;
                 const con = await pool.getConnection();

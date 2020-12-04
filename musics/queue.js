@@ -1,7 +1,6 @@
 const Discord = require("discord.js");
-const { updateQueue } = require("./main.js");
-const { createEmbedScrolling } = require("../function.js");
-const { setQueue } = require("./main.js");
+const { updateQueue, setQueue } = require("./main.js");
+const { createEmbedScrolling, streamToString, requestStream } = require("../function.js");
 module.exports = {
   name: "queue",
   description: "Display the current song queue.",
@@ -11,11 +10,11 @@ module.exports = {
   category: 8,
   async music(message, serverQueue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
-    if (args[1] !== undefined && (args[1].toLowerCase() === "save" || args[1].toLowerCase() === "s")) return await this.save(message, serverQueue, args);
-    if (args[1] !== undefined && (args[1].toLowerCase() === "load" || args[1].toLowerCase() === "l")) return await this.load(message, serverQueue, args);
-    if (args[1] !== undefined && (args[1].toLowerCase() === "delete" || args[1].toLowerCase() === "d")) return await this.delete(message, args);
-    if (args[1] !== undefined && (args[1].toLowerCase() === "list" || args[1].toLowerCase() === "li")) return await this.list(message);
-    if (args[1] !== undefined && (args[1].toLowerCase() === "sync" || args[1].toLowerCase() === "sy")) return await this.sync(message, serverQueue, args);
+    if (args[1] && (args[1].toLowerCase() === "save" || args[1].toLowerCase() === "s")) return await this.save(message, serverQueue, args);
+    if (args[1] && (args[1].toLowerCase() === "load" || args[1].toLowerCase() === "l")) return await this.load(message, serverQueue, args);
+    if (args[1] && (args[1].toLowerCase() === "delete" || args[1].toLowerCase() === "d")) return await this.delete(message, args);
+    if (args[1] && (args[1].toLowerCase() === "list" || args[1].toLowerCase() === "li")) return await this.list(message);
+    if (args[1] && (args[1].toLowerCase() === "sync" || args[1].toLowerCase() === "sy")) return await this.sync(message, serverQueue, args);
     if (!serverQueue) return message.channel.send("There is nothing playing.");
     if (!serverQueue.songs) serverQueue = setQueue(message.guild.id, [], !!serverQueue.looping, !!serverQueue.repeating, message.pool);
     if (serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");
@@ -174,5 +173,22 @@ module.exports = {
     else serverQueue.songs = JSON.parse(unescape(results[0].queue));
     updateQueue(message, serverQueue, message.pool);
     message.channel.send(`The queue of this server has been synchronize to the queue of the server **${guild.name}**.`);
+  },
+  async export(message, serverQueue) {
+    if (!serverQueue) return await message.channel.send("There is nothing in the queue.");
+    if (!serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], !!serverQueue.looping, !!serverQueue.repeating, message.pool);
+    if (serverQueue.songs.length < 1) return await message.channel.send("There is nothing in the queue.");
+    const str = escape(JSON.stringify(serverQueue.songs));
+    const attachment = new Discord.MessageAttachment(Buffer.from(str, 'utf8'), `${message.guild.name}.queue`);
+    await message.channel.send(`You can use \`${message.prefix}${this.name} import\` to import this queue again.`, attachment);
+  },
+  async import(message, serverQueue) {
+    if (!message.attachments.find(x => x.name && x.name.endsWith(".queue"))) return await message.channel.send("You didn't incldue the queue file!");
+    try {
+      const songs = JSON.parse(unescape(await streamToString(await requestStream(message.attachments.find(x => x.name && x.name.endsWith(".queue")).url))));
+      setQueue(message.guild.id, songs, !!serverQueue.looping, !!serverQueue.repeating, message.pool);
+    } catch (err) {
+      await message.reply("there was an error trying to read the queue file!");
+    }
   }
 };

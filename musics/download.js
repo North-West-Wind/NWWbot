@@ -1,14 +1,10 @@
 const scdl = require("soundcloud-downloader").default;
 const ytdl = require("ytdl-core");
-const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent } = require("../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, requestStream } = require("../function.js");
 const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search } = require("./play.js");
 const { updateQueue } = require("./main.js");
 const Discord = require("discord.js");
 const { getMP3 } = require("../commands/musescore.js");
-const requestStream = (url) => new Promise((resolve, reject) => {
-    const rs = require("request-stream");
-    rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
-});
 const requestYTDLStream = (url, opts) => {
     const timeoutMS = opts.timeout && !isNaN(parseInt(opts.timeout)) ? parseInt(opts.timeout) : 30000;
     const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${timeoutMS}ms`)), timeoutMS));

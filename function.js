@@ -334,23 +334,12 @@ module.exports = {
     }
     return { s, msg };
   },
-  streamToString(stream, enc, cb) {
-    if (typeof enc === 'function') {
-      cb = enc
-      enc = null
-    }
-    cb = cb || function () { }
+  streamToString(stream, enc) {
     var str = ''
     return new Promise((resolve, reject) => {
       stream.on('data', (data) => str += (typeof enc === 'string') ? data.toString(enc) : data.toString());
-      stream.on('end', function () {
-        resolve(str)
-        cb(null, str)
-      })
-      stream.on('error', function (err) {
-        reject(err)
-        cb(err)
-      })
+      stream.on('end', () => resolve(str));
+      stream.on('error', (err) => reject(err));
     })
   },
   genPermMsg(permissions, id) {
@@ -358,7 +347,7 @@ module.exports = {
     else return `I need the permissions \`${new Discord.Permissions(permissions).toArray().join("`, `")}\` to run this command.`;
   },
   color: () => Math.floor(Math.random() * 16777214) + 1,
-  getStr: (pool, id) => new Promise(async(resolve, reject) => {
+  getStr: (pool, id) => new Promise(async (resolve, reject) => {
     try {
       var [results] = await pool.query("SELECT string FROM functions WHERE id = " + id);
       if (results.length < 1 || !results[0].string) return reject(new Error("Not found"));
@@ -371,42 +360,46 @@ module.exports = {
     const splitMessage = msg.split(" ");
     const messageArray = [];
     for (const word of splitMessage) {
-        if (word.match(/^\{\#\w+\}$/)) {
-            const str = word.replace(/[\{\#\}]/g, "");
-            if (isNaN(parseInt(str))) {
-                const mentionedChannel = guild.channels.find(x => x.name === str);
-                if (!mentionedChannel) messageArray.push("#" + str);
-                else messageArray.push(mentionedChannel);
-            } else {
-                const mentionedChannel = guild.channels.resolve(str);
-                if (!mentionedChannel) messageArray.push("<#" + str + ">");
-                else messageArray.push(mentionedChannel);
-            }
-        } else if (word.match(/^\{\@\&\w+\}$/)) {
-            const str = word.replace(/[\{\@\&\}]/g, "");
-            if (isNaN(parseInt(str))) {
-                const mentionedRole = guild.roles.find(x => x.name === str);
-                if (!mentionedRole) messageArray.push("@" + str);
-                else messageArray.push(mentionedRole);
-            } else {
-                const mentionedRole = guild.roles.get(str);
-                if (!mentionedRole) messageArray.push("<@&" + str + ">");
-                else messageArray.push(mentionedRole);
-            }
-        } else if (word.match(/^\{\@\w+\}$/)) {
-            const str = word.replace(/[\{\@\}]/g, "");
-            if (isNaN(parseInt(str))) {
-                const mentionedUser = client.users.find(x => x.name === str);
-                if (!mentionedUser) messageArray.push("@" + str);
-                else messageArray.push(mentionedUser);
-            } else {
-                const mentionedUser = client.users.get(str);
-                if (!mentionedUser) messageArray.push("<@" + str + ">");
-                else messageArray.push(mentionedUser);
-            }
-        } else messageArray.push(word);
+      if (word.match(/^\{\#\w+\}$/)) {
+        const str = word.replace(/[\{\#\}]/g, "");
+        if (isNaN(parseInt(str))) {
+          const mentionedChannel = guild.channels.find(x => x.name === str);
+          if (!mentionedChannel) messageArray.push("#" + str);
+          else messageArray.push(mentionedChannel);
+        } else {
+          const mentionedChannel = guild.channels.resolve(str);
+          if (!mentionedChannel) messageArray.push("<#" + str + ">");
+          else messageArray.push(mentionedChannel);
+        }
+      } else if (word.match(/^\{\@\&\w+\}$/)) {
+        const str = word.replace(/[\{\@\&\}]/g, "");
+        if (isNaN(parseInt(str))) {
+          const mentionedRole = guild.roles.find(x => x.name === str);
+          if (!mentionedRole) messageArray.push("@" + str);
+          else messageArray.push(mentionedRole);
+        } else {
+          const mentionedRole = guild.roles.get(str);
+          if (!mentionedRole) messageArray.push("<@&" + str + ">");
+          else messageArray.push(mentionedRole);
+        }
+      } else if (word.match(/^\{\@\w+\}$/)) {
+        const str = word.replace(/[\{\@\}]/g, "");
+        if (isNaN(parseInt(str))) {
+          const mentionedUser = client.users.find(x => x.name === str);
+          if (!mentionedUser) messageArray.push("@" + str);
+          else messageArray.push(mentionedUser);
+        } else {
+          const mentionedUser = client.users.get(str);
+          if (!mentionedUser) messageArray.push("<@" + str + ">");
+          else messageArray.push(mentionedUser);
+        }
+      } else messageArray.push(word);
     }
     if (flag === "welcome") return messageArray.join(" ").replace(/\{user\}/ig, member);
     else if (flag === "leave") return messageArray.join(" ").replace(/\{user\}/ig, member.user.tag);
-  }
+  },
+  requestStream: (url) => new Promise((resolve, reject) => {
+    const rs = require("request-stream");
+    rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
+  })
 };
