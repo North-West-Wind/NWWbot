@@ -52,7 +52,7 @@ module.exports = {
     var participants = [message.author];
     mentions.forEach(async member => {
       var otherGames = console.uno.find(game => game.players.has(member.id));
-      if(!!otherGames) {
+      if (!!otherGames) {
         responses++;
         ingame = true;
         return message.channel.send(`**${member.user.tag}** is already in another game!`);
@@ -67,7 +67,7 @@ module.exports = {
         .setFooter("Please decide in 30 seconds.", message.client.user.displayAvatarURL());
       try {
         var mesg = await member.user.send(em);
-      } catch(err) {
+      } catch (err) {
         message.channel.send(`Failed to send invitation to **${member.user.tag}**.`);
         responses += mentions.members.length;
         return;
@@ -410,10 +410,10 @@ module.exports = {
               won = true;
               let data = await console.uno.get(nano);
               var scores = 0;
-              for(var p of Array.from(data.players.values())) {
-                for(var c of p.card) {
-                  if(c.number < 10) scores += c.number;
-                  else if(c.number < 13) scores += 20;
+              for (var p of Array.from(data.players.values())) {
+                for (var c of p.card) {
+                  if (c.number < 10) scores += c.number;
+                  else if (c.number < 13) scores += 20;
                   else scores += 50;
                 }
               }
@@ -464,6 +464,7 @@ module.exports = {
             mesg.edit(draw);
             continue;
           } else {
+            let data = await console.uno.get(nano);
             cancelled = true;
             let cancel = new Discord.MessageEmbed()
               .setColor(color)
@@ -480,26 +481,26 @@ module.exports = {
       }
     }
     while (responses < mentions.size) {
-      if (responses !== accepted) return message.channel.send("The game cannot start as someone didn't accept the invitation!");
-      else if(ingame) return message.channel.send("The game cannot start as somebody is in another game!");
-      else {
-        var readFile = await fs.readFileSync("./.glitch-assets", "utf8");
-        var arr = readFile.split("\n");
-        for (let i = 0; i < arr.length - 1; i++) arr[i] = JSON.parse(arr[i]);
-        assets = arr.filter(x => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map(x => {
-          return {
-            id: x.name.slice(0, -4),
-            url: x.url
-          };
-        });
-        var mesg = await message.channel.send("The game will start soon!");
-        var nano = Date.now();
-        try {
-          mesg = await prepare(mesg, nano);
-          await handle(mesg, nano);
-        } catch (err) { return console.error(err) }
-      }
       await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    if (responses !== accepted) return message.channel.send("The game cannot start as someone didn't accept the invitation!");
+    else if (ingame) return message.channel.send("The game cannot start as somebody is in another game!");
+    else {
+      var readFile = await fs.readFileSync("./.glitch-assets", "utf8");
+      var arr = readFile.split("\n");
+      for (let i = 0; i < arr.length - 1; i++) arr[i] = JSON.parse(arr[i]);
+      assets = arr.filter(x => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map(x => {
+        return {
+          id: x.name.slice(0, -4),
+          url: x.url
+        };
+      });
+      var mesg = await message.channel.send("The game will start soon!");
+      var nano = Date.now();
+      try {
+        mesg = await prepare(mesg, nano);
+        await handle(mesg, nano);
+      } catch (err) { return console.error(err) }
     }
   }
 };
