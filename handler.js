@@ -178,7 +178,7 @@ module.exports = {
             const { setQueue } = require("./musics/main.js");
             if (id === 0) {
                 const [results] = await con.query("SELECT id, queue, looping, repeating, prefix FROM servers");
-                const filtered = results.filter(result => (result.queue || result.looping || result.repeating));
+                const filtered = results.filter(result => (result.queue || result.looping || result.repeating || result.prefix));
                 filtered.forEach(async result => {
                     try {
                         await client.guilds.fetch(result.id);
