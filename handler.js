@@ -37,8 +37,9 @@ const pool = {
         return res;
     }
 }
-const queries = [];
+var queries = [];
 setInterval(() => {
+    if (queries.length < 1) return;
     const con = await pool.getConnection();
     for (const query of queries) try {
         const [results] = await con.query(`SELECT * FROM leveling WHERE user = '${query.author}' AND guild = '${query.guild}'`);
@@ -49,6 +50,7 @@ setInterval(() => {
             await con.query(`UPDATE leveling SET exp = ${newExp}, last = '${query.date}' WHERE user = '${query.author}' AND guild = '${query.guild}'`);
         }
     } catch (err) { }
+    queries = [];
     con.release();
 }, 60000);
 var timeout = undefined;
