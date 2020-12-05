@@ -41,7 +41,7 @@ const pool = {
     getConnection: async () => {
         if (!connection) await handleDisconnect();
         connection.release = async() => {
-            await connection.end();
+            if (connection) await connection.end();
             connection = undefined;
         }
         return connection;
@@ -49,7 +49,7 @@ const pool = {
     query: async (query) => {
         if (!connection) await handleDisconnect();
         const res = await connection.query(query);
-        await connection.end();
+        if (connection) await connection.end();
         connection = undefined;
         return res;
     }
