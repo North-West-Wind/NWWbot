@@ -40,11 +40,17 @@ async function handleDisconnect() {
 const pool = {
     getConnection: async () => {
         if (!connection) await handleDisconnect();
+        connection.release = async() => {
+            await connection.end();
+            connection = undefined;
+        }
         return connection;
     },
     query: async (query) => {
         if (!connection) await handleDisconnect();
         const res = await connection.query(query);
+        await connection.end();
+        connection = undefined;
         return res;
     }
 }
