@@ -22,18 +22,29 @@ const mysql_config = {
     waitForConnections: true,
     queueLimit: 0
 };
+var connection;
+async function handleDisconnect() {
+    connection = mysql.createConnection(mysql_config).promise();
+    try {
+        await connection.connect();
+    } catch (err) {
+        console.error(err);
+        setTimeout(handleDisconnect, 2000);
+    }
+    connection.on('error', function(err) {
+        console.error(err);
+        if(err.code === 'PROTOCOL_CONNECTION_LOST') handleDisconnect();
+        else throw err;
+    });
+}
 const pool = {
     getConnection: async () => {
-        const con = mysql.createConnection(mysql_config).promise();
-        con.release = async () => await con.end();
-        con.on("error", console.error);
-        return con;
+        if (!connection) await handleDisconnect();
+        return connection;
     },
     query: async (query) => {
-        const con = mysql.createConnection(mysql_config).promise();
-        con.on("error", console.error);
-        const res = await con.query(query);
-        await con.end();
+        if (!connection) await handleDisconnect();
+        const res = await connection.query(query);
         return res;
     }
 }
@@ -70,6 +81,7 @@ module.exports = {
     async ready(client) {
         const id = client.id;
         console.log(`[${id}] Ready!`);
+        await handleDisconnect();
         if (id === 1) {
             setInterval(async () => {
                 const guild = await client.guilds.resolve("622311594654695434");
