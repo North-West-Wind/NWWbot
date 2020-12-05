@@ -47,7 +47,7 @@ module.exports = {
         if (command.subaliases) str = `**${command.subcommands[i]} | ${command.subaliases[i]}**${command.subdesc ? ` - ${command.subdesc[i]}` : ""}`;
         else str = `**${command.subcommands[i]}**${command.subdesc ? ` - ${command.subdesc[i]}` : ""}`;
         str += "\n        • "
-        if (command.subusage && !isNaN(command.subusage[i])) str += `${message.prefix}${command.name} ${command.subusage[command.subusage[i]].replace("<subcommand>", command.subcommands[i])}`;
+        if (command.subusage && command.subusage[i] && !isNaN(command.subusage[i])) str += `${message.prefix}${command.name} ${command.subusage[command.subusage[i]].replace("<subcommand>", command.subcommands[i])}`;
         else if (command.subusage && command.subusage[i]) str += `${message.prefix}${command.name} ${command.subusage[i].replace("<subcommand>", command.subcommands[i])}`;
         else str += `${message.prefix}${command.name} ${command.usage.replace(/(?!\s)[\<\[\w\s\|]*subcommand[\w\s\|\>\]]*/, command.subcommands[i])}`;
         strs.push(str);
