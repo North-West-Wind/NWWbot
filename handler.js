@@ -22,40 +22,18 @@ const mysql_config = {
     waitForConnections: true,
     queueLimit: 0
 };
-var connection;
-async function handleDisconnect() {
-    connection = mysql.createConnection(mysql_config).promise();
-    try {
-        await connection.connect();
+var pool = mysql.createPool(mysql_config).promise();
+pool.on("connection", con => con.on("error", async err => {
+    if (["PROTOCOL_CONNECTION_LOST", "ECONNREFUSED", "ETIMEDOUT"].includes(err.code)) try {
+        await pool.end();
     } catch (err) {
         console.error(err);
-        setTimeout(handleDisconnect, 2000);
+    } finally {
+        pool = mysql.createPool(mysql_config).promise();
     }
-    connection.on('error', function(err) {
-        console.error(err);
-        if(err.code === 'PROTOCOL_CONNECTION_LOST') handleDisconnect();
-        else throw err;
-    });
-}
-const pool = {
-    getConnection: async () => {
-        if (!connection) await handleDisconnect();
-        connection.release = async() => {
-            if (connection) await connection.end();
-            connection = undefined;
-        }
-        return connection;
-    },
-    query: async (query) => {
-        if (!connection) await handleDisconnect();
-        const res = await connection.query(query);
-        if (connection) await connection.end();
-        connection = undefined;
-        return res;
-    }
-}
+}))
 var queries = [];
-setInterval(async() => {
+setInterval(async () => {
     if (queries.length < 1) return;
     const con = await pool.getConnection();
     for (const query of queries) try {
@@ -87,7 +65,6 @@ module.exports = {
     async ready(client) {
         const id = client.id;
         console.log(`[${id}] Ready!`);
-        await handleDisconnect();
         if (id === 1) {
             setInterval(async () => {
                 const guild = await client.guilds.resolve("622311594654695434");
