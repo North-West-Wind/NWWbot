@@ -24,6 +24,7 @@ module.exports = {
     "glasses",
     "hentai",
     "netorare",
+    "loli",
     "maid",
     "masturbation",
     "orgy",

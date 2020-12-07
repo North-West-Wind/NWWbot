@@ -803,7 +803,7 @@ module.exports = {
       }
     });
     return new Promise(resolve => {
-      collector.on("end", () => {
+      collector.on("end", async() => {
         if (val.error) {
           const cancelled = new Discord.MessageEmbed()
             .setColor(console.color())
