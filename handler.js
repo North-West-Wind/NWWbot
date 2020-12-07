@@ -24,7 +24,7 @@ const mysql_config = {
 };
 var pool = mysql.createPool(mysql_config).promise();
 pool.on("connection", con => con.on("error", async err => {
-    if (["PROTOCOL_CONNECTION_LOST", "ECONNREFUSED", "ETIMEDOUT"].includes(err.code)) try {
+    if (["PROTOCOL_CONNECTION_LOST", "ECONNREFUSED", "ETIMEDOUT"].includes(err.code) || (err.message === "Pool is closed.")) try {
         await pool.end();
     } catch (err) {
         console.error(err);
