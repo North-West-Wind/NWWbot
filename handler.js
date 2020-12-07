@@ -202,6 +202,10 @@ module.exports = {
                 console.log(`[${id}] ` + "Found " + res.length + " role messages.");
                 res.forEach(async result => {
                     console.rm.push(result);
+                    try {
+                        const channel = await client.channels.fetch(result.channel);
+                        await channel.messages.fetch(result.id);
+                    } catch(err) { }
                     expire({ pool, client }, result.expiration - (new Date()));
                 });
             } else {
@@ -617,17 +621,11 @@ module.exports = {
         } catch (err) { }
     },
     async messageReactionAdd(r, user) {
-        console.log(console.rm);
-        console.log(r.message.id);
         var roleMessage = console.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
-        console.log("Received reaction from role-message");
         const emojis = JSON.parse(roleMessage.emojis);
-        console.log(emojis);
-        console.log(r.emoji.toString());
         if (!emojis.includes(r.emoji.toString())) return;
         const index = emojis.indexOf(r.emoji.toString());
-        console.log(index);
         try {
             const guild = await r.client.guilds.cache.get(roleMessage.guild);
             const member = await guild.members.fetch(user);
@@ -641,7 +639,7 @@ module.exports = {
         if (!roleMessage) return;
         const emojis = JSON.parse(roleMessage.emojis);
         if (!emojis.includes(r.emoji.toString())) return;
-        var index = emojis.indexOf(r.emoji.toString());
+        const index = emojis.indexOf(r.emoji.toString());
         try {
             const guild = await r.client.guilds.cache.get(roleMessage.guild);
             const member = await guild.members.fetch(user);
