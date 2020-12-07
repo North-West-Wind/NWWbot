@@ -620,14 +620,12 @@ module.exports = {
         var roleMessage = console.rm.find(x => x.id === r.message.id);
         if (!roleMessage) return;
         const emojis = JSON.parse(roleMessage.emojis);
-        var meta = { };
-        if (emojis.includes(r.emoji.name)) meta = { type: "unicode", name: r.emoji.name, index: emojis.indexOf(r.emoji.name) };
-        else if (emojis.includes(r.emoji.id)) meta = { type: "custom", id: r.emoji.id, index: emojis.indexOf(r.emoji.id) };
-        else return;
+        if (!emojis.includes(r.emoji.toString())) return;
+        var index = emojis.indexOf(r.emoji.toString());
         try {
             const guild = await r.client.guilds.cache.get(roleMessage.guild);
             const member = await guild.members.fetch(user);
-            if (meta.index > -1) await member.roles.add(JSON.parse(roleMessage.roles)[meta.index]);
+            if (index > -1) await member.roles.add(JSON.parse(roleMessage.roles)[index]);
         } catch(err) {
             console.error(err);
         }
@@ -636,14 +634,12 @@ module.exports = {
         var roleMessage = console.rm.find(x => x.id === r.message.id);
         if (!roleMessage) return;
         const emojis = JSON.parse(roleMessage.emojis);
-        var meta = { };
-        if (emojis.includes(r.emoji.name)) meta = { type: "unicode", name: r.emoji.name, index: emojis.indexOf(r.emoji.name) };
-        else if (emojis.includes(r.emoji.id)) meta = { type: "custom", id: r.emoji.id, index: emojis.indexOf(r.emoji.id) };
-        else return;
+        if (!emojis.includes(r.emoji.toString())) return;
+        var index = emojis.indexOf(r.emoji.toString());
         try {
             const guild = await r.client.guilds.cache.get(roleMessage.guild);
             const member = await guild.members.fetch(user);
-            if (meta.index > -1) await member.roles.remove(JSON.parse(roleMessage.roles)[meta.index]);
+            if (index > -1) await member.roles.remove(JSON.parse(roleMessage.roles)[index]);
         } catch(err) {
             console.error(err);
         }

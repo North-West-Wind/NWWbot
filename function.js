@@ -343,6 +343,7 @@ module.exports = {
     })
   },
   genPermMsg(permissions, id) {
+    const Discord = require("discord.js");
     if (id == 0) return `You need the permissions \`${new Discord.Permissions(permissions).toArray().join("`, `")}\` to use this command.`;
     else return `I need the permissions \`${new Discord.Permissions(permissions).toArray().join("`, `")}\` to run this command.`;
   },
