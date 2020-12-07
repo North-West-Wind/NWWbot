@@ -617,11 +617,15 @@ module.exports = {
         } catch (err) { }
     },
     async messageReactionAdd(r, user) {
-        var roleMessage = console.rm.find(x => x.id === r.message.id);
+        var roleMessage = console.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
+        console.log("Received reaction from role-message");
         const emojis = JSON.parse(roleMessage.emojis);
+        console.log(emojis);
+        console.log(r.emoji.toString());
         if (!emojis.includes(r.emoji.toString())) return;
-        var index = emojis.indexOf(r.emoji.toString());
+        const index = emojis.indexOf(r.emoji.toString());
+        console.log(index);
         try {
             const guild = await r.client.guilds.cache.get(roleMessage.guild);
             const member = await guild.members.fetch(user);
@@ -631,7 +635,7 @@ module.exports = {
         }
     },
     async messageReactionRemove(r, user) {
-        var roleMessage = console.rm.find(x => x.id === r.message.id);
+        var roleMessage = console.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
         const emojis = JSON.parse(roleMessage.emojis);
         if (!emojis.includes(r.emoji.toString())) return;
