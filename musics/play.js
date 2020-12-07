@@ -785,16 +785,11 @@ module.exports = {
             await msg.edit(allEmbeds[s]);
             break;
           default:
-            const cancelled = new Discord.MessageEmbed()
-              .setColor(console.color())
-              .setTitle("Action cancelled.")
-              .setTimestamp()
-              .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-            await msg.edit(cancelled).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**", embed: null }), 30000));
             collector.emit("end");
         }
       } else {
         const o = parseInt(collected.content) - 1;
+        if (o < 0 || o > results[s].length - 1) return collector.emit("end");
         const chosenEmbed = new Discord.MessageEmbed()
           .setColor(console.color())
           .setTitle("Music chosen:")
@@ -809,6 +804,14 @@ module.exports = {
     });
     return new Promise(resolve => {
       collector.on("end", () => {
+        if (val.error) {
+          const cancelled = new Discord.MessageEmbed()
+            .setColor(console.color())
+            .setTitle("Action cancelled.")
+            .setTimestamp()
+            .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+          await msg.edit(cancelled).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**", embed: null }), 30000));
+        }
         resolve(val);
       });
     });
