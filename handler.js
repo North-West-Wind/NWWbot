@@ -617,6 +617,8 @@ module.exports = {
         } catch (err) { }
     },
     async messageReactionAdd(r, user) {
+        console.log(console.rm);
+        console.log(r.message.id);
         var roleMessage = console.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
         console.log("Received reaction from role-message");
