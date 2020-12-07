@@ -9,6 +9,7 @@ const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const mysql = require("mysql2");
+const { expire } = require("./commands/role-message.js");
 const mysql_config = {
     connectTimeout: 60 * 60 * 1000,
     //acquireTimeout: 60 * 60 * 1000,
@@ -197,7 +198,14 @@ module.exports = {
                     if (result.prefix) try { console.prefixes[result.id] = result.prefix; } catch (err) { }
                 });
                 console.log(`[${id}] Set ${filtered.length} queues`);
+                const [res] = await con.query("SELECT * FROM rolemsg ORDER BY expiration");
+                console.log(`[${id}] ` + "Found " + res.length + " role messages.");
+                res.forEach(async result => {
+                    console.rm.push(result);
+                    expire({ pool, client }, result.expiration - (new Date()));
+                });
             } else {
+                client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
                 const [res] = await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
                 console.log(`[${id}] Found ${res.length} guild timers`);
                 res.forEach(async result => {
@@ -228,41 +236,6 @@ module.exports = {
                     }, endAfter);
                 });
             }
-            const [res] = await con.query("SELECT * FROM rolemsg ORDER BY expiration");
-            console.log(`[${id}] ` + "Found " + res.length + " role messages.");
-            res.forEach(async result => {
-                if (id === 0 && result.guild == "622311594654695434") return;
-                if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
-                console.rm.push(result);
-                var currentDate = new Date();
-                var millisec = result.expiration - currentDate;
-                async function expire(length) {
-                    setTimeout_(async () => {
-                        const conn = await pool.getConnection();
-                        try {
-                            const [results] = await conn.query(`SELECT id, expiration FROM rolemsg WHERE id = '${result.id}'`);
-                            if (results.length == 0) return;
-                            var date = new Date();
-                            var deleted = false;
-                            try {
-                                const channel = await client.channels.fetch(results[0].channel);
-                                var msg = await channel.messages.fetch(results[0].id);
-                            } catch (err) {
-                                deleted = true;
-                            }
-                            if (results[0].expiration - date <= 0) {
-                                await conn.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`);
-                                console.log("Deleted an expired role-message.");
-                                if (!deleted) msg.reactions.removeAll().catch(() => { });
-                            } else expire(results[0].expiration - date);
-                        } catch (err) {
-                            console.error(err);
-                        }
-                        conn.release();
-                    }, length);
-                }
-                expire(millisec);
-            });
             var [results] = await con.query("SELECT * FROM giveaways ORDER BY endAt ASC");
             console.log(`[${id}] ` + "Found " + results.length + " giveaways");
             results.forEach(async result => {
@@ -431,7 +404,6 @@ module.exports = {
             });
             var [results] = await con.query("SELECT * FROM nolog");
             console.noLog = results.map(x => x.id);
-            if (id === 1) client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
             con.release();
         } catch (err) { console.error(err); };
     },
@@ -647,22 +619,34 @@ module.exports = {
     async messageReactionAdd(r, user) {
         var roleMessage = console.rm.find(x => x.id === r.message.id);
         if (!roleMessage) return;
-        var emojis = JSON.parse(roleMessage.emojis);
-        if (!emojis.includes(r.emoji.name)) return;
-        var index = emojis.indexOf(r.emoji.name);
-        var guild = await r.client.guilds.cache.get(roleMessage.guild);
-        var member = await guild.members.fetch(user);
-        member.roles.add([JSON.parse(roleMessage.roles)[index]]).catch(console.error);
+        const emojis = JSON.parse(roleMessage.emojis);
+        var meta = { };
+        if (emojis.includes(r.emoji.name)) meta = { type: "unicode", name: r.emoji.name, index: emojis.indexOf(r.emoji.name) };
+        else if (emojis.includes(r.emoji.id)) meta = { type: "custom", id: r.emoji.id, index: emojis.indexOf(r.emoji.id) };
+        else return;
+        try {
+            const guild = await r.client.guilds.cache.get(roleMessage.guild);
+            const member = await guild.members.fetch(user);
+            if (meta.index > -1) await member.roles.add(JSON.parse(roleMessage.roles)[meta.index]);
+        } catch(err) {
+            console.error(err);
+        }
     },
     async messageReactionRemove(r, user) {
         var roleMessage = console.rm.find(x => x.id === r.message.id);
         if (!roleMessage) return;
-        var emojis = JSON.parse(roleMessage.emojis);
-        if (!emojis.includes(r.emoji.name)) return;
-        var index = emojis.indexOf(r.emoji.name);
-        var guild = await r.client.guilds.cache.get(roleMessage.guild);
-        var member = await guild.members.fetch(user);
-        member.roles.remove([JSON.parse(roleMessage.roles)[index]]).catch(console.error);
+        const emojis = JSON.parse(roleMessage.emojis);
+        var meta = { };
+        if (emojis.includes(r.emoji.name)) meta = { type: "unicode", name: r.emoji.name, index: emojis.indexOf(r.emoji.name) };
+        else if (emojis.includes(r.emoji.id)) meta = { type: "custom", id: r.emoji.id, index: emojis.indexOf(r.emoji.id) };
+        else return;
+        try {
+            const guild = await r.client.guilds.cache.get(roleMessage.guild);
+            const member = await guild.members.fetch(user);
+            if (meta.index > -1) await member.roles.remove(JSON.parse(roleMessage.roles)[meta.index]);
+        } catch(err) {
+            console.error(err);
+        }
     },
     async messageDelete(message) {
         var roleMessage = console.rm.find(x => x.id === message.id);

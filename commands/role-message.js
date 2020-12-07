@@ -13,10 +13,12 @@ module.exports = {
   args: 1,
   permission: 10240,
   async execute(message, args) {
-    if (args[0] === "create" || args[0] === "cr") return await this.create(message, console.rm);
+    if (args[0] === "create" || args[0] === "cr") return await this.create(message);
     if (args[0] === "refresh" || args[0] === "re") return await this.refresh(message, args);
   },
-  async create(message, rm) {
+  async create(message) {
+    if (!message.guild.me.permissions.has(268435456)) return await message.channel.send(genPermMsg(268435456, 1));
+    if (!message.member.permissions.has(268435456)) return await message.channel.send(genPermMsg(268435456, 0));
     var msg = await message.channel.send("Please enter the message you want to send.");
     const collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 120000, max: 1, errors: ["time"] }).catch(console.error);
     if (!collected.first()) return await msg.edit("Did not receive any message in time! Action cancelled.");
@@ -44,13 +46,15 @@ module.exports = {
     if (collected3.first().content === "no") return msg.edit("Hey! That's rude!");
     const roles = [];
     for (const str of collected3.first().content.split("\n")) {
-      const role = await findRole(message, str);
-      if (!role) return;
-      if (!message.guild.me.permissions.has(268435456)) return await msg.edit(genPermMsg(268435456, 1));
-      if (!message.member.permissions.has(268435456)) return await msg.edit(genPermMsg(268435456, 0));
-      const highest = message.guild.me.roles.highest.position;
-      if (role.position > highest) return await msg.edit("I cannot assign this role to users.");
-      roles.push(role.id);
+      const roless = [];
+      for (const stri of str.split(/ +/)) {
+        const role = await findRole(message, stri);
+        if (!role) return;
+        const highest = message.guild.me.roles.highest.position;
+        if (role.position > highest) return await msg.edit("I cannot assign this role to users.");
+        roless.push(role.id);
+      }
+      roles.push(roless);
     }
     await msg.edit(`**${roles.length}** role${roles.length > 1 ? "s" : ""} received.\n\nAt last, you will need to provide the reactions/emojis you want for each role! Break a line for each of them.`);
     const collected4 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 60000, max: 1, errors: ["time"] }).catch(console.error);
@@ -63,7 +67,7 @@ module.exports = {
     var mesg = await channel.send(pendingMsg);
     for (const emoji of emojis) mesg.react(emoji);
     var now = new Date();
-    rm.push({
+    console.rm.push({
       id: mesg.id,
       guild: message.guild.id,
       channel: channel.id,
@@ -75,22 +79,7 @@ module.exports = {
     try {
       await message.pool.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${message.author.id}', '${moment(now.getTime() + (7 * 24 * 3600 * 1000)).format("YYYY-MM-DD HH:mm:ss")}', '${JSON.stringify(roles)}', '${JSON.stringify(emojis)}')`);
       await message.channel.send("Successfully created record for message. The message will expire after 7 days.");
-      async function expire(length) {
-        setTimeout_(async() => {
-          const con = await message.pool.getConnection();
-          var [results] = await con.query(`SELECT expiration FROM rolemsg WHERE id = '${mesg.id}'`);
-          if (results.length == 0) return;
-          const date = new Date();
-          if (results[0].expiration - date <= 0) {
-            await con.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`);
-            const channel = await message.client.channels.fetch(results[0].channel);
-            const msg = await channel.messages.fetch(results[0].id);
-            msg.reactions.removeAll().catch(() => { });
-          } else expire(results[0].expiration - date);
-          con.release();
-        }, length);
-      }
-      expire(7 * 24 * 3600 * 1000);
+      this.expire(message, 7 * 24 * 3600 * 1000);
     } catch (err) {
       console.error(err);
       await message.reply("there was an error trying to record the message!");
@@ -110,5 +99,20 @@ module.exports = {
       await message.reply("there was an error while refreshing the message!");
     }
     con.release();
+  },
+  async expire(message, length) {
+    setTimeout_(async() => {
+      const con = await message.pool.getConnection();
+      var [results] = await con.query(`SELECT expiration FROM rolemsg WHERE id = '${mesg.id}'`);
+      if (results.length == 0) return;
+      const date = new Date();
+      if (results[0].expiration - date <= 0) {
+        await con.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`);
+        const channel = await message.client.channels.fetch(results[0].channel);
+        const msg = await channel.messages.fetch(results[0].id);
+        msg.reactions.removeAll().catch(() => { });
+      } else expire(results[0].expiration - date);
+      con.release();
+    }, length);
   }
 }
