@@ -3,6 +3,7 @@ const { Image, createCanvas, loadImage } = require("canvas");
 const Discord = require("discord.js");
 const MojangAPI = require("mojang-api");
 const { setTimeout_, getRandomNumber, jsDate2Mysql, replaceMsgContent, readableDateTimeText } = require("./function.js");
+const { setQueue, getQueues, updateQueue } = require("./musics/main.js");
 const profile = (str) => new Promise((resolve, reject) => require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); }));
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
@@ -30,6 +31,11 @@ pool.on("connection", con => con.on("error", async err => {
         console.error(err);
     } finally {
         pool = mysql.createPool(mysql_config).promise();
+        const queue = getQueues();
+        for (const [id, serverQueue] of queue) {
+            serverQueue.pool = pool;
+            await updateQueue({ dummy: true, guild: { id: id } }, serverQueue, null);
+        }
     }
 }))
 var queries = [];
@@ -170,7 +176,6 @@ module.exports = {
         else client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         try {
             const con = await pool.getConnection();
-            const { setQueue } = require("./musics/main.js");
             if (id === 0) {
                 const [results] = await con.query("SELECT id, queue, looping, repeating, prefix FROM servers");
                 const filtered = results.filter(result => (result.queue || result.looping || result.repeating || result.prefix));
