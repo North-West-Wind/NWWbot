@@ -650,7 +650,7 @@ module.exports = {
         var emojis = JSON.parse(roleMessage.emojis);
         if (!emojis.includes(r.emoji.name)) return;
         var index = emojis.indexOf(r.emoji.name);
-        var guild = await client.guilds.cache.get(roleMessage.guild);
+        var guild = await r.client.guilds.cache.get(roleMessage.guild);
         var member = await guild.members.fetch(user);
         member.roles.add([JSON.parse(roleMessage.roles)[index]]).catch(console.error);
     },
@@ -660,7 +660,7 @@ module.exports = {
         var emojis = JSON.parse(roleMessage.emojis);
         if (!emojis.includes(r.emoji.name)) return;
         var index = emojis.indexOf(r.emoji.name);
-        var guild = await client.guilds.cache.get(roleMessage.guild);
+        var guild = await r.client.guilds.cache.get(roleMessage.guild);
         var member = await guild.members.fetch(user);
         member.roles.remove([JSON.parse(roleMessage.roles)[index]]).catch(console.error);
     },
