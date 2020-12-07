@@ -295,12 +295,12 @@ module.exports = {
     for (const video of videos) songs.push({
       id: ID(),
       title: video.title,
-      url: video.url_simple,
+      url: video.shortUrl,
       type: 0,
       time: video.duration,
       thumbnail: video.thumbnail,
       volume: 1,
-      isLive: false
+      isLive: video.isLive
     });
     clearInterval(interval);
     mesg.edit(`Track processing completed`).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
