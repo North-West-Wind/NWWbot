@@ -211,7 +211,7 @@ module.exports = {
                     await refresh();
                     expire({ pool, client }, result.expiration - (new Date()));
                 });
-                setInterval(refresh, 3600000);
+                setInterval(refresh, 1800000);
             } else {
                 client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
                 const [res] = await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
@@ -629,8 +629,8 @@ module.exports = {
         if (!roleMessage) return;
         const emojis = JSON.parse(roleMessage.emojis);
         var index = -1;
-        if (emojis.includes(r.emoji.id)) emojis.indexOf(r.emoji.id);
-        else if (emojis.includes(r.emoji.name)) emojis.indexOf(r.emoji.name);
+        if (emojis.includes(r.emoji.id)) index = emojis.indexOf(r.emoji.id);
+        else if (emojis.includes(r.emoji.name)) index = emojis.indexOf(r.emoji.name);
         else return;
         try {
             const guild = await r.client.guilds.cache.get(roleMessage.guild);
@@ -645,8 +645,8 @@ module.exports = {
         if (!roleMessage) return;
         const emojis = JSON.parse(roleMessage.emojis);
         var index = -1;
-        if (emojis.includes(r.emoji.id)) emojis.indexOf(r.emoji.id);
-        else if (emojis.includes(r.emoji.name)) emojis.indexOf(r.emoji.name);
+        if (emojis.includes(r.emoji.id)) index = emojis.indexOf(r.emoji.id);
+        else if (emojis.includes(r.emoji.name)) index = emojis.indexOf(r.emoji.name);
         else return;
         try {
             const guild = await r.client.guilds.cache.get(roleMessage.guild);
