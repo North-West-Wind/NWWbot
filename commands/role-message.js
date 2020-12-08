@@ -69,8 +69,13 @@ module.exports = {
       const id = emoji.match(/\d+/g);
       if (!Array.isArray(id)) return emoji;
       else return id[id.length - 1];
-    })
-    for (const emoji of emojis) await mesg.react(emoji);
+    });
+    try {
+      for (const emoji of emojis) await mesg.react(emoji);
+    } catch(err) {
+      await mesg.delete();
+      return await msg.edit("I cannot react with one of the reactions!");
+    }
     var now = new Date();
     console.rm.push({
       id: mesg.id,
