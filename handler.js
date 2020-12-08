@@ -31,13 +31,13 @@ pool.on("connection", con => con.on("error", async err => {
     } catch (err) {
         console.error(err);
     } finally {
-            pool = mysql.createPool(mysql_config).promise();
-            const queue = getQueues();
-            for (const [id, serverQueue] of queue) {
-                serverQueue.pool = pool;
-                await updateQueue({ dummy: true, guild: { id: id } }, serverQueue, null);
-            }
+        pool = mysql.createPool(mysql_config).promise();
+        const queue = getQueues();
+        for (const [id, serverQueue] of queue) {
+            serverQueue.pool = pool;
+            await updateQueue({ dummy: true, guild: { id: id } }, serverQueue, null);
         }
+    }
 }))
 var queries = [];
 setInterval(async () => {
@@ -72,107 +72,6 @@ module.exports = {
     async ready(client) {
         const id = client.id;
         console.log(`[${id}] Ready!`);
-        if (id === 1) {
-            setInterval(async () => {
-                const guild = await client.guilds.resolve("622311594654695434");
-                try {
-                    var timerChannel = await guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
-                    var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
-                } catch (err) {
-                    console.error("Failed to fetch timer list message");
-                    return;
-                }
-                try {
-                    const [results] = await pool.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
-                    let now = Date.now();
-                    let tmp = [];
-                    for (const result of results) {
-                        let mc = await profile(result.mc);
-                        let username = "undefined";
-                        if (mc) username = mc.name;
-                        const str = result.user;
-                        let dc = "0";
-                        try {
-                            var user = await client.users.fetch(str);
-                            dc = user.id;
-                        } catch (err) { }
-                        let rank = unescape(result.dc_rank);
-                        let title = `<@${dc}> - ${rank} [${username}]`;
-                        let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                        tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
-                    }
-                    if (tmp.length <= 10) {
-                        timerMsg.reactions.removeAll().catch(console.error);
-                        let description = "";
-                        let num = 0;
-                        for (const result of tmp) description += `${++num}. ${result.title} : ${result.time}\n`;
-                        const em = new Discord.MessageEmbed()
-                            .setColor(console.color())
-                            .setTitle("Rank Expiration Timers")
-                            .setDescription(description)
-                            .setTimestamp()
-                            .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
-                        timerMsg.edit({ content: "", embed: em });
-                    } else {
-                        const allEmbeds = [];
-                        for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
-                            let desc = "";
-                            for (let num = 0; num < 10; num++) {
-                                if (!tmp[i + num]) break;
-                                desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
-                            }
-                            const em = new Discord.MessageEmbed()
-                                .setColor(console.color())
-                                .setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
-                                .setDescription(desc)
-                                .setTimestamp()
-                                .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
-                            allEmbeds.push(em);
-                        }
-                        const filter = (reaction) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name);
-                        var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
-                        var s = 0;
-                        await msg.react("⏮");
-                        await msg.react("◀");
-                        await msg.react("▶");
-                        await msg.react("⏭");
-                        await msg.react("⏹");
-                        const collector = await msg.createReactionCollector(filter, { time: 30000, errors: ["time"] });
-
-                        collector.on("collect", function (reaction, user) {
-                            reaction.users.remove(user.id);
-                            switch (reaction.emoji.name) {
-                                case "⏮":
-                                    s = 0;
-                                    msg.edit(allEmbeds[s]);
-                                    break;
-                                case "◀":
-                                    s -= 1;
-                                    if (s < 0) s = allEmbeds.length - 1;
-                                    msg.edit(allEmbeds[s]);
-                                    break;
-                                case "▶":
-                                    s += 1;
-                                    if (s > allEmbeds.length - 1) s = 0;
-                                    msg.edit(allEmbeds[s]);
-                                    break;
-                                case "⏭":
-                                    s = allEmbeds.length - 1;
-                                    msg.edit(allEmbeds[s]);
-                                    break;
-                                case "⏹":
-                                    collector.emit("end");
-                                    break;
-                            }
-                        });
-                        collector.on("end", () => msg.reactions.removeAll().catch(console.error));
-                    }
-                } catch (err) {
-                    console.error(err);
-                }
-            }, 1800000);
-        }
-
         if (id === 0) { client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true }); console.p = require(process.env.SECRET_INGREDIENT); }
         else client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         try {
@@ -201,16 +100,14 @@ module.exports = {
                 const [res] = await con.query("SELECT * FROM rolemsg ORDER BY expiration");
                 console.log(`[${id}] ` + "Found " + res.length + " role messages.");
                 console.rm = res;
-                const refresh = async () => console.rm.forEach(async result => {
+                const refresh = () => console.rm.forEach(async result => {
                     try {
                         const channel = await client.channels.fetch(result.channel);
                         await channel.messages.fetch(result.id);
                     } catch (err) { }
                 })
-                res.forEach(async result => {
-                    await refresh();
-                    expire({ pool, client }, result.expiration - (new Date()));
-                });
+                refresh();
+                res.forEach(async result => expire({ pool, client }, result.expiration - (new Date())));
                 setInterval(refresh, 1800000);
             } else {
                 client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
@@ -243,6 +140,104 @@ module.exports = {
                         conn.release();
                     }, endAfter);
                 });
+                setInterval(async () => {
+                    const guild = await client.guilds.resolve("622311594654695434");
+                    try {
+                        var timerChannel = await guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
+                        var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
+                    } catch (err) {
+                        console.error("Failed to fetch timer list message");
+                        return;
+                    }
+                    try {
+                        const [results] = await pool.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
+                        let now = Date.now();
+                        let tmp = [];
+                        for (const result of results) {
+                            let mc = await profile(result.mc);
+                            let username = "undefined";
+                            if (mc) username = mc.name;
+                            const str = result.user;
+                            let dc = "0";
+                            try {
+                                var user = await client.users.fetch(str);
+                                dc = user.id;
+                            } catch (err) { }
+                            let rank = unescape(result.dc_rank);
+                            let title = `<@${dc}> - ${rank} [${username}]`;
+                            let seconds = Math.round((result.endAt.getTime() - now) / 1000);
+                            tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
+                        }
+                        if (tmp.length <= 10) {
+                            timerMsg.reactions.removeAll().catch(console.error);
+                            let description = "";
+                            let num = 0;
+                            for (const result of tmp) description += `${++num}. ${result.title} : ${result.time}\n`;
+                            const em = new Discord.MessageEmbed()
+                                .setColor(console.color())
+                                .setTitle("Rank Expiration Timers")
+                                .setDescription(description)
+                                .setTimestamp()
+                                .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+                            timerMsg.edit({ content: "", embed: em });
+                        } else {
+                            const allEmbeds = [];
+                            for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
+                                let desc = "";
+                                for (let num = 0; num < 10; num++) {
+                                    if (!tmp[i + num]) break;
+                                    desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
+                                }
+                                const em = new Discord.MessageEmbed()
+                                    .setColor(console.color())
+                                    .setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
+                                    .setDescription(desc)
+                                    .setTimestamp()
+                                    .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+                                allEmbeds.push(em);
+                            }
+                            const filter = (reaction) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name);
+                            var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
+                            var s = 0;
+                            await msg.react("⏮");
+                            await msg.react("◀");
+                            await msg.react("▶");
+                            await msg.react("⏭");
+                            await msg.react("⏹");
+                            const collector = await msg.createReactionCollector(filter, { time: 30000, errors: ["time"] });
+
+                            collector.on("collect", function (reaction, user) {
+                                reaction.users.remove(user.id);
+                                switch (reaction.emoji.name) {
+                                    case "⏮":
+                                        s = 0;
+                                        msg.edit(allEmbeds[s]);
+                                        break;
+                                    case "◀":
+                                        s -= 1;
+                                        if (s < 0) s = allEmbeds.length - 1;
+                                        msg.edit(allEmbeds[s]);
+                                        break;
+                                    case "▶":
+                                        s += 1;
+                                        if (s > allEmbeds.length - 1) s = 0;
+                                        msg.edit(allEmbeds[s]);
+                                        break;
+                                    case "⏭":
+                                        s = allEmbeds.length - 1;
+                                        msg.edit(allEmbeds[s]);
+                                        break;
+                                    case "⏹":
+                                        collector.emit("end");
+                                        break;
+                                }
+                            });
+                            collector.on("end", () => msg.reactions.removeAll().catch(console.error));
+                        }
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }, 1800000);
             }
             var [results] = await con.query("SELECT * FROM giveaways ORDER BY endAt ASC");
             console.log(`[${id}] ` + "Found " + results.length + " giveaways");
