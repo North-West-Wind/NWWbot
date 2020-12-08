@@ -31,13 +31,13 @@ pool.on("connection", con => con.on("error", async err => {
     } catch (err) {
         console.error(err);
     } finally {
-        pool = mysql.createPool(mysql_config).promise();
-        const queue = getQueues();
-        for (const [id, serverQueue] of queue) {
-            serverQueue.pool = pool;
-            await updateQueue({ dummy: true, guild: { id: id } }, serverQueue, null);
+            pool = mysql.createPool(mysql_config).promise();
+            const queue = getQueues();
+            for (const [id, serverQueue] of queue) {
+                serverQueue.pool = pool;
+                await updateQueue({ dummy: true, guild: { id: id } }, serverQueue, null);
+            }
         }
-    }
 }))
 var queries = [];
 setInterval(async () => {
@@ -200,14 +200,18 @@ module.exports = {
                 console.log(`[${id}] Set ${filtered.length} queues`);
                 const [res] = await con.query("SELECT * FROM rolemsg ORDER BY expiration");
                 console.log(`[${id}] ` + "Found " + res.length + " role messages.");
-                res.forEach(async result => {
-                    console.rm.push(result);
+                console.rm = res;
+                const refresh = async () => console.rm.forEach(async result => {
                     try {
                         const channel = await client.channels.fetch(result.channel);
                         await channel.messages.fetch(result.id);
-                    } catch(err) { }
+                    } catch (err) { }
+                })
+                res.forEach(async result => {
+                    await refresh();
                     expire({ pool, client }, result.expiration - (new Date()));
                 });
+                setInterval(refresh, 3600000);
             } else {
                 client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
                 const [res] = await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
@@ -630,7 +634,7 @@ module.exports = {
             const guild = await r.client.guilds.cache.get(roleMessage.guild);
             const member = await guild.members.fetch(user);
             if (index > -1) await member.roles.add(JSON.parse(roleMessage.roles)[index]);
-        } catch(err) {
+        } catch (err) {
             console.error(err);
         }
     },
@@ -644,7 +648,7 @@ module.exports = {
             const guild = await r.client.guilds.cache.get(roleMessage.guild);
             const member = await guild.members.fetch(user);
             if (index > -1) await member.roles.remove(JSON.parse(roleMessage.roles)[index]);
-        } catch(err) {
+        } catch (err) {
             console.error(err);
         }
     },

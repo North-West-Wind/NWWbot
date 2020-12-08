@@ -28,8 +28,8 @@ const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf")
 for (const file of fontFiles) registerFont(`./fonts/${file}`, { family: "NotoSans", style: file.split(/[\-\.]/)[1].toLowerCase() });
 registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
 
-const alice = new Discord.Client({ restRequestTimeout: 60000, messageCacheMaxSize: 50, messageCacheLifetime: 3600, messageSweepInterval: 300 });
-const client = new Discord.Client({ restRequestTimeout: 60000, messageCacheMaxSize: 50, messageCacheLifetime: 3600, messageSweepInterval: 300 });
+const alice = new Discord.Client({ restRequestTimeout: 60000, messageCacheMaxSize: -1, messageCacheLifetime: 3600, messageSweepInterval: 300 });
+const client = new Discord.Client({ restRequestTimeout: 60000, messageCacheMaxSize: -1, messageCacheLifetime: 3600, messageSweepInterval: 300 });
 console.commands = new Discord.Collection();
 console.items = new Discord.Collection();
 console.card = new Discord.Collection();
