@@ -15,7 +15,7 @@ module.exports = {
     async function pick() {
       try {
         const posts = await Booru.search("rule34.paheal.net", args, { random: true });
-        if (!posts[0]) return await pick();
+        if (!posts[0]) throw new Error("Not found");
         else return posts[0];
       } catch (err) {
         await message.reply(`there was an error trying to find rule34 with ${args.length > 1 ? "these tags" : "this tag"}!`);
