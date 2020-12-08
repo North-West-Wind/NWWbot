@@ -402,5 +402,6 @@ module.exports = {
   requestStream: (url) => new Promise((resolve, reject) => {
     const rs = require("request-stream");
     rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
-  })
+  }),
+  capitalize: (s) => (typeof s !== 'string') ? '' : s.charAt(0).toUpperCase() + s.slice(1)
 };
