@@ -65,7 +65,12 @@ module.exports = {
     collected4.first().delete();
     var emojis = collected4.first().content.split("\n");
     var mesg = await channel.send(pendingMsg);
-    for (const emoji of emojis) mesg.react(emoji);
+    emojis.map(emoji => {
+      const id = emoji.match(/\d+/g);
+      if (!Array.isArray(id)) return emoji;
+      else return id[id.length - 1];
+    })
+    for (const emoji of emojis) await mesg.react(emoji);
     var now = new Date();
     console.rm.push({
       id: mesg.id,

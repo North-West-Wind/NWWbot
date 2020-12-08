@@ -628,8 +628,10 @@ module.exports = {
         var roleMessage = console.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
         const emojis = JSON.parse(roleMessage.emojis);
-        if (!emojis.includes(r.emoji.toString())) return;
-        const index = emojis.indexOf(r.emoji.toString());
+        var index = -1;
+        if (emojis.includes(r.emoji.id)) emojis.indexOf(r.emoji.id);
+        else if (emojis.includes(r.emoji.name)) emojis.indexOf(r.emoji.name);
+        else return;
         try {
             const guild = await r.client.guilds.cache.get(roleMessage.guild);
             const member = await guild.members.fetch(user);
@@ -642,8 +644,10 @@ module.exports = {
         var roleMessage = console.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
         const emojis = JSON.parse(roleMessage.emojis);
-        if (!emojis.includes(r.emoji.toString())) return;
-        const index = emojis.indexOf(r.emoji.toString());
+        var index = -1;
+        if (emojis.includes(r.emoji.id)) emojis.indexOf(r.emoji.id);
+        else if (emojis.includes(r.emoji.name)) emojis.indexOf(r.emoji.name);
+        else return;
         try {
             const guild = await r.client.guilds.cache.get(roleMessage.guild);
             const member = await guild.members.fetch(user);
