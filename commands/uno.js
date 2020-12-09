@@ -144,6 +144,7 @@ module.exports = {
         nores = 0;
         let i = -1;
         for (var [key, player] of players) {
+          player.card.sort((a, b) => (a.color * 100 + a.number) - (b.color * 100 + b.number));
           i++;
           let top = await uno.get(nano).card;
           if (skip) {
