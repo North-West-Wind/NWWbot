@@ -91,5 +91,11 @@ alice.on("messageReactionRemove", messageReactionRemove);
 alice.on("messageDelete", messageDelete);
 alice.on("message", message);
 
-client.login(process.env.TOKEN0);
-setTimeout(() => alice.login(process.env.TOKEN1), 10000);
+if (process.argv.includes("--canary") || process.argv.includes("-c")) {
+  client.canary = true;
+  client.prefix = "%";
+  client.login(process.env.TOKEN_CANARY);
+} else {
+  client.login(process.env.TOKEN0);
+  setTimeout(() => alice.login(process.env.TOKEN1), 10000);
+}

@@ -72,7 +72,7 @@ module.exports = {
     });
     try {
       for (const emoji of emojis) await mesg.react(emoji);
-    } catch(err) {
+    } catch (err) {
       await mesg.delete();
       return await msg.edit("I cannot react with one of the reactions!");
     }
@@ -110,19 +110,17 @@ module.exports = {
     }
     con.release();
   },
-  expire(message, length) {
-    setTimeout_(async() => {
-      const con = await message.pool.getConnection();
-      var [results] = await con.query(`SELECT expiration FROM rolemsg WHERE id = '${mesg.id}'`);
-      if (results.length == 0) return;
-      const date = new Date();
-      if (results[0].expiration - date <= 0) {
-        await con.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`);
-        const channel = await message.client.channels.fetch(results[0].channel);
-        const msg = await channel.messages.fetch(results[0].id);
-        msg.reactions.removeAll().catch(() => { });
-      } else expire(results[0].expiration - date);
-      con.release();
-    }, length);
-  }
+  expire: (message, length) => setTimeout_(async () => {
+    const con = await message.pool.getConnection();
+    var [results] = await con.query(`SELECT expiration FROM rolemsg WHERE id = '${mesg.id}'`);
+    if (results.length == 0) return;
+    const date = new Date();
+    if (results[0].expiration - date <= 0) {
+      await con.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`);
+      const channel = await message.client.channels.fetch(results[0].channel);
+      const msg = await channel.messages.fetch(results[0].id);
+      msg.reactions.removeAll().catch(() => { });
+    } else expire(results[0].expiration - date);
+    con.release();
+  }, length)
 }

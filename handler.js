@@ -83,7 +83,7 @@ module.exports = {
                     try {
                         await client.guilds.fetch(result.id);
                     } catch (err) {
-                        if (result.id != "622311594654695434") {
+                        if (result.id != "622311594654695434" && !client.canary) {
                             await con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
                             return console.log("Removed left servers");
                         }

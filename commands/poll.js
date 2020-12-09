@@ -6,6 +6,7 @@ module.exports = {
   description: "Manage polls on the server.",
   usage: "<subcommand>",
   subcommands: ["create", "end", "list"],
+  subaliases: ["cr", "en", "li"],
   subdesc: ["Create a poll on the server.", "End a poll on the server.", "List all the polls on the server."],
   subusage: [null, "<subcommand> <ID>"],
   category: 4,
@@ -19,29 +20,28 @@ module.exports = {
   async create(message) {
     const filter = m => m.author.id === message.author.id;
     var msg = await message.channel.send('Starting a poll. Type "cancel" to cancel.\n\n`Please enter where you want to host your poll.(Mention the channel)`');
-    const channelCollected = await message.channel.awaitMessages(filter, { time: 30000, max: 1, error: ["error"] });
+    const channelCollected = await message.channel.awaitMessages(filter, { time: 30000, max: 1 });
     if (!channelCollected.first()) return await msg.edit("Time's up. Cancelled action.");
     await channelCollected.first().delete();
     if (channelCollected.first().content === "cancel") return await msg.edit("Cancelled poll.");
     const channelID = channelCollected.first().content.replace(/<#/g, "").replace(/>/g, "");
     const channel = await message.guild.channels.resolve(channelID);
     if (!channel) return await msg.edit(channelID + " isn't a valid channel!");
-    await msg.edit(`Great! The channel will be <#${channel}>.\n\n\`Please tell me the title of the poll!\``);
-    const collected = await message.channel.awaitMessages(filter, { time: 60000, max: 1, error: ["error"] })
+    await msg.edit(`Great! The channel will be ${channel}.\n\n\`Please tell me the title of the poll!\``);
+    const collected = await message.channel.awaitMessages(filter, { time: 60000, max: 1 })
     if (!collected.first()) return await msg.edit("Time's up. Cancelled action.");
     await collected.first().delete();
     if (collected.first().content === "cancel") return await msg.edit("Cancelled poll.");
     const title = collected.first().content;
-    await collected.first().delete();
     await msg.edit(`The title will be **${title}**\n\n\`Now, I'd like to know the duration.\``);
-    const collected2 = await message.channel.awaitMessages(filter, { time: 30000, max: 1, error: ["error"] });
+    const collected2 = await message.channel.awaitMessages(filter, { time: 30000, max: 1 });
     if (!collected2.first()) return await msg.edit("Time's up. Cancelled action.");
     await collected2.first().delete();
     const duration = ms(collected2.first().content);
     if (isNaN(duration)) return await message.channel.send("**" + collected2.first().content + "** is not a valid duration!");
     await collected2.first().delete();
     await msg.edit(`Alright! The poll will last for**${readableDateTimeText(duration)}**. \n\n\`Last but not least, please enter the options. Please break a line for each options!\``);
-    const optionString = await message.channel.awaitMessages(filter, { time: 60000, max: 1, error: ["time"] });
+    const optionString = await message.channel.awaitMessages(filter, { time: 60000, max: 1 });
     if (!optionString.first()) return msg.edit("Time's up. Cancelled action.");
     await optionString.first().delete();
     if (optionString.first().content === "cancel") return await msg.edit("Cancelled poll.");
@@ -49,7 +49,7 @@ module.exports = {
     if (options.length <= 1) return await message.channel.send("Please provide at least 2 options! Cancelled action.");
     await optionString.first().delete();
     await msg.edit("Nice! **" + options.length + "** options it is!\n\n");
-    await message.channel.send(`The poll will be held in channel <#${channel}> for **${readableDateTimeText(duration)}** with the title **${title}** and the options will be **${optionString.first().content.split("\n").join(", ")}**`);
+    await message.channel.send(`The poll will be held in channel ${channel} for **${readableDateTimeText(duration)}** with the title **${title}** and the options will be **${optionString.first().content.split("\n").join(", ")}**`);
 
     var emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
     var optionArray = [];
