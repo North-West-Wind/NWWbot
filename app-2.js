@@ -90,8 +90,7 @@ alice.on("messageReactionAdd", messageReactionAdd);
 alice.on("messageReactionRemove", messageReactionRemove);
 alice.on("messageDelete", messageDelete);
 alice.on("message", message);
-
-if (process.argv.includes("--canary") || process.argv.includes("-c")) {
+if (process.argv.some(x => ["--canary", "-c"].includes(x))) {
   client.canary = true;
   client.prefix = "%";
   client.login(process.env.TOKEN_CANARY);
