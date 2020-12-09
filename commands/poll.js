@@ -39,7 +39,6 @@ module.exports = {
     await collected2.first().delete();
     const duration = ms(collected2.first().content);
     if (isNaN(duration)) return await message.channel.send("**" + collected2.first().content + "** is not a valid duration!");
-    await collected2.first().delete();
     await msg.edit(`Alright! The poll will last for**${readableDateTimeText(duration)}**. \n\n\`Last but not least, please enter the options. Please break a line for each options!\``);
     const optionString = await message.channel.awaitMessages(filter, { time: 60000, max: 1 });
     if (!optionString.first()) return msg.edit("Time's up. Cancelled action.");
@@ -47,7 +46,6 @@ module.exports = {
     if (optionString.first().content === "cancel") return await msg.edit("Cancelled poll.");
     const options = optionString.first().content.replace(/'/g, "#quot;").replace(/"/g, "#dquot;").split("\n");
     if (options.length <= 1) return await message.channel.send("Please provide at least 2 options! Cancelled action.");
-    await optionString.first().delete();
     await msg.edit("Nice! **" + options.length + "** options it is!\n\n");
     await message.channel.send(`The poll will be held in channel ${channel} for **${readableDateTimeText(duration)}** with the title **${title}** and the options will be **${optionString.first().content.split("\n").join(", ")}**`);
 
