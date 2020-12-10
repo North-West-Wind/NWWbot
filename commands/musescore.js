@@ -2,6 +2,16 @@ const rp = require("request-promise-native");
 const fetch = require("node-fetch");
 const cheerio = require("cheerio");
 const Discord = require("discord.js");
+const ytdl = require("ytdl-core");
+const requestYTDLStream = (url, opts) => {
+    const timeoutMS = opts.timeout && !isNaN(parseInt(opts.timeout)) ? parseInt(opts.timeout) : 30000;
+    const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${timeoutMS}ms`)), timeoutMS));
+    const getStream = new Promise((resolve, reject) => {
+        const stream = ytdl(url, opts);
+        stream.on("finish", () => resolve(stream)).on("error", err => reject(err));
+    });
+    return Promise.race([timeout, getStream]);
+};
 const { validMSURL, findValueByPrefix, streamToString, requestStream } = require("../function.js");
 const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
@@ -61,32 +71,51 @@ module.exports = {
         await msg.react("📥");
         msg.channel.stopTyping(true);
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
-        msg.reactions.removeAll().catch(() => { });
+        await msg.reactions.removeAll();
         if (collected && collected.first()) {
             console.log(`Downloading ${args.join(" ")} in server ${message.guild.name}...`);
             try {
                 var mesg = await message.channel.send("Generating files... (This will take a while. It depends on the length of the score.)");
-                const { doc, hasPDF } = await this.getPDF(message.pool, args.join(" "), data);
-                const mp3 = await this.getMP3(message.pool, args.join(" "));
-                const mscz = await this.getMSCZ(data);
                 try {
-                    const attachments = [];
-                    if (!mp3.error) try {
-                        const res = await requestStream(mp3.url);
-                        if (!res) console.error("Failed to get Readable Stream");
-                        else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
-                        else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mp3`));
-                    } catch (err) { }
-                    if (hasPDF) attachments.push(new Discord.MessageAttachment(doc, `${data.title}.pdf`));
-                    if (!mscz.error) try {
+                    var attachments = 0;
+                    const mp3 = await this.getMP3(message.pool, args.join(" "));
+                    try {
+                        if (mp3.error) throw new Error(mp3.message);
+                        if (mp3.url.startsWith("https://www.youtube.com/embed/")) {
+                            const ytid = mp3.url.split("/").slice(-1)[0].split("?")[0];
+                            var res = await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
+                        } else var res = await requestStream(mp3.url);
+                        const att = new Discord.MessageAttachment(res, `${data.title}.mp3`);
+                        if (!res) throw new Error("Failed to get Readable Stream");
+                        else if (res.statusCode && res.statusCode != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
+                        else await message.channel.send(att);
+                        attachments++;
+                    } catch (err) {
+                        await message.channel.send(`Failed to generate MP3! \`${err.message}\``);
+                    }
+                    const { doc, hasPDF } = await this.getPDF(message.pool, args.join(" "), data);
+                    try {
+                        if (hasPDF) throw new Error("No PDF available");
+                        const att = new Discord.MessageAttachment(doc, `${data.title}.pdf`);
+                        await message.channel.send(att);
+                        attachments++;
+                    } catch (err) {
+                        await message.channel.send(`Failed to generate PDF! \`${err.message}\``);
+                    }
+                    const mscz = await this.getMSCZ(data);
+                    try {
+                        if (!mscz.error) throw new Error(mscz.message);
                         const res = await requestStream(mscz.url);
-                        if (!res) console.error("Failed to get Readable Stream");
-                        else if (res.statusCode != 200) console.error("Received HTTP Status Code: " + res.statusCode);
-                        else attachments.push(new Discord.MessageAttachment(res, `${data.title}.mscz`));
-                    } catch (err) { }
-                    if (attachments.length < 1) return await mesg.edit("Failed to generate files!");
+                        const att = new Discord.MessageAttachment(res, `${data.title}.mscz`);
+                        if (!res) throw new Error("Failed to get Readable Stream");
+                        else if (res.statusCode && res.statusCode != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
+                        else await message.channel.send(att);
+                        attachments++;
+                    } catch (err) {
+                        await message.channel.send(`Failed to generate MSCZ! \`${err.message}\``);
+                    }
+                    if (attachments < 1) return await mesg.edit("Failed to generate files!");
                     await mesg.delete();
-                    await message.channel.send(attachments);
                     console.log(`Completed download ${args.join(" ")} in server ${message.guild.name}`);
                 } catch (err) {
                     console.log(`Failed download ${args.join(" ")} in server ${message.guild.name}`);

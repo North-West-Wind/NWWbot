@@ -62,7 +62,8 @@ module.exports = {
                 case 5:
                     const mp3 = await getMP3(message.pool, song.url);
                     if (mp3.error) throw new Error(mp3.message);
-                    stream = await requestStream(mp3.url);
+                    if (mp3.url.startsWith("https://www.youtube.com/embed/")) stream = await requestYTDLStream(mp3.url, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
+                    else stream = await requestStream(mp3.url);
                     break;
                 case 6:
                     stream = await requestStream(song.download);

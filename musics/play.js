@@ -97,7 +97,8 @@ async function play(guild, song, skipped = 0, seek = 0) {
       case 5:
         const c = await getMP3(serverQueue.pool, song.url);
         if (c.error) throw new Error(c.message);
-        const d = await requestStream(c.url);
+        if (c.url.startsWith("https://www.youtube.com/embed/")) var d = ytdl(c.url);
+        else var d = await requestStream(c.url);
         dispatcher = serverQueue.connection.play(new StreamConcat([d, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
       case 6:
