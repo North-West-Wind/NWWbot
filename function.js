@@ -29,7 +29,7 @@ module.exports = {
   validGfyURL: (str) => !!str.match(/^(http(s)?:\/\/)?((w){3}.)?gfycat(.com)?\/\w*/),
   validRedGifURL: (str) => !!str.match(/^https?:\/\/(\w+\.)?redgifs.com\/(\w*\/)?(\w*\w*)$/),
   validSCURL: (str) => !!str.match(/^https?:\/\/(soundcloud\.com|snd\.sc)\/(.+)?/),
-  validMSURL: (str) => !!str.match(/^(https?:\/\/)?musescore\.com\/(user|[\w%\-_.!~*'()]+)\/([0-9]{1,}\/scores\/[0-9]{1,}\/?|[\w%\-_.!~*'()]+\/?)$/),
+  validMSURL: (str) => !!str.match(/^(https?:\/\/)?musescore\.com\/(user\/\d+\/scores\/\d+|[\w-]+\/(scores\/\d+|[\w-]+))[#\?]?$/),
   validPHURL: (str) => !!str.match(/^(https?:\/\/)(\w+\.)?pornhub\.com\/view_video\.php\?viewkey=\w+\/?$/),
   decodeHtmlEntity: (str) => str.replace(/&#(\d+);/g, (_match, dec) => String.fromCharCode(dec)).replace(/&quot;/g, `"`).replace(/&amp;/g, `&`),
   encodeHtmlEntity(str) {
