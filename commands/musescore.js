@@ -93,9 +93,9 @@ module.exports = {
                     } catch (err) {
                         await message.channel.send(`Failed to generate MP3! \`${err.message}\``);
                     }
-                    const { doc, hasPDF } = await this.getPDF(message.pool, args.join(" "), data);
+                    const { doc, hasPDF, err } = await this.getPDF(message.pool, args.join(" "), data);
                     try {
-                        if (hasPDF) throw new Error("No PDF available");
+                        if (!hasPDF) throw new Error(err ? err : "No PDF available");
                         const att = new Discord.MessageAttachment(doc, `${data.title}.pdf`);
                         await message.channel.send(att);
                         attachments++;
@@ -239,14 +239,14 @@ module.exports = {
             const res = await rp({ uri: url, resolveWithFullResponse: true });
             data = this.parseBody(res.body);
         }
-        var result = { error: true };
+        var result = { doc: null, hasPDF: false };
         var score = data.firstPage.replace(/png$/, "svg");
         var fetched = await fetch(score);
         if (!fetched.ok) {
             score = data.firstPage;
             var fetched = await fetch(score);
             if (!fetched.ok) {
-                result.message = "Received Non-200 HTTP Status Code ";
+                result.err = "Received Non-200 HTTP Status Code";
                 return result;
             }
         }
@@ -270,6 +270,7 @@ module.exports = {
                 else await PNGtoPDF(doc, page);
                 if (i + 1 < data.pageCount) doc.addPage();
             } catch (err) {
+                result.err = err.message;
                 hasPDF = false;
                 break;
             }
