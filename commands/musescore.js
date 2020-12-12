@@ -75,9 +75,8 @@ module.exports = {
         if (collected && collected.first()) {
             console.log(`Downloading ${args.join(" ")} in server ${message.guild.name}...`);
             try {
-                var mesg = await message.channel.send("Generating files... (This will take a while. It depends on the length of the score.)");
                 try {
-                    var attachments = 0;
+                    var mesg = await message.channel.send("Generating MP3...");
                     const mp3 = await this.getMP3(message.pool, args.join(" "));
                     try {
                         if (mp3.error) throw new Error(mp3.message);
@@ -89,21 +88,20 @@ module.exports = {
                         if (!res) throw new Error("Failed to get Readable Stream");
                         else if (res.statusCode && res.statusCode != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
                         else await message.channel.send(att);
-                        attachments++;
+                        await mesg.delete();
                     } catch (err) {
-                        await message.channel.send(`Failed to generate MP3! \`${err.message}\``);
+                        await mesg.edit(`Failed to generate MP3! \`${err.message}\``);
                     }
+                    mesg = await message.channel.send("Generating PDF...");
                     const { doc, hasPDF, err } = await this.getPDF(message.pool, args.join(" "), data);
                     try {
                         if (!hasPDF) throw new Error(err ? err : "No PDF available");
                         const att = new Discord.MessageAttachment(doc, `${data.title}.pdf`);
                         await message.channel.send(att);
-                        attachments++;
+                        await mesg.delete();
                     } catch (err) {
-                        await message.channel.send(`Failed to generate PDF! \`${err.message}\``);
+                        await mesg.edit(`Failed to generate PDF! \`${err.message}\``);
                     }
-                    if (attachments < 1) return await mesg.edit("Failed to generate files!");
-                    await mesg.delete();
                     console.log(`Completed download ${args.join(" ")} in server ${message.guild.name}`);
                 } catch (err) {
                     console.log(`Failed download ${args.join(" ")} in server ${message.guild.name}`);
