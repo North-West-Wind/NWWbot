@@ -11,7 +11,7 @@ module.exports = {
     if (!message.member.voice.channel) return message.channel.send("You are not in any voice channel!");
     if (!message.guild.me.voice.channel) return message.channel.send("I am not in any voice channel!");
     if (message.member.voice.channelID === message.guild.me.voice.channelID) return message.channel.send("I'm already in the same channel with you!");
-    if (!serverQueue) return message.channel.send("There is nothing playing.");
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
     if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the queue.");
     if (!serverQueue.playing) return message.channel.send("I'm not playing anything.");
     if (!message.member.voice.channel.permissionsFor(message.guild.me).has(3145728)) return message.channel.send("I don't have the required permissions to play music here!");

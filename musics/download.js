@@ -23,8 +23,7 @@ module.exports = {
     async music(message, serverQueue) {
         const args = message.content.slice(message.prefix.length).split(/ +/);
         if (args[1] && isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, serverQueue, args);
-        if (!serverQueue) return message.channel.send("There is nothing playing.");
-        if (!serverQueue.songs) serverQueue.songs = [];
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the song queue.");
         let song = serverQueue.songs[!(!isNaN(parseInt(args[1])) && parseInt(args[1]) > serverQueue.songs.length) ? 0 : parseInt(args[1])];
         await this.download(message, serverQueue, song);

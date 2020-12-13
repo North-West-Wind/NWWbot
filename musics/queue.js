@@ -19,8 +19,7 @@ module.exports = {
     if (args[1] && (args[1].toLowerCase() === "sync" || args[1].toLowerCase() === "sy")) return await this.sync(message, serverQueue, args);
     if (args[1] && (args[1].toLowerCase() === "export" || args[1].toLowerCase() === "ex")) return await this.export(message, serverQueue);
     if (args[1] && (args[1].toLowerCase() === "import" || args[1].toLowerCase() === "im")) return await this.import(message, serverQueue);
-    if (!serverQueue) return message.channel.send("There is nothing playing.");
-    if (!serverQueue.songs) serverQueue = setQueue(message.guild.id, [], !!serverQueue.looping, !!serverQueue.repeating, message.pool);
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
     if (serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");
     const filtered = serverQueue.songs.filter(song => !!song);
     if (serverQueue.songs.length !== filtered.length) {
@@ -44,7 +43,8 @@ module.exports = {
     else await createEmbedScrolling(message, allEmbeds, 3, { songArray: songArray });
   },
   async save(message, serverQueue, args) {
-    if (!serverQueue) return message.channel.send("There is no queue playing in this server right now!");
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
+    if (serverQueue.songs.length < 1) return message.channel.send("There is no queue playing in this server right now!");
     const con = await message.pool.getConnection();
     const [results] = await con.query(`SELECT * FROM queue WHERE user = '${message.author.id}'`);
     if (results.length >= 10) return message.channel.send("You have already stored 10 queues! Delete some of them to save this queue.");
@@ -80,11 +80,8 @@ module.exports = {
     if (!args[2]) return message.channel.send("Please provide the name of the queue.");
     const [results] = await message.pool.query(`SELECT * FROM queue WHERE name = '${args.slice(2).join(" ")}' AND user = '${message.author.id}'`);
     if (results.length == 0) return message.channel.send("No queue was found!");
-    if (!serverQueue) {
-      var voiceChannel = null;
-      if (message.member.voice && message.member.voice.channel) voiceChannel = message.member.voice.channel;
-      serverQueue = setQueue(message.guild.id, JSON.parse(unescape(results[0].queue)), false, false, message.pool);
-    } else serverQueue.songs = JSON.parse(unescape(results[0].queue));
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
+    else serverQueue.songs = JSON.parse(unescape(results[0].queue));
     updateQueue(message, serverQueue, message.pool);
     message.channel.send(`The queue **${results[0].name}** has been loaded.`);
   },
@@ -173,14 +170,13 @@ module.exports = {
     }
     const [results] = await message.pool.query(`SELECT queue FROM servers WHERE id = '${guild.id}'`);
     if (results.length == 0) return message.channel.send("No queue was found!");
-    if (!serverQueue) serverQueue = setQueue(message.guild.id, JSON.parse(unescape(results[0].queue)), false, false, message.pool);
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, JSON.parse(unescape(results[0].queue)), false, false, message.pool);
     else serverQueue.songs = JSON.parse(unescape(results[0].queue));
     updateQueue(message, serverQueue, message.pool);
     message.channel.send(`The queue of this server has been synchronize to the queue of the server **${guild.name}**.`);
   },
   async export(message, serverQueue) {
-    if (!serverQueue) return await message.channel.send("There is nothing in the queue.");
-    if (!serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], !!serverQueue.looping, !!serverQueue.repeating, message.pool);
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
     if (serverQueue.songs.length < 1) return await message.channel.send("There is nothing in the queue.");
     const str = escape(JSON.stringify(serverQueue.songs));
     const attachment = new Discord.MessageAttachment(Buffer.from(str, 'utf8'), `${message.guild.name}.queue`);

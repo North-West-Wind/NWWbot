@@ -7,7 +7,7 @@ module.exports = {
     aliases: ["rev"],
     category: 8,
     async music(message, serverQueue) {
-        if (!serverQueue) return message.channel.send("There is nothing playing.");
+      if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
         if(serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");
         if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to alter the queue when the bot is playing!");
         var oldSong = serverQueue.songs[0];

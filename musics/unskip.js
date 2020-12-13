@@ -12,8 +12,7 @@ module.exports = {
         var skipped = 1;
         const guild = message.guild;
         if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to unskip the music when the bot is playing!");
-        if (!serverQueue) return message.channel.send("There is no song that I could unskip!");
-        if (!serverQueue.songs) serverQueue.songs = [];
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the queue!");
         if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
         if (serverQueue.repeating) skipped = 0;

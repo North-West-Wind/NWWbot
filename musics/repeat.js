@@ -6,7 +6,7 @@ module.exports = {
   aliases: ["rep", "rp"],
   category: 8,
   async music(message, serverQueue) {
-    if(!serverQueue) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
     serverQueue.repeating = !serverQueue.repeating;
     if (serverQueue.repeating && serverQueue.looping) {
         serverQueue.looping = false;

@@ -8,7 +8,7 @@ module.exports = {
     usage: "<link | keywords>",
     category: 8,
     args: 1,
-    async music(message, serverQueue, queue) {
+    async music(message, serverQueue) {
         const args = message.content.slice(message.prefix.length).split(/ +/);
         try {
             var songs = [];
@@ -27,7 +27,7 @@ module.exports = {
             songs = result.songs;
             if (!songs || songs.length < 1) return await message.reply("there was an error trying to add the soundtrack!");
             const Embed = createEmbed(message, songs);
-            if (!serverQueue) serverQueue = setQueue(message.guild.id, songs, false, false, message.pool);
+            if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, songs, false, false, message.pool);
             else serverQueue.songs = serverQueue.songs.concat(songs);
             updateQueue(message, serverQueue, message.pool);
             if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });

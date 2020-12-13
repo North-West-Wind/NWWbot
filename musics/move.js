@@ -15,7 +15,8 @@ module.exports = {
     var dest = parseInt(args[2]);
     if (isNaN(queueIndex)) return message.channel.send("The target provided is not a number.");
     if (isNaN(dest)) return message.channel.send("The destination provided is not a number.");
-    if (!serverQueue) return message.channel.send("There is nothing playing.");
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
+    if (serverQueue.songs.length < 1) return await message.channel.send("There is nothing in the song queue.");
     var targetIndex = queueIndex - 1;
     var destIndex = dest - 1;
     if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing && serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();

@@ -20,9 +20,8 @@ module.exports = {
   aliases: ["nowplaying"],
   category: 8,
   async music(message, serverQueue) {
-    if (!serverQueue) return message.channel.send("There is nothing playing.");
-    if (!serverQueue.songs) serverQueue = setQueue(message.guild.id, [], !!serverQueue.looping, !!serverQueue.repeating, message.pool);
-    if (serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
+    if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the queue.");
     const filtered = serverQueue.songs.filter(song => !!song);
     if (serverQueue.songs.length !== filtered.length) {
       serverQueue.songs = filtered;

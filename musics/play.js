@@ -191,7 +191,8 @@ module.exports = {
     if (!voiceChannel) return await message.channel.send("You need to be in a voice channel to play music!");
     if (!voiceChannel.permissionsFor(message.client.user).has(3145728)) return await message.channel.send("I can't play in your voice channel!");
     if (!args[1] && message.attachments.size < 1) {
-      if (!serverQueue || !serverQueue.songs || serverQueue.songs.length < 1) return await message.channel.send("No song queue was found for this server! Please provide a link or keywords to get a music played!");
+      if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
+      if (serverQueue.songs.length < 1) return await message.channel.send("No song queue was found for this server! Please provide a link or keywords to get a music played!");
       if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) return await music(message, serverQueue);
       try {
         if (message.guild.me.voice.channel && message.guild.me.voice.channelID === voiceChannel.id) serverQueue.connection = message.guild.me.voice.connection;
@@ -229,7 +230,7 @@ module.exports = {
       songs = result.songs;
       if (!songs || songs.length < 1) return await message.reply("there was an error trying to add the soundtrack!");
       const Embed = createEmbed(message, songs);
-      if (!serverQueue) serverQueue = setQueue(message.guild.id, songs, false, false, message.pool);
+      if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, songs, false, false, message.pool);
       else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
       if (!message.guild.me.voice.channel) {
         serverQueue.voiceChannel = voiceChannel;
@@ -239,8 +240,8 @@ module.exports = {
       }
       updateQueue(message, serverQueue, message.pool);
       if (!serverQueue.playing) play(message.guild, serverQueue.songs[0]);
-      if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
-      else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
+      if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });
+      else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });
     } catch (err) {
       await message.reply("there was an error trying to connect to the voice channel!");
       if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();

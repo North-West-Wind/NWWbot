@@ -7,7 +7,7 @@ module.exports = {
   category: 8,
   async music(message, serverQueue) {
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to stop the music when the bot is playing!");
-    if (!serverQueue) return await message.channel.send("There is nothing playing.");
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
     if (serverQueue.connection != null && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
     serverQueue.playing = false;
     serverQueue.connection = null;

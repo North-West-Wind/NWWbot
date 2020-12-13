@@ -9,7 +9,8 @@ module.exports = {
   async music(message, serverQueue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
     if(!args[1]) return message.channel.send(`The current volume is **${Math.round(serverQueue.volume * 100)}%** and the current volume of the soundtrack is **${Math.round(serverQueue.volume * (serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.songs[0].volume : 1) * 100)}%**`);
-    if(!serverQueue) return message.channel.send("There is nothing playing. Volume didn't change.");
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
+    if (!serverQueue.songs.length) return await message.channel.send("There is nothing playing. Volume didn't change.");
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to alter the volume when the bot is playing!");
     if(isNaN(Number(args[1]))) return message.channel.send("The percentage change you gave is no a number!");
     if(args[2] && args[2].toLowerCase() == "np") {

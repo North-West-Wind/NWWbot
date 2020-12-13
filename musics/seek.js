@@ -11,7 +11,7 @@ module.exports = {
     aliases: ["skipto"],
     category: 8,
     async music(message, serverQueue) {
-        if(!serverQueue) return message.channel.send("There is nothing playing.");
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
         if(serverQueue.songs.length < 1 || !serverQueue.connection || !serverQueue.connection.dispatcher || !serverQueue.playing) return message.channel.send("There is nothing in the queue.");
         if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to change the time of the soundtrack begins when the bot is playing!");
         if(serverQueue.songs[0].time === "∞") return message.channel.send("This command does not work for live videos.");

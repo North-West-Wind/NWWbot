@@ -9,12 +9,12 @@ module.exports = {
   args: 1,
   async music(message, serverQueue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
-    if(args[2] && !isNaN(parseInt(args[2])) && parseInt(args[2]) < 1) return message.channel.send("The delete count must be larger than 0!");
+    if (args[2] && !isNaN(parseInt(args[2])) && parseInt(args[2]) < 1) return message.channel.send("The delete count must be larger than 0!");
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to alter the queue when the bot is playing!");
     var queueIndex = parseInt(args[1]);
-    if (isNaN(queueIndex))
-      return message.channel.send("The query provided is not a number.");
-    if (!serverQueue) return message.channel.send("There is nothing playing.");
+    if (isNaN(queueIndex)) return message.channel.send("The query provided is not a number.");
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
+    if (serverQueue.songs.length < 1) return await message.channel.send("There is nothing in the song queue.");
     var deleteIndex = queueIndex < 0 ? serverQueue.songs.length + queueIndex : queueIndex - 1;
     if (deleteIndex > serverQueue.songs.length - 1 || queueIndex === 0)
       return message.channel.send(
