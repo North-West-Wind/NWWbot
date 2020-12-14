@@ -100,7 +100,7 @@ module.exports = {
                 const [res] = await con.query("SELECT * FROM rolemsg ORDER BY expiration");
                 console.log(`[${id}] ` + "Found " + res.length + " role messages.");
                 console.rm = res;
-                res.forEach(async result => expire({ pool, client }, result.expiration - (new Date())));
+                res.forEach(async result => expire({ pool, client }, result.expiration - (new Date()), result.id));
             } else {
                 client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
                 const [res] = await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);

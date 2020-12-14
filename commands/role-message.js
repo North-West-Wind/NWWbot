@@ -110,9 +110,9 @@ module.exports = {
     }
     con.release();
   },
-  expire: (message, length) => setTimeout_(async () => {
+  expire: (message, length, id) => setTimeout_(async () => {
     const con = await message.pool.getConnection();
-    var [results] = await con.query(`SELECT expiration FROM rolemsg WHERE id = '${mesg.id}'`);
+    var [results] = await con.query(`SELECT expiration FROM rolemsg WHERE id = '${id}'`);
     if (results.length == 0) return;
     const date = new Date();
     if (results[0].expiration - date <= 0) {
