@@ -699,6 +699,7 @@ module.exports = {
       .setColor(console.color())
       .setTimestamp()
       .setFooter("Please do so within 60 seconds.", message.client.user.displayAvatarURL());
+    const results = [];
     try {
       const searched = await ytsr(args.slice(1).join(" "), { limit: 20 });
       var video = searched.items.filter(x => x.type === "video");
@@ -729,9 +730,10 @@ module.exports = {
         thumbnail: x.thumbnail,
         volume: 1,
         isLive: x.live
-      }));
+      })).filter(x => !!x.url);
     var num = 0;
-    if (video.length > 0) {
+    if (ytResults.length > 0) {
+      results.push(ytResults);
       Embed.setDescription("Type **soundcloud** / **sc** to show the search results from SoundCloud.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + video.map(x => `${++num} - **[${decodeHtmlEntity(x.title)}](${x.link})** : **${x.duration}**`).slice(0, 10).join("\n"));
       allEmbeds.push(Embed);
     }
@@ -743,10 +745,6 @@ module.exports = {
     try {
       var scSearched = await scdl.search("tracks", args.slice(1).join(" "));
       num = 0;
-      if (scSearched.collection.length > 0) {
-        scEm.setDescription("Type **youtube** / **yt** to show the search results from Youtube.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + scSearched.collection.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).slice(0, 10).join("\n"));
-        allEmbeds.push(scEm);
-      }
     } catch (err) {
       console.error(err);
       message.reply("there was an error trying to search the videos!");
@@ -761,12 +759,16 @@ module.exports = {
         thumbnail: x.artwork_url,
         volume: 1,
         isLive: false
-      }));
+      })).filter(x => !!x.url);
+      if (scResults.length > 0) {
+        results.push(scResults);
+        scEm.setDescription("Type **youtube** / **yt** to show the search results from Youtube.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + scResults.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).slice(0, 10).join("\n"));
+        allEmbeds.push(scEm);
+      }
     if (allEmbeds.length < 1) {
       message.channel.send("Cannot find any result with the given string.");
       return { error: true };
     }
-    const results = [ytResults, scResults];
     var val = { error: true };
     var s = 0;
     var msg = await message.channel.send(allEmbeds[0]);
