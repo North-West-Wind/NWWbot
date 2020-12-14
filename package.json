@@ -1,6 +1,6 @@
 {
   "name": "nwwbot",
-  "version": "2.9.1",
+  "version": "2.9.2",
   "description": "NorthWestWind's bot!",
   "main": "app-2.js",
   "scripts": {
@@ -65,6 +65,6 @@
     "youtube-sr": "^2.0.4",
     "ytdl-core": "^4.1.4",
     "ytpl": "^2.0.0-alpha.3",
-    "ytsr": "github:TimeForANinja/node-ytsr#wip-api-adjustments"
+    "ytsr": "^2.0.1"
   }
 }

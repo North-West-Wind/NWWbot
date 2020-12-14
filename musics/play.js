@@ -773,7 +773,7 @@ module.exports = {
     var s = 0;
     var msg = await message.channel.send(allEmbeds[0]);
     const filter = x => x.author.id === message.author.id;
-    const collector = await msg.channel.createMessageCollector(filter, { time: 60000 });
+    const collector = await msg.channel.createMessageCollector(filter, { idle: 60000 });
     collector.on("collect", async collected => {
       collected.delete().catch(() => { });
       if (isNaN(parseInt(collected.content))) {
