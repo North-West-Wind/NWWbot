@@ -89,7 +89,7 @@ module.exports = {
     try {
       await message.pool.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${message.author.id}', '${moment(now.getTime() + (7 * 24 * 3600 * 1000)).format("YYYY-MM-DD HH:mm:ss")}', '${JSON.stringify(roles)}', '${JSON.stringify(emojis)}')`);
       await message.channel.send("Successfully created record for message. The message will expire after 7 days.");
-      this.expire(message, 7 * 24 * 3600 * 1000);
+      this.expire(message, 7 * 24 * 3600 * 1000, mesg.id);
     } catch (err) {
       console.error(err);
       await message.reply("there was an error trying to record the message!");

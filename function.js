@@ -403,5 +403,6 @@ module.exports = {
     const rs = require("request-stream");
     rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
   }),
-  capitalize: (s) => (typeof s !== 'string') ? '' : s.charAt(0).toUpperCase() + s.slice(1)
+  capitalize: (s) => (typeof s !== 'string') ? '' : s.charAt(0).toUpperCase() + s.slice(1),
+  wait: (ms) => new Promise(resolve => this.setTimeout_(resolve, ms))
 };
