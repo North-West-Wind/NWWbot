@@ -113,9 +113,8 @@ module.exports = {
   expire: (message, length, id) => setTimeout_(async () => {
     const con = await message.pool.getConnection();
     try {
-      var [results] = await con.query(`SELECT expiration FROM rolemsg WHERE id = '${id}'`);
+      var [results] = await con.query(`SELECT expiration, channel FROM rolemsg WHERE id = '${id}'`);
       if (!results[0]) throw new Error("No results");
-      console.log(results[0]);
       const date = new Date();
       if (results[0].expiration - date <= 0) {
         await con.query(`DELETE FROM rolemsg WHERE id = '${id}'`);
