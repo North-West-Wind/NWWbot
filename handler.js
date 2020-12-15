@@ -74,8 +74,8 @@ module.exports = {
         console.log(`[${id}] Ready!`);
         if (id === 0) { client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true }); console.p = require(process.env.SECRET_INGREDIENT); }
         else client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
+        const con = await pool.getConnection();
         try {
-            const con = await pool.getConnection();
             if (id === 0) {
                 const [results] = await con.query("SELECT id, queue, looping, repeating, prefix FROM servers");
                 const filtered = results.filter(result => (result.queue || result.looping || result.repeating || result.prefix));
@@ -100,7 +100,7 @@ module.exports = {
                 const [res] = await con.query("SELECT * FROM rolemsg ORDER BY expiration");
                 console.log(`[${id}] ` + "Found " + res.length + " role messages.");
                 console.rm = res;
-                res.forEach(async result => expire({ pool, client }, result.expiration - (new Date()), result.id));
+                res.filter(x => x.id != "622311594654695434").forEach(async result => expire({ pool, client }, result.expiration - (new Date()), result.id));
             } else {
                 client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
                 const [res] = await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
@@ -399,8 +399,8 @@ module.exports = {
             });
             var [results] = await con.query("SELECT * FROM nolog");
             console.noLog = results.map(x => x.id);
-            con.release();
         } catch (err) { console.error(err); };
+        con.release();
     },
     async guildMemberAdd(member) {
         const client = member.client;

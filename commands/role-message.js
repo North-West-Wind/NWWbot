@@ -112,15 +112,20 @@ module.exports = {
   },
   expire: (message, length, id) => setTimeout_(async () => {
     const con = await message.pool.getConnection();
-    var [results] = await con.query(`SELECT expiration FROM rolemsg WHERE id = '${id}'`);
-    if (results.length == 0) return;
-    const date = new Date();
-    if (results[0].expiration - date <= 0) {
-      await con.query(`DELETE FROM rolemsg WHERE id = '${results[0].id}'`);
-      const channel = await message.client.channels.fetch(results[0].channel);
-      const msg = await channel.messages.fetch(results[0].id);
-      msg.reactions.removeAll().catch(() => { });
-    } else expire(results[0].expiration - date);
+    try {
+      var [results] = await con.query(`SELECT expiration FROM rolemsg WHERE id = '${id}'`);
+      if (!results[0]) throw new Error("No results");
+      console.log(results[0]);
+      const date = new Date();
+      if (results[0].expiration - date <= 0) {
+        await con.query(`DELETE FROM rolemsg WHERE id = '${id}'`);
+        const channel = await message.client.channels.fetch(results[0].channel);
+        const msg = await channel.messages.fetch(results[0].id);
+        msg.reactions.removeAll().catch(() => { });
+      } else expire(message, results[0].expiration - date, id);
+    } catch (err) {
+      console.error(err);
+    }
     con.release();
   }, length)
 }
