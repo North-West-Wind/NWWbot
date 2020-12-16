@@ -10,7 +10,7 @@ module.exports = {
         if (!args[0]) return await message.channel.send(attachment);
         const user = await findUser(message, args[0]);
         if (!user) return;
-        await message.channel.send(`Hey! ${user}`);
+        await message.channel.send(`Hey! <@${user.id}>`);
         await wait(5000);
         await message.channel.send(attachment);
     }
