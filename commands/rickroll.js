@@ -8,7 +8,7 @@ module.exports = {
     async execute(message, args) {
         const attachment = new Discord.MessageAttachment("https://inviterick.com/rick.gif", "rick.gif");
         if (!args[0]) return await message.channel.send(attachment);
-        const user = findUser(message, args[0]);
+        const user = await findUser(message, args[0]);
         if (!user) return;
         await message.channel.send(`Hey! ${user}`);
         await wait(5000);
