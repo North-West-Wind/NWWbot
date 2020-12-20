@@ -23,7 +23,7 @@
     "asciify-image": "^0.1.6",
     "booru": "^2.4.0",
     "canvas": "^2.6.1",
-    "cheerio": "github:cheeriojs/cheerio",
+    "cheerio": "^1.0.0-rc.3",
     "cleverbot-free": "^1.0.5",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
