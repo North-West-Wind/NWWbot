@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream } = require("../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream } = require("../function.js");
 const { parseBody, getMP3 } = require("../commands/musescore.js");
 const { music } = require("./migrate.js");
 const ytdl = require("ytdl-core");
@@ -9,6 +9,7 @@ var spotifyApi = new SpotifyWebApi({
   clientSecret: process.env.SPOTSECRET,
   redirectUri: "https://nwws.ml"
 });
+const WebMscore = require("webmscore").default;
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const mm = require("music-metadata");
 const ytsr = require("ytsr");
@@ -114,12 +115,20 @@ async function play(guild, song, skipped = 0, seek = 0) {
         }
         dispatcher = serverQueue.connection.play(new StreamConcat([f, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
+      case 7:
+        const h = await fetch(song.url);
+        if (!h.ok) throw new Error("Received HTTP Status Code: " + h.status);
+        await WebMscore.ready;
+        const i = await WebMscore.load(song.url.split(".").slice(-1)[0], await h.buffer());
+        const j = bufferToStream(await i.saveAudio("mp3"));
+        dispatcher = serverQueue.connection.play(new StreamConcat([j, silence], { highWaterMark: 1 << 25 }), { seek: seek });
+        break;
       default:
         if (song.isLive) {
-          const j = await module.exports.addYTURL(message, args, song.type);
-          if (j.error) throw "Failed to find video";
-          if (!isEquivalent(j.songs[0], song)) {
-            song = j.songs[0];
+          const k = await module.exports.addYTURL(message, args, song.type);
+          if (k.error) throw "Failed to find video";
+          if (!isEquivalent(k.songs[0], song)) {
+            song = k.songs[0];
             serverQueue.songs[0] = song;
             updateQueue(message, serverQueue, serverQueue.pool);
           }
@@ -253,6 +262,33 @@ module.exports = {
     const files = message.attachments;
     const songs = [];
     for (const file of files.values()) {
+      if (file.url.endsWith("mscz") || file.url.endsWith("mscx")) {
+        const buffer = await fetch(file.url).then(res => res.buffer());
+        await WebMscore.ready;
+        const score = await WebMscore.load(file.url.split(".").slice(-1)[0], buffer);
+        const title = await score.title();
+        try {
+          var metadata = await mm.parseBuffer(await score.saveAudio("mp3"), {}, { duration: true });
+        } catch (err) {
+          await message.channel.send("The audio format is not supported!");
+          return { error: true };
+        }
+        if (!metadata) {
+          await message.channel.send("An error occured while getting the metadata of the Musescore file! Maybe it is corrupted?");
+          return { error: true };
+        }
+        songs.push({
+          id: ID(),
+          title: title,
+          url: file.url,
+          type: 7,
+          time: moment.duration(Math.round(metadata.format.duration), "seconds").format(),
+          volume: 1,
+          thumbnail: "https://pbs.twimg.com/profile_images/1155047958326517761/IUgssah__400x400.jpg",
+          isLive: false
+        });
+        continue;
+      }
       const stream = await fetch(file.url).then(res => res.body);
       try {
         var metadata = await mm.parseStream(stream, {}, { duration: true });

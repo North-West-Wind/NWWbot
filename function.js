@@ -301,7 +301,7 @@ module.exports = {
       msg.reactions.removeAll().catch(console.error);
       if (id == 1) {
         await msg.edit({ content: "Loading simplier version...", embed: null });
-        await msg.edit("https://sky.shiiyu.moe/stats/" + res[0].name);
+        await msg.edit("https://sky.shiiyu.moe/stats/" + additionalData.res[0].name);
       } else if (id == 2) setTimeout(() => msg.edit({ embed: null, content: `**[Lyrics of ${title}**]` }), 10000);
       else if (id == 3) setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${additionalData.songArray.length} tracks in total]**` }), 60000);
     });
@@ -404,5 +404,22 @@ module.exports = {
     rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
   }),
   capitalize: (s) => (typeof s !== 'string') ? '' : s.charAt(0).toUpperCase() + s.slice(1),
-  wait: (ms) => new Promise(resolve => setTimeout(resolve, ms))
+  wait: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
+  bufferToStream(buf, chunkSize) {
+    const { Readable } = require("stream");
+    if (typeof buf === 'string') buf = Buffer.from(buf, 'utf8');
+    if (!Buffer.isBuffer(buf)) throw new TypeError(`"buf" argument must be a string or an instance of Buffer`);
+    const reader = new Readable();
+    const hwm = reader._readableState.highWaterMark;
+    if (!chunkSize || typeof chunkSize !== 'number' || chunkSize < 1 || chunkSize > hwm) chunkSize = hwm;
+    const len = buf.length;
+    let start = 0;
+    reader._read = () => {
+      while (reader.push(buf.slice(start, (start += chunkSize)))) if (start >= len) {
+        reader.push(null);
+        break;
+      }
+    }
+    return reader;
+  }
 };

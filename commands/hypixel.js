@@ -4582,7 +4582,7 @@ module.exports = {
 
         allEmbeds.push(Embed);
       }
-      await createEmbedScrolling(message, allEmbeds, 1);
+      await createEmbedScrolling(message, allEmbeds, 1, { res });
     }
   }
 };
