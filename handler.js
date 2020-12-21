@@ -562,7 +562,7 @@ module.exports = {
     },
     async guildCreate(guild) {
         console.log("Joined a new guild: " + guild.name);
-        console.invites[guild.id] = await guild.fetchInvites();
+        try { console.invites[guild.id] = await guild.fetchInvites(); } catch(err) { }
         try {
             const con = await pool.getConnection();
             const [result] = await con.query("SELECT * FROM servers WHERE id = " + guild.id);
