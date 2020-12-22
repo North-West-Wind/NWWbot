@@ -4,6 +4,7 @@ const queue = new Discord.Collection();
 module.exports = {
   name: "main",
   async music(message, commandName) {
+    if (!message.guild) return await message.channel.send("You can only use music commands in server!");
     const command = console.commands.get(commandName) || console.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
     const serverQueue = queue.get(message.guild.id);
     try {

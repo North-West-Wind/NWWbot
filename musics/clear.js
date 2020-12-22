@@ -1,4 +1,4 @@
-const { updateQueue } = require("./main.js");
+const { updateQueue, setQueue } = require("./main.js");
 module.exports = {
   name: "clear",
   description: "Clear the song queue and stop the playing soundtrack. Also resets the volume to 100%.",
