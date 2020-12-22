@@ -120,7 +120,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
         if (!h.ok) throw new Error("Received HTTP Status Code: " + h.status);
         await WebMscore.ready;
         const i = await WebMscore.load(song.url.split(".").slice(-1)[0], await h.buffer());
-        const j = bufferToStream(await i.saveAudio("mp3"));
+        const j = bufferToStream(Buffer.from((await i.saveAudio("mp3")).buffer));
         dispatcher = serverQueue.connection.play(new StreamConcat([j, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
       default:
@@ -263,12 +263,12 @@ module.exports = {
     const songs = [];
     for (const file of files.values()) {
       if (file.url.endsWith("mscz") || file.url.endsWith("mscx")) {
-        const buffer = await fetch(file.url).then(res => res.buffer());
+        const buffer = await fetch(file.url).then(res => res.arrayBuffer());
         await WebMscore.ready;
-        const score = await WebMscore.load(file.url.split(".").slice(-1)[0], buffer);
+        const score = await WebMscore.load(file.url.split(".").slice(-1)[0], new Uint8Array(buffer));
         const title = await score.title();
         try {
-          var metadata = await mm.parseBuffer(await score.saveAudio("mp3"), {}, { duration: true });
+          var metadata = await mm.parseBuffer(Buffer.from((await score.saveAudio("mp3")).buffer), {}, { duration: true });
         } catch (err) {
           await message.channel.send("The audio format is not supported!");
           return { error: true };
