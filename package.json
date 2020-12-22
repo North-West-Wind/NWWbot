@@ -23,7 +23,7 @@
     "asciify-image": "^0.1.6",
     "booru": "^2.4.0",
     "canvas": "^2.6.1",
-    "cheerio": "^1.0.0-rc.3",
+    "cheerio": "^1.0.0-rc.5",
     "cleverbot-free": "^1.0.5",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
@@ -61,11 +61,11 @@
     "spotify-web-api-node": "^5.0.0",
     "stream-concat": "^0.3.0",
     "svg-to-pdfkit": "^0.1.8",
-    "webmscore": "^0.14.0",
+    "webmscore": "^0.14.2",
     "wikijs": "^6.0.0",
     "youtube-sr": "^2.0.5",
     "ytdl-core": "^4.2.1",
     "ytpl": "^2.0.3",
-    "ytsr": "^3.0.0"
+    "ytsr": "^3.2.0"
   }
 }

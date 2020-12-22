@@ -119,8 +119,10 @@ async function play(guild, song, skipped = 0, seek = 0) {
         const h = await fetch(song.url);
         if (!h.ok) throw new Error("Received HTTP Status Code: " + h.status);
         await WebMscore.ready;
-        const i = await WebMscore.load(song.url.split(".").slice(-1)[0], await h.buffer());
-        const j = bufferToStream(Buffer.from((await i.saveAudio("mp3")).buffer));
+        const i = await WebMscore.load(song.url.split(".").slice(-1)[0], new Uint8Array(await h.arrayBuffer()));
+        const sf3 = await fetch("https://drive.google.com/uc?export=download&id=1IifZ2trH4gAlbzNWUylCCEvbN3trOYep").then(res => res.arrayBuffer());
+        await i.setSoundFont(new Uint8Array(sf3));
+        const j = bufferToStream(Buffer.from((await i.saveAudio("wav")).buffer));
         dispatcher = serverQueue.connection.play(new StreamConcat([j, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
       default:
@@ -263,26 +265,19 @@ module.exports = {
     const songs = [];
     for (const file of files.values()) {
       if (file.url.endsWith("mscz") || file.url.endsWith("mscx")) {
+        await message.channel.send("This feature is not finished :/");
+        return { error: true };
         const buffer = await fetch(file.url).then(res => res.arrayBuffer());
         await WebMscore.ready;
         const score = await WebMscore.load(file.url.split(".").slice(-1)[0], new Uint8Array(buffer));
         const title = await score.title();
-        try {
-          var metadata = await mm.parseBuffer(Buffer.from((await score.saveAudio("mp3")).buffer), {}, { duration: true });
-        } catch (err) {
-          await message.channel.send("The audio format is not supported!");
-          return { error: true };
-        }
-        if (!metadata) {
-          await message.channel.send("An error occured while getting the metadata of the Musescore file! Maybe it is corrupted?");
-          return { error: true };
-        }
+        const duration = moment.duration(Math.round((await score.metadata()).duration), "seconds").format();
         songs.push({
           id: ID(),
           title: title,
           url: file.url,
           type: 7,
-          time: moment.duration(Math.round(metadata.format.duration), "seconds").format(),
+          time: duration,
           volume: 1,
           thumbnail: "https://pbs.twimg.com/profile_images/1155047958326517761/IUgssah__400x400.jpg",
           isLive: false
@@ -362,7 +357,7 @@ module.exports = {
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
     var songLength = length == 0 ? "∞" : moment.duration(length, "seconds").format();
-    var thumbnails = songInfo.videoDetails.thumbnail.thumbnails;
+    const thumbnails = songInfo.videoDetails.thumbnails;
     var thumbUrl = thumbnails[thumbnails.length - 1].url;
     var maxWidth = 0;
     for (const thumbnail of thumbnails) {
