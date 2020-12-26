@@ -5,6 +5,7 @@ module.exports = {
     description: "It's rickroll. What's your question?",
     usage: "[user | user ID]",
     aliases: ["rr"],
+    category: 3,
     async execute(message, args) {
         const attachment = new Discord.MessageAttachment("https://inviterick.com/rick.gif", "rick.gif");
         if (!args[0]) return await message.channel.send(attachment);

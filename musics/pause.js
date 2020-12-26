@@ -12,9 +12,9 @@ module.exports = {
       if (serverQueue.connection.dispatcher)
         serverQueue.connection.dispatcher.pause(true);
       updateQueue(message, serverQueue, message.pool);
-      return message.channel.send("The song playback has been stopped.");
+      return message.channel.send("The playback has been stopped.");
     } else {
-      return message.channel.send("The song playback is already stopped.");
+      return message.channel.send("The playback is already stopped.");
     }
   }
 }

@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream } = require("../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream, moveArray } = require("../function.js");
 const { parseBody, getMP3 } = require("../commands/musescore.js");
 const { music } = require("./migrate.js");
 const ytdl = require("ytdl-core");
@@ -108,7 +108,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
           const g = await module.exports.addPHURL(message, args);
           if (g.error) throw "Failed to find video";
           song = g;
-          serverQueue.songs[0] = song;
+          serverQueue.songs[serverQueue.songs.indexOf(song)] = song;
           updateQueue(message, serverQueue, serverQueue.pool);
           f = await requestStream(song.download);
           if (f.statusCode != 200) throw new Error("Received HTTP Status Code: " + f.statusCode);
@@ -131,7 +131,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
           if (k.error) throw "Failed to find video";
           if (!isEquivalent(k.songs[0], song)) {
             song = k.songs[0];
-            serverQueue.songs[0] = song;
+            serverQueue.songs[serverQueue.songs.indexOf(song)] = song;
             updateQueue(message, serverQueue, serverQueue.pool);
           }
         }
@@ -173,7 +173,13 @@ async function play(guild, song, skipped = 0, seek = 0) {
         if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
       }
     } else oldSkipped = 0;
-    play(guild, serverQueue.songs[0], oldSkipped);
+    if (!serverQueue.random) play(guild, serverQueue.songs[0], oldSkipped);
+    else {
+      const int = Math.floor(Math.random() * serverQueue.songs.length);
+      serverQueue.songs = moveArray(serverQueue.songs, int);
+      updateQueue(message, serverQueue, serverQueue.pool);
+      play(guild, serverQueue.songs[int], oldSkipped);
+    }
   }).on("error", async error => {
     if (error.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
       console.error("Received 429 error. Changing ytdl-core cookie...");
@@ -187,7 +193,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
     skipped = oldSkipped;
     await skip();
   });
-  dispatcher.setVolume(serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume);
+  dispatcher.setVolume(song && song.volume ? serverQueue.volume * song.volume : serverQueue.volume);
 }
 
 module.exports = {
@@ -203,7 +209,7 @@ module.exports = {
     if (!voiceChannel.permissionsFor(message.client.user).has(3145728)) return await message.channel.send("I can't play in your voice channel!");
     if (!args[1] && message.attachments.size < 1) {
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
-      if (serverQueue.songs.length < 1) return await message.channel.send("No song queue was found for this server! Please provide a link or keywords to get a music played!");
+      if (serverQueue.songs.length < 1) return await message.channel.send("The queue is empty for this server! Please provide a link or keywords to get a music played!");
       if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) return await music(message, serverQueue);
       try {
         if (message.guild.me.voice.channel && message.guild.me.voice.channelID === voiceChannel.id) serverQueue.connection = message.guild.me.voice.connection;
@@ -221,7 +227,13 @@ module.exports = {
       serverQueue.playing = true;
       serverQueue.textChannel = message.channel;
       updateQueue(message, serverQueue, message.pool);
-      play(message.guild, serverQueue.songs[0]);
+      if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
+      else {
+        const int = Math.floor(Math.random() * serverQueue.songs.length);
+        serverQueue.songs = moveArray(serverQueue.songs, int);
+        updateQueue(message, serverQueue, serverQueue.pool);
+        play(guild, serverQueue.songs[int], oldSkipped);
+      }
       return;
     }
     try {
@@ -250,7 +262,15 @@ module.exports = {
         if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
       }
       updateQueue(message, serverQueue, message.pool);
-      if (!serverQueue.playing) play(message.guild, serverQueue.songs[0]);
+      if (!serverQueue.playing) {
+        if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
+        else {
+          const int = Math.floor(Math.random() * serverQueue.songs.length);
+          serverQueue.songs = moveArray(serverQueue.songs, int);
+          updateQueue(message, serverQueue, serverQueue.pool);
+          play(guild, serverQueue.songs[int], oldSkipped);
+        }
+      }
       if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });
       else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });
     } catch (err) {
@@ -753,15 +773,15 @@ module.exports = {
       }
     }
     const ytResults = video.map(x => ({
-        id: ID(),
-        title: decodeHtmlEntity(x.title),
-        url: x.link,
-        type: 0,
-        time: !x.live ? x.duration : "∞",
-        thumbnail: x.thumbnail,
-        volume: 1,
-        isLive: x.live
-      })).filter(x => !!x.url);
+      id: ID(),
+      title: decodeHtmlEntity(x.title),
+      url: x.link,
+      type: 0,
+      time: !x.live ? x.duration : "∞",
+      thumbnail: x.thumbnail,
+      volume: 1,
+      isLive: x.live
+    })).filter(x => !!x.url);
     var num = 0;
     if (ytResults.length > 0) {
       results.push(ytResults);
@@ -782,20 +802,20 @@ module.exports = {
       return { error: true };
     }
     const scResults = scSearched.collection.map(x => ({
-        id: ID(),
-        title: x.title,
-        url: x.permalink_url,
-        type: 3,
-        time: moment.duration(Math.floor(x.duration / 1000), "seconds").format(),
-        thumbnail: x.artwork_url,
-        volume: 1,
-        isLive: false
-      })).filter(x => !!x.url);
-      if (scResults.length > 0) {
-        results.push(scResults);
-        scEm.setDescription("Type **youtube** / **yt** to show the search results from Youtube.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + scResults.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).slice(0, 10).join("\n"));
-        allEmbeds.push(scEm);
-      }
+      id: ID(),
+      title: x.title,
+      url: x.permalink_url,
+      type: 3,
+      time: moment.duration(Math.floor(x.duration / 1000), "seconds").format(),
+      thumbnail: x.artwork_url,
+      volume: 1,
+      isLive: false
+    })).filter(x => !!x.url);
+    if (scResults.length > 0) {
+      results.push(scResults);
+      scEm.setDescription("Type **youtube** / **yt** to show the search results from Youtube.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + scResults.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).slice(0, 10).join("\n"));
+      allEmbeds.push(scEm);
+    }
     if (allEmbeds.length < 1) {
       message.channel.send("Cannot find any result with the given string.");
       return { error: true };
@@ -808,7 +828,7 @@ module.exports = {
     collector.on("collect", async collected => {
       collected.delete().catch(() => { });
       if (isNaN(parseInt(collected.content))) {
-        switch(collected.content) {
+        switch (collected.content) {
           case "youtube":
           case "yt":
             s = 0;
@@ -838,7 +858,7 @@ module.exports = {
       }
     });
     return new Promise(resolve => {
-      collector.on("end", async() => {
+      collector.on("end", async () => {
         if (val.error) {
           const cancelled = new Discord.MessageEmbed()
             .setColor(console.color())

@@ -37,7 +37,7 @@ module.exports = {
     for (var i = str.length - 1; i >= 0; i--) buf.unshift(["&#", str[i].charCodeAt(), ";"].join(""));
     return buf.join("");
   },
-  shuffleArray(array, start) {
+  shuffleArray(array, start = 0) {
     const temp = array.splice(0, start);
     var i;
     var j;
@@ -50,6 +50,10 @@ module.exports = {
     }
     array = temp.concat(array);
     return array;
+  },
+  moveArray(array, index) {
+    const a1 = array.splice(0, index);
+    return array.concat(a1);
   },
   async findUser(message, str) {
     if (isNaN(parseInt(str))) if (!str.startsWith("<@")) {

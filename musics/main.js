@@ -49,6 +49,7 @@ module.exports = {
       paused: false,
       looping: loopStatus,
       repeating: repeatStatus,
+      random: false,
       pool: pool
     };
     queue.set(guild, queueContruct);

@@ -2,7 +2,7 @@ const { shuffleArray } = require("../function.js");
 const { updateQueue } = require("./main.js");
 module.exports = {
   name: "shuffle",
-  description: "Shuffle the song queue.",
+  description: "Shuffle the queue.",
   category: 8,
   async music(message, serverQueue) {
     if (!serverQueue || serverQueue.songs.length < 1) return message.channel.send("There is nothing in the queue.");

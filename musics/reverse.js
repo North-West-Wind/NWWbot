@@ -1,5 +1,6 @@
 const { play } = require("./play.js");
 const { updateQueue } = require("./main.js");
+const { moveArray } = require("../function.js");
 
 module.exports = {
     name: "reverse",
@@ -18,7 +19,13 @@ module.exports = {
           if (serverQueue.connection && serverQueue.connection.dispatcher) {
             serverQueue.connection.dispatcher.destroy();
           }
-          play(message.guild, serverQueue.songs[0]);
+          if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
+          else {
+            const int = Math.floor(Math.random() * serverQueue.songs.length);
+            serverQueue.songs = moveArray(serverQueue.songs, int);
+            updateQueue(message, serverQueue, serverQueue.pool);
+            play(guild, serverQueue.songs[int], oldSkipped);
+          }
         }
     }
 }

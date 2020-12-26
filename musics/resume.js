@@ -11,9 +11,9 @@ module.exports = {
       serverQueue.paused = false;
       if (serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.resume();
       updateQueue(message, serverQueue, null);
-      return await message.channel.send("The song playback has been resumed.");
+      return await message.channel.send("The playback has been resumed.");
     } else {
-      return await message.channel.send("The song playback is not stopped.");
+      return await message.channel.send("The playback is not stopped.");
     }
   }
 }

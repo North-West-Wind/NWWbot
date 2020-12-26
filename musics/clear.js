@@ -1,7 +1,7 @@
 const { updateQueue, setQueue } = require("./main.js");
 module.exports = {
   name: "clear",
-  description: "Clear the song queue and stop the playing soundtrack. Also resets the volume to 100%.",
+  description: "Clear the queue and stop the playing soundtrack. Also resets the volume to 100%.",
   category: 8,
   async music(message, serverQueue) {
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);

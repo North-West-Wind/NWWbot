@@ -1,9 +1,10 @@
 const { play } = require("./play.js");
 const { updateQueue } = require("./main.js");
+const { moveArray } = require("../function.js");
 
 module.exports = {
   name: "remove",
-  description: "Remove soundtrack(s) from the song queue.",
+  description: "Remove soundtrack(s) from the queue.",
   usage: "<index | starting index> [delete count]",
   category: 8,
   args: 1,
@@ -14,12 +15,9 @@ module.exports = {
     var queueIndex = parseInt(args[1]);
     if (isNaN(queueIndex)) return message.channel.send("The query provided is not a number.");
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
-    if (serverQueue.songs.length < 1) return await message.channel.send("There is nothing in the song queue.");
+    if (serverQueue.songs.length < 1) return await message.channel.send("There is nothing in the queue.");
     var deleteIndex = queueIndex < 0 ? serverQueue.songs.length + queueIndex : queueIndex - 1;
-    if (deleteIndex > serverQueue.songs.length - 1 || queueIndex === 0)
-      return message.channel.send(
-        `You cannot remove a soundtrack that doesn't exist.`
-      );
+    if (deleteIndex > serverQueue.songs.length - 1 || queueIndex === 0) return message.channel.send(`You cannot remove a soundtrack that doesn't exist.`);
     var song = serverQueue.songs[deleteIndex];
     var oldSong = serverQueue.songs[0];
     var title = song.title;
@@ -30,7 +28,13 @@ module.exports = {
       if (serverQueue.connection && serverQueue.connection.dispatcher) {
         serverQueue.connection.dispatcher.destroy();
       }
-      play(message.guild, serverQueue.songs[0]);
+      if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
+      else {
+        const int = Math.floor(Math.random() * serverQueue.songs.length);
+        serverQueue.songs = moveArray(serverQueue.songs, int);
+        updateQueue(message, serverQueue, serverQueue.pool);
+        play(guild, serverQueue.songs[int], oldSkipped);
+      }
     }
   }
 }
