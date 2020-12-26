@@ -27,7 +27,7 @@ module.exports = {
         message.channel.send(`Unskipped **${Math.max(1, skipped)}** track${skipped > 1 ? "s" : ""}!`);
         if (message.member.voice.channel && serverQueue.playing) {
             if (!serverQueue.connection) serverQueue.connection = await message.member.voice.channel.join();
-            if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
+            if (!serverQueue.random) play(guild, serverQueue.songs[0]);
             else {
               const int = Math.floor(Math.random() * serverQueue.songs.length);
               serverQueue.songs = moveArray(serverQueue.songs, int);

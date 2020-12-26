@@ -33,7 +33,7 @@ module.exports = {
           const int = Math.floor(Math.random() * serverQueue.songs.length);
           serverQueue.songs = moveArray(serverQueue.songs, int);
           updateQueue(message, serverQueue, serverQueue.pool);
-          play(guild, serverQueue.songs[int], oldSkipped);
+          play(message.guild, serverQueue.songs[int], oldSkipped);
         }
       }
     }

@@ -232,7 +232,7 @@ module.exports = {
         const int = Math.floor(Math.random() * serverQueue.songs.length);
         serverQueue.songs = moveArray(serverQueue.songs, int);
         updateQueue(message, serverQueue, serverQueue.pool);
-        play(guild, serverQueue.songs[int], oldSkipped);
+        play(message.guild, serverQueue.songs[int], oldSkipped);
       }
       return;
     }
@@ -268,7 +268,7 @@ module.exports = {
           const int = Math.floor(Math.random() * serverQueue.songs.length);
           serverQueue.songs = moveArray(serverQueue.songs, int);
           updateQueue(message, serverQueue, serverQueue.pool);
-          play(guild, serverQueue.songs[int], oldSkipped);
+          play(message.guild, serverQueue.songs[int], oldSkipped);
         }
       }
       if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });
