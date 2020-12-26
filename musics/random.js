@@ -1,4 +1,4 @@
-const { shuffleArray } = require("../function.js");
+const { updateQueue } = require("./main.js");
 
 module.exports = {
     name: "random",
