@@ -176,9 +176,10 @@ async function play(guild, song, skipped = 0, seek = 0) {
     if (!serverQueue.random) play(guild, serverQueue.songs[0], oldSkipped);
     else {
       const int = Math.floor(Math.random() * serverQueue.songs.length);
+      const pending = serverQueue.songs[int];
       serverQueue.songs = moveArray(serverQueue.songs, int);
       updateQueue(message, serverQueue, serverQueue.pool);
-      play(guild, serverQueue.songs[int], oldSkipped);
+      play(guild, pending);
     }
   }).on("error", async error => {
     if (error.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
@@ -230,9 +231,10 @@ module.exports = {
       if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
       else {
         const int = Math.floor(Math.random() * serverQueue.songs.length);
+        const pending = serverQueue.songs[int];
         serverQueue.songs = moveArray(serverQueue.songs, int);
         updateQueue(message, serverQueue, serverQueue.pool);
-        play(message.guild, serverQueue.songs[int]);
+        play(message.guild, pending);
       }
       return;
     }
@@ -266,9 +268,10 @@ module.exports = {
         if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
         else {
           const int = Math.floor(Math.random() * serverQueue.songs.length);
+          const pending = serverQueue.songs[int];
           serverQueue.songs = moveArray(serverQueue.songs, int);
           updateQueue(message, serverQueue, serverQueue.pool);
-          play(message.guild, serverQueue.songs[int]);
+          play(message.guild, pending);
         }
       }
       if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });

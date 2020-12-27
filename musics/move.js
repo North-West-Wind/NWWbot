@@ -31,9 +31,10 @@ module.exports = {
         if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
         else {
           const int = Math.floor(Math.random() * serverQueue.songs.length);
+          const pending = serverQueue.songs[int];
           serverQueue.songs = moveArray(serverQueue.songs, int);
           updateQueue(message, serverQueue, serverQueue.pool);
-          play(message.guild, serverQueue.songs[int]);
+          play(message.guild, pending);
         }
       }
     }

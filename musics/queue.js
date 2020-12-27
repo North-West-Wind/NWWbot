@@ -27,7 +27,11 @@ module.exports = {
       updateQueue(message, serverQueue, message.pool);
     }
     var index = 0;
-    const songArray = serverQueue.songs.map(song => (song.type === 1) ? `**${serverQueue.random ? (index == 0 ? 1 : "???") : ++index} - ** **[${song.title}](${song.spot})** : **${song.time}**` : `**${++index} - ** **[${song.title}](${song.url})** : **${song.time}**`);
+    function getIndex() {
+      if (index == 0 || !serverQueue.random) return ++index;
+      return "???";
+    }
+    const songArray = serverQueue.songs.map(song => `**${getIndex()} - ** **[${song.title}](${song.type === 1 ? song.spot : song.url})** : **${song.time}**`);
     const allEmbeds = [];
     for (let i = 0; i < Math.ceil(songArray.length / 10); i++) {
       const pageArray = songArray.slice(i * 10, i * 10 + 10);
