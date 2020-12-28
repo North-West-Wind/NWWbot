@@ -100,7 +100,7 @@ module.exports = {
         await message.channel.send("Auto-hentai ended. Thank you for using that!");
         return clearInterval(i);
       }
-      await this.random(message);
+      this.random(message).catch(() => { });
       counter++;
     }, interval);
   }
