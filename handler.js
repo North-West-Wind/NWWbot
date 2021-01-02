@@ -238,7 +238,6 @@ module.exports = {
                 if (id === 1 && result.guild != "622311594654695434" && result.guild != "664716701991960577") return;
                 var currentDate = new Date();
                 var millisec = result.endAt - currentDate;
-                if (err) return console.error(err);
                 setTimeout_(async () => {
                     try {
                         var channel = await client.channels.fetch(result.channel);
