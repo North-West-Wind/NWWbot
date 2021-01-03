@@ -41,7 +41,7 @@ pool.on("connection", con => con.on("error", async err => {
 }))
 console.queries = [];
 setInterval(async () => {
-    if (queries.length < 1) return;
+    if (console.queries.length < 1) return;
     try {
         const con = await pool.getConnection();
         for (const query of console.queries) try {
@@ -63,7 +63,7 @@ async function messageLevel(message) {
     if (!message || !message.author || !message.author.id || !message.guild || message.author.bot) return;
     const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
     const sqlDate = jsDate2Mysql(new Date());
-    queries.push({
+    console.queries.push({
         author: message.author.id,
         guild: message.guild.id,
         exp: exp,
