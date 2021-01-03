@@ -39,21 +39,23 @@ pool.on("connection", con => con.on("error", async err => {
         }
     }
 }))
-var queries = [];
+console.queries = [];
 setInterval(async () => {
     if (queries.length < 1) return;
-    const con = await pool.getConnection();
-    for (const query of queries) try {
-        const [results] = await con.query(`SELECT * FROM leveling WHERE user = '${query.author}' AND guild = '${query.guild}'`);
-        if (results.length < 1) await con.query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${query.author}', '${query.guild}', ${query.exp}, '${query.date}')`);
-        else {
-            if (new Date() - results[0].last < 60000) return;
-            const newExp = parseInt(results[0].exp) + query.exp;
-            await con.query(`UPDATE leveling SET exp = ${newExp}, last = '${query.date}' WHERE user = '${query.author}' AND guild = '${query.guild}'`);
-        }
+    try {
+        const con = await pool.getConnection();
+        for (const query of console.queries) try {
+            const [results] = await con.query(`SELECT * FROM leveling WHERE user = '${query.author}' AND guild = '${query.guild}'`);
+            if (results.length < 1) await con.query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${query.author}', '${query.guild}', ${query.exp}, '${query.date}')`);
+            else {
+                if (new Date() - results[0].last < 60000) return;
+                const newExp = parseInt(results[0].exp) + query.exp;
+                await con.query(`UPDATE leveling SET exp = ${newExp}, last = '${query.date}' WHERE user = '${query.author}' AND guild = '${query.guild}'`);
+            }
+        } catch (err) { }
+        console.queries = [];
+        con.release();
     } catch (err) { }
-    queries = [];
-    con.release();
 }, 60000);
 var timeout = undefined;
 console.prefixes = {};
