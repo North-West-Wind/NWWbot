@@ -56,8 +56,9 @@ module.exports = {
                     await mesg.delete();
                     if (!args[0]) break;
                     for(let o = 0; o < args.length; o++) {
-                        if(isNaN(parseInt(args[o])) || !(1 <= parseInt(args[o]) <= 5)) continue;
+                        if(isNaN(parseInt(args[o])) || !(1 <= parseInt(args[o]) && parseInt(args[o]) <= 5)) continue;
                         const index = parseInt(args[o]);
+                        if (dices[index - 1]) continue;
                         dices[index - 1].locked = !dices[index - 1].locked;
                     }
                     break;
@@ -230,7 +231,7 @@ module.exports = {
         });
         async function end() {
             em.setTitle(`Yacht Dice Game (Ended)`).setDescription(`You scored **${Object.values(scores).map(x => x.score).reduce((a, c) => a + c)} points**\nThanks for playing!`).setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-            await msg.edit(em);
+            msg.edit(em).catch(() => message.channel.send(em));
         }
     }
 }
