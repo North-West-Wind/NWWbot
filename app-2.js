@@ -96,5 +96,7 @@ if (process.argv.some(x => ["--canary", "-c"].includes(x))) {
   client.login(process.env.TOKEN_CANARY);
 } else {
   client.login(process.env.TOKEN0);
-  setTimeout(() => alice.login(process.env.TOKEN1), 10000);
+  setTimeout(() => {
+    try { alice.login(process.env.TOKEN1) } catch (err) { }
+  }, 10000);
 }
