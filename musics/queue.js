@@ -92,10 +92,10 @@ module.exports = {
   async delete(message, args) {
     if (!args[2]) return message.channel.send("Please provide the name of the queue.");
     const con = await message.pool.getConnection();
-    await con.query(`SELECT * FROM queue WHERE name = '${args.slice(2).join(" ")}' AND user = '${message.author.id}'`);
+    const [results] = await con.query(`SELECT * FROM queue WHERE name = '${args.slice(2).join(" ")}' AND user = '${message.author.id}'`);
     if (results.length == 0) return message.channel.send("No queue was found!");
     await con.query(`DELETE FROM queue WHERE id = ${results[0].id}`);
-    message.channel.send(`The stored queue **${results[0].name}** has been deleted.`);
+    await message.channel.send(`The stored queue **${results[0].name}** has been deleted.`);
     con.release();
   },
   async list(message) {
