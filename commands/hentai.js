@@ -98,7 +98,7 @@ module.exports = {
     else if(amount > 120) return message.channel.send("The amount of message must be smaller than 120!");
     await message.channel.send(`Auto-hentai initialized. **${amount} messages** with interval **${interval} milliseconds**`);
     var tags = this.tags;
-    const reverse = args[3].toLowerCase() == "true";
+    const reverse = !!args[3] && args[3].toLowerCase() == "true";
     if (reverse) tags = args.slice(3).filter(str => !this.tags.includes(str));
     else tags = args.slice(3).filter(str => this.tags.includes(str));
     var counter = 0;
