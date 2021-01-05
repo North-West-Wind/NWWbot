@@ -10,7 +10,7 @@ module.exports = {
   subcommands: ["auto"],
   subaliases: ["a"],
   subdesc: ["Automate Hentai images."],
-  subusage: ["<subcommand> <amount> <interval>"],
+  subusage: ["<subcommand> <amount> <interval> [tags]"],
   tags: [
     "ass",
     "bdsm",
@@ -45,12 +45,15 @@ module.exports = {
     var tag = "random";
     if (args.length >= 1) {
       if (args[0].toLowerCase() === "tags") return await this.tagsList(message); 
-      else if (args[0].toLowerCase() === "auto") return await this.auto(message, args);
+      else if (["auto", "a"].includes(args[0].toLowerCase())) return await this.auto(message, args);
       const testTag = args[0];
       const i = this.tags.findIndex(t => testTag === t);
       if (i !== -1) tag = this.tags[i];
     }
     if (tag === "random") return await this.random(message);
+    await this.tagged(message, tag);
+  },
+  async tagged(message, tag) {
     if (tag === "neko") var result = await neko.lewdNeko();
     else var result = await neko.nsfw[tag]();
     const embed = new Discord.MessageEmbed()
@@ -94,13 +97,16 @@ module.exports = {
     else if(amount < 1) return message.channel.send("The amount of message must be larger than 0!");
     else if(amount > 120) return message.channel.send("The amount of message must be smaller than 120!");
     await message.channel.send(`Auto-hentai initialized. **${amount} messages** with interval **${interval} milliseconds**`);
+    const tags = args.slice(3).filter(str => this.tags.includes(str));
     var counter = 0;
     var i = setInterval(async() => {
       if(counter === amount) {
         await message.channel.send("Auto-hentai ended. Thank you for using that!");
         return clearInterval(i);
       }
-      this.random(message).catch(() => { });
+      if (tags.length < 1) this.random(message).catch(() => { });
+      else if (tags.length > 1) this.tagged(message, tags[Math.floor(Math.random() * tags.length)]).catch(() => { });
+      else this.tagged(message, tags[0]).catch(() => { });
       counter++;
     }, interval);
   }

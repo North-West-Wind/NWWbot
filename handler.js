@@ -701,7 +701,7 @@ module.exports = {
                 timeout = undefined;
             }, 10000);
         }
-        if (message.guild && !message.channel.permissionsFor(message.guild.me).has(84992)) return message.author.send(`I need at least the permissions to \`${new Discord.Permissions(84992).toArray().join("`, `")}\` in order to run any command! Please tell your server administrator about that.`);
+        if (message.guild && !message.channel.permissionsFor(message.guild.me).has(84992)) return await message.author.send(`I need at least the permissions to \`${new Discord.Permissions(84992).toArray().join("`, `")}\` in order to run any command! Please tell your server administrator about that.`);
         message.pool = pool;
         try {
             if (command.category === 8) await require("./musics/main.js").music(message, commandName);
