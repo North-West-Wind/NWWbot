@@ -159,7 +159,7 @@ module.exports = {
     collector.on("end", function () {
       msg.reactions.removeAll().catch(console.error);
       msg.edit(allEmbeds[0]);
-      setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${JSON.parse(unescape(results.queue)).length} tracks in total]**` }), 60000);
+      setTimeout(() => msg.edit({ embed: null, content: `**[Queues: ${results.length}/10 slots used]**` }), 60000);
     });
   },
   async sync(message, serverQueue, args) {
