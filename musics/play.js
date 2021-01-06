@@ -257,13 +257,16 @@ module.exports = {
       const Embed = createEmbed(message, songs);
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, songs, false, false, message.pool);
       else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
+      if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });
+      else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });
+      updateQueue(message, serverQueue, message.pool);
       if (!message.guild.me.voice.channel) {
         serverQueue.voiceChannel = voiceChannel;
         serverQueue.connection = await voiceChannel.join();
         serverQueue.textChannel = message.channel;
         if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
       }
-      updateQueue(message, serverQueue, message.pool);
+      updateQueue(message, serverQueue, null);
       if (!serverQueue.playing) {
         if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
         else {
@@ -274,8 +277,6 @@ module.exports = {
           play(message.guild, pending);
         }
       }
-      if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });
-      else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });
     } catch (err) {
       await message.reply("there was an error trying to connect to the voice channel!");
       if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();

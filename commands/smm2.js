@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const fetch = require("node-fetch");
+const fetch = require("node-fetch").default;
 const { readableDateTime, createEmbedScrolling } = require("../function.js");
 const styles = {
     M3: "Super Mario Bros. 3",

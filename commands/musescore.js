@@ -1,5 +1,5 @@
 const rp = require("request-promise-native");
-const fetch = require("node-fetch");
+const fetch = require("node-fetch").default;
 const cheerio = require("cheerio");
 const Discord = require("discord.js");
 const ytdl = require("ytdl-core");
@@ -101,6 +101,19 @@ module.exports = {
                         await mesg.delete();
                     } catch (err) {
                         await mesg.edit(`Failed to generate PDF! \`${err.message}\``);
+                    }
+                    mesg = await message.channel.send("Generating MSCZ...");
+                    const mscz = await this.getMSCZ(data);
+                    try {
+                        if (mscz.error) throw new Error(mscz.message);
+                        const res = await requestStream(mscz.url);
+                        const att = new Discord.MessageAttachment(res, `${data.title}.mscz`);
+                        if (!res) throw new Error("Failed to get Readable Stream");
+                        else if (res.statusCode && res.statusCode != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
+                        else await message.channel.send(att);
+                        await mesg.delete();
+                    } catch (err) {
+                        await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``)
                     }
                     console.log(`Completed download ${args.join(" ")} in server ${message.guild.name}`);
                 } catch (err) {
@@ -275,5 +288,29 @@ module.exports = {
         }
         doc.end();
         return { doc: doc, hasPDF: hasPDF };
+    },
+    getMSCZ: async (data) => {
+        // Credit to Xmader/musescore-downloader
+        const IPNS_KEY = 'QmSdXtvzC8v8iTTZuj5cVmiugnzbR1QATYRcGix4bBsioP';
+        const IPNS_RS_URL = `https://ipfs.io/api/v0/dag/resolve?arg=/ipns/${IPNS_KEY}`;
+        const r = await fetch(IPNS_RS_URL);
+        if (!r.ok) return { error: true, err: "Received HTTP Status Code: " + r.status };
+        const json = await r.json();
+        const mainCid = json.Cid['/'];
+
+        const url = `https://ipfs.infura.io:5001/api/v0/block/stat?arg=/ipfs/${mainCid}/${data.id % 20}/${data.id}.mscz`;
+        const r0 = await fetch(url);
+        if (!r0.ok) return { error: true, err: "Received HTTP Status Code: " + r.status };
+        const cidRes = await r0.json();
+        const cid = cidRes.Key
+        if (!cid) {
+            const err = cidRes.Message
+            if (err.includes('no link named')) return { error: true, err: "Score not in dataset" };
+            else return { error: true, err: err };
+        }
+        const msczUrl = `https://ipfs.infura.io/ipfs/${cid}`;
+        const r1 = await fetch(msczUrl);
+        if (!r1.ok) return { error: true, err: "Received HTTP Status Code: " + r.status };
+        return { error: false, url: msczUrl };
     }
 }
