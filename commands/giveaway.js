@@ -151,16 +151,19 @@ module.exports = {
     if (result.length < 1 || !result) return message.channel.send("No giveaway was found!");
     if (result[0].author !== message.author.id) return message.channel.send("You cannot end a giveaway that is not hosted by you!");
     try {
-      var channel = await message.client.channels.fetch(result.channel);
-      var msg = await channel.messages.fetch(result.id);
+      var channel = await message.client.channels.fetch(result[0].channel);
+      var msg = await channel.messages.fetch(result[0].id);
       if (msg.deleted) throw new Error("Deleted");
     } catch (err) {
+      await message.channel.send("Cannot find channel or message! Maybe it was deleted?");
       if (channel || (msg && msg.deleted)) {
-        await con.query("DELETE FROM giveaways WHERE id = " + result.id);
+        await con.query("DELETE FROM giveaways WHERE id = " + result[0].id);
         con.release();
-        return console.log("Deleted an ended giveaway record.");
+        console.log("Deleted an ended giveaway record.");
       }
+      return;
     }
+    if (!msg) return;
     const fetchUser = await message.client.users.fetch(result[0].author);
     const endReacted = await msg.reactions.cache.get(result[0].emoji).users.cache.values().map(x => x.id);
     const remove = endReacted.indexOf(message.client.user.id);
