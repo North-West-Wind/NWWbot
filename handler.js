@@ -285,7 +285,7 @@ module.exports = {
                         await msg.edit(Ended);
                         msg.reactions.removeAll().catch(() => { });
                     } else {
-                        const index = Math.floor(Math.random() * endReacted.length);
+                        var index = Math.floor(Math.random() * endReacted.length);
                         const winners = [];
                         var winnerMessage = "";
                         const winnerCount = result.winner;
