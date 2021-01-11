@@ -662,6 +662,7 @@ module.exports = {
             const dcUserID = message.author.id;
             MojangAPI.nameToUuid(message.content, async function (err, res) {
                 if (err) return message.channel.send("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
+                if (!res[0]) return message.channel.send("Error finding that user!");
                 const mcUuid = res[0].id;
                 const con = await pool.getConnection();
                 try {
