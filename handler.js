@@ -445,6 +445,7 @@ module.exports = {
         try {
             const welcome = console.guilds[guild.id]?.welcome;
             if (!welcome) {
+                if (console.guilds[guild.id]) return;
                 await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
                 console.guilds[guild.id] = {};
                 console.log("Inserted record for " + guild.name);
@@ -545,6 +546,7 @@ module.exports = {
         try {
             const leave = console.guilds[guild.id]?.leave;
             if (!leave) {
+                if (console.guilds[guild.id]) return;
                 await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
                 console.guilds[guild.id] = {};
                 console.log("Inserted record for " + guild.name);
