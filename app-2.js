@@ -40,6 +40,7 @@ console.noLog = [];
 console.rm = [];
 console.migrating = [];
 console.guilds = {};
+console.gtimers = [];
 
 client.prefix = prefix0;
 alice.prefix = prefix1;

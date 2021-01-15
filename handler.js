@@ -150,6 +150,8 @@ module.exports = {
                         conn.release();
                     }, endAfter);
                 });
+                const [gtimers] = await pool.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
+                console.gtimers = gtimers;
                 setInterval(async () => {
                     const guild = await client.guilds.resolve("622311594654695434");
                     try {
@@ -160,10 +162,9 @@ module.exports = {
                         return;
                     }
                     try {
-                        const [results] = await pool.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
                         let now = Date.now();
                         let tmp = [];
-                        for (const result of results) {
+                        for (const result of console.gtimers) {
                             let mc = await profile(result.mc);
                             let username = "undefined";
                             if (mc) username = mc.name;
@@ -247,7 +248,7 @@ module.exports = {
                     } catch (err) {
                         console.error(err);
                     }
-                }, 1800000);
+                }, 30000);
             }
             var [results] = await con.query("SELECT * FROM giveaways ORDER BY endAt ASC");
             console.log(`[${id}] ` + "Found " + results.length + " giveaways");

@@ -272,7 +272,13 @@ module.exports = {
 				let uuid = await nameToUuid(args[3]);
 				if (!uuid || !uuid[0]) return message.reply("there was an error trying to find the player in Minecraft!");
 				try {
-					await message.pool.query(`INSERT INTO gtimer(user, dc_rank, mc, endAt) VALUES('${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid[0].id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`);
+					console.gtimers.push({
+						user: user.id,
+						dc_rank: escape(args.slice(4).join(" ")),
+						mc: uuid[0].id,
+						endAt: new Date(Date.now() + time)
+					});
+					await message.pool.query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid[0].id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`);
 					message.channel.send("Timer recorded.");
 				} catch (err) {
 					console.error(err);
@@ -283,6 +289,8 @@ module.exports = {
 					let asuna = await message.client.users.fetch("461516729047318529");
 					const con = await message.pool.getConnection();
 					try {
+						const index = console.gtimers.indexOf(console.gtimers.find(t => t.user == user.id));
+						if (index > -1) console.gtimers.splice(index, 1);
 						var [results] = await con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
 						if (results.length == 0) throw new Error("Not found");
 						await con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
@@ -299,6 +307,8 @@ module.exports = {
 				if (!userd) return;
 				const con = await message.pool.getConnection();
 				try {
+					const index = console.gtimers.indexOf(console.gtimers.find(t => t.user == user.id));
+					if (index > -1) console.gtimers.splice(index, 1);
 					var [results] = await con.query(`SELECT * FROM gtimer WHERE user = '${userd.id}'`);
 					if (results.length == 0) return message.channel.send("No timer was found.");
 					await con.query(`DELETE FROM gtimer WHERE user = '${userd.id}'`);
@@ -311,10 +321,9 @@ module.exports = {
 				break;
 			case "list":
 				try {
-					await message.pool.query(`SELECT * FROM gtimer ORDER BY endAt ASC`,);
 					let now = Date.now();
 					let tmp = [];
-					for (const result of results) {
+					for (const result of console.gtimers) {
 						let mc = await profile(result.mc);
 						let username = "undefined";
 						if (mc) username = mc.name;
