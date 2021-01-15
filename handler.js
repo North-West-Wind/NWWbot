@@ -80,8 +80,7 @@ module.exports = {
             client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.guilds[g.id].invites = guildInvites).catch(() => { }));
             if (id === 0) {
                 const [results] = await con.query("SELECT * FROM servers");
-                const filtered = results.filter(result => (result.queue || result.looping || result.repeating || result.prefix));
-                filtered.forEach(async result => {
+                results.forEach(async result => {
                     console.guilds[result.id] = {};
                     try {
                         await client.guilds.fetch(result.id);
