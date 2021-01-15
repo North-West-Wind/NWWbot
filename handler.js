@@ -596,7 +596,7 @@ module.exports = {
     },
     async voiceStateUpdate(oldState, newState) {
         const guild = oldState.guild || newState.guild;
-        const exit = console.guilds[guild.id].exit;
+        const exit = console.guilds[guild.id]?.exit;
         const mainMusic = require("./musics/main.js");
         if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel)) return await mainMusic.stop(guild);
         if (!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
