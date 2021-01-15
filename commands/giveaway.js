@@ -3,30 +3,28 @@ const Discord = require("discord.js");
 const { setTimeout_, jsDate2Mysql, readableDateTime, genPermMsg, ms, readableDateTimeText } = require("../function.js");
 async function setupGiveaway(message, channel, time, item, winnerCount) {
   await message.channel.send(`Created new giveaway in channel <#${channel.id}> for**${readableDateTimeText(time)}** with the item **${item}** and **${winnerCount} winner${winnerCount > 1 ? "s" : ""}**.`);
+  const giveawayEmo = console.guilds[message.guild.id]?.giveaway ? console.guilds[message.guild.id].giveaway : "🎉";
   const newDate = new Date(Date.now() + time);
   const newDateSql = jsDate2Mysql(newDate);
   const readableTime = readableDateTime(newDate);
-  const con = await message.pool.getConnection();
-  var [result] = await con.query(`SELECT giveaway FROM servers WHERE id = '${message.guild.id}'`);
   const color = console.color();
   var Embed = new Discord.MessageEmbed()
     .setColor(color)
     .setTitle(item)
-    .setDescription(`React with ${result[0].giveaway} to participate!\n**${winnerCount} winner${winnerCount > 1 ? "s" : ""}** will win\nThis giveaway will end at: \n**${readableTime}**`)
+    .setDescription(`React with ${giveawayEmo} to participate!\n**${winnerCount} winner${winnerCount > 1 ? "s" : ""}** will win\nThis giveaway will end at: \n**${readableTime}**`)
     .setTimestamp()
     .setFooter("Hosted by " + message.author.tag, message.author.displayAvatarURL());
-  const giveawayMsg = result[0].giveaway + "**GIVEAWAY**" + result[0].giveaway;
+  const giveawayMsg = giveawayEmo + "**GIVEAWAY**" + giveawayEmo;
   var msg = await channel.send(giveawayMsg, Embed);
-  await con.query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${escape(item)}', '${winnerCount}', '${newDateSql}', '${result[0].giveaway}', '${message.author.id}', '${color}')`);
-  con.release();
-  msg.react(result[0].giveaway);
+  await message.pool.query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${escape(item)}', '${winnerCount}', '${newDateSql}', '${giveawayEmo}', '${message.author.id}', '${color}')`);
+  msg.react(giveawayEmo);
   setTimeout_(async () => {
     const con = await message.pool.getConnection();
     if (msg.deleted) await con.query(`DELETE FROM giveaways WHERE id = '${msg.id}'`);
     else {
       await con.query(`SELECT * FROM giveaways WHERE id = '${msg.id}'`);
       if (res.length > 0) {
-        const reacted = msg.reactions.cache.get(result[0].giveaway).users.cache.values().map(x => x.id);
+        const reacted = msg.reactions.cache.get(giveawayEmo).users.cache.values().map(x => x.id);
         const remove = reacted.indexOf(message.client.user.id);
         if (remove > -1) reacted.splice(remove, 1);
         if (reacted.length === 0) {

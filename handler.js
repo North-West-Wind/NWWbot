@@ -31,13 +31,13 @@ pool.on("connection", con => con.on("error", async err => {
     } catch (err) {
         console.error(err);
     } finally {
-        pool = mysql.createPool(mysql_config).promise();
-        const queue = getQueues();
-        for (const [id, serverQueue] of queue) {
-            serverQueue.pool = pool;
-            await updateQueue({ dummy: true, guild: { id: id } }, serverQueue, null);
+            pool = mysql.createPool(mysql_config).promise();
+            const queue = getQueues();
+            for (const [id, serverQueue] of queue) {
+                serverQueue.pool = pool;
+                await updateQueue({ dummy: true, guild: { id: id } }, serverQueue, null);
+            }
         }
-    }
 }))
 console.queries = [];
 setInterval(async () => {
@@ -58,7 +58,6 @@ setInterval(async () => {
     } catch (err) { }
 }, 60000);
 var timeout = undefined;
-console.prefixes = {};
 async function messageLevel(message) {
     if (!message || !message.author || !message.author.id || !message.guild || message.author.bot) return;
     const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
@@ -78,8 +77,9 @@ module.exports = {
         else client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         const con = await pool.getConnection();
         try {
+            client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.guilds[g.id].invites = guildInvites).catch(() => { }));
             if (id === 0) {
-                const [results] = await con.query("SELECT id, queue, looping, repeating, prefix FROM servers");
+                const [results] = await con.query("SELECT * FROM servers");
                 const filtered = results.filter(result => (result.queue || result.looping || result.repeating || result.prefix));
                 filtered.forEach(async result => {
                     try {
@@ -96,7 +96,23 @@ module.exports = {
                         catch (err) { console.error(`Error parsing queue of ${result.id}`); }
                         setQueue(result.id, queue, !!result.looping, !!result.repeating, pool);
                     }
-                    if (result.prefix) try { console.prefixes[result.id] = result.prefix; } catch (err) { }
+                    if (result.prefix) console.guilds[result.id].prefix = result.prefix;
+                    console.guilds[result.id].token = result.token;
+                    console.guilds[result.id].giveaway = result.giveaway;
+                    console.guilds[result.id].welcome = {
+                        message: result.welcome,
+                        channel: result.wel_channel,
+                        image: result.wel_img,
+                        autorole: result.autorole
+                    };
+                    console.guilds[result.id].leave = {
+                        message: result.leave_msg,
+                        channel: result.leave_channel
+                    };
+                    console.guilds[result.id].boost = {
+                        message: result.boost_msg,
+                        channel: result.boost_channel
+                    };
                 });
                 console.log(`[${id}] Set ${filtered.length} queues`);
                 const [res] = await con.query("SELECT * FROM rolemsg ORDER BY expiration");
@@ -104,7 +120,6 @@ module.exports = {
                 console.rm = res;
                 res.filter(x => x.id != "622311594654695434").forEach(async result => expire({ pool, client }, result.expiration - (new Date()), result.id));
             } else {
-                client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.invites[g.id] = guildInvites).catch(() => { }));
                 const [res] = await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
                 console.log(`[${id}] Found ${res.length} guild timers`);
                 res.forEach(async result => {
@@ -407,9 +422,10 @@ module.exports = {
         const client = member.client;
         const id = client.id;
         const guild = member.guild;
-        if (guild.id === "622311594654695434") guild.fetchInvites().then(async guildInvites => {
-            const ei = console.invites[member.guild.id];
-            console.invites[member.guild.id] = guildInvites;
+        if (member.user.bot) return;
+        guild.fetchInvites().then(async guildInvites => {
+            const ei = console.guilds[member.guild.id].invites;
+            console.guilds[member.guild.id].invites = guildInvites;
             const invite = await guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
             if (!invite) return;
             const inviter = await client.users.fetch(invite.inviter.id);
@@ -425,29 +441,23 @@ module.exports = {
                 console.error("Failed to DM user.");
             }
         }).catch(() => { });
-        if (member.user.bot) return;
         try {
-            const con = await pool.getConnection();
-            var [result] = await con.query(`SELECT welcome, wel_channel, wel_img, autorole FROM servers WHERE id = '${guild.id}'`);
-            if (!result[0] || !result[0].wel_channel || !result[0].welcome) {
-                if (!result[0]) {
-                    var [res] = await con.query(`SELECT * FROM servers WHERE id = '${guild.id}'`);
-                    if (res.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
-                    else {
-                        await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
-                        console.log("Inserted record for " + guild.name);
-                    }
-                }
+            const welcome = console.guilds[guild.id]?.welcome;
+            if (!welcome) {
+                await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+                console.guilds[guild.id] = {};
+                console.log("Inserted record for " + guild.name);
             } else {
-                const channel = guild.channels.resolve(result[0].wel_channel);
+                if (!welcome.channel) return;
+                const channel = guild.channels.resolve(welcome.channel);
                 if (!channel || !channel.permissionsFor(guild.me).has(18432)) return;
-                const welcomeMessage = replaceMsgContent(result[0].welcome, guild, client, member, "welcome");
-                if (result[0].welcome) try {
+                if (welcome.message) try {
+                    const welcomeMessage = replaceMsgContent(welcome.message, guild, client, member, "welcome");
                     await channel.send(welcomeMessage);
                 } catch (err) {
                     console.error(err);
                 }
-                if (result[0].wel_img) {
+                if (welcome.image) {
                     var img = new Image();
                     img.onload = async () => {
                         var height = img.height;
@@ -502,17 +512,16 @@ module.exports = {
                             console.error(err);
                         }
                     };
-                    var url = result[0].wel_img;
+                    var url = welcome.image;
                     try {
-                        let urls = JSON.parse(result[0].wel_img);
+                        let urls = JSON.parse(welcome.img);
                         if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
                     } catch (err) { }
                     img.src = url;
                 }
             }
-            con.release();
-            if (result[0] && result[0].autorole !== "[]") {
-                const roleArray = JSON.parse(result[0].autorole);
+            if (welcome && welcome.autorole !== "[]") {
+                const roleArray = JSON.parse(welcome.autorole);
                 for (var i = 0; i < roleArray.length; i++) {
                     const roleID = roleArray[i];
                     var role = undefined;
@@ -533,43 +542,39 @@ module.exports = {
         const client = member.client;
         const guild = member.guild;
         try {
-            const con = await pool.getConnection();
-            var [result] = await con.query(`SELECT leave_msg, leave_channel FROM servers WHERE id = '${guild.id}'`);
-            if (!result[0] || !result[0].leave_msg || !result[0].leave_channel) {
-                if (!result[0]) {
-                    var [result] = await con.query(`SELECT * FROM servers WHERE id = '${guild.id}'`);
-                    if (result.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
-                    else {
-                        await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
-                        console.log("Inserted record for " + guild.name);
-                    }
-                }
+            const leave = console.guilds[guild.id]?.leave;
+            if (!leave) {
+                await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+                console.guilds[guild.id] = {};
+                console.log("Inserted record for " + guild.name);
             } else {
                 if (guild.me.hasPermission(128)) {
                     const fetchedLogs = await guild.fetchAuditLogs({ limit: 1, type: 'MEMBER_KICK' });
                     const kickLog = fetchedLogs.entries.first();
                     if (kickLog && kickLog.target.id === member.user.id && kickLog.executor.id !== kickLog.target.id) return;
                 } else console.log("Can't view audit logs of " + guild.name);
-                const channel = guild.channels.resolve(result[0].leave_channel);
-                const leaveMessage = replaceMsgContent(result[0].leave_msg, guild, client, member, "leave");
+                const channel = guild.channels.resolve(leave.channel);
+                if (!channel || !channel.permissionsFor(guild.me).has(18432)) return;
+                if (!leave.message) return;
                 try {
+                    const leaveMessage = replaceMsgContent(leave.message, guild, client, member, "leave");
                     await channel.send(leaveMessage);
                 } catch (err) {
                     console.error(err);
                 }
             }
-            con.release();
         } catch (err) { console.error(err) };
     },
     async guildCreate(guild) {
         console.log("Joined a new guild: " + guild.name);
-        try { console.invites[guild.id] = await guild.fetchInvites(); } catch(err) { }
+        try { console.guilds[guild.id].invites = await guild.fetchInvites(); } catch (err) { }
         try {
             const con = await pool.getConnection();
             const [result] = await con.query("SELECT * FROM servers WHERE id = " + guild.id);
             if (result.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
             else {
                 await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+                console.guilds[guild.id] = {};
                 console.log("Inserted record for " + guild.name);
             }
             con.release();
@@ -580,6 +585,7 @@ module.exports = {
     async guildDelete(guild) {
         console.log("Left a guild: " + guild.name);
         delete console.invites[guild.id];
+        delete console.guilds[guild.id];
         try {
             await pool.query("DELETE FROM servers WHERE id=" + guild.id);
             console.log("Deleted record for " + guild.name);
@@ -588,28 +594,25 @@ module.exports = {
         }
     },
     async voiceStateUpdate(oldState, newState) {
-        const exit = console.exit;
         const guild = oldState.guild || newState.guild;
+        const exit = console.guilds[guild.id].exit;
         const mainMusic = require("./musics/main.js");
         if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel)) return await mainMusic.stop(guild);
         if (!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
         if (guild.me.voice.channel.members.size <= 1) {
-            if (exit.find(x => x === guild.id)) return;
-            exit.push(guild.id);
-            setTimeout(async () => (exit.find(x => x === guild.id)) ? mainMusic.stop(guild) : 0, 30000);
-        } else {
-            var index = exit.indexOf(guild.id);
-            if (index !== -1) exit.splice(index, 1);
-        }
+            if (exit) return;
+            console.guilds[guild.id].exit = true;
+            setTimeout(async () => exit ? mainMusic.stop(guild) : 0, 30000);
+        } else console.guilds[guild.id].exit = false;
     },
     async guildMemberUpdate(oldMember, newMember) {
         const client = oldMember.client || newMember.client;
         if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
-        const [result] = await pool.query(`SELECT boost_msg, boost_channel FROM servers WHERE id = '${newMember.guild.id}'`);
-        if (!result[0] || !result[0].boost_msg || !result[0].boost_channel) return;
+        const boost = console.guilds[newMember.guild.id]?.boost;
+        if (!boost?.channel || !boost.message) return;
         try {
-            const channel = await client.channels.fetch(result[0].boost_channel);
-            channel.send(result[0].boost_msg.replace(/\{user\}/gi, `<@${newMember.id}>`));
+            const channel = await client.channels.fetch(boost.channel);
+            channel.send(boost.message.replace(/\{user\}/gi, `<@${newMember.id}>`));
         } catch (err) { }
     },
     async messageReactionAdd(r, user) {
@@ -652,7 +655,7 @@ module.exports = {
     },
     async message(message) {
         message.prefix = message.client.prefix;
-        if (message.guild && console.prefixes[message.guild.id] && message.client.id === 0) message.prefix = console.prefixes[message.guild.id];
+        if (message.guild && console.guilds[message.guild.id].prefix && message.client.id === 0) message.prefix = console.guilds[message.guild.id].prefix;
         messageLevel(message);
         const args = message.content.slice(message.prefix.length).split(/ +/);
         if (message.client.id == 1 && message.channel.id == "647630951169523762") {

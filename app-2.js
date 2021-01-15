@@ -38,9 +38,8 @@ console.timers = new Discord.Collection();
 console.mathgames = new Discord.Collection();
 console.noLog = [];
 console.rm = [];
-console.invites = {};
-console.exit = [];
 console.migrating = [];
+console.guilds = {};
 
 client.prefix = prefix0;
 alice.prefix = prefix1;

@@ -21,63 +21,66 @@ module.exports = {
     if (!message.channel.permissionsFor(message.guild.me).has(this.channelPermission)) return message.channel.send(genPermMsg(this.channelPermission, 1));
 
     const guild = message.guild;
+    const config = console.guilds[guild.id];
 
     if (args[0] === "new") return await this.new(message);
     if (args[0] === "panel") return await this.panel(message);
-    const con = await message.pool.getConnection();
-    var [result] = await con.query(`SELECT * FROM servers WHERE id='${guild.id}'`);
-    if (!result[0]) try {
-      await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+    if (!config) try {
+      await message.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+      console.guilds[guild.id] = {};
       console.log("Inserted record for " + guild.name);
+      return await this.execute(message, args);
     } catch (err) {
       message.reply("there was an error trying to insert record for your server!");
       console.error(err);
     }
-    if (result[0] && result[0].token !== null) message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${result[0].token}\``);
+    if (config.token !== null) message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
     else {
       try {
         const buffer = await new Promise((resolve, reject) => require("crypto").randomBytes(24, async (err, buffer) => err ? reject(err) : resolve(buffer)));
         var generated = buffer.toString("hex");
         try {
-          await con.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
+          await message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
+          console.guilds[guild.id].token = generated;
+          await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
           console.log("Created token for server " + guild.name);
-          message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
         } catch (err) {
           console.error(err);
-          message.reply("there was an error trying to update the token!");
+          message.reply("there was an error trying to update the token! This token will be temporary.");
         }
       } catch (err) {
         await message.reply("there was an error trying to generate a token!");
       }
     }
-    con.release();
   },
   new(message) {
     const guild = message.guild;
+    const config = console.guilds[guild.id];
+    if (!config) try {
+      await message.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+      console.guilds[guild.id] = {};
+      console.log("Inserted record for " + guild.name);
+      return await this.new(message);
+    } catch (err) {
+      message.reply("there was an error trying to insert record for your server!");
+      console.error(err);
+    }
     require("crypto").randomBytes(24, async (err, buffer) => {
       if (err) return message.reply("there was an error trying to generate a token!");
       var generated = buffer.toString("hex");
-      const con = await message.pool.getConnection();
-      var [result] = await con.query(`SELECT * FROM servers WHERE id='${guild.id}'`);
-      if (!result[0]) try {
-        await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
-        console.log("Inserted record for " + guild.name);
-      } catch (err) {
-        message.reply("there was an error trying to insert record for your server!");
-        console.error(err);
-      }
       try {
-        await con.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
-        console.log("Created token for server " + guild.name);
+        console.guilds[guild.id].token = generated;
         message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
+        await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
+        console.log("Created token for server " + guild.name);
       } catch (err) {
         console.error(err);
-        message.reply("there was an error trying to update the token!");
+        message.reply("there was an error trying to update the token! This token will be temporary.");
       }
-      con.release();
     });
   },
   async panel(message) {
+    var config = console.guilds[message.guild.id];
     const msgFilter = x => x.author.id === message.author.id;
     const filter = (reaction, user) => welcomeEmoji.includes(reaction.emoji.name) && user.id === message.author.id && !user.bot;
     const login = new Discord.MessageEmbed()
@@ -91,8 +94,7 @@ module.exports = {
     if (!loginToken.first() || !loginToken.first().content) return timedOut();
     const receivedToken = loginToken.first().content;
     loginToken.first().delete();
-    var [results] = await message.pool.query(`SELECT * FROM servers WHERE token = '${receivedToken}' AND id = '${message.guild.id}'`);
-    if (results.length < 1) {
+    if (config.token == receivedToken) {
       login.setDescription("Invalid token.").setFooter("Try again when you have the correct one for your server.", message.client.user.displayAvatarURL());
       return await mesg.edit(login);
     }
@@ -172,6 +174,8 @@ module.exports = {
         const contents = msgCollected.first().content.replace(/'/g, "\\'");
         msgCollected.first().delete();
         try {
+          config.welcome.message = contents;
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET welcome = '${contents}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Message/Set**\nMessage received! Returning to panel main page in 3 seconds...");
         } catch (err) {
@@ -187,6 +191,8 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
         try {
+          config.welcome.message = null;
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET welcome = NULL WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Message/Reset**\nWelcome Message was reset! Returning to panel main page in 3 seconds...");
         } catch (err) {
@@ -227,6 +233,8 @@ module.exports = {
           return setTimeout(() => start(msg), 3000);
         }
         try {
+          config.welcome.channel = channelID;
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET wel_channel = '${channelID}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Channel/Set**\nChannel received! Returning to panel main page in 3 seconds...");
         } catch (err) {
@@ -242,6 +250,8 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
         try {
+          config.welcome.channel = null;
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET wel_channel = NULL WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Channel/Reset**\nWelcome Channel received! Returning to panel main page in 3 seconds...");
         } catch (err) {
@@ -283,16 +293,17 @@ module.exports = {
         }
         const con = await message.pool.getConnection();
         try {
-          var [results] = await con.query(`SELECT wel_img FROM servers WHERE id = '${message.guild.id}'`);
-          let urls = attachment;
-          if (results[0].wel_img) {
+          var urls = attachment;
+          if (config.welcome.image) {
             try {
-              let old = JSON.parse(results[0].wel_img);
+              const old = JSON.parse(config.welcome.image);
               urls = old.concat(attachment);
             } catch (err) {
-              if (iiu(result[0].wel_img)) urls.push(result[0].wel_img);
+              if (iiu(config.welcome.image)) urls.push(config.welcome.image);
             }
           }
+          config.welcome.image = urls;
+          console.guilds[message.guild.id] = config;
           con.query(`UPDATE servers SET wel_img = '${JSON.stringify(urls)}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Image/Set**\nImage received! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
@@ -310,6 +321,8 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
         try {
+          config.welcome.image = null;
+          console.guilds[message.guild.id] = config;
           await message.pool.query("UPDATE servers SET wel_img = NULL WHERE id = " + message.guild.id);
           panelEmbed.setDescription("**Welcome Message/Image/Set**\nImage received! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
@@ -356,6 +369,8 @@ module.exports = {
           roles.push(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, ""));
         }
         try {
+          config.welcome.autorole = JSON.stringify(roles);
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET autorole = '${JSON.stringify(roles)}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Autorole/Set**\nRoles received! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
@@ -372,6 +387,8 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
         try {
+          config.welcome.autorole = "[]";
+          console.guilds[message.guild.id] = config;
           await message.pool.query("UPDATE servers SET autorole = '[]' WHERE id = " + message.guild.id);
           panelEmbed.setDescription("**Welcome Message/Autorole/Reset**\nAutorole was reset! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
@@ -422,6 +439,8 @@ module.exports = {
         await msgCollected.first().delete();
         const contents = msgCollected.first().content ? `'${msgCollected.first().content.replace(/'/g, "\\'")}'` : "NULL";
         try {
+          config.leave.message = contents;
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET leave_msg = ${contents} WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Leave Message/Message/Set**\nMessage received! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
@@ -439,6 +458,8 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
         try {
+          config.leave.message = null;
+          console.guilds[message.guild.id] = config;
           await message.pool.query("UPDATE servers SET leave_msg = NULL WHERE id = " + message.guild.id);
           panelEmbed.setDescription("**Leave Message/Message/Reset**\nLeave Message was reset! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
@@ -483,6 +504,8 @@ module.exports = {
           setTimeout(() => start(msg), 3000);
         }
         try {
+          config.leave.channel = channelID;
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET leave_channel = '${channelID}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Leave Message/Channel/Set**\nChannel received! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
@@ -498,6 +521,8 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
         try {
+          config.leave.channel = null;
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET leave_channel = NULL WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Leave Message/Channel/Reset**\nLeave Channel was reset! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
@@ -533,7 +558,9 @@ module.exports = {
         await msgCollected.first().delete();
         const newEmo = msgCollected.first().content ? msgCollected.first().content : "🎉";
         try {
-          await message.pool.query(`UPDATE servers SET giveaway = ''${newEmo}'' WHERE id = '${message.guild.id}'`);
+          config.giveaway = newEmo;
+          console.guilds[message.guild.id] = config;
+          await message.pool.query(`UPDATE servers SET giveaway = '${newEmo}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Giveaway Emoji/Set**\nEmoji received! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
@@ -548,6 +575,8 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
         try {
+          config.giveaway = "🎉";
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET giveaway = '🎉' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Giveaway Emoji/Reset**\nGiveaway Emoji was reset! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
@@ -599,6 +628,8 @@ module.exports = {
         await msgCollected.first().delete();
         const contents = msgCollected.first().content ? `'${msgCollected.first().content.replace(/'/g, "\\'")}'` : "NULL";
         try {
+          config.boost.message = contents;
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET boost_msg = ${contents} WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Boost Message/Message/Set**\nMessage received! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
@@ -615,6 +646,8 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
         try {
+          config.boost.message = null;
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET boost_msg = NULL WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Boost Message/Message/Reset**\nLeave Message was reset! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
@@ -658,6 +691,8 @@ module.exports = {
           setTimeout(() => start(msg), 3000);
         }
         try {
+          config.boost.channel = channelID;
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET boost_channel = '${channelID}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Boost Message/Channel/Set**\nChannel received! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
@@ -673,6 +708,8 @@ module.exports = {
         await msg.edit(panelEmbed);
         await msg.reactions.removeAll().catch(console.error);
         try {
+          config.boost.channel = null;
+          console.guilds[message.guild.id] = config;
           await message.pool.query(`UPDATE servers SET boost_channel = NULL WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Boost Message/Channel/Reset**Boost Channel was reset! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
