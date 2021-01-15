@@ -53,7 +53,7 @@ module.exports = {
       }
     }
   },
-  new(message) {
+  async new(message) {
     const guild = message.guild;
     const config = console.guilds[guild.id];
     if (!config) try {
