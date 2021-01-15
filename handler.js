@@ -655,7 +655,7 @@ module.exports = {
     },
     async message(message) {
         message.prefix = message.client.prefix;
-        if (message.guild && console.guilds[message.guild.id].prefix && message.client.id === 0) message.prefix = console.guilds[message.guild.id].prefix;
+        if (message.guild && console.guilds[message.guild.id]?.prefix && message.client.id === 0) message.prefix = console.guilds[message.guild.id].prefix;
         messageLevel(message);
         const args = message.content.slice(message.prefix.length).split(/ +/);
         if (message.client.id == 1 && message.channel.id == "647630951169523762") {
