@@ -114,7 +114,7 @@ module.exports = {
                         channel: result.boost_channel
                     };
                 });
-                console.log(`[${id}] Set ${filtered.length} queues`);
+                console.log(`[${id}] Set ${results.length} configurations`);
                 const [res] = await con.query("SELECT * FROM rolemsg ORDER BY expiration");
                 console.log(`[${id}] ` + "Found " + res.length + " role messages.");
                 console.rm = res;
