@@ -82,6 +82,7 @@ module.exports = {
                 const [results] = await con.query("SELECT * FROM servers");
                 const filtered = results.filter(result => (result.queue || result.looping || result.repeating || result.prefix));
                 filtered.forEach(async result => {
+                    console.guilds[result.id] = {};
                     try {
                         await client.guilds.fetch(result.id);
                     } catch (err) {
