@@ -17,7 +17,7 @@ module.exports = {
     const id = message.client.id;
     try {
       const welcome = console.guilds[guild.id]?.welcome;
-      if (!welcome) {
+      if (!welcome?.channel) {
         if (console.guilds[guild.id]) return;
         await message.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
         console.log("Inserted record for " + guild.name);

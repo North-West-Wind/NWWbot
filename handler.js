@@ -444,7 +444,7 @@ module.exports = {
         }).catch(() => { });
         try {
             const welcome = console.guilds[guild.id]?.welcome;
-            if (!welcome) {
+            if (!welcome?.channel) {
                 if (console.guilds[guild.id]) return;
                 await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
                 console.guilds[guild.id] = {};
@@ -545,7 +545,7 @@ module.exports = {
         const guild = member.guild;
         try {
             const leave = console.guilds[guild.id]?.leave;
-            if (!leave) {
+            if (!leave?.channel) {
                 if (console.guilds[guild.id]) return;
                 await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
                 console.guilds[guild.id] = {};
@@ -587,7 +587,6 @@ module.exports = {
     },
     async guildDelete(guild) {
         console.log("Left a guild: " + guild.name);
-        delete console.invites[guild.id];
         delete console.guilds[guild.id];
         try {
             await pool.query("DELETE FROM servers WHERE id=" + guild.id);
