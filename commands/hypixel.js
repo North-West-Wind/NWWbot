@@ -226,7 +226,7 @@ module.exports = {
     const response = await fetch(url);
     if (!response.ok) throw new Error("Received HTTP Status Code " + response.status);
     const body = await response.json();
-    if (!body.player) return await message.channel.send(`Cannot find player with the name **${res[0]}**`);
+    if (!body.player) return await message.channel.send(`Cannot find player with the name **${res[0].name}**`);
     var rank = "Non";
     if (body.player.rank === "ADMIN") rank = "[ADMIN]";
     else if (body.player.prefix === "§c[OWNER]") rank = "[OWNER]";

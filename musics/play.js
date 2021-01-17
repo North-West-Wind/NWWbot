@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { validURL, validYTURL, validSPURL, validGDURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream, moveArray } = require("../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream, moveArray } = require("../function.js");
 const { parseBody, getMP3 } = require("../commands/musescore.js");
 const { music } = require("./migrate.js");
 const ytdl = require("ytdl-core");
@@ -245,6 +245,7 @@ module.exports = {
       else if (validYTURL(args.slice(1).join(" "))) result = await this.addYTURL(message, args);
       else if (validSPURL(args.slice(1).join(" "))) result = await this.addSPURL(message, args);
       else if (validSCURL(args.slice(1).join(" "))) result = await this.addSCURL(message, args);
+      else if (validGDFolderURL(args.slice(1).join(" "))) result = await this.addGDFolderURL(message, args);
       else if (validGDURL(args.slice(1).join(" "))) result = await this.addGDURL(message, args);
       else if (validMSURL(args.slice(1).join(" "))) result = await this.addMSURL(message, args);
       else if (validPHURL(args.slice(1).join(" "))) result = await this.addPHURL(message, args);
@@ -664,6 +665,43 @@ module.exports = {
       isLive: false
     };
     var songs = [song];
+    return { error: false, songs: songs };
+  },
+  async addGDFolderURL(message, args) {
+    const songs = [];
+    try {
+      const body = await rp(args.slice(1).join(" "));
+      const $ = cheerio.load(body);
+      const elements = $("div[data-target='doc']");
+      console.log(elements);
+      for (const el of elements.toArray()) {
+        const id = el.attribs["data-id"];
+        const link = "https://drive.google.com/uc?export=download&id=" + id;
+        const stream = await fetch(link).then(res => res.body);
+        var title = "No Title";
+        try {
+          const metadata = await mm.parseStream(stream, {}, { duration: true });
+          if (!metadata) continue;
+          const html = await rp("https://drive.google.com/file/d/" + id + "/view");
+          const $1 = cheerio.load(html);
+          title = $1("title").text().split(" - ").slice(0, -1).join(" - ").split(".").slice(0, -1).join(".");
+          const songLength = moment.duration(Math.round(metadata.format.duration), "seconds").format();
+          songs.push({
+            id: ID(),
+            title: title,
+            url: link,
+            type: 4,
+            time: songLength,
+            volume: 1,
+            thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg",
+            isLive: false
+          });
+        } catch (err) { }
+      }
+    } catch (err) {
+      await message.reply("there was an error trying to open your link!");
+      return { error: true };
+    }
     return { error: false, songs: songs };
   },
   async addMSURL(message, args) {
