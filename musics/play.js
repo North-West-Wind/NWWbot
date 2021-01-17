@@ -355,7 +355,7 @@ module.exports = {
       url: video.shortUrl,
       type: 0,
       time: video.duration,
-      thumbnail: video.thumbnail,
+      thumbnail: video.bestThumbnail.url,
       volume: 1,
       isLive: video.isLive
     });

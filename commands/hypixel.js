@@ -3,7 +3,6 @@ const { numberWithCommas, readableDateTime, createEmbedScrolling } = require("..
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: 1000 });
 const MojangAPI = require("mojang-api");
 const nameToUuid = (name) => new Promise((resolve, reject) => MojangAPI.nameToUuid(name, (err, res) => err ? reject(err) : resolve(res)));
-const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
 
 module.exports = {
   name: "hypixel",
@@ -220,13 +219,14 @@ module.exports = {
       return;
     }
     args[1] = args[1].toLowerCase();
-    const res = await nameToUuid(args);
-    if (!res[0]) return message.channel.send("Cannot find player named **" + args[0] + "**.");
+    const res = await nameToUuid(args[1]);
+    if (!res[0]) return message.channel.send("Cannot find player named **" + args[1] + "**.");
     const guildurl = `https://api.hypixel.net/findGuild?key=${process.env.API}&byUuid=${res[0].id}`;
     const url = `https://api.hypixel.net/player?name=${res[0].name}&key=${process.env.API}`;
     const response = await fetch(url);
     if (!response.ok) throw new Error("Received HTTP Status Code " + response.status);
     const body = await response.json();
+    if (!body.player) return await message.channel.send(`Cannot find player with the name **${res[0]}**`);
     var rank = "Non";
     if (body.player.rank === "ADMIN") rank = "[ADMIN]";
     else if (body.player.prefix === "§c[OWNER]") rank = "[OWNER]";
