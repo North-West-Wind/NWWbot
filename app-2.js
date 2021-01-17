@@ -6,16 +6,14 @@ console.realLog = console.log;
 console.realError = console.error;
 delete console["log"];
 delete console["error"];
-console.log = async function (str) {
+console.log = function (str) {
   console.realLog(str);
-  const logChannel = await client.channels.fetch("678847137391312917").catch(console.realError);
-  if (logChannel) logChannel.send("`" + str + "`");
+  client.channels.fetch("678847137391312917").then(logChannel => logChannel ? logChannel.send(`\`${str}\``) : 0).catch(console.realError);
 }
-console.error = async function (err) {
+console.error = function (err) {
   //if (["PROTOCOL_CONNECTION_LOST", "ECONNREFUSED", "ETIMEDOUT"].includes(err.code) || (err.message === "Pool is closed.")) await endPool();
   console.realError(err);
-  const logChannel = await client.channels.fetch("678847137391312917").catch(console.realError);
-  if (logChannel) logChannel.send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``);
+  client.channels.fetch("678847137391312917").then(logChannel => logChannel ? logChannel.send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``) : 0).catch(console.realError);
 }
 for (const property in functions) console[property] = functions[property];
 

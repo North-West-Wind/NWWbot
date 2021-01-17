@@ -673,7 +673,6 @@ module.exports = {
       const body = await rp(args.slice(1).join(" "));
       const $ = cheerio.load(body);
       const elements = $("div[data-target='doc']");
-      console.log(elements);
       for (const el of elements.toArray()) {
         const id = el.attribs["data-id"];
         const link = "https://drive.google.com/uc?export=download&id=" + id;
