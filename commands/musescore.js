@@ -71,7 +71,7 @@ module.exports = {
         await msg.react("📥");
         msg.channel.stopTyping(true);
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
-        await msg.reactions.removeAll();
+        await msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
             console.log(`Downloading ${args.join(" ")} in server ${message.guild.name}...`);
             try {

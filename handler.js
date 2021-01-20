@@ -601,6 +601,11 @@ module.exports = {
         const mainMusic = require("./musics/main.js");
         if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel)) return await mainMusic.stop(guild);
         if (!guild.me.voice || !guild.me.voice.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
+        if (!console.guilds[guild.id]) {
+            await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+            console.guilds[guild.id] = {};
+            console.log("Inserted record for " + guild.name);
+        }
         if (guild.me.voice.channel.members.size <= 1) {
             if (exit) return;
             console.guilds[guild.id].exit = true;
