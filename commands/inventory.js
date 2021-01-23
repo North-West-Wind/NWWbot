@@ -6,7 +6,7 @@ module.exports = {
   description: "Display your inventory.",
   aliases: ["e"],
   category: 2,
-  async execute(message, msg = undefined) {
+  async execute(message, _args, msg = undefined) {
     const con = await message.pool.getConnection();
     var [result] = await con.query(`SELECT * FROM inventory WHERE id = '${message.author.id}'`);
     var [IResult] = await con.query(`SELECT * FROM shop WHERE guild = '${message.guild?.id}' OR guild = ''`);
@@ -137,6 +137,6 @@ module.exports = {
         itemObject[wanted.id] -= 1;
         await message.pool.query(`UPDATE inventory SET items = '${JSON.stringify(itemObject)}' WHERE id =  '${message.author.id}'`);
       }
-    } else return await this.execute(message, msg);
+    } else return await this.execute(message, _args, msg);
   }
 };
