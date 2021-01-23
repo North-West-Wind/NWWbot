@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { wait, genToken } = require("../function.js");
+const { wait, genToken, genPermMsg } = require("../function.js");
 
 module.exports = {
   name: "shop",
@@ -129,7 +129,7 @@ module.exports = {
                 await msg.edit(itemEmbed);
                 await wait(3000);
                 itemEmbed.setFooter("Using item...", message.client.user.displayAvatarURL());
-                const requiredArgs = result[0].args.split(/ +/);
+                const requiredArgs = result[0].args.split(/ +/).filter(s => s != "");;
                 var args = [];
                 if (requiredArgs.length > 0) {
                   itemEmbed.setDescription(`Please input the following arguments and separate them by line breaks:\n**${requiredArgs.join(" ")}**`);
@@ -239,6 +239,8 @@ module.exports = {
     }
   },
   async add(message) {
+    if (!message.guild) return await message.channel.send("Please don't use this in Direct Message.");
+    if (!message.member.permissions.has(this.permission)) return await message.channel.send(genPermMsg(this.permission, 0));
     var msg = await message.channel.send("Please enter the name and the description of the item. (Break a line to separate them) (Description can be multi-line)");
     const collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 120000 });
     if (collected.first()) await collected.first().delete();

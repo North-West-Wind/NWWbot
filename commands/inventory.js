@@ -21,8 +21,6 @@ module.exports = {
       .setDescription(IResult.map(x => `**${++i}.** ${x.name} - **${itemObject[x.id]}**`).join("\n"))
       .setTimestamp()
       .setFooter("Type the ID of the item you want to use or anything else to exit.", message.client.user.displayAvatarURL());
-    const backupEm = em;
-    backupEm.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     msg = !!msg ? await msg.edit({
       embed: em,
       content: ""
@@ -37,8 +35,8 @@ module.exports = {
     await collected.first().delete();
     const index = parseInt(collected.first().content);
     if (isNaN(index)) return await msg.edit(em);
-    var wanted = IResult[index];
-    if (!wanted) return;
+    var wanted = IResult[index - 1];
+    if (!wanted) return await msg.edit(em);;
     em.setTitle(wanted.name)
       .setDescription(`${wanted.description}\nQuantity: **${itemObject[wanted.id]}**\n\n1️⃣ Use\n2️⃣ Return`)
       .setFooter("Use item?", message.client.user.displayAvatarURL());
@@ -51,7 +49,7 @@ module.exports = {
       errors: ["time"]
     })
     msg.reactions.removeAll().catch(console.error);
-    if (!collected2.first()) return msg.edit(backupEm);
+    if (!collected2.first()) return msg.edit(em.setColor(console.color()).setTitle(message.author.tag + "'s Inventory").setDescription(IResult.map(x => `**${++i}.** ${x.name} - **${itemObject[x.id]}**`).join("\n")));
     const r = collected2.first();
     if (r.emoji.name === "1️⃣") {
       if (!itemObject[wanted.id]) itemObject[wanted.id] = 0;
@@ -69,7 +67,7 @@ module.exports = {
         await run(message, msg, em, itemObject);
       } else {
         em.setFooter("Using item...", message.client.user.displayAvatarURL());
-        const requiredArgs = wanted.args.split(/ +/);
+        const requiredArgs = wanted.args.split(/ +/).filter(s => s != "");
         var args = [];
         if (requiredArgs.length > 0) {
           em.setDescription(`Please input the following arguments and separate them by line breaks:\n**${requiredArgs.join(" ")}**`);
