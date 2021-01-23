@@ -11,18 +11,17 @@ module.exports = {
     const { commands } = console;
 
     if (!args.length) {
-      const attachment = new Discord.MessageAttachment("https://drive.google.com/uc?export=download&id=114RCw-5oiYTgHGSpNIotMNd7rlgknfiy", "manual.pdf");
       const Embed = new Discord.MessageEmbed()
         .setColor(console.color())
         .setTitle("Command list is here!")
-        .setDescription(`You can send \`${message.prefix}${this.name} ${this.usage}\` to get info on a specific command!\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`)
+        .setDescription(`[**Click this**](https://northwestwind.ml/manual.pdf) for the user manual.\nYou can send \`${message.prefix}${this.name} ${this.usage}\` to get info on a specific command!\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`)
         .setThumbnail(message.client.user.displayAvatarURL())
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       for (let i = 0; i < categories.length; i++) Embed.addField(`**${categories[i]}**`, Array.from(commands.filter(x => x.category === i).keys()).join("\n"), true);
 
       try {
-        await message.author.send([Embed, attachment]);
+        await message.author.send(Embed);
         if (message.channel.type !== "dm") await message.reply("look at your DM!");
       } catch(err) {
         await message.reply("did you block my DM?");
