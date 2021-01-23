@@ -26,7 +26,7 @@ module.exports = {
         const channel = guild.channels.resolve(welcome.channel);
         if (!channel || !channel.permissionsFor(guild.me).has(18432)) return;
         if (welcome.message) try {
-          const welcomeMessage = replaceMsgContent(welcome.message, guild, client, member, "welcome");
+          const welcomeMessage = replaceMsgContent(welcome.message, guild, message.client, member, "welcome");
           await channel.send(welcomeMessage);
         } catch (err) {
           console.error(err);

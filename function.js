@@ -426,5 +426,9 @@ module.exports = {
       }
     }
     return reader;
+  },
+  async genToken() {
+    const buffer = await new Promise((resolve, reject) => require("crypto").randomBytes(24, async (err, buffer) => err ? reject(err) : resolve(buffer)));
+    return buffer.toString("hex");
   }
 };

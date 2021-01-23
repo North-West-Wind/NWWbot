@@ -516,7 +516,7 @@ module.exports = {
                     };
                     var url = welcome.image;
                     try {
-                        let urls = JSON.parse(welcome.img);
+                        let urls = JSON.parse(welcome.image);
                         if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
                     } catch (err) { }
                     img.src = url;

@@ -34,7 +34,7 @@ const PNGtoPDF = (doc, url) => new Promise(async (resolve, reject) => {
 
 module.exports = {
     name: "musescore",
-    description: "Get information of a MuseScore link, or search the site.",
+    description: "Get information of a MuseScore link, or search the site, and download if requested.",
     usage: "<link | keywords>",
     category: 7,
     aliases: ["muse"],

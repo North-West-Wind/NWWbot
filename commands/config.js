@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const iiu = require("is-image-url");
-const { genPermMsg } = require("../function");
+const { genPermMsg, genToken } = require("../function");
 var panelEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⏹"],
   welcomeEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⬅", "⏹"],
   yesNo = ["1️⃣", "2️⃣", "⬅", "⏹"],
@@ -35,22 +35,15 @@ module.exports = {
       console.error(err);
     }
     if (config.token !== null) message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
-    else {
-      try {
-        const buffer = await new Promise((resolve, reject) => require("crypto").randomBytes(24, async (err, buffer) => err ? reject(err) : resolve(buffer)));
-        var generated = buffer.toString("hex");
-        try {
-          await message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
-          console.guilds[guild.id].token = generated;
-          await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
-          console.log("Created token for server " + guild.name);
-        } catch (err) {
-          console.error(err);
-          message.reply("there was an error trying to update the token! This token will be temporary.");
-        }
-      } catch (err) {
-        await message.reply("there was an error trying to generate a token!");
-      }
+    else try {
+      const generated = await genToken();
+      await message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
+      console.guilds[guild.id].token = generated;
+      await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
+      console.log("Created token for server " + guild.name);
+    } catch (err) {
+      console.error(err);
+      message.reply("there was an error trying to update the token! This token will be temporary.");
     }
   },
   async new(message) {
@@ -65,19 +58,16 @@ module.exports = {
       message.reply("there was an error trying to insert record for your server!");
       console.error(err);
     }
-    require("crypto").randomBytes(24, async (err, buffer) => {
-      if (err) return message.reply("there was an error trying to generate a token!");
-      var generated = buffer.toString("hex");
-      try {
-        console.guilds[guild.id].token = generated;
-        message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
-        await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
-        console.log("Created token for server " + guild.name);
-      } catch (err) {
-        console.error(err);
-        message.reply("there was an error trying to update the token! This token will be temporary.");
-      }
-    });
+    try {
+      const generated = await genToken();
+      console.guilds[guild.id].token = generated;
+      message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
+      await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
+      console.log("Created token for server " + guild.name);
+    } catch (err) {
+      console.error(err);
+      message.reply("there was an error trying to update the token! This token will be temporary.");
+    }
   },
   async panel(message) {
     var config = console.guilds[message.guild.id];
