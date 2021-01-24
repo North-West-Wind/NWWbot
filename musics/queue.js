@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const { updateQueue, setQueue } = require("./main.js");
 const { createEmbedScrolling, streamToString, requestStream } = require("../function.js");
+const sanitize = require("sanitize-filename");
 module.exports = {
   name: "queue",
   description: "Display the current song queue.",
@@ -183,7 +184,7 @@ module.exports = {
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
     if (serverQueue.songs.length < 1) return await message.channel.send("There is nothing in the queue.");
     const str = escape(JSON.stringify(serverQueue.songs));
-    const attachment = new Discord.MessageAttachment(Buffer.from(str, 'utf8'), `${message.guild.name}.queue`);
+    const attachment = new Discord.MessageAttachment(Buffer.from(str, 'utf8'), sanitize(`${message.guild.name}.queue`));
     await message.channel.send(`You can use \`${message.prefix}${this.name} import\` to import this queue again.`, attachment);
   },
   async import(message, serverQueue) {

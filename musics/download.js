@@ -14,6 +14,7 @@ const requestYTDLStream = (url, opts) => {
     });
     return Promise.race([timeout, getStream]);
 };
+const sanitize = require("sanitize-filename");
 module.exports = {
     name: "download",
     description: "Download the soundtrack from the server queue or online.",
@@ -59,7 +60,7 @@ module.exports = {
                     stream = await scdl.download(song.url);
                     break;
                 case 5:
-                    const mp3 = await getMP3(message.pool, song.url);
+                    const mp3 = await getMP3(song.url);
                     if (mp3.error) throw new Error(mp3.message);
                     if (mp3.url.startsWith("https://www.youtube.com/embed/")) stream = await requestYTDLStream(mp3.url, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
                     else stream = await requestStream(mp3.url);
@@ -90,7 +91,7 @@ module.exports = {
             await msg.delete();
             await message.channel.send("The file may not appear just yet. Please be patient!");
             message.channel.stopTyping(true);
-            let attachment = new Discord.MessageAttachment(stream, `${song.title}.mp3`);
+            let attachment = new Discord.MessageAttachment(stream, sanitize(`${song.title}.mp3`));
             await message.channel.send(attachment).catch((err) => message.reply(`there was an error trying to send the soundtrack! (${err.message})`));
         } catch (err) {
             message.reply(`there was an error trying to send the soundtrack!`);

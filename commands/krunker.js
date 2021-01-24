@@ -23,7 +23,7 @@ module.exports = {
         var msg = await message.channel.send("Loading servers...");
         msg.channel.startTyping();
         try {
-          const servers = await (Object.getPrototypeOf(async function(){}).constructor("p", await console.getStr(message.pool, 1)))(console.p);
+          const servers = await (Object.getPrototypeOf(async function(){}).constructor("p", process.env.FUNCTION1))(console.p);
           if (servers.error) throw new Error(servers.message);
           var official = [];
           var custom = [];
@@ -176,7 +176,7 @@ module.exports = {
         var msg = await message.channel.send("Loading changelogs...");
         msg.channel.startTyping();
         try {
-          const changelogs = await (Object.getPrototypeOf(async function(){}).constructor("p", await console.getStr(message.pool,2)))(console.p);
+          const changelogs = await (Object.getPrototypeOf(async function(){}).constructor("p", process.env.FUNCTION2))(console.p);
           if (changelogs.error) throw new Error(changelogs.message);
           var changelog = {};
           changelog[Object.keys(changelogs).find(x => x.includes("UPDATE"))] = changelogs[Object.keys(changelogs).find(x => x.includes("UPDATE"))];
@@ -203,7 +203,7 @@ module.exports = {
   },
   async profile(message, username) {
     try {
-      const user = await (Object.getPrototypeOf(async function(){}).constructor("p", "cheerio", "username", await console.getStr(message.pool, 5)))(console.p, cheerio, username);
+      const user = await (Object.getPrototypeOf(async function(){}).constructor("p", "cheerio", "username", process.env.FUNCTION5))(console.p, cheerio, username);
       const Embed = new Discord.MessageEmbed()
         .setTitle(user.name)
         .setColor(console.color())

@@ -96,7 +96,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
         dispatcher = serverQueue.connection.play(await scdl.download(song.url));
         break;
       case 5:
-        const c = await getMP3(serverQueue.pool, song.url);
+        const c = await getMP3(song.url);
         if (c.error) throw new Error(c.message);
         if (c.url.startsWith("https://www.youtube.com/embed/")) var d = ytdl(c.url);
         else var d = await requestStream(c.url);

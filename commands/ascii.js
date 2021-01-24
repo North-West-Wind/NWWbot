@@ -4,6 +4,7 @@ const asciify = require('asciify-image');
 const isImageUrl = require('is-image-url');
 const { createCanvas } = require("canvas");
 const Discord = require("discord.js");
+const sanitize = require("sanitize-filename");
 module.exports = {
     name: "ascii",
     description: "Generate ASCII arts from text or image.",
@@ -19,7 +20,7 @@ module.exports = {
             case "text":
                 if (!args[1]) return await message.channel.send("You didn't provide any text! If you want to convert an image, use the `image` subcommand.");
                 const text = figlet.textSync(args.slice(1).join(" "));
-                const attachment = new Discord.MessageAttachment(Buffer.from(text, 'utf8'), `${args.slice(1).join(" ")}.txt`);
+                const attachment = new Discord.MessageAttachment(Buffer.from(text, 'utf8'), sanitize(`${args.slice(1).join(" ")}.txt`));
                 if (text.length + 83 > 2000) return await message.channel.send("The text is too long to send in Discord! Therefore, I've made it into a file!", attachment);
                 else await message.channel.send("```" + text + "```\nYour text might not show properly! Therefore, here is a text file for you!", attachment);
                 break;
@@ -63,9 +64,9 @@ module.exports = {
                         }
                         const nameArr = attachment.name.split(".");
                         nameArr.splice(-1, 1);
-                        const newattachment = new Discord.MessageAttachment(canvas.toBuffer(), `${nameArr.join(".")}.png`);
-                        const colorAtt = new Discord.MessageAttachment(Buffer.from(asciis, 'utf8'), `${nameArr.join(" ")}_text.txt`);
-                        const noColorAtt = new Discord.MessageAttachment(Buffer.from(anser.ansiToText(asciis), 'utf8'), `${nameArr.join(" ")}_text_no_color.txt`);
+                        const newattachment = new Discord.MessageAttachment(canvas.toBuffer(), sanitize(`${nameArr.join(".")}.png`));
+                        const colorAtt = new Discord.MessageAttachment(Buffer.from(asciis, 'utf8'), sanitize(`${nameArr.join(" ")}_text.txt`));
+                        const noColorAtt = new Discord.MessageAttachment(Buffer.from(anser.ansiToText(asciis), 'utf8'), sanitize(`${nameArr.join(" ")}_text_no_color.txt`));
                         await msg.delete().catch(() => { });
                         await message.channel.send(newattachment);
                         await message.channel.send(colorAtt);

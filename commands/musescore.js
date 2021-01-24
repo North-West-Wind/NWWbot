@@ -3,6 +3,7 @@ const fetch = require("node-fetch").default;
 const cheerio = require("cheerio");
 const Discord = require("discord.js");
 const ytdl = require("ytdl-core");
+const sanitize = require("sanitize-filename");
 const requestYTDLStream = (url, opts) => {
     const timeoutMS = opts.timeout && !isNaN(parseInt(opts.timeout)) ? parseInt(opts.timeout) : 30000;
     const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${timeoutMS}ms`)), timeoutMS));
@@ -77,14 +78,14 @@ module.exports = {
             try {
                 try {
                     var mesg = await message.channel.send("Generating MP3...");
-                    const mp3 = await this.getMP3(message.pool, args.join(" "));
+                    const mp3 = await this.getMP3(args.join(" "));
                     try {
                         if (mp3.error) throw new Error(mp3.message);
                         if (mp3.url.startsWith("https://www.youtube.com/embed/")) {
                             const ytid = mp3.url.split("/").slice(-1)[0].split("?")[0];
                             var res = await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
                         } else var res = await requestStream(mp3.url);
-                        const att = new Discord.MessageAttachment(res, `${data.title}.mp3`);
+                        const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mp3`));
                         if (!res) throw new Error("Failed to get Readable Stream");
                         else if (res.statusCode && res.statusCode != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
                         else await message.channel.send(att);
@@ -93,10 +94,10 @@ module.exports = {
                         await mesg.edit(`Failed to generate MP3! \`${err.message}\``);
                     }
                     mesg = await message.channel.send("Generating PDF...");
-                    const { doc, hasPDF, err } = await this.getPDF(message.pool, args.join(" "), data);
+                    const { doc, hasPDF, err } = await this.getPDF(args.join(" "), data);
                     try {
                         if (!hasPDF) throw new Error(err ? err : "No PDF available");
-                        const att = new Discord.MessageAttachment(doc, `${data.title}.pdf`);
+                        const att = new Discord.MessageAttachment(doc, sanitize(`${data.title}.pdf`));
                         await message.channel.send(att);
                         await mesg.delete();
                     } catch (err) {
@@ -107,7 +108,7 @@ module.exports = {
                     try {
                         if (mscz.error) throw new Error(mscz.message);
                         const res = await requestStream(mscz.url);
-                        const att = new Discord.MessageAttachment(res, `${data.title}.mscz`);
+                        const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mscz`));
                         if (!res) throw new Error("Failed to get Readable Stream");
                         else if (res.statusCode && res.statusCode != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
                         else await message.channel.send(att);
@@ -244,8 +245,8 @@ module.exports = {
             msg.reactions.removeAll().catch(() => { });
         });
     },
-    getMP3: async (pool, url) => await (Object.getPrototypeOf(async function () { }).constructor("p", "url", await console.getStr(pool, 3)))(console.p, url),
-    getPDF: async (pool, url, data) => {
+    getMP3: async (url) => await (Object.getPrototypeOf(async function () { }).constructor("p", "url", process.env.FUNCTION3))(console.p, url),
+    getPDF: async (url, data) => {
         if (!data) {
             const res = await rp({ uri: url, resolveWithFullResponse: true });
             data = this.parseBody(res.body);
@@ -263,7 +264,7 @@ module.exports = {
         }
         var pdf = [score];
         if (data.pageCount > 1) {
-            const pdfapi = await (Object.getPrototypeOf(async function () { }).constructor("p", "url", "cheerio", "firstPage", "pageCount", await console.getStr(pool, 4)))(console.p, url, cheerio, score, data.pageCount);
+            const pdfapi = await (Object.getPrototypeOf(async function () { }).constructor("p", "url", "cheerio", "pageCount", process.env.FUNCTION4))(console.p, url, cheerio, data.pageCount);
             if (pdfapi.error) return { doc: undefined, hasPDF: false };
             pdf = pdfapi.pdf;
         }
