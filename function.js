@@ -261,7 +261,10 @@ module.exports = {
     }
     return true;
   },
-  ID: () => '_' + Math.random().toString(36).substr(2, 9),
+  ID: () => {
+    const buffer = await new Promise((resolve, reject) => require("crypto").randomBytes(24, async (err, buffer) => err ? reject(err) : resolve(buffer)));
+    return buffer.toString("hex");
+  },
   async createEmbedScrolling(message, allEmbeds, id, additionalData = undefined) {
     const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
     var s = 0;

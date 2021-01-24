@@ -75,7 +75,7 @@ module.exports = {
           await msg.edit(menu);
           return setTimeout(() => mainMenu(msg), 3000);
         }
-        viewItem(msg, results[index - 1].id);
+        viewItem(msg, results[index - 1]?.id);
       }
 
       async function viewItem(msg, id) {
@@ -310,7 +310,7 @@ module.exports = {
     const mustUse = !!parseInt(collected4.first().content);
     await msg.edit(`Added item **${name}** to the server shop for $${buyPrice}. Each user will be able to own ${limit < 1 ? "as many as they want" : `${limit} of them`}. Customers ${mustUse ? "must" : "will not have to"} use them upon purchase.`);
     try {
-      await message.pool.query(`INSERT INTO shop VALUES('${ID()}', '${message.guild.id}', '${name}', '${description}', ${buyPrice}, ${sellPrice}, ${limit}, ${stock}, ${mustUse ? 1 : 0}, '${command}', '${args}')`);
+      await message.pool.query(`INSERT INTO shop VALUES('${await ID()}', '${message.guild.id}', '${name}', '${description}', ${buyPrice}, ${sellPrice}, ${limit}, ${stock}, ${mustUse ? 1 : 0}, '${command}', '${args}')`);
       await message.channel.send("Item added to database!");
     } catch (err) {
       console.error(err);

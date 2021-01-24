@@ -298,7 +298,7 @@ module.exports = {
         const title = await score.title();
         const duration = moment.duration(Math.round((await score.metadata()).duration), "seconds").format();
         songs.push({
-          id: ID(),
+          id: await ID(),
           title: title,
           url: file.url,
           type: 7,
@@ -323,7 +323,7 @@ module.exports = {
       const length = Math.round(metadata.format.duration);
       const songLength = moment.duration(length, "seconds").format();
       songs.push({
-        id: ID(),
+        id: await ID(),
         title: (file.name ? file.name.split(".").slice(0, -1).join(".") : file.url.split("/").slice(-1)[0].split(".").slice(0, -1).join(".")).replace(/_/g, " "),
         url: file.url,
         type: 2,
@@ -351,7 +351,7 @@ module.exports = {
     var mesg = await message.channel.send(`Processing track: **0/${videos.length}**`);
     var interval = setInterval(() => (songs.length < videos.length) ? mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`).catch(() => { }) : undefined, 1000);
     for (const video of videos) songs.push({
-      id: ID(),
+      id: await ID(),
       title: video.title,
       url: video.shortUrl,
       type: 0,
@@ -393,7 +393,7 @@ module.exports = {
     }
     var songs = [
       {
-        id: ID(),
+        id: await ID(),
         title: decodeHtmlEntity(songInfo.videoDetails.title),
         url: songInfo.videoDetails.video_url,
         type: type,
@@ -459,7 +459,7 @@ module.exports = {
             if (s + 1 == results.length) {
               const songLength = !results[o].live ? results[o].duration : "∞";
               songs.push({
-                id: ID(),
+                id: await ID(),
                 title: tracks[i].track.name,
                 url: results[o].link,
                 type: 1,
@@ -520,7 +520,7 @@ module.exports = {
             if (s + 1 == results.length) {
               const songLength = !results[o].live ? results[o].duration : "∞";
               songs.push({
-                id: ID(),
+                id: await ID(),
                 title: tracks[i].name,
                 url: results[o].link,
                 type: 1,
@@ -559,7 +559,7 @@ module.exports = {
             if (s + 1 == results.length) {
               const songLength = !results[o].live ? results[o].duration : "∞";
               songs.push({
-                id: ID(),
+                id: await ID(),
                 title: tracks[i].name,
                 url: results[o].link,
                 type: 1,
@@ -593,7 +593,7 @@ module.exports = {
         const length = Math.round(track.duration / 1000);
         const songLength = moment.duration(length, "seconds").format();
         songs.push({
-          id: ID(),
+          id: await ID(),
           title: track.title,
           type: 3,
           id: track.id,
@@ -608,7 +608,7 @@ module.exports = {
       const length = Math.round(data.duration / 1000);
       const songLength = moment.duration(length, "seconds").format();
       songs.push({
-        id: ID(),
+        id: await ID(),
         title: data.title,
         type: 3,
         id: data.id,
@@ -655,7 +655,7 @@ module.exports = {
     var length = Math.round(metadata.format.duration);
     var songLength = moment.duration(length, "seconds").format();
     var song = {
-      id: ID(),
+      id: await ID(),
       title: title,
       url: link,
       type: 4,
@@ -686,7 +686,7 @@ module.exports = {
           title = $1("title").text().split(" - ").slice(0, -1).join(" - ").split(".").slice(0, -1).join(".");
           const songLength = moment.duration(Math.round(metadata.format.duration), "seconds").format();
           songs.push({
-            id: ID(),
+            id: await ID(),
             title: title,
             url: link,
             type: 4,
@@ -718,7 +718,7 @@ module.exports = {
     var data = parseBody(body);
     var songLength = data.duration;
     var song = {
-      id: ID(),
+      id: await ID(),
       title: data.title,
       url: args.slice(1).join(" "),
       type: 5,
@@ -739,7 +739,7 @@ module.exports = {
       if (parseInt(download) < 1) throw "Cannot get any video quality";
       var songLength = moment.duration(video.duration, "seconds").format();
       var song = {
-        id: ID(),
+        id: await ID(),
         title: video.title,
         url: args.slice(1).join(" "),
         type: 6,
@@ -772,7 +772,7 @@ module.exports = {
     const length = Math.round(metadata.format.duration);
     const songLength = moment.duration(length, "seconds").format();
     const song = {
-      id: ID(),
+      id: await ID(),
       title: title,
       url: args.slice(1).join(" "),
       type: 2,
@@ -814,7 +814,7 @@ module.exports = {
       }
     }
     const ytResults = video.map(x => ({
-      id: ID(),
+      id: await ID(),
       title: decodeHtmlEntity(x.title),
       url: x.link,
       type: 0,
@@ -843,7 +843,7 @@ module.exports = {
       return { error: true };
     }
     const scResults = scSearched.collection.map(x => ({
-      id: ID(),
+      id: await ID(),
       title: x.title,
       url: x.permalink_url,
       type: 3,

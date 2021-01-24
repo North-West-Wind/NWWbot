@@ -36,7 +36,7 @@ module.exports = {
     }
     if (config.token !== null) message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
     else try {
-      const generated = ID();
+      const generated = await ID();
       await message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
       console.guilds[guild.id].token = generated;
       await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
@@ -59,7 +59,7 @@ module.exports = {
       console.error(err);
     }
     try {
-      const generated = ID();
+      const generated = await ID();
       console.guilds[guild.id].token = generated;
       message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
       await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
