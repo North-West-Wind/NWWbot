@@ -42,8 +42,8 @@ module.exports = {
       const filter = (reaction, user) => ["1️⃣", "2️⃣"].includes(reaction.emoji.name) && user.id === message.author.id;
       const collected = await msg.awaitReactions(filter, { max: 1, idle: 60000, error: ["time"] });
       const reaction = collected.first();
-      if (!reaction) return await msg.edit(leave);
       msg.reactions.removeAll().catch(console.error);
+      if (!reaction) return await msg.edit(leave);
 
       async function shopMenu() {
         const allItems = [];

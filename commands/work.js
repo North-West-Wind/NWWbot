@@ -14,7 +14,7 @@ module.exports = {
     if (results.length == 0) {
       const gain = Math.round((getRandomNumber(1, 1.5) + Number.EPSILON) * 100) / 100;
       await con.query(`INSERT INTO currency VALUES(NULL, '${message.author.id}', ${gain}, 1, '${currentDateSql}', 0.00, NULL, '${message.guild.id}')`);
-      message.channel.send(`<@${message.author.id}> worked and gained $${gain}!`);
+      message.channel.send(`<@${message.author.id}> worked and gained **$${gain}**!`);
     } else {
       var correct = 0;
       const lastDate = results[0].last_worked;
