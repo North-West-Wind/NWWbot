@@ -261,7 +261,7 @@ module.exports = {
     }
     return true;
   },
-  ID: () => {
+  ID: async() => {
     const buffer = await new Promise((resolve, reject) => require("crypto").randomBytes(24, async (err, buffer) => err ? reject(err) : resolve(buffer)));
     return buffer.toString("hex");
   },
