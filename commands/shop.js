@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { wait, genToken, genPermMsg } = require("../function.js");
+const { wait, ID, genPermMsg } = require("../function.js");
 
 module.exports = {
   name: "shop",
@@ -13,7 +13,7 @@ module.exports = {
     mainMenu();
     async function mainMenu(msg = undefined) {
       var mesg = msg;
-      var [results] = await pool.query("SELECT * FROM currency WHERE user_id = " + message.author.id)
+      var [results] = await pool.query(`SELECT * FROM currency WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
       var cash = 0;
       if (results.length == 1) cash = results[0].currency;
       const shop = new Discord.MessageEmbed()
@@ -45,7 +45,7 @@ module.exports = {
       async function shopMenu() {
         const allItems = [];
         var [results] = await pool.query(`SELECT * FROM shop WHERE guild = '${message.guild.id}' OR guild = ''`);
-        for (let i = 0; i < results.length; i++) allItems.push(`**${i + 1}.** ${results[i].name} - **\$${results[i].buy_price}**`);
+        for (let i = 0; i < results.length; i++) allItems.push(`**${i + 1}.** ${results[i].name} - **\$${results[i].buy_price}** : **${results[i].stock_limit > -1 ? results[i].stock_limit : "∞"}**`);
 
         const menu = new Discord.MessageEmbed()
           .setColor(color)
@@ -94,14 +94,14 @@ module.exports = {
             .setTimestamp()
             .setColor(color)
             .setTitle(result[0].name)
-            .setDescription(`Buy Price: **$${result[0].buy_price}**\n${result[0].description}\n\n1️⃣ Buy\n2️⃣ Return`)
+            .setDescription(`Buy Price: **$${result[0].buy_price}**\n${result[0].description}\nStock: **${result[0].stock_limit > -1 ? result[0].stock_limit : "∞"}**\n\n1️⃣ Buy\n2️⃣ Return`)
             .setFooter("Please answer within 30 seconds.", message.client.user.displayAvatarURL());
 
           await msg.edit(itemEmbed);
           await msg.react("1️⃣");
           await msg.react("2️⃣");
 
-          var collected = await msg.awaitReactions(filter, { max: 1, idle: 30000, errors: ["time"] });
+          var collected = await msg.awaitReactions(filter, { max: 1, idle: 30000 });
           const reaction = collected.first();
           if (!reaction) {
             itemEmbed.setTitle("Please leave if you are not buying stuff!")
@@ -113,6 +113,14 @@ module.exports = {
           msg.reactions.removeAll().catch(console.error);
 
           if (reaction.emoji.name === "1️⃣") {
+            if (result[0].stock_limit == 0) {
+              itemEmbed.setTitle(`${result[0].name} is out of stock!`)
+              .setDescription("Returning to main menu in 3 seconds...")
+              .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+              await msg.edit(itemEmbed);
+              await wait(3000);
+              return await mainMenu(msg);
+            }
             if (Number(cash) < Number(result[0].buy_price)) {
               itemEmbed.setTitle("You don't have enough money to buy " + result[0].name + "!")
                 .setDescription("Returning to main menu in 3 seconds...")
@@ -123,6 +131,20 @@ module.exports = {
               itemEmbed.setTitle("You bought " + result[0].name + "!")
                 .setDescription("Returning to main menu in 3 seconds...")
                 .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+              const [IResult] = await pool.query(`SELECT * FROM inventory WHERE id = '${message.author.id}'`);
+              if (IResult.length == 1 && result[0].buy_limit > 0) {
+                const items = JSON.parse(unescape(IResult[0].items));
+                if (!items[result[0].id]) items[result[0].id] = 0;
+                items[result[0].id] += 1;
+                if (items[result[0].id] > result[0].buy_limit) {
+                  itemEmbed.setTitle(`You can only get ${result[0].buy_limit} of this item!`)
+                  .setDescription("Returning to main menu in 3 seconds...")
+                  .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                  await msg.edit(itemEmbed);
+                  await wait(3000);
+                  return await mainMenu(msg);
+                }
+              }
               if (result[0].must_use) {
                 itemEmbed.setDescription("However, you must use this item immediately.")
                   .setFooter("Running in 3 seconds...", message.client.user.displayAvatarURL());
@@ -137,7 +159,7 @@ module.exports = {
                   const collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 120000 });
                   if (collected.first()) await collected.first().delete();
                   if (!collected.first()?.content) {
-                    itemEmbed.setDescription(`You didn't input the arguments in time! Cancelling the purchase...`)
+                    itemEmbed.setDescription(`You didn't input the arguments in time! Cancelling purchase...`)
                       .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
                     await msg.edit(itemEmbed);
                     await wait(3000);
@@ -193,18 +215,19 @@ module.exports = {
               var paid = cash - result[0].buy_price;
               const con = await pool.getConnection();
               try {
-                await con.query(`UPDATE currency SET currency = ${paid} WHERE user_id = '${message.author.id}'`);
-                const [IResult] = await con.query(`SELECT * FROM inventory WHERE id = '${message.author.id}'`);
-                if (IResult.length === 0) {
-                  const items = {};
-                  items[result[0].id] = 0;
-                  items[result[0].id] += 1;
-                  await con.query(`INSERT INTO inventory VALUES('${message.author.id}', '${escape(JSON.stringify(items))}')`);
-                } else {
-                  const items = JSON.parse(unescape(IResult[0].items));
-                  if (!items[result[0].id]) items[result[0].id] = 0;
-                  items[result[0].id] += 1;
-                  await con.query(`UPDATE inventory SET items = '${escape(JSON.stringify(items))}' WHERE id = '${message.author.id}'`);
+                await con.query(`UPDATE currency SET currency = ${paid} WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
+                if (!result[0].must_use) {
+                  if (IResult.length === 0) {
+                    const items = {};
+                    items[result[0].id] = 0;
+                    items[result[0].id] += 1;
+                    await con.query(`INSERT INTO inventory VALUES('${message.author.id}', '${escape(JSON.stringify(items))}')`);
+                  } else {
+                    const items = JSON.parse(unescape(IResult[0].items));
+                    if (!items[result[0].id]) items[result[0].id] = 0;
+                    items[result[0].id] += 1;
+                    await con.query(`UPDATE inventory SET items = '${escape(JSON.stringify(items))}' WHERE id = '${message.author.id}'`);
+                  }
                 }
               } catch (err) {
                 console.error(err);
@@ -260,7 +283,7 @@ module.exports = {
     if (prices.length < 2) await msg.edit("Selling price missing. I'll assume that it equals to the buying price.");
     else sellPrice = Math.round((Number(prices[1]) + Number.EPSILON) * 100) / 100;
     if (isNaN(sellPrice)) return await msg.edit("The selling price entered is not valid.");
-    await msg.edit(`**${name}** will be able to be bought with $${buyPrice} and sold at $${sellPrice}.\nNext, please enter the purchase limit and the stock limit of it. (Use space to separate them) (negative number for infinity)`);
+    await msg.edit(`**${name}** will be able to be bought with **$${buyPrice}** and sold at **$${sellPrice}**.\nNext, please enter the purchase limit and the stock limit of it. (Use space to separate them) (negative number for infinity)`);
     const collected2 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 });
     if (collected2.first()) await collected2.first().delete();
     if (!collected2.first()?.content) return await msg.edit("I cannot read the message!");
@@ -272,14 +295,14 @@ module.exports = {
     var stock = -1;
     if (!limits[1] || isNaN(parseInt(limits[1]))) await msg.edit("The stock limit entered is not valid. I'll take that as limitless.").then(() => wait(3000));
     else stock = parseInt(limits[1]);
-    await msg.edit(`All users will be able to purchase **${limit < 1 ? "limitlessly" : `${limit} ${name}${limit > 1 ? "s" : ""}`}** and there will be ${stock < 0 ? "infinite stocks" : `${stock} in stock`}.\nTo finish up, please enter the arguments required ("nothing" for no arguments) and what to do when the user uses this item. (Use line break to separate them) (The code can be multi-line) (You may refer to https://northwestwind.ml/shop_help.php)`);
+    await msg.edit(`All users will be able to purchase **${limit < 1 ? "limitlessly" : `${limit} ${name}${limit > 1 ? "s" : ""}`}** and there will be **${stock < 0 ? "infinite stocks" : `${stock} in stock`}**.\nTo finish up, please enter the arguments required ("nothing" for no arguments) and what to do when the user uses this item. (Use line break to separate them) (The code can be multi-line) (You may refer to https://northwestwind.ml/shop_help.php)`);
     const collected3 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 300000 });
     if (collected3.first()) await collected3.first().delete();
     if (!collected3.first()?.content) return await msg.edit("I cannot read the message!");
     if (collected3.first().content.toLowerCase() == "cancel") return await msg.edit("Action cancelled.");
     const args = collected3.first().content.split("\n")[0].toLowerCase() === "nothing" ? "" : collected3.first().content.split("\n")[0];
     const command = collected3.first().content.split("\n").slice(1).join("\n");
-    await msg.edit(`Code to run has been set.\nFinally, if the user must use the upon purchase, type "1" or any larger number.\nIf the user can hold the item in their inventory, type "0".`);
+    await msg.edit(`Code to run has been set.\nFinally, if the user must use the upon purchase, type \`1\` or any larger number.\nIf the user can hold the item in their inventory, type \`0\`.`);
     const collected4 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 300000 });
     if (collected4.first()) await collected4.first().delete();
     if (!collected4.first()?.content) return await msg.edit("I cannot read the message!");
@@ -287,7 +310,7 @@ module.exports = {
     const mustUse = !!parseInt(collected4.first().content);
     await msg.edit(`Added item **${name}** to the server shop for $${buyPrice}. Each user will be able to own ${limit < 1 ? "as many as they want" : `${limit} of them`}. Customers ${mustUse ? "must" : "will not have to"} use them upon purchase.`);
     try {
-      await message.pool.query(`INSERT INTO shop VALUES('${await genToken()}', '${message.guild.id}', '${name}', '${description}', ${buyPrice}, ${sellPrice}, ${limit}, ${stock}, ${mustUse ? 1 : 0}, '${command}', '${args}')`);
+      await message.pool.query(`INSERT INTO shop VALUES('${ID()}', '${message.guild.id}', '${name}', '${description}', ${buyPrice}, ${sellPrice}, ${limit}, ${stock}, ${mustUse ? 1 : 0}, '${command}', '${args}')`);
       await message.channel.send("Item added to database!");
     } catch (err) {
       console.error(err);

@@ -32,7 +32,7 @@ module.exports = {
         var choices = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "⏹"];
         for (var i = 0; i < games.length; i++) await msg.react(choices[i]);
         await msg.react(choices[10]);
-        const collected = await msg.awaitReactions((reaction, user) => choices.includes(reaction.emoji.name) && user.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+        const collected = await msg.awaitReactions((reaction, user) => choices.includes(reaction.emoji.name) && user.id === message.author.id, { max: 1, time: 30000 });
         await msg.reactions.removeAll().catch(console.error);
         if (!collected) {
           em.setTitle("Timed Out").setDescription("Please try again.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());

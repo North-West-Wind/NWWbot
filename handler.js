@@ -214,7 +214,7 @@ module.exports = {
                             await msg.react("▶");
                             await msg.react("⏭");
                             await msg.react("⏹");
-                            const collector = await msg.createReactionCollector(filter, { time: 30000, errors: ["time"] });
+                            const collector = await msg.createReactionCollector(filter, { time: 30000 });
 
                             collector.on("collect", function (reaction, user) {
                                 reaction.users.remove(user.id);

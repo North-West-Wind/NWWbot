@@ -18,7 +18,7 @@ module.exports = {
         .addField("Bank", "$" + bank)
         .addField("Cash", "$" + cash)
         .setTimestamp()
-        .setFooter(`You can try to "${message.prefix}${this.name} deposit" or "${message.prefix}${this.name} withdraw"!`, message.client.user.displayAvatarURL());
+        .setFooter(`You can try to "${message.prefix}${module.exports.name} deposit" or "${message.prefix}${module.exports.name} withdraw"!`, message.client.user.displayAvatarURL());
       var msg = await message.channel.send(Embed);
       await msg.react("1️⃣");
       await msg.react("2️⃣");
@@ -34,14 +34,14 @@ module.exports = {
           .addField("Bank", "$" + bank)
           .addField("Cash", "$" + cash)
           .setTimestamp()
-          .setFooter(`You can try to "${message.prefix}${this.name} deposit" or "${message.prefix}${this.name} withdraw"!`, message.client.user.displayAvatarURL());
+          .setFooter(`You can try to "${message.prefix}${module.exports.name} deposit" or "${message.prefix}${module.exports.name} withdraw"!`, message.client.user.displayAvatarURL());
         msg.edit(embed);
         await msg.react("1️⃣");
         await msg.react("2️⃣");
         const filter = (reaction, user) => ["1️⃣", "2️⃣"].includes(reaction.emoji.name) && user.id === message.author.id;
-        var collected = await msg.awaitReactions(filter, { max: 1, time: 30000, errors: ["time"] });
-        if (!collected || !collected.first()) return;
+        var collected = await msg.awaitReactions(filter, { max: 1, time: 30000 });
         msg.reactions.removeAll().catch(console.error);
+        if (!collected || !collected.first()) return;
         if (reaction.emoji.name === "1️⃣") {
           var depositEmbed = new Discord.MessageEmbed()
             .setColor(console.color())
@@ -60,7 +60,7 @@ module.exports = {
             await msg.edit(depositedEmbed);
             setTimeout(() => MainPage(), 3000);
           }
-          const amount = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+          const amount = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 });
           if (!amount.first() || !amount.first().content) return await depositNotValid();
           amount.first().delete().catch(() => { });
           var deposits = 0;
@@ -104,7 +104,7 @@ module.exports = {
             await msg.edit(withdrawedEmbed);
             setTimeout(() => MainPage(), 3000);
           }
-          const amount = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+          const amount = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 });
           if (!amount.first() || !amount.first().content) return await withdrawNotValid();
           amount.first().delete().catch(() => { });
           var withdraws = 0;

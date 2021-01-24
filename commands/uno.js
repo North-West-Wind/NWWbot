@@ -37,7 +37,7 @@ module.exports = {
       var mentions = message.mentions.members;
     } else {
       var msg = await message.channel.send("Alright, we will start an UNO game. Who will be invited? Please mention them!");
-      var collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+      var collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 });
       if (!collected || !collected.first()) return msg.edit("Don't make me wait too long. I'm busy.");
       await collected.first().delete();
       if (!collected.first().mentions.members || !collected.first().mentions.members.size) return msg.edit("You didn't invite anyone!");
@@ -74,7 +74,7 @@ module.exports = {
       }
       await mesg.react("✅");
       await mesg.react("❌");
-      var rCollected = await mesg.awaitReactions((r, u) => ["✅", "❌"].includes(r.emoji.name) && u.id === member.id, { max: 1, time: 30000, errors: ["time"] }).catch(() => mesg.reactions.removeAll().catch(() => { }));
+      var rCollected = await mesg.awaitReactions((r, u) => ["✅", "❌"].includes(r.emoji.name) && u.id === member.id, { max: 1, time: 30000 }).catch(() => mesg.reactions.removeAll().catch(() => { }));
       responses += 1;
       mesg.reactions.removeAll().catch(() => { });
       if (!rCollected || !rCollected.first()) {
@@ -183,7 +183,7 @@ module.exports = {
           await mssg.react("📤");
           await mssg.react("⏹️");
           try {
-            var collected = await mssg.awaitReactions((r, u) => ["📥", "📤", "⏹️"].includes(r.emoji.name) && u.id === player.user.id, { time: 120 * 1000, max: 1, errors: ["time"] });
+            var collected = await mssg.awaitReactions((r, u) => ["📥", "📤", "⏹️"].includes(r.emoji.name) && u.id === player.user.id, { time: 120 * 1000, max: 1 });
           } catch (err) { }
           var newCard = console.card.random(drawCard > 0 ? drawCard : 1);
           var card = !newCard.length ? [toString(newCard)] : newCard.map(x => toString(x));
@@ -251,7 +251,7 @@ module.exports = {
             await mssg.delete();
             mssg = await mssg.channel.send(em);
             try {
-              var collected = await mssg.channel.awaitMessages(x => x.author.id === player.user.id, { max: 1, time: 120 * 1000, errors: ["time"] });
+              var collected = await mssg.channel.awaitMessages(x => x.author.id === player.user.id, { max: 1, time: 120 * 1000 });
             } catch (err) { }
             if (!collected || !collected.first() || !collected.first().content) {
               em = new Discord.MessageEmbed()
@@ -317,7 +317,7 @@ module.exports = {
                 mssg.react(rColor);
               }
               try {
-                var collected = await mssg.awaitReactions((r, u) => colors.includes(r.emoji.name) && u.id === player.user.id, { max: 1, time: 120 * 1000, errors: ["time"] });
+                var collected = await mssg.awaitReactions((r, u) => colors.includes(r.emoji.name) && u.id === player.user.id, { max: 1, time: 120 * 1000 });
               } catch (err) { }
               if (!collected || !collected.first()) {
                 em = new Discord.MessageEmbed()

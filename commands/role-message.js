@@ -20,14 +20,14 @@ module.exports = {
     if (!message.guild.me.permissions.has(268435456)) return await message.channel.send(genPermMsg(268435456, 1));
     if (!message.member.permissions.has(268435456)) return await message.channel.send(genPermMsg(268435456, 0));
     var msg = await message.channel.send("Please enter the message you want to send.");
-    const collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 120000, max: 1, errors: ["time"] }).catch(console.error);
+    const collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 120000, max: 1 }).catch(console.error);
     if (!collected.first()) return await msg.edit("Did not receive any message in time! Action cancelled.");
     await collected.first().delete();
     const pendingMsg = collected.first().content;
     if (!pendingMsg) return await msg.edit("Did not receive any message! Action cancelled.");
     if (pendingMsg === "cancel") return await msg.edit("Action cancelled.");
     await msg.edit("Message received.\n\nNow, please tell me where you want the message to go to by mentioning the channel.");
-    const collected2 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] }).catch(console.error);
+    const collected2 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 }).catch(console.error);
     if (!collected2.first()) return msg.edit("30 seconds have passed but you didn't mention any channel! Action cancelled.");
     await collected2.first().delete();
     if (!collected2.first().content) return await msg.edit("Did not receive any channel! Action cancelled.");
@@ -38,7 +38,7 @@ module.exports = {
     if (!channel.permissionsFor(message.guild.me).has(this.permission)) return await msg.edit(genPermMsg(this.permission, 1));
     if (!channel.permissionsFor(message.member).has(this.permission)) return await msg.edit(genPermMsg(this.permission, 0));
     await msg.edit(`Great! The channel will be <#${channel.id}>.\n\nAfter that, can you tell me what role you are giving the users? Please break a line for each role.`);
-    const collected3 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 60000, max: 1, errors: ["time"] }).catch(console.error);
+    const collected3 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 60000, max: 1 }).catch(console.error);
     if (!collected3.first()) return await msg.edit("Did not receive any role in time! Action cancelled.");
     await collected3.first().delete();
     if (!collected3.first().content) return await msg.edit("Did not receive any role! Action cancelled.");
@@ -57,7 +57,7 @@ module.exports = {
       roles.push(roless);
     }
     await msg.edit(`**${roles.length}** role${roles.length > 1 ? "s" : ""} received.\n\nAt last, you will need to provide the reactions/emojis you want for each role! Break a line for each of them.`);
-    const collected4 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 60000, max: 1, errors: ["time"] }).catch(console.error);
+    const collected4 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 60000, max: 1 }).catch(console.error);
     if (!collected4.first()) return await msg.edit("Did not receive any emoji in time! Action cancelled.");
     if (!collected4.first().content) return await msg.edit("Did not receive any emoji! Action cancelled.");
     await collected4.first().delete();

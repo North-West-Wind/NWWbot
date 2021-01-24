@@ -18,7 +18,7 @@ module.exports = {
         for (const arrs of Array.from(console.mathgames.values())) if (arrs.includes(message.author.id)) return message.channel.send("You are already in another game!");
         */
         var msg = await message.channel.send("Who will be playing this game? (Please mention them)");
-        let collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
+        let collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 });
         if (!collected || !collected.first() || !collected.first().content) return msg.edit("You didn't answer me within 30 seconds! Please try again.");
         await collected.first().delete().catch(() => console.error("Cannot delete message"));
         var players = [message.author];
@@ -37,7 +37,7 @@ module.exports = {
                 return msg.edit("Nothing was chosen!");
             case 0:
                 msg = await msg.edit("Please enter the amount of questions.");
-                collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
+                collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
                 await collected.first().delete().catch(() => console.error("Cannot delete message"));
                 questions = parseInt(collected.first().content);
@@ -45,7 +45,7 @@ module.exports = {
                 break;
             case 1:
                 msg = await msg.edit("Please enter the time allowed.");
-                collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1, errors: ["time"] });
+                collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
                 await collected.first().delete().catch(() => console.error("Cannot delete message"));
                 time = ms(collected.first().content);
@@ -60,7 +60,7 @@ module.exports = {
         msg = await msg.edit({ content: "", embed: em });
         await msg.react("👌🏻");
         collected = undefined;
-        collected = await msg.awaitReactions((reaction, user) => reaction.emoji.name === '👌🏻' && players.map(x => x.id).includes(user.id), { time: 60000, maxUsers: players.length, errors: ["time"] });
+        collected = await msg.awaitReactions((reaction, user) => reaction.emoji.name === '👌🏻' && players.map(x => x.id).includes(user.id), { time: 60000, maxUsers: players.length });
         if (!collected || !collected.first()) return msg.edit({ content: "Seriously? No one reacted?", embed: null });
         if (collected.first().count - 1 < players.length) return msg.edit({ content: "Someone is not active!", embed: null });
         await msg.reactions.removeAll();
@@ -76,7 +76,7 @@ module.exports = {
             var correct = false;
             while(!correct) {
                 collected = undefined;
-                collected = await msg.channel.awaitMessages(x => players.map(u => u.id).includes(x.author.id), { time: questions < 0 && time < 0 ? 15000 : 60000 * 5, max: 1, errors: ["time"] });
+                collected = await msg.channel.awaitMessages(x => players.map(u => u.id).includes(x.author.id), { time: questions < 0 && time < 0 ? 15000 : 60000 * 5, max: 1 });
                 if(!collected || !collected.first() || !collected.first().content) {
                     running = false;
                     break;
@@ -139,7 +139,7 @@ module.exports = {
         await msg.react("⏹");
         var collector = await msg.createReactionCollector(
             filter,
-            { idle: 60000, errors: ["time"] }
+            { idle: 60000 }
         );
         let chosen = -1;
         collector.on("collect", function (reaction, user) {

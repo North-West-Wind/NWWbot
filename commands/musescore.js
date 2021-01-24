@@ -70,7 +70,7 @@ module.exports = {
         msg = await msg.edit({ content: "", embed: em });
         await msg.react("📥");
         msg.channel.stopTyping(true);
-        const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+        const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000 });
         await msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
             console.log(`Downloading ${args.join(" ")} in server ${message.guild.name}...`);
@@ -211,7 +211,7 @@ module.exports = {
         msg.channel.stopTyping(true);
         var collector = await msg.createReactionCollector(
             filter,
-            { idle: 60000, errors: ["time"] }
+            { idle: 60000 }
         );
 
         collector.on("collect", async function (reaction, user) {

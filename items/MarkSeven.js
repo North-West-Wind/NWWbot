@@ -1,5 +1,5 @@
 const { elegantPair } = require("../function.js");
-const id = "1";
+const ID = "3f4442c06b90c39340394ab33bab928b7a290593a54ea1d4";
 
 module.exports = {
   name: "MarkSeven",
@@ -11,7 +11,7 @@ module.exports = {
       else {
         em.setDescription("Type 7 numbers between 1-39!\nIntegers only!").setFooter("I will only wait for 60 seconds.", message.client.user.displayAvatarURL());
         msg.edit(em);
-        const collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 60000, errors: ["time"] }).catch(console.error);
+        const collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 60000 }).catch(console.error);
         if (!collected.first()) em.setTitle("ERROR!").setDescription("You didn't type the numbers in time!").setFooter("Cancelled.", message.client.user.displayAvatarURL());
         else {
           await collected.first().delete();
@@ -41,7 +41,7 @@ module.exports = {
               var fifth = elegantPair(third, numbers[6]);
               var final = elegantPair(fourth, fifth);
               await con.query("INSERT INTO lottery VALUES('" + message.author.id + "', " + final + ")");
-              itemObject[id] -= 1;
+              itemObject[ID] -= 1;
               var str = JSON.stringify(itemObject);
               await con.query(`UPDATE inventory SET items = '${escape(str)}' WHERE id = '${message.author.id}'`)
               em.setTitle("Success!").setDescription("Your have participated in the lottery!").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());

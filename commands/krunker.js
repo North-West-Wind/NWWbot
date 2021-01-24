@@ -90,8 +90,7 @@ module.exports = {
           await msg.react("⏭");
           await msg.react("⏹");
           var collector = await msg.createReactionCollector((reaction, user) => (["🎲", "🔗", "⏩", "◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id), {
-            idle: 60000,
-            errors: ["time"]
+            idle: 60000
           });
           const linkEmbed = new Discord.MessageEmbed()
             .setColor(console.color())
@@ -117,7 +116,7 @@ module.exports = {
                 else options = Array.from(new Set(official.map(x => x[0].split(":")[0])));
                 linkEmbed.setDescription(`Available regions:\n**${options.join("\n")}**\n\nPlease type the region in the channel.`);
                 await msg.edit({ content: "", embed: linkEmbed });
-                const collected = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+                const collected = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000 });
                 if (collected && collected.first()) await collected.first().delete();
                 if (collected.first().content && options.includes(collected.first().content.split(/ +/)[0].toUpperCase())) {
                   const region = options.find(x => x === collected.first().content.split(/ +/)[0].toUpperCase());
@@ -130,7 +129,7 @@ module.exports = {
                 break;
               case "⏩":
                 await msg.edit({ content: "", embed: pageWarp });
-                const collected1 = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] });
+                const collected1 = await msg.channel.awaitMessages(m => m.author.id === message.author.id, { max: 1, time: 30000 });
                 if (collected1 && collected1.first()) await collected1.first().delete();
                 if (collected1.first().content && !isNaN(parseInt(collected1.first().content))) s = (parseInt(collected1.first().content) - 1) % allEmbeds.length;
                 await msg.edit(allEmbeds[s]);

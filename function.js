@@ -271,7 +271,7 @@ module.exports = {
     await msg.react("▶");
     await msg.react("⏭");
     await msg.react("⏹");
-    const collector = await msg.createReactionCollector(filter, { idle: 60000, errors: ["time"] });
+    const collector = await msg.createReactionCollector(filter, { idle: 60000 });
     collector.on("collect", function (reaction, user) {
       reaction.users.remove(user.id);
       switch (reaction.emoji.name) {
@@ -426,9 +426,5 @@ module.exports = {
       }
     }
     return reader;
-  },
-  async genToken() {
-    const buffer = await new Promise((resolve, reject) => require("crypto").randomBytes(24, async (err, buffer) => err ? reject(err) : resolve(buffer)));
-    return buffer.toString("hex");
   }
 };

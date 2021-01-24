@@ -46,8 +46,7 @@ module.exports = {
       msg.react(emoji);
     }
     var collector = await msg.createReactionCollector(filter, {
-      idle: 60000,
-      errors: ["time"]
+      idle: 60000
     });
     collector.on("collect", function(reaction, user) {
       reaction.users.remove(user.id);

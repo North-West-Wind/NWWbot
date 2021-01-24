@@ -108,7 +108,7 @@ module.exports = {
     const filter = user => user.author.id === message.author.id;
     const guild = message.guild;
     var mesg = await message.channel.send('Giveaway creation started. Type "cancel" to cancel.\n\n`Which channel do you want the giveaway be in? (Please mention the channel)`');
-    const collected = await message.channel.awaitMessages(filter, { time: 30000, max: 1, errors: ["time"] });
+    const collected = await message.channel.awaitMessages(filter, { time: 30000, max: 1 });
     if (collected && collected.first()) await collected.first().delete();
     else return await mesg.edit("30 seconds have passed. Giveaway cancelled.");
     if (collected.first().content === "cancel") return await mesg.edit("Cancelled giveaway.");
@@ -120,7 +120,7 @@ module.exports = {
     if (!permissions.has(this.permission)) return await message.channel.send(genPermMsg(this.permission, 1));
     if (!userPermission.has(this.permission)) return await message.channel.send(genPermMsg(this.permission, 0));
     mesg = await mesg.edit("The channel will be <#" + channel.id + ">\n\n`Now please enter the duration of the giveaway!`");
-    const collected2 = await message.channel.awaitMessages(filter, { time: 30000, max: 1, errors: ["time"] });
+    const collected2 = await message.channel.awaitMessages(filter, { time: 30000, max: 1 });
     if (collected2 && collected2.first()) await collected2.first().delete();
     else return await mesg.edit("30 seconds have passed. Giveaway cancelled.");
     if (collected2.first().content === "cancel") return mesg.edit("Cancelled giveaway.");
@@ -128,13 +128,13 @@ module.exports = {
     if (isNaN(duration)) return await mesg.edit(`**${collected2.first().content}** is not a valid duration!`);
     collected2.first().delete();
     mesg = await mesg.edit(`The duration will be**${readableDateTimeText(duration)}** \n\n\`I'd like to know how many participants can win this giveaway. Please enter the winner count.\``);
-    const collected3 = await message.channel.awaitMessages(filter, { time: 30000, max: 1, errors: ["time"] });
+    const collected3 = await message.channel.awaitMessages(filter, { time: 30000, max: 1 });
     if (collected3 && collected3.first()) await collected3.first().delete();
     else return mesg.edit("30 seconds have passed. Giveaway cancelled.");
     if (collected3.first().content === "cancel") return mesg.edit("Cancelled giveaway.");
     if (isNaN(parseInt(collected3.first().content))) return await mesg.edit(`**${collected3.first().content}** is not a valid winner count!`);
     mesg = await mesg.edit(`Alright! **${parseInt(collected3.first().content)}** participant${parseInt(collected3.first().content) > 1 ? "s" : ""} will win the giveaway. \n\n\`At last, please tell me what is going to be given away!\``)
-    const collected4 = await message.channel.awaitMessages(filter, { time: 30000, max: 1, errors: ["time"] })
+    const collected4 = await message.channel.awaitMessages(filter, { time: 30000, max: 1 })
     if (collected4 && collected4.first()) await collected4.first().delete();
     else return await mesg.edit("30 seconds have passed. Giveaway cancelled.");
     if (collected4.first().content === "cancel") return await mesg.edit("Cancelled giveaway.");

@@ -65,7 +65,7 @@ module.exports = {
         var msg = await message.channel.send(em);
         await msg.react("✅");
         await msg.react("❌");
-        var collected = await msg.awaitReactions((r, u) => (["✅", "❌"].includes(r.emoji.name) && u.id === message.author.id), { time: 30000, max: 1, errors: ["time"] });
+        var collected = await msg.awaitReactions((r, u) => (["✅", "❌"].includes(r.emoji.name) && u.id === message.author.id), { time: 30000, max: 1 });
         await msg.reactions.removeAll().catch(console.error);
         if (!collected || !collected.first()) return msg.edit({ content: "I cannot receive your answer! I'll take that as a NO.", embed: null });
         if (collected.first().emoji.name === "✅") {

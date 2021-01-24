@@ -68,7 +68,7 @@ module.exports = {
 			await msg.react("3️⃣");
 			await msg.react("4️⃣");
 
-			const collected = await msg.awaitReactions((r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.author.id, { max: 1, time: 120000, errors: ["time"] }).catch(console.error);
+			const collected = await msg.awaitReactions((r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.author.id, { max: 1, time: 120000 }).catch(console.error);
 			await msg.reactions.removeAll().catch(console.error);
 			if (!collected || !collected.first()) return await message.channel.send("No operation chosen in 2 minutes. Please try again.");
 			const reaction = collected.first();
@@ -97,7 +97,7 @@ module.exports = {
 	},
 	async splash(message) {
 		let msg = await message.channel.send("Which channel do you want the message to be announced?");
-		let collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] }).catch(err => collected = undefined);
+		let collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete();
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -116,7 +116,7 @@ module.exports = {
 		}
 		await msg.edit(`The announcement will be made in <#${channelID}>. What is the location of the splash?`);
 		collected = undefined;
-		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] }).catch(err => collected = undefined);
+		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete();
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -130,7 +130,7 @@ module.exports = {
 		await msg.edit(`Ok. The location will be **${location}**. Now, please enter the amount of potions and slots. [Format: <potions> <slots>]`);
 
 		collected = undefined;
-		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] }).catch(err => collected = undefined);
+		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete();
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -147,7 +147,7 @@ module.exports = {
 
 		await msg.edit(`Alright, there will be **${potions} potions** and **${slots} slots**. Which role should I mention?`);
 		collected = undefined;
-		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] }).catch(err => collected = undefined);
+		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete();
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -164,7 +164,7 @@ module.exports = {
 
 		await msg.edit("Add notes? [Yes/No]");
 		collected = undefined;
-		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] }).catch(err => collected = undefined);
+		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete();
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -177,7 +177,7 @@ module.exports = {
 		if (["yes", "y"].includes(collected.first().content.toLowerCase())) {
 			await msg.edit("Please enter your notes.");
 			collected = undefined;
-			collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] }).catch(err => collected = undefined);
+			collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
 			if (collected.first())
 				collected.first().delete();
 			if (!collected || !collected.first() || !collected.first().content) {
@@ -192,7 +192,7 @@ module.exports = {
 		let mc = "";
 		await msg.edit("Please tell me your Minecraft username.");
 		collected = undefined;
-		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] }).catch(err => collected = undefined);
+		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete();
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -263,7 +263,7 @@ module.exports = {
 				if (!user) return;
 				let title = `${user.tag} - ${args.slice(4).join(" ")} [${args[3]}] (Timer)`;
 				let msg = await message.channel.send("How long do you want the timer to last for? Please enter the duration (example: 10m23s)");
-				let time = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] }).catch(() => { });
+				let time = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(() => { });
 				if (!time || !time.first() || !time.first().content) return message.channel.send("Timed out. You didn't provide the duration in time!");
 				let duration = ms(time.first().content);
 				time.first().delete();

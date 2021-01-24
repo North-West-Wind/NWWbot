@@ -16,7 +16,7 @@ module.exports = {
     var msg = await message.channel.send(em);
     for(const option of options) await msg.react(option);
     const filter = (r, u) => options.includes(r.emoji.name) && u.id === message.author.id;
-    var collected = await msg.awaitReactions(filter, { max: 1, time: 30000, errors: ["time"] });
+    var collected = await msg.awaitReactions(filter, { max: 1, time: 30000 });
     await msg.reactions.removeAll().catch(console.error);
     em.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     if(!collected || !collected.first()) {

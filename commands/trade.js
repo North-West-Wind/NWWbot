@@ -8,7 +8,7 @@ module.exports = {
     message.delete();
     const filter = x => x.author.id === message.author.id;
     var msg = await message.channel.send("What do you want?");
-    var collected = await message.channel.awaitMessages(filter, { max: 1, time: 60000, errors: ["time"]}).catch(err => msg.edit("Timed out"));
+    var collected = await message.channel.awaitMessages(filter, { max: 1, time: 60000}).catch(err => msg.edit("Timed out"));
     var want = collected.first().content;
     if(want === "cancel") {
       collected.first().delete();
@@ -16,7 +16,7 @@ module.exports = {
     }
     await collected.first().delete();
     await msg.edit("What do you have?");
-    var collected2 = await message.channel.awaitMessages(filter, {max: 1, time: 60000, errors: ["time"]}).catch(err => msg.edit("Timed out"));
+    var collected2 = await message.channel.awaitMessages(filter, {max: 1, time: 60000}).catch(err => msg.edit("Timed out"));
     var offer = collected2.first().content;
     if(offer === "cancel") {
       collected2.first().delete();

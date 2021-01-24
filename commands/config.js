@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const iiu = require("is-image-url");
-const { genPermMsg, genToken } = require("../function");
+const { genPermMsg, ID } = require("../function");
 var panelEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⏹"],
   welcomeEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⬅", "⏹"],
   yesNo = ["1️⃣", "2️⃣", "⬅", "⏹"],
@@ -36,7 +36,7 @@ module.exports = {
     }
     if (config.token !== null) message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
     else try {
-      const generated = await genToken();
+      const generated = ID();
       await message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
       console.guilds[guild.id].token = generated;
       await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
@@ -59,7 +59,7 @@ module.exports = {
       console.error(err);
     }
     try {
-      const generated = await genToken();
+      const generated = ID();
       console.guilds[guild.id].token = generated;
       message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
       await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
@@ -113,7 +113,7 @@ module.exports = {
       await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
       for (var i = 0; i < panelEmoji.length; i++) await msg.react(panelEmoji[i]);
-      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return timedOut();
 
       const reaction = collected.first();
@@ -131,7 +131,7 @@ module.exports = {
       await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
       for (var i = 0; i < welcomeEmoji.length; i++) await msg.react(welcomeEmoji[i]);
-      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return timedOut();
 
       const reaction = collected.first();
@@ -150,7 +150,7 @@ module.exports = {
       await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
-      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut();
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
@@ -202,7 +202,7 @@ module.exports = {
       await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
-      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut();
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
@@ -260,7 +260,7 @@ module.exports = {
       await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
-      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msg.awaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut();
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
@@ -332,7 +332,7 @@ module.exports = {
       await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
-      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut();
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
@@ -399,7 +399,7 @@ module.exports = {
       await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
       for (var i = 0; i < leaveEmoji.length; i++) await msg.react(leaveEmoji[i]);
-      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut();
       const reaction = collected.first();
       let receivedID = leaveEmoji.indexOf(reaction.emoji.name);
@@ -415,7 +415,7 @@ module.exports = {
       await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
-      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut();
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
@@ -472,7 +472,7 @@ module.exports = {
 
       for (var i = 0; i < yesNo.length; i++)  await msg.react(yesNo[i]);
 
-      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut();
 
       const reaction = collected.first();
@@ -533,7 +533,7 @@ module.exports = {
       await msg.reactions.removeAll().catch(console.error);
 
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
-      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut();
 
       const reaction = collected.first();
@@ -586,7 +586,7 @@ module.exports = {
       await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
       for (var i = 0; i < leaveEmoji.length; i++) await msg.react(leaveEmoji[i]);
-      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut();
 
       const reaction = collected.first();
@@ -603,7 +603,7 @@ module.exports = {
       await msg.edit(panelEmbed);
       await msg.reactions.removeAll().catch(console.error);
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
-      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut();
 
       const reaction = collected.first();
@@ -658,7 +658,7 @@ module.exports = {
       await msg.reactions.removeAll().catch(console.error);
 
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
-      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1, errors: ["time"] });
+      const collected = await msgawaitReactions(filter, { idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut();
 
       const reaction = collected.first();

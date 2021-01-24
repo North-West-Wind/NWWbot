@@ -20,12 +20,12 @@ module.exports = {
   },
   async create(message) {
     let msg = await message.channel.send("What will be the title of the timer?");
-    let title = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 60000, errors: ["time"] }).catch(() => { });
+    let title = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 60000 }).catch(() => { });
     if (!title || !title.first() || !title.first().content) return message.channel.send("Timed out. You didn't provide the title in time!");
     title.first().delete();
     title = title.first().content;
     msg = await msg.edit("Title received. Which channel you want the timer to be in? Please mention the channel.");
-    let channel = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] }).catch(() => { });
+    let channel = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(() => { });
     if (!channel || !channel.first() || !channel.first().content) return message.channel.send("Timed out. You didn't provide the channel in time!");
     let channelID = channel.first().content.replace(/<#/g, "").replace(/>/g, "");
     let fetchChannel = await message.guild.channels.resolve(channelID);
@@ -33,7 +33,7 @@ module.exports = {
     if (!fetchChannel) return message.channel.send("That is not a valid channel!");
     channel = fetchChannel;
     msg = await msg.edit("Channel received. How long do you want the timer to last for? Please enter the duration (example: 10m23s)");
-    let time = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] }).catch(() => { });
+    let time = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(() => { });
     if (!time || !time.first() || !time.first().content) return message.channel.send("Timed out. You didn't provide the duration in time!");
     let duration = ms(time.first().content);
     time.first().delete();
@@ -104,12 +104,12 @@ module.exports = {
         return await message.channel.send("Your message was not found!");
       }
       let msg = await message.channel.send("What will be the title of the timer?");
-      let title = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 60000, errors: ["time"] }).catch(() => { });
+      let title = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 60000 }).catch(() => { });
       if (!title || !title.first() || !title.first().content) return message.channel.send("Timed out. You didn't provide the title in time!");
       title.first().delete();
       title = title.first().content;
       msg = await msg.edit("Title received. Which channel you want the timer to be in? Please mention the channel.");
-      let channel = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] }).catch(() => { });
+      let channel = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(() => { });
       if (!channel || !channel.first() || !channel.first().content) return message.channel.send("Timed out. You didn't provide the channel in time!");
       let channelID = channel.first().content.replace(/<#/g, "").replace(/>/g, "");
       let fetchChannel = await message.guild.channels.resolve(channelID);
@@ -117,7 +117,7 @@ module.exports = {
       if (!fetchChannel) return message.channel.send("That is not a valid channel!");
       channel = fetchChannel;
       msg = await msg.edit("Channel received. How much longer do you want the timer to last for? Please enter the duration (example: 10m23s)");
-      let time = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000, errors: ["time"] }).catch(() => { });
+      let time = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(() => { });
       if (!time || !time.first() || !time.first().content) return message.channel.send("Timed out. You didn't provide the duration in time!");
       let duration = ms(time.first().content);
       time.first().delete();

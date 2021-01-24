@@ -27,8 +27,7 @@ module.exports = {
     }) : await message.channel.send(em);
     const collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, {
       max: 1,
-      time: 30000,
-      errors: ["time"]
+      time: 30000
     });
     em.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     if (!collected.first()) return await msg.edit(em);
@@ -45,8 +44,7 @@ module.exports = {
     await msg.react("2️⃣");
     const collected2 = await msg.awaitReactions((reaction, user) => ["1️⃣", "2️⃣"].includes(reaction.emoji.name) && user.id === message.author.id, {
       max: 1,
-      time: 30000,
-      errors: ["time"]
+      time: 30000
     })
     msg.reactions.removeAll().catch(console.error);
     if (!collected2.first()) return msg.edit(em.setColor(console.color()).setTitle(message.author.tag + "'s Inventory").setDescription(IResult.map(x => `**${++i}.** ${x.name} - **${itemObject[x.id]}**`).join("\n")));
