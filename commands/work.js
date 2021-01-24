@@ -13,7 +13,7 @@ module.exports = {
     var [results] = await con.query(`SELECT * FROM currency WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
     if (results.length == 0) {
       const gain = Math.round((getRandomNumber(1, 1.5) + Number.EPSILON) * 100) / 100;
-      await con.query(`INSERT INTO currency VALUES(NULL, ${message.author.id}, ${gain}, 1, '${currentDateSql}', 0.00, '${message.guild.id}')`);
+      await con.query(`INSERT INTO currency VALUES(NULL, '${message.author.id}', ${gain}, 1, '${currentDateSql}', 0.00, NULL, '${message.guild.id}')`);
       message.channel.send(`<@${message.author.id}> worked and gained $${gain}!`);
     } else {
       var correct = 0;
