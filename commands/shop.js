@@ -3,9 +3,12 @@ const { wait, ID, genPermMsg } = require("../function.js");
 
 module.exports = {
   name: "shop",
-  description: "Spend the money you gained from work or lottery.",
+  description: "Spend the money you gained from work on the server shop.",
+  usage: "[subcommand]",
   category: 2,
   permissions: 32,
+  subcommands: ["add"],
+  subdesc: ["Adds a new item to the server shop."],
   async execute(message, args) {
     if (args[0] && args[0] == "add") return await this.add(message, args);
     const color = console.color();

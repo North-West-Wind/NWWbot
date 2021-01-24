@@ -1,9 +1,10 @@
 const Discord = require("discord.js");
 const fs = require("fs");
+const { wait } = require("../function.js");
 
 module.exports = {
   name: "inventory",
-  description: "Display your inventory.",
+  description: "Displays your inventory and allows you to use your purchased items.",
   aliases: ["e"],
   category: 2,
   async execute(message, _args, msg = undefined) {
@@ -80,7 +81,7 @@ module.exports = {
               .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
             await msg.edit(em);
             await wait(3000);
-            return await mainMenu(msg);
+            return await this.execute(message, _args, msg);
           }
           args = collected.first().content.split(/ +/);
           if (args.length < requiredArgs.length) {
@@ -88,7 +89,7 @@ module.exports = {
               .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
             await msg.edit(em);
             await wait(3000);
-            return await mainMenu(msg);
+            return await this.execute(message, _args, msg);
           }
         }
         var run = wanted.run;
@@ -114,7 +115,7 @@ module.exports = {
                 .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
               await msg.edit(em);
               await wait(3000);
-              return await mainMenu(msg);
+              return await this.execute(message, _args, msg);
             }
             try {
               if (c.category === 8) throw new Error("Do NOT run music command with items.");
@@ -125,13 +126,19 @@ module.exports = {
                 .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
               await msg.edit(em);
               await wait(3000);
-              return await mainMenu(msg);
+              return await this.execute(message, _args, msg);
             }
             run = run.replace(command, "");
           }
         if (run.length > 0) await message.channel.send(run);
         itemObject[wanted.id] -= 1;
         await message.pool.query(`UPDATE inventory SET items = '${JSON.stringify(itemObject)}' WHERE id =  '${message.author.id}'`);
+        em.setTitle(`Used ${wanted.name}`)
+          .setDescription("Returning to main menu in 3 seconds...")
+          .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+        await msg.edit(em);
+        await wait(3000);
+        return await this.execute(message, _args, msg);
       }
     } else return await this.execute(message, _args, msg);
   }
