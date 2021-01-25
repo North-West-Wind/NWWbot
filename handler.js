@@ -10,6 +10,7 @@ const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const mysql = require("mysql2");
 const { expire } = require("./commands/role-message.js");
+const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const mysql_config = {
     connectTimeout: 60 * 60 * 1000,
     //acquireTimeout: 60 * 60 * 1000,
@@ -57,6 +58,28 @@ setInterval(async () => {
         con.release();
     } catch (err) { }
 }, 60000);
+async function interest() {
+    var { last: next } = await fetch("http://north-api.northwestwind.repl.co/lastInterest").then(res => res.json());
+    const now = Date.now();
+    if (next - now <= 0) {
+        console.log("Generating bank interest...");
+        const con = await pool.getConnection();
+        const [results] = await con.query("SELECT * FROM currency");
+        for (const result of results) {
+            try {
+                if (result.bank <= 0) continue;
+                const newBank = Math.round((Number(result.bank) * 1.02 + Number.EPSILON) * 100) / 100;
+                await con.query(`UPDATE currency SET bank = ${newBank} WHERE id = ${result.id}`);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        con.release();
+        await fetch(`http://north-api.northwestwind.repl.co/interested?key=${process.env.KEY}&last=${next + 604800000}`);
+    } else console.log(`${moment.duration(Math.round((next - now) / 1000), "seconds").format()} until the next interest`);
+    setTimeout_(interest, next - now);
+}
+interest();
 var timeout = undefined;
 async function messageLevel(message) {
     if (!message || !message.author || !message.author.id || !message.guild || message.author.bot) return;
