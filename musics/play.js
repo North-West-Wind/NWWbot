@@ -820,7 +820,11 @@ module.exports = {
       .setTimestamp()
       .setFooter("Please do so within 60 seconds.", message.client.user.displayAvatarURL());
     try {
-      var scSearched = await scdl.search("tracks", args.slice(1).join(" "));
+      var scSearched = await scdl.search({
+        limit: 20,
+        query: args.slice(1).join(" "),
+        resourceType: "tracks"
+      });
       num = 0;
     } catch (err) {
       console.error(err);

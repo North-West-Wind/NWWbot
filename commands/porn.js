@@ -1,9 +1,10 @@
 var RedditAPI = require("reddit-wrapper-v2");
+const Redgifs = require("redgifs");
 const Discord = require("discord.js");
-const { validImgurURL, validRedditURL, decodeHtmlEntity, validGfyURL, validImgurVideoURL, validRedditVideoURL, validNotImgurURL, validRedGifURL } = require("../function.js");
+const { validImgurURL, validRedditURL, decodeHtmlEntity, validGfyURL, validImgurVideoURL, validRedditVideoURL, validNotImgurURL, validRedGifURL, mergeObjArr } = require("../function.js");
 const Gfycat = require('gfycat-sdk');
 var gfycat = new Gfycat({ clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET });
-
+const r = new Redgifs();
 var redditConn = new RedditAPI({
   username: process.env.RUSER,
   password: process.env.RPW,
@@ -14,12 +15,15 @@ var redditConn = new RedditAPI({
   retry_on_server_error: 5,
   retry_delay: 1
 });
+const fetch = require("node-fetch").default;
+const cheerio = require("cheerio");
 
 module.exports = {
   name: "porn",
   description: "Returns real porn images from Reddit. Require NSFW channel.",
   usage: "[tag]",
   category: 5,
+  // Reference: http://www.reddit.com/r/NSFW411/wiki/index
   //age
   //college
   college: ["collegesluts", "CollegeAmateurs", "collegensfw", "CollegeInitiation", "springbreakers"],
@@ -318,11 +322,111 @@ module.exports = {
   specificCompany: ["suicidegirls", "metart", "Page3Glamour", "Playboy", "Joymii", "xart", "Twistys", "AmateureAllure", "frontmagazine", "nubilefilms", "Hegre", "NutsBabes", "meinmyplace", "VictoriaSecret", "ifeelmyself", "xartbabes"],
   //wtf
   wtf: ["nwfw_wtf", "WhyWouldYouFuckThat", "WTF_PORN_GIFS"],
-
+  // From r/ListOfSubreddits
+  listofsubreddits: {
+    age: ["gonewild30plus", "gonewild18", "onmww", "40plusgonewild"],
+    amateur: ["realgirls", "amateur", "homemadexxx", "dirtypenpals", "FestivalSluts", "CollegeAmateurs", "amateurcumsluts", "nsfw_amateurs", "funwithfriends", "randomsexiness", "amateurporn", "normalnudes", "ItsAmateurHour", "irlgirls", "verifiedamateurs", "NSFWverifiedamateurs"],
+    anal: ["anal", "analgw", "painal", "masterofanal", "buttsharpies"],
+    animated: ["rule34", "ecchi", "futanari", "doujinshi", "yiff", "furry", "monstergirl"],
+    asian: ["AsianHotties", "AsiansGoneWild", "realasians", "juicyasians", "AsianNSFW", "nextdoorasians", "asianporn", "bustyasians", "paag"],
+    ass: ["ass", "asstastic", "facedownassup", "assinthong", "bigasses", "buttplug", "TheUnderbun", "booty", "pawg", "paag", "cutelittlebutts", "hipcleavage", "frogbutt", "HungryButts", "cottontails", "lovetowatchyouleave", "celebritybutts", "cosplaybutts", "whooties", "booty_queens", "twerking"],
+    asshole: ["asshole", "AssholeBehindThong", "assholegonewild", "spreadem", "godasshole"],
+    athlete: ["volleyballgirls", "Ohlympics"],
+    bdsm: ["BDSM", "Bondage", "BDSMcommunity", "bdsmgw", "femdom"],
+    bikinis: ["bikinis", "bikinibridge", "bigtitsinbikinis"],
+    blowjobs: ["blowjobs", "lipsthatgrip", "deepthroat", "onherknees", "blowjobsandwich", "iwanttosuckcock"],
+    body_parts: ["Ass"],
+    body_type: ["bodyperfection", "samespecies", "athleticgirls", "coltish"],
+    boobs_nipples: ["boobies", "TittyDrop", "boltedontits", "boobbounce", "boobs", "downblouse", "homegrowntits", "cleavage", "breastenvy", "youtubetitties", "torpedotits", "thehangingboobs", "page3glamour", "fortyfivefiftyfive", "tits", "amazingtits", "titstouchingtits"],
+    busty: ["BustyPetite", "hugeboobs", "stacked", "burstingout", "BigBoobsGW", "bigboobsgonewild", "2busty2hide", "bigtiddygothgf", "engorgedveinybreasts", "bigtitsinbikinis", "biggerthanherhead"],
+    cam: ["Camwhores", "camsluts", "streamersgonewild"],
+    celebrity: ["celebnsfw", "WatchItForThePlot", "nsfwcelebarchive", "celebritypussy", "oldschoolcoolNSFW", "extramile", "jerkofftocelebs", "celebritybutts", "onoffcelebs", "celebswithbigtits", "youtubersgonewild"],
+    celebrity_athlete: ["Athlete"],
+    comics: ["rule34_comics", "sex_comics"],
+    costumes: ["nsfwcosplay", "nsfwcostumes", "girlsinschooluniforms"],
+    couples: ["GWCouples", "gonewildcouples", "gwcumsluts", "WouldYouFuckMyWife", "couplesgonewild"],
+    cuck: ["cuckold", "cuckquean"],
+    cum: ["cumsluts", "GirlsFinishingTheJob", "cumfetish", "amateurcumsluts", "cumcoveredfucking", "cumhaters", "thickloads", "before_after_cumsluts", "pulsatingcumshots", "impressedbycum"],
+    cum_inside: ["breeding", "forcedcreampie"],
+    cum_location: ["creampies", "throatpies", "FacialFun", "cumonclothes", "oralcreampie", "creampie"],
+    curves: ["gonewildcurvy", "GoneWildplus", "BigBoobsGW", "bigboobsgonewild", "mycleavage", "gonewildchubby"],
+    curvy_thick_thicc: ["gonewildcurvy", "curvy", "gonewildplus", "thick", "juicyasians", "voluptuous", "biggerthanyouthought", "jigglefuck", "chubby", "SlimThick", "massivetitsnass", "thicker", "thickthighs", "tightsqueeze", "casualjiggles", "bbw", "gonewildchubby", "amazingcurves"],
+    dildos: ["suctiondildos", "baddragon"],
+    dresses_skirts: ["WtSSTaDaMiT", "tightdresses", "upskirt", "SchoolgirlSkirts"],
+    ebony: ["WomenOfColor", "darkangels", "blackchickswhitedicks", "ebony", "Afrodisiac"],
+    emotion: ["HappyEmbarrassedGirls", "unashamed", "borednignored", "annoyedtobenude"],
+    ethnicity: ["damngoodinterracial"],
+    face: ["braceface"],
+    feet: ["buttsandbarefeet", "feet"],
+    fit: ["fitgirls", "fitnakedgirls"],
+    general: ["nsfw", "nsfw2", "bonermaterial", "nsfw411", "iWantToFuckHer", "exxxtras", "distension", "bimbofetish", "christiangirls", "dirtygaming", "sexybutnotporn", "femalepov", "omgbeckylookathiscock", "sexygirls", "breedingmaterial", "canthold", "toocuteforporn", "justhotwomen", "stripgirls", "hotstuffnsfw", "uncommonposes", "gifsofremoval", "nostalgiafapping", "truefmk", "nudes", "slut"],
+    gifs: ["NSFW_GIF", "nsfw_gifs", "porn_gifs", "porninfifteenseconds", "CuteModeSlutMode", "60fpsporn", "NSFW_HTML5", "the_best_nsfw_gifs", "verticalgifs", "besthqporngifs"],
+    ginger: ["ginger", "redheads"],
+    gonewild: ["GoneWild", "PetiteGoneWild", "gonewildstories", "GoneWildTube", "treesgonewild", "gonewildaudio", "GWNerdy", "gonemild", "altgonewild", "gifsgonewild", "analgw", "gonewildsmiles", "onstageGW", "RepressedGoneWild", "bdsmgw", "UnderwearGW", "LabiaGW", "TributeMe", "WeddingsGoneWild", "gwpublic", "assholegonewild", "leggingsgonewild", "dykesgonewild", "goneerotic", "snapchatgw", "gonewildhairy", "gonewildtrans", "gonwild", "ratemynudebody"],
+    gore: ["popping", "medicalgore"],
+    groups: ["twingirls", "groupofnudegirls", "Ifyouhadtopickone"],
+    hair: ["GirlswithNeonHair", "shorthairchicks", "blonde"],
+    hardcore: ["nsfwhardcore", "SheLikesItRough", "strugglefucking", "jigglefuck", "whenitgoesin", "outercourse", "gangbang", "pegging", "insertions", "passionx", "xsome", "shefuckshim"],
+    hentai: ["hentai", "hentai_gif", "WesternHentai", "hentai_irl", "traphentai", "hentaibondage"],
+    high_quality: ["60fpsporn", "highresNSFW", "NSFW_HTML5"],
+    incest: ["incestporn", "wincest", "incest_gifs"],
+    indian: ["IndianBabes", "indiansgonewild"],
+    individuals: ["Professional/Cam"],
+    japanese: ["NSFW_Japan", "javdownloadcenter"],
+    korean: ["kpopfap", "NSFW_Korea"],
+    large_penis: ["hugedicktinychick", "amateurgirlsbigcocks", "bbcsluts"],
+    latina: ["latinas", "latinasgw", "latinacuties"],
+    legs_feet: ["girlsinyogapants", "stockings", "legs", "tightshorts"],
+    lesbian: ["lesbians", "StraightGirlsPlaying", "girlskissing", "mmgirls", "dykesgonewild", "justfriendshavingfun"],
+    looking_for: ["TipOfMyPenis", "pornID"],
+    masturbation_orgasm: ["holdthemoan", "O_faces", "jilling", "gettingherselfoff", "quiver", "GirlsHumpingThings", "forcedorgasms", "mmgirls", "ruinedorgasms", "realahegao"],
+    meet_people: ["dirtysnapchat"],
+    men: ["ladybonersgw", "massivecock", "chickflixxx", "gaybrosgonewild", "sissies", "penis", "monsterdicks", "thickdick"],
+    milf: ["milf", "gonewild30plus", "preggoporn", "realmoms", "agedbeauty", "40plusgonewild", "maturemilf"],
+    misogyny: ["freeuse", "fuckdoll", "degradingholes", "fuckmeat"],
+    mound: ["moundofvenus", "pussymound"],
+    nipples: ["pokies", "ghostnipples", "nipples", "puffies", "lactation"],
+    occupation: ["workgonewild", "GoneWildScrubs", "swingersgw", "militarygonewild"],
+    onlyfans: ["OnlyFans101"],
+    other_nsfw: ["randomactsofblowjob", "NSFWFunny", "pornhubcomments", "confusedboners", "dirtykikpals", "nsfw_wtf", "randomactsofmuffdive", "stupidslutsclub", "sluttyconfessions", "jobuds", "drunkdrunkenporn"],
+    outfits: ["OnOff", "nsfwoutfits", "girlswithglasses", "collared", "seethru", "sweatermeat", "cfnm", "nsfwfashion", "leotards", "whyevenwearanything", "shinyporn", "gothsluts"],
+    pants_shorts: ["Bottomless_Vixens", "tightshorts", "tight_shorts"],
+    petite: ["BustyPetite", "dirtysmall", "petitegonewild", "xsmallgirls", "funsized", "hugedicktinychick", "petite", "skinnytail"],
+    positions: ["facesitting", "nsfw_plowcam", "pronebone", "facefuck", "girlswhoride"],
+    professional_cam: ["remylacroix", "Anjelica_Ebbi", "BlancNoir", "rileyreid", "tessafowler", "lilyivy", "mycherrycrush", "gillianbarnes", "emilybloom", "miamalkova", "sashagrey", "angelawhite", "miakhalifa", "alexapearl", "missalice_18", "lanarhoades", "evalovia", "GiannaMichaels", "erinashford", "sextrophies", "sabrina_nichole", "LiyaSilver", "MelissaDebling", "AdrianaChechik", "abelladanger"],
+    professional_sites_porn: ["porn", "suicidegirls", "GirlsDoPorn", "pornstarhq", "porninaminute"],
+    public: ["ChangingRooms", "workgonewild", "FlashingGirls", "publicflashing", "sexinfrontofothers", "NotSafeForNature", "gwpublic", "realpublicnudity", "flashingandflaunting", "publicsexporn", "nakedadventures"],
+    pussy: ["pussy", "rearpussy", "innie", "simps", "pelfie", "LabiaGW", "godpussy", "presenting", "cameltoe", "hairypussy", "pantiestotheside", "breakingtheseal"],
+    redditors: ["sarah_xxx", "dollywinks", "funsizedasian", "Kawaiiikitten", "legendarylootz", "sexyflowerwater", "keriberry_420", "justpeachyy", "hopelesssofrantic"],
+    selfies: ["realsexyselfies", "nude_selfie"],
+    skin: ["Hotchickswithtattoos", "sexyfrex", "tanlines", "oilporn", "ComplexionExcellence"],
+    small: ["tinytits", "aa_cups"],
+    snapchat: ["NSFW_Snapchat", "snapchat_sluts", "snapleaks"],
+    social_media: ["socialmediasluts", "slutsofsnapchat"],
+    stockings_socks: ["stockings", "thighhighs", "leggingsgonewild"],
+    teen: ["legalteens", "collegesluts", "adorableporn", "legalteensXXX", "gonewild18", "18_19", "just18", "PornStarletHQ", "fauxbait", "barelylegalteens"],
+    thighs: ["datgap", "thighhighs", "thickthighs", "thighdeology"],
+    thongs: ["assinthong", "AssholeBehindThong"],
+    tiktok: ["tiktoknsfw", "tiktokthots", "tiktokporn"],
+    titfuck: ["titfuck", "clothedtitfuck"],
+    trans: ["Tgirls", "traps", "futanari", "gonewildtrans", "tgifs", "shemales", "femboys", "transporn"],
+    trash: ["trashyboners", "flubtrash"],
+    underwear: ["lingerie", "pantiestotheside"],
+    video: ["pornvids", "nsfw_videos"],
+    video_games: ["overwatch_porn", "pokeporn", "bowsette", "rule34lol", "rule34overwatch"],
+    waist_tummy: ["SexyTummies", "theratio"],
+    wet_women: ["grool", "squirting"],
+    white: ["palegirls", "pawg", "snowwhites", "whooties"],
+    wives: ["wifesharing", "hotwife", "wouldyoufuckmywife", "slutwife", "naughtywives"],
+    yoga_pants: ["girlsinyogapants", "yogapants"]
+  },
   async execute(message, args) {
-    if (message.channel.nsfw === false) {
-      return message.channel.send("Please use an NSFW channel to use this command!")
-    }
+    if (message.channel.nsfw === false) return await message.channel.send("Please use an NSFW channel to use this command!");
+    if (!message.msg) message.msg = await message.channel.send("Fetching takes a while. Please be patient.");
+    if (["listofsubreddits", "los"].includes(args[0]?.toLowerCase())) return await this.los(message, args);
+    else return await this.nsfw411(message, args);
+  },
+  async nsfw411(message, args) {
     var subs = [];
     var tags = [];
     var more = [];
@@ -2052,58 +2156,67 @@ module.exports = {
       }
     }
 
+    return await this.send(message, args, subs, tags, more);
+  },
+  async los(message, args) {
+    const filtered = args.filter(x => Object.keys(this.listofsubreddits).includes(x));
+    const subs = args.filter(x => Object.values(this.listofsubreddits).some(y => y.includes(x)));
+    if (filtered.length < 1 && subs.length < 1) await this.send(message, args, [].concat.apply([], Object.values(this.listofsubreddits)));
+    else if (filtered.length > 0 && subs.length < 1) await this.send(message, args, mergeObjArr(this.listofsubreddits, filtered));
+    else if (filtered.length < 1 && subs.length > 0) await this.send(message, args, subs);
+    else await this.send(message, args, mergeObjArr(this.listofsubreddits, filtered).concat(subs));
+  },
+  async send(message, args, subs, tags = undefined, more = undefined) {
     const picked = subs[Math.floor(Math.random() * subs.length)];
-
     const response = await redditConn.api.get("/r/" + picked + "/hot", { limit: 100 });
-    if (!response || !response[1]) return await this.execute(message, args);
-    if (!response[1].data || !response[1].data.children || !response[1].data.children[0]) return await this.execute(message, args);
+    if (!response || !response[1]?.data?.children || !response[1].data.children[0]) return await this.execute(message, args);
     const data = response[1].data.children[Math.floor(Math.random() * response[1].data.children.length)].data;
     if (!data || !data.url) return await this.execute(message, args);
-
+    const tag = !!tags ? (tags.length > 0 ? tags.join("->") : "`N/A`") : Object.keys(this.listofsubreddits).find(key => this.listofsubreddits[key].includes(picked));
     const em = new Discord.MessageEmbed()
       .setTitle(`${data.title.substring(0, 256)}`)
-      .setDescription(`Tags: \`${tags.length > 0 ? tags.join("->") : "`N/A`"}\`\n(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\nFrom r/${picked}`)
+      .setDescription(`Tag: \`${tag}\`\n${more ? `(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\n` : ""}From r/${picked}`)
       .setURL(`https://reddit.com${data.permalink}`)
       .setImage(data.url)
       .setColor(console.color())
-      .setFooter(
-        `${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`, message.client.user.displayAvatarURL()
-      )
+      .setFooter(`${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`, message.client.user.displayAvatarURL())
       .setTimestamp();
     if (validNotImgurURL(data.url)) em.setImage(data.url.replace("imgur", "i.imgur") + ".jpg");
-
+    var link;
     if (!validImgurURL(data.url) && !validRedditURL(data.url)) {
-      if (validImgurVideoURL(data.url) || validRedditVideoURL(data.url)) {
-        var link = data.url;
-      } else if (validGfyURL(data.url) || validRedGifURL(data.url)) {
+      if (validImgurVideoURL(data.url) || validRedditVideoURL(data.url)) link = data.url;
+      else if (validGfyURL(data.url)) {
         await gfycat.authenticate();
-        if (validRedGifURL(data.url)) var gif = await gfycat.getGifDetails({ gfyId: data.url.split("/")[4] });
-        else var gif = await gfycat.getGifDetails({ gfyId: data.url.split("/")[3] });
+        var gif = await gfycat.getGifDetails({ gfyId: data.url.split("/")[3] });
         var name = gif.gfyItem.gfyName;
-        var link = `https://thumbs.gfycat.com/${name}-mobile.mp4`;
+        link = `https://thumbs.gfycat.com/${name}-mobile.mp4`;
+      } else if (validRedGifURL(data.url)) {
+        const response = await fetch(data.url).then(res => res.text());
+        const $ = cheerio.load(response);
+        link = $("video source:first-child")[0].attribs.src.replace("-mobile", "");
       } else if (data.media && data.media.type === "gfycat.com") {
         var image = decodeHtmlEntity(data.media.oembed.html).split("&").find(x => x.startsWith("image"));
-        if (!image) em.setDescription(`Tags: \`${tags.length > 0 ? tags.join("->") : "`N/A`"}\`\n(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\nFrom r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).`).setImage(undefined);
+        if (!image) em.setDescription(`Tag: \`${tag}\`\n${more ? `(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\n` : ""}From r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).`).setImage(undefined);
         else {
           var arr = unescape(image).split("/");
           var id = arr[arr.length - 1].split("-")[0];
-          var link = `https://thumbs.gfycat.com/${id}-mobile.mp4`;
+          link = `https://thumbs.gfycat.com/${id}-mobile.mp4`;
         }
       }
       if (!link) return await this.execute(message, args)
-      em.setDescription(`Tags:\`${tags.length > 0 ? tags.join("->") : "`N/A`"}\`\n(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\nFrom r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).`).setImage(undefined);
+      em.setDescription(`Tags:\`${tag}\`\n${more ? `(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\n` : ""}From r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).`).setImage(undefined);
     }
     if (link) {
       try {
         var video = new Discord.MessageAttachment(link, "video.mp4");
+        await message.channel.send(em);
+        await message.channel.send(video);
       } catch (err) {
+        await message.channel.send(`Failed to send video (\`${err.message}\`)! Running again...`);
+        delete message.msg;
         return await this.execute(message, args);
       }
-      if (video.size > 8388119) return await this.execute(message, args);
-      else {
-        await message.channel.send(em);
-        message.channel.send(video);
-      }
     } else message.channel.send(em);
+    if (message.msg) await message.msg.delete();
   }
 }

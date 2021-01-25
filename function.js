@@ -420,5 +420,10 @@ module.exports = {
       }
     }
     return reader;
+  },
+  mergeObjArr(obj, keys) {
+    const arr = [];
+    for (const key of keys) if (obj[key]) arr.push(obj[key]);
+    return [].concat.apply([], arr);
   }
 };
