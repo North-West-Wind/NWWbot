@@ -1,6 +1,6 @@
 var RedditAPI = require("reddit-wrapper-v2");
 const Discord = require("discord.js");
-const { validImgurURL, validRedditURL, decodeHtmlEntity, validGfyURL, validImgurVideoURL, validRedditVideoURL, validNotImgurURL, validRedGifURL, mergeObjArr } = require("../function.js");
+const { validImgurURL, validRedditURL, decodeHtmlEntity, validGfyURL, validImgurVideoURL, validRedditVideoURL, validNotImgurURL, validRedGifURL, mergeObjArr, ms, wait } = require("../function.js");
 const Gfycat = require('gfycat-sdk');
 var gfycat = new Gfycat({ clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET });
 var redditConn = new RedditAPI({
@@ -420,6 +420,8 @@ module.exports = {
   },
   async execute(message, args) {
     if (message.channel.nsfw === false) return await message.channel.send("Please use an NSFW channel to use this command!");
+    if (args[0]?.toLowerCase() === "auto") return await this.auto(message, args);
+    if (args[0]?.toLowerCase() === "tags") return await this.tags(message, args);
     if (!message.msg) message.msg = await message.channel.send("Fetching takes a while. Please be patient.");
     if (["listofsubreddits", "los"].includes(args[0]?.toLowerCase())) return await this.los(message, args);
     else return await this.nsfw411(message, args);
@@ -2167,9 +2169,9 @@ module.exports = {
   async send(message, args, subs, tags = undefined, more = undefined) {
     const picked = subs[Math.floor(Math.random() * subs.length)];
     const response = await redditConn.api.get("/r/" + picked + "/hot", { limit: 100 });
-    if (!response || !response[1]?.data?.children || !response[1].data.children[0]) return await this.execute(message, args);
+    if (!response || !response[1]?.data?.children || !response[1].data.children[0]) return await this.send(message, args, subs, tags, more);
     const data = response[1].data.children[Math.floor(Math.random() * response[1].data.children.length)].data;
-    if (!data || !data.url) return await this.execute(message, args);
+    if (!data || !data.url) return await this.send(message, args, subs, tags, more);
     const tag = !!tags ? (tags.length > 0 ? tags.join("->") : "`N/A`") : Object.keys(this.listofsubreddits).find(key => this.listofsubreddits[key].includes(picked));
     const em = new Discord.MessageEmbed()
       .setTitle(`${data.title.substring(0, 256)}`)
@@ -2184,14 +2186,18 @@ module.exports = {
     if (!validImgurURL(data.url) && !validRedditURL(data.url)) {
       if (validImgurVideoURL(data.url) || validRedditVideoURL(data.url)) link = data.url;
       else if (validGfyURL(data.url)) {
-        await gfycat.authenticate();
-        var gif = await gfycat.getGifDetails({ gfyId: data.url.split("/")[3] });
-        var name = gif.gfyItem.gfyName;
-        link = `https://thumbs.gfycat.com/${name}-mobile.mp4`;
+        try {
+          await gfycat.authenticate();
+          var gif = await gfycat.getGifDetails({ gfyId: data.url.split("/")[3] });
+          var name = gif.gfyItem.gfyName;
+          link = `https://thumbs.gfycat.com/${name}-mobile.mp4`;
+        } catch (err) {
+          console.error(err);
+        }
       } else if (validRedGifURL(data.url)) {
         const response = await fetch(data.url).then(res => res.text());
         const $ = cheerio.load(response);
-        link = $("video source:first-child")[0].attribs.src.replace("-mobile", "");
+        link = $("video source:first-child")[0]?.attribs?.src?.replace("-mobile", "");
       } else if (data.media && data.media.type === "gfycat.com") {
         var image = decodeHtmlEntity(data.media.oembed.html).split("&").find(x => x.startsWith("image"));
         if (!image) em.setDescription(`Tag: \`${tag}\`\n${more ? `(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\n` : ""}From r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).`).setImage(undefined);
@@ -2201,7 +2207,7 @@ module.exports = {
           link = `https://thumbs.gfycat.com/${id}-mobile.mp4`;
         }
       }
-      if (!link) return await this.execute(message, args)
+      if (!link) return await this.send(message, args, subs, tags, more);
       em.setDescription(`Tags:\`${tag}\`\n${more ? `(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\n` : ""}From r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).`).setImage(undefined);
     }
     if (link) {
@@ -2212,9 +2218,30 @@ module.exports = {
       } catch (err) {
         await message.channel.send(`Failed to send video (\`${err.message}\`)! Running again...`);
         delete message.msg;
-        return await this.execute(message, args);
+        return await this.send(message, args, subs, tags, more);
       }
     } else message.channel.send(em);
     if (message.msg) await message.msg.delete();
+  },
+  async auto(message, args) {
+    if (!args[1]) return await message.channel.send("You didn't input the amount!");
+    else if (!args[2]) return await message.channel.send("You didn't input the interval!");
+    const amount = parseInt(args[1]);
+    const interval = ms(args[2]);
+    if (isNaN(amount)) return await message.channel.send("The amount is not valid!");
+    else if (isNaN(interval)) return await message.channel.send("The interval is not valid!");
+    await message.channel.send(`Auto-porn initialized. **${amount} messages** with interval **${interval} milliseconds**`);
+    if (["listofsubreddits", "los"].some(l => args.includes(l))) for (let i = 0; i < amount; i++) {
+      await wait(interval);
+      await this.los(message, args);
+    } else for (let i = 0; i < amount; i++) {
+      await wait(interval);
+      await this.nsfw411(message, args);
+    }
+    await message.channel.send("Auto-porn ended. Thank you for using that!");
+  },
+  async tags(message, args) {
+    if (["listofsubreddits", "los"].includes(args[1]?.toLowerCase())) return await message.channel.send(Object.keys(this.listofsubreddits).join(", "));
+    else return await this.nsfw411(message, args);
   }
 }
