@@ -120,7 +120,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
         if (!h.ok) throw new Error("Received HTTP Status Code: " + h.status);
         await WebMscore.ready;
         const i = await WebMscore.load(song.url.split(".").slice(-1)[0], new Uint8Array(await h.arrayBuffer()));
-        const sf3 = await fetch("https://drive.google.com/uc?export=download&id=1IifZ2trH4gAlbzNWUylCCEvbN3trOYep").then(res => res.arrayBuffer());
+        const sf3 = await fetch("https://www.dropbox.com/s/2pphk3a9llfiree/MuseScore_General.sf3?dl=1").then(res => res.arrayBuffer());
         await i.setSoundFont(new Uint8Array(sf3));
         const j = bufferToStream(Buffer.from((await i.saveAudio("wav")).buffer));
         dispatcher = serverQueue.connection.play(new StreamConcat([j, silence], { highWaterMark: 1 << 25 }), { seek: seek });
