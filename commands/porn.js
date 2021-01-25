@@ -1,10 +1,8 @@
 var RedditAPI = require("reddit-wrapper-v2");
-const Redgifs = require("redgifs");
 const Discord = require("discord.js");
 const { validImgurURL, validRedditURL, decodeHtmlEntity, validGfyURL, validImgurVideoURL, validRedditVideoURL, validNotImgurURL, validRedGifURL, mergeObjArr } = require("../function.js");
 const Gfycat = require('gfycat-sdk');
 var gfycat = new Gfycat({ clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET });
-const r = new Redgifs();
 var redditConn = new RedditAPI({
   username: process.env.RUSER,
   password: process.env.RPW,
