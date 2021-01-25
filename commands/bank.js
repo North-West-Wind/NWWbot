@@ -34,7 +34,7 @@ module.exports = {
           .addField("Bank", "$" + bank)
           .addField("Cash", "$" + cash)
           .setTimestamp()
-          .setFooter(`You can try to "${message.prefix}${module.exports.name} deposit" or "${message.prefix}${module.exports.name} withdraw"!`, message.client.user.displayAvatarURL());
+          .setFooter(`Have a nice day! :)`, message.client.user.displayAvatarURL());
         msg.edit(embed);
         await msg.react("1️⃣");
         await msg.react("2️⃣");
