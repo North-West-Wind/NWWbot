@@ -4,6 +4,7 @@ const cheerio = require("cheerio");
 const Discord = require("discord.js");
 const ytdl = require("ytdl-core");
 const sanitize = require("sanitize-filename");
+const muse = require("musescore-metadata");
 const requestYTDLStream = (url, opts) => {
     const timeoutMS = opts.timeout && !isNaN(parseInt(opts.timeout)) ? parseInt(opts.timeout) : 30000;
     const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${timeoutMS}ms`)), timeoutMS));
@@ -45,9 +46,7 @@ module.exports = {
         var msg = await message.channel.send("Loading score...");
         msg.channel.startTyping();
         try {
-            const response = await rp({ uri: args.join(" "), resolveWithFullResponse: true });
-            if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
-            var data = this.parseBody(response.body);
+            var data = await muse(args.join(" "));
         } catch (err) {
             console.realError(err);
             return message.reply("there was an error trying to fetch data of the score!");

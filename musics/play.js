@@ -290,8 +290,7 @@ module.exports = {
     const songs = [];
     for (const file of files.values()) {
       if (file.url.endsWith("mscz") || file.url.endsWith("mscx")) {
-        await message.channel.send("This feature is not finished :/");
-        return { error: true };
+        await message.channel.send("This feature is not finished :/. There might be bugs.");
         const buffer = await fetch(file.url).then(res => res.arrayBuffer());
         await WebMscore.ready;
         const score = await WebMscore.load(file.url.split(".").slice(-1)[0], new Uint8Array(buffer));
@@ -407,8 +406,7 @@ module.exports = {
     spotifyApi.setAccessToken(d.body.access_token);
     spotifyApi.setRefreshToken(process.env.SPOTREFRESH);
     const refreshed = await spotifyApi.refreshAccessToken().catch(console.error);
-    console.log("Refreshed Spotify Access Token");
-    await spotifyApi.setAccessToken(refreshed.body.access_token);
+    spotifyApi.setAccessToken(refreshed.body.access_token);
     var url_array = args.slice(1).join(" ").replace("https://", "").split("/");
     var musicID = url_array[2].split("?")[0];
     var highlight = false;
@@ -459,7 +457,7 @@ module.exports = {
                 url: results[o].link,
                 type: 1,
                 spot: tracks[i].track.external_urls.spotify,
-                thumbnail: tracks[i].track.album.images[0].url,
+                thumbnail: tracks[i].track.album.images[0]?.url,
                 time: songLength,
                 volume: 1,
                 isLive: results[o].live
@@ -474,7 +472,7 @@ module.exports = {
         var image;
         if (!highlight) {
           const album = await spotifyApi.getAlbums([musicID]);
-          image = album.body.albums[0].images[0].url;
+          image = album.body.albums[0].images[0]?.url;
           let data = await spotifyApi.getAlbumTracks(musicID, { limit: 50 });
           tracks = data.body.items;
           async function checkAll() {
@@ -519,7 +517,7 @@ module.exports = {
                 url: results[o].link,
                 type: 1,
                 spot: tracks[i].external_urls.spotify,
-                thumbnail: highlight ? tracks[i].album.images[o].url : image,
+                thumbnail: highlight ? tracks[i].album.images[o]?.url : image,
                 time: songLength,
                 volume: 1,
                 isLive: results[o].live

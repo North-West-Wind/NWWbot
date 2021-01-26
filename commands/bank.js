@@ -42,6 +42,7 @@ module.exports = {
         var collected = await msg.awaitReactions(filter, { max: 1, time: 30000 });
         msg.reactions.removeAll().catch(console.error);
         if (!collected || !collected.first()) return;
+        const reaction = collected.first();
         if (reaction.emoji.name === "1️⃣") {
           var depositEmbed = new Discord.MessageEmbed()
             .setColor(console.color())
