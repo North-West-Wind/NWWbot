@@ -72,7 +72,7 @@ module.exports = {
           message.channel.send("You will no longer receive message from me when someone joins the server with your invites.");
         } else {
           con.query(`DELETE FROM nolog WHERE id = '${message.author.id}'`);
-          message.client.noLog.splice(message.client.noLog.indexOf(message.author.id), 1);
+          console.noLog.splice(console.noLog.indexOf(message.author.id), 1);
           await message.channel.send("We will message you whenever someone joins the server with your invites.");
         }
       } catch(err) {
