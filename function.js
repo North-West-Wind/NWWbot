@@ -398,10 +398,10 @@ module.exports = {
     if (flag === "welcome") return messageArray.join(" ").replace(/\{user\}/ig, member);
     else if (flag === "leave") return messageArray.join(" ").replace(/\{user\}/ig, member.user.tag);
   },
-  requestStream: (url) => new Promise((resolve, reject) => {
-    const rs = require("request-stream");
-    rs.get(url, {}, (err, res) => err ? reject(err) : resolve(res));
-  }),
+  requestStream: async(url) => {
+    const fetch = require("node-fetch").default;
+    return await fetch(url).then(res => res.body);
+  },
   capitalize: (s) => (typeof s !== 'string') ? '' : s.charAt(0).toUpperCase() + s.slice(1),
   wait: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
   bufferToStream(buf, chunkSize) {

@@ -14,7 +14,6 @@
   "license": "MIT",
   "dependencies": {
     "@discordjs/opus": "^0.3.3",
-    "@fasetto/krunker.io": "^0.4.2",
     "@justalk/pornhub-api": "^3.4.0",
     "akaneko": "^5.0.1",
     "aki-api": "^5.2.1",
@@ -43,7 +42,6 @@
     "ms": "^2.1.3",
     "musescore-metadata": "^1.0.1",
     "music-metadata": "^7.6.4",
-    "mysql": "^2.18.1",
     "mysql2": "^2.2.5",
     "node-fetch": "^2.6.1",
     "number-to-words": "^1.2.4",
@@ -55,7 +53,6 @@
     "reddit-wrapper-v2": "^1.1.6",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
-    "request-stream": "^1.2.2",
     "sanitize-filename": "^1.6.3",
     "smm-api": "^2.1.2",
     "solenolyrics": "^5.0.0",

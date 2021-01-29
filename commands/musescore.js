@@ -18,19 +18,16 @@ const { validMSURL, findValueByPrefix, streamToString, requestStream } = require
 const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
 const PNGtoPDF = (doc, url) => new Promise(async (resolve, reject) => {
-    const rs = require("request-stream");
-    rs.get(url, {}, (err, res) => {
-        if (err) return reject(err);
-        const chunks = [];
-        res.on("data", chunk => chunks.push(chunk));
-        res.on("end", () => {
-            try {
-                doc.image(Buffer.concat(chunks), 0, 0, { width: doc.page.width, height: doc.page.height });
-                resolve();
-            } catch (err) {
-                reject(err);
-            }
-        });
+    const res = await fetch(url).then(res => res.body);
+    const chunks = [];
+    res.on("data", chunk => chunks.push(chunk));
+    res.on("end", () => {
+        try {
+            doc.image(Buffer.concat(chunks), 0, 0, { width: doc.page.width, height: doc.page.height });
+            resolve();
+        } catch (err) {
+            reject(err);
+        }
     });
 });
 
