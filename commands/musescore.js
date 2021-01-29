@@ -73,7 +73,7 @@ module.exports = {
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000 });
         await msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
-            console.log(`Downloading ${args.join(" ")} in server ${message.guild.name}...`);
+            console.log(`Downloading ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}...`);
             try {
                 try {
                     var mesg = await message.channel.send("Generating MP3...");
@@ -115,14 +115,14 @@ module.exports = {
                     } catch (err) {
                         await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``)
                     }
-                    console.log(`Completed download ${args.join(" ")} in server ${message.guild.name}`);
+                    console.log(`Completed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
                 } catch (err) {
-                    console.log(`Failed download ${args.join(" ")} in server ${message.guild.name}`);
+                    console.log(`Failed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
                     console.error(err);
                     await message.reply("there was an error trying to send the files!");
                 }
             } catch (err) {
-                console.log(`Failed download ${args.join(" ")} in server ${message.guild.name}`);
+                console.log(`Failed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
                 console.error(err);
                 await message.channel.send("Failed to generate files!");
             }

@@ -30,7 +30,7 @@ module.exports = {
         const gameStyle = styles[gameStyleID];
         const courseTheme = themes[courseThemeID];
         const courseThemeSub = themes[courseThemeSubID];
-        const description = "No description";
+        var description = "No description";
         if (courses[i].description) description = courses[i].description;
         const Embed = new Discord.MessageEmbed()
           .setColor(console.color())
