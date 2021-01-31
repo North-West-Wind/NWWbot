@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const { validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream, moveArray } = require("../function.js");
-const { parseBody, getMP3 } = require("../commands/musescore.js");
+const { getMP3 } = require("../commands/musescore.js");
+const muse = require("musescore-metadata");
 const { music } = require("./migrate.js");
 const ytdl = require("ytdl-core");
 var SpotifyWebApi = require("spotify-web-api-node");
@@ -692,17 +693,11 @@ module.exports = {
   },
   async addMSURL(message, args) {
     try {
-      var response = await rp({ uri: args.slice(1).join(" "), resolveWithFullResponse: true });
-      if (Math.floor(response.statusCode / 100) !== 2) {
-        message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
-        return { error: true };
-      }
-      var body = response.body;
+      var data = muse(args.slice(1).join(" "));
     } catch (err) {
       message.reply("there was an error trying to fetch data of the score!");
       return { error: true };
     }
-    var data = parseBody(body);
     var songLength = data.duration;
     var song = {
       title: data.title,

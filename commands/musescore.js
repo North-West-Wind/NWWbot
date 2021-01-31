@@ -125,29 +125,6 @@ module.exports = {
             }
         }
     },
-    parseBody(body) {
-        const $ = cheerio.load(body);
-        const meta = $('meta[property="og:image"]')[0];
-        const image = meta.attribs.content;
-        const firstPage = image.split("@")[0];
-        const stores = Array.from($('div[class^="js-"]'));
-        const found = stores.find(x => x.attribs && x.attribs.class && x.attribs.class.match(/^js-\w+$/) && findValueByPrefix(x.attribs, "data-"));
-        const store = findValueByPrefix(found.attribs, "data-");
-        const data = JSON.parse(store).store.page.data;
-        const id = data.score.id;
-        const title = data.score.title;
-        const thumbnail = data.score.thumbnails.large;
-        const parts = data.score.parts_names;
-        const url = data.score.share.publicUrl;
-        const user = data.score.user;
-        const duration = data.score.duration;
-        const pageCount = data.score.pages_count;
-        const created = data.score.date_created;
-        const updated = data.score.date_updated;
-        const description = data.score.truncated_description;
-        const tags = data.score.tags;
-        return { id, title, thumbnail, parts, url, user, duration, pageCount, created, updated, description, tags, firstPage };
-    },
     async search(message, args) {
         try {
             const response = await rp({ uri: `https://musescore.com/sheetmusic?text=${encodeURIComponent(args.join(" "))}`, resolveWithFullResponse: true });
@@ -167,15 +144,7 @@ module.exports = {
         var num = 0;
         var scores = data.store.page.data.scores;
         for (const score of scores) {
-            try {
-                const response = await rp({ uri: score.share.publicUrl, resolveWithFullResponse: true });
-                if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
-                body = response.body;
-            } catch (err) {
-                await msg.delete();
-                return message.reply("there was an error trying to fetch data of the score!");
-            }
-            data = this.parseBody(body);
+            data = muse(score.share.publicUrl);
             const em = new Discord.MessageEmbed()
                 .setColor(console.color())
                 .setTitle(data.title)
@@ -243,10 +212,7 @@ module.exports = {
     },
     getMP3: async (url) => await (Object.getPrototypeOf(async function () { }).constructor("fetch", "url", process.env.FUNCTION3))(fetch, encodeURIComponent(url)),
     getPDF: async (url, data) => {
-        if (!data) {
-            const res = await rp({ uri: url, resolveWithFullResponse: true });
-            data = this.parseBody(res.body);
-        }
+        if (!data) data = muse(url);
         var result = { doc: null, hasPDF: false };
         var score = data.firstPage.replace(/png$/, "svg");
         var fetched = await fetch(score);
