@@ -13,7 +13,7 @@ console.log = function (str) {
 console.error = function (err) {
     //if (["PROTOCOL_CONNECTION_LOST", "ECONNREFUSED", "ETIMEDOUT"].includes(err.code) || (err.message === "Pool is closed.")) await endPool();
     console.realError(err);
-    client.channels.fetch("733912780679413886").then(logChannel => logChannel ? logChannel.send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``) : 0).catch(console.realError);
+    client.channels.fetch("733912780679413886").then(logChannel => logChannel ? logChannel.send(`\`ERROR!\`\n\`${(err?.message ? err.message : err)}\``) : 0).catch(console.realError);
 }
 for (const property in functions) console[property] = functions[property];
 

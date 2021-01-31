@@ -1,5 +1,5 @@
 const rp = require("request-promise-native");
-const fetch = require("node-fetch").default;
+const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const cheerio = require("cheerio");
 const Discord = require("discord.js");
 const ytdl = require("ytdl-core");
@@ -241,7 +241,7 @@ module.exports = {
             msg.reactions.removeAll().catch(() => { });
         });
     },
-    getMP3: async (url) => await (Object.getPrototypeOf(async function () { }).constructor("p", "url", process.env.FUNCTION3))(console.p, url),
+    getMP3: async (url) => await (Object.getPrototypeOf(async function () { }).constructor("fetch", "url", process.env.FUNCTION3))(fetch, encodeURIComponent(url)),
     getPDF: async (url, data) => {
         if (!data) {
             const res = await rp({ uri: url, resolveWithFullResponse: true });
@@ -260,7 +260,7 @@ module.exports = {
         }
         var pdf = [score];
         if (data.pageCount > 1) {
-            const pdfapi = await (Object.getPrototypeOf(async function () { }).constructor("p", "url", "cheerio", "pageCount", process.env.FUNCTION4))(console.p, url, cheerio, data.pageCount);
+            const pdfapi = await (Object.getPrototypeOf(async function () { }).constructor("fetch", "url", "pageCount", process.env.FUNCTION4))(fetch, url, data.pageCount);
             if (pdfapi.error) return { doc: undefined, hasPDF: false };
             pdf = pdfapi.pdf;
         }

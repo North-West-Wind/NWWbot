@@ -4,6 +4,7 @@ const { ms } = require("../function.js");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
+const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 
 module.exports = {
   name: "krunker",
@@ -23,7 +24,7 @@ module.exports = {
         var msg = await message.channel.send("Loading servers...");
         msg.channel.startTyping();
         try {
-          const servers = await (Object.getPrototypeOf(async function(){}).constructor("p", process.env.FUNCTION1))(console.p);
+          const servers = await (Object.getPrototypeOf(async function(){}).constructor("fetch", process.env.FUNCTION1))(fetch);
           if (servers.error) throw new Error(servers.message);
           var official = [];
           var custom = [];
@@ -176,7 +177,7 @@ module.exports = {
         var msg = await message.channel.send("Loading changelogs...");
         msg.channel.startTyping();
         try {
-          const changelogs = await (Object.getPrototypeOf(async function(){}).constructor("p", process.env.FUNCTION2))(console.p);
+          const changelogs = await (Object.getPrototypeOf(async function(){}).constructor("fetch", process.env.FUNCTION2))(fetch);
           if (changelogs.error) throw new Error(changelogs.message);
           var changelog = {};
           changelog[Object.keys(changelogs).find(x => x.includes("UPDATE"))] = changelogs[Object.keys(changelogs).find(x => x.includes("UPDATE"))];
