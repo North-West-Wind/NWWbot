@@ -96,7 +96,7 @@ module.exports = {
     async ready(client) {
         const id = client.id;
         console.log(`[${id}] Ready!`);
-        if (id === 0) { client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true }); console.p = require(process.env.SECRET_INGREDIENT); }
+        if (id === 0) client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
         else client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         const con = await pool.getConnection();
         try {
