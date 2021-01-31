@@ -4,6 +4,7 @@ module.exports = {
   description: "Display your rank in the server. However, this command requires a DLC to work. Leveling system was inspired by MEE6.",
   category: 3,
   async execute(message) {
+    if (!message.guild) return await message.channel.send("This command doesn't support DMs.");
     var [result] = await message.pool.query(`SELECT * FROM leveling WHERE guild = '${message.guild.id}' ORDER BY exp DESC`);
     const user = result.find(x => x.user == message.author.id);
     if (!user) throw new Error("Not found");
