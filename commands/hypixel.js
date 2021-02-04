@@ -4557,7 +4557,7 @@ module.exports = {
           .addField("Auctions", `Created: ${numberWithCommas(auction.created)}\nCompleted: ${numberWithCommas(auction.completed)}\nNo Bids: ${numberWithCommas(auction.no_bids)}\nWon: ${numberWithCommas(auction.won)}\nBids: ${numberWithCommas(auction.bids)}\nHighest Bid: ${numberWithCommas(auction.highest_bid)}\nTotal Fee: ${numberWithCommas(auction.total_fees)}\nGold Earned: ${numberWithCommas(auction.gold_earned)}\nGold Spent: ${numberWithCommas(auction.gold_spent)}`)
           .addField("Sold", `Common: ${isNaN(sold.common) ? 0 : sold.common}\nUncommon: ${isNaN(sold.uncommon) ? 0 : sold.uncommon}\nRare: ${isNaN(sold.rare) ? 0 : sold.rare}\nEpic: ${isNaN(sold.epic) ? 0 : sold.epic}\nLegendary: ${isNaN(sold.legendary) ? 0 : sold.legendary}`, true)
           .addField("Bought", `Common: ${isNaN(bought.common) ? 0 : bought.common}\nUncommon: ${isNaN(bought.uncommon) ? 0 : bought.uncommon}\nRare: ${isNaN(bought.rare) ? 0 : bought.rare}\nEpic: ${isNaN(bought.epic) ? 0 : bought.epic}\nLegendary: ${isNaN(bought.legendary) ? 0 : bought.legendary}`, true)
-          .addField("Skills", skillArr.join("\n"))
+          .addField("Skills", skillArr.length > 0 ? skillArr.join("\n") : "No skills")
           .setTimestamp()
           .setFooter(
             "Have a nice day! :)",
