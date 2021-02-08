@@ -1,6 +1,7 @@
 const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_, readableDateTimeText } = require("../function.js");
 const Discord = require("discord.js");
 const { ms, createEmbedScrolling } = require("../function.js");
+const fetch = require("node-fetch").default;
 const nameToUuid = (str) => {
 	return new Promise((resolve, reject) => {
 		require("mojang-api").nameToUuid(str, function (err, res) { if (err) reject(err); else resolve(res); })
@@ -14,6 +15,9 @@ const profile = (str) => {
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
+const catabombLevels = [
+	
+]
 
 module.exports = {
 	name: "guild",
@@ -39,6 +43,9 @@ module.exports = {
 			case "tim":
 			case "timer":
 				return await this.timer(message, args);
+			case "calculate":
+			case "calc":
+				return await this.calculate(message, args);
 			default:
 				return message.channel.send("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${message.prefix}${this.name} ${this.usage}`);
 		}
@@ -375,5 +382,45 @@ module.exports = {
 			default:
 				await message.channel.send("That is not a sub-subcommand!");
 		}
+	},
+	async calculate(message, args) {
+		if (!args[1]) return await message.channel.send("You didn't provide any username!");
+		const profiles = await fetch(`https://api.slothpixel.me/api/skyblock/profiles/${args[1]}`).then(res => res.json());
+		if (profiles.error || (Object.keys(profiles).length === 0 && profiles.constructor === Object)) return await message.channel.send(profiles.error);
+		const uuid = await nameToUuid(args[1]);
+		var max = 0;
+		var maxSlayer = 0;
+		var maxCatacomb = 0;
+		for (const profile in profiles) {
+			const pApi = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${args[1]}/${profile}`).then(res => res.json());
+			const skills = pApi.members[uuid].skills;
+			var sum = 0;
+			for (const skill in skills) {
+				if (["runecrafting", "carpentry"].includes(skill)) continue;
+				sum += skills[skill].level + skills[skill].progress;
+			}
+			const sa = Math.round(((sum / 8) + Number.EPSILON) * 100) / 100;
+			if (sa > max) max = sa;
+
+			const slayers = pApi.members[uuid].slayer;
+			var slayerXp = 0;
+			for (const slayer of Object.values(slayers)) {
+				slayerXp += slayer.xp;
+			}
+			if (slayerXp > maxSlayer) maxSlayer = slayerXp;
+
+			var catacomb = pApi.members[uuid].dungeons.dungeon_types.catacombs.experience;
+			var nextLvl = 50;
+			var shouldAdd = 25;
+			var catacombLvl = 0;
+			while (catacomb - nextLvl > 0) {
+				catacomb -= nextLvl;
+				catacombLvl++;
+				nextLvl += shouldAdd;
+				shouldAdd += 10 + (catacombLvl - 1) * 5
+			}
+			if (catacombLvl > maxCatacomb) maxCatacomb = catacombLvl;
+		}
+		await message.channel.send(`Skill Average: ${max}\nCatacomb Level: ${maxCatacomb}\nSlayer XP: ${maxSlayer}`);
 	}
 }

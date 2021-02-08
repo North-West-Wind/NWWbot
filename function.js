@@ -82,18 +82,18 @@ module.exports = {
     }
     return;
   },
-  async findRole(message, str) {
+  async findRole(message, str, suppress = false) {
     var roleID = str.replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
       var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === str);
       if (!role) {
-        await message.channel.send("No role was found with the name " + str);
+        if (!suppress) await message.channel.send("No role was found with the name " + str);
         return null;
       }
     } else {
       var role = await message.guild.roles.cache.get(roleID);
       if (!role) {
-        await message.channel.send("No role was found!");
+        if (!suppress) await message.channel.send("No role was found!");
         return null;
       }
     }

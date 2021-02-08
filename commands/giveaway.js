@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 
-const { setTimeout_, jsDate2Mysql, readableDateTime, genPermMsg, ms, readableDateTimeText } = require("../function.js");
-async function setupGiveaway(message, channel, time, item, winnerCount) {
+const { setTimeout_, jsDate2Mysql, readableDateTime, genPermMsg, ms, readableDateTimeText, findRole } = require("../function.js");
+async function setupGiveaway(message, channel, time, item, winnerCount, weight = {}) {
   await message.channel.send(`Created new giveaway in channel <#${channel.id}> for**${readableDateTimeText(time)}** with the item **${item}** and **${winnerCount} winner${winnerCount > 1 ? "s" : ""}**.`);
   const giveawayEmo = console.guilds[message.guild.id]?.giveaway ? console.guilds[message.guild.id].giveaway : "🎉";
   const newDate = new Date(Date.now() + time);
@@ -16,46 +16,51 @@ async function setupGiveaway(message, channel, time, item, winnerCount) {
     .setFooter("Hosted by " + message.author.tag, message.author.displayAvatarURL());
   const giveawayMsg = giveawayEmo + "**GIVEAWAY**" + giveawayEmo;
   var msg = await channel.send(giveawayMsg, Embed);
-  await message.pool.query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${escape(item)}', '${winnerCount}', '${newDateSql}', '${giveawayEmo}', '${message.author.id}', '${color}')`);
-  msg.react(giveawayEmo);
+  await message.pool.query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${escape(item)}', '${winnerCount}', '${newDateSql}', '${giveawayEmo}', '${message.author.id}', '${color}', '${JSON.stringify(weight)}')`);
+  await msg.react(giveawayEmo);
   setTimeout_(async () => {
     const con = await message.pool.getConnection();
     if (msg.deleted) await con.query(`DELETE FROM giveaways WHERE id = '${msg.id}'`);
     else {
-      await con.query(`SELECT * FROM giveaways WHERE id = '${msg.id}'`);
+      var [res] = await con.query(`SELECT * FROM giveaways WHERE id = '${msg.id}'`);
       if (res.length > 0) {
-        const reacted = msg.reactions.cache.get(giveawayEmo).users.cache.values().map(x => x.id);
+        const weighted = [];
+        const reacted = [];
+        for (const user of msg.reactions.cache.get(giveawayEmo).users.cache.values()) {
+            const data = user.id;
+            reacted.push(data);
+        }
         const remove = reacted.indexOf(message.client.user.id);
         if (remove > -1) reacted.splice(remove, 1);
-        if (reacted.length === 0) {
-          await con.query(`DELETE FROM giveaways WHERE id = '${msg.id}'`);
-          const Ended = new Discord.MessageEmbed()
-            .setColor(console.color())
-            .setTitle(item)
-            .setDescription("Giveaway ended")
-            .addField("Winner(s)", "Nobody reacted.")
-            .setTimestamp()
-            .setFooter("Hosted by " + message.author.tag, message.author.displayAvatarURL());
+        for (const id of reacted) {
+          const member = await message.guild.members.fetch(id);
+          for (const role in weight) if (member.roles.cache.find(r => r.id == role)) for (let i = 1; i < weight[role]; i++) weighted.push(id);
+          weighted.push(id);
+        }
+        const Ended = new Discord.MessageEmbed()
+          .setColor(console.color())
+          .setTitle(item)
+          .setDescription("Giveaway ended")
+          .setTimestamp()
+          .setFooter("Hosted by " + message.author.tag, message.author.displayAvatarURL());
+        if (weighted.length === 0) {
+          Ended.addField("Winner(s)", "Nobody reacted.");
           msg.edit(giveawayMsg, Ended);
           msg.reactions.removeAll().catch(() => { });
+          await con.query(`DELETE FROM giveaways WHERE id = '${msg.id}'`);
         } else {
-          var index = Math.floor(Math.random() * reacted.length);
+          var index = Math.floor(Math.random() * weighted.length);
           var winners = [];
           var winnerMessage = "";
 
           for (var i = 0; i < winnerCount; i++) {
-            winners.push(reacted[index]);
-            index = Math.floor(Math.random() * reacted.length);
+            winners.push(weighted[index]);
+            weighted.splice(index, 1);
+            index = Math.floor(Math.random() * weighted.length);
           }
 
           for (var i = 0; i < winners.length; i++) winnerMessage += "<@" + winners[i] + "> ";
-          const Ended = new Discord.MessageEmbed()
-            .setColor(console.color())
-            .setTitle(item)
-            .setDescription("Giveaway ended")
-            .addField("Winner(s)", winnerMessage)
-            .setTimestamp()
-            .setFooter("Hosted by " + message.author.tag, message.author.displayAvatarURL());
+          Ended.addField("Winner(s)", winnerMessage);
           msg.edit(giveawayMsg, Ended);
           var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
           msg.channel.send(`Congratulation, ${winnerMessage}! You won **${item}**!\n${link}`);
@@ -126,27 +131,43 @@ module.exports = {
     if (collected2.first().content === "cancel") return mesg.edit("Cancelled giveaway.");
     const duration = ms(collected2.first().content);
     if (isNaN(duration)) return await mesg.edit(`**${collected2.first().content}** is not a valid duration!`);
-    collected2.first().delete();
     mesg = await mesg.edit(`The duration will be**${readableDateTimeText(duration)}** \n\n\`I'd like to know how many participants can win this giveaway. Please enter the winner count.\``);
     const collected3 = await message.channel.awaitMessages(filter, { time: 30000, max: 1 });
     if (collected3 && collected3.first()) await collected3.first().delete();
     else return mesg.edit("30 seconds have passed. Giveaway cancelled.");
     if (collected3.first().content === "cancel") return mesg.edit("Cancelled giveaway.");
     if (isNaN(parseInt(collected3.first().content))) return await mesg.edit(`**${collected3.first().content}** is not a valid winner count!`);
-    mesg = await mesg.edit(`Alright! **${parseInt(collected3.first().content)}** participant${parseInt(collected3.first().content) > 1 ? "s" : ""} will win the giveaway. \n\n\`At last, please tell me what is going to be given away!\``)
+    mesg = await mesg.edit(`Alright! **${parseInt(collected3.first().content)}** participant${parseInt(collected3.first().content) > 1 ? "s" : ""} will win the giveaway. \n\n\`Now, please tell me what is going to be given away!\``)
     const collected4 = await message.channel.awaitMessages(filter, { time: 30000, max: 1 })
     if (collected4 && collected4.first()) await collected4.first().delete();
     else return await mesg.edit("30 seconds have passed. Giveaway cancelled.");
     if (collected4.first().content === "cancel") return await mesg.edit("Cancelled giveaway.");
-    await mesg.edit(`The items will be **${collected4.first().content}**`);
-    setupGiveaway(message, channel, duration, collected4.first().content, parseInt(collected3.first().content));
+    await mesg.edit(`The items will be **${collected4.first().content}**\n\n\`At last, please enter the weight for roles and separate them with line breaks. Enter anything else to disable this feature. (Example: @role 10)\`\n\`(The example above means the user with the role will have 10 times more chance to win the giveaway)\``);
+    const collected5 = await message.channel.awaitMessages(filter, { time: 30000, max: 1 })
+    if (collected5 && collected5.first()) await collected5.first().delete();
+    else return await mesg.edit("30 seconds have passed. Giveaway cancelled.");
+    var weights = collected5.first().content.split("\n");
+    weights = weights.filter(x => x != "");
+    const weight = {};
+    for (const w of weights) {
+      const strs = w.split(/ +/);
+      const role = await findRole(message, strs[0], true);
+      if (!role) continue;
+      const we = parseInt(strs[1]);
+      if (isNaN(we)) {
+        await message.channel.send(`${strs[1]} is not a valid number!`);
+        continue;
+      }
+      weight[role.id] = we;
+    }
+    setupGiveaway(message, channel, duration, collected4.first().content, parseInt(collected3.first().content), weight);
   },
   async end(message, args) {
     if (!args[1]) return message.channel.send("You didn't provide any message ID!");
     var msgID = args[1];
     const con = await message.pool.getConnection();
     var [result] = await con.query("SELECT * FROM giveaways WHERE id = '" + msgID + "'");
-    if (result.length < 1 || !result) return message.channel.send("No giveaway was found!");
+    if (result.length != 1 || !result) return message.channel.send("No giveaway was found!");
     if (result[0].author !== message.author.id) return message.channel.send("You cannot end a giveaway that is not hosted by you!");
     try {
       var channel = await message.client.channels.fetch(result[0].channel);
@@ -163,13 +184,19 @@ module.exports = {
     }
     if (!msg) return;
     const fetchUser = await message.client.users.fetch(result[0].author);
-    const endReacted = await msg.reactions.cache.get(result[0].emoji).users.cache.values().map(x => x.id);
-    const remove = endReacted.indexOf(message.client.user.id);
+    const reacted = await msg.reactions.cache.get(result[0].emoji).users.cache.values().map(x => x.id);
+    const remove = reacted.indexOf(message.client.user.id);
     if (remove > -1) {
-      endReacted.splice(remove, 1);
+      reacted.splice(remove, 1);
     }
-
-    if (endReacted.length === 0) {
+    const weighted = [];
+    const weight = JSON.parse(result[0].weight);
+    for (const id of reacted) {
+      const member = await message.guild.members.fetch(id);
+      for (const role in weight) if (member.roles.cache.find(r => r.id == id)) for (let i = 1; i < weight[role]; i++) weighted.push(id);
+      weighted.push(id);
+    }
+    if (weighted.length === 0) {
       try { await con.query("DELETE FROM giveaways WHERE id = " + msg.id); } catch (err) { console.error(err); };
       const Ended = new Discord.MessageEmbed()
         .setColor(parseInt(result[0].color))
@@ -181,14 +208,14 @@ module.exports = {
       await msg.edit(Ended);
       msg.reactions.removeAll().catch(err => console.error(err));
     } else {
-      var index = Math.floor(Math.random() * endReacted.length);
+      var index = Math.floor(Math.random() * weighted.length);
       var winners = [];
       var winnerMessage = "";
       var winnerCount = result[0].winner;
 
       for (var i = 0; i < winnerCount; i++) {
-        winners.push(endReacted[index]);
-        index = Math.floor(Math.random() * endReacted.length);
+        winners.push(weighted[index]);
+        index = Math.floor(Math.random() * weighted.length);
       }
       for (var i = 0; i < winners.length; i++) winnerMessage += "<@" + winners[i] + "> ";
       const Ended = new Discord.MessageEmbed()
