@@ -436,13 +436,14 @@ module.exports = {
 		if (!args[1]) return await message.channel.send("You didn't provide any username!");
 		const profiles = await fetch(`https://api.slothpixel.me/api/skyblock/profiles/${args[1]}?key=${process.env.API}`).then(res => res.json());
 		if (profiles.error || (Object.keys(profiles).length === 0 && profiles.constructor === Object)) return await message.channel.send(profiles.error);
-		const uuid = await nameToUuid(args[1]);
+		const uuid = (await nameToUuid(args[1]))[0].id;
 		var maxSa = 0;
 		var maxSlayer = 0;
 		var maxCatacomb = 0;
 		for (const profile in profiles) {
 			const pApi = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${args[1]}/${profile}?key=${process.env.API}`).then(res => res.json());
-			const skills = pApi.members[uuid].skills;
+			var skills = pApi.members[uuid].skills;
+			if (!skills) skills = {};
 			var sum = 0;
 			for (const skill in skills) {
 				if (["runecrafting", "carpentry"].includes(skill)) continue;
@@ -451,14 +452,16 @@ module.exports = {
 			const sa = Math.round(((sum / 8) + Number.EPSILON) * 100) / 100;
 			if (sa > maxSa) maxSa = sa;
 
-			const slayers = pApi.members[uuid].slayer;
+			var slayers = pApi.members[uuid].slayer;
+			if (!slayers) slayers = {};
 			var slayerXp = 0;
 			for (const slayer of Object.values(slayers)) {
 				slayerXp += slayer.xp;
 			}
 			if (slayerXp > maxSlayer) maxSlayer = slayerXp;
 
-			var catacomb = pApi.members[uuid].dungeons.dungeon_types.catacombs.experience;
+			var catacomb = pApi.members[uuid].dungeons?.dungeon_types?.catacombs?.experience;
+			if (!catacomb) catacomb = 0;
 			var catacombLvl = 0;
 			for (const lvl of catabombLevels)
 				if (catacomb - lvl > 0) catacombLvl++;
@@ -467,8 +470,11 @@ module.exports = {
 		}
 		const player = await fetch(`https://api.slothpixel.me/api/players/${args[1]}?key=${process.env.API}`).then(res => res.json());
 		const api = await fetch(`https://api.hypixel.net/player?name=${args[1]}&key=${process.env.API}`).then(res => res.json());
-		const stars = api.player.achievements.bedwars_level;
-		const fkdr = player.stats.BedWars.final_k_d;
+		var stars = api.player.achievements.bedwars_level;
+		var fkdr = player.stats.BedWars?.final_k_d;
+
+		if (!stars) stars = 0;
+		if (!fkdr) fkdr = 0;
 
 		var points = 0;
 		if (maxSa > 20) points += 2;
@@ -497,6 +503,7 @@ module.exports = {
 
 		const result = new Discord.MessageEmbed()
 		.setTitle(`Points of ${args[1]}`)
+		.setColor(console.color())
 		.setDescription(`Total Points: **${points}**${points == Infinity ? " (Instant Accept!)" : ""}`)
 		.addField("Average Skill Level", maxSa, true)
 		.addField("Catacomb Level", maxCatacomb, true)
