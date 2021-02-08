@@ -336,7 +336,9 @@ module.exports = {
                         var winnerMessage = "";
                         const winnerCount = result.winner;
                         for (let i = 0; i < winnerCount; i++) {
-                            winners.push(weighted[index]);
+                            const w = weighted[index];
+                            if (!w) break;
+                            winners.push(w);
                             weighted.splice(index, 1);
                             index = Math.floor(Math.random() * weighted.length);
                         }

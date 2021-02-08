@@ -16,7 +16,56 @@ const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const catabombLevels = [
-	
+	50,
+	125,
+	235,
+	395,
+	625,
+	955,
+	1425,
+	2095,
+	3045,
+	4385,
+	6275,
+	8940,
+	12700,
+	17960,
+	25340,
+	35640,
+	50040,
+	70040,
+	97640,
+	135640,
+	188140,
+	259640,
+	356640,
+	488640,
+	668640,
+	911640,
+	1239640,
+	1684640,
+	2284640,
+	3084640,
+	4149640,
+	5559640,
+	7459640,
+	9959640,
+	13259640,
+	17559640,
+	23157640,
+	30359640,
+	39559640,
+	51559640,
+	66559640,
+	85559640,
+	109559640,
+	139559640,
+	177559640,
+	225559640,
+	285559640,
+	360559640,
+	453559640,
+	569809640
 ]
 
 module.exports = {
@@ -24,9 +73,9 @@ module.exports = {
 	description: "Made specificly for the Hypixel guild War of Underworld.",
 	usage: "<subcommand>",
 	aliases: ["gu"],
-	subcommands: ["splash", "invite", "lottery"],
-	subaliases: ["sp", "in", "lot"],
-	subdesc: ["Create a splash notification.", "Manage invites.", "Start a lottery."],
+	subcommands: ["splash", "invite", "lottery", "timer", "calculate"],
+	subaliases: ["sp", "in", "lot", "tim", "calc"],
+	subdesc: ["Create a splash notification.", "Manage invites.", "Start a lottery.", "Manage timers.", "Calculate user points."],
 	args: 1,
 	async execute(message, args) {
 		if (message.guild.id !== "622311594654695434") return;
@@ -385,14 +434,14 @@ module.exports = {
 	},
 	async calculate(message, args) {
 		if (!args[1]) return await message.channel.send("You didn't provide any username!");
-		const profiles = await fetch(`https://api.slothpixel.me/api/skyblock/profiles/${args[1]}`).then(res => res.json());
+		const profiles = await fetch(`https://api.slothpixel.me/api/skyblock/profiles/${args[1]}?key=${process.env.API}`).then(res => res.json());
 		if (profiles.error || (Object.keys(profiles).length === 0 && profiles.constructor === Object)) return await message.channel.send(profiles.error);
 		const uuid = await nameToUuid(args[1]);
-		var max = 0;
+		var maxSa = 0;
 		var maxSlayer = 0;
 		var maxCatacomb = 0;
 		for (const profile in profiles) {
-			const pApi = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${args[1]}/${profile}`).then(res => res.json());
+			const pApi = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${args[1]}/${profile}?key=${process.env.API}`).then(res => res.json());
 			const skills = pApi.members[uuid].skills;
 			var sum = 0;
 			for (const skill in skills) {
@@ -400,7 +449,7 @@ module.exports = {
 				sum += skills[skill].level + skills[skill].progress;
 			}
 			const sa = Math.round(((sum / 8) + Number.EPSILON) * 100) / 100;
-			if (sa > max) max = sa;
+			if (sa > maxSa) maxSa = sa;
 
 			const slayers = pApi.members[uuid].slayer;
 			var slayerXp = 0;
@@ -410,17 +459,52 @@ module.exports = {
 			if (slayerXp > maxSlayer) maxSlayer = slayerXp;
 
 			var catacomb = pApi.members[uuid].dungeons.dungeon_types.catacombs.experience;
-			var nextLvl = 50;
-			var shouldAdd = 25;
 			var catacombLvl = 0;
-			while (catacomb - nextLvl > 0) {
-				catacomb -= nextLvl;
-				catacombLvl++;
-				nextLvl += shouldAdd;
-				shouldAdd += 10 + (catacombLvl - 1) * 5
-			}
+			for (const lvl of catabombLevels)
+				if (catacomb - lvl > 0) catacombLvl++;
+				else break;
 			if (catacombLvl > maxCatacomb) maxCatacomb = catacombLvl;
 		}
-		await message.channel.send(`Skill Average: ${max}\nCatacomb Level: ${maxCatacomb}\nSlayer XP: ${maxSlayer}`);
+		const player = await fetch(`https://api.slothpixel.me/api/players/${args[1]}?key=${process.env.API}`).then(res => res.json());
+		const api = await fetch(`https://api.hypixel.net/player?name=${args[1]}&key=${process.env.API}`).then(res => res.json());
+		const stars = api.player.achievements.bedwars_level;
+		const fkdr = player.stats.BedWars.final_k_d;
+
+		var points = 0;
+		if (maxSa > 20) points += 2;
+		else if (maxSa > 25) points += 3;
+		else if (maxSa > 30) points += 4;
+		else if (maxSa > 35) points = Infinity;
+
+		if (maxCatacomb > 15) points += 2;
+		else if (maxCatacomb > 20) points += 3;
+		else if (maxCatacomb > 25) points += 4;
+		else if (maxCatacomb > 28) points = Infinity;
+		
+		if (maxSlayer > 60000) points += 2;
+		else if (maxSlayer > 120000) points += 3;
+		else if (maxSlayer > 300000) points += 4;
+		else if (maxSlayer > 500000) points = Infinity;
+		
+		if (stars > 50) points += 2;
+		else if (stars > 100) points += 3;
+		else if (stars > 150) points += 4;
+		else if (stars > 200) points = Infinity;
+		
+		if (fkdr > 1) points += 3;
+		else if (fkdr > 2) points += 6;
+		else if (fkdr > 3) points = Infinity;
+
+		const result = new Discord.MessageEmbed()
+		.setTitle(`Points of ${args[1]}`)
+		.setDescription(`Total Points: **${points}**${points == Infinity ? " (Instant Accept!)" : ""}`)
+		.addField("Average Skill Level", maxSa, true)
+		.addField("Catacomb Level", maxCatacomb, true)
+		.addField("Slayer EXP", maxSlayer, true)
+		.addField("Bedwars Stars", stars, true)
+		.addField("Final Kill/Death Ratio", fkdr, true)
+		.setTimestamp()
+		.setFooter("This command only took me 2 hours :D", message.client.user.displayAvatarURL());
+		await message.channel.send(result);
 	}
 }

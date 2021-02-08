@@ -54,7 +54,9 @@ async function setupGiveaway(message, channel, time, item, winnerCount, weight =
           var winnerMessage = "";
 
           for (var i = 0; i < winnerCount; i++) {
-            winners.push(weighted[index]);
+            const w = weighted[index];
+            if (!w) break;
+            winners.push(w);
             weighted.splice(index, 1);
             index = Math.floor(Math.random() * weighted.length);
           }

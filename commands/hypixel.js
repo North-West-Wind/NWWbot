@@ -46,7 +46,7 @@ module.exports = {
     args[0] = args[0].toLowerCase();
     if (args[0] === "auctionhouse" || args[0] === "ah") {
       if (!args[1]) return message.channel.send("Please enter an item!");
-      const itemIDs = await fetch(`https://api.slothpixel.me/api/skyblock/items`).then(res => res.json());
+      const itemIDs = await fetch(`https://api.slothpixel.me/api/skyblock/items?key=${process.env.API}`).then(res => res.json());
       const items = new Discord.Collection(Object.entries(itemIDs));
       var firstPrior = items.filter(item => item.name.toLowerCase().search(args.slice(1).join(" ").toLowerCase()) === 0);
       var search = items.filter(item => {
@@ -55,7 +55,7 @@ module.exports = {
       });
       if (search.size == 0 && firstPrior.size == 0) return message.channel.send(`No item found for \`${args.slice(1).join(" ")}\``);
       const id = firstPrior.size !== 0 ? firstPrior.keys().next().value : search.keys().next().value;
-      const auctions = await fetch(`https://api.slothpixel.me/api/skyblock/auctions?id=${id}&limit=1000`).then(response => response.json());
+      const auctions = await fetch(`https://api.slothpixel.me/api/skyblock/auctions?id=${id}&limit=1000&key=${process.env.API}`).then(response => response.json());
       if (auctions.error) return message.reply("there was an error trying to get auctions from the API!");
       if (auctions.length == 0) return message.channel.send(`No item found for \`${args.slice(1).join(" ")}\``);
 
@@ -4496,7 +4496,7 @@ module.exports = {
 
       var profiles = Object.values(sb.profiles);
       for (const profile of profiles) {
-        var skyblock = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${res[0].id}/${profile.profile_id}`).then(resp => resp.json().catch(err => {
+        var skyblock = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${res[0].id}/${profile.profile_id}?key=${process.env.API}`).then(resp => resp.json().catch(err => {
           console.error("Fetching failed.");
           error = true;
         }));
