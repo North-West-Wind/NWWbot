@@ -477,34 +477,34 @@ module.exports = {
 		if (!fkdr) fkdr = 0;
 
 		var points = 0;
-		if (maxSa > 20) points += 2;
-		else if (maxSa > 25) points += 3;
+		if (maxSa > 35) points = Infinity;
 		else if (maxSa > 30) points += 4;
-		else if (maxSa > 35) points += 100;
+		else if (maxSa > 25) points += 3;
+		else if (maxSa > 20) points += 2;
 
-		if (maxCatacomb > 15) points += 2;
-		else if (maxCatacomb > 20) points += 3;
+		if (maxCatacomb > 28) points = Infinity;
 		else if (maxCatacomb > 25) points += 4;
-		else if (maxCatacomb > 28) points += 100;
+		else if (maxCatacomb > 20) points += 3;
+		else if (maxCatacomb > 15) points += 2;
 		
-		if (maxSlayer > 60000) points += 2;
-		else if (maxSlayer > 120000) points += 3;
+		if (maxSlayer > 500000) points = Infinity;
 		else if (maxSlayer > 300000) points += 4;
-		else if (maxSlayer > 500000) points += 100;
+		else if (maxSlayer > 120000) points += 3;
+		else if (maxSlayer > 60000) points += 2;
 		
-		if (stars > 50) points += 2;
-		else if (stars > 100) points += 3;
+		if (stars > 200) points = Infinity;
 		else if (stars > 150) points += 4;
-		else if (stars > 200) points += 100;
+		else if (stars > 100) points += 3;
+		else if (stars > 50) points += 2;
 		
-		if (fkdr > 1) points += 3;
+		if (fkdr > 3) points = Infinity;
 		else if (fkdr > 2) points += 6;
-		else if (fkdr > 3) points += 100;
+		else if (fkdr > 1) points += 3;
 
 		const result = new Discord.MessageEmbed()
 		.setTitle(`Points of ${args[1]}`)
 		.setColor(console.color())
-		.setDescription(`Total Points: **${points}**${points > 100 ? " (Instant Accept!)" : ""}`)
+		.setDescription(`Total Points: **${points}**${points == Infinity ? " (Instant Accept!)" : ""}`)
 		.addField("Average Skill Level", maxSa, true)
 		.addField("Catacomb Level", maxCatacomb, true)
 		.addField("Slayer EXP", maxSlayer, true)
