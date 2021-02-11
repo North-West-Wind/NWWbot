@@ -27,7 +27,13 @@ module.exports = {
         });
         mclient.on("kick_disconnect", async () => {
             await wait(3000);
-            mclient.connect(25565, process.env.HOST);
+            mclient = mc.createClient({
+                host: process.env.HOST,
+                port: 25565,
+                username: process.env.USER,
+                password: process.env.PASS,
+                auth: 'mojang'
+            });
             console.log("Reconnected");
         });
         await message.channel.send("Client started!");
