@@ -728,6 +728,7 @@ module.exports = {
         const command = console.commands.get(commandName) || console.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
         if (command.args && args.length < command.args) return message.channel.send(`The command \`${message.prefix}${commandName}\` requires ${command.args} arguments.\nHere's how you are supposed to use it: \`${message.prefix}${command.name}${command.usage ? ` ${command.usage}` : ""}\``);
+        if (command.category === 10 && message.author != process.env.DC) return await message.channel.send("Please don't use Dev Commands.");
         if (message.client.id === 0) {
             if (timeout) {
                 clearTimeout(timeout);

@@ -501,6 +501,7 @@ module.exports = {
 		if (fkdr > 3) bwpt = Infinity;
 		else if (fkdr > 2) bwpt += 6;
 		else if (fkdr > 1) bwpt += 3;
+		else if (fkdr > 0.5) bwpt += 1;
 		var points = sbpt + bwpt;
 
 		const result = new Discord.MessageEmbed()

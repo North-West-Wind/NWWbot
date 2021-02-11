@@ -36,6 +36,7 @@
     "is-image-url": "^1.1.8",
     "krunker.js": "^1.2.4",
     "mathjs": "^9.0.0",
+    "minecraft-protocol": "^1.23.1",
     "mojang-api": "^0.0.2",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
