@@ -313,11 +313,11 @@ module.exports = {
                     const weighted = [];
                     const weight = JSON.parse(result.weight);
                     const guild = await client.guilds.fetch(result.guild);
-                    for (const id of reacted) {
+                    for (const id of reacted) try {
                       const member = await guild.members.fetch(id);
                       for (const role in weight) if (member.roles.cache.find(r => r.id == role)) for (let i = 1; i < weight[role]; i++) weighted.push(id);
                       weighted.push(id);
-                    }
+                    } catch (err) { }
 
                     const Ended = new Discord.MessageEmbed()
                     .setColor(parseInt(result.color))

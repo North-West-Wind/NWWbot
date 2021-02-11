@@ -32,11 +32,11 @@ async function setupGiveaway(message, channel, time, item, winnerCount, weight =
         }
         const remove = reacted.indexOf(message.client.user.id);
         if (remove > -1) reacted.splice(remove, 1);
-        for (const id of reacted) {
+        for (const id of reacted) try {
           const member = await message.guild.members.fetch(id);
           for (const role in weight) if (member.roles.cache.find(r => r.id == role)) for (let i = 1; i < weight[role]; i++) weighted.push(id);
           weighted.push(id);
-        }
+        } catch (err) { }
         const Ended = new Discord.MessageEmbed()
           .setColor(console.color())
           .setTitle(item)
@@ -193,11 +193,11 @@ module.exports = {
     }
     const weighted = [];
     const weight = JSON.parse(result[0].weight);
-    for (const id of reacted) {
+    for (const id of reacted) try {
       const member = await message.guild.members.fetch(id);
       for (const role in weight) if (member.roles.cache.find(r => r.id == id)) for (let i = 1; i < weight[role]; i++) weighted.push(id);
       weighted.push(id);
-    }
+    } catch (err) { }
     if (weighted.length === 0) {
       try { await con.query("DELETE FROM giveaways WHERE id = " + msg.id); } catch (err) { console.error(err); };
       const Ended = new Discord.MessageEmbed()
