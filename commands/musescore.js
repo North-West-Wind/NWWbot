@@ -90,7 +90,7 @@ module.exports = {
                         await mesg.edit(`Failed to generate MP3! \`${err.message}\``);
                     }
                     mesg = await message.channel.send("Generating PDF...");
-                    const { doc, hasPDF, err } = await this.getPDF(args.join(" "), data);
+                    const { doc, hasPDF, err, pages } = await this.getPDF(args.join(" "), data);
                     try {
                         if (!hasPDF) throw new Error(err ? err : "No PDF available");
                         const att = new Discord.MessageAttachment(doc, sanitize(`${data.title}.pdf`));
@@ -98,6 +98,13 @@ module.exports = {
                         await mesg.delete();
                     } catch (err) {
                         await mesg.edit(`Failed to generate PDF! \`${err.message}\``);
+                        if (hasPDF) {
+                            const r = await fetch("https://North-API.northwestwind.repl.co/upload", { method: "post", body: JSON.stringify({ pages }), headers: { 'Content-Type': 'application/json' } });
+                            if (r.ok){
+                                const { id } = await r.json();
+                                await message.channel.send(`But this link might work:\nhttps://North-API.northwestwind.repl.co/download?id=${id}`);
+                            }
+                        }
                     }
                     mesg = await message.channel.send("Generating MSCZ...");
                     const mscz = await this.getMSCZ(data);
@@ -110,7 +117,8 @@ module.exports = {
                         else await message.channel.send(att);
                         await mesg.delete();
                     } catch (err) {
-                        await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``)
+                        await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``);
+                        await message.channel.send(`However, you may still be able to download it from this link:\n${mscz.url}`);
                     }
                     console.log(`Completed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
                 } catch (err) {
@@ -250,7 +258,7 @@ module.exports = {
             }
         }
         doc.end();
-        return { doc: doc, hasPDF: hasPDF };
+        return { doc: doc, hasPDF: hasPDF, pages: pdf };
     },
     getMSCZ: async (data) => {
         // Credit to Xmader/musescore-downloader

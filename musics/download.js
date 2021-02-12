@@ -26,7 +26,9 @@ module.exports = {
         if (args[1] && isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, serverQueue, args);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the queue.");
-        let song = serverQueue.songs[!(!isNaN(parseInt(args[1])) && parseInt(args[1]) > serverQueue.songs.length) ? 0 : parseInt(args[1])];
+        const index = parseInt(args[1]);
+        var song = serverQueue.songs[0];
+        if (!isNaN(index) && index < serverQueue.songs.length && index > 0) song = serverQueue.songs[index];
         await this.download(message, serverQueue, song);
     },
     async download(message, serverQueue, song) {
