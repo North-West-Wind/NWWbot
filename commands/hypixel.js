@@ -182,7 +182,7 @@ module.exports = {
         const stuff = await resp.json();
         const firstdate = new Date(body.player.firstLogin);
         const firstlogin = firstdate.toLocaleString();
-        const karma = 0;
+        var karma = 0;
         if (body.player.karma) karma = body.player.karma.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         const lastdate = new Date(body.player.lastLogin);
         const lastlogin = lastdate.toLocaleString();
