@@ -11,7 +11,7 @@ async function setupGiveaway(message, channel, time, item, winnerCount, weight =
   var Embed = new Discord.MessageEmbed()
     .setColor(color)
     .setTitle(item)
-    .setDescription(`React with ${giveawayEmo} to participate!\n**${winnerCount} winner${winnerCount > 1 ? "s" : ""}** will win\nThis giveaway will end at: \n**${readableTime}**`)
+    .setDescription(`React with ${giveawayEmo} to participate!\n**${winnerCount} winner${winnerCount > 1 ? "s" : ""}** will win\nThis giveaway will end at: \n**${readableTime}**${Object.keys(weight).length > 0 ? `\n\n**Weights:**\n${Object.keys(weight).map(x => `<&@${x}> **${weight[x]}**`).join("\n")}` : ""}`)
     .setTimestamp()
     .setFooter("Hosted by " + message.author.tag, message.author.displayAvatarURL());
   const giveawayMsg = giveawayEmo + "**GIVEAWAY**" + giveawayEmo;
