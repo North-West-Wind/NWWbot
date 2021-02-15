@@ -58,28 +58,6 @@ setInterval(async () => {
         con.release();
     } catch (err) { }
 }, 60000);
-async function interest() {
-    var { last: next } = await fetch("http://north-api.northwestwind.repl.co/lastInterest").then(res => res.json());
-    const now = Date.now();
-    if (next - now <= 0) {
-        console.log("Generating bank interest...");
-        const con = await pool.getConnection();
-        const [results] = await con.query("SELECT * FROM currency");
-        for (const result of results) {
-            try {
-                if (result.bank <= 0) continue;
-                const newBank = Math.round((Number(result.bank) * 1.02 + Number.EPSILON) * 100) / 100;
-                await con.query(`UPDATE currency SET bank = ${newBank} WHERE id = ${result.id}`);
-            } catch (err) {
-                console.error(err);
-            }
-        }
-        con.release();
-        await fetch(`http://north-api.northwestwind.repl.co/interested?key=${process.env.KEY}&last=${next + 604800000}`);
-    } else console.log(`${moment.duration(Math.round((next - now) / 1000), "seconds").format()} until the next interest`);
-    setTimeout_(interest, next - now);
-}
-interest();
 var timeout = undefined;
 async function messageLevel(message) {
     if (!message || !message.author || !message.author.id || !message.guild || message.author.bot) return;
@@ -102,6 +80,16 @@ module.exports = {
         try {
             client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => console.guilds[g.id].invites = guildInvites).catch(() => { }));
             if (id === 0) {
+                const [r] = await con.query("SELECT * FROM currency");
+                for (const result of r) {
+                    try {
+                        if (result.bank <= 0) continue;
+                        const newBank = Math.round((Number(result.bank) * 1.02 + Number.EPSILON) * 100) / 100;
+                        await con.query(`UPDATE currency SET bank = ${newBank} WHERE id = ${result.id}`);
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }
                 const [results] = await con.query("SELECT * FROM servers");
                 results.forEach(async result => {
                     console.guilds[result.id] = {};
@@ -314,17 +302,17 @@ module.exports = {
                     const weight = JSON.parse(result.weight);
                     const guild = await client.guilds.fetch(result.guild);
                     for (const id of reacted) try {
-                      const member = await guild.members.fetch(id);
-                      for (const role in weight) if (member.roles.cache.find(r => r.id == role)) for (let i = 1; i < weight[role]; i++) weighted.push(id);
-                      weighted.push(id);
+                        const member = await guild.members.fetch(id);
+                        for (const role in weight) if (member.roles.cache.find(r => r.id == role)) for (let i = 1; i < weight[role]; i++) weighted.push(id);
+                        weighted.push(id);
                     } catch (err) { }
 
                     const Ended = new Discord.MessageEmbed()
-                    .setColor(parseInt(result.color))
-                    .setTitle(unescape(result.item))
-                    .setDescription("Giveaway ended")
-                    .setTimestamp()
-                    .setFooter("Hosted by " + fetchUser.tag, fetchUser.displayAvatarURL());
+                        .setColor(parseInt(result.color))
+                        .setTitle(unescape(result.item))
+                        .setDescription("Giveaway ended")
+                        .setTimestamp()
+                        .setFooter("Hosted by " + fetchUser.tag, fetchUser.displayAvatarURL());
                     if (weighted.length === 0) {
                         Ended.addField("Winner(s)", "None. Cuz no one reacted.")
                         await msg.edit(Ended);
