@@ -28,7 +28,7 @@ module.exports = {
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the queue.");
         const index = parseInt(args[1]);
         var song = serverQueue.songs[0];
-        if (!isNaN(index) && index < serverQueue.songs.length && index > 0) song = serverQueue.songs[index];
+        if (!isNaN(index) && index <= serverQueue.songs.length && index > 0) song = serverQueue.songs[index - 1];
         await this.download(message, serverQueue, song);
     },
     async download(message, serverQueue, song) {
