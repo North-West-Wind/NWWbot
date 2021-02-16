@@ -10,7 +10,6 @@ const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const mysql = require("mysql2");
 const { expire } = require("./commands/role-message.js");
-const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const mysql_config = {
     connectTimeout: 60 * 60 * 1000,
     //acquireTimeout: 60 * 60 * 1000,
@@ -109,7 +108,7 @@ module.exports = {
                     }
                     if (result.prefix) console.guilds[result.id].prefix = result.prefix;
                     console.guilds[result.id].token = result.token;
-                    console.guilds[result.id].giveaway = result.giveaway;
+                    console.guilds[result.id].giveaway = unescape(result.giveaway);
                     console.guilds[result.id].welcome = {
                         message: result.welcome,
                         channel: result.wel_channel,
@@ -460,7 +459,7 @@ module.exports = {
             const welcome = console.guilds[guild.id]?.welcome;
             if (!welcome?.channel) {
                 if (console.guilds[guild.id]) return;
-                await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+                await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '${escape("🎉")}')`);
                 console.guilds[guild.id] = {};
                 console.log("Inserted record for " + guild.name);
             } else {
@@ -561,7 +560,7 @@ module.exports = {
             const leave = console.guilds[guild.id]?.leave;
             if (!leave?.channel) {
                 if (console.guilds[guild.id]) return;
-                await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+                await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '${escape("🎉")}')`);
                 console.guilds[guild.id] = {};
                 console.log("Inserted record for " + guild.name);
             } else {
@@ -590,7 +589,7 @@ module.exports = {
             const [result] = await con.query("SELECT * FROM servers WHERE id = " + guild.id);
             if (result.length > 0) console.log("Found row inserted for this server before. Cancelling row insert...");
             else {
-                await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+                await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '${escape("🎉")}')`);
                 console.guilds[guild.id] = {};
                 console.log("Inserted record for " + guild.name);
             }
@@ -616,7 +615,7 @@ module.exports = {
         if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel)) return await mainMusic.stop(guild);
         if (!guild.me.voice?.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
         if (!console.guilds[guild.id]) {
-            await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
+            await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '${escape("🎉")}')`);
             console.guilds[guild.id] = {};
             console.log("Inserted record for " + guild.name);
         }
