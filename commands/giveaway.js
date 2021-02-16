@@ -16,7 +16,7 @@ async function setupGiveaway(message, channel, time, item, winnerCount, weight =
     .setFooter("Hosted by " + message.author.tag, message.author.displayAvatarURL());
   const giveawayMsg = giveawayEmo + "**GIVEAWAY**" + giveawayEmo;
   var msg = await channel.send(giveawayMsg, Embed);
-  await message.pool.query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${escape(item)}', '${winnerCount}', '${newDateSql}', '${giveawayEmo}', '${message.author.id}', '${color}', '${JSON.stringify(weight)}')`);
+  await message.pool.query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${escape(item)}', '${winnerCount}', '${newDateSql}', '${escape(giveawayEmo)}', '${message.author.id}', '${color}', '${JSON.stringify(weight)}')`);
   await msg.react(giveawayEmo);
   setTimeout_(async () => {
     const con = await message.pool.getConnection();
@@ -186,7 +186,7 @@ module.exports = {
     }
     if (!msg) return;
     const fetchUser = await message.client.users.fetch(result[0].author);
-    const reacted = await msg.reactions.cache.get(result[0].emoji).users.cache.values().map(x => x.id);
+    const reacted = await msg.reactions.cache.get(unescape(result[0].emoji)).users.cache.values().map(x => x.id);
     const remove = reacted.indexOf(message.client.user.id);
     if (remove > -1) {
       reacted.splice(remove, 1);
