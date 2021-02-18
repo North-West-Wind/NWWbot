@@ -680,7 +680,7 @@ module.exports = {
         messageLevel(message);
         const args = message.content.slice(message.prefix.length).split(/ +/);
         if (message.client.id == 1 && message.channel.id == "647630951169523762") {
-            if (args.length > 1 || !message.content) return;
+            if (!message.content.match(/^\w{3,16}$/)) return;
             const mcName = message.content;
             console.log("Received name: " + mcName);
             const dcUserID = message.author.id;
