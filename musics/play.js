@@ -792,7 +792,7 @@ module.exports = {
       num = 0;
     } catch (err) {
       console.error(err);
-      message.reply("there was an error trying to search the videos!");
+      await message.reply("there was an error trying to search the videos!");
       return { error: true };
     }
     const scResults = scSearched.collection.map(x => ({
@@ -810,7 +810,7 @@ module.exports = {
       allEmbeds.push(scEm);
     }
     if (allEmbeds.length < 1) {
-      message.channel.send("Cannot find any result with the given string.");
+      await message.channel.send("Cannot find any result with the given string.");
       return { error: true };
     }
     var val = { error: true };
