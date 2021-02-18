@@ -10,6 +10,7 @@ const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const mysql = require("mysql2");
 const { expire } = require("./commands/role-message.js");
+const fetch = require("node-fetch").default;
 const mysql_config = {
     connectTimeout: 60 * 60 * 1000,
     //acquireTimeout: 60 * 60 * 1000,
@@ -684,23 +685,29 @@ module.exports = {
             console.log("Received name: " + mcName);
             const dcUserID = message.author.id;
             MojangAPI.nameToUuid(message.content, async function (err, res) {
-                if (err) return message.channel.send("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
-                if (!res[0]) return message.channel.send("Error finding that user!");
+                const msg = await message.channel.send("Processing...");
+                if (err) return await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
+                if (!res[0]) return await msg.edit("Error finding that user!").then(msg => msg.delete({ timeout: 10000 }));
                 const mcUuid = res[0].id;
                 const con = await pool.getConnection();
                 try {
+                    const res = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                    const hyDc = res.links?.DISCORD;
+                    if (!hyDc || hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
+                    await message.member.roles.add("811824361215623188");
                     var [results] = await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                     if (results.length == 0) {
                         await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
-                        message.channel.send("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                        await msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
                         console.log("Inserted record for mc-name.");
                     } else {
                         await con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
-                        message.channel.send("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                        await msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
                         console.log("Updated record for mc-name.");
                     }
                 } catch (err) {
-                    await message.channel.send("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
+                    await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
+                    console.error(err);
                 }
                 con.release();
             });

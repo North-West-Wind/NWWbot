@@ -24,7 +24,7 @@ module.exports = {
         await message.author.send(Embed);
         if (message.channel.type !== "dm") await message.reply("look at your DM!");
       } catch(err) {
-        await message.reply("did you block my DM?");
+        await message.channel.send(Embed);
       }
       return;
     }
