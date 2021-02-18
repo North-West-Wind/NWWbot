@@ -694,7 +694,7 @@ module.exports = {
                     const res = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
                     const hyDc = res.links?.DISCORD;
                     if (!hyDc || hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
-                    await message.member.roles.add("811824361215623188");
+                    await message.member.roles.remove("811824361215623188");
                     var [results] = await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                     if (results.length == 0) {
                         await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
