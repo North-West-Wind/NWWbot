@@ -14,7 +14,6 @@ const WebMscore = require("webmscore").default;
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const mm = require("music-metadata");
 const ytsr = require("ytsr");
-const ytsr2 = require("youtube-sr");
 const ytpl = require("ytpl");
 const moment = require("moment");
 require("moment-duration-format")(moment);
@@ -436,14 +435,7 @@ module.exports = {
             const searched = await ytsr(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
             results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
           } catch (err) {
-            try {
-              const searched = await ytsr2.search(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
-              results = searched.map(x => {
-                return { live: false, duration: x.durationFormatted, link: `https://www.youtube.com/watch?v=${x.id}` };
-              });
-            } catch (err) {
-              return { error: true };
-            }
+            return { error: true };
           }
           var o = 0;
           for (var s = 0; s < results.length; s++) {
@@ -496,14 +488,7 @@ module.exports = {
             const searched = await ytsr(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
             results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
           } catch (err) {
-            try {
-              const searched = await ytsr2.search(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
-              results = searched.map(x => {
-                return { live: false, duration: x.durationFormatted, link: `https://www.youtube.com/watch?v=${x.id}` };
-              });
-            } catch (err) {
-              return { error: true };
-            }
+            return { error: true };
           }
           var o = 0;
           for (var s = 0; s < results.length; s++) {
@@ -536,12 +521,7 @@ module.exports = {
             const searched = await ytsr(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
             results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
           } catch (err) {
-            try {
-              const searched = await ytsr2.search(tracks[i].track.artists[0].name + " - " + tracks[i].track.name, { limit: 20 });
-              results = searched.map(x => { return { live: false, duration: x.durationFormatted, link: `https://www.youtube.com/watch?v=${x.id}` }; });
-            } catch (err) {
-              return { error: true };
-            }
+            return { error: true };
           }
           var o = 0;
           for (var s = 0; s < results.length; s++) {
@@ -774,35 +754,14 @@ module.exports = {
     try {
       const searched = await ytsr(args.slice(1).join(" "), { limit: 20 });
       var video = searched.items.map(x => {
-        var max = 0;
-        var thmb;
-        for (const thumb of x.thumbnails) {
-          if (thumb.width > max) {
-            max = thumb.width;
-            thmb = thumb;
-          }
-        }
-        x.thumbnail = thmb.url;
+        x.thumbnail = x.bestThumbnail?.url;
         x.live = !!x.live;
         return x;
       });
     } catch (err) {
-      try {
-        const searched = await ytsr2.search(args.slice(1).join(" "), { limit: 20 });
-        var video = searched.map(x => {
-          return {
-            live: false,
-            duration: x.durationFormatted,
-            url: `https://www.youtube.com/watch?v=${x.id}`,
-            title: x.title,
-            thumbnail: x.thumbnail.url
-          }
-        });
-      } catch (err) {
-        console.error(err);
-        message.reply("there was an error trying to search the videos!");
-        return { error: true };
-      }
+      console.error(err);
+      message.reply("there was an error trying to search the videos!");
+      return { error: true };
     }
     const ytResults = video.map(x => ({
       title: decodeHtmlEntity(x.title),
