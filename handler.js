@@ -705,6 +705,17 @@ module.exports = {
                         await msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
                         console.log("Updated record for mc-name.");
                     }
+                    const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                    if (gInfo.id === "5b25306a0cf212fe4c98d739") await message.member.roles.add("622319008758104064");
+                    else if (res.rank === "ADMIN") await message.member.roles.add("649556742434324491");
+                    else if (res.rank === "MOD") await message.member.roles.add("649556742832783369");
+                    else if (res.rank === "HELPER") await message.member.roles.add("649556743294156810");
+                    else if (res.rank === "YOUTUBER") await message.member.roles.add("662895829815787530");
+                    else if (res.rank === "VIP") await message.member.roles.add("649556745110159370");
+                    else if (res.rank === "VIP_PLUS") await message.member.roles.add("649556744732803102");
+                    else if (res.rank === "MVP") await message.member.roles.add("649556744078491649");
+                    else if (res.rank === "MVP_PLUS") await message.member.roles.add("649556743982022657");
+                    else if (res.rank === "MVP_PLUS_PLUS") await message.member.roles.add("649556743646347284");
                 } catch (err) {
                     await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
                     console.error(err);
