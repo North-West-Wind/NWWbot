@@ -773,7 +773,19 @@ module.exports = {
     const results = [];
     try {
       const searched = await ytsr(args.slice(1).join(" "), { limit: 20 });
-      var video = searched.items.filter(x => x.type === "video");
+      var video = searched.items.map(x => {
+        var max = 0;
+        var thmb;
+        for (const thumb of x.thumbnails) {
+          if (thumb.width > max) {
+            max = thumb.width;
+            thmb = thumb;
+          }
+        }
+        x.thumbnail = thmb.url;
+        x.live = !!x.live;
+        return x;
+      });
     } catch (err) {
       try {
         const searched = await ytsr2.search(args.slice(1).join(" "), { limit: 20 });
@@ -781,7 +793,7 @@ module.exports = {
           return {
             live: false,
             duration: x.durationFormatted,
-            link: `https://www.youtube.com/watch?v=${x.id}`,
+            url: `https://www.youtube.com/watch?v=${x.id}`,
             title: x.title,
             thumbnail: x.thumbnail.url
           }
@@ -792,9 +804,9 @@ module.exports = {
         return { error: true };
       }
     }
-    const ytResults = video.map(async x => ({
+    const ytResults = video.map(x => ({
       title: decodeHtmlEntity(x.title),
-      url: x.link,
+      url: x.url,
       type: 0,
       time: !x.live ? x.duration : "∞",
       thumbnail: x.thumbnail,
@@ -804,7 +816,7 @@ module.exports = {
     var num = 0;
     if (ytResults.length > 0) {
       results.push(ytResults);
-      Embed.setDescription("Type **soundcloud** / **sc** to show the search results from SoundCloud.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + video.map(x => `${++num} - **[${decodeHtmlEntity(x.title)}](${x.link})** : **${x.duration}**`).slice(0, 10).join("\n"));
+      Embed.setDescription("Type **soundcloud** / **sc** to show the search results from SoundCloud.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + ytResults.map(x => `${++num} - **[${x.title}](${x.url})** : **${x.time}**`).slice(0, 10).join("\n"));
       allEmbeds.push(Embed);
     }
     const scEm = new Discord.MessageEmbed()
@@ -835,7 +847,7 @@ module.exports = {
     })).filter(x => !!x.url);
     if (scResults.length > 0) {
       results.push(scResults);
-      scEm.setDescription("Type **youtube** / **yt** to show the search results from Youtube.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + scResults.map(x => `${++num} - **[${x.title}](${x.permalink_url})** : **${moment.duration(Math.floor(x.duration / 1000), "seconds").format()}**`).slice(0, 10).join("\n"));
+      scEm.setDescription("Type **youtube** / **yt** to show the search results from Youtube.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + scResults.map(x => `${++num} - **[${x.title}](${x.url})** : **${x.time}**`).slice(0, 10).join("\n"));
       allEmbeds.push(scEm);
     }
     if (allEmbeds.length < 1) {
