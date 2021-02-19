@@ -630,9 +630,10 @@ module.exports = {
         const client = oldMember.client || newMember.client;
         if (client.id == 1 && oldMember.displayName !== newMember.displayName) {
             const [results] = await pool.query(`SELECT uuid FROM dcmc WHERE dcid = '${newMember.id}'`);
-            if (results != 1) return;
-            const { name } = await profile(results[0].uuid);
-            newMember.setNickname(`${newMember.displayName} [${name}]`);
+            if (results.length == 1) {
+                const { name } = await profile(results[0].uuid);
+                newMember.setNickname(`${newMember.displayName} [${name}]`);
+            }
         }
         if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
         const boost = console.guilds[newMember.guild.id]?.boost;
