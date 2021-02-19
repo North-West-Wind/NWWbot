@@ -628,6 +628,12 @@ module.exports = {
     },
     async guildMemberUpdate(oldMember, newMember) {
         const client = oldMember.client || newMember.client;
+        if (client.id == 1 && oldMember.displayName !== newMember.displayName) {
+            const [results] = await pool.query(`SELECT uuid FROM dcmc WHERE dcid = '${newMember.id}'`);
+            if (results != 1) return;
+            const { name } = await profile(results[0].uuid);
+            newMember.setNickname(`${newMember.displayName} [${name}]`);
+        }
         if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
         const boost = console.guilds[newMember.guild.id]?.boost;
         if (!boost?.channel || !boost.message) return;
@@ -635,13 +641,6 @@ module.exports = {
             const channel = await client.channels.fetch(boost.channel);
             channel.send(boost.message.replace(/\{user\}/gi, `<@${newMember.id}>`));
         } catch (err) { }
-        if (client.id == 1 && oldMember.displayName !== newMember.displayName) {
-            console.log("Nickname changed!");
-            const [results] = await pool.query(`SELECT uuid FROM dcmc WHERE dcid = '${newMember.id}'`);
-            if (results != 1) return;
-            const { name } = await profile(results[0].uuid);
-            newMember.setNickname(`${newMember.displayName} [${name}]`);
-        }
     },
     async messageReactionAdd(r, user) {
         var roleMessage = console.rm.find(x => x.id == r.message.id);
