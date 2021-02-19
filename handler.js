@@ -636,9 +636,10 @@ module.exports = {
             channel.send(boost.message.replace(/\{user\}/gi, `<@${newMember.id}>`));
         } catch (err) { }
         if (client.id == 1 && oldMember.displayName !== newMember.displayName) {
+            console.log("Nickname changed!");
             const [results] = await pool.query(`SELECT uuid FROM dcmc WHERE dcid = '${newMember.id}'`);
             if (results != 1) return;
-            const { name } = await profile(results[0]);
+            const { name } = await profile(results[0].uuid);
             newMember.setNickname(`${newMember.displayName} [${name}]`);
         }
     },
