@@ -711,7 +711,7 @@ module.exports = {
                         await msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
                         console.log("Updated record for mc-name.");
                     }
-                    await message.member.setNickname(`${message.username} [${res.username}]`);
+                    await message.member.setNickname(`${message.member.displayName} [${res.username}]`);
                     const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
                     if (gInfo.id === "5b25306a0cf212fe4c98d739") await message.member.roles.add("622319008758104064");
                     else await message.member.roles.add("676754719120556042");

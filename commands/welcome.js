@@ -23,7 +23,7 @@ module.exports = {
         console.log("Inserted record for " + guild.name);
       } else {
         if (!welcome.channel) return;
-        const channel = guild.channels.resolve(welcome.channel);
+        const channel = message.channel;
         if (!channel || !channel.permissionsFor(guild.me).has(18432)) return;
         if (welcome.message) try {
           const welcomeMessage = replaceMsgContent(welcome.message, guild, message.client, member, "welcome");
