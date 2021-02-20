@@ -1,4 +1,4 @@
-const { findMember } = require("../function.js");
+const { findMember, wait } = require("../function.js");
 
 module.exports = {
   name: 'role',
@@ -36,12 +36,13 @@ module.exports = {
       for (const member of allMembers.values()) try {
         await member.roles.add(role);
         console.realLog(`Added member ${member.displayName} to ${role.name}`);
+        await wait(200);
       } catch (err) {
         await message.channel.send(`Failed to add **${member.user.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
       }
       await message.channel.send(`Finished adding everyone to the role **${role.name}**.`);
     } else {
-      let member = await findMember(message, args[0]);
+      const member = await findMember(message, args[0]);
       if (!member) return;
       const taggedUser = member.user;
       try {

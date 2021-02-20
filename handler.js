@@ -633,7 +633,7 @@ module.exports = {
             if (results.length == 1) {
                 const { name } = await profile(results[0].uuid);
                 const mcLen = name.length + 3;
-                if (newMember.displayName.length + mcLen > 32) await newMember.setNickname(`${newMember.displayName.slice(0, 29)}... [${name}]`);
+                if (newMember.displayName.length + mcLen > 32) await newMember.setNickname(`${newMember.displayName.slice(0, 29 - mcLen)}... [${name}]`);
                 else await newMember.setNickname(`${newMember.displayName} [${name}]`);
             }
         }

@@ -1,4 +1,4 @@
-const { findMember } = require("../function.js");
+const { findMember, wait } = require("../function.js");
 
 module.exports = {
   name: 'unrole',
@@ -27,19 +27,28 @@ module.exports = {
         return message.channel.send("No role was found!");
       }
     }
-    let member = await findMember(message, args[0]);
-    if (!member) return;
-
-    if (!role) {
-      return message.channel.send("The role is not valid!");
-    }
-    if (member.roles.cache.get(role.id)) {
-      member.roles.remove(role).then(role => console.log(`Removed role ${role.name} from ${taggedUser.username}.`)).catch(console.error);
-      const taggedUser = message.mentions.users.first();
-
-      message.channel.send(`Removed role **${role.name}** from **${taggedUser.tag}**.`);
+    if (!role) return await message.channel.send("The role is not valid!");
+    if (args[0] === "@everyone") {
+      await message.channel.send("Warning: Large servers might take a while!");
+      const allMembers = await message.guild.members.fetch();
+      for (const member of allMembers.values()) try {
+        await member.roles.remove(role);
+        console.realLog(`Removed role ${role.name} from member ${member.displayName}`);
+        await wait(200);
+      } catch (err) {
+        await message.channel.send(`Failed to remove role **${role.name}** from **${taggedUser.tag}**. (Error: **${err.message}**)`);
+      }
+      await message.channel.send(`Finished removing everyone's role **${role.name}**.`);
     } else {
-      return message.reply("that user doesn't have the role " + role + "!");
+      const member = await findMember(message, args[0]);
+      if (!member) return;
+      const taggedUser = member.user;
+      try {
+        await member.roles.remove(role);
+        await message.channel.send(`Successfully removed **${role.name}** from **${taggedUser.tag}**.`);
+      } catch (err) {
+        await message.channel.send(`Failed to remove role **${role.name}** from **${taggedUser.tag}**. (Error: **${err.message}**)`);
+      }
     }
   },
 };
