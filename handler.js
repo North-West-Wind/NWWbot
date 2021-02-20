@@ -633,8 +633,11 @@ module.exports = {
             if (results.length == 1) {
                 const { name } = await profile(results[0].uuid);
                 const mcLen = name.length + 3;
-                if (newMember.displayName.length + mcLen > 32) await newMember.setNickname(`${newMember.displayName.slice(0, 29 - mcLen)}... [${name}]`);
-                else await newMember.setNickname(`${newMember.displayName} [${name}]`);
+                var nickname = newMember.displayName;
+                const matches = nickname.match(/ \[\w+\]$/);
+                if (matches) nickname = nickname.replace(matches[0], "");
+                if (nickname.length + mcLen > 32) await newMember.setNickname(`${nickname.slice(0, 29 - mcLen)}... [${name}]`);
+                else await newMember.setNickname(`${nickname} [${name}]`);
             }
         }
         if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
@@ -715,8 +718,11 @@ module.exports = {
                         console.log("Updated record for mc-name.");
                     }
                     const mcLen = res.username.length + 3;
-                    if (message.member.displayName.length + mcLen > 32) await message.member.setNickname(`${message.member.displayName.slice(0, 29)}... [${res,username}]`);
-                    else await message.member.setNickname(`${message.member.displayName} [${res.username}]`);
+                    var nickname = message.member.displayName;
+                    const matches = nickname.match(/ \[\w+\]$/);
+                    if (matches) nickname = nickname.replace(matches[0], "");
+                    if (nickname.length + mcLen > 32) await message.member.setNickname(`${nickname.slice(0, 29)}... [${res.username}]`);
+                    else await message.member.setNickname(`${nickname} [${res.username}]`);
                     const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
                     if (gInfo.id === "5b25306a0cf212fe4c98d739") await message.member.roles.add("622319008758104064");
                     else await message.member.roles.add("676754719120556042");
