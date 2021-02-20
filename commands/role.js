@@ -35,6 +35,7 @@ module.exports = {
       const allMembers = await message.guild.members.fetch();
       for (const member of allMembers.values()) try {
         await member.roles.add(role);
+        console.realLog(`Added member ${member.displayName} to ${role.name}`);
       } catch (err) {
         await message.channel.send(`Failed to add **${member.user.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
       }
