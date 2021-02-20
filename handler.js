@@ -729,8 +729,13 @@ module.exports = {
                     if (nickname.length + mcLen > 32) await message.member.setNickname(`${nickname.slice(0, 29)}... [${res.username}]`);
                     else await message.member.setNickname(`${nickname} [${res.username}]`);
                     const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
-                    if (gInfo.id === "5b25306a0cf212fe4c98d739") await message.member.roles.add("622319008758104064");
-                    else await message.member.roles.add("676754719120556042");
+                    if (gInfo.id === "5b25306a0cf212fe4c98d739") {
+                        await message.member.roles.remove("676754719120556042");
+                        await message.member.roles.add("622319008758104064");
+                    } else {
+                        await message.member.roles.remove("622319008758104064");
+                        await message.member.roles.add("676754719120556042");
+                    }
                     if (res.rank === "ADMIN") await message.member.roles.add("649556742434324491");
                     else if (res.rank === "MOD") await message.member.roles.add("649556742832783369");
                     else if (res.rank === "HELPER") await message.member.roles.add("649556743294156810");
