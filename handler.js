@@ -632,7 +632,9 @@ module.exports = {
             const [results] = await pool.query(`SELECT uuid FROM dcmc WHERE dcid = '${newMember.id}'`);
             if (results.length == 1) {
                 const { name } = await profile(results[0].uuid);
-                newMember.setNickname(`${newMember.displayName} [${name}]`);
+                const mcLen = name.length + 3;
+                if (newMember.displayName.length + mcLen > 32) await newMember.setNickname(`${newMember.displayName.slice(0, 29)}... [${name}]`);
+                else await newMember.setNickname(`${newMember.displayName} [${name}]`);
             }
         }
         if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
@@ -712,7 +714,9 @@ module.exports = {
                         await msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
                         console.log("Updated record for mc-name.");
                     }
-                    await message.member.setNickname(`${message.member.displayName} [${res.username}]`);
+                    const mcLen = res.username.length + 3;
+                    if (message.member.displayName.length + mcLen > 32) await message.member.setNickname(`${message.member.displayName.slice(0, 29)}... [${res,username}]`);
+                    else await message.member.setNickname(`${message.member.displayName} [${res.username}]`);
                     const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
                     if (gInfo.id === "5b25306a0cf212fe4c98d739") await message.member.roles.add("622319008758104064");
                     else await message.member.roles.add("676754719120556042");
