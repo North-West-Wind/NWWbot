@@ -703,7 +703,12 @@ module.exports = {
                 const mcUuid = res[0].id;
                 const con = await pool.getConnection();
                 try {
-                    const res = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                    var res;
+                    try {
+                        res = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                    } catch (err) {
+                        return await msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
+                    }
                     const hyDc = res.links?.DISCORD;
                     if (!hyDc || hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
                     await message.member.roles.remove("811824361215623188");
