@@ -40,10 +40,7 @@ async function endGiveaway(pool, client, result) {
     const member = await guild.members.fetch(id);
     for (const role in weight) if (member.roles.cache.find(r => r.id == role)) for (let i = 1; i < weight[role]; i++) weighted.push(id);
     weighted.push(id);
-  } catch (err) {
-    console.error("Giveaway member fetching error");
-    console.error(err);
-  }
+  } catch (err) { }
 
   const Ended = new Discord.MessageEmbed()
     .setColor(parseInt(result.color))
