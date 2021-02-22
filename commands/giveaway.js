@@ -1,6 +1,82 @@
 const Discord = require("discord.js");
 
 const { setTimeout_, jsDate2Mysql, readableDateTime, genPermMsg, ms, readableDateTimeText, findRole } = require("../function.js");
+async function endGiveaway(pool, client, result) {
+  try {
+    var channel = await client.channels.fetch(result.channel);
+    var msg = await channel.messages.fetch(result.id);
+    if (msg.deleted) throw new Error("Deleted");
+  } catch (err) {
+    if (channel || (msg && msg.deleted)) {
+      await pool.query("DELETE FROM giveaways WHERE id = " + result.id);
+      return console.log("Deleted a deleted giveaway record.");
+    }
+  }
+  const fetchUser = await client.users.fetch(result.author);
+  const reacted = [];
+  const peopleReacted = await msg.reactions.cache.get(unescape(result.emoji));
+  try {
+    await peopleReacted.users.fetch();
+  } catch (err) {
+    console.error("Giveaway reaction fetching error");
+    return console.error(err);
+  }
+  try {
+    for (const user of peopleReacted.users.cache.values()) {
+      const data = user.id;
+      reacted.push(data);
+    }
+  } catch (err) {
+    console.error("Giveaway array init error");
+    return console.error(err);
+  }
+
+  const remove = reacted.indexOf(client.user.id);
+  if (remove > -1) reacted.splice(remove, 1);
+  const weighted = [];
+  const weight = JSON.parse(result.weight);
+  const guild = await client.guilds.fetch(result.guild);
+  for (const id of reacted) try {
+    const member = await guild.members.fetch(id);
+    for (const role in weight) if (member.roles.cache.find(r => r.id == role)) for (let i = 1; i < weight[role]; i++) weighted.push(id);
+    weighted.push(id);
+  } catch (err) {
+    console.error("Giveaway member fetching error");
+    console.error(err);
+  }
+
+  const Ended = new Discord.MessageEmbed()
+    .setColor(parseInt(result.color))
+    .setTitle(unescape(result.item))
+    .setDescription("Giveaway ended")
+    .setTimestamp()
+    .setFooter("Hosted by " + fetchUser.tag, fetchUser.displayAvatarURL());
+  if (weighted.length === 0) {
+    Ended.addField("Winner(s)", "None. Cuz no one reacted.")
+    await msg.edit(Ended);
+    msg.reactions.removeAll().catch(() => { });
+    await pool.query("DELETE FROM giveaways WHERE id = " + msg.id);
+  } else {
+    var index = Math.floor(Math.random() * weighted.length);
+    const winners = [];
+    var winnerMessage = "";
+    const winnerCount = result.winner;
+    for (let i = 0; i < winnerCount; i++) {
+      const w = weighted[index];
+      if (!w) break;
+      winners.push(w);
+      weighted.splice(index, 1);
+      index = Math.floor(Math.random() * weighted.length);
+    }
+    for (let i = 0; i < winners.length; i++) winnerMessage += "<@" + winners[i] + "> ";
+    Ended.addField("Winner(s)", winnerMessage);
+    await msg.edit(Ended);
+    const link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
+    await msg.channel.send(`Congratulation, ${winnerMessage}! You won **${unescape(result.item)}**!\n${link}`);
+    msg.reactions.removeAll().catch(() => { });
+    await pool.query("DELETE FROM giveaways WHERE id = " + result.id);
+  }
+}
 async function setupGiveaway(message, channel, time, item, winnerCount, weight = {}) {
   await message.channel.send(`Created new giveaway in channel <#${channel.id}> for**${readableDateTimeText(time)}** with the item **${item}** and **${winnerCount} winner${winnerCount > 1 ? "s" : ""}**.`);
   const giveawayEmo = console.guilds[message.guild.id]?.giveaway ? console.guilds[message.guild.id].giveaway : "🎉";
@@ -19,59 +95,8 @@ async function setupGiveaway(message, channel, time, item, winnerCount, weight =
   await message.pool.query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${escape(item)}', '${winnerCount}', '${newDateSql}', '${escape(giveawayEmo)}', '${message.author.id}', '${color}', '${JSON.stringify(weight)}')`);
   await msg.react(giveawayEmo);
   setTimeout_(async () => {
-    const con = await message.pool.getConnection();
-    if (msg.deleted) await con.query(`DELETE FROM giveaways WHERE id = '${msg.id}'`);
-    else {
-      var [res] = await con.query(`SELECT * FROM giveaways WHERE id = '${msg.id}'`);
-      if (res.length > 0) {
-        const weighted = [];
-        const reacted = [];
-        for (const user of msg.reactions.cache.get(giveawayEmo).users.cache.values()) {
-            const data = user.id;
-            reacted.push(data);
-        }
-        const remove = reacted.indexOf(message.client.user.id);
-        if (remove > -1) reacted.splice(remove, 1);
-        for (const id of reacted) try {
-          const member = await message.guild.members.fetch(id);
-          for (const role in weight) if (member.roles.cache.find(r => r.id == role)) for (let i = 1; i < weight[role]; i++) weighted.push(id);
-          weighted.push(id);
-        } catch (err) { }
-        const Ended = new Discord.MessageEmbed()
-          .setColor(console.color())
-          .setTitle(item)
-          .setDescription("Giveaway ended")
-          .setTimestamp()
-          .setFooter("Hosted by " + message.author.tag, message.author.displayAvatarURL());
-        if (weighted.length === 0) {
-          Ended.addField("Winner(s)", "Nobody reacted.");
-          msg.edit(giveawayMsg, Ended);
-          msg.reactions.removeAll().catch(() => { });
-          await con.query(`DELETE FROM giveaways WHERE id = '${msg.id}'`);
-        } else {
-          var index = Math.floor(Math.random() * weighted.length);
-          var winners = [];
-          var winnerMessage = "";
-
-          for (var i = 0; i < winnerCount; i++) {
-            const w = weighted[index];
-            if (!w) break;
-            winners.push(w);
-            weighted.splice(index, 1);
-            index = Math.floor(Math.random() * weighted.length);
-          }
-
-          for (var i = 0; i < winners.length; i++) winnerMessage += "<@" + winners[i] + "> ";
-          Ended.addField("Winner(s)", winnerMessage);
-          msg.edit(giveawayMsg, Ended);
-          var link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
-          msg.channel.send(`Congratulation, ${winnerMessage}! You won **${item}**!\n${link}`);
-          msg.reactions.removeAll().catch(() => { });
-          await con.query(`DELETE FROM giveaways WHERE id = '${msg.id}'`);
-        }
-      }
-    }
-    con.release();
+    const [res] = await message.pool.query(`SELECT * FROM giveaways WHERE id = '${msg.id}'`);
+    if (res.length == 1) await endGiveaway(message.pool, message.client, res[0]);
   }, time);
 }
 
@@ -166,75 +191,11 @@ module.exports = {
   },
   async end(message, args) {
     if (!args[1]) return message.channel.send("You didn't provide any message ID!");
-    var msgID = args[1];
-    const con = await message.pool.getConnection();
-    var [result] = await con.query("SELECT * FROM giveaways WHERE id = '" + msgID + "'");
+    const msgID = args[1];
+    const [result] = await message.pool.query("SELECT * FROM giveaways WHERE id = '" + msgID + "'");
     if (result.length != 1 || !result) return message.channel.send("No giveaway was found!");
     if (result[0].author !== message.author.id) return message.channel.send("You cannot end a giveaway that is not hosted by you!");
-    try {
-      var channel = await message.client.channels.fetch(result[0].channel);
-      var msg = await channel.messages.fetch(result[0].id);
-      if (msg.deleted) throw new Error("Deleted");
-    } catch (err) {
-      await message.channel.send("Cannot find channel or message! Maybe it was deleted?");
-      if (channel || (msg && msg.deleted)) {
-        await con.query("DELETE FROM giveaways WHERE id = " + result[0].id);
-        con.release();
-        console.log("Deleted an ended giveaway record.");
-      }
-      return;
-    }
-    if (!msg) return;
-    const fetchUser = await message.client.users.fetch(result[0].author);
-    const reacted = await msg.reactions.cache.get(unescape(result[0].emoji)).users.cache.values().map(x => x.id);
-    const remove = reacted.indexOf(message.client.user.id);
-    if (remove > -1) {
-      reacted.splice(remove, 1);
-    }
-    const weighted = [];
-    const weight = JSON.parse(result[0].weight);
-    for (const id of reacted) try {
-      const member = await message.guild.members.fetch(id);
-      for (const role in weight) if (member.roles.cache.find(r => r.id == id)) for (let i = 1; i < weight[role]; i++) weighted.push(id);
-      weighted.push(id);
-    } catch (err) { }
-    if (weighted.length === 0) {
-      try { await con.query("DELETE FROM giveaways WHERE id = " + msg.id); } catch (err) { console.error(err); };
-      const Ended = new Discord.MessageEmbed()
-        .setColor(parseInt(result[0].color))
-        .setTitle(unescape(result[0].item))
-        .setDescription("Giveaway ended")
-        .addField("Winner(s)", "None. Cuz no one reacted.")
-        .setTimestamp()
-        .setFooter("Hosted by " + fetchUser.tag, fetchUser.displayAvatarURL());
-      await msg.edit(Ended);
-      msg.reactions.removeAll().catch(err => console.error(err));
-    } else {
-      var index = Math.floor(Math.random() * weighted.length);
-      var winners = [];
-      var winnerMessage = "";
-      var winnerCount = result[0].winner;
-
-      for (var i = 0; i < winnerCount; i++) {
-        winners.push(weighted[index]);
-        index = Math.floor(Math.random() * weighted.length);
-      }
-      for (var i = 0; i < winners.length; i++) winnerMessage += "<@" + winners[i] + "> ";
-      const Ended = new Discord.MessageEmbed()
-        .setColor(parseInt(result[0].color))
-        .setTitle(unescape(result[0].item))
-        .setDescription("Giveaway ended")
-        .addField("Winner(s)", winnerMessage)
-        .setTimestamp()
-        .setFooter("Hosted by " + fetchUser.tag, fetchUser.displayAvatarURL());
-      msg.edit(Ended);
-      const link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
-      msg.channel.send(`Congratulation, ${winnerMessage}! You won **${unescape(result[0].item)}**!\n${link}`);
-      msg.reactions.removeAll().catch(() => { });
-      try { await con.query("DELETE FROM giveaways WHERE id = " + msg.id); } catch (err) { console.error(err); };
-      await message.channel.send("Ended a giveaway!");
-    }
-    con.release();
+    await endGiveaway(message.pool, message.client, result);
   },
   async list(message) {
     const guild = message.guild;
@@ -250,5 +211,6 @@ module.exports = {
       Embed.addField(readableTime, unescape(results[i].item));
     }
     await message.channel.send(Embed);
-  }
+  },
+  endGiveaway
 };
