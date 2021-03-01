@@ -688,7 +688,7 @@ module.exports = {
                     else if (res.rank === "MVP_PLUS_PLUS") await message.member.roles.add("649556743646347284");
                 } catch (err) {
                     console.error(err);
-                    await message.channel.send.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
+                    await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
                 }
                 con.release();
             });
