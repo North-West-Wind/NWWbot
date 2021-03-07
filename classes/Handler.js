@@ -1084,6 +1084,7 @@ class AliceHandler extends Handler {
                         res = yield fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
                     }
                     catch (err) {
+                        console.error(err);
                         return yield msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
                     }
                     const hyDc = (_a = res.links) === null || _a === void 0 ? void 0 : _a.DISCORD;
