@@ -875,8 +875,9 @@ export class AliceHandler extends Handler {
             const msg = await message.channel.send("Processing...");
             const con = await client.pool.getConnection();
             try {
-                const mcUuid = await nameToUuid(message.content);
+                const mcUuid = await nameToUuid(mcName);
                 if (!mcUuid) return await msg.edit("Error finding that user!").then(msg => msg.delete({ timeout: 10000 }));
+                NorthClient.storage.log("Found UUID: " + mcUuid);
                 var res;
                 try {
                     res = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
