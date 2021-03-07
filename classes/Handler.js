@@ -1075,9 +1075,10 @@ class AliceHandler extends Handler {
                 const msg = yield message.channel.send("Processing...");
                 const con = yield client.pool.getConnection();
                 try {
-                    const mcUuid = yield function_1.nameToUuid(message.content);
+                    const mcUuid = yield function_1.nameToUuid(mcName);
                     if (!mcUuid)
                         return yield msg.edit("Error finding that user!").then(msg => msg.delete({ timeout: 10000 }));
+                    NorthClient_1.NorthClient.storage.log("Found UUID: " + mcUuid);
                     var res;
                     try {
                         res = yield fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
