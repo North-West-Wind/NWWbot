@@ -6,16 +6,15 @@ require("moment-duration-format")(moment);
 import { RowDataPacket } from "mysql2";
 import { endGiveaway } from "../commands/giveaway";
 import { expire } from "../commands/role-message";
-import { color, getRandomNumber, jsDate2Mysql, nameToUuid, profile, readableDateTimeText, replaceMsgContent, setTimeout_ } from "../function";
+import { color, duration, getRandomNumber, jsDate2Mysql, nameToUuid, profile, readableDateTimeText, replaceMsgContent, setTimeout_ } from "../function";
 import { music, setQueue } from "../musics/main";
 import { LevelData } from "./LevelData";
 import { NorthClient } from "./NorthClient";
 import { NorthMessage } from "./NorthMessage";
 import { stop } from "../musics/main";
-import nodefetch from "node-fetch";
-const fetch = require("fetch-retry")(nodefetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
+const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: (attempt: number) => Math.pow(2, attempt) * 1000 });
 
-var timeout;
+var timeout: NodeJS.Timeout | undefined;
 export class Handler {
     static async messageLevel(message: Message) {
         const storage = NorthClient.storage;
@@ -117,10 +116,8 @@ export class Handler {
                         var msg = await channel.messages.fetch(result.id);
                         if (msg.deleted) throw new Error("Deleted");
                     } catch (err) {
-                        if (channel || (msg && msg.deleted)) {
-                            await pool.query("DELETE FROM poll WHERE id = " + result.id);
-                            return storage.log("Deleted an ended poll.");
-                        }
+                        await pool.query("DELETE FROM poll WHERE id = " + result.id);
+                        return storage.log("Deleted an ended poll.");
                     }
                     const author = await client.users.fetch(result.author);
                     const allOptions = await JSON.parse(result.options);
@@ -128,7 +125,7 @@ export class Handler {
                     const end = [];
                     for (const emoji of msg.reactions.cache.values()) {
                         pollResult.push(emoji.count);
-                        var mesg = `**${(emoji.count - 1)}** - \`${unescape(allOptions[pollResult.length - 1])}\``;
+                        var mesg = `**${((emoji.count ? emoji.count : 0) - 1)}** - \`${unescape(allOptions[pollResult.length - 1])}\``;
                         end.push(mesg);
                     }
                     const pollMsg = "⬆**Poll**⬇";
@@ -160,7 +157,7 @@ export class Handler {
                 if (!channel) time = 0;
                 if (!guild) time = 0;
                 if (!msg) time = 0;
-                else if (msg.author.id !== client.user.id) time = 0;
+                else if (msg.author.id !== client.user?.id) time = 0;
                 else if (msg.embeds.length !== 1) time = 0;
                 else if (!msg.embeds[0].color || !msg.embeds[0].title || !msg.embeds[0].timestamp || !msg.embeds[0].footer || !msg.embeds[0].description || msg.embeds[0].author || msg.embeds[0].fields.length !== 0 || msg.embeds[0].files.length !== 0 || msg.embeds[0].image || msg.embeds[0].thumbnail || msg.embeds[0].type != "rich") time = 0;
                 if (msg.embeds[0].color && msg.embeds[0].title && msg.embeds[0].footer && msg.embeds[0].timestamp) em.setTitle(msg.embeds[0].title).setColor(msg.embeds[0].color).setFooter(msg.embeds[0].footer.text, msg.embeds[0].footer.iconURL).setTimestamp(msg.embeds[0].timestamp);
@@ -487,14 +484,16 @@ export class Handler {
         if (!command) return;
         if (command.args && args.length < command.args) return msg.channel.send(`The command \`${msg.prefix}${commandName}\` requires ${command.args} arguments.\nHere's how you are supposed to use it: \`${msg.prefix}${command.name}${command.usage ? ` ${command.usage}` : ""}\``);
         if (command.category === 10 && msg.author.id != process.env.DC) return await msg.channel.send("Please don't use Dev Commands.");
-        if (timeout) {
-            clearTimeout(timeout);
-            timeout = undefined;
-        } else msg.client.user.setPresence({ activity: { name: `${msg.author.username}'s Commands`, type: "WATCHING" }, status: "online", afk: false });
-        timeout = setTimeout(() => {
-            msg.client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
-            timeout = undefined;
-        }, 10000);
+        if (client.id == 0) {
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = undefined;
+            } else msg.client.user.setPresence({ activity: { name: `${msg.author.username}'s Commands`, type: "WATCHING" }, status: "online", afk: false });
+            timeout = setTimeout(() => {
+                msg.client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
+                timeout = undefined;
+            }, 10000);
+        }
         if (msg.guild && !(<TextChannel>msg.channel).permissionsFor(msg.guild.me).has(84992)) return await msg.author.send(`I need at least the permissions to \`${new Permissions(84992).toArray().join("`, `")}\` in order to run any command! Please tell your server administrator about that.`);
         msg.pool = client.pool;
         try {
@@ -552,7 +551,7 @@ export class AliceHandler extends Handler {
             storage.gtimers = gtimers;
             setInterval(async () => {
                 try {
-                    var timerChannel = <TextChannel> await client.channels.fetch(process.env.TIME_LIST_CHANNEL);
+                    var timerChannel = <TextChannel>await client.channels.fetch(process.env.TIME_LIST_CHANNEL);
                     var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
                 } catch (err) {
                     storage.error("Failed to fetch timer list message");
@@ -574,7 +573,7 @@ export class AliceHandler extends Handler {
                         let rank = unescape(result.dc_rank);
                         let title = `<@${dc}> - ${rank} [${username}]`;
                         let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                        tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
+                        tmp.push({ title: title, time: duration(seconds) });
                     }
                     if (tmp.length <= 10) {
                         timerMsg.reactions.removeAll().catch(storage.error);

@@ -11,7 +11,7 @@ export class ClientStorage {
         this.client = c;
     }
 
-    guilds: Object = {};
+    guilds: any = {};
     rm: RowDataPacket[] = [];
     timers: Collection<Snowflake, NodeJS.Timeout> = new Collection();
     noLog: Snowflake[] = [];

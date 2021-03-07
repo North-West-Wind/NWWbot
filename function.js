@@ -429,5 +429,10 @@ module.exports = {
     return [].concat.apply([], arr);
   },
   profile: (str) => new Promise((resolve, reject) => require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); })),
-  nameToUuid: (str) => new Promise((resolve, reject) => require("mojang-api").nameToUuid(str, function (err, res) { if (err) reject(err); else resolve(res[0]?.id); }))
+  nameToUuid: (str) => new Promise((resolve, reject) => require("mojang-api").nameToUuid(str, function (err, res) { if (err) reject(err); else resolve(res[0]?.id); })),
+  duration: (seconds) => {
+    const moment = require("moment");
+    require("moment-duration-format")(moment);
+    return moment.duration(seconds, "seconds").format();
+  }
 };

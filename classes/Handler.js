@@ -25,8 +25,7 @@ const main_1 = require("../musics/main");
 const LevelData_1 = require("./LevelData");
 const NorthClient_1 = require("./NorthClient");
 const main_2 = require("../musics/main");
-const node_fetch_1 = __importDefault(require("node-fetch"));
-const fetch = require("fetch-retry")(node_fetch_1.default, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
+const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: (attempt) => Math.pow(2, attempt) * 1000 });
 var timeout;
 class Handler {
     static messageLevel(message) {
@@ -141,10 +140,8 @@ class Handler {
                                 throw new Error("Deleted");
                         }
                         catch (err) {
-                            if (channel || (msg && msg.deleted)) {
-                                yield pool.query("DELETE FROM poll WHERE id = " + result.id);
-                                return storage.log("Deleted an ended poll.");
-                            }
+                            yield pool.query("DELETE FROM poll WHERE id = " + result.id);
+                            return storage.log("Deleted an ended poll.");
                         }
                         const author = yield client.users.fetch(result.author);
                         const allOptions = yield JSON.parse(result.options);
@@ -152,7 +149,7 @@ class Handler {
                         const end = [];
                         for (const emoji of msg.reactions.cache.values()) {
                             pollResult.push(emoji.count);
-                            var mesg = `**${(emoji.count - 1)}** - \`${unescape(allOptions[pollResult.length - 1])}\``;
+                            var mesg = `**${((emoji.count ? emoji.count : 0) - 1)}** - \`${unescape(allOptions[pollResult.length - 1])}\``;
                             end.push(mesg);
                         }
                         const pollMsg = "⬆**Poll**⬇";
@@ -173,6 +170,7 @@ class Handler {
                 var [results] = yield con.query("SELECT * FROM timer WHERE id <> '622311594654695434'");
                 storage.log(`[${id}] Found ${results.length} timers.`);
                 results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
+                    var _a;
                     let time = result.endAt - Date.now();
                     let em = new discord_js_1.MessageEmbed();
                     try {
@@ -190,7 +188,7 @@ class Handler {
                         time = 0;
                     if (!msg)
                         time = 0;
-                    else if (msg.author.id !== client.user.id)
+                    else if (msg.author.id !== ((_a = client.user) === null || _a === void 0 ? void 0 : _a.id))
                         time = 0;
                     else if (msg.embeds.length !== 1)
                         time = 0;
@@ -614,16 +612,18 @@ class Handler {
                 return msg.channel.send(`The command \`${msg.prefix}${commandName}\` requires ${command.args} arguments.\nHere's how you are supposed to use it: \`${msg.prefix}${command.name}${command.usage ? ` ${command.usage}` : ""}\``);
             if (command.category === 10 && msg.author.id != process.env.DC)
                 return yield msg.channel.send("Please don't use Dev Commands.");
-            if (timeout) {
-                clearTimeout(timeout);
-                timeout = undefined;
+            if (client.id == 0) {
+                if (timeout) {
+                    clearTimeout(timeout);
+                    timeout = undefined;
+                }
+                else
+                    msg.client.user.setPresence({ activity: { name: `${msg.author.username}'s Commands`, type: "WATCHING" }, status: "online", afk: false });
+                timeout = setTimeout(() => {
+                    msg.client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
+                    timeout = undefined;
+                }, 10000);
             }
-            else
-                msg.client.user.setPresence({ activity: { name: `${msg.author.username}'s Commands`, type: "WATCHING" }, status: "online", afk: false });
-            timeout = setTimeout(() => {
-                msg.client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
-                timeout = undefined;
-            }, 10000);
             if (msg.guild && !msg.channel.permissionsFor(msg.guild.me).has(84992))
                 return yield msg.author.send(`I need at least the permissions to \`${new discord_js_1.Permissions(84992).toArray().join("`, `")}\` in order to run any command! Please tell your server administrator about that.`);
             msg.pool = client.pool;
@@ -719,7 +719,7 @@ class AliceHandler extends Handler {
                             let rank = unescape(result.dc_rank);
                             let title = `<@${dc}> - ${rank} [${username}]`;
                             let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                            tmp.push({ title: title, time: moment_1.default.duration(seconds, "seconds").format() });
+                            tmp.push({ title: title, time: function_1.duration(seconds) });
                         }
                         if (tmp.length <= 10) {
                             timerMsg.reactions.removeAll().catch(storage.error);
