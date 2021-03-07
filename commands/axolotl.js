@@ -34,6 +34,7 @@ var links = [
 ];
 const Discord = require("discord.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
     name: "axolotl",
@@ -47,7 +48,7 @@ module.exports = {
             const attachment = new Discord.MessageAttachment(res, `axolotl.${selected.split(".")[selected.split(".").length - 1]}`);
             await message.channel.send(attachment);
         } catch(err) {
-            console.error(err);
+            NorthClient.storage.error(err);
             return await message.reply("there was an error fetching the axolotls!");
         }
     }

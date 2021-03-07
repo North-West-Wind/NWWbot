@@ -3,6 +3,7 @@ const { numberWithCommas, readableDateTime, createEmbedScrolling } = require("..
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: 1000 });
 const MojangAPI = require("mojang-api");
 const nameToUuid = (name) => new Promise((resolve, reject) => MojangAPI.nameToUuid(name, (err, res) => err ? reject(err) : resolve(res)));
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "hypixel",
@@ -42,7 +43,7 @@ module.exports = {
   subaliases: ["g", "ach", "tnt", "bw", "du", "sw", "sg", "ar", "mm", "bb", "mcgo", "vz", "pb", "q", "uhc", "wa", "mw", "cw", "sh", "suhc", "are", "p", "sb", "ah", "ba"],
   async execute(message, args) {
     if (!args[0]) return message.channel.send("Please provide a Minecraft username or use the subcommands.");
-    const color = console.color();
+    const color = color();
     args[0] = args[0].toLowerCase();
     if (args[0] === "auctionhouse" || args[0] === "ah") {
       if (!args[1]) return message.channel.send("Please enter an item!");
@@ -213,7 +214,7 @@ module.exports = {
         }
         await message.channel.send(Embed);
       } catch (err) {
-        console.error(err);
+        NorthClient.storage.error(err);
         await message.reply("there was an error trying to fetch the Hypixel player profile!");
       }
       return;
@@ -4431,35 +4432,35 @@ module.exports = {
       const allEmbeds = [];
 
       var magmaBoss = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bosstimer/magma/estimatedSpawn").then(resp => resp.json().catch(err => {
-        console.error("Fetching failed.");
+        NorthClient.storage.error("Fetching failed.");
         error = true;
       }));
       var darkAuction = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/darkauction/estimate").then(resp => resp.json().catch(err => {
-        console.error("Fetching failed.");
+        NorthClient.storage.error("Fetching failed.");
         error = true;
       }));
       var bankInterest = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/bank/interest/estimate").then(resp => resp.json().catch(err => {
-        console.error("Fetching failed.");
+        NorthClient.storage.error("Fetching failed.");
         error = true;
       }));
       var newYear = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/newyear/estimate").then(resp => resp.json().catch(err => {
-        console.error("Fetching failed.");
+        NorthClient.storage.error("Fetching failed.");
         error = true;
       }));
       var travelZoo = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/zoo/estimate").then(resp => resp.json().catch(err => {
-        console.error("Fetching failed.");
+        NorthClient.storage.error("Fetching failed.");
         error = true;
       }));
       var spookyFest = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/spookyFestival/estimate").then(resp => resp.json().catch(err => {
-        console.error("Fetching failed.");
+        NorthClient.storage.error("Fetching failed.");
         error = true;
       }));
       var winterEvent = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/winter/estimate").then(resp => resp.json().catch(err => {
-        console.error("Fetching failed.");
+        NorthClient.storage.error("Fetching failed.");
         error = true;
       }));
       var jerryWorkshop = await fetch("https://hypixel-api.inventivetalent.org/api/skyblock/jerryWorkshop/estimate").then(resp => resp.json().catch(err => {
-        console.error("Fetching failed.");
+        NorthClient.storage.error("Fetching failed.");
         error = true;
       }));
 
@@ -4497,7 +4498,7 @@ module.exports = {
       var profiles = Object.values(sb.profiles);
       for (const profile of profiles) {
         var skyblock = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${res[0].id}/${profile.profile_id}?key=${process.env.API}`).then(resp => resp.json().catch(err => {
-          console.error("Fetching failed.");
+          NorthClient.storage.error("Fetching failed.");
           error = true;
         }));
 

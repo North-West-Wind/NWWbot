@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
-const { findMember } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
+const { findMember, color } = require("../function.js");
 module.exports = {
   name: "ban",
   description: "Ban a member from the server.",
@@ -22,7 +23,7 @@ module.exports = {
     }
     await member.ban(options);
     var banEmbed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle(`You've been banned`)
       .setDescription(`In **${message.guild.name}**`)
       .setTimestamp()
@@ -34,10 +35,10 @@ module.exports = {
       banEmbed.addField("Reason", reason);
     }
     user.send(banEmbed).catch(() => {
-      console.log("Failed to send DM to " + user.username)
+      NorthClient.storage.log("Failed to send DM to " + user.username)
     });
     var banSuccessfulEmbed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("User Banned!")
       .setDescription(
         "Banned **" +

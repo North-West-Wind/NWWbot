@@ -1,9 +1,10 @@
 const Discord = require("discord.js");
-const { validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream, moveArray } = require("../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream, moveArray, color } = require("../function.js");
 const { getMP3 } = require("../commands/musescore.js");
 const muse = require("musescore-metadata");
 const { music } = require("./migrate.js");
 const ytdl = require("ytdl-core");
+const { NorthClient } = require("../classes/NorthClient.js");
 var SpotifyWebApi = require("spotify-web-api-node");
 var spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTID,
@@ -26,7 +27,7 @@ const { setQueue, updateQueue, getQueues } = require("./main.js");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
 function createEmbed(message, songs) {
   const Embed = new Discord.MessageEmbed()
-    .setColor(console.color())
+    .setColor(color())
     .setTitle("New track added:")
     .setThumbnail(songs[0].thumbnail)
     .setDescription(`**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`)
@@ -141,13 +142,13 @@ async function play(guild, song, skipped = 0, seek = 0) {
         break;
     }
   } catch (err) {
-    console.error(err);
+    NorthClient.storage.error(err);
     return await skip();
   }
   const now = Date.now();
   if (serverQueue.textChannel) {
     const Embed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("Now playing:")
       .setThumbnail(song.thumbnail)
       .setDescription(`**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**${seek > 0 ? ` | Starts From: **${moment.duration(seek, "seconds").format()}**` : ""}`)
@@ -183,14 +184,14 @@ async function play(guild, song, skipped = 0, seek = 0) {
     }
   }).on("error", async error => {
     if (error.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
-      console.error("Received 429 error. Changing ytdl-core cookie...");
+      NorthClient.storage.error("Received 429 error. Changing ytdl-core cookie...");
       cookie.id++;
       if (!process.env[`COOKIE${cookie.id}`]) {
         cookie.cookie = process.env.COOKIE;
         cookie.id = 0;
       }
       else cookie.cookie = process.env[`COOKIE${cookie.id}`];
-    } else console.error(error);
+    } else NorthClient.storage.error(error);
     skipped = oldSkipped;
     await skip();
   });
@@ -211,7 +212,7 @@ module.exports = {
     if (!args[1] && message.attachments.size < 1) {
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
       if (serverQueue.songs.length < 1) return await message.channel.send("The queue is empty for this server! Please provide a link or keywords to get a music played!");
-      if (serverQueue.playing || console.migrating.find(x => x === message.guild.id)) return await music(message, serverQueue);
+      if (serverQueue.playing || NorthClient.storage.migrating.find(x => x === message.guild.id)) return await music(message, serverQueue);
       try {
         if (message.guild.me.voice.channel && message.guild.me.voice.channelID === voiceChannel.id) serverQueue.connection = message.guild.me.voice.connection;
         else {
@@ -220,7 +221,7 @@ module.exports = {
         }
         if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
       } catch (err) {
-        console.error(err);
+        NorthClient.storage.error(err);
         if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
         return await message.reply("there was an error trying to connect to the voice channel!");
       }
@@ -281,7 +282,7 @@ module.exports = {
     } catch (err) {
       await message.reply("there was an error trying to connect to the voice channel!");
       if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
-      console.error(err);
+      NorthClient.storage.error(err);
     }
   },
   play: play,
@@ -338,7 +339,7 @@ module.exports = {
     } catch (err) {
       if (err.message === "This playlist is private.") message.channel.send("The playlist is private!");
       else {
-        console.error(err);
+        NorthClient.storage.error(err);
         message.reply("there was an error trying to fetch your playlist!");
       }
       return { error: true };
@@ -366,14 +367,14 @@ module.exports = {
     } catch (err) {
       if (!message.dummy) message.channel.send("Failed to get video data!");
       if (err.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
-        console.error("Received 429 error. Changing ytdl-core cookie...");
+        NorthClient.storage.error("Received 429 error. Changing ytdl-core cookie...");
         cookie.id++;
         if (!process.env[`COOKIE${cookie.id}`]) {
           cookie.cookie = process.env.COOKIE;
           cookie.id = 0;
         }
         else cookie.cookie = process.env[`COOKIE${cookie.id}`];
-      } else console.error(err);
+      } else NorthClient.storage.error(err);
       return { error: true };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
@@ -405,7 +406,7 @@ module.exports = {
     const d = await spotifyApi.clientCredentialsGrant();
     spotifyApi.setAccessToken(d.body.access_token);
     spotifyApi.setRefreshToken(process.env.SPOTREFRESH);
-    const refreshed = await spotifyApi.refreshAccessToken().catch(console.error);
+    const refreshed = await spotifyApi.refreshAccessToken().catch(NorthClient.storage.error);
     spotifyApi.setAccessToken(refreshed.body.access_token);
     var url_array = args.slice(1).join(" ").replace("https://", "").split("/");
     var musicID = url_array[2].split("?")[0];
@@ -747,7 +748,7 @@ module.exports = {
     const allEmbeds = [];
     const Embed = new Discord.MessageEmbed()
       .setTitle(`Search result of ${args.slice(1).join(" ")} on YouTube`)
-      .setColor(console.color())
+      .setColor(color())
       .setTimestamp()
       .setFooter("Please do so within 60 seconds.", message.client.user.displayAvatarURL());
     const results = [];
@@ -759,7 +760,7 @@ module.exports = {
         return x;
       });
     } catch (err) {
-      console.error(err);
+      NorthClient.storage.error(err);
       message.reply("there was an error trying to search the videos!");
       return { error: true };
     }
@@ -780,7 +781,7 @@ module.exports = {
     }
     const scEm = new Discord.MessageEmbed()
       .setTitle(`Search result of ${args.slice(1).join(" ")} on SoundCloud`)
-      .setColor(console.color())
+      .setColor(color())
       .setTimestamp()
       .setFooter("Please do so within 60 seconds.", message.client.user.displayAvatarURL());
     try {
@@ -791,7 +792,7 @@ module.exports = {
       });
       num = 0;
     } catch (err) {
-      console.error(err);
+      NorthClient.storage.error(err);
       await message.reply("there was an error trying to search the videos!");
       return { error: true };
     }
@@ -839,7 +840,7 @@ module.exports = {
         const o = parseInt(collected.content) - 1;
         if (o < 0 || o > results[s].length - 1) return collector.emit("end");
         const chosenEmbed = new Discord.MessageEmbed()
-          .setColor(console.color())
+          .setColor(color())
           .setTitle("Music chosen:")
           .setThumbnail(results[s][o].thumbnail)
           .setDescription(`**[${decodeHtmlEntity(results[s][o].title)}](${results[s][o].url})** : **${results[s][o].time}**`)
@@ -854,7 +855,7 @@ module.exports = {
       collector.on("end", async () => {
         if (val.error) {
           const cancelled = new Discord.MessageEmbed()
-            .setColor(console.color())
+            .setColor(color())
             .setTitle("Action cancelled.")
             .setTimestamp()
             .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());

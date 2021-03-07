@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const fetch = require("node-fetch").default;
-const { readableDateTime, createEmbedScrolling } = require("../function.js");
+const { readableDateTime, createEmbedScrolling, color } = require("../function.js");
 const styles = {
     M3: "Super Mario Bros. 3",
     W3: "Super Mario 3D World",
@@ -48,7 +48,7 @@ module.exports = {
                 };
 
             const em = new Discord.MessageEmbed()
-                .setColor(console.color())
+                .setColor(color())
                 .setTitle(title)
                 .setThumbnail(thumbnail)
                 .setDescription(description.length > 2048 ? description.substr(0, 2045) + "..." : description)

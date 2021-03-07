@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
-const { jsDate2Mysql } = require("../function.js");
+const { jsDate2Mysql, color } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "sell",
@@ -11,7 +12,7 @@ module.exports = {
     if (isNaN(Number(args[0]))) return message.channel.send(args[0] + " is not a valid price!");
     const price = Math.round((Number(args[0]) + Number.EPSILON) * 100) / 100;
     const confirmationEmbed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("Confirm?")
       .setDescription("This will cost 5% of the price to put it at the shop! The item will be up for 7 days.\n\n✅ Confirm\n❌ Cancel")
       .addField("Price", price)
@@ -28,7 +29,7 @@ module.exports = {
         .setDescription("Timed out.")
         .setFooter("Please try again.", message.client.user.displayAvatarURL());
       await msg.edit(confirmationEmbed);
-      return msg.reactions.removeAll().catch(console.error);
+      return msg.reactions.removeAll().catch(NorthClient.storage.error);
     }
     var reaction = collected.first();
     if (reaction.emoji.name === "✅") {
@@ -47,10 +48,10 @@ module.exports = {
             .setDescription("Your item is now at the shop!")
             .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
           await msg.edit(confirmationEmbed);
-          msg.reactions.removeAll().catch(console.error);
+          msg.reactions.removeAll().catch(NorthClient.storage.error);
         }
       } catch(err) {
-        console.error(err);
+        NorthClient.storage.error(err);
         await message.reply("there was an error trying to sell the item!");
       }
       con.release();

@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const { color } = require("../function");
 
 module.exports = {
     name: "yacht",
@@ -29,7 +30,7 @@ module.exports = {
         const st = `${dices.map(x => `Dice ${dices.indexOf(x) + 1}: **${x.number}${x.locked ? " (Locked)" : ""}**`).join("\n")}\n\nScores:\n1s: **${scores["1s"].score}**\n2s: **${scores["2s"].score}**\n3s: **${scores["3s"].score}**\n4s: **${scores["4s"].score}**\n5s: **${scores["5s"].score}**\n6s: **${scores["6s"].score}**\nBonus: **${scores.bonus.score}**\n3 of a kind: **${scores.triple.score}**\n4 of a kind: **${scores.quadruple.score}**\nFull House: **${scores.doubtri.score}**\n4 Straight: **${scores["4str"].score}**\n5 Straight: **${scores["5str"].score}**\nYacht: **${scores.quintuple.score}**\nChoice: **${scores.choice.score}**`;
         const em = new Discord.MessageEmbed()
             .setTitle(`Yacht Dice Game (Round 1)`)
-            .setColor(console.color())
+            .setColor(color())
             .setDescription(st + `\nCommands:\n**Roll** - Roll the dices (${3 - rolled} times left)\n**Lock <index>** - Lock the dices with indexes 1 to 6\n**Score <category>** Choose a category to place your score and move to the next turn\n**End** - End the game immediately`)
             .setTimestamp()
             .setFooter("Please type in commands within 2 minutes.", message.client.user.displayAvatarURL());

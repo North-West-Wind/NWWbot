@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const fetch = require("node-fetch").default;
-const { createEmbedScrolling } = require("../function.js");
+const { createEmbedScrolling, color } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "speedrun",
@@ -17,7 +18,7 @@ module.exports = {
       const result = await fetch(`https://www.speedrun.com/api/v1/games?name=${escape(args.join(" "))}&_bulk=1`).then(res => res.json());
       for (var i = 0; i < (result.data.length > 10 ? 10 : result.data.length); i++) games.push(`${i + 1}. **${result.data[i].names.international}** : **${result.data[i].abbreviation}**`);
       const em = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle("Which game are you looking for?")
         .setDescription(games.join("\n"))
         .setTimestamp()
@@ -33,7 +34,7 @@ module.exports = {
         for (var i = 0; i < games.length; i++) await msg.react(choices[i]);
         await msg.react(choices[10]);
         const collected = await msg.awaitReactions((reaction, user) => choices.includes(reaction.emoji.name) && user.id === message.author.id, { max: 1, time: 30000 });
-        await msg.reactions.removeAll().catch(console.error);
+        await msg.reactions.removeAll().catch(NorthClient.storage.error);
         if (!collected) {
           em.setTitle("Timed Out").setDescription("Please try again.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
           return await msg.edit(em);
@@ -55,7 +56,7 @@ module.exports = {
       }
     } else {
       var em = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle("Loading...")
         .setDescription("This will take a while.")
         .setTimestamp()
@@ -72,7 +73,7 @@ module.exports = {
       const level = levelFetch && levelFetch.data ? levelFetch.data.name : "N/A";
       const category = categoryFetch && categoryFetch.data ? categoryFetch.data.name : "N/A";
       const embed = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(results && results.data[0] ? results.data[index ? index : 0].names.international : gameFetch.data.names.international)
         .setDescription(`Category: **${category}**\nLevel: **${level}**`)
         .setURL(record.weblink ? record.weblink : undefined)

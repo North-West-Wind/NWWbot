@@ -1,3 +1,6 @@
+const { color } = require('../function');
+const { NorthClient } = require("../classes/NorthClient.js");
+
 module.exports = {
   name: "delrole",
   description: "Remove a role from the server.",
@@ -38,15 +41,15 @@ module.exports = {
     }
     
     role.delete().then(role => {
-      console.log("Deleted role " + role.name + " in server " + message.guild.name)
+      NorthClient.storage.log("Deleted role " + role.name + " in server " + message.guild.name)
     })
     .catch(err => {
-      console.log("Failed to delete role.")
+      NorthClient.storage.log("Failed to delete role.")
     })
 
     const Discord = require('discord.js');
     const Embed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("Role Deleted Successfully")
       .setDescription("Deleted a role **" + role.name + "**")
       .setTimestamp()

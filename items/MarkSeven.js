@@ -1,5 +1,6 @@
 const { elegantPair } = require("../function.js");
 const ID = "3f4442c06b90c39340394ab33bab928b7a290593a54ea1d4";
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "MarkSeven",
@@ -11,7 +12,7 @@ module.exports = {
       else {
         em.setDescription("Type 7 numbers between 1-39!\nIntegers only!").setFooter("I will only wait for 60 seconds.", message.client.user.displayAvatarURL());
         msg.edit(em);
-        const collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 60000 }).catch(console.error);
+        const collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 60000 }).catch(NorthClient.storage.error);
         if (!collected.first()) em.setTitle("ERROR!").setDescription("You didn't type the numbers in time!").setFooter("Cancelled.", message.client.user.displayAvatarURL());
         else {
           await collected.first().delete();
@@ -51,7 +52,7 @@ module.exports = {
       }
     } catch (err) {
       em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
-      console.error(err);
+      NorthClient.storage.error(err);
     }
     await msg.edit(em);
     con.release();

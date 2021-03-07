@@ -1,8 +1,10 @@
+const { NorthClient } = require("../classes/NorthClient.js");
+
 module.exports = {
   name: "args",
   description: "Check args of messages.",
   category: 10,
   execute(message) {
-    console.log(message.content);
+    NorthClient.storage.log(message.content);
   }
 }

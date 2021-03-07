@@ -1,10 +1,10 @@
 const { MessageEmbed } = require("discord.js");
-const { readableDateTime, createEmbedScrolling } = require("../function.js");
+const { readableDateTime, createEmbedScrolling, color } = require("../function.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const { emotes } = require("../config.json");
 const createModeEmbed = (message, mode, stats) => {
     const em = new MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(`${stats.username} - ${mode.teamMode == 1 ? "Solo" : (mode.teamMode == 2 ? "Duo" : "Squad")} Statistics`)
         .setImage(stats.player_icon)
         .addField("Wins", mode.wins, true)
@@ -44,7 +44,7 @@ module.exports = {
             });
             const allEmbeds = [];
             const overall = new MessageEmbed()
-                .setColor(console.color())
+                .setColor(color())
                 .setTitle(`${stats.username} - Overall Statistics`)
                 .setImage(stats.player_icon)
                 .addField("Wins", stats.wins, true)
@@ -60,7 +60,7 @@ module.exports = {
             if(stats.modes[2]) allEmbeds.push(createModeEmbed(message, stats.modes[2], stats));
             if(history[0]) {
                 const last = new MessageEmbed()
-                    .setColor(console.color())
+                    .setColor(color())
                     .setTitle(`${stats.username} - Last Played Game`)
                     .setImage(stats.player_icon)
                     .addField("Mode", history[0].team_mode == 1 ? "Solo" : (history[0].team_mode == 2 ? "Duo" : "Squad"), true)

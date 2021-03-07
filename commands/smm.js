@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const smm = require("smm-api");
-const { createEmbedScrolling, readableDateTime } = require("../function.js");
+const { createEmbedScrolling, readableDateTime, color } = require("../function.js");
 const themes = ["Ground", "Underground", "Castle", "Airship", "Underwater", "Ghost House"];
 const difficulties = ["Easy", "Normal", "Expert", "Super Expert"];
 const styles = ["Super Mario Bros.", "Super Mario Bros. 3", "Super Mario World", "New Super Mario Bros. U"];
@@ -33,7 +33,7 @@ module.exports = {
         var description = "No description";
         if (courses[i].description) description = courses[i].description;
         const Embed = new Discord.MessageEmbed()
-          .setColor(console.color())
+          .setColor(color())
           .setTitle(courses[i].title)
           .setDescription(description)
           .addField("Uploaded", uploadedTime, true)

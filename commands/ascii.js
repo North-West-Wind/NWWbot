@@ -5,6 +5,7 @@ const isImageUrl = require('is-image-url');
 const { createCanvas } = require("canvas");
 const Discord = require("discord.js");
 const sanitize = require("sanitize-filename");
+const { NorthClient } = require("../classes/NorthClient.js");
 module.exports = {
     name: "ascii",
     description: "Generate ASCII arts from text or image.",
@@ -72,7 +73,7 @@ module.exports = {
                         await message.channel.send(colorAtt);
                         await message.channel.send(noColorAtt);
                     } catch (err) {
-                        console.error(err);
+                        NorthClient.storage.error(err);
                         return await msg.edit(`<@${message.author.id}>, there was an error trying to convert the image into ASCII!`);
                     } finally {
                         msg.channel.stopTyping(true);

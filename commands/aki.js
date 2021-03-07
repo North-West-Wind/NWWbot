@@ -1,5 +1,7 @@
 const Discord = require("discord.js");
 const { Aki } = require("aki-api");
+const { genPermMsg, color } = require("../function");
+const { NorthClient } = require("../classes/NorthClient.js");
 module.exports = {
   name: "aki",
   description: "Play Akinator on Discord!",
@@ -43,7 +45,7 @@ module.exports = {
   async execute(message, args) {
     var ended = new Map();
     if (args.length >= 1 && args[0].toLowerCase() === "region") return await this.region(message);
-    if (!message.guild.me.permissions.has(this.permission) && message.channel.permissionsFor(message.guild.me).has(this.permission)) return await message.channel.send(console.genPermMsg(this.permission, 1));
+    if (!message.guild.me.permissions.has(this.permission) && message.channel.permissionsFor(message.guild.me).has(this.permission)) return await message.channel.send(genPermMsg(this.permission, 1));
     let region = "en";
     if (args.length >= 1) {
       const testRegion = args[0];
@@ -51,13 +53,13 @@ module.exports = {
       if (i !== -1) region = this.regions[i];
     }
     const aki = new Aki(region);
-    await aki.start().catch(console.error);
+    await aki.start().catch(NorthClient.storage.error);
     let loop = 0;
     let found = false;
     const str = `${this.yes} **Yes**\n${this.no} **No**\n${this.probably} **Probably**\n${this.probablyNot} **Probably Not**\n${this.unknown} **Don't know**\n${this.back} **Back**\n${this.stop} **Stop**`;
 
     const embed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("Question 1: " + aki.question)
       .setDescription(str)
       .setTimestamp()
@@ -73,7 +75,7 @@ module.exports = {
     ended.set(msg.id, false);
     function pushEnded(ended) {
       ended.set(msg.id, true);
-      if (msg != null && msg.deleted != true) msg.reactions.removeAll().catch(console.error);
+      if (msg != null && msg.deleted != true) msg.reactions.removeAll().catch(() => { });
     }
     const filter = (reaction, user) =>
       [
@@ -153,7 +155,7 @@ module.exports = {
         if ((aki.progress >= 90 && loop > 3) || aki.currentStep >= 419) {
           loop = 0;
           await aki.win().catch(async error => {
-            console.error(error);
+            NorthClient.storage.error(error);
             if (aki.currentStep < this.maxSteps) await aki.step(answerID);
             else {
               msg = await msg.edit("Akinator error has occurred.", { embed: null });
@@ -175,31 +177,31 @@ module.exports = {
             try {
               await probably.remove();
             } catch (error) {
-              console.error("Failed to remove reactions.");
+              NorthClient.storage.error("Failed to remove reactions.");
             }
             const probablyNot = msg.reactions.cache.get(this.probablyNot);
             try {
               await probablyNot.remove();
             } catch (error) {
-              console.error("Failed to remove reactions.");
+              NorthClient.storage.error("Failed to remove reactions.");
             }
             const unknown = msg.reactions.cache.get(this.unknown);
             try {
               await unknown.remove();
             } catch (error) {
-              console.error("Failed to remove reactions.");
+              NorthClient.storage.error("Failed to remove reactions.");
             }
             const back = msg.reactions.cache.get(this.back);
             try {
               await back.remove();
             } catch (error) {
-              console.error("Failed to remove reactions.");
+              NorthClient.storage.error("Failed to remove reactions.");
             }
             const stop = msg.reactions.cache.get(this.stop);
             try {
               await stop.remove();
             } catch (error) {
-              console.error("Failed to remove reactions.");
+              NorthClient.storage.error("Failed to remove reactions.");
             }
             if (aki.currentStep >= 419) {
               embed.setTitle("My Final Guess is... 🤔");
@@ -240,14 +242,14 @@ module.exports = {
           .setImage(undefined)
           .setFooter("60 seconds have passed!", message.client.user.displayAvatarURL());
         await msg.edit(embed);
-        if (msg && !msg.deleted) msg.reactions.removeAll().catch(console.error);
+        if (msg && !msg.deleted) msg.reactions.removeAll().catch(() => { });
       }
       ended.delete(msg.id);
     });
   },
   async region(message) {
     const regionEmbed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("Akinator")
       .setDescription("Region list\n\n`" + this.regions.join("`\n`") + "`")
       .setFooter(`Use "${message.prefix}${this.name} ${this.usage}" to start a game.`, message.client.user.displayAvatarURL());

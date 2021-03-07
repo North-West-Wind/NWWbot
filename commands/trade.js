@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const { color } = require('../function');
 
 module.exports = {
   name: "trade",
@@ -25,7 +26,7 @@ module.exports = {
     await collected2.first().delete();
     msg.delete();
     const Embed = new Discord.MessageEmbed()
-    .setColor(console.color())
+    .setColor(color())
     .setTitle(message.author.tag + "'s trade")
     .setDescription("Want: " + want + "\n------------------------\nHave: " + offer)
     .setTimestamp()

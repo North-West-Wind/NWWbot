@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
-const { ms } = require("../function.js");
+const { ms, color } = require("../function.js");
 const { updateQueue } = require("./main.js");
 const type = [
   "YouTube",
@@ -46,7 +46,7 @@ module.exports = {
     }
     var info = [];
     var embed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("Now playing:" + (serverQueue.playing ? "" : " (Not actually)"))
       .setTimestamp()
       .setFooter(`Looping: ${serverQueue.looping ? "Enabled" : "Disabled"} | Repeating: ${serverQueue.repeating ? "Enabled" : "Disabled"} | Random: ${serverQueue.random ? "Enabled" : "Disabled"}`, message.client.user.displayAvatarURL());

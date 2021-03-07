@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const MojangAPI = require("mojang-api");
+const { color } = require("../function");
 
 module.exports = {
   name: "minecraft",
@@ -26,7 +27,7 @@ module.exports = {
           else {
             let skin = "https://visage.surgeplay.com/full/256/" + res.id;
             const Embed = new Discord.MessageEmbed()
-              .setColor(console.color())
+              .setColor(color())
               .setTitle(res.name)
               .setDescription("Profile:")
               .addField("UUID", res.id, true)
@@ -45,7 +46,7 @@ module.exports = {
             let skin = "https://visage.surgeplay.com/full/256/" + res.id;
 
             const Embed = new Discord.MessageEmbed()
-              .setColor(console.color())
+              .setColor(color())
               .setTitle(res.name)
               .setDescription("Profile:")
               .addField("UUID", res.id, true)
@@ -74,7 +75,7 @@ module.exports = {
         const spaceRemoved = desc.replace(/ +(?= )/g, '');
         const Embed = new Discord.MessageEmbed()
           .setTitle(args.slice(1).join(" "))
-          .setColor(console.color())
+          .setColor(color())
           .addField("IP", "`" + ip + "`", true)
           .addField("Port", "`" + port + "`", true)
           .addField("Player/Max", "`" + player + "`", true)
@@ -102,7 +103,7 @@ module.exports = {
               else names.push(num + ". " + result[i].name);
             }
             const Embed = new Discord.MessageEmbed()
-              .setColor(console.color())
+              .setColor(color())
               .setTitle(res[0].name + "'s Username History")
               .setDescription(names.join("\n"))
               .setFooter("Last changed on " + new Date(result[result.length - 1].changedToAt), message.client.user.displayAvatarURL());

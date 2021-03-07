@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 const { setTimeout_, jsDate2Mysql, readableDateTime, genPermMsg, ms, readableDateTimeText, findRole } = require("../function.js");
 async function endGiveaway(pool, client, result) {
@@ -9,7 +10,7 @@ async function endGiveaway(pool, client, result) {
   } catch (err) {
     if (channel || (msg && msg.deleted)) {
       await pool.query("DELETE FROM giveaways WHERE id = " + result.id);
-      return console.log("Deleted a deleted giveaway record.");
+      return NorthClient.storage.log("Deleted a deleted giveaway record.");
     }
   }
   const fetchUser = await client.users.fetch(result.author);
@@ -18,8 +19,8 @@ async function endGiveaway(pool, client, result) {
   try {
     await peopleReacted.users.fetch();
   } catch (err) {
-    console.error("Giveaway reaction fetching error");
-    return console.error(err);
+    NorthClient.storage.error("Giveaway reaction fetching error");
+    return NorthClient.storage.error(err);
   }
   try {
     for (const user of peopleReacted.users.cache.values()) {
@@ -27,8 +28,8 @@ async function endGiveaway(pool, client, result) {
       reacted.push(data);
     }
   } catch (err) {
-    console.error("Giveaway array init error");
-    return console.error(err);
+    NorthClient.storage.error("Giveaway array init error");
+    return NorthClient.storage.error(err);
   }
 
   const remove = reacted.indexOf(client.user.id);
@@ -76,11 +77,11 @@ async function endGiveaway(pool, client, result) {
 }
 async function setupGiveaway(message, channel, time, item, winnerCount, weight = {}) {
   await message.channel.send(`Created new giveaway in channel <#${channel.id}> for**${readableDateTimeText(time)}** with the item **${item}** and **${winnerCount} winner${winnerCount > 1 ? "s" : ""}**.`);
-  const giveawayEmo = console.guilds[message.guild.id]?.giveaway ? console.guilds[message.guild.id].giveaway : "🎉";
+  const giveawayEmo = NorthClient.storage.guilds[message.guild.id]?.giveaway ? NorthClient.storage.guilds[message.guild.id].giveaway : "🎉";
   const newDate = new Date(Date.now() + time);
   const newDateSql = jsDate2Mysql(newDate);
   const readableTime = readableDateTime(newDate);
-  const color = console.color();
+  const color = color();
   var Embed = new Discord.MessageEmbed()
     .setColor(color)
     .setTitle(item)
@@ -198,7 +199,7 @@ module.exports = {
     const guild = message.guild;
     var [results] = await message.pool.query(`SELECT * FROM giveaways WHERE guild = '${guild.id}'`)
     const Embed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("Giveaway list")
       .setDescription("**" + guild.name + "** - " + results.length + " giveaways")
       .setTimestamp()

@@ -1,7 +1,7 @@
 const querystring = require("querystring");
 const Discord = require("discord.js");
 const fetch = require("node-fetch").default;
-const { createEmbedScrolling } = require("../function.js");
+const { createEmbedScrolling, color } = require("../function.js");
 module.exports = {
   name: "urban",
   description: "Search the Urban Dictionary on Discord.",
@@ -21,7 +21,7 @@ module.exports = {
     for (var i = 0; i < list.length; i++) {
       var answer = list[i];
       const embed = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(answer.word)
         .setURL(answer.permalink)
         .addField("Definition", trim(answer.definition, 1024))

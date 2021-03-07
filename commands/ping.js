@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { readableDateTime } = require("../function.js");
+const { readableDateTime, color } = require("../function.js");
 
 module.exports = {
   name: "ping",
@@ -13,7 +13,7 @@ module.exports = {
     const currentTime = readableDateTime(currentDate);
 
     const Embed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("Ping")
       .addField("Message sent", "`" + msgTime + "`")
       .addField("Message received", "`" + currentTime + "`")

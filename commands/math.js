@@ -1,6 +1,7 @@
 const math = require("mathjs");
 const Discord = require("discord.js");
-const { createEmbedScrolling } = require("../function.js");
+const { createEmbedScrolling, color } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
     name: "math",
@@ -16,19 +17,19 @@ module.exports = {
         switch(args[0]) {
             case "evaluate":
             case "eval":
-                try { done = await math.evaluate(args.slice(1).join(" ")); } catch(err) {done = "Evaluation Error"; console.error(err);}
+                try { done = await math.evaluate(args.slice(1).join(" ")); } catch(err) {done = "Evaluation Error"; NorthClient.storage.error(err);}
                 break;
             case "derivative":
             case "ddx":
-                try { done = await math.derivative(args.slice(1).join(" "), "x").compile().evaluate(); } catch(err) {done = "Differentiation Error"; console.error(err);}
+                try { done = await math.derivative(args.slice(1).join(" "), "x").compile().evaluate(); } catch(err) {done = "Differentiation Error"; NorthClient.storage.error(err);}
                 break;
             case "rationalize":
             case "rat":
-                try { done = await math.rationalize(args.slice(1).join(" ")).toString(); } catch(err) {done = "Rationalization Error"; console.error(err);}
+                try { done = await math.rationalize(args.slice(1).join(" ")).toString(); } catch(err) {done = "Rationalization Error"; NorthClient.storage.error(err);}
                 break;
             case "simplify":
             case "sim":
-                try { done = await math.simplify(args.slice(1).join(" ")).toString(); } catch(err) {done = "Simplification Error"; console.error(err);}
+                try { done = await math.simplify(args.slice(1).join(" ")).toString(); } catch(err) {done = "Simplification Error"; NorthClient.storage.error(err);}
                 break;
             case "help":
                 return await this.help(message);
@@ -174,19 +175,19 @@ module.exports = {
             strings3.push(str);
         }
         var em = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle("Math Operators/Functions/Constants List [Page 1/3]")
         .setDescription(strings.join("\n"))
         .setTimestamp()
         .setFooter("Have a nice day! :D", message.client.user.displayAvatarURL());
         var em2 = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle("Math Operators/Functions/Constants List [Page 2/3]")
         .setDescription(strings2.join("\n"))
         .setTimestamp()
         .setFooter("Have a nice day! :D", message.client.user.displayAvatarURL());
         var em3 = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle("Math Operators/Functions/Constants List [Page 3/3]")
         .setDescription(strings3.join("\n"))
         .setTimestamp()

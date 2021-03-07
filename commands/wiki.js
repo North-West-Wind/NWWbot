@@ -1,5 +1,7 @@
 const wiki = require('wikijs').default;
 const Discord = require("discord.js");
+const { color } = require("../function");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "wiki",
@@ -19,7 +21,7 @@ module.exports = {
         const url = page.url();
         const summary = await page.summary();
         const em = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(`${++num}. ${result}`)
         .setDescription(summary.length > 2048 ? (summary.slice(0, 2045) + "...") : summary)
         .setTimestamp()
@@ -27,7 +29,7 @@ module.exports = {
         .setFooter("1️⃣, 2️⃣ and 3️⃣ are for navigating to 25th, 50th, 75th result.");
         allEmbeds.push(em);
       } catch(err) {
-        console.error(err);
+        NorthClient.storage.error(err);
         --num;
       }
     }
@@ -91,7 +93,7 @@ module.exports = {
       }
     });
     collector.on("end", function() {
-      msg.reactions.removeAll().catch(console.error);
+      msg.reactions.removeAll().catch(NorthClient.storage.error);
     });
   }
 }

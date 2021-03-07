@@ -1,11 +1,12 @@
 var Dictionary = require("oxford-dictionary");
 const Discord = require("discord.js")
-const { createEmbedScrolling } = require("../function.js");
+const { createEmbedScrolling, color } = require("../function.js");
 var config = {
   app_id: process.env.OXID,
   app_key: process.env.OXSECRET,
   source_lang: "en-us"
 };
+const { NorthClient } = require("../classes/NorthClient.js");
 
 var dict = new Dictionary(config);
 
@@ -20,7 +21,7 @@ module.exports = {
     try {
       var lookup = await dict.find(escape(args.join(" ")));
     } catch (err) {
-      console.error(err);
+      NorthClient.storage.error(err);
       return message.channel.send(`No entry was found for **${args.join(" ")}**.`)
     }
 
@@ -52,7 +53,7 @@ module.exports = {
         var definitions = stuff[i].senses[s].definitions;
         var examples = stuff[i].senses[s].examples.join("\n");
         const Embed = new Discord.MessageEmbed()
-          .setColor(console.color())
+          .setColor(color())
           .setTitle("Definitions of \"" + args.join(" ") + "\"")
           .setDescription(`**${stuff[i].category}**`)
           .addField("Definitions", definitions)

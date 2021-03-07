@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
-const { createEmbedScrolling } = require("../function.js");
+const { createEmbedScrolling, color } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "invites",
@@ -26,7 +27,7 @@ module.exports = {
       invitedStr.sort(compare);
       if (invitedStr.length <= 10) {
         const em = new Discord.MessageEmbed()
-          .setColor(console.color())
+          .setColor(color())
           .setTitle("Number of users invited")
           .setDescription(invitedStr.map(x => x.text).join("\n"))
           .setTimestamp()
@@ -37,7 +38,7 @@ module.exports = {
         const allEmbeds = [];
         for (let i = 0; i < pages; i++) {
           const em = new Discord.MessageEmbed()
-            .setColor(console.color())
+            .setColor(color())
             .setTitle(`Number of users invited (Page ${i + 1}/${pages})`)
             .setDescription(invitedStr.slice(i * 10, (i * 10) + 10).map(x => x.text).join("\n"))
             .setTimestamp()
@@ -54,7 +55,7 @@ module.exports = {
       const reducer = (a, b) => a + b;
       var uses = invites.map(i => i.uses ? i.uses : 0).reduce(reducer);
       let em = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(`Number of users invited (${message.author.tag})`)
         .setDescription(`In server **${guild.name}**`)
         .addField("Invited Users", uses, true)
@@ -68,15 +69,15 @@ module.exports = {
         var [result] = await con.query(`SELECT * FROM nolog WHERE id = '${message.author.id}'`);
         if (result.length < 1) {
           await con.query(`INSERT INTO nolog VALUES('${message.author.id}')`);
-          console.noLog.push(message.author.id);
+          NorthClient.storage.noLog.push(message.author.id);
           message.channel.send("You will no longer receive message from me when someone joins the server with your invites.");
         } else {
           con.query(`DELETE FROM nolog WHERE id = '${message.author.id}'`);
-          console.noLog.splice(console.noLog.indexOf(message.author.id), 1);
+          NorthClient.storage.noLog.splice(NorthClient.storage.noLog.indexOf(message.author.id), 1);
           await message.channel.send("We will message you whenever someone joins the server with your invites.");
         }
       } catch(err) {
-        console.error(err);
+        NorthClient.storage.error(err);
         await message.reply("there was an error trying to remember your decision!");
       }
       con.release()

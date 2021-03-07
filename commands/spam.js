@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const client = new Discord.Client();
+const { NorthClient } = require("../classes/NorthClient.js");
 const { findUser } = require("../function.js")
 
 module.exports = {
@@ -21,7 +21,7 @@ module.exports = {
     if (time > 120) return message.channel.send("Please don't spam more than 120 times. That would be annoying.")
 
     const msg = args.slice(2).join(" ");
-    console.log("Will spam user " + taggedUser.username + " for " + time + " times with the message " + msg);
+    NorthClient.storage.log("Will spam user " + taggedUser.username + " for " + time + " times with the message " + msg);
     message.delete().catch(() => { });
     var i = 0;
     var spam = setInterval(function () {
@@ -29,7 +29,7 @@ module.exports = {
         clearInterval(spam);
         return;
       }
-      console.log("Spamming " + taggedUser.username + " for " + Math.floor(i + 1) + " time(s).");
+      NorthClient.storage.log("Spamming " + taggedUser.username + " for " + Math.floor(i + 1) + " time(s).");
       if (taggedUser.id === process.env.DC) {
         message.author.send("Admin power forbids this >:)").catch(err => i = time);
       } else {

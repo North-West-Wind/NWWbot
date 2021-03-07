@@ -1,5 +1,7 @@
 const Discord = require("discord.js");
+const { color } = require("../function");
 const categories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Music", "Under Development", "Dev Command"];
+const { NorthClient } = require("../classes/NorthClient.js");
 module.exports = {
   name: "help",
   description: "Send you a DM with an embed of “help” and this PDF file.",
@@ -8,11 +10,11 @@ module.exports = {
   category: 6,
   async execute(message, args) {
     const data = [];
-    const { commands } = console;
+    const { commands } = NorthClient.storage;
 
     if (!args.length) {
       const Embed = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle("Command list is here!")
         .setDescription(`[**Click this**](https://northwestwind.ml/manual.pdf) for the user manual.\nYou can send \`${message.prefix}${this.name} ${this.usage}\` to get info on a specific command!\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`)
         .setThumbnail(message.client.user.displayAvatarURL())

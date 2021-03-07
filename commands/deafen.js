@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
-const { findMember } = require("../function.js");
+const { findMember, color } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "deafen",
@@ -36,7 +37,7 @@ module.exports = {
       }
 
       var muteEmbed = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(`You've been deafened`)
         .setDescription(`In **${message.guild.name}**`)
         .setTimestamp()
@@ -46,7 +47,7 @@ module.exports = {
         );
       if (reason) muteEmbed.addField("Reason", reason);
       var muteSuccessfulEmbed = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle("User Successfully Deafened!")
         .setDescription(
           "Deafened **" +
@@ -58,14 +59,14 @@ module.exports = {
       try {
         member.user.send(muteEmbed);
       } catch (error) {
-        console.log("Failed to send DM to " + member.user.username);
+        NorthClient.storage.log("Failed to send DM to " + member.user.username);
       }
 
       message.author.send(muteSuccessfulEmbed)
 
     } catch (error) {
       var muteFailureEmbed = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle("Failed to Deafen User!")
         .setDescription(
           "Couldn't deafen **" +

@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const { color } = require("../function");
 module.exports = {
   name: "rank",
   description: "Display your rank in the server. However, this command requires a DLC to work. Leveling system was inspired by MEE6.",
@@ -29,7 +30,7 @@ module.exports = {
     dashes.splice(progress, 1, "+");
     var rank = everyone.indexOf(user.id) + 1;
     const rankEmbed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle(`Rank of **${message.author.tag}** in **${message.guild.name}**`)
       .setDescription(`Rank: **${rank}**\nLevel: **${level}**\nOverall Progress: **${expBackup}** / **${costs.reduce((a, b) => a + b)}**\n\nProgress to Next Level: \n**${exp}** / **${cost}** - **${percentage}%**\n${level} **${dashes.join("")}** ${(level + 1)}`)
       .setFooter("Every level requires 50 XP more to level up.", message.client.user.displayAvatarURL())

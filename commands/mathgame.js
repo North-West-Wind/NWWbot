@@ -1,9 +1,10 @@
 const Discord = require("discord.js");
-const { ms } = require("../function.js");
+const { ms, color } = require("../function.js");
 const math = require("mathjs");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
+const { NorthClient } = require("../classes/NorthClient.js");
 module.exports = {
     name: "mathgame",
     description: "Math Game prototype.",
@@ -21,7 +22,7 @@ module.exports = {
         var msg = await message.channel.send("Who will be playing this game? (Please mention them)");
         let collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 });
         if (!collected || !collected.first() || !collected.first().content) return msg.edit("You didn't answer me within 30 seconds! Please try again.");
-        await collected.first().delete().catch(() => console.error("Cannot delete message"));
+        await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
         var players = [message.author];
         var scores = {};
         scores[message.author.id] = 0;
@@ -40,7 +41,7 @@ module.exports = {
                 msg = await msg.edit("Please enter the amount of questions.");
                 collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
-                await collected.first().delete().catch(() => console.error("Cannot delete message"));
+                await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
                 questions = parseInt(collected.first().content);
                 if(!questions || questions === 0 | isNaN(questions)) return msg.edit("That's not a valid number!");
                 break;
@@ -48,12 +49,12 @@ module.exports = {
                 msg = await msg.edit("Please enter the time allowed.");
                 collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
-                await collected.first().delete().catch(() => console.error("Cannot delete message"));
+                await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
                 time = ms(collected.first().content);
                 if(!time || time === 0) return msg.edit("That's not a valid number!");
         }
         var em = new Discord.MessageEmbed()
-            .setColor(console.color())
+            .setColor(color())
             .setTitle("Math Game Prototype")
             .setDescription(`Game Mode: **${questions > 0 ? `Limited Question Mode (${questions} Questions)` : time > 0 ? `Timer Mode (${moment.duration(Math.round(time / 1000), "seconds").format()})` : "Endless Mode"}**\n**${players.length < 2 ? "Singleplayer" : "Multiplayer"} Game**\nReact with "👌🏻" when you are ready!`)
             .setTimestamp()
@@ -82,7 +83,7 @@ module.exports = {
                     running = false;
                     break;
                 }
-                await collected.first().delete().catch(() => console.error("Cannot delete message"));
+                await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
                 if(parseInt(collected.first().content) === generated.answer) {
                     scores[collected.first().author.id] += 1;
                     correct = true;
@@ -107,19 +108,19 @@ module.exports = {
     },
     async selectMode(message) {
         var em1 = new Discord.MessageEmbed()
-            .setColor(console.color())
+            .setColor(color())
             .setTitle("Limited Questions Mode")
             .setDescription("In this mode, you can set the **amount of questions**\nThe maximum time allowed for each question is **5 minutes**\nAnswers are all integers\nQuestions will get **harder** as the game goes")
             .setTimestamp()
             .setFooter("React with ✅ to choose this one.");
         var em2 = new Discord.MessageEmbed()
-            .setColor(console.color())
+            .setColor(color())
             .setTitle("Timer Mode")
             .setDescription("In this mode, you can set the **amount of time allowed for the entire game**\nThe maximum time allowed for each question is **5 minutes**\nAnswers are all integers\nQuestions will get **harder** as the game goes")
             .setTimestamp()
             .setFooter("React with ✅ to choose this one.");
         var em3 = new Discord.MessageEmbed()
-            .setColor(console.color())
+            .setColor(color())
             .setTitle("Endless Mode")
             .setDescription("In this mode, you can answer **endless amount of questions**\nThe maximum time allowed for each question is **10 seconds + 5 seconds Network Buffer**\nAnswers are all integers\nQuestions will get **harder** as the game goes")
             .setTimestamp()
@@ -179,7 +180,7 @@ module.exports = {
         });
         return new Promise(resolve => {
             collector.on("end", function () {
-                msg.reactions.removeAll().catch(console.error);
+                msg.reactions.removeAll().catch(NorthClient.storage.error);
                 msg.delete();
                 resolve(chosen);
             });

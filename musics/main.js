@@ -1,16 +1,17 @@
 const Discord = require("discord.js");
 const queue = new Discord.Collection();
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "main",
   async music(message, commandName) {
     if (!message.guild) return await message.channel.send("You can only use music commands in server!");
-    const command = console.commands.get(commandName) || console.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+    const command = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
     const serverQueue = queue.get(message.guild.id);
     try {
       await command.music(message, serverQueue);
     } catch (error) {
-      console.error(error);
+      NorthClient.storage.error(error);
       await message.reply("there was an error trying to execute that command!");
     }
   },
@@ -22,7 +23,7 @@ module.exports = {
     try {
       await pool.query(`UPDATE servers SET looping = ${serverQueue && serverQueue.looping ? 1 : "NULL"}, repeating = ${serverQueue && serverQueue.repeating ? 1 : "NULL"}, random = ${serverQueue && serverQueue.random ? 1 : "NULL"}, queue = ${!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs) || serverQueue.songs.length < 1 ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`);
     } catch(err) {
-      console.error(err);
+      NorthClient.storage.error(err);
       if (!message.dummy) message.reply("there was an error trying to update the queue!");
     }
   },

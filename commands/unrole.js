@@ -1,3 +1,4 @@
+const { NorthClient } = require("../classes/NorthClient.js");
 const { findMember, wait } = require("../function.js");
 
 module.exports = {
@@ -33,7 +34,7 @@ module.exports = {
       const allMembers = await message.guild.members.fetch();
       for (const member of allMembers.values()) try {
         await member.roles.remove(role);
-        console.realLog(`Removed role ${role.name} from member ${member.displayName}`);
+        NorthClient.storage.log(`Removed role ${role.name} from member ${member.displayName}`);
         await wait(200);
       } catch (err) {
         await message.channel.send(`Failed to remove role **${role.name}** from **${taggedUser.tag}**. (Error: **${err.message}**)`);

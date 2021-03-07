@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { findMember, createEmbedScrolling, readableDateTime } = require("../function.js");
+const { findMember, createEmbedScrolling, readableDateTime, color } = require("../function.js");
 const moment = require("moment");
 require("moment-duration-format")(moment);
 module.exports = {
@@ -32,7 +32,7 @@ module.exports = {
       .addField("Nickname", nick, true)
       .addField("Created", createdTime, true)
       .addField("Joined", joinedTime, true)
-      .setColor(console.color())
+      .setColor(color())
       .setTimestamp()
       .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     const allEmbeds = [Embed];
@@ -40,7 +40,7 @@ module.exports = {
       const activityEm = new Discord.MessageEmbed()
         .setTitle("Presence of " + username)
         .setTimestamp()
-        .setColor(console.color())
+        .setColor(color())
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       for (const activity of member.presence.activities) {
         const time = Date.now() - activity.createdTimestamp;

@@ -1,3 +1,5 @@
+const { NorthClient } = require("./classes/NorthClient");
+
 module.exports = {
   twoDigits(d) {
     if (0 <= d && d < 10) return "0" + d.toString();
@@ -306,7 +308,7 @@ module.exports = {
       }
     });
     collector.on("end", async () => {
-      msg.reactions.removeAll().catch(console.error);
+      msg.reactions.removeAll().catch(NorthClient.storage.error);
       if (id == 1) {
         await msg.edit({ content: "Loading simplier version...", embed: null });
         await msg.edit("https://sky.shiiyu.moe/stats/" + additionalData.res[0].name);
@@ -425,5 +427,7 @@ module.exports = {
     const arr = [];
     for (const key of keys) if (obj[key]) arr.push(obj[key]);
     return [].concat.apply([], arr);
-  }
+  },
+  profile: (str) => new Promise((resolve, reject) => require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); })),
+  nameToUuid: (str) => new Promise((resolve, reject) => require("mojang-api").nameToUuid(str, function (err, res) { if (err) reject(err); else resolve(res[0].id); }))
 };

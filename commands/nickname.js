@@ -1,5 +1,5 @@
-const Discord = require("discord.js");
 const { findMember } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "nickname",
@@ -23,7 +23,7 @@ module.exports = {
     try {
       await member.setNickname(args.slice(1).join(" "));
     } catch(err) {
-      console.error(err);
+      NorthClient.storage.error(err);
       return message.channel.send("Failed to set nickname!");
     }
     message.channel.send(`Set **${member.user.tag}**'s nickname to **${args.slice(1).join(" ")}**`);

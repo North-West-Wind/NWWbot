@@ -1,4 +1,6 @@
 const Discord = require("discord.js");
+const { color } = require("../function");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "rps",
@@ -8,7 +10,7 @@ module.exports = {
   async execute(message) {
     const options = ["🖐", "✌", "👊"];
     var em = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("Rock Paper Scissors")
       .setDescription("**React** when you are ready!\n\n🖐 **Paper**\n✌ **Scissors**\n👊 **Rock**")
       .setTimestamp()
@@ -17,7 +19,7 @@ module.exports = {
     for(const option of options) await msg.react(option);
     const filter = (r, u) => options.includes(r.emoji.name) && u.id === message.author.id;
     var collected = await msg.awaitReactions(filter, { max: 1, time: 30000 });
-    await msg.reactions.removeAll().catch(console.error);
+    await msg.reactions.removeAll().catch(NorthClient.storage.error);
     em.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     if(!collected || !collected.first()) {
       em.setDescription("You didn't react in time!");

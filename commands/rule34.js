@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const Booru = require("booru");
-const { capitalize } = require("../function.js");
+const { capitalize, color } = require("../function.js");
 
 module.exports = {
   name: "rule34",
@@ -32,7 +32,7 @@ module.exports = {
     else if (post.previewUrl) fileUrl = post.previewUrl;
     else return await message.channel.send("Cannot find any image!");
     const Embed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("Searching tags: " + args.join(", "))
       .setDescription("Tags: `" + post.tags.join(", ") + "`\nPlease be patient. Image will load soon...")
       .setTimestamp()

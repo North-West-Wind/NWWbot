@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const fs = require("fs");
-const { wait } = require("../function.js");
+const { wait, color } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "inventory",
@@ -17,7 +18,7 @@ module.exports = {
     con.release();
     let i = 0;
     const em = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle(message.author.tag + "'s Inventory")
       .setDescription(IResult.map(x => `**${++i}.** ${x.name} - **${itemObject[x.id]}**`).join("\n"))
       .setTimestamp()
@@ -47,13 +48,13 @@ module.exports = {
       max: 1,
       time: 30000
     })
-    msg.reactions.removeAll().catch(console.error);
-    if (!collected2.first()) return msg.edit(em.setColor(console.color()).setTitle(message.author.tag + "'s Inventory").setDescription(IResult.map(x => `**${++i}.** ${x.name} - **${itemObject[x.id]}**`).join("\n")));
+    msg.reactions.removeAll().catch(NorthClient.storage.error);
+    if (!collected2.first()) return msg.edit(em.setColor(color()).setTitle(message.author.tag + "'s Inventory").setDescription(IResult.map(x => `**${++i}.** ${x.name} - **${itemObject[x.id]}**`).join("\n")));
     const r = collected2.first();
     if (r.emoji.name === "1️⃣") {
       if (!itemObject[wanted.id]) itemObject[wanted.id] = 0;
       if (itemObject[wanted.id] < 1) {
-        msg.reactions.removeAll().catch(console.error);
+        msg.reactions.removeAll().catch(NorthClient.storage.error);
         em.setDescription("You cannot use this item because you don't have any.").setFooter("You can't do this.", message.client.user.displayAvatarURL());
         return msg.edit(em);
       }
@@ -109,7 +110,7 @@ module.exports = {
             const spliced = command.replace(/({( +)?command( +)|})/ig, "");
             const cArgs = spliced.split(/ +/);
             const commandName = cArgs.shift().toLowerCase();
-            const c = console.commands.get(commandName) || console.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+            const c = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
             if (!c) {
               em.setDescription(`Failed to use the item! Please ask your server managers to fix this! Preserving item...`)
                 .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
@@ -121,7 +122,7 @@ module.exports = {
               if (c.category === 8) throw new Error("Do NOT run music command with items.");
               else await c.execute(message, cArgs);
             } catch (error) {
-              console.error(error);
+              NorthClient.storage.error(error);
               em.setDescription(`Failed to use the item! Please contact NorthWestWind#1885 to fix this! Preserving item...`)
                 .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
               await msg.edit(em);

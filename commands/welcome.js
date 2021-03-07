@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const { createCanvas, Image, loadImage } = require("canvas");
 const { findMember, replaceMsgContent } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "welcome",
@@ -16,11 +17,11 @@ module.exports = {
     const guild = message.guild;
     const id = message.client.id;
     try {
-      const welcome = console.guilds[guild.id]?.welcome;
+      const welcome = NorthClient.storage.guilds[guild.id]?.welcome;
       if (!welcome?.channel) {
-        if (console.guilds[guild.id]) return;
+        if (NorthClient.storage.guilds[guild.id]) return;
         await message.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
-        console.log("Inserted record for " + guild.name);
+        NorthClient.storage.log("Inserted record for " + guild.name);
       } else {
         if (!welcome.channel) return;
         const channel = message.channel;
@@ -29,7 +30,7 @@ module.exports = {
           const welcomeMessage = replaceMsgContent(welcome.message, guild, message.client, member, "welcome");
           await channel.send(welcomeMessage);
         } catch (err) {
-          console.error(err);
+          NorthClient.storage.error(err);
         }
         if (welcome.image) {
           var img = new Image();
@@ -83,7 +84,7 @@ module.exports = {
               if (id === 1) await channel.send(new Discord.MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
               await channel.send(attachment);
             } catch (err) {
-              console.error(err);
+              NorthClient.storage.error(err);
             }
           };
           var url = welcome.image;
@@ -94,6 +95,6 @@ module.exports = {
           img.src = url;
         }
       }
-    } catch (err) { console.error(err) };
+    } catch (err) { NorthClient.storage.error(err) };
   }
 };

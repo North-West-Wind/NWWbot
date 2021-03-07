@@ -1,7 +1,9 @@
 const Discord = require("discord.js");
 const { updateQueue, setQueue } = require("./main.js");
-const { createEmbedScrolling, streamToString, requestStream } = require("../function.js");
+const { createEmbedScrolling, streamToString, requestStream, color } = require("../function.js");
 const sanitize = require("sanitize-filename");
+const { NorthClient } = require("../classes/NorthClient.js");
+
 module.exports = {
   name: "queue",
   description: "Display the current song queue.",
@@ -37,7 +39,7 @@ module.exports = {
     for (let i = 0; i < Math.ceil(songArray.length / 10); i++) {
       const pageArray = songArray.slice(i * 10, i * 10 + 10);
       const queueEmbed = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(`Song queue for ${message.guild.name} [${i + 1}/${Math.ceil(songArray.length / 10)}]`)
         .setDescription(`There are ${songArray.length} tracks in total.\n\n${pageArray.join("\n")}`)
         .setTimestamp()
@@ -58,7 +60,7 @@ module.exports = {
     for (const result of results) {
       if (result.name === args.slice(2).join(" ")) {
         var em = new Discord.MessageEmbed()
-          .setColor(console.color())
+          .setColor(color())
           .setTitle("Warning")
           .setDescription(`There is already a queue named **${args.slice(2).join(" ")}** stored. Do you want to override it?\n✅ Yes\n❌ No`)
           .setTimestamp()
@@ -67,7 +69,7 @@ module.exports = {
         await msg.react("✅");
         await msg.react("❌");
         var collected = await msg.awaitReactions((r, u) => (["✅", "❌"].includes(r.emoji.name) && u.id === message.author.id), { time: 30000, max: 1 });
-        await msg.reactions.removeAll().catch(console.error);
+        await msg.reactions.removeAll().catch(NorthClient.storage.error);
         if (!collected || !collected.first()) return msg.edit({ content: "I cannot receive your answer! I'll take that as a NO.", embed: null });
         if (collected.first().emoji.name === "✅") {
           await msg.edit({ content: `The queue ${args.slice(2).join(" ")} will be overridden.`, embed: null });
@@ -115,7 +117,7 @@ module.exports = {
         return str;
       }).slice(0, 10);
       const queueEmbed = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(`Queue - ${result.name}`)
         .setDescription(`There are ${queue.length} tracks in total.\n\n${pageArray.join("\n")}`)
         .setTimestamp()
@@ -125,7 +127,7 @@ module.exports = {
     const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
     const available = ["⬅", "⏹️"];
     const em = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle(`Stored queues of **${message.author.tag}**`)
       .setDescription(`Slots used: **${results.length}/10**\n\n${queues.join("\n")}`)
       .setTimestamp()
@@ -144,21 +146,21 @@ module.exports = {
       if (index < 0 || index > num + 2 || index == 1) return collector.emit("end");
       else if (index == 0) {
         const back = await msg.reactions.cache.get(available[0]);
-        await back.remove().catch(console.error);
+        await back.remove().catch(NorthClient.storage.error);
         await msg.edit(allEmbeds[0]);
       } else {
         await msg.edit(allEmbeds[index - 1]);
         const back = await msg.reactions.cache.get(available[0]);
         if (!back) {
           const stop = await msg.reactions.cache.get(available[1]);
-          if (stop) await stop.remove().catch(console.error);
+          if (stop) await stop.remove().catch(NorthClient.storage.error);
           await msg.react(available[0]);
           await msg.react(available[1]);
         }
       }
     });
     collector.on("end", function () {
-      msg.reactions.removeAll().catch(console.error);
+      msg.reactions.removeAll().catch(NorthClient.storage.error);
       msg.edit(allEmbeds[0]);
       setTimeout(() => msg.edit({ embed: null, content: `**[Queues: ${results.length}/10 slots used]**` }), 60000);
     });

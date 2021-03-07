@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { twoDigits } = require("../function.js")
+const { twoDigits, color } = require("../function.js")
 
 module.exports = {
 	name: 'server',
@@ -56,7 +56,7 @@ module.exports = {
 		
     const Embed = new Discord.MessageEmbed()
     .setTitle("Information of " + name)
-    .setColor(console.color())
+    .setColor(color())
     .setThumbnail(icon)
     .addField("ID", id, true)
     .addField("Member statuses", `Online: \`${onlineMembers}\`\nIdle: \`${idleMembers}\`\nDo not Disturb: \`${dndMembers}\``, true)

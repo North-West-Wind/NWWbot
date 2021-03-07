@@ -1,13 +1,14 @@
 const { updateQueue } = require("./main.js");
 const { moveArray } = require("../function");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "migrate",
   description: "Move the bot to the channel you are in. Use when changing voice channel.",
   category: 8,
   async music(message, serverQueue) {
-    const exit = console.guilds[message.guild.id].exit;
-    const migrating = console.migrating;
+    const exit = NorthClient.storage.guilds[message.guild.id].exit;
+    const migrating = NorthClient.storage.migrating;
     if (migrating.find(x => x === message.guild.id)) return message.channel.send("I'm on my way!").then(msg => msg.delete(10000));
     if (!message.member.voice.channel) return message.channel.send("You are not in any voice channel!");
     if (!message.guild.me.voice.channel) return message.channel.send("I am not in any voice channel!");
@@ -17,7 +18,7 @@ module.exports = {
     if (!serverQueue.playing) return message.channel.send("I'm not playing anything.");
     if (!message.member.voice.channel.permissionsFor(message.guild.me).has(3145728)) return message.channel.send("I don't have the required permissions to play music here!");
     migrating.push(message.guild.id);
-    if (exit) console.guilds[guild.id].exit = false;
+    if (exit) NorthClient.storage.guilds[guild.id].exit = false;
     const oldChannel = serverQueue.voiceChannel;
     var seek = 0;
     if (serverQueue.connection && serverQueue.connection.dispatcher) {

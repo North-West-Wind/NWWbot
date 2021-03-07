@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
-const { findUser } = require("../function.js");
+const { findUser, color } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "unban",
@@ -20,7 +21,7 @@ module.exports = {
       await message.guild.members.unban(user);
     }
     var unbanEmbed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle(`You've been unbanned`)
       .setDescription(`In **${message.guild.name}**`)
       .setTimestamp()
@@ -32,10 +33,10 @@ module.exports = {
       unbanEmbed.addField("Reason", reason);
     }
     user.send(unbanEmbed).catch(() => {
-      console.log("Failed to send DM to " + user.username);
+      NorthClient.storage.log("Failed to send DM to " + user.username);
     });
     var unbanSuccessfulEmbed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("User Unbanned!")
       .setDescription(
         "Unbanned **" +

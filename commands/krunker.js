@@ -1,10 +1,11 @@
 const Discord = require("discord.js");
 const cheerio = require("cheerio");
-const { ms } = require("../function.js");
+const { ms, color } = require("../function.js");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "krunker",
@@ -53,8 +54,8 @@ module.exports = {
           const allEmbeds = [];
           const officialPage = Math.ceil(official.length / 25);
           const customPage = Math.ceil(custom.length / 25);
-          const officialColor = console.color();
-          const customColor = console.color();
+          const officialColor = color();
+          const customColor = color();
           for (let i = 0; i < officialPage; i++) {
             var str = "";
             for (let j = i * 25; j < i * 25 + 25; j++) if (official[j]) str += `${j + 1}. **[${official[j][4].i}](https://krunker.io/?game=${official[j][0]})** - **${official[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${official[j][2]}/${official[j][3]}**\n`
@@ -94,12 +95,12 @@ module.exports = {
             idle: 60000
           });
           const linkEmbed = new Discord.MessageEmbed()
-            .setColor(console.color())
+            .setColor(color())
             .setTitle("Random Game Generator")
             .setTimestamp()
             .setFooter("Please decide within 30 seconds.", message.client.user.displayAvatarURL());
           const pageWarp = new Discord.MessageEmbed()
-            .setColor(console.color())
+            .setColor(color())
             .setTitle("Krunker Server Browser")
             .setDescription("Enter the page number to warp to that page.")
             .setTimestamp()
@@ -159,7 +160,7 @@ module.exports = {
             }
           });
           collector.on("end", async function () {
-            await msg.reactions.removeAll().catch(console.error);
+            await msg.reactions.removeAll().catch(NorthClient.storage.error);
             var random = "";
             if (s > officialPage - 1) random = (`https://krunker.io/?game=${custom[Math.floor(Math.random() * custom.length)][0]}`);
             else random = (`https://krunker.io/?game=${official[Math.floor(Math.random() * official.length)][0]}`);
@@ -167,7 +168,7 @@ module.exports = {
             setTimeout(() => msg.edit({ content: random.length > 0 ? `Here's a random server:\n${random}` : "No server was found!", embed: null }), 30000);
           });
         } catch (err) {
-          console.error(err);
+          NorthClient.storage.error(err);
           msg.edit(`<@${message.author.id}>, there was an error trying to show you the games!`);
         } finally {
           msg.channel.stopTyping(true);
@@ -192,7 +193,7 @@ module.exports = {
           }
           await msg.edit(`\`\`\`${Object.keys(changelog)[0]}\n${changelog[Object.keys(changelog)[0]].join("\n")}\`\`\``);
         } catch (err) {
-          console.error(err);
+          NorthClient.storage.error(err);
           msg.edit(`<@${message.author.id}>, there was an error trying to display the changelog!`);
         } finally {
           msg.channel.stopTyping(true);
@@ -204,10 +205,10 @@ module.exports = {
   },
   async profile(message, username) {
     try {
-      const user = await (Object.getPrototypeOf(async function(){}).constructor("p", "cheerio", "username", process.env.FUNCTION5))(console.p, cheerio, username);
+      const user = await (Object.getPrototypeOf(async function(){}).constructor("p", "cheerio", "username", process.env.FUNCTION5))(NorthClient.storage.p, cheerio, username);
       const Embed = new Discord.MessageEmbed()
         .setTitle(user.name)
-        .setColor(console.color())
+        .setColor(color())
         .setThumbnail("https://camo.githubusercontent.com/ae9a850fda4698b130cb55c496473ad5ee81d4a4/68747470733a2f2f692e696d6775722e636f6d2f6c734b783064772e706e67")
         .addField("Level", user.LVL, true)
         .addField("Krunkies", user.KR, true)

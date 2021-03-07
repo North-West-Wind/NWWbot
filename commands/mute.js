@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
-const { findMember } = require("../function.js");
+const { findMember, color } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "mute",
@@ -34,7 +35,7 @@ module.exports = {
         member.voice.setMute(true);
       }
       var muteEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(`You've been muted`)
         .setDescription(`In **${message.guild.name}**`)
         .setTimestamp()
@@ -44,7 +45,7 @@ module.exports = {
         );
       if (reason) muteEmbed.addField("Reason", reason);
       var muteSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
-        .setColor(console.color())
+        .setColor(color())
         .setTitle("User Successfully Muted!")
         .setDescription(
           "Muted **" +
@@ -56,14 +57,14 @@ module.exports = {
       try {
         member.user.send(muteEmbed);
       } catch (error) {
-        console.log("Failed to send DM to " + member.user.username);
+        NorthClient.storage.log("Failed to send DM to " + member.user.username);
       }
 
       message.author.send(muteSuccessfulEmbed)
 
     } catch (error) {
       var muteFailureEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
-        .setColor(console.color())
+        .setColor(color())
         .setTitle("Failed to Mute User!")
         .setDescription(
           "Couldn't mute **" +

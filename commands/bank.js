@@ -1,4 +1,6 @@
 const Discord = require("discord.js");
+const { color } = require("../function");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "bank",
@@ -12,7 +14,7 @@ module.exports = {
       var cash = results[0].currency;
       var bank = results[0].bank;
       const Embed = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(message.author.tag)
         .setDescription("Economic status\n\n1️⃣Deposit\n2️⃣Withdraw")
         .addField("Bank", "$" + bank)
@@ -28,7 +30,7 @@ module.exports = {
         cash = newResults[0].currency;
         bank = newResults[0].bank;
         const embed = new Discord.MessageEmbed()
-          .setColor(console.color())
+          .setColor(color())
           .setTitle(message.author.tag)
           .setDescription("Economic status\n\n1️⃣Deposit\n2️⃣Withdraw")
           .addField("Bank", "$" + bank)
@@ -40,12 +42,12 @@ module.exports = {
         await msg.react("2️⃣");
         const filter = (reaction, user) => ["1️⃣", "2️⃣"].includes(reaction.emoji.name) && user.id === message.author.id;
         var collected = await msg.awaitReactions(filter, { max: 1, time: 30000 });
-        msg.reactions.removeAll().catch(console.error);
+        msg.reactions.removeAll().catch(NorthClient.storage.error);
         if (!collected || !collected.first()) return;
         const reaction = collected.first();
         if (reaction.emoji.name === "1️⃣") {
           var depositEmbed = new Discord.MessageEmbed()
-            .setColor(console.color())
+            .setColor(color())
             .setTitle("Deposit")
             .setDescription("Please enter the amount you want to deposit.\n(Can also enter `all`, `half` or `quarter`)")
             .setTimestamp()
@@ -53,7 +55,7 @@ module.exports = {
           await msg.edit(depositEmbed);
           async function depositNotValid() {
             const depositedEmbed = new Discord.MessageEmbed()
-              .setColor(console.color())
+              .setColor(color())
               .setTitle("Deposition Failed")
               .setDescription("That is not a valid amount!")
               .setTimestamp()
@@ -76,7 +78,7 @@ module.exports = {
           try {
             await con.query(`UPDATE currency SET currency = '${newCurrency}', bank = '${newBank}' WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
             const depositedEmbed = new Discord.MessageEmbed()
-              .setColor(console.color())
+              .setColor(color())
               .setTitle("Deposition Successful")
               .setDescription("Deposited **$" + deposits + "** into bank!")
               .setTimestamp()
@@ -84,12 +86,12 @@ module.exports = {
             await msg.edit(depositedEmbed);
             setTimeout(() => MainPage(), 3000);
           } catch (err) {
-            console.error(err);
+            NorthClient.storage.error(err);
             message.reply("there was an error trying to fetch data from the database!");
           }
         } else {
           var withdrawEmbed = new Discord.MessageEmbed()
-            .setColor(console.color())
+            .setColor(color())
             .setTitle("Withdrawal")
             .setDescription("Please enter the amount you want to withdraw.\n(Can also enter `all`, `half` or `quarter`)")
             .setTimestamp()
@@ -97,7 +99,7 @@ module.exports = {
           await msg.edit(withdrawEmbed);
           async function withdrawNotValid() {
             const withdrawedEmbed = new Discord.MessageEmbed()
-            .setColor(console.color())
+            .setColor(color())
             .setTitle("Withdrawal Failed")
             .setDescription("That is not a valid amount!")
             .setTimestamp()
@@ -120,7 +122,7 @@ module.exports = {
           try {
             await con.query(`UPDATE currency SET currency = '${newCurrency}', bank = '${newBank}' WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
             const withdrawedEmbed = new Discord.MessageEmbed()
-              .setColor(console.color())
+              .setColor(color())
               .setTitle("Withdrawal Successful")
               .setDescription("Withdrawed **$" + withdraws + "** from bank!")
               .setTimestamp()
@@ -128,7 +130,7 @@ module.exports = {
             await msg.edit(withdrawedEmbed);
             setTimeout(() => MainPage(), 3000);
           } catch (err) {
-            console.error(err);
+            NorthClient.storage.error(err);
             message.reply("there was an error trying to fetch data from the database!");
           }
         }

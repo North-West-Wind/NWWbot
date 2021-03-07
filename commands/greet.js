@@ -1,4 +1,3 @@
-var color = Math.floor(Math.random() * 16777214) + 1;
 const { findUser } = require("../function.js");
 
 module.exports = {

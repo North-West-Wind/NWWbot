@@ -1,6 +1,7 @@
 var mc = require('minecraft-protocol');
 var mclient;
 const { wait } = require("../function");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
     name: "afk",
@@ -34,7 +35,7 @@ module.exports = {
                 password: process.env.PASS,
                 auth: 'mojang'
             });
-            console.log("Reconnected");
+            NorthClient.storage.log("Reconnected");
         });
         await message.channel.send("Client started!");
     },

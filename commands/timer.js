@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
-const { jsDate2Mysql, ms, readableDateTimeText } = require("../function.js");
+const { jsDate2Mysql, ms, readableDateTimeText, color } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "timer",
@@ -41,7 +42,7 @@ module.exports = {
     time = duration;
     msg = await msg.edit(`Timer created in <#${channel.id}> with the title **${title}** and will last for **${readableDateTimeText(time)}**`);
     let em = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle(title)
       .setDescription(`(The timer updates every **5 seconds**)\nThis is a timer and it will last for\n**${readableDateTimeText(time)}**`)
       .setTimestamp()
@@ -62,13 +63,13 @@ module.exports = {
           var [results] = await con.query(`SELECT * FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`);
           if (results.length < 1) return;
           await con.query(`DELETE FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`);
-          console.log("Deleted a timed out timer from the database.");
+          NorthClient.storage.log("Deleted a timed out timer from the database.");
         } catch (err) {
-          console.error(err);
+          NorthClient.storage.error(err);
           await message.reply("there was an error trying to delete the timer!");
         }
         con.release();
-        console.timers.delete(msg.id);
+        NorthClient.storage.timers.delete(msg.id);
         return;
       }
       if (count < 4) return ++count;
@@ -83,9 +84,9 @@ module.exports = {
     try {
       await message.pool.query(`INSERT INTO timer(guild, channel, author, msg, title, endAt) VALUES('${message.guild.id}', '${msg.channel.id}', '${message.author.id}', '${msg.id}', '${escape(title)}', '${jsDate2Mysql(new Date(Date.now() + time))}')`);
       await message.channel.send("The timer has been recorded!");
-      console.timers.set(msg.id, id);
+      NorthClient.storage.timers.set(msg.id, id);
     } catch (err) {
-      console.error(err);
+      NorthClient.storage.error(err);
       await message.reply("there was an error trying to record the timer!");
     }
   },
@@ -125,7 +126,7 @@ module.exports = {
       time = duration + results[0].endAt.getTime() - Date.now();
       msg = await msg.edit(`Timer updated in <#${channel.id}> with the title **${title}** and will last for **${readableDateTimeText(time)}**`);
       let em = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(title)
         .setDescription(`(The timer updates every **5 seconds**)\nThis is a timer and it will last for\n**${readableDateTimeText(time)}**`)
         .setTimestamp()
@@ -147,13 +148,13 @@ module.exports = {
             await conn.query(`SELECT * FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`);
             if (results.length < 1) throw new Error("Custom");
             await conn.query(`DELETE FROM timer WHERE guild = '${message.guild.id}' AND channel = '${msg.channel.id}' AND author = '${message.author.id}' AND msg = '${msg.id}'`);
-            console.log("Deleted a timed out timer from the database.");
+            NorthClient.storage.log("Deleted a timed out timer from the database.");
           } catch (err) {
-            console.error(err);
+            NorthClient.storage.error(err);
             if (err.message !== "Custom") await message.reply("there was an error trying to delete the timer!");
           }
           conn.release();
-          console.timers.delete(msg.id);
+          NorthClient.storage.timers.delete(msg.id);
           return;
         }
         if (count < 4) return ++count;
@@ -167,10 +168,10 @@ module.exports = {
       }, 1000);
       con.query(`UPDATE timers SET channel = '${msg.channel.id}', msg = '${msg.id}', title = '${escape(title)}', endAt = '${jsDate2Mysql(new Date(Date.now() + time))}' WHERE msg = '${mesg.id}'`);
       message.channel.send("The timer has been recorded!");
-      console.timers.delete(mesg.id);
-      console.timers.set(msg.id, id);
+      NorthClient.storage.timers.delete(mesg.id);
+      NorthClient.storage.timers.set(msg.id, id);
     } catch (err) {
-      console.error(err);
+      NorthClient.storage.error(err);
       await message.reply("there was an error trying to update the timer!");
     }
     con.release();
@@ -188,7 +189,7 @@ module.exports = {
       await message.channel.send(`Timer ${unescape(results[0].title)} deleted.`);
     } catch (err) {
       if (!error) {
-        console.error(err);
+        NorthClient.storage.error(err);
         await message.reply("there was an error trying to delete the timer!");
       }
     }

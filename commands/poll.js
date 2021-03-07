@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
-const { setTimeout_, ms, jsDate2Mysql, readableDateTime, readableDateTimeText } = require("../function.js");
+const { setTimeout_, ms, jsDate2Mysql, readableDateTime, readableDateTimeText, color } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "poll",
@@ -66,7 +67,7 @@ module.exports = {
     const newDateSql = jsDate2Mysql(newDate);
     const readableTime = readableDateTime(newDate);
     const pollMsg = "⬆**Poll**⬇";
-    const color = console.color();
+    const color = color();
     const Embed = new Discord.MessageEmbed()
       .setColor(color)
       .setTitle(title)
@@ -77,7 +78,7 @@ module.exports = {
     for (var i = 0; i < optionArray.length; i++) await msg.react(emojis[i]);
     for (var i = 0; i < options.length; i++) options[i] = escape(options[i]);
     await message.pool.query(`INSERT INTO poll VALUES(${msg.id}, ${message.guild.id}, ${channel.id}, '["${options.join('", "')}"]', '${newDateSql}', ${message.author.id}, ${color}, '${escape(title)}')`);
-    console.log(`Inserted poll record for ${title} in channel ${channel.name} of server ${message.guild.name}`);
+    NorthClient.storage.log(`Inserted poll record for ${title} in channel ${channel.name} of server ${message.guild.name}`);
 
     setTimeout_(async () => {
       const con = await message.pool.getConnection();
@@ -109,7 +110,7 @@ module.exports = {
           }
         }
       } catch (err) {
-        console.error(err);
+        NorthClient.storage.error(err);
       }
       con.release();
     }, duration);
@@ -162,7 +163,7 @@ module.exports = {
   async list(message) {
     var [results] = await message.pool.query("SELECT * FROM poll WHERE guild = " + message.guild.id);
     const Embed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("Poll list")
       .setDescription("**" + message.guild.name + "** - " + results.length + " polls")
       .setTimestamp()

@@ -1,3 +1,4 @@
+const { NorthClient } = require("../classes/NorthClient.js");
 const { findMember, wait } = require("../function.js");
 
 module.exports = {
@@ -35,7 +36,7 @@ module.exports = {
       const allMembers = await message.guild.members.fetch();
       for (const member of allMembers.values()) try {
         await member.roles.add(role);
-        console.realLog(`Added member ${member.displayName} to ${role.name}`);
+        NorthClient.storage.log(`Added member ${member.displayName} to ${role.name}`);
         await wait(200);
       } catch (err) {
         await message.channel.send(`Failed to add **${member.user.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
@@ -47,7 +48,7 @@ module.exports = {
       const taggedUser = member.user;
       try {
         await member.roles.add(role);
-        console.log(`Gave ${taggedUser.username} the role ${role.name}`);
+        NorthClient.storage.log(`Gave ${taggedUser.username} the role ${role.name}`);
         await message.channel.send(`Successfully added **${taggedUser.tag}** to role **${role.name}**.`);
       } catch (err) {
         await message.channel.send(`Failed to add **${taggedUser.tag}** to role **${role.name}**. (Error: **${err.message}**)`);

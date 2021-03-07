@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const solenolyrics = require("solenolyrics");
-const { createEmbedScrolling } = require("../function.js");
+const { createEmbedScrolling, color } = require("../function.js");
 
 module.exports = {
   name: "lyrics",
@@ -43,7 +43,7 @@ module.exports = {
           recheck();
           const em = new Discord.MessageEmbed()
           .setThumbnail(icon)
-          .setColor(console.color())
+          .setColor(color())
           .setTitle(title)
           .setAuthor(author)
           .setDescription(str.join("\n"))
@@ -66,7 +66,7 @@ module.exports = {
       recheck();
       var em = new Discord.MessageEmbed()
       .setThumbnail(icon)
-      .setColor(console.color())
+      .setColor(color())
       .setTitle(title)
       .setAuthor(author)
       .setDescription(str.join("\n\n"))

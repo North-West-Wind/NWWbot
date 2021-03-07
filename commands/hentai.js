@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const neko = require("akaneko");
-const { ms } = require("../function.js");
+const { ms, color } = require("../function.js");
 
 module.exports = {
   name: "hentai",
@@ -58,7 +58,7 @@ module.exports = {
     else var result = await neko.nsfw[tag]();
     const embed = new Discord.MessageEmbed()
       .setTitle("Tag: " + tag)
-      .setColor(console.color())
+      .setColor(color())
       .setImage(result)
       .setTimestamp()
       .setFooter("Made with Akaneko", message.client.user.displayAvatarURL());
@@ -71,7 +71,7 @@ module.exports = {
     else var result = await neko.nsfw[tag]();
     const embed = new Discord.MessageEmbed()
       .setTitle("Tag: " + tag)
-      .setColor(console.color())
+      .setColor(color())
       .setImage(result)
       .setTimestamp()
       .setFooter("Made with Akaneko", message.client.user.displayAvatarURL());
@@ -80,7 +80,7 @@ module.exports = {
   async tagsList(message) {
     const list = new Discord.MessageEmbed()
       .setTitle("Tag list")
-      .setColor(console.color())
+      .setColor(color())
       .setDescription("**" + this.tags.join("**\n**") + "**")
       .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL())
     message.channel.send(list);

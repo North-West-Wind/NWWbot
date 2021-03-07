@@ -1,5 +1,6 @@
 var Discord = require("discord.js");
-var { shuffleArray, twoDigits } = require("../function.js");
+var { shuffleArray, twoDigits, color } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 var converter = require("number-to-words");
 var { createCanvas, loadImage } = require("canvas");
 var fs = require("fs");
@@ -31,7 +32,7 @@ module.exports = {
   category: 3,
   usage: "[users]",
   async execute(message) {
-    var color = console.color();
+    var c = color();
     if (message.mentions.members.size > 0) {
       var msg = await message.channel.send(`You invited ${message.mentions.members.map(user => `<@${user.id}>`).join(" ")} to play UNO.`);
       var mentions = message.mentions.members;
@@ -51,7 +52,7 @@ module.exports = {
     var ingame = false;
     var participants = [message.author];
     mentions.forEach(async member => {
-      var otherGames = console.uno.find(game => game.players.has(member.id));
+      var otherGames = NorthClient.storage.uno.find(game => game.players.has(member.id));
       if (!!otherGames) {
         responses++;
         ingame = true;
@@ -60,7 +61,7 @@ module.exports = {
       participants.push(member.user);
       var em = new Discord.MessageEmbed()
         .setAuthor(message.author.tag, message.author.displayAvatarURL())
-        .setColor(color)
+        .setColor(c)
         .setTitle(`${message.author.tag} invited you to play UNO!`)
         .setDescription(`Server: **${message.guild.name}**\nChannel: **${message.channel.name}**\nAccept invitation?\n\n✅Accept\n❌Decline`)
         .setTimestamp()
@@ -99,13 +100,13 @@ module.exports = {
     var players = new Discord.Collection();
 
     async function prepare(mesg, nano) {
-      var uno = console.uno;
+      var uno = NorthClient.storage.uno;
       var order = shuffleArray(participants);
       message.channel.send(`The order has been decided!${order.map(x => `\n${order.indexOf(x) + 1}. **${x.tag}**`)}`);
-      for (var participant of order) players.set(participant.id, { user: participant, card: console.card.random(7) });
+      for (var participant of order) players.set(participant.id, { user: participant, card: NorthClient.storage.card.random(7) });
       for (var [key, player] of players) {
         let em = new Discord.MessageEmbed()
-          .setColor(color)
+          .setColor(c)
           .setTitle(`The cards have been distributed!`)
           .attachFiles([{ attachment: await canvasImg(assets, player.card), name: "canvas.png" }])
           .setImage("attachment://canvas.png")
@@ -114,10 +115,10 @@ module.exports = {
           .setFooter("Game started.", message.client.user.displayAvatarURL());
         player.user.send(em);
       }
-      var initial = console.card.filter(x => x.color < 4 && x.number < 10).random();
+      var initial = NorthClient.storage.card.filter(x => x.color < 4 && x.number < 10).random();
       uno.set(nano, { players: players, card: initial, cards: 1 });
       let em = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle("The 1st card has been placed!")
         .setThumbnail(message.client.user.displayAvatarURL())
         .setImage(assets.find(x => x.id === twoDigits(initial.color) + twoDigits(initial.number)).url)
@@ -129,7 +130,7 @@ module.exports = {
     }
 
     async function handle(mesg, nano) {
-      let uno = console.uno;
+      let uno = NorthClient.storage.uno;
       let drawCard = 0;
       let skip = false;
       var won = false;
@@ -151,7 +152,7 @@ module.exports = {
             let skipEm = new Discord.MessageEmbed()
               .setTitle("Your turn was skipped!")
               .setDescription("Someone placed a Skip card!")
-              .setColor(color)
+              .setColor(c)
               .setTimestamp()
               .setFooter("Better luck next time!", message.client.user.displayAvatarURL());
             player.user.send(skipEm);
@@ -171,7 +172,7 @@ module.exports = {
             return (x.color === 4) || (x.color === top.color || x.number === top.number);
           });
           var em = new Discord.MessageEmbed()
-            .setColor(color)
+            .setColor(c)
             .setTitle(`It's your turn now!`)
             .setDescription(`The current card is ${toString(top)}\nYour cards:\n\n${player.card.map(x => toString(x)).join("\n")}\n\n📥 Place\n📤 Draw\n⏹️ Stop\nIf you draw, you will draw **${drawCard > 0 ? drawCard + " cards" : "1 card"}**.`)
             .attachFiles([{ attachment: await canvasImg(assets, player.card), name: "yourCard.png" }])
@@ -185,10 +186,10 @@ module.exports = {
           try {
             var collected = await mssg.awaitReactions((r, u) => ["📥", "📤", "⏹️"].includes(r.emoji.name) && u.id === player.user.id, { time: 120 * 1000, max: 1 });
           } catch (err) { }
-          var newCard = console.card.random(drawCard > 0 ? drawCard : 1);
+          var newCard = NorthClient.storage.card.random(drawCard > 0 ? drawCard : 1);
           var card = !newCard.length ? [toString(newCard)] : newCard.map(x => toString(x));
           var draw = new Discord.MessageEmbed()
-            .setColor(color)
+            .setColor(c)
             .setTitle(`${player.user.tag} drew a card!`)
             .setThumbnail(message.client.user.displayAvatarURL())
             .setDescription(`The top card is ${toString(top)}`)
@@ -197,7 +198,7 @@ module.exports = {
             .setFooter(`Placed by ${message.client.user.tag}`, message.client.user.displayAvatarURL());
           if (!collected || !collected.first() || !collected.first().emoji) {
             em = new Discord.MessageEmbed()
-              .setColor(color)
+              .setColor(c)
               .setTitle(`Your turn ended!`)
               .setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
               .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
@@ -218,7 +219,7 @@ module.exports = {
           if (collected.first().emoji.name === "📥") {
             if (placeable.length == 0) {
               em = new Discord.MessageEmbed()
-                .setColor(color)
+                .setColor(c)
                 .setTitle(`Your turn ended!`)
                 .setDescription(`You don't have any card to place so you are forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                 .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
@@ -237,11 +238,11 @@ module.exports = {
             }
             let keys = [];
             let placeCard = placeable.map(x => {
-              keys.push(console.card.findKey(f => f === x));
-              return toString(x) + ` : **${console.card.findKey(f => f === x)}**`;
+              keys.push(NorthClient.storage.card.findKey(f => f === x));
+              return toString(x) + ` : **${NorthClient.storage.card.findKey(f => f === x)}**`;
             });
             em = new Discord.MessageEmbed()
-              .setColor(color)
+              .setColor(c)
               .setTitle(`Action: Placing`)
               .setDescription(`Cards you can place:\n\n${placeCard.join("\n")}\nType the ID after the card to place.`)
               .attachFiles([{ attachment: await canvasImg(assets, placeable), name: "place.png" }])
@@ -255,7 +256,7 @@ module.exports = {
             } catch (err) { }
             if (!collected || !collected.first() || !collected.first().content) {
               em = new Discord.MessageEmbed()
-                .setColor(color)
+                .setColor(c)
                 .setTitle(`Your turn ended!`)
                 .setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                 .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
@@ -279,7 +280,7 @@ module.exports = {
               }
               if (cancelled) {
                 let cancel = new Discord.MessageEmbed()
-                  .setColor(color)
+                  .setColor(c)
                   .setTitle(`${player.user.tag} doesn't want to play with you anymore!`)
                   .setThumbnail(player.user.displayAvatarURL())
                   .setDescription(`**${player.user.tag}** left the game!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - nano, "milliseconds").format()}.\nThanks for playing!`)
@@ -290,7 +291,7 @@ module.exports = {
                 return;
               }
               em = new Discord.MessageEmbed()
-                .setColor(color)
+                .setColor(c)
                 .setTitle(`Your turn ended!`)
                 .setDescription(`You cannot place that card so you drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                 .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
@@ -307,7 +308,7 @@ module.exports = {
               mesg.edit(draw);
               continue;
             }
-            let placedCard = console.card.get(collected.first().content);
+            let placedCard = NorthClient.storage.card.get(collected.first().content);
             if (placedCard.number === 13 || placedCard.number === 14) {
               em.setDescription("Please choose your color:").setFooter("Please decide in 2 minutes.");
               await mssg.delete();
@@ -321,7 +322,7 @@ module.exports = {
               } catch (err) { }
               if (!collected || !collected.first()) {
                 em = new Discord.MessageEmbed()
-                  .setColor(color)
+                  .setColor(c)
                   .setTitle(`Your turn ended!`)
                   .setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                   .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
@@ -364,7 +365,7 @@ module.exports = {
               players.set(key, player);
               placedCard = { color: chosenColor, number: placedCard.number };
               em = new Discord.MessageEmbed()
-                .setColor(color)
+                .setColor(c)
                 .setTitle(`Your turn ended!`)
                 .setDescription(`The color you chose: ${colorStr}`)
                 .setTimestamp()
@@ -373,7 +374,7 @@ module.exports = {
               player.card.splice(player.card.indexOf(placedCard), 1);
               players.set(key, player);
               em = new Discord.MessageEmbed()
-                .setColor(color)
+                .setColor(c)
                 .setTitle(`Your turn ended!`)
                 .setDescription(`You placed ${toString(placedCard)}!`)
                 .setTimestamp()
@@ -384,7 +385,7 @@ module.exports = {
             let data = await uno.get(nano);
             await uno.set(nano, { players: players, card: placedCard, cards: data.cards + 1 });
             let placed = new Discord.MessageEmbed()
-              .setColor(color)
+              .setColor(c)
               .setTitle(`The ${converter.toOrdinal(data.cards + 1)} card has been placed`)
               .setThumbnail(player.user.displayAvatarURL())
               .setDescription(`The top card is ${toString(placedCard)}`)
@@ -409,7 +410,7 @@ module.exports = {
             }
             if (player.card.length === 0) {
               won = true;
-              let data = await console.uno.get(nano);
+              let data = await NorthClient.storage.uno.get(nano);
               var scores = 0;
               for (var p of Array.from(data.players.values())) {
                 for (var c of p.card) {
@@ -419,7 +420,7 @@ module.exports = {
                 }
               }
               let win = new Discord.MessageEmbed()
-                .setColor(color)
+                .setColor(c)
                 .setTitle(`${player.user.tag} won!`)
                 .setThumbnail(player.user.displayAvatarURL())
                 .setDescription(`Congratulations to **${player.user.tag}** winning with **${scores} scores**!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - nano, "milliseconds").format()}.\nThanks for playing!`)
@@ -448,7 +449,7 @@ module.exports = {
             }
           } else if (collected.first().emoji.name === "📤") {
             em = new Discord.MessageEmbed()
-              .setColor(color)
+              .setColor(c)
               .setTitle(`Your turn ended!`)
               .setDescription(`You drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
               .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
@@ -465,10 +466,10 @@ module.exports = {
             mesg.edit(draw);
             continue;
           } else {
-            let data = await console.uno.get(nano);
+            let data = await NorthClient.storage.uno.get(nano);
             cancelled = true;
             let cancel = new Discord.MessageEmbed()
-              .setColor(color)
+              .setColor(c)
               .setTitle(`${player.user.tag} doesn't want to play with you anymore!`)
               .setThumbnail(player.user.displayAvatarURL())
               .setDescription(`**${player.user.tag}** left the game!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - nano, "milliseconds").format()}.\nThanks for playing!`)
@@ -501,7 +502,7 @@ module.exports = {
       try {
         mesg = await prepare(mesg, nano);
         await handle(mesg, nano);
-      } catch (err) { return console.error(err) }
+      } catch (err) { return NorthClient.storage.error(err) }
     }
   }
 };

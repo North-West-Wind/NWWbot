@@ -1,6 +1,7 @@
 var RedditAPI = require("reddit-wrapper-v2");
 const Discord = require("discord.js");
-const { validImgurURL } = require("../function.js")
+const { validImgurURL, color } = require("../function.js")
+const { NorthClient } = require("../classes/NorthClient.js");
 
 var redditConn = new RedditAPI({
   // Options for Reddit Wrapper
@@ -31,7 +32,7 @@ module.exports = {
     
     var chosen = subreddits[Math.floor(Math.random() * subreddits.length)];
     
-    var response = await redditConn.api.get(`/r/${chosen}/hot`, { limit: 100 }).catch(console.error);
+    var response = await redditConn.api.get(`/r/${chosen}/hot`, { limit: 100 }).catch(NorthClient.storage.error);
     if(!response) return await this.execute(message, args);
     if(response[1] === undefined) return await this.execute(message, args);
     if(response[1].data === undefined || response[1].data.children[0] === undefined || response[1].data.children[0].data === undefined || response[1].data.children[0].data.url === undefined) return await this.execute(message, args);
@@ -42,7 +43,7 @@ module.exports = {
         .setTitle(`${data.title.substring(0, 256)}`)
         .setURL(`https://reddit.com${data.permalink}`)
         .setImage(data.url)
-        .setColor(console.color())
+        .setColor(color())
         .setFooter(
           `${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`
         )

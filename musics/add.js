@@ -1,6 +1,7 @@
 const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL } = require("../function.js");
 const { setQueue, updateQueue } = require("./main.js");
 const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDURL, addMSURL, addPHURL, addURL, search, createEmbed } = require("./play.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
     name: "add",
@@ -34,7 +35,7 @@ module.exports = {
             else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
         } catch(err) {
             message.reply("there was an error trying to add the soundtrack to the queue!");
-            console.error(err);
+            NorthClient.storage.error(err);
         }
     }
 }

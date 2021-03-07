@@ -5,6 +5,7 @@ const Discord = require("discord.js");
 const ytdl = require("ytdl-core");
 const sanitize = require("sanitize-filename");
 const muse = require("musescore-metadata");
+const { NorthClient } = require("../classes/NorthClient.js");
 const requestYTDLStream = (url, opts) => {
     const timeoutMS = opts.timeout && !isNaN(parseInt(opts.timeout)) ? parseInt(opts.timeout) : 30000;
     const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${timeoutMS}ms`)), timeoutMS));
@@ -14,7 +15,7 @@ const requestYTDLStream = (url, opts) => {
     });
     return Promise.race([timeout, getStream]);
 };
-const { validMSURL, findValueByPrefix, streamToString, requestStream } = require("../function.js");
+const { validMSURL, findValueByPrefix, streamToString, requestStream, color } = require("../function.js");
 const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
 const PNGtoPDF = (doc, url) => new Promise(async (resolve, reject) => {
@@ -45,11 +46,11 @@ module.exports = {
         try {
             var data = await muse(args.join(" "));
         } catch (err) {
-            console.realError(err);
+            console.error(err);
             return message.reply("there was an error trying to fetch data of the score!");
         }
         const em = new Discord.MessageEmbed()
-            .setColor(console.color())
+            .setColor(color())
             .setTitle(data.title)
             .setURL(data.url)
             .setThumbnail(data.thumbnail)
@@ -70,7 +71,7 @@ module.exports = {
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000 });
         await msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
-            console.log(`Downloading ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}...`);
+            NorthClient.storage.log(`Downloading ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}...`);
             try {
                 try {
                     var mesg = await message.channel.send("Generating MP3...");
@@ -120,15 +121,15 @@ module.exports = {
                         await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``);
                         await message.channel.send(`However, you may still be able to download it from this link:\n${mscz.url}`);
                     }
-                    console.log(`Completed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
+                    NorthClient.storage.log(`Completed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
                 } catch (err) {
-                    console.log(`Failed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
-                    console.error(err);
+                    NorthClient.storage.log(`Failed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
+                    NorthClient.storage.error(err);
                     await message.reply("there was an error trying to send the files!");
                 }
             } catch (err) {
-                console.log(`Failed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
-                console.error(err);
+                NorthClient.storage.log(`Failed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
+                NorthClient.storage.error(err);
                 await message.channel.send("Failed to generate files!");
             }
         }
@@ -154,7 +155,7 @@ module.exports = {
         for (const score of scores) {
             data = muse(score.share.publicUrl);
             const em = new Discord.MessageEmbed()
-                .setColor(console.color())
+                .setColor(color())
                 .setTitle(data.title)
                 .setURL(data.url)
                 .setThumbnail(data.thumbnail)

@@ -1,7 +1,7 @@
 const cheerio = require("cheerio");
 const Discord = require("discord.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
-const { createEmbedScrolling } = require("../function.js");
+const { createEmbedScrolling, color } = require("../function.js");
 const config = {
   BASE_URL: "http://knowyourmeme.com",
   SEARCH_URL: "/search?q=",
@@ -126,7 +126,7 @@ module.exports = {
     let num = 0;
     for (const result of results) {
       const em = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setThumbnail(result.image ? result.image : undefined)
         .setTitle(result.name)
         .setURL(result.url)

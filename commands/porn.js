@@ -1,6 +1,6 @@
 var RedditAPI = require("reddit-wrapper-v2");
 const Discord = require("discord.js");
-const { validImgurURL, validRedditURL, decodeHtmlEntity, validGfyURL, validImgurVideoURL, validRedditVideoURL, validNotImgurURL, validRedGifURL, mergeObjArr, ms, wait } = require("../function.js");
+const { validImgurURL, validRedditURL, decodeHtmlEntity, validGfyURL, validImgurVideoURL, validRedditVideoURL, validNotImgurURL, validRedGifURL, mergeObjArr, ms, wait, color } = require("../function.js");
 const Gfycat = require('gfycat-sdk');
 var gfycat = new Gfycat({ clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET });
 var redditConn = new RedditAPI({
@@ -15,6 +15,7 @@ var redditConn = new RedditAPI({
 });
 const fetch = require("node-fetch").default;
 const cheerio = require("cheerio");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "porn",
@@ -2178,7 +2179,7 @@ module.exports = {
       .setDescription(`Tag: \`${tag}\`\n${more ? `(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\n` : ""}From r/${picked}`)
       .setURL(`https://reddit.com${data.permalink}`)
       .setImage(data.url)
-      .setColor(console.color())
+      .setColor(color())
       .setFooter(`${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`, message.client.user.displayAvatarURL())
       .setTimestamp();
     if (validNotImgurURL(data.url)) em.setImage(data.url.replace("imgur", "i.imgur") + ".jpg");
@@ -2192,7 +2193,7 @@ module.exports = {
           var name = gif.gfyItem.gfyName;
           link = `https://thumbs.gfycat.com/${name}-mobile.mp4`;
         } catch (err) {
-          console.error(err);
+          NorthClient.storage.error(err);
         }
       } else if (validRedGifURL(data.url)) {
         const response = await fetch(data.url).then(res => res.text());

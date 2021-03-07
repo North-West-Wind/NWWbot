@@ -15,6 +15,8 @@ const requestYTDLStream = (url, opts) => {
     return Promise.race([timeout, getStream]);
 };
 const sanitize = require("sanitize-filename");
+const { NorthClient } = require("../classes/NorthClient.js");
+
 module.exports = {
     name: "download",
     description: "Download the soundtrack from the server queue or online.",
@@ -46,7 +48,7 @@ module.exports = {
                 }
             }
         } catch (err) {
-            console.error(err);
+            NorthClient.storage.error(err);
             return await message.reply(`there was an error trying to download the soundtrack!`);
         }
         let msg = await message.channel.send(`Downloading... (Soundtrack Type: **Type ${song.type}**)`);
@@ -86,7 +88,7 @@ module.exports = {
             if (stream.statusCode && stream.statusCode != 200) throw new Error("Received HTTP Status Code " + stream.statusCode);
         } catch (err) {
             message.channel.stopTyping(true);
-            console.error(err);
+            NorthClient.storage.error(err);
             return await msg.edit(`<@${message.author.id}>, there was an error trying to download the soundtrack!`);
         }
         try {
@@ -97,7 +99,7 @@ module.exports = {
             await message.channel.send(attachment).catch((err) => message.reply(`there was an error trying to send the soundtrack! (${err.message})`));
         } catch (err) {
             message.reply(`there was an error trying to send the soundtrack!`);
-            console.error(err);
+            NorthClient.storage.error(err);
         }
     },
     async downloadFromArgs(message, serverQueue, args) {
@@ -117,7 +119,7 @@ module.exports = {
             for (const song of result.songs) await this.download(message, serverQueue, song);
         } catch (err) {
             message.reply("there was an error trying to download the soundtack!");
-            console.error(err);
+            NorthClient.storage.error(err);
         }
     }
 }

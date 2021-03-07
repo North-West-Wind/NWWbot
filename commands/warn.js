@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { findMember, genPermMsg } = require("../function.js");
+const { findMember, genPermMsg, color } = require("../function.js");
 
 module.exports = {
   name: "warn",
@@ -17,7 +17,7 @@ module.exports = {
     if (!member) return;
     var reason = "";
     var warningEmbed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle(`You've been warned`)
       .setDescription(`In **${message.guild.name}**`)
       .setTimestamp()
@@ -29,7 +29,7 @@ module.exports = {
       member.send(warningEmbed);
     }
     var warnSuccessfulEmbed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("User Successfully Warned!")
       .setDescription(`Warned **${member.user.tag}** in server **${message.guild.name}**.`);
     message.channel.send(warnSuccessfulEmbed);
@@ -40,14 +40,14 @@ module.exports = {
     if (results.length >= 3) {
       member.ban({ reason: "Received 3 warnings." });
       var banEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(`You've been banned`)
         .setDescription(`In **${message.guild.name}**`)
         .addField("Reason", "Received 3 warnings.")
         .setTimestamp()
         .setFooter("Banned by " + message.author.tag, message.author.displayAvatarURL());
       var banSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
-        .setColor(console.color())
+        .setColor(color())
         .setTitle("User Banned!")
         .setDescription(`Banned **${member.user.tag}** in server **${message.guild.name}**.`);
       member.send(banEmbed);

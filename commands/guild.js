@@ -1,7 +1,8 @@
-const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_, readableDateTimeText } = require("../function.js");
+const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_, readableDateTimeText, color } = require("../function.js");
 const Discord = require("discord.js");
 const { ms, createEmbedScrolling } = require("../function.js");
 const fetch = require("node-fetch").default;
+const { NorthClient } = require("../classes/NorthClient.js");
 const nameToUuid = (str) => {
 	return new Promise((resolve, reject) => {
 		require("mojang-api").nameToUuid(str, function (err, res) { if (err) reject(err); else resolve(res); })
@@ -112,7 +113,7 @@ module.exports = {
 			var noname = false;
 			if (result.length < 1) noname = true;
 			const em = new Discord.MessageEmbed()
-				.setColor(console.color())
+				.setColor(color())
 				.setTitle("Please choose an operation:")
 				.setDescription("1️⃣: Accept\n2️⃣: Decline (Already in another guild)\n3️⃣: Decline (Already in guild)\n4️⃣: Decline (Banned)")
 				.setTimestamp()
@@ -124,8 +125,8 @@ module.exports = {
 			await msg.react("3️⃣");
 			await msg.react("4️⃣");
 
-			const collected = await msg.awaitReactions((r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.author.id, { max: 1, time: 120000 }).catch(console.error);
-			await msg.reactions.removeAll().catch(console.error);
+			const collected = await msg.awaitReactions((r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.author.id, { max: 1, time: 120000 }).catch(NorthClient.storage.error);
+			await msg.reactions.removeAll().catch(NorthClient.storage.error);
 			if (!collected || !collected.first()) return await message.channel.send("No operation chosen in 2 minutes. Please try again.");
 			const reaction = collected.first();
 			switch (reaction.emoji.name) {
@@ -147,7 +148,7 @@ module.exports = {
 					break;
 			}
 		} catch (err) {
-			console.error(err);
+			NorthClient.storage.error(err);
 			await message.reply("there was an error fetching the player!");
 		}
 	},
@@ -262,7 +263,7 @@ module.exports = {
 
 		let em = new Discord.MessageEmbed()
 			.setTitle("There is a splash!")
-			.setColor(console.color())
+			.setColor(color())
 			.setDescription(`\`${mc}\` is hosting a splash!\nDo \`/p join ${mc}\` in Hypixel or join the guild party to be part of it!\n\n**Location:** ${location}\n**Potions:** ${potions}\n**Slots:** ${slots}\n**Note: ** ${notes.length > 0 ? notes : "N/A"}`)
 			.setTimestamp()
 			.setFooter(`Hosted by ${mc}`, message.client.user.displayAvatarURL());
@@ -328,7 +329,7 @@ module.exports = {
 				let uuid = await nameToUuid(args[3]);
 				if (!uuid || !uuid[0]) return message.reply("there was an error trying to find the player in Minecraft!");
 				try {
-					console.gtimers.push({
+					NorthClient.storage.gtimers.push({
 						user: user.id,
 						dc_rank: escape(args.slice(4).join(" ")),
 						mc: uuid[0].id,
@@ -337,7 +338,7 @@ module.exports = {
 					await message.pool.query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid[0].id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`);
 					message.channel.send("Timer recorded.");
 				} catch (err) {
-					console.error(err);
+					NorthClient.storage.error(err);
 					await message.reply("there was an error trying to insert the timer to the database!");
 				}
 				msg = await msg.edit(`Timer created with the title **${title}** and will last for **${readableDateTimeText(time)}**`);
@@ -345,13 +346,13 @@ module.exports = {
 					let asuna = await message.client.users.fetch("461516729047318529");
 					const con = await message.pool.getConnection();
 					try {
-						const index = console.gtimers.indexOf(console.gtimers.find(t => t.user == user.id));
-						if (index > -1) console.gtimers.splice(index, 1);
+						const index = NorthClient.storage.gtimers.indexOf(NorthClient.storage.gtimers.find(t => t.user == user.id));
+						if (index > -1) NorthClient.storage.gtimers.splice(index, 1);
 						var [results] = await con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
 						if (results.length == 0) throw new Error("Not found");
 						await con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
 					} catch (err) {
-						console.error(err);
+						NorthClient.storage.error(err);
 					}
 					con.release();
 					await asuna.send(title + " expired");
@@ -363,14 +364,14 @@ module.exports = {
 				if (!userd) return;
 				const con = await message.pool.getConnection();
 				try {
-					const index = console.gtimers.indexOf(console.gtimers.find(t => t.user == user.id));
-					if (index > -1) console.gtimers.splice(index, 1);
+					const index = NorthClient.storage.gtimers.indexOf(NorthClient.storage.gtimers.find(t => t.user == user.id));
+					if (index > -1) NorthClient.storage.gtimers.splice(index, 1);
 					var [results] = await con.query(`SELECT * FROM gtimer WHERE user = '${userd.id}'`);
 					if (results.length == 0) return message.channel.send("No timer was found.");
 					await con.query(`DELETE FROM gtimer WHERE user = '${userd.id}'`);
 					await message.channel.send(`Deleted ${results.length} timers.`);
 				} catch (err) {
-					console.error(err);
+					NorthClient.storage.error(err);
 					await message.reply("there was an error trying to delete the timer!");
 				}
 				con.release();
@@ -379,7 +380,7 @@ module.exports = {
 				try {
 					let now = Date.now();
 					let tmp = [];
-					for (const result of console.gtimers) {
+					for (const result of NorthClient.storage.gtimers) {
 						let mc = await profile(result.mc);
 						let username = "undefined";
 						if (mc) username = mc.name;
@@ -399,7 +400,7 @@ module.exports = {
 						let num = 0;
 						for (const result of tmp) description += `${++num}. ${result.title} : ${result.time}\n`;
 						const em = new Discord.MessageEmbed()
-							.setColor(console.color())
+							.setColor(color())
 							.setTitle("Rank Expiration Timers")
 							.setDescription(description)
 							.setTimestamp()
@@ -414,7 +415,7 @@ module.exports = {
 								desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
 							}
 							const em = new Discord.MessageEmbed()
-								.setColor(console.color())
+								.setColor(color())
 								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
 								.setDescription(desc)
 								.setTimestamp()
@@ -424,7 +425,7 @@ module.exports = {
 						await createEmbedScrolling(message, allEmbeds);
 					}
 				} catch (err) {
-					console.error(err);
+					NorthClient.storage.error(err);
 					await message.reply("there was an error trying to fetch data from the database!");
 				}
 				break;
@@ -506,7 +507,7 @@ module.exports = {
 
 		const result = new Discord.MessageEmbed()
 		.setTitle(`Points of ${args[1]}`)
-		.setColor(console.color())
+		.setColor(color())
 		.setDescription(`Total Points: **${points}**${points == Infinity ? " (Instant Accept!)" : ""}\nSkyBlock Points: **${sbpt}**\nBedWars Points: **${bwpt}**`)
 		.addField("Average Skill Level", maxSa, true)
 		.addField("Catacomb Level", maxCatacomb, true)

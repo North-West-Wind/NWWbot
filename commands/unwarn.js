@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { findUser } = require("../function.js");
+const { findUser, genPermMsg, color } = require("../function.js");
 
 module.exports = {
   name: "unwarn",
@@ -18,15 +18,15 @@ module.exports = {
     if (results.length == 0) message.channel.send("This user haven't been warned before.");
     else {
       var warningEmbed = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle(`Your warnings have been cleared`)
         .setDescription(`In **${message.guild.name}**`)
         .setTimestamp()
         .setFooter("Cleared by " + message.author.tag, message.author.displayAvatarURL());
-      user.send(warningEmbed).catch(err => { });
+      user.send(warningEmbed).catch(() => { });
       await con.query(`DELETE FROM warn WHERE user = '${user.id}' AND guild = '${message.guild.id}'`);
       var warnSuccessfulEmbed = new Discord.MessageEmbed()
-        .setColor(console.color())
+        .setColor(color())
         .setTitle("User Successfully Unwarned!")
         .setDescription(`Unwarned **${user.tag}** in server **${message.guild.name}**.`);
       message.author.send(warnSuccessfulEmbed);

@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const { color } = require("../function");
 
 module.exports = {
   name: "role-info",
@@ -42,7 +43,7 @@ module.exports = {
     if(role.permissions.has("ADMINISTRATOR")) permissions = ["ADMINISTRATOR"];
     
     const Embed = new Discord.MessageEmbed()
-    .setColor(console.color())
+    .setColor(color())
     .setTitle("Information of " + role.name)
     .setDescription("In server **" + message.guild.name + "**")
     .addField("ID", role.id, true)

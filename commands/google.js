@@ -1,5 +1,6 @@
 const Discord = require("discord.js")
 const googleIt = require("google-it");
+const { color } = require("../function");
 
 module.exports = {
   name: "google",
@@ -19,7 +20,7 @@ module.exports = {
       }
     }
     const Embed = new Discord.MessageEmbed()
-    .setColor(console.color())
+    .setColor(color())
     .setTitle("Search results of " + args.join(" "))
     .setDescription(results.join("\n"))
     .setTimestamp()

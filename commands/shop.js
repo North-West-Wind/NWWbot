@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
-const { wait, ID, genPermMsg } = require("../function.js");
+const { wait, ID, genPermMsg, color } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "shop",
@@ -11,7 +12,7 @@ module.exports = {
   subdesc: ["Adds a new item to the server shop."],
   async execute(message, args) {
     if (args[0] && args[0] == "add") return await this.add(message, args);
-    const color = console.color();
+    const c = color();
     const pool = message.pool;
     mainMenu();
     async function mainMenu(msg = undefined) {
@@ -21,14 +22,14 @@ module.exports = {
       if (results.length == 1) cash = results[0].currency;
       const shop = new Discord.MessageEmbed()
         .setTimestamp()
-        .setColor(color)
+        .setColor(c)
         .setTitle("Welcome to the shop!")
         .setDescription("Choose an action:\n\n1️⃣ Shop\n2️⃣ Leave")
         .setFooter("You have $" + cash, message.author.displayAvatarURL());
 
       const leave = new Discord.MessageEmbed()
         .setTimestamp()
-        .setColor(color)
+        .setColor(c)
         .setTitle("You were told to leave.")
         .setDescription("The staff waited too long and told you to leave.")
         .setFooter("You have $" + cash, message.author.displayAvatarURL());
@@ -42,7 +43,7 @@ module.exports = {
       const filter = (reaction, user) => ["1️⃣", "2️⃣"].includes(reaction.emoji.name) && user.id === message.author.id;
       const collected = await msg.awaitReactions(filter, { max: 1, idle: 60000, error: ["time"] });
       const reaction = collected.first();
-      msg.reactions.removeAll().catch(console.error);
+      msg.reactions.removeAll().catch(NorthClient.storage.error);
       if (!reaction) return await msg.edit(leave);
 
       async function shopMenu() {
@@ -51,7 +52,7 @@ module.exports = {
         for (let i = 0; i < results.length; i++) allItems.push(`**${i + 1}.** ${results[i].name} - **\$${results[i].buy_price}** : **${results[i].stock_limit > -1 ? results[i].stock_limit : "∞"}**`);
 
         const menu = new Discord.MessageEmbed()
-          .setColor(color)
+          .setColor(c)
           .setTitle("Shop Menu")
           .setDescription("Type the ID to buy or `0` to cancel.\n\n" + allItems.join("\n"))
           .setTimestamp()
@@ -86,7 +87,7 @@ module.exports = {
         if (result.length == 0) {
           var itemEmbed = new Discord.MessageEmbed()
             .setTimestamp()
-            .setColor(color)
+            .setColor(c)
             .setTitle("No item found!")
             .setDescription("Returning to main menu in 3 seconds...")
             .setFooter("Please be patient.", message.client.user.displayAvatarURL());
@@ -95,7 +96,7 @@ module.exports = {
         } else {
           var itemEmbed = new Discord.MessageEmbed()
             .setTimestamp()
-            .setColor(color)
+            .setColor(c)
             .setTitle(result[0].name)
             .setDescription(`Buy Price: **$${result[0].buy_price}**\n${result[0].description}\nStock: **${result[0].stock_limit > -1 ? result[0].stock_limit : "∞"}**\n\n1️⃣ Buy\n2️⃣ Return`)
             .setFooter("Please answer within 30 seconds.", message.client.user.displayAvatarURL());
@@ -113,7 +114,7 @@ module.exports = {
             await msg.edit(itemEmbed);
             setTimeout(() => mainMenu(msg), 3000);
           }
-          msg.reactions.removeAll().catch(console.error);
+          msg.reactions.removeAll().catch(NorthClient.storage.error);
 
           if (reaction.emoji.name === "1️⃣") {
             if (result[0].stock_limit == 0) {
@@ -192,7 +193,7 @@ module.exports = {
                   const spliced = command.replace(/({( +)?command( +)|})/ig, "");
                   const cArgs = spliced.split(/ +/);
                   const commandName = cArgs.shift().toLowerCase();
-                  const c = console.commands.get(commandName) || console.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+                  const c = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
                   if (!c) {
                     itemEmbed.setDescription(`Failed to use the item! Cancelling purchase...`)
                       .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
@@ -204,7 +205,7 @@ module.exports = {
                       if (c.category === 8) await require("./musics/main.js").music(message, commandName);
                       else await c.execute(message, cArgs);
                   } catch (error) {
-                      console.error(error);
+                      NorthClient.storage.error(error);
                       itemEmbed.setDescription(`Failed to use the item! Cancelling purchase...`)
                         .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
                       await msg.edit(itemEmbed);
@@ -233,7 +234,7 @@ module.exports = {
                   }
                 }
               } catch (err) {
-                console.error(err);
+                NorthClient.storage.error(err);
                 itemEmbed.setTitle("Failed to purchase!");
               }
               await msg.edit(itemEmbed);
@@ -252,7 +253,7 @@ module.exports = {
 
       const manualLeave = new Discord.MessageEmbed()
         .setTimestamp()
-        .setColor(color)
+        .setColor(c)
         .setTitle("Goodbye!")
         .setDescription("said the staff.")
         .setFooter("You have $" + cash, message.author.displayAvatarURL());
@@ -316,7 +317,7 @@ module.exports = {
       await message.pool.query(`INSERT INTO shop VALUES('${await ID()}', '${message.guild.id}', '${name}', '${description}', ${buyPrice}, ${sellPrice}, ${limit}, ${stock}, ${mustUse ? 1 : 0}, '${command}', '${args}')`);
       await message.channel.send("Item added to database!");
     } catch (err) {
-      console.error(err);
+      NorthClient.storage.error(err);
       await message.reply("there was an error trying to add the item to the database!");
     }
   }

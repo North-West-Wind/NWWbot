@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const { genPermMsg, color } = require("../function");
 
 module.exports = {
   name: "addrole",
@@ -8,8 +9,8 @@ module.exports = {
   category: 0,
   permission: 268435456,
   async execute(message, args) {
-    if (!message.member.permissions.has(this.permission)) return await message.channel.send(console.genPermMsg(this.permission, 0));
-    if (!message.guild.me.permissions.has(this.permission)) return await message.channel.send(console.genPermMsg(this.permission, 1));
+    if (!message.member.permissions.has(this.permission)) return await message.channel.send(genPermMsg(this.permission, 0));
+    if (!message.guild.me.permissions.has(this.permission)) return await message.channel.send(genPermMsg(this.permission, 1));
     if (!args[0]) return await message.channel.send("You didn't tell me the role name!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
     if (!args[1]) await message.guild.roles.create({ data: { name: args[0] } });
     else {
@@ -17,7 +18,7 @@ module.exports = {
         await message.guild.roles.create({ data: { name: args[0], color: args[1] } });
       } catch (err) {
         const Embed = new Discord.MessageEmbed()
-          .setColor(console.color())
+          .setColor(color())
           .setTitle("Failed to Create Role")
           .setDescription(`Failed to create the role **${args[0]}**`)
           .setTimestamp()
@@ -26,7 +27,7 @@ module.exports = {
       }
     }
     const Embed = new Discord.MessageEmbed()
-      .setColor(console.color())
+      .setColor(color())
       .setTitle("Role Created Successfully")
       .setDescription(`Created a new role **${args[0]}**`)
       .setTimestamp()

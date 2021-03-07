@@ -1,5 +1,7 @@
 const moment = require("moment");
 const { setTimeout_, genPermMsg, findRole } = require("../function.js");
+const { NorthClient } = require("../classes/NorthClient.js");
+
 module.exports = {
   name: "role-message",
   description: "Manage messages for users to react and join a role.",
@@ -20,14 +22,14 @@ module.exports = {
     if (!message.guild.me.permissions.has(268435456)) return await message.channel.send(genPermMsg(268435456, 1));
     if (!message.member.permissions.has(268435456)) return await message.channel.send(genPermMsg(268435456, 0));
     var msg = await message.channel.send("Please enter the message you want to send.");
-    const collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 120000, max: 1 }).catch(console.error);
+    const collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 120000, max: 1 }).catch(NorthClient.storage.error);
     if (!collected.first()) return await msg.edit("Did not receive any message in time! Action cancelled.");
     await collected.first().delete();
     const pendingMsg = collected.first().content;
     if (!pendingMsg) return await msg.edit("Did not receive any message! Action cancelled.");
     if (pendingMsg === "cancel") return await msg.edit("Action cancelled.");
     await msg.edit("Message received.\n\nNow, please tell me where you want the message to go to by mentioning the channel.");
-    const collected2 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 }).catch(console.error);
+    const collected2 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 }).catch(NorthClient.storage.error);
     if (!collected2.first()) return msg.edit("30 seconds have passed but you didn't mention any channel! Action cancelled.");
     await collected2.first().delete();
     if (!collected2.first().content) return await msg.edit("Did not receive any channel! Action cancelled.");
@@ -38,7 +40,7 @@ module.exports = {
     if (!channel.permissionsFor(message.guild.me).has(this.permission)) return await msg.edit(genPermMsg(this.permission, 1));
     if (!channel.permissionsFor(message.member).has(this.permission)) return await msg.edit(genPermMsg(this.permission, 0));
     await msg.edit(`Great! The channel will be <#${channel.id}>.\n\nAfter that, can you tell me what role you are giving the users? Please break a line for each role.`);
-    const collected3 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 60000, max: 1 }).catch(console.error);
+    const collected3 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 60000, max: 1 }).catch(NorthClient.storage.error);
     if (!collected3.first()) return await msg.edit("Did not receive any role in time! Action cancelled.");
     await collected3.first().delete();
     if (!collected3.first().content) return await msg.edit("Did not receive any role! Action cancelled.");
@@ -57,7 +59,7 @@ module.exports = {
       roles.push(roless);
     }
     await msg.edit(`**${roles.length}** role${roles.length > 1 ? "s" : ""} received.\n\nAt last, you will need to provide the reactions/emojis you want for each role! Break a line for each of them.`);
-    const collected4 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 60000, max: 1 }).catch(console.error);
+    const collected4 = await message.channel.awaitMessages(x => x.author.id === message.author.id, { time: 60000, max: 1 }).catch(NorthClient.storage.error);
     if (!collected4.first()) return await msg.edit("Did not receive any emoji in time! Action cancelled.");
     if (!collected4.first().content) return await msg.edit("Did not receive any emoji! Action cancelled.");
     await collected4.first().delete();
@@ -77,7 +79,7 @@ module.exports = {
       return await msg.edit("I cannot react with one of the reactions!");
     }
     var now = new Date();
-    console.rm.push({
+    NorthClient.storage.rm.push({
       id: mesg.id,
       guild: message.guild.id,
       channel: channel.id,
@@ -91,7 +93,7 @@ module.exports = {
       await message.channel.send("Successfully created record for message. The message will expire after 7 days.");
       this.expire(message, 7 * 24 * 3600 * 1000, mesg.id);
     } catch (err) {
-      console.error(err);
+      NorthClient.storage.error(err);
       await message.reply("there was an error trying to record the message!");
     }
   },
@@ -105,7 +107,7 @@ module.exports = {
         await message.channel.send("The message has been refreshed. It will last for 7 more days.");
       }
     } catch (err) {
-      console.error(err);
+      NorthClient.storage.error(err);
       await message.reply("there was an error while refreshing the message!");
     }
     con.release();
@@ -123,7 +125,7 @@ module.exports = {
         msg.reactions.removeAll().catch(() => { });
       } else expire(message, results[0].expiration - date, id);
     } catch (err) {
-      console.error(err);
+      NorthClient.storage.error(err);
     }
     con.release();
   }, length)

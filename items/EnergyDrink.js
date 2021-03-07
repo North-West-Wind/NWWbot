@@ -1,5 +1,6 @@
 const { jsDate2Mysql } = require("../function.js");
 const ID = "481b8f8aec3b604db23f205b4ce2f52b447ffe5ab911e3f1";
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "EnergyDrink",
@@ -15,7 +16,7 @@ module.exports = {
       em.setTitle("You drank the Energy Drink!").setDescription("Now you work more efficiently for 24 hours!\nThe amount of money you gain will be doubled during this period!").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     } catch (err) {
       em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
-      console.error(err);
+      NorthClient.storage.error(err);
     }
     con.release();
     await msg.edit(em);

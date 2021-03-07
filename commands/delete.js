@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const { NorthClient } = require("../classes/NorthClient.js");
 
 module.exports = {
   name: "delete",
@@ -99,7 +100,7 @@ module.exports = {
       
     await message.delete();
       message.channel.bulkDelete(amount, true).catch(err => {
-        console.error(err);
+        NorthClient.storage.error(err);
         message.channel.send("I can't delete them. Try a smaller amount.");
       });
     }
