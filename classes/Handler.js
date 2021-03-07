@@ -25,6 +25,8 @@ const main_1 = require("../musics/main");
 const LevelData_1 = require("./LevelData");
 const NorthClient_1 = require("./NorthClient");
 const main_2 = require("../musics/main");
+const node_fetch_1 = __importDefault(require("node-fetch"));
+const fetch = require("fetch-retry")(node_fetch_1.default, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 var timeout;
 class Handler {
     static messageLevel(message) {
@@ -1084,7 +1086,6 @@ class AliceHandler extends Handler {
                         res = yield fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
                     }
                     catch (err) {
-                        console.error(err);
                         return yield msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
                     }
                     const hyDc = (_a = res.links) === null || _a === void 0 ? void 0 : _a.DISCORD;
