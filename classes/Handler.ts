@@ -549,9 +549,8 @@ export class AliceHandler extends Handler {
             const [gtimers] = <[RowDataPacket[]]><unknown>await pool.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
             storage.gtimers = gtimers;
             setInterval(async () => {
-                const guild = await client.guilds.resolve("622311594654695434");
                 try {
-                    var timerChannel = <TextChannel>await guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
+                    var timerChannel = <TextChannel> await client.channels.fetch(process.env.TIME_LIST_CHANNEL);
                     var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
                 } catch (err) {
                     storage.error("Failed to fetch timer list message");

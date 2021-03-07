@@ -691,9 +691,8 @@ class AliceHandler extends Handler {
                 const [gtimers] = yield pool.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
                 storage.gtimers = gtimers;
                 setInterval(() => __awaiter(this, void 0, void 0, function* () {
-                    const guild = yield client.guilds.resolve("622311594654695434");
                     try {
-                        var timerChannel = yield guild.channels.resolve(process.env.TIME_LIST_CHANNEL);
+                        var timerChannel = yield client.channels.fetch(process.env.TIME_LIST_CHANNEL);
                         var timerMsg = yield timerChannel.messages.fetch(process.env.TIME_LIST_ID);
                     }
                     catch (err) {

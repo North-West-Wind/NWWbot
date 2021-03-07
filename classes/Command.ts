@@ -8,5 +8,5 @@ export interface Command {
     category?: number;
     aliases?: string[];
 
-    execute(message: Message, ...args: any[]): void;
+    execute(message: Message, ...args: any[]): any | void;
 }
