@@ -7,10 +7,11 @@ import { RowDataPacket } from "mysql2";
 import { endGiveaway } from "../commands/giveaway";
 import { expire } from "../commands/role-message";
 import { color, getRandomNumber, jsDate2Mysql, nameToUuid, profile, readableDateTimeText, replaceMsgContent, setTimeout_ } from "../function";
-import { setQueue } from "../musics/main";
+import { music, setQueue } from "../musics/main";
 import { LevelData } from "./LevelData";
 import { NorthClient } from "./NorthClient";
 import { NorthMessage } from "./NorthMessage";
+import { stop } from "../musics/main";
 
 var timeout;
 export class Handler {
@@ -383,8 +384,7 @@ export class Handler {
         const client = <NorthClient>guild.client;
         const storage = NorthClient.storage;
         const exit = storage.guilds[guild.id]?.exit;
-        const mainMusic = require("./musics/main.js");
-        if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel)) return await mainMusic.stop(guild);
+        if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel)) return await stop(guild);
         if (!guild.me.voice?.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
         if (!storage.guilds[guild.id]) {
             await client.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '${escape("🎉")}')`);
@@ -394,7 +394,7 @@ export class Handler {
         if (guild.me.voice.channel.members.size <= 1) {
             if (exit) return;
             storage.guilds[guild.id].exit = true;
-            setTimeout(async () => exit ? mainMusic.stop(guild) : 0, 30000);
+            setTimeout(async () => exit ? stop(guild) : 0, 30000);
         } else storage.guilds[guild.id].exit = false;
     }
 
@@ -496,7 +496,7 @@ export class Handler {
         if (msg.guild && !(<TextChannel>msg.channel).permissionsFor(msg.guild.me).has(84992)) return await msg.author.send(`I need at least the permissions to \`${new Permissions(84992).toArray().join("`, `")}\` in order to run any command! Please tell your server administrator about that.`);
         msg.pool = client.pool;
         try {
-            if (command.category === 8) await require("./musics/main.js").music(msg, commandName);
+            if (command.category === 8) await music(msg, commandName);
             else await command.execute(msg, args);
         } catch (error) {
             storage.error(`Error running command ${command.name}`);

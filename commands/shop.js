@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const { wait, ID, genPermMsg, color } = require("../function.js");
 const { NorthClient } = require("../classes/NorthClient.js");
+const { music } = require("../musics/main.js");
 
 module.exports = {
   name: "shop",
@@ -202,7 +203,7 @@ module.exports = {
                     return await mainMenu(msg);
                   }
                   try {
-                      if (c.category === 8) await require("./musics/main.js").music(message, commandName);
+                      if (c.category === 8) await music(message, commandName);
                       else await c.execute(message, cArgs);
                   } catch (error) {
                       NorthClient.storage.error(error);

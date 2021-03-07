@@ -24,6 +24,7 @@ const function_1 = require("../function");
 const main_1 = require("../musics/main");
 const LevelData_1 = require("./LevelData");
 const NorthClient_1 = require("./NorthClient");
+const main_2 = require("../musics/main");
 var timeout;
 class Handler {
     static messageLevel(message) {
@@ -472,9 +473,8 @@ class Handler {
             const client = guild.client;
             const storage = NorthClient_1.NorthClient.storage;
             const exit = (_a = storage.guilds[guild.id]) === null || _a === void 0 ? void 0 : _a.exit;
-            const mainMusic = require("./musics/main.js");
             if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel))
-                return yield mainMusic.stop(guild);
+                return yield main_2.stop(guild);
             if (!((_b = guild.me.voice) === null || _b === void 0 ? void 0 : _b.channel) || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID))
                 return;
             if (!storage.guilds[guild.id]) {
@@ -486,7 +486,7 @@ class Handler {
                 if (exit)
                     return;
                 storage.guilds[guild.id].exit = true;
-                setTimeout(() => __awaiter(this, void 0, void 0, function* () { return exit ? mainMusic.stop(guild) : 0; }), 30000);
+                setTimeout(() => __awaiter(this, void 0, void 0, function* () { return exit ? main_2.stop(guild) : 0; }), 30000);
             }
             else
                 storage.guilds[guild.id].exit = false;
@@ -627,7 +627,7 @@ class Handler {
             msg.pool = client.pool;
             try {
                 if (command.category === 8)
-                    yield require("./musics/main.js").music(msg, commandName);
+                    yield main_1.music(msg, commandName);
                 else
                     yield command.execute(msg, args);
             }
