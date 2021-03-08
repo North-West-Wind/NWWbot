@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 const { NorthClient } = require("../classes/NorthClient.js");
 
-const { setTimeout_, jsDate2Mysql, readableDateTime, genPermMsg, ms, readableDateTimeText, findRole } = require("../function.js");
+const { setTimeout_, jsDate2Mysql, readableDateTime, genPermMsg, ms, readableDateTimeText, findRole, color } = require("../function.js");
 async function endGiveaway(pool, client, result) {
   try {
     var channel = await client.channels.fetch(result.channel);
