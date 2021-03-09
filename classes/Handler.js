@@ -73,15 +73,17 @@ class Handler {
                         storage.error(err);
                     }
                 }
-                var [results] = yield con.query("SELECT * FROM servers WHERE id <> '622311594654695434'");
+                var [results] = yield con.query("SELECT * FROM servers");
                 results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                     storage.guilds[result.id] = {};
                     try {
                         yield client.guilds.fetch(result.id);
                     }
                     catch (err) {
-                        yield con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
-                        return storage.log("Removed left servers");
+                        if (result.id != '622311594654695434') {
+                            yield con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
+                            return storage.log("Removed left servers");
+                        }
                     }
                     if (result.queue || result.looping || result.repeating) {
                         var queue = [];
@@ -796,7 +798,7 @@ class AliceHandler extends Handler {
                         storage.error(err);
                     }
                 }), 30000);
-                var [results] = yield con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' AND guild <> '664716701991960577' ORDER BY endAt ASC");
+                var [results] = yield con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' ORDER BY endAt ASC");
                 storage.log(`[${id}] ` + "Found " + results.length + " giveaways");
                 results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                     var currentDate = Date.now();
@@ -805,7 +807,7 @@ class AliceHandler extends Handler {
                         giveaway_1.endGiveaway(pool, client, result);
                     }), millisec);
                 }));
-                var [results] = yield con.query("SELECT * FROM poll WHERE guild <> '622311594654695434' AND guild <> '664716701991960577' ORDER BY endAt ASC");
+                var [results] = yield con.query("SELECT * FROM poll WHERE guild = '622311594654695434' ORDER BY endAt ASC");
                 storage.log(`[${id}] ` + "Found " + results.length + " polls.");
                 results.forEach(result => {
                     var currentDate = Date.now();
@@ -847,7 +849,7 @@ class AliceHandler extends Handler {
                         storage.log("Deleted an ended poll.");
                     }), time);
                 });
-                var [results] = yield con.query("SELECT * FROM timer WHERE guild <> '622311594654695434' AND guild <> '664716701991960577'");
+                var [results] = yield con.query("SELECT * FROM timer WHERE guild = '622311594654695434' AND guild = '664716701991960577'");
                 storage.log(`[${id}] Found ${results.length} timers.`);
                 results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                     let time = result.endAt - Date.now();

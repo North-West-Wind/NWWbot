@@ -57,14 +57,16 @@ export class Handler {
                     storage.error(err);
                 }
             }
-            var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434'");
+            var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers");
             results.forEach(async result => {
                 storage.guilds[result.id] = {};
                 try {
                     await client.guilds.fetch(result.id);
                 } catch (err) {
-                    await con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
-                    return storage.log("Removed left servers");
+                    if (result.id != '622311594654695434') {
+                        await con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
+                        return storage.log("Removed left servers");
+                    }
                 }
                 if (result.queue || result.looping || result.repeating) {
                     var queue = [];
@@ -644,7 +646,7 @@ export class AliceHandler extends Handler {
                     storage.error(err);
                 }
             }, 30000);
-            var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' AND guild <> '664716701991960577' ORDER BY endAt ASC");
+            var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' ORDER BY endAt ASC");
             storage.log(`[${id}] ` + "Found " + results.length + " giveaways");
             results.forEach(async result => {
                 var currentDate = Date.now();
@@ -653,7 +655,7 @@ export class AliceHandler extends Handler {
                     endGiveaway(pool, client, result);
                 }, millisec);
             });
-            var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM poll WHERE guild <> '622311594654695434' AND guild <> '664716701991960577' ORDER BY endAt ASC");
+            var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM poll WHERE guild = '622311594654695434' ORDER BY endAt ASC");
             storage.log(`[${id}] ` + "Found " + results.length + " polls.");
             results.forEach(result => {
                 var currentDate = Date.now();
@@ -693,7 +695,7 @@ export class AliceHandler extends Handler {
                     storage.log("Deleted an ended poll.");
                 }, time);
             });
-            var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM timer WHERE guild <> '622311594654695434' AND guild <> '664716701991960577'");
+            var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM timer WHERE guild = '622311594654695434' AND guild = '664716701991960577'");
             storage.log(`[${id}] Found ${results.length} timers.`);
             results.forEach(async result => {
                 let time = result.endAt - Date.now();
