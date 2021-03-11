@@ -80,7 +80,7 @@ class Handler {
                         yield client.guilds.fetch(result.id);
                     }
                     catch (err) {
-                        if (result.id != '622311594654695434') {
+                        if (result.id != '622311594654695434' && result.id != '819539026792808448') {
                             yield con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
                             return storage.log("Removed left servers");
                         }
@@ -116,11 +116,11 @@ class Handler {
                     };
                 }));
                 storage.log(`[${id}] Set ${results.length} configurations`);
-                const [res] = yield con.query("SELECT * FROM rolemsg WHERE id <> '622311594654695434' ORDER BY expiration");
+                const [res] = yield con.query("SELECT * FROM rolemsg WHERE id <> '622311594654695434' AND id <> '819539026792808448' ORDER BY expiration");
                 storage.log(`[${id}] ` + "Found " + res.length + " role messages.");
                 storage.rm = res;
                 res.forEach((result) => __awaiter(this, void 0, void 0, function* () { return role_message_1.expire({ pool, client }, result.expiration - Date.now(), result.id); }));
-                var [results] = yield con.query("SELECT * FROM giveaways WHERE id <> '622311594654695434' ORDER BY endAt ASC");
+                var [results] = yield con.query("SELECT * FROM giveaways WHERE id <> '622311594654695434' AND id <> '819539026792808448' ORDER BY endAt ASC");
                 storage.log(`[${id}] ` + "Found " + results.length + " giveaways");
                 results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                     var currentDate = Date.now();
@@ -129,7 +129,7 @@ class Handler {
                         giveaway_1.endGiveaway(pool, client, result);
                     }), millisec);
                 }));
-                var [results] = yield con.query("SELECT * FROM poll WHERE id <> '622311594654695434' ORDER BY endAt ASC");
+                var [results] = yield con.query("SELECT * FROM poll WHERE id <> '622311594654695434' AND id <> '819539026792808448' ORDER BY endAt ASC");
                 storage.log(`[${id}] ` + "Found " + results.length + " polls.");
                 results.forEach(result => {
                     var currentDate = Date.now();
@@ -169,7 +169,7 @@ class Handler {
                         storage.log("Deleted an ended poll.");
                     }), time);
                 });
-                var [results] = yield con.query("SELECT * FROM timer WHERE id <> '622311594654695434'");
+                var [results] = yield con.query("SELECT * FROM timer WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
                 storage.log(`[${id}] Found ${results.length} timers.`);
                 results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                     var _a;
@@ -798,7 +798,7 @@ class AliceHandler extends Handler {
                         storage.error(err);
                     }
                 }), 30000);
-                var [results] = yield con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' ORDER BY endAt ASC");
+                var [results] = yield con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' OR id = '819539026792808448' ORDER BY endAt ASC");
                 storage.log(`[${id}] ` + "Found " + results.length + " giveaways");
                 results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                     var currentDate = Date.now();
@@ -807,7 +807,7 @@ class AliceHandler extends Handler {
                         giveaway_1.endGiveaway(pool, client, result);
                     }), millisec);
                 }));
-                var [results] = yield con.query("SELECT * FROM poll WHERE guild = '622311594654695434' ORDER BY endAt ASC");
+                var [results] = yield con.query("SELECT * FROM poll WHERE guild = '622311594654695434' OR id = '819539026792808448' ORDER BY endAt ASC");
                 storage.log(`[${id}] ` + "Found " + results.length + " polls.");
                 results.forEach(result => {
                     var currentDate = Date.now();
@@ -849,7 +849,7 @@ class AliceHandler extends Handler {
                         storage.log("Deleted an ended poll.");
                     }), time);
                 });
-                var [results] = yield con.query("SELECT * FROM timer WHERE guild = '622311594654695434' AND guild = '664716701991960577'");
+                var [results] = yield con.query("SELECT * FROM timer WHERE guild = '622311594654695434' OR id = '819539026792808448'");
                 storage.log(`[${id}] Found ${results.length} timers.`);
                 results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                     let time = result.endAt - Date.now();
@@ -1186,7 +1186,7 @@ class CanaryHandler extends Handler {
                         storage.error(err);
                     }
                 }
-                var [results] = yield con.query("SELECT * FROM servers WHERE id <> '622311594654695434'");
+                var [results] = yield con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
                 results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                     storage.guilds[result.id] = {};
                     if (result.queue || result.looping || result.repeating) {
@@ -1220,11 +1220,11 @@ class CanaryHandler extends Handler {
                     };
                 }));
                 storage.log(`[${id}] Set ${results.length} configurations`);
-                const [res] = yield con.query("SELECT * FROM rolemsg WHERE id <> '622311594654695434' ORDER BY expiration");
+                const [res] = yield con.query("SELECT * FROM rolemsg WHERE id <> '622311594654695434' AND id <> '819539026792808448' ORDER BY expiration");
                 storage.log(`[${id}] ` + "Found " + res.length + " role messages.");
                 storage.rm = res;
                 res.forEach((result) => __awaiter(this, void 0, void 0, function* () { return role_message_1.expire({ pool, client }, result.expiration - Date.now(), result.id); }));
-                var [results] = yield con.query("SELECT * FROM giveaways WHERE id <> '622311594654695434' ORDER BY endAt ASC");
+                var [results] = yield con.query("SELECT * FROM giveaways WHERE id <> '622311594654695434' AND id <> '819539026792808448' ORDER BY endAt ASC");
                 storage.log(`[${id}] ` + "Found " + results.length + " giveaways");
                 results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                     var currentDate = Date.now();
@@ -1233,7 +1233,7 @@ class CanaryHandler extends Handler {
                         giveaway_1.endGiveaway(pool, client, result);
                     }), millisec);
                 }));
-                var [results] = yield con.query("SELECT * FROM poll WHERE id <> '622311594654695434' ORDER BY endAt ASC");
+                var [results] = yield con.query("SELECT * FROM poll WHERE id <> '622311594654695434' AND id <> '819539026792808448' ORDER BY endAt ASC");
                 storage.log(`[${id}] ` + "Found " + results.length + " polls.");
                 results.forEach(result => {
                     var currentDate = Date.now();
@@ -1275,7 +1275,7 @@ class CanaryHandler extends Handler {
                         storage.log("Deleted an ended poll.");
                     }), time);
                 });
-                var [results] = yield con.query("SELECT * FROM timer WHERE id <> '622311594654695434'");
+                var [results] = yield con.query("SELECT * FROM timer WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
                 storage.log(`[${id}] Found ${results.length} timers.`);
                 results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                     let time = result.endAt - Date.now();
