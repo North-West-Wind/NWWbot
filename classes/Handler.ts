@@ -482,7 +482,7 @@ export class Handler {
             return;
         };
         const commandName = args.shift().toLowerCase();
-        if (commandName === "guild" && client.id == 1) return;
+        if (commandName === "guild" && client.id != 1) return;
         const command = storage.commands.get(commandName) || storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
         if (command.args && args.length < command.args) return msg.channel.send(`The command \`${msg.prefix}${commandName}\` requires ${command.args} arguments.\nHere's how you are supposed to use it: \`${msg.prefix}${command.name}${command.usage ? ` ${command.usage}` : ""}\``);
