@@ -263,7 +263,7 @@ module.exports = {
     }
     return true;
   },
-  ID: async() => {
+  ID: async () => {
     const buffer = await new Promise((resolve, reject) => require("crypto").randomBytes(24, async (err, buffer) => err ? reject(err) : resolve(buffer)));
     return buffer.toString("hex");
   },
@@ -400,7 +400,7 @@ module.exports = {
     if (flag === "welcome") return messageArray.join(" ").replace(/\{user\}/ig, member);
     else if (flag === "leave") return messageArray.join(" ").replace(/\{user\}/ig, member.user.tag);
   },
-  requestStream: async(url) => {
+  requestStream: async (url) => {
     const fetch = require("node-fetch").default;
     return await fetch(url).then(res => res.body);
   },
@@ -437,5 +437,43 @@ module.exports = {
   },
   getKeyByValue(object, value) {
     return Object.keys(object).find(key => object[key] === value);
+  },
+  capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  },
+  commonModerationEmbed(guild, author, member, word, past, reason) {
+    const Discord = require("discord.js");
+    const notiEmbed = new Discord.MessageEmbed()
+      .setColor(this.color())
+      .setTitle(`You've been ${past}`)
+      .setDescription(`In **${guild.name}**`)
+      .setTimestamp()
+      .setFooter(`${this.capitalizeFirstLetter(past)} by ${author.tag}`, author.displayAvatarURL());
+    if (reason !== "") notiEmbed.addField("Reason", reason);
+    const successfulEmbed = new Discord.MessageEmbed()
+      .setColor(this.color())
+      .setTitle(`User ${this.capitalizeFirstLetter(past)}!`)
+      .setDescription(`${this.capitalizeFirstLetter(past)} **${member.user.tag}** in server **${guild.name}**.`);
+    const failureEmbed = new Discord.MessageEmbed()
+      .setColor(this.color())
+      .setTitle(`Failed to ${word} the user!`)
+      .setDescription(`Couldn't ${word} **${member.user.tag}** in server **${guild.name}**.`);
+    return [notiEmbed, successfulEmbed, failureEmbed];
+  },
+  commonRoleEmbed(client, word, past, name) {
+    const Discord = require("discord.js");
+    const failEmbed = new Discord.MessageEmbed()
+      .setColor(color())
+      .setTitle(`Failed to ${word} role`)
+      .setDescription(`Failed to ${word} the role **${name}**`)
+      .setTimestamp()
+      .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+    const successEmbed = new Discord.MessageEmbed()
+      .setColor(color())
+      .setTitle(`Role ${past} Successfully`)
+      .setDescription(`${this.capitalizeFirstLetter(past)} a new role **${name}**`)
+      .setTimestamp()
+      .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+    return [successEmbed, failEmbed];
   }
 };

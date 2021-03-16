@@ -12,19 +12,22 @@ module.exports = {
   register: () => new ApplicationCommand(module.exports.name, module.exports.description).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "message", "The message to tell the bot.")
   ]),
-  slash: async () => {
-    var past = log.get(message.author.id);
+  slash: async (client, interaction, args) => {
+    var author;
+    if (interaction.member) author = await client.users.fetch(interaction.member.user.id);
+    else author = await client.users.fetch(interaction.user.id);
+    var past = log.get(author.id);
     if (!past || Date.now() - past.lastChat > 1800000) {
-      log.set(message.author.id, {
+      log.set(author.id, {
         lastChat: Date.now(),
         messages: []
       });
-      past = log.get(message.author.id);
+      past = log.get(author.id);
     }
-    const response = await cleverbot(args.join(" "), past.messages);
-    past.messages.push(args.join(" "));
+    const response = await cleverbot(args[0].value, past.messages);
+    past.messages.push(args[0].value);
     past.messages.push(response);
-    log.set(message.author.id, past);
+    log.set(author.id, past);
     return InteractionResponse.sendMessage(response);
   },
   async execute(message, args) {

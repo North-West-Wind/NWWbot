@@ -1,6 +1,5 @@
-const Discord = require("discord.js");
-const { findMember, color } = require("../function.js");
-const { NorthClient } = require("../classes/NorthClient.js");
+const { findMember, genPermMsg, commonModerationEmbed } = require("../function.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../classes/Slash.js");
 
 module.exports = {
   name: "deafen",
@@ -9,73 +8,51 @@ module.exports = {
   aliases: ["deaf"],
   category: 1,
   args: 1,
+  permissions: 8388608,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user to deafen.").setRequired(true),
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "reason", "The reason of deafening this user.")
+  ]),
+  slash: async(client, interaction, args) => {
+    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
+    const guild = await client.guilds.fetch(interaction.guild_id);
+    const author = await guild.members.fetch(interaction.member.user.id);
+    if (!author.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
+    if (!guild.me.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
+    const member = await guild.members.fetch(args[0].value);
+    if (!member) return InteractionResponse.sendMessage("Cannot find the user.");
+    await message.delete();
+    var reason;
+    if (args[1]?.value) reason = args[1].value;
+    const embeds = commonModerationEmbed(guild, author, member, "deafen", "deafened", reason);
+    try {
+      if (reason) await member.voice.setDeaf(true, reason)
+      else await member.voice.setDeaf(true);
+      member.user.send(embeds[0]).catch(() => { });
+      return InteractionResponse.sendEmbeds(embeds[1]);
+    } catch (error) {
+      return InteractionResponse.sendEmbeds(embeds[2]);
+    }
+  },
   async execute(message, args) {
-    if (!message.member.permissions.has(8388608)) {
-      message.channel.send(
-        `You don\'t have the permission to use this command.`
-      );
-      return;
-    }
-    if (!message.guild.me.permissions.has(8388608)) {
-      message.channel.send(`I don\'t have the permission to deafen members.`)
-      return;
-    }
-    if (!message.guild) return;
-    var member = await findMember(message, args[0]);
+    if (!message.guild) return message.channel.send("This command only works on server.");
+    if (!message.member.permissions.has(this.permissions)) return message.channel.send(genPermMsg(this.permissions, 0));
+    if (!message.guild.me.permissions.has(this.permissions)) return message.channel.send(genPermMsg(this.permissions, 1));
+    const member = await findMember(message, args[0]);
 
     if (!member) return;
-    if (!member.voice.channel) return message.channel.send("The member is not connected to any voice channel.")
-    message.delete().catch(() => { });
+    await message.delete();
+    var reason;
+    if (args[1]) reason = args.slice(1).join(" ");
+    const embeds = commonModerationEmbed(message.guild, message.author, member, "deafen", "deafened", reason);
     try {
-      if (args[1]) {
-        var reason = args.slice(1).join(" ");
-      }
-      if (reason) {
-        member.voice.setDeaf(true, reason)
-      } else {
-        member.voice.setDeaf(true);
-      }
-
-      var muteEmbed = new Discord.MessageEmbed()
-        .setColor(color())
-        .setTitle(`You've been deafened`)
-        .setDescription(`In **${message.guild.name}**`)
-        .setTimestamp()
-        .setFooter(
-          "Deafened by " + message.author.tag,
-          message.author.displayAvatarURL()
-        );
-      if (reason) muteEmbed.addField("Reason", reason);
-      var muteSuccessfulEmbed = new Discord.MessageEmbed()
-        .setColor(color())
-        .setTitle("User Successfully Deafened!")
-        .setDescription(
-          "Deafened **" +
-          member.user.tag +
-          "** in server **" +
-          message.guild.name +
-          "**."
-        );
-      try {
-        member.user.send(muteEmbed);
-      } catch (error) {
-        NorthClient.storage.log("Failed to send DM to " + member.user.username);
-      }
-
-      message.author.send(muteSuccessfulEmbed)
-
+      if (reason) await member.voice.setDeaf(true, reason)
+      else await member.voice.setDeaf(true);
+      member.user.send(embeds[0]).catch(() => { });
+      await message.author.send(embeds[1]);
     } catch (error) {
-      var muteFailureEmbed = new Discord.MessageEmbed()
-        .setColor(color())
-        .setTitle("Failed to Deafen User!")
-        .setDescription(
-          "Couldn't deafen **" +
-          member.user.tag +
-          "** in server **" +
-          message.guild.name +
-          "**."
-        );
-      message.author.send(muteFailureEmbed);
+      await message.author.send(embeds[2]);
     }
   }
 }

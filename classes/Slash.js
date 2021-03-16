@@ -18,6 +18,9 @@ class ApplicationCommand {
         this.options = options;
         return this;
     }
+    static createBasic(cmd) {
+        return new ApplicationCommand(cmd.name, cmd.description);
+    }
 }
 exports.ApplicationCommand = ApplicationCommand;
 class ApplicationCommandOption {

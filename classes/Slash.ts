@@ -1,4 +1,5 @@
 import { MessageEmbed } from "discord.js";
+import { Command } from "./Command";
 
 export class ApplicationCommand {
     name: string;
@@ -21,6 +22,10 @@ export class ApplicationCommand {
     setOptions(options: ApplicationCommandOption[]): ApplicationCommand {
         this.options = options;
         return this;
+    }
+
+    static createBasic(cmd: Command): ApplicationCommand {
+        return new ApplicationCommand(cmd.name, cmd.description);
     }
 }
 
