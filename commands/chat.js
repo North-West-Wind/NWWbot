@@ -27,7 +27,7 @@ module.exports = {
     log.set(message.author.id, past);
     return InteractionResponse.sendMessage(response);
   },
-  execute(message, args) {
+  async execute(message, args) {
     var past = log.get(message.author.id);
     if (!past || Date.now() - past.lastChat > 1800000) {
       log.set(message.author.id, {
