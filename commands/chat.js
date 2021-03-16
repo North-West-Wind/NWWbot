@@ -10,7 +10,7 @@ module.exports = {
   args: 1,
   slashInit: true,
   register: () => new ApplicationCommand(module.exports.name, module.exports.description).setOptions([
-    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "message", "The message to tell the bot.")
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "message", "The message to tell the bot.").setRequired(true)
   ]),
   slash: async (client, interaction, args) => {
     var author;
