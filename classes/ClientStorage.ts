@@ -26,11 +26,11 @@ export class ClientStorage {
 
     log(str: any) {
         console.log(str);
-        this.client.channels.fetch("678847137391312917").then(async logChannel => logChannel ? await(logChannel as TextChannel).send(`\`${str}\``) : "").catch(console.error);
+        this.client.channels.fetch(this.client.log).then(async logChannel => logChannel ? await(logChannel as TextChannel).send(`\`${str}\``) : "").catch(console.error);
     }
 
     error(err: any) {
         console.error(err);
-        this.client.channels.fetch("678847137391312917").then(async logChannel => logChannel ? await(logChannel as TextChannel).send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``) : "").catch(console.error);
+        this.client.channels.fetch(this.client.log).then(async logChannel => logChannel ? await(logChannel as TextChannel).send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``) : "").catch(console.error);
     }
 }

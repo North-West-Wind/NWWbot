@@ -35,12 +35,19 @@ var links = [
 const Discord = require("discord.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const { NorthClient } = require("../classes/NorthClient.js");
+const { ApplicationCommand, InteractionResponse, InteractionApplicationCommandCallbackData } = require("../classes/Slash.js");
 
 module.exports = {
     name: "axolotl",
     description: "Get a random Axolotl image.",
     category: 3,
     aliases: ["axol"],
+    slashInit: true,
+    register: () => new ApplicationCommand(module.exports.name, module.exports.description),
+    slash: async() => {
+        const selected = links[Math.floor(Math.random() * links.length)];
+        return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setContent(selected));
+    },
     async execute(message) {
         const selected = links[Math.floor(Math.random() * links.length)];
         try {

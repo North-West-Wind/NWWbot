@@ -1,7 +1,8 @@
 const Discord = require("discord.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const MojangAPI = require("mojang-api");
-const { color } = require("../function");
+const { color, getKeyByValue, createEmbedScrolling } = require("../function");
+const { curseforge, SectionTypes, CategoryList, SortTypes } = require("aio-mc-api");
 
 module.exports = {
   name: "minecraft",
@@ -9,10 +10,10 @@ module.exports = {
   args: true,
   aliases: ["mc"],
   usage: "[subcommand] <username | UUID | IP>",
-  subcommands: ["profile", "server", "history"],
-  subaliases: ["pro", "srv", "his"],
-  subdesc: ["Display the profile of a Minecraft player.", "Fetch information about a Minecraft server.", "Show the username history of a Minecraft player."],
-  subusage: [null, "<subcommand> <IP>", null],
+  subcommands: ["profile", "server", "history", "curseforge"],
+  subaliases: ["pro", "srv", "his", "cf"],
+  subdesc: ["Display the profile of a Minecraft player.", "Fetch information about a Minecraft server.", "Show the username history of a Minecraft player.", "Fetch projects from CurseForge Minecraft."],
+  subusage: [null, "<subcommand> <IP>", null, "<subcommand> [section | category] [version] [sort] [keywords]"],
   category: 7,
   args: 1,
   async execute(message, args) {
@@ -111,6 +112,66 @@ module.exports = {
           }
         });
       });
+    } else if (args[0] === "curseforge" || args[0] === "cf") return await this.cf(message, args);
+  },
+  async cf(message, args) {
+    var category = SectionTypes.MOD;
+    var version;
+    var sort = SortTypes.POPULARITY;
+    var filter;
+    if (SectionTypes[args[1].toUpperCase()] || CategoryList[args[1].toUpperCase()]) {
+      category = SectionTypes[args[1].toUpperCase()] || CategoryList[args[1].toUpperCase()];
+      if (args[2].match(/^[\d+\.?]+$/)) {
+        version = args[2];
+        if (SortTypes[args[3].toUpperCase()]) {
+          sort = SortTypes[args[3].toUpperCase()];
+          if (args[4]) filter = args.slice(4).join(" ");
+        } else {
+          if (args[3]) filter = args.slice(3).join(" ");
+        }
+      } else {
+        if (SortTypes[args[2].toUpperCase()]) {
+          sort = SortTypes[args[2].toUpperCase()];
+          if (args[3]) filter = args.slice(3).join(" ");
+        } else {
+          if (args[2]) filter = args.slice(2).join(" ");
+        }
+      }
+    } else {
+      if (args[1].match(/^[\d+\.?]+$/)) {
+        version = args[1];
+        if (SortTypes[args[2].toUpperCase()]) {
+          sort = SortTypes[args[2].toUpperCase()];
+          if (args[3]) filter = args.slice(3).join(" ");
+        } else {
+          if (args[2]) filter = args.slice(2).join(" ");
+        }
+      } else {
+        if (SortTypes[args[1].toUpperCase()]) {
+          sort = SortTypes[args[1].toUpperCase()];
+          if (args[2]) filter = args.slice(2).join(" ");
+        } else {
+          if (args[1]) filter = args.slice(1).join(" ");
+        }
+      }
     }
+    const projects = await curseforge.searchProject({ category, gameVersion: version, sort, filter, pageSize: 100 });
+    const allEmbeds = [];
+    var categories = CategoryList;
+    for (let i = 0; i < Math.ceil(projects.length / 10); i++) {
+      const em = new Discord.MessageEmbed()
+        .setColor(color())
+        .setTitle(`CurseForge Minecraft - ${getKeyByValue(Object.assign(categories, SectionTypes), category)}`)
+        .setDescription(`Sort by: **${getKeyByValue(SortTypes, sort)}**\nVersion: **${version ? version : "All"}**\nFilter: ${filter ? `**${filter}**` : "None"}\n\n`)
+        .setTimestamp()
+        .setFooter(`Page ${i + 1}/${Math.ceil(projects.length / 10)}`, message.client.user.displayAvatarURL());
+      for (let u = 0; u < Math.min(10, projects.length - 10 * i); u++) {
+        const project = projects[i * 10 + u];
+        em.setDescription(em.description + `**[${project.section.name}: ${project.name} - ${project.authors.map(a => a.name).join(", ")}](${project.url})**\n`);
+      }
+      em.setDescription(em.description + "React with ◀, ▶, ⏮, ⏭ to turn the page.\nReact with ⏹ to exit.");
+      allEmbeds.push(em);
+    }
+    await createEmbedScrolling(message, allEmbeds);
   }
 };

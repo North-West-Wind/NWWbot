@@ -39,6 +39,7 @@ export class Handler {
     }
 
     static async ready(client: NorthClient) {
+        await require("../n0rthwestw1nd/slash")(client);
         const storage = NorthClient.storage;
         const pool = client.pool;
         const id = client.id;
@@ -481,7 +482,7 @@ export class Handler {
             return;
         };
         const commandName = args.shift().toLowerCase();
-        if (commandName === "guild") return;
+        if (commandName === "guild" && client.id == 1) return;
         const command = storage.commands.get(commandName) || storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
         if (command.args && args.length < command.args) return msg.channel.send(`The command \`${msg.prefix}${commandName}\` requires ${command.args} arguments.\nHere's how you are supposed to use it: \`${msg.prefix}${command.name}${command.usage ? ` ${command.usage}` : ""}\``);
@@ -945,6 +946,7 @@ export class AliceHandler extends Handler {
 
 export class CanaryHandler extends Handler {
     static async ready(client: NorthClient) {
+        await require("../n0rthwestw1nd/slash")(client);
         const storage = NorthClient.storage;
         const pool = client.pool;
         const id = client.id;

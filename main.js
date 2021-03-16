@@ -6,6 +6,7 @@ const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryD
 
 const alice = new NorthClient({ restRequestTimeout: 60000, messageCacheMaxSize: 50, messageCacheLifetime: 3600, messageSweepInterval: 300, partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER', 'GUILD_MEMBER'] });
 const client = new NorthClient({ restRequestTimeout: 60000, messageCacheMaxSize: 50, messageCacheLifetime: 3600, messageSweepInterval: 300, partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER', 'GUILD_MEMBER'] });
+client.log = "678847137391312917";
 NorthClient.storage = new ClientStorage(client);
 
 require("./common")(client, alice);

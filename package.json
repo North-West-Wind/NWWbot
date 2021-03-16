@@ -5,6 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "node --optimize_for_size --max_old_space_size=341 --gc_interval=50 main.js",
+    "canary": "node canary",
     "tsc": "tsc"
   },
   "engines": {
@@ -16,6 +17,7 @@
   "dependencies": {
     "@discordjs/opus": "^0.4.0",
     "@justalk/pornhub-api": "^3.5.0",
+    "aio-mc-api": "^1.2.2",
     "akaneko": "^5.0.1",
     "aki-api": "^5.2.1",
     "anser": "^2.0.1",
@@ -25,6 +27,7 @@
     "canvas": "^2.7.0",
     "cheerio": "^1.0.0-rc.5",
     "cleverbot-free": "^1.0.5",
+    "deep-equal": "^2.0.5",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "fetch-retry": "^4.1.0",
@@ -36,8 +39,7 @@
     "google-it": "^1.6.2",
     "is-image-url": "^1.1.8",
     "krunker.js": "^1.2.4",
-    "mathjs": "^9.2.0",
-    "minecraft-protocol": "^1.23.2",
+    "mathjs": "^9.3.0",
     "mojang-api": "^0.0.2",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
@@ -49,7 +51,7 @@
     "number-to-words": "^1.2.4",
     "oxford-dictionary": "^1.5.1",
     "pdfkit": "^0.11.0",
-    "prism-media": "^1.2.7",
+    "prism-media": "^1.2.8",
     "random-words": "^1.1.0",
     "reddit-wrapper-v2": "^1.1.6",
     "request": "^2.88.2",

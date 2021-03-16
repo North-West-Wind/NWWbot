@@ -267,7 +267,7 @@ module.exports = {
     const buffer = await new Promise((resolve, reject) => require("crypto").randomBytes(24, async (err, buffer) => err ? reject(err) : resolve(buffer)));
     return buffer.toString("hex");
   },
-  async createEmbedScrolling(message, allEmbeds, id, additionalData = undefined) {
+  async createEmbedScrolling(message, allEmbeds, id = 0, additionalData = undefined) {
     const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
     var s = 0;
     var msg = await message.channel.send(allEmbeds[0]);
@@ -434,5 +434,8 @@ module.exports = {
     const moment = require("moment");
     require("moment-duration-format")(moment);
     return moment.duration(seconds, "seconds").format();
+  },
+  getKeyByValue(object, value) {
+    return Object.keys(object).find(key => object[key] === value);
   }
 };

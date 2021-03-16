@@ -53,6 +53,7 @@ class Handler {
     }
     static ready(client) {
         return __awaiter(this, void 0, void 0, function* () {
+            yield require("../n0rthwestw1nd/slash")(client);
             const storage = NorthClient_1.NorthClient.storage;
             const pool = client.pool;
             const id = client.id;
@@ -605,7 +606,7 @@ class Handler {
             }
             ;
             const commandName = args.shift().toLowerCase();
-            if (commandName === "guild")
+            if (commandName === "guild" && client.id == 1)
                 return;
             const command = storage.commands.get(commandName) || storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
             if (!command)
@@ -1166,6 +1167,7 @@ exports.AliceHandler = AliceHandler;
 class CanaryHandler extends Handler {
     static ready(client) {
         return __awaiter(this, void 0, void 0, function* () {
+            yield require("../n0rthwestw1nd/slash")(client);
             const storage = NorthClient_1.NorthClient.storage;
             const pool = client.pool;
             const id = client.id;
