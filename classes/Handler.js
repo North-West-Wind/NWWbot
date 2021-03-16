@@ -606,7 +606,7 @@ class Handler {
             }
             ;
             const commandName = args.shift().toLowerCase();
-            if (commandName === "guild" && client.id == 1)
+            if (commandName === "guild" && client.id != 1)
                 return;
             const command = storage.commands.get(commandName) || storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
             if (!command)
