@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const { color } = require("../function");
 const categories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Music", "Under Development", "Dev Command"];
+const sCategories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Music", "InDev", "Dev"];
 const { NorthClient } = require("../classes/NorthClient.js");
 const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, ApplicationCommandOptionChoice, InteractionResponse } = require("../classes/Slash");
 module.exports = {
@@ -13,9 +14,9 @@ module.exports = {
   register: () => {
     const cmd = ApplicationCommand.createBasic(module.exports);
     cmd.setOptions([]);
-    for (const category of categories) {
+    for (const category of sCategories) {
       const option = new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), category.toLowerCase(), `${category} - Command Category`);
-      const filtered = Array.from(NorthClient.storage.commands.filter(x => x.category === categories.indexOf(category)).keys());
+      const filtered = Array.from(NorthClient.storage.commands.filter(x => x.category === sCategories.indexOf(category)).keys());
       const fetchOpt = new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "command", "The command to fetch.");
       fetchOpt.setChoices([]);
       for (const command of filtered) fetchOpt.choices.push(new ApplicationCommandOptionChoice(command, command));
