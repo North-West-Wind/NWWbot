@@ -34,7 +34,7 @@ module.exports = {
         .setThumbnail(client.user.displayAvatarURL())
         .setTimestamp()
         .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
-      for (let i = 0; i < categories.length; i++) Embed.addField(`**${categories[i]}**`, Array.from(commands.filter(x => x.category === i).keys()).join("\n"), true);
+      for (let i = 0; i < categories.length; i++) Embed.addField(`**${categories[i]}**`, Array.from(NorthClient.storage.commands.filter(x => x.category === i).keys()).join("\n"), true);
       setTimeout(async() => {
         await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({
           data: {
