@@ -475,5 +475,9 @@ module.exports = {
       .setTimestamp()
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return [successEmbed, failEmbed];
+  },
+  async msgOrRes(message, str) {
+    if (message) return await message.channel.send(str);
+    else return InteractionResponse.sendMessage(str);
   }
 };

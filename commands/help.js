@@ -17,7 +17,7 @@ module.exports = {
     for (const category of sCategories) {
       const option = new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), category.toLowerCase(), `${category} - Command Category`);
       const filtered = Array.from(NorthClient.storage.commands.filter(x => x.category === sCategories.indexOf(category)).keys());
-      const fetchOpt = new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "command", "The command to fetch.");
+      const fetchOpt = new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "command", "The command to fetch.").setRequired(true);
       fetchOpt.setChoices([]);
       for (const command of filtered) fetchOpt.choices.push(new ApplicationCommandOptionChoice(command, command));
       option.setOptions([fetchOpt]);
@@ -26,7 +26,7 @@ module.exports = {
     return cmd;
   },
   slash: async(client, interaction, args) => {
-    if (args[0]?.value === "all" || !args[0]?.options[0]?.value) {
+    if (args[0]?.value === "all" || !args[0]?.options || !args[0]?.options[0]?.value) {
       const Embed = new Discord.MessageEmbed()
         .setColor(color())
         .setTitle("Command list is here!")
@@ -41,7 +41,7 @@ module.exports = {
             content: "This is the **[manual](https://northwestwind.ml/manual.pdf)**, my friend.",
             embed: null
           }
-        })
+        });
       }, 60000);
       return InteractionResponse.sendEmbeds(Embed);
     }

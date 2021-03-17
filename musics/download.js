@@ -25,7 +25,7 @@ module.exports = {
     category: 8,
     async music(message, serverQueue) {
         const args = message.content.slice(message.prefix.length).split(/ +/);
-        if (args[1] && isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, serverQueue, args);
+        if (args[1] && isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, serverQueue, args.slice(1).join(" "));
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the queue.");
         const index = parseInt(args[1]);
@@ -37,13 +37,12 @@ module.exports = {
         const args = message.content.slice(message.prefix.length).split(/ +/);
         try {
             if (song.isLive) {
-                const argss = ["0", song.url];
-                const result = await addYTURL({ dummy: true }, argss, song.type);
+                const result = await addYTURL(song.url, song.type);
                 if (result.error) throw "Failed to find video";
                 if (!isEquivalent(result.songs[0], song)) {
                     song = result.songs[0];
                     serverQueue.songs[0] = song;
-                    updateQueue(message, serverQueue, message.pool);
+                    updateQueue(message.guild.id, serverQueue, message.pool);
                     if (song.isLive) return await message.channel.send("Livestream downloading is not supported and recommended! Come back later when the livestream is over.");
                 }
             }
@@ -76,7 +75,7 @@ module.exports = {
                         if (g.error) throw "Failed to find video";
                         song = g;
                         serverQueue.songs[0] = song;
-                        updateQueue(message, serverQueue, message.pool);
+                        updateQueue(message.guild.id, serverQueue, message.pool);
                         stream = await requestStream(song.download);
                         if (stream.statusCode != 200) throw new Error("Received HTTP Status Code: " + stream.statusCode);
                     }
@@ -102,17 +101,17 @@ module.exports = {
             NorthClient.storage.error(err);
         }
     },
-    async downloadFromArgs(message, serverQueue, args) {
+    async downloadFromArgs(message, serverQueue, link) {
         var result = { error: true };
         try {
-            if (validYTPlaylistURL(args.slice(1).join(" "))) result = await addYTPlaylist(message, args);
-            else if (validYTURL(args.slice(1).join(" "))) result = await addYTURL(message, args);
-            else if (validSPURL(args.slice(1).join(" "))) result = await addSPURL(message, args);
-            else if (validSCURL(args.slice(1).join(" "))) result = await addSCURL(message, args);
-            else if (validGDURL(args.slice(1).join(" "))) return message.channel.send("Wait. You should be able to access this file?");
-            else if (validMSURL(args.slice(1).join(" "))) result = await addMSURL(message, args);
-            else if (validPHURL(args.slice(1).join(" "))) result = await addPHURL(message, args);
-            else if (validURL(args.slice(1).join(" "))) return message.channel.send("Wait. You should be able to access this file?");
+            if (validYTPlaylistURL(link)) result = await addYTPlaylist(args);
+            else if (validYTURL(link)) result = await addYTURL(args);
+            else if (validSPURL(link)) result = await addSPURL(message, args);
+            else if (validSCURL(link)) result = await addSCURL(args);
+            else if (validGDURL(link)) return message.channel.send("Wait. You should be able to access this file?");
+            else if (validMSURL(link)) result = await addMSURL(args);
+            else if (validPHURL(link)) result = await addPHURL(args);
+            else if (validURL(link)) return message.channel.send("Wait. You should be able to access this file?");
             else result = await search(message, args);
             if (result.error) return;
             if (result.msg) result.msg.delete({ timeout: 10000 });

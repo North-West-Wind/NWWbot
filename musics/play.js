@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 const { validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream, moveArray, color } = require("../function.js");
 const { getMP3 } = require("../commands/musescore.js");
 const muse = require("musescore-metadata");
-const { music } = require("./migrate.js");
+const { music, slash } = require("./migrate.js");
 const ytdl = require("ytdl-core");
 const { NorthClient } = require("../classes/NorthClient.js");
 var SpotifyWebApi = require("spotify-web-api-node");
@@ -24,15 +24,16 @@ const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
 const ph = require("@justalk/pornhub-api");
 const { setQueue, updateQueue, getQueues } = require("./main.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../classes/Slash.js");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
-function createEmbed(message, songs) {
+function createEmbed(client, songs) {
   const Embed = new Discord.MessageEmbed()
     .setColor(color())
     .setTitle("New track added:")
     .setThumbnail(songs[0].thumbnail)
     .setDescription(`**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`)
     .setTimestamp()
-    .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+    .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
   if (songs.length > 1) Embed.setDescription(`**${songs.length}** tracks were added.`).setThumbnail(undefined);
   return Embed;
 }
@@ -40,21 +41,20 @@ function createEmbed(message, songs) {
 async function play(guild, song, skipped = 0, seek = 0) {
   const queue = getQueues();
   const serverQueue = queue.get(guild.id);
-  const message = { guild: { id: guild.id, name: guild.name }, dummy: true };
   if (!serverQueue.voiceChannel && guild.me.voice && guild.me.voice.channel) serverQueue.voiceChannel = guild.me.voice.channel;
   serverQueue.playing = true;
   if (!song && serverQueue.songs.length > 0) {
     const filtered = serverQueue.songs.filter(song => !!song);
     if (serverQueue.songs.length !== filtered.length) {
       serverQueue.songs = filtered;
-      updateQueue(message, serverQueue, message.pool);
+      updateQueue(guild.id, serverQueue, serverQueue.pool);
       if (serverQueue.songs[0]) song = serverQueue.songs[0];
     }
   }
   if (!song || !serverQueue.voiceChannel) {
     serverQueue.playing = false;
     if (guild.me.voice && guild.me.voice.channel) await guild.me.voice.channel.leave();
-    return updateQueue(message, serverQueue, serverQueue.pool);
+    return updateQueue(guild.id, serverQueue, serverQueue.pool);
   }
   const args = ["0", song.url];
   var dispatcher;
@@ -73,14 +73,14 @@ async function play(guild, song, skipped = 0, seek = 0) {
     }
     if (serverQueue.looping) serverQueue.songs.push(song);
     if (!serverQueue.repeating) serverQueue.songs.shift();
-    updateQueue(message, serverQueue, serverQueue.pool);
+    updateQueue(guild.id, serverQueue, serverQueue.pool);
     play(guild, serverQueue.songs[0], skipped);
   }
   if (!serverQueue.connection && skipped === 0) try {
     serverQueue.connection = await serverQueue.voiceChannel.join();
     if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
   } catch (err) {
-    if (message.guild.me.voice.channel) await message.guild.me.voice.channel.leave();
+    if (guild.me.voice.channel) await guild.me.voice.channel.leave();
     if (serverQueue.textChannel) return await serverQueue.textChannel.send("An error occured while trying to connect to the channel! Disconnecting the bot...").then(msg => msg.delete({ timeout: 30000 }));
   }
   if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
@@ -106,11 +106,11 @@ async function play(guild, song, skipped = 0, seek = 0) {
       case 6:
         var f = await requestStream(song.download);
         if (f.statusCode != 200) {
-          const g = await module.exports.addPHURL(message, args);
+          const g = await module.exports.addPHURL(args);
           if (g.error) throw "Failed to find video";
           song = g;
           serverQueue.songs[serverQueue.songs.indexOf(song)] = song;
-          updateQueue(message, serverQueue, serverQueue.pool);
+          updateQueue(guild.id, serverQueue, serverQueue.pool);
           f = await requestStream(song.download);
           if (f.statusCode != 200) throw new Error("Received HTTP Status Code: " + f.statusCode);
         }
@@ -128,12 +128,12 @@ async function play(guild, song, skipped = 0, seek = 0) {
         break;
       default:
         if (song.isLive) {
-          const k = await module.exports.addYTURL(message, args, song.type);
+          const k = await module.exports.addYTURL(args, song.type);
           if (k.error) throw "Failed to find video";
           if (!isEquivalent(k.songs[0], song)) {
             song = k.songs[0];
             serverQueue.songs[serverQueue.songs.indexOf(song)] = song;
-            updateQueue(message, serverQueue, serverQueue.pool);
+            updateQueue(guild.id, serverQueue, serverQueue.pool);
           }
         }
         if (!song.isLive && !song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
@@ -161,7 +161,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
   dispatcher.on("finish", async () => {
     if (serverQueue.looping) serverQueue.songs.push(song);
     if (!serverQueue.repeating) serverQueue.songs.shift();
-    updateQueue(message, serverQueue, serverQueue.pool);
+    updateQueue(guild.id, serverQueue, serverQueue.pool);
     if (Date.now() - now < 1000 && serverQueue.textChannel) {
       serverQueue.textChannel.send(`There was probably an error playing the last track. (It played for less than a second!)\nPlease contact NorthWestWind#1885 if the problem persist. ${oldSkipped < 2 ? "" : `(${oldSkipped} times in a row)`}`).then(msg => msg.delete({ timeout: 30000 }));
       if (++oldSkipped >= 3) {
@@ -179,7 +179,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
       const int = Math.floor(Math.random() * serverQueue.songs.length);
       const pending = serverQueue.songs[int];
       serverQueue.songs = moveArray(serverQueue.songs, int);
-      updateQueue(message, serverQueue, serverQueue.pool);
+      updateQueue(guild.id, serverQueue, serverQueue.pool);
       play(guild, pending);
     }
   }).on("error", async error => {
@@ -204,6 +204,93 @@ module.exports = {
   aliases: ["p"],
   usage: "[link | keywords | attachment]",
   category: 8,
+  permissions: 3145728,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "link", "The link of the soundtrack.")
+  ]),
+  slash: async(client, interaction, args) => {
+    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
+    const guild = await client.guilds.fetch(interaction.guild_id);
+    const author = await guild.members.fetch(interaction.member.user.id);
+    var serverQueue = getQueues().get(guild.id);
+    const voiceChannel = author.voice.channel;
+    if (!voiceChannel) return InteractionResponse.sendMessage("You need to be in a voice channel to play music!");
+    if (!voiceChannel.permissionsFor(client.user).has(this.permissions)) return InteractionResponse.sendMessage("I can't play in your voice channel!");
+    if (!args[0]?.value) {
+      if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false, client.pool);
+      if (serverQueue.songs.length < 1) return InteractionResponse.sendMessage("The queue is empty for this server! Please provide a link or keywords to get a music played!");
+      if (serverQueue.playing || NorthClient.storage.migrating.find(x => x === guild.id)) return await slash(client, interaction);
+      try {
+        if (guild.me.voice.channel && guild.me.voice.channelID === voiceChannel.id) serverQueue.connection = guild.me.voice.connection;
+        else {
+          if (guild.me.voice.channel) await guild.me.voice.channel.leave();
+          serverQueue.connection = await voiceChannel.join();
+        }
+        if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
+      } catch (err) {
+        NorthClient.storage.error(err);
+        if (guild.me.voice.channel) await guild.me.voice.channel.leave();
+        return InteractionResponse.reply(author.id, "there was an error trying to connect to the voice channel!");
+      }
+      serverQueue.voiceChannel = voiceChannel;
+      serverQueue.playing = true;
+      serverQueue.textChannel = await client.channels.fetch(interaction.channel_id);
+      updateQueue(guild.id, serverQueue, client.pool);
+      if (!serverQueue.random) play(guild, serverQueue.songs[0]);
+      else {
+        const int = Math.floor(Math.random() * serverQueue.songs.length);
+        const pending = serverQueue.songs[int];
+        serverQueue.songs = moveArray(serverQueue.songs, int);
+        updateQueue(guild.id, serverQueue, serverQueue.pool);
+        play(guild, pending);
+      }
+      return;
+    }
+    try {
+      var songs = [];
+      var result = { error: true };
+      if (validYTPlaylistURL(args.slice(1).join(" "))) result = await this.addYTPlaylist(args.slice(1).join(" "));
+      else if (validYTURL(args.slice(1).join(" "))) result = await this.addYTURL(args.slice(1).join(" "));
+      else if (validSCURL(args.slice(1).join(" "))) result = await this.addSCURL(args.slice(1).join(" "));
+      else if (validGDFolderURL(args.slice(1).join(" "))) result = await this.addGDFolderURL(args.slice(1).join(" "));
+      else if (validGDURL(args.slice(1).join(" "))) result = await this.addGDURL(args.slice(1).join(" "));
+      else if (validMSURL(args.slice(1).join(" "))) result = await this.addMSURL(args.slice(1).join(" "));
+      else if (validPHURL(args.slice(1).join(" "))) result = await this.addPHURL(args.slice(1).join(" "));
+      else if (validURL(args.slice(1).join(" "))) result = await this.addURL(args.slice(1).join(" "));
+      else return InteractionResponse.sendMessage("The link is invalid. Note that Spotify feature is trimmed in this slash command.")
+      if (result.error) return InteractionResponse.sendMessage(result.message);
+      songs = result.songs;
+      if (!songs || songs.length < 1) return InteractionResponse.reply(author.id, "there was an error trying to add the soundtrack!");
+      const Embed = createEmbed(client, songs);
+      if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, songs, false, false, client.pool);
+      else serverQueue.songs = ((!guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
+      updateQueue(guild.id, serverQueue, client.pool);
+      if (!guild.me.voice.channel) {
+        serverQueue.voiceChannel = voiceChannel;
+        serverQueue.connection = await voiceChannel.join();
+        serverQueue.textChannel = await client.channels.fetch(interaction.channel_id);
+        if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
+      }
+      updateQueue(guild.id, serverQueue, null);
+      if (!serverQueue.playing) {
+        if (!serverQueue.random) play(guild, serverQueue.songs[0]);
+        else {
+          const int = Math.floor(Math.random() * serverQueue.songs.length);
+          const pending = serverQueue.songs[int];
+          serverQueue.songs = moveArray(serverQueue.songs, int);
+          updateQueue(guild.id, serverQueue, serverQueue.pool);
+          play(guild, pending);
+        }
+      }
+      setTimeout(() => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }), 30000);
+      return InteractionResponse.sendEmbeds(Embed);
+    } catch (err) {
+      if (guild.me.voice.channel) await guild.me.voice.channel.leave();
+      NorthClient.storage.error(err);
+      return InteractionResponse.reply(author.id, "there was an error trying to connect to the voice channel!");
+    }
+  },
   async music(message, serverQueue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);
     const voiceChannel = message.member.voice.channel;
@@ -228,13 +315,13 @@ module.exports = {
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.playing = true;
       serverQueue.textChannel = message.channel;
-      updateQueue(message, serverQueue, message.pool);
+      updateQueue(message.guild.id, serverQueue, message.pool);
       if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
       else {
         const int = Math.floor(Math.random() * serverQueue.songs.length);
         const pending = serverQueue.songs[int];
         serverQueue.songs = moveArray(serverQueue.songs, int);
-        updateQueue(message, serverQueue, serverQueue.pool);
+        updateQueue(message.guild.id, serverQueue, serverQueue.pool);
         play(message.guild, pending);
       }
       return;
@@ -256,26 +343,26 @@ module.exports = {
       if (result.error) return await message.channel.send(result.message);
       songs = result.songs;
       if (!songs || songs.length < 1) return await message.reply("there was an error trying to add the soundtrack!");
-      const Embed = createEmbed(message, songs);
+      const Embed = createEmbed(message.client, songs);
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, songs, false, false, message.pool);
       else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
       if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });
       else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });
-      updateQueue(message, serverQueue, message.pool);
+      updateQueue(message.guild.id, serverQueue, message.pool);
       if (!message.guild.me.voice.channel) {
         serverQueue.voiceChannel = voiceChannel;
         serverQueue.connection = await voiceChannel.join();
         serverQueue.textChannel = message.channel;
         if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
       }
-      updateQueue(message, serverQueue, null);
+      updateQueue(message.guild.id, serverQueue, null);
       if (!serverQueue.playing) {
         if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
         else {
           const int = Math.floor(Math.random() * serverQueue.songs.length);
           const pending = serverQueue.songs[int];
           serverQueue.songs = moveArray(serverQueue.songs, int);
-          updateQueue(message, serverQueue, serverQueue.pool);
+          updateQueue(message.guild.id, serverQueue, serverQueue.pool);
           play(message.guild, pending);
         }
       }

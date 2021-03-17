@@ -1,4 +1,4 @@
-import { MessageEmbed } from "discord.js";
+import { MessageEmbed, Snowflake } from "discord.js";
 import { Command } from "./Command";
 
 export class ApplicationCommand {
@@ -121,6 +121,9 @@ export class InteractionResponse {
     }
     static sendEmbeds(...embed: MessageEmbed[]) {
         return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setEmbeds(embed.map(e => e.toJSON())));
+    }
+    static reply(id: Snowflake, message: string): InteractionResponse {
+        return this.sendMessage(`<@${id}>, ${message}`);
     }
 }
 

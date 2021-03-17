@@ -99,6 +99,9 @@ class InteractionResponse {
     static sendEmbeds(...embed) {
         return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setEmbeds(embed.map(e => e.toJSON())));
     }
+    static reply(id, message) {
+        return this.sendMessage(`<@${id}>, ${message}`);
+    }
 }
 exports.InteractionResponse = InteractionResponse;
 class InteractionApplicationCommandCallbackData {

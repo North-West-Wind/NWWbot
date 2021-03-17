@@ -16,15 +16,14 @@ module.exports = {
     }
   },
   getQueues() { return queue; },
-  async updateQueue(message, serverQueue, pool) {
-    if (!serverQueue) queue.delete(message.guild.id);
-    else queue.set(message.guild.id, serverQueue);
+  async updateQueue(id, serverQueue, pool) {
+    if (!serverQueue) queue.delete(id);
+    else queue.set(id, serverQueue);
     if (!pool) return;
     try {
-      await pool.query(`UPDATE servers SET looping = ${serverQueue && serverQueue.looping ? 1 : "NULL"}, repeating = ${serverQueue && serverQueue.repeating ? 1 : "NULL"}, random = ${serverQueue && serverQueue.random ? 1 : "NULL"}, queue = ${!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs) || serverQueue.songs.length < 1 ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${message.guild.id}'`);
+      await pool.query(`UPDATE servers SET looping = ${serverQueue && serverQueue.looping ? 1 : "NULL"}, repeating = ${serverQueue && serverQueue.repeating ? 1 : "NULL"}, random = ${serverQueue && serverQueue.random ? 1 : "NULL"}, queue = ${!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs) || serverQueue.songs.length < 1 ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${id}'`);
     } catch(err) {
       NorthClient.storage.error(err);
-      if (!message.dummy) message.reply("there was an error trying to update the queue!");
     }
   },
   stop(guild) {

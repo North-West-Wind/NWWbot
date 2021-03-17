@@ -54,7 +54,7 @@ module.exports = (...clients) => {
                 const queue = getQueues();
                 for (const [id, serverQueue] of queue) {
                     serverQueue.pool = pool;
-                    await updateQueue({ dummy: true, guild: { id: id } }, serverQueue, null);
+                    await updateQueue(id, serverQueue, null);
                 }
             }
     }));

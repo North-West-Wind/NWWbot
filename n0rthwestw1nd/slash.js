@@ -44,9 +44,9 @@ async function setup(client) {
                     }
                 }
             });
-            console.log(await client.api.interactions(interaction.id, interaction.token).callback.post({
+            await client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: JSON.parse(JSON.stringify(response))
-            }));
+            });
         }
     });
 }
