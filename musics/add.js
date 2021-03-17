@@ -39,7 +39,7 @@ module.exports = {
                 await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({
                   data: {
                     content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**`,
-                    embed: null
+                    embeds: null
                   }
                 });
             }, 30000);

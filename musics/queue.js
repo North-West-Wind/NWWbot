@@ -61,10 +61,10 @@ module.exports = {
         .setTitle(`Song queue for ${guild.name} [${i + 1}/${Math.ceil(songArray.length / 10)}]`)
         .setDescription(`There are ${songArray.length} tracks in total.\n\n${pageArray.join("\n")}`)
         .setTimestamp()
-        .setFooter(`Now playing: ${(serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing")}`, message.client.user.displayAvatarURL());
+        .setFooter(`Now playing: ${(serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing")}`, client.user.displayAvatarURL());
       allEmbeds.push(queueEmbed);
     }
-    setTimeout(async() => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000)
+    setTimeout(async() => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ embeds: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000)
     return InteractionResponse.sendEmbeds(allEmbeds);
   },
   async music(message, serverQueue) {

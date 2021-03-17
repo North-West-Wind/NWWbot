@@ -25,7 +25,6 @@ module.exports = {
   slash: async(client, interaction) => {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     const guild = await client.guilds.fetch(interaction.guild_id);
-    const author = await guild.members.fetch(interaction.member.user.id);
     var serverQueue = getQueues().get(guild.id);
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false, client.pool);
     if (serverQueue.songs.length < 1) return InteractionResponse.sendMessage("There is nothing in the queue.");
@@ -56,11 +55,11 @@ module.exports = {
       .setColor(color())
       .setTitle("Now playing:" + (serverQueue.playing ? "" : " (Not actually)"))
       .setTimestamp()
-      .setFooter(`Looping: ${serverQueue.looping ? "Enabled" : "Disabled"} | Repeating: ${serverQueue.repeating ? "Enabled" : "Disabled"} | Random: ${serverQueue.random ? "Enabled" : "Disabled"}`, message.client.user.displayAvatarURL());
+      .setFooter(`Looping: ${serverQueue.looping ? "Enabled" : "Disabled"} | Repeating: ${serverQueue.repeating ? "Enabled" : "Disabled"} | Random: ${serverQueue.random ? "Enabled" : "Disabled"}`, client.user.displayAvatarURL());
     if (serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
     else info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLive: **${isLive ? "Yes" : "No"}**\nVolume: **${serverQueue.songs[0].volume ? (`${serverQueue.volume * serverQueue.songs[0].volume * 100}% (Local) | ${serverQueue.volume * 100}% (Global)`) : `${serverQueue.volume * 100}%`}**\nType: **${type[serverQueue.songs[0].type]}**`, serverQueue.songs[0].thumbnail];
     embed.setDescription(`${info[0]}\n\n${positionTime} \`${processBar.join("")}\` ${serverQueue.songs[0].time}`).setThumbnail(info[1]);
-    setTimeout(async() => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ content: "**[Outdated Now-Playing Information]**", embed: null }), 60000);
+    setTimeout(async() => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ content: "**[Outdated Now-Playing Information]**", embeds: null }), 60000);
     return InteractionResponse.sendEmbeds(embed);
   },
   async music(message, serverQueue) {

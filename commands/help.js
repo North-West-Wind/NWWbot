@@ -39,7 +39,7 @@ module.exports = {
         await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({
           data: {
             content: "This is the **[manual](https://northwestwind.ml/manual.pdf)**, my friend.",
-            embed: null
+            embeds: null
           }
         });
       }, 60000);
