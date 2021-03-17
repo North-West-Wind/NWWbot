@@ -283,7 +283,7 @@ module.exports = {
           play(guild, pending);
         }
       }
-      setTimeout(() => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ embed: null, content: `**[Added Track: ${songs.length > 1 ? `${songs.length} in total` : songs[0]?.title}]**` }), 30000);
+      setTimeout(async() => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ embed: null, content: `**[Added Track: ${songs.length > 1 ? `${songs.length} in total` : songs[0]?.title}]**` }), 30000);
       return InteractionResponse.sendEmbeds(Embed);
     } catch (err) {
       if (guild.me.voice.channel) await guild.me.voice.channel.leave();
