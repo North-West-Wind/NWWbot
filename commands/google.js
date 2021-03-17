@@ -13,9 +13,9 @@ module.exports = {
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "query", "The keywords to search for.").setRequired(true)
   ]),
-  slash: async() => {
+  async slash(client, _interaction, args) {
     const results = [];
-    var links = await googleIt({ query: args.join(" ") });
+    var links = await googleIt({ query: args[0].value });
     links = links.slice(0, 10);
     var num = 0;
     for(var i = 0; i < links.length; i++) {
@@ -26,10 +26,10 @@ module.exports = {
     }
     const Embed = new Discord.MessageEmbed()
     .setColor(color())
-    .setTitle("Search results of " + args.join(" "))
+    .setTitle("Search results of " + args[0].value)
     .setDescription(results.join("\n"))
     .setTimestamp()
-    .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+    .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return InteractionResponse.sendEmbeds(Embed);
   },
   async execute(message, args) {

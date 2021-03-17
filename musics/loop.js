@@ -8,7 +8,7 @@ module.exports = {
   aliases: ["lp"],
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports),
-  slash: async (client, interaction) => {
+  async slash(client, interaction) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     var serverQueue = getQueues().get(interaction.guild_id);
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(interaction.guild_id, [], false, false, client.pool);

@@ -20,7 +20,7 @@ module.exports = {
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user to greet.")
   ]),
-  slash: async (client, interaction, args) => {
+  async slash(client, interaction, args) {
     const chosen = GREETINGS[Math.floor(GREETINGS.length * Math.random())];
     var user;
     if (args[0]?.value) user = await client.users.fetch(args[0].value);

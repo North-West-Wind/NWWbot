@@ -14,7 +14,7 @@ module.exports = {
     register: () => ApplicationCommand.createBasic(module.exports).setOptions([
         new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "link", "The link of the soundtrack. (Use /search to search)").setRequired(true)
     ]),
-    slash: async(client, interaction, args) => {
+    async slash(client, interaction, args) {
         if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
         var serverQueue = getQueues().get(interaction.guild_id);
         try {

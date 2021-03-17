@@ -11,7 +11,7 @@ module.exports = {
   register: () => new ApplicationCommand(module.exports.name, module.exports.description).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "Displays the avatar of this user.")
   ]),
-  slash: async(client, interaction, args) => {
+  async slash(client, interaction, args) {
     var user;
     if (args[0]?.value) user = await client.users.fetch(args[0].value);
     else if (interaction.guild_id) user = await client.users.fetch(interaction.member.user.id);

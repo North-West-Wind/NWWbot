@@ -9,7 +9,7 @@ module.exports = {
   category: 6,
   slashInit: true,
   register: () => new ApplicationCommand(module.exports.name, module.exports.description),
-  slash: (client) => {
+  async slash(client) {
     var lastReady = readableDateTime(client.readyAt);
     const infoEmbed = new Discord.MessageEmbed()
       .setTitle(client.user.tag)

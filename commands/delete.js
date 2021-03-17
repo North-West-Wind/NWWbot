@@ -20,7 +20,7 @@ module.exports = {
     new ApplicationCommandOption(ApplicationCommandOptionType.CHANNEL.valueOf(), "channel", "The channel of the messages."),
     new ApplicationCommandOption(ApplicationCommandOptionType.BOOLEAN.valueOf(), "all", "Whether or not to delete all messages in the channel.")
   ]),
-  slash: async (client, interaction, args) => {
+  async slash(client, interaction, args) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     const guild = await client.guilds.fetch(interaction.guild_id);
     const author = await guild.members.fetch(interaction.member.user.id);

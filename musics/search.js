@@ -13,7 +13,7 @@ module.exports = {
     register: () => ApplicationCommand.createBasic(module.exports).setOptions([
         new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "keywords", "The keywords to search for.").setRequired(true)
     ]),
-    slash: async (_client, interaction, args) => {
+    async slash(_client, interaction, args) {
         if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
         const link = args[0].value;
         const lines = ["Found these on **YouTube**:"];

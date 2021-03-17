@@ -14,7 +14,7 @@ module.exports = {
     new ApplicationCommandOption(ApplicationCommandOptionType.INTEGER.valueOf(), "days", "The duration (in days) of getting banned."),
     new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "reason", "The reason of banning the user.")
   ]),
-  slash: async (client, interaction, args) => {
+  async slash(client, interaction, args) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     const guild = await client.guilds.fetch(interaction.guild_id);
     const member = await guild.members.fetch(args[0].value);

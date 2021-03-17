@@ -12,7 +12,7 @@ module.exports = {
     new ApplicationCommandOption(ApplicationCommandOptionType.INTEGER.valueOf(), "percentage", "The percentage change of the volume."),
     new ApplicationCommandOption(ApplicationCommandOptionType.BOOLEAN.valueOf(), "nowplaying", "Whether or not to perform soundtrack-specific action.")
   ]),
-  slash: async (client, interaction, args) => {
+  async slash(client, interaction, args) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     const guild = await client.guilds.fetch(interaction.guild_id);
     const author = await guild.members.fetch(interaction.member.user.id);

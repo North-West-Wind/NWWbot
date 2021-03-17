@@ -16,7 +16,7 @@ module.exports = {
     register: () => new ApplicationCommand(module.exports.name, module.exports.description).setOptions([
         new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "color", "The color to display.")
     ]),
-    slash: async(client, _interaction, args) => {
+    async slash(client, _interaction, args) {
         var red = Math.floor(Math.random() * 256);
         var green = Math.floor(Math.random() * 256);
         var blue = Math.floor(Math.random() * 256);

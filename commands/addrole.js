@@ -14,11 +14,11 @@ module.exports = {
       new ApplicationCommandOption(3, "name", "The name of the role.").setRequired(true),
       new ApplicationCommandOption(3, "color", "The color of the role.")
     ]),
-  slash: async (client, interaction, args) => {
+  async slash(client, interaction, args) {
     if (!interaction.guild_id) return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setContent("This command only works on server."));
     const guild = await client.guilds.fetch(interaction.guild_id);
-    const member = await guild.members.fetch(interaction.member.user.id);
-    if (!member.permissions.has(this.permission)) return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setContent(genPermMsg(this.permission, 0)));
+    const author = await guild.members.fetch(interaction.member.user.id);
+    if (!author.permissions.has(this.permission)) return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setContent(genPermMsg(this.permission, 0)));
     if (!guild.me.permissions.has(this.permission)) return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setContent(genPermMsg(this.permission, 1)));
     const embeds = commonRoleEmbed(message.client, "create", "created", args[0].value);
     try {

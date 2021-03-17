@@ -22,7 +22,7 @@ module.exports = {
   category: 8,
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports),
-  slash: async (client, interaction) => {
+  async slash(client, interaction) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     const guild = await client.guilds.fetch(interaction.guild_id);
     var serverQueue = getQueues().get(guild.id);

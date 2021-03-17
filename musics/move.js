@@ -15,7 +15,7 @@ module.exports = {
     new ApplicationCommandOption(ApplicationCommandOptionType.INTEGER.valueOf(), "target", "The soundtrack to be moved.").setRequired(true),
     new ApplicationCommandOption(ApplicationCommandOptionType.INTEGER.valueOf(), "destination", "The new position of the soundtrack.").setRequired(true)
   ]),
-  slash: async (client, interaction, args) => {
+  async slash(client, interaction, args) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     const guild = await client.guilds.fetch(interaction.guild_id);
     const author = await guild.members.fetch(interaction.member.user.id);

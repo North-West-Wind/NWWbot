@@ -14,7 +14,7 @@ module.exports = {
     new ApplicationCommandOption(7, "channel", "The channel to announce in.").setRequired(true),
     new ApplicationCommandOption(3, "announcement", "The message to be announced.").setRequired(true)
   ]),
-  slash: async(client, interaction, args) => {
+  async slash(client, interaction, args) {
     if (!interaction.guild_id) return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setContent("This command is only available in servers."));
     const guild = await client.guilds.fetch(interaction.guild_id);
     const member = await guild.members.fetch(interaction.member.user.id);

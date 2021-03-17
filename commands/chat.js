@@ -12,7 +12,7 @@ module.exports = {
   register: () => new ApplicationCommand(module.exports.name, module.exports.description).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "message", "The message to tell the bot.").setRequired(true)
   ]),
-  slash: async (client, interaction, args) => {
+  async slash(client, interaction, args) {
     var author;
     if (interaction.member) author = await client.users.fetch(interaction.member.user.id);
     else author = await client.users.fetch(interaction.user.id);

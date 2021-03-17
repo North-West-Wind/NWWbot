@@ -8,7 +8,7 @@ module.exports = {
   category: 6,
   slashInit: true,
   register: () => new ApplicationCommand(module.exports.name, module.exports.description),
-  slash: async(client) => {
+  async slash(client) {
     const Embed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle("Pong!")

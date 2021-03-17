@@ -44,7 +44,7 @@ module.exports = {
     aliases: ["axol"],
     slashInit: true,
     register: () => new ApplicationCommand(module.exports.name, module.exports.description),
-    slash: async() => {
+    async slash() {
         const selected = links[Math.floor(Math.random() * links.length)];
         return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setContent(selected));
     },
