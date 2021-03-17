@@ -206,19 +206,19 @@ module.exports = {
   async sync(message, pool, author, guild, client, serverQueue, args) {
     if (serverQueue && serverQueue.playing) return await msgOrRes(message, "Someone is listening to the music. Don't ruin their day.");
     if (!args[2]) return await msgOrRes(message, "Please provide the name or ID of the server.");
-    const guild = await client.guilds.cache.find(x => x.name.toLowerCase() === args.slice(2).join(" ").toLowerCase() || x.id == args[2]);
-    if (!guild) return await msgOrRes(message, "I cannot find that server! Maybe I am not in that server?");
+    const g = await client.guilds.cache.find(x => x.name.toLowerCase() === args.slice(2).join(" ").toLowerCase() || x.id == args[2]);
+    if (!g) return await msgOrRes(message, "I cannot find that server! Maybe I am not in that server?");
     try {
-      await guild.members.fetch(author.id);
+      await g.members.fetch(author.id);
     } catch (e) {
       return await msgOrRes(message, "You are not in that server!");
     }
-    const [results] = await pool.query(`SELECT queue FROM servers WHERE id = '${guild.id}'`);
+    const [results] = await pool.query(`SELECT queue FROM servers WHERE id = '${g.id}'`);
     if (results.length == 0) return await msgOrRes(message, "No queue was found!");
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, JSON.parse(unescape(results[0].queue)), false, false, pool);
     else serverQueue.songs = JSON.parse(unescape(results[0].queue));
     updateQueue(guild.id, serverQueue, pool);
-    return await msgOrRes(message, `The queue of this server has been synchronize to the queue of the server **${guild.name}**.`);
+    return await msgOrRes(message, `The queue of this server has been synchronize to the queue of server **${g.name}**.`);
   },
   async export(message, serverQueue) {
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
