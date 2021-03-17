@@ -209,7 +209,7 @@ module.exports = {
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "link", "The link of the soundtrack.")
   ]),
-  slash: async (client, interaction, args) => {
+  async slash(client, interaction, args) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     const guild = await client.guilds.fetch(interaction.guild_id);
     const author = await guild.members.fetch(interaction.member.user.id);
@@ -428,7 +428,6 @@ module.exports = {
     }
     const videos = playlistInfo.items;
     const songs = [];
-    var interval = setInterval(() => (songs.length < videos.length) ? mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`).catch(() => { }) : undefined, 1000);
     for (const video of videos) songs.push({
       title: video.title,
       url: video.shortUrl,
@@ -439,7 +438,6 @@ module.exports = {
       isLive: video.isLive
     });
     clearInterval(interval);
-    mesg.edit(`Track processing completed`).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
     return { error: false, songs: songs };
   },
   async addYTURL(link, type = 0) {
