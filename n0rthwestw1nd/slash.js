@@ -4,7 +4,7 @@ const deepEqual = require("deep-equal");
 async function setup(client) {
 
     const exist = await client.api.applications(client.user.id).commands.get();
-    for (const [name, command] of NorthClient.storage.commands)
+    for (const [name, command] of NorthClient.storage.commands) try {
         if (command.slashInit) {
             const registration = JSON.parse(JSON.stringify(await command.register()));
             var posted = exist.find(c => c.name === name);
@@ -26,6 +26,7 @@ async function setup(client) {
                 }
             }
         }
+    } catch (err) { NorthClient.storage.error(err); }
     NorthClient.storage.log(`[${client.id}] Registered all slash commands`);
 
     client.ws.on('INTERACTION_CREATE', async interaction => {

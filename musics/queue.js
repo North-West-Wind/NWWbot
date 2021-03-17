@@ -27,7 +27,7 @@ module.exports = {
       new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "name", "The name of the queue.").setRequired(true)
     ]),
     new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "sync", "Synchronize the queue with another server you are in.").setOptions([
-      new ApplicationCommandOption(ApplicationCommandOption.STRING.valueOf(), "name", "The name of the server.").setRequired(true)
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "name", "The name of the server.").setRequired(true)
     ])
   ]),
   slash: async(client, interaction, args) => {
