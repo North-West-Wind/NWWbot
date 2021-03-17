@@ -24,7 +24,7 @@ const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
 const ph = require("@justalk/pornhub-api");
 const { setQueue, updateQueue, getQueues } = require("./main.js");
-const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../classes/Slash.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse, InteractionResponseType } = require("../classes/Slash.js");
 var cookie = { cookie: process.env.COOKIE, id: 0 };
 function createEmbed(client, songs) {
   const Embed = new Discord.MessageEmbed()
@@ -245,7 +245,7 @@ module.exports = {
         updateQueue(guild.id, serverQueue, serverQueue.pool);
         play(guild, pending);
       }
-      return;
+      return new InteractionResponse(InteractionResponseType.Pong.valueOf());
     }
     try {
       var songs = [];

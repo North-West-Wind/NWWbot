@@ -43,15 +43,10 @@ module.exports = {
                 random = false;
             }
         }
-        var canvas = createCanvas(1024, 1024);
-        var ctx = canvas.getContext("2d");
-        ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
         const em = new Discord.MessageEmbed()
         .setTitle(`Color: ${red} ${green} ${blue}`)
         .setColor([red, green, blue])
-        .attachFiles([new Discord.MessageAttachment(canvas.toBuffer(), `${red}_${green}_${blue}.png`)])
-        .setImage(`attachment://${red}_${green}_${blue}.png`)
+        .setDescription("← That is your color!\n(Sorry, slash commands currently doesn't allow sending attachments)")
         .setFooter(random ? "Cannot parse your color... so here's a random color." : `This is the color you want me to show. Do you like it?`, client.user.displayAvatarURL());
         return InteractionResponse.sendEmbeds(em);
     },
