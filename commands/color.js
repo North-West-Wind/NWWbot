@@ -50,7 +50,7 @@ module.exports = {
         const em = new Discord.MessageEmbed()
         .setTitle(`Color: ${red} ${green} ${blue}`)
         .setColor([red, green, blue])
-        .attachFiles([{ attachment: canvas.toBuffer(), name: `${red}_${green}_${blue}.png` }])
+        .attachFiles([new Discord.MessageAttachment(canvas.toBuffer(), `${red}_${green}_${blue}.png`)])
         .setImage(`attachment://${red}_${green}_${blue}.png`)
         .setFooter(random ? "Cannot parse your color... so here's a random color." : `This is the color you want me to show. Do you like it?`, client.user.displayAvatarURL());
         return InteractionResponse.sendEmbeds(em);

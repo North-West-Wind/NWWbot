@@ -30,7 +30,7 @@ module.exports = {
       new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "name", "The name of the server.").setRequired(true)
     ])
   ]),
-  slash: async(client, interaction, args) => {
+  slash: async (client, interaction, args) => {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     const guild = await client.guilds.fetch(interaction.guild_id);
     const author = await guild.members.fetch(interaction.member.user.id);
@@ -64,8 +64,8 @@ module.exports = {
         .setFooter(`Now playing: ${(serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing")}`, client.user.displayAvatarURL());
       allEmbeds.push(queueEmbed);
     }
-    setTimeout(async() => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ embeds: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000)
-    return InteractionResponse.sendEmbeds(allEmbeds);
+    setTimeout(async () => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { embeds: null, content: `**[Queue: ${songArray.length} tracks in total]**` } }), 60000)
+    return InteractionResponse.sendEmbeds(...(allEmbeds.slice(0, 10)));
   },
   async music(message, serverQueue) {
     const args = message.content.slice(message.prefix.length).split(/ +/);

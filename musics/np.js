@@ -22,7 +22,7 @@ module.exports = {
   category: 8,
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports),
-  slash: async(client, interaction) => {
+  slash: async (client, interaction) => {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     const guild = await client.guilds.fetch(interaction.guild_id);
     var serverQueue = getQueues().get(guild.id);
@@ -59,7 +59,7 @@ module.exports = {
     if (serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
     else info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLive: **${isLive ? "Yes" : "No"}**\nVolume: **${serverQueue.songs[0].volume ? (`${serverQueue.volume * serverQueue.songs[0].volume * 100}% (Local) | ${serverQueue.volume * 100}% (Global)`) : `${serverQueue.volume * 100}%`}**\nType: **${type[serverQueue.songs[0].type]}**`, serverQueue.songs[0].thumbnail];
     embed.setDescription(`${info[0]}\n\n${positionTime} \`${processBar.join("")}\` ${serverQueue.songs[0].time}`).setThumbnail(info[1]);
-    setTimeout(async() => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ content: "**[Outdated Now-Playing Information]**", embeds: null }), 60000);
+    setTimeout(async () => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { content: "**[Outdated Now-Playing Information]**", embeds: null } }), 60000);
     return InteractionResponse.sendEmbeds(embed);
   },
   async music(message, serverQueue) {

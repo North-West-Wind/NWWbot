@@ -209,7 +209,7 @@ module.exports = {
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "link", "The link of the soundtrack.")
   ]),
-  slash: async(client, interaction, args) => {
+  slash: async (client, interaction, args) => {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     const guild = await client.guilds.fetch(interaction.guild_id);
     const author = await guild.members.fetch(interaction.member.user.id);
@@ -283,7 +283,7 @@ module.exports = {
           play(guild, pending);
         }
       }
-      setTimeout(async() => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ embeds: null, content: `**[Added Track: ${songs.length > 1 ? `${songs.length} in total` : songs[0]?.title}]**` }), 30000);
+      setTimeout(async () => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { embeds: null, content: `**[Added Track: ${songs.length > 1 ? `${songs.length} in total` : songs[0]?.title}]**` } }), 30000);
       return InteractionResponse.sendEmbeds(Embed);
     } catch (err) {
       if (guild.me.voice.channel) await guild.me.voice.channel.leave();
