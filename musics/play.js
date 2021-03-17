@@ -437,7 +437,6 @@ module.exports = {
       volume: 1,
       isLive: video.isLive
     });
-    clearInterval(interval);
     return { error: false, songs: songs };
   },
   async addYTURL(link, type = 0) {
