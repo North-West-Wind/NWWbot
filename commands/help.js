@@ -13,7 +13,7 @@ module.exports = {
   slashInit: true,
   register: () => {
     const cmd = ApplicationCommand.createBasic(module.exports);
-    cmd.setOptions([]);
+    cmd.setOptions([new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "all", "Display all the commands.")]);
     for (const category of sCategories) {
       const option = new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), category.toLowerCase(), `${category} - Command Category`);
       const filtered = Array.from(NorthClient.storage.commands.filter(x => x.category === sCategories.indexOf(category)).keys());
@@ -26,7 +26,7 @@ module.exports = {
     return cmd;
   },
   slash: async(client, interaction, args) => {
-    if (!args[0]?.options[0]?.value) {
+    if (args[0]?.value === "all" || !args[0]?.options[0]?.value) {
       const Embed = new Discord.MessageEmbed()
         .setColor(color())
         .setTitle("Command list is here!")

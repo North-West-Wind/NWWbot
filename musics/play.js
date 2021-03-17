@@ -242,18 +242,18 @@ module.exports = {
     try {
       var songs = [];
       var result = { error: true };
-      if (validYTPlaylistURL(args.slice(1).join(" "))) result = await this.addYTPlaylist(message, args);
-      else if (validYTURL(args.slice(1).join(" "))) result = await this.addYTURL(message, args);
-      else if (validSPURL(args.slice(1).join(" "))) result = await this.addSPURL(message, args);
-      else if (validSCURL(args.slice(1).join(" "))) result = await this.addSCURL(message, args);
-      else if (validGDFolderURL(args.slice(1).join(" "))) result = await this.addGDFolderURL(message, args);
-      else if (validGDURL(args.slice(1).join(" "))) result = await this.addGDURL(message, args);
-      else if (validMSURL(args.slice(1).join(" "))) result = await this.addMSURL(message, args);
-      else if (validPHURL(args.slice(1).join(" "))) result = await this.addPHURL(message, args);
-      else if (validURL(args.slice(1).join(" "))) result = await this.addURL(message, args);
+      if (validYTPlaylistURL(args.slice(1).join(" "))) result = await this.addYTPlaylist(args.slice(1).join(" "));
+      else if (validYTURL(args.slice(1).join(" "))) result = await this.addYTURL(args.slice(1).join(" "));
+      else if (validSPURL(args.slice(1).join(" "))) result = await this.addSPURL(message, args.slice(1).join(" "));
+      else if (validSCURL(args.slice(1).join(" "))) result = await this.addSCURL(args.slice(1).join(" "));
+      else if (validGDFolderURL(args.slice(1).join(" "))) result = await this.addGDFolderURL(args.slice(1).join(" "));
+      else if (validGDURL(args.slice(1).join(" "))) result = await this.addGDURL(args.slice(1).join(" "));
+      else if (validMSURL(args.slice(1).join(" "))) result = await this.addMSURL(args.slice(1).join(" "));
+      else if (validPHURL(args.slice(1).join(" "))) result = await this.addPHURL(args.slice(1).join(" "));
+      else if (validURL(args.slice(1).join(" "))) result = await this.addURL(args.slice(1).join(" "));
       else if (message.attachments.size > 0) result = await this.addAttachment(message);
-      else result = await this.search(message, args);
-      if (result.error) return;
+      else result = await this.search(message, args.slice(1).join(" "));
+      if (result.error) return await message.channel.send(result.message);
       songs = result.songs;
       if (!songs || songs.length < 1) return await message.reply("there was an error trying to add the soundtrack!");
       const Embed = createEmbed(message, songs);
@@ -312,12 +312,10 @@ module.exports = {
       try {
         var metadata = await mm.parseStream(stream, {}, { duration: true });
       } catch (err) {
-        message.channel.send("The audio format is not supported!");
-        return { error: true };
+        return { error: true, message: "The audio format is not supported!" };
       }
       if (!metadata) {
-        message.channel.send("An error occured while parsing the audio file into stream! Maybe it is not link to the file?");
-        return { error: true };
+        return { error: true, message: "An error occured while parsing the audio file into stream! Maybe it is not link to the file?" };
       }
       const length = Math.round(metadata.format.duration);
       const songLength = moment.duration(length, "seconds").format();
@@ -333,20 +331,16 @@ module.exports = {
     }
     return { error: false, songs };
   },
-  async addYTPlaylist(message, args) {
+  async addYTPlaylist(link) {
     try {
-      var playlistInfo = await ytpl(args.slice(1).join(" "), { limit: Infinity });
+      var playlistInfo = await ytpl(link, { limit: Infinity });
     } catch (err) {
-      if (err.message === "This playlist is private.") message.channel.send("The playlist is private!");
-      else {
-        NorthClient.storage.error(err);
-        message.reply("there was an error trying to fetch your playlist!");
-      }
-      return { error: true };
+      var msg = "There was an error trying to fetch your playlist!";
+      if (err.message === "This playlist is private.") msg = "The playlist is private!";
+      return { error: true, message: msg };
     }
     const videos = playlistInfo.items;
     const songs = [];
-    var mesg = await message.channel.send(`Processing track: **0/${videos.length}**`);
     var interval = setInterval(() => (songs.length < videos.length) ? mesg.edit(`Processing track: **${songs.length - 1}/${videos.length}**`).catch(() => { }) : undefined, 1000);
     for (const video of videos) songs.push({
       title: video.title,
@@ -361,11 +355,10 @@ module.exports = {
     mesg.edit(`Track processing completed`).then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
     return { error: false, songs: songs };
   },
-  async addYTURL(message, args, type = 0) {
+  async addYTURL(link, type = 0) {
     try {
-      var songInfo = await ytdl.getInfo(args.slice(1).join(" "), { requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } });
+      var songInfo = await ytdl.getInfo(link, { requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } });
     } catch (err) {
-      if (!message.dummy) message.channel.send("Failed to get video data!");
       if (err.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
         NorthClient.storage.error("Received 429 error. Changing ytdl-core cookie...");
         cookie.id++;
@@ -375,7 +368,7 @@ module.exports = {
         }
         else cookie.cookie = process.env[`COOKIE${cookie.id}`];
       } else NorthClient.storage.error(err);
-      return { error: true };
+      return { error: true, message: "Failed to get video data!" };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
     var songLength = length == 0 ? "∞" : moment.duration(length, "seconds").format();
@@ -402,13 +395,13 @@ module.exports = {
     ];
     return { error: false, songs: songs };
   },
-  async addSPURL(message, args) {
+  async addSPURL(message, link) {
     const d = await spotifyApi.clientCredentialsGrant();
     spotifyApi.setAccessToken(d.body.access_token);
     spotifyApi.setRefreshToken(process.env.SPOTREFRESH);
     const refreshed = await spotifyApi.refreshAccessToken().catch(NorthClient.storage.error);
     spotifyApi.setAccessToken(refreshed.body.access_token);
-    var url_array = args.slice(1).join(" ").replace("https://", "").split("/");
+    var url_array = link.replace("https://", "").split("/");
     var musicID = url_array[2].split("?")[0];
     var highlight = false;
     if (url_array[2].split("?")[1]) highlight = url_array[2].split("?")[1].split("=")[0] === "highlight";
@@ -549,17 +542,11 @@ module.exports = {
     }
     return { error: false, songs: songs };
   },
-  async addSCURL(message, args) {
-    const res = await fetch(`https://api.soundcloud.com/resolve?url=${args.slice(1).join(" ")}&client_id=${process.env.SCID}`);
-    if (res.status !== 200) {
-      message.channel.send("A problem occured while fetching the track information! Status Code: " + res.status);
-      return { error: true };
-    }
+  async addSCURL(link) {
+    const res = await fetch(`https://api.soundcloud.com/resolve?url=${link}&client_id=${process.env.SCID}`);
+    if (res.status !== 200) return { error: true, message: "A problem occured while fetching the track information! Status Code: " + res.status };
     const data = await res.json();
-    if (data.kind == "user") {
-      message.channel.send("What do you think you can do with a user?");
-      return { error: true };
-    }
+    if (data.kind == "user") return { error: true, message: "What do you think you can do with a user?" };
     const songs = [];
     if (data.kind == "playlist") {
       for (const track of data.tracks) {
@@ -592,37 +579,30 @@ module.exports = {
     }
     return { error: false, songs: songs };
   },
-  async addGDURL(message, args) {
+  async addGDURL(link) {
     const formats = [/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing/, /https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/];
     const alphanumeric = /^[a-zA-Z0-9\-_]+$/;
     let id;
     formats.forEach((regex) => {
-      const matches = args.slice(1).join(" ").match(regex)
+      const matches = link.match(regex)
       if (matches && matches.groups && matches.groups.id) id = matches.groups.id
     });
     if (!id) {
-      if (alphanumeric.test(args.slice(1).join(" "))) id = args.slice(1).join(" ");
-      else {
-        message.channel.send(`The link/keywords you provided is invalid! Usage: \`${message.prefix}${this.name} ${this.usage}\``);
-        return { error: true };
-      }
+      if (alphanumeric.test(link)) id = link;
+      else return { error: true, message: `The link/keywords you provided is invalid!` };
     }
     var link = "https://drive.google.com/uc?export=download&id=" + id;
     var stream = await fetch(link).then(res => res.body);
     var title = "No Title";
     try {
       var metadata = await mm.parseStream(stream, {}, { duration: true });
-      var html = await rp(args.slice(1).join(" "));
+      var html = await rp(link);
       var $ = cheerio.load(html);
       title = $("title").text().split(" - ").slice(0, -1).join(" - ").split(".").slice(0, -1).join(".");
     } catch (err) {
-      message.reply("there was an error trying to parse your link!");
-      return { error: true };
+      return { error: true, message: "An error occured while parsing the audio file into stream! Maybe it is not link to the file?" };
     }
-    if (!metadata) {
-      message.channel.send("An error occured while parsing the audio file into stream! Maybe it is not link to the file?");
-      return { error: true };
-    }
+    if (!metadata) return { error: true, message: "An error occured while parsing the audio file into stream! Maybe it is not link to the file?" };
     var length = Math.round(metadata.format.duration);
     var songLength = moment.duration(length, "seconds").format();
     var song = {
@@ -637,10 +617,10 @@ module.exports = {
     var songs = [song];
     return { error: false, songs: songs };
   },
-  async addGDFolderURL(message, args) {
+  async addGDFolderURL(link) {
     const songs = [];
     try {
-      const body = await rp(args.slice(1).join(" "));
+      const body = await rp(link);
       const $ = cheerio.load(body);
       const elements = $("div[data-target='doc']");
       for (const el of elements.toArray()) {
@@ -667,22 +647,20 @@ module.exports = {
         } catch (err) { }
       }
     } catch (err) {
-      await message.reply("there was an error trying to open your link!");
-      return { error: true };
+      return { error: true, message: "Cannot open your link!" };
     }
     return { error: false, songs: songs };
   },
-  async addMSURL(message, args) {
+  async addMSURL(link) {
     try {
-      var data = muse(args.slice(1).join(" "));
+      var data = muse(link);
     } catch (err) {
-      message.reply("there was an error trying to fetch data of the score!");
-      return { error: true };
+      return { error: true, message: "Failed to fetch metadata of the score!" };
     }
     var songLength = data.duration;
     var song = {
       title: data.title,
-      url: args.slice(1).join(" "),
+      url: link,
       type: 5,
       time: songLength,
       volume: 1,
@@ -692,17 +670,17 @@ module.exports = {
     var songs = [song];
     return { error: false, songs: songs };
   },
-  async addPHURL(message, args) {
+  async addPHURL(link) {
     try {
-      const video = await ph.page(args.slice(1).join(" "), ["title", "duration", "download_urls"]);
+      const video = await ph.page(link, ["title", "duration", "download_urls"]);
       if (video.error) throw new Error(video.error);
       var download = "-1";
       for (const property in video.download_urls) if (parseInt(property) < parseInt(download) || parseInt(download) < 0) download = property;
-      if (parseInt(download) < 1) throw "Cannot get any video quality";
+      if (parseInt(download) < 1) return { error: true, message: "Cannot get any video quality." }
       var songLength = moment.duration(video.duration, "seconds").format();
       var song = {
         title: video.title,
-        url: args.slice(1).join(" "),
+        url: link,
         type: 6,
         time: songLength,
         volume: 1,
@@ -712,29 +690,24 @@ module.exports = {
       };
       return { error: false, songs: [song] };
     } catch (err) {
-      if (!message.dummy) message.reply("there was an error processing the link!");
-      return { error: true };
+      return { error: true, message: "Failed to process the link!" };
     }
   },
-  async addURL(message, args) {
-    var title = args.slice(1).join(" ").split("/").slice(-1)[0].split(".").slice(0, -1).join(".").replace(/_/g, " ");
+  async addURL(link) {
+    var title = link.split("/").slice(-1)[0].split(".").slice(0, -1).join(".").replace(/_/g, " ");
     try {
-      var stream = await fetch(args.slice(1).join(" ")).then(res => res.body);
+      var stream = await fetch(link).then(res => res.body);
       var metadata = await mm.parseStream(stream, {}, { duration: true });
       if (metadata.trackInfo && metadata.trackInfo[0] && metadata.trackInfo[0].title) title = metadata.trackInfo[0].title;
     } catch (err) {
-      message.channel.send("The audio format is not supported!");
-      return { error: true };
+      return { error: true, message: "The audio format is not supported!" };
     }
-    if (!metadata || !stream) {
-      message.reply("there was an error while parsing the audio file into stream! Maybe it is not link to the file?");
-      return { error: true };
-    }
+    if (!metadata || !stream) return { error: true, message: "There was an error while parsing the audio file into stream! Maybe it is not link to the file?" };
     const length = Math.round(metadata.format.duration);
     const songLength = moment.duration(length, "seconds").format();
     const song = {
       title: title,
-      url: args.slice(1).join(" "),
+      url: link,
       type: 2,
       time: songLength,
       volume: 1,
@@ -744,16 +717,16 @@ module.exports = {
     const songs = [song];
     return { error: false, songs: songs };
   },
-  async search(message, args) {
+  async search(message, link) {
     const allEmbeds = [];
     const Embed = new Discord.MessageEmbed()
-      .setTitle(`Search result of ${args.slice(1).join(" ")} on YouTube`)
+      .setTitle(`Search result of ${link} on YouTube`)
       .setColor(color())
       .setTimestamp()
       .setFooter("Please do so within 60 seconds.", message.client.user.displayAvatarURL());
     const results = [];
     try {
-      const searched = await ytsr(args.slice(1).join(" "), { limit: 20 });
+      const searched = await ytsr(link, { limit: 20 });
       var video = searched.items.map(x => {
         x.thumbnail = x.bestThumbnail?.url;
         x.live = !!x.live;
@@ -780,14 +753,14 @@ module.exports = {
       allEmbeds.push(Embed);
     }
     const scEm = new Discord.MessageEmbed()
-      .setTitle(`Search result of ${args.slice(1).join(" ")} on SoundCloud`)
+      .setTitle(`Search result of ${link} on SoundCloud`)
       .setColor(color())
       .setTimestamp()
       .setFooter("Please do so within 60 seconds.", message.client.user.displayAvatarURL());
     try {
       var scSearched = await scdl.search({
         limit: 20,
-        query: args.slice(1).join(" "),
+        query: link,
         resourceType: "tracks"
       });
       num = 0;

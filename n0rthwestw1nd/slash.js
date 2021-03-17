@@ -36,7 +36,7 @@ async function setup(client) {
         if (command) {
             var response;
             try { response = await command.slash(client, interaction, args || []); } catch (err) { NorthClient.storage.error(err); }
-            if (!response) return client.api.interactions(interaction.id, interaction.token).callback.post({
+            if (!response) return await client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 4,
                     data: {
@@ -44,9 +44,9 @@ async function setup(client) {
                     }
                 }
             });
-            client.api.interactions(interaction.id, interaction.token).callback.post({
+            console.log(await client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: JSON.parse(JSON.stringify(response))
-            });
+            }));
         }
     });
 }
