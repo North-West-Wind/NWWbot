@@ -22,7 +22,6 @@ module.exports = {
         var blue = Math.floor(Math.random() * 256);
         var random = true;
         args = args[0]?.value?.split(/ +/) || [];
-        console.log(args);
         if(args.length >= 3 && isArgsRgb(args, 3)) {
             red = parseInt(args[0]);
             green = parseInt(args[1]);

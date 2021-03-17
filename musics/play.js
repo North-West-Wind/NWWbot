@@ -250,14 +250,14 @@ module.exports = {
     try {
       var songs = [];
       var result = { error: true };
-      if (validYTPlaylistURL(args.slice(1).join(" "))) result = await this.addYTPlaylist(args.slice(1).join(" "));
-      else if (validYTURL(args.slice(1).join(" "))) result = await this.addYTURL(args.slice(1).join(" "));
-      else if (validSCURL(args.slice(1).join(" "))) result = await this.addSCURL(args.slice(1).join(" "));
-      else if (validGDFolderURL(args.slice(1).join(" "))) result = await this.addGDFolderURL(args.slice(1).join(" "));
-      else if (validGDURL(args.slice(1).join(" "))) result = await this.addGDURL(args.slice(1).join(" "));
-      else if (validMSURL(args.slice(1).join(" "))) result = await this.addMSURL(args.slice(1).join(" "));
-      else if (validPHURL(args.slice(1).join(" "))) result = await this.addPHURL(args.slice(1).join(" "));
-      else if (validURL(args.slice(1).join(" "))) result = await this.addURL(args.slice(1).join(" "));
+      if (validYTPlaylistURL(args[0].value)) result = await this.addYTPlaylist(args[0].value);
+      else if (validYTURL(args[0].value)) result = await this.addYTURL(args[0].value);
+      else if (validSCURL(args[0].value)) result = await this.addSCURL(args[0].value);
+      else if (validGDFolderURL(args[0].value)) result = await this.addGDFolderURL(args[0].value);
+      else if (validGDURL(args[0].value)) result = await this.addGDURL(args[0].value);
+      else if (validMSURL(args[0].value)) result = await this.addMSURL(args[0].value);
+      else if (validPHURL(args[0].value)) result = await this.addPHURL(args[0].value);
+      else if (validURL(args[0].value)) result = await this.addURL(args[0].value);
       else return InteractionResponse.sendMessage("The link is invalid. Note that Spotify feature is trimmed in this slash command.")
       if (result.error) return InteractionResponse.sendMessage(result.message);
       songs = result.songs;
