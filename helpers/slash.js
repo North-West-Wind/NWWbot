@@ -4,10 +4,13 @@ const deepEqual = require("deep-equal");
 async function setup(client) {
 
     const exist = await client.api.applications(client.user.id).commands.get();
+    console.log(exist);
     for (const [name, command] of NorthClient.storage.commands) try {
         if (command.slashInit) {
             const registration = JSON.parse(JSON.stringify(await command.register()));
             var posted = exist.find(c => c.name === name);
+            console.log(registration);
+            console.log(posted);
             if (!posted) {
                 await client.api.applications(client.user.id).commands.post({
                     data: registration
