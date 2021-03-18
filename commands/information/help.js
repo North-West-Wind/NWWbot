@@ -27,7 +27,7 @@ module.exports = {
     return cmd;
   },
   async slash(client, interaction, args) {
-    if (args[0]?.value === "all" || !args[0]?.options || !args[0]?.options[0]?.value) {
+    if (args[0]?.name === "all" || !args[0]?.options || !args[0]?.options[0]?.value) {
       const Embed = new Discord.MessageEmbed()
         .setColor(color())
         .setTitle("Command list is here!")

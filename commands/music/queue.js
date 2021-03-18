@@ -36,10 +36,10 @@ module.exports = {
     const author = await guild.members.fetch(interaction.member.user.id);
     var serverQueue = getQueues().get(guild.id);
     console.log(args);
-    if (args[0].value === "save") return await this.save(null, client.pool, author.user, guild, serverQueue, args[0].options[0].value);
-    if (args[0].value === "load") return await this.load(null, client.pool, author.user, guild, serverQueue, args[0].options[0].value);
-    if (args[0].value === "delete") return await this.delete(null, client.pool, author.user, args[0].options[0].value);
-    if (args[0].value === "sync") return await this.sync(null, client.pool, author.user, guild, client, serverQueue, args[0].options[0].value);
+    if (args[0].name === "save") return await this.save(null, client.pool, author.user, guild, serverQueue, args[0].options[0].value);
+    if (args[0].name === "load") return await this.load(null, client.pool, author.user, guild, serverQueue, args[0].options[0].value);
+    if (args[0].name === "delete") return await this.delete(null, client.pool, author.user, args[0].options[0].value);
+    if (args[0].name === "sync") return await this.sync(null, client.pool, author.user, guild, client, serverQueue, args[0].options[0].value);
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false, client.pool);
     if (serverQueue.songs.length < 1) return InteractionResponse.sendMessage("Nothing is in the queue now.");
     const filtered = serverQueue.songs.filter(song => !!song);
