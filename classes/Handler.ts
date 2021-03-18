@@ -214,7 +214,6 @@ export class Handler {
             const uses = await allUserInvites.map(i => i.uses ? i.uses : 0).reduce(reducer);
             if (storage.noLog.find(x => x === inviter.id)) return;
             try {
-                storage.log(`${inviter.tag} invited ${member.user.tag} to ${guild.name}. ${uses} in total.`);
                 await inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${client.prefix}invites toggle\` to turn it off)`);
             } catch (err) {
                 storage.error("Failed to DM user.");
@@ -309,7 +308,6 @@ export class Handler {
                     if (!role) continue;
                     try {
                         await member.roles.add(roleID);
-                        storage.log(`Added ${member.displayName} to ${role.name}`)
                     } catch (err) {
                         storage.error(err);
                     }
@@ -748,7 +746,6 @@ export class AliceHandler extends Handler {
             const uses = await allUserInvites.map(i => i.uses ? i.uses : 0).reduce(reducer);
             if (storage.noLog.find(x => x === inviter.id)) return;
             try {
-                storage.log(`${inviter.tag} invited ${member.user.tag} to ${guild.name}. ${uses} in total.`);
                 await inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${client.prefix}invites toggle\` to turn it off)`);
             } catch (err) {
                 storage.error("Failed to DM user.");
@@ -844,7 +841,6 @@ export class AliceHandler extends Handler {
                     if (!role) continue;
                     try {
                         await member.roles.add(roleID);
-                        storage.log(`Added ${member.displayName} to ${role.name}`)
                     } catch (err) {
                         storage.error(err);
                     }

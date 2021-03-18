@@ -291,7 +291,8 @@ module.exports = {
       return InteractionResponse.reply(author.id, "there was an error trying to connect to the voice channel!");
     }
   },
-  async music(message, serverQueue) {
+  async execute(message) {
+    var serverQueue = getQueues().get(message.guild.id);
     const args = message.content.slice(message.prefix.length).split(/ +/);
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) return await message.channel.send("You need to be in a voice channel to play music!");
