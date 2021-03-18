@@ -38,7 +38,7 @@ async function setup(client) {
         if (command) {
             var response;
             try { response = await command.slash(client, interaction, args || []); } catch (err) { NorthClient.storage.error(err); }
-            if (!response) return await client.api.interactions(interaction.id, interaction.token).callback.post({
+            if (!response) await client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 4,
                     data: {
@@ -46,9 +46,13 @@ async function setup(client) {
                     }
                 }
             });
-            await client.api.interactions(interaction.id, interaction.token).callback.post({
+            else await client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: JSON.parse(JSON.stringify(response))
             });
+            if (command.postSlash) {
+                const channel = await (interaction.channel_id ? client.channels.fetch(interaction.channel_id) : client.users.fetch(interaction.user.id));
+                await command.postSlash(await channel.messages.fetch(interaction.id), interaction, args);
+            }
         }
     });
 }

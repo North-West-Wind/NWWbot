@@ -1,5 +1,6 @@
 const cheerio = require("cheerio");
 const Discord = require("discord.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const { createEmbedScrolling, color } = require("../../function.js");
 const config = {
@@ -114,11 +115,40 @@ async function doSearch(term) {
 module.exports = {
   name: "knowyourmeme",
   description: "Display meme information from Know Your Meme.",
-  usage: "[keywords]",
+  usage: "<keywords>",
+  args: 1,
   aliases: ["kym"],
   category: 7,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "keywords", "The memes to search for.").setRequired(true)
+  ]),
+  async slash() {
+    return InteractionResponse.sendMessage("Loading the memes...");
+  },
+  async postSlash(message, interaction, args) {
+    var results = await doSearch(args[0].value);
+    const allEmbeds = [];
+    let num = 0;
+    for (const result of results) {
+      const em = new Discord.MessageEmbed()
+        .setColor(color())
+        .setThumbnail(result.image ? result.image : undefined)
+        .setTitle(result.name)
+        .setURL(result.url)
+        .setDescription(result.about.join("\n\n").length > 2048 ? result.about.join("\n\n").slice(0, 2045) + "..." : result.about.join("\n\n"))
+        .setTimestamp()
+        .setFooter(`Page ${++num} out of ${results.length}`, message.client.user.displayAvatarURL());
+      if (result.origin.length > 0) em.addField("Origin", result.origin.join("\n\n").length > 1024 ? result.origin.join("\n\n").slice(0, 1021) + "..." : result.origin.join("\n\n"));
+      if (result.spread.length > 0) em.addField("Spread", result.spread.join("\n\n").length > 1024 ? result.spread.join("\n\n").slice(0, 1021) + "..." : result.spread.join("\n\n"));
+      if (result.reaction.length > 0) em.addField("Reaction", result.reaction.join("\n\n").length > 1024 ? result.reaction.join("\n\n").slice(0, 1021) + "..." : result.reaction.join("\n\n"));
+      if (result.impact.length > 0) em.addField("Impact", result.impact.join("\n\n").length > 1024 ? result.impact.join("\n\n").slice(0, 1021) + "..." : result.impact.join("\n\n"));
+      allEmbeds.push(em);
+    }
+    await message.client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
+    await createEmbedScrolling(message, allEmbeds);
+  },
   async execute(message, args) {
-    if (!args[0]) return message.channel.send("Please provide at least 1 keyword!" + ` Usage: ${message.prefix}${this.name} ${this.usage}`);
     var msg = await message.channel.send("Loading the memes...");
     msg.channel.startTyping();
     var results = await doSearch(args.join(" "));
