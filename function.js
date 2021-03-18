@@ -1,4 +1,5 @@
 const { NorthClient } = require("./classes/NorthClient");
+const { InteractionResponse } = require("./classes/Slash");
 
 module.exports = {
   twoDigits(d) {
