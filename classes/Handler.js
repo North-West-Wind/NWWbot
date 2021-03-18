@@ -18,15 +18,15 @@ const cleverbot_free_1 = __importDefault(require("cleverbot-free"));
 const discord_js_1 = require("discord.js");
 const moment_1 = __importDefault(require("moment"));
 require("moment-duration-format")(moment_1.default);
-const giveaway_1 = require("../commands/giveaway");
-const role_message_1 = require("../commands/role-message");
+const giveaway_1 = require("../commands/miscellaneous/giveaway");
+const role_message_1 = require("../commands/managements/role-message");
 const function_1 = require("../function");
-const main_1 = require("../musics/main");
+const music_1 = require("../helpers/music");
 const LevelData_1 = require("./LevelData");
 const NorthClient_1 = require("./NorthClient");
-const main_2 = require("../musics/main");
+const slash_1 = __importDefault(require("../helpers/slash"));
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: (attempt) => Math.pow(2, attempt) * 1000 });
-var timeout;
+const filter = require("../helpers/filter");
 class Handler {
     static messageLevel(message) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -53,7 +53,7 @@ class Handler {
     }
     static ready(client) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield require("../n0rthwestw1nd/slash")(client);
+            yield slash_1.default(client);
             const storage = NorthClient_1.NorthClient.storage;
             const pool = client.pool;
             const id = client.id;
@@ -95,7 +95,7 @@ class Handler {
                         catch (err) {
                             storage.error(`Error parsing queue of ${result.id}`);
                         }
-                        main_1.setQueue(result.id, queue, !!result.looping, !!result.repeating, pool);
+                        music_1.setQueue(result.id, queue, !!result.looping, !!result.repeating, pool);
                     }
                     if (result.prefix)
                         storage.guilds[result.id].prefix = result.prefix;
@@ -477,7 +477,7 @@ class Handler {
             const storage = NorthClient_1.NorthClient.storage;
             const exit = (_a = storage.guilds[guild.id]) === null || _a === void 0 ? void 0 : _a.exit;
             if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel))
-                return yield main_2.stop(guild);
+                return yield music_1.stop(guild);
             if (!((_b = guild.me.voice) === null || _b === void 0 ? void 0 : _b.channel) || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID))
                 return;
             if (!storage.guilds[guild.id]) {
@@ -489,7 +489,7 @@ class Handler {
                 if (exit)
                     return;
                 storage.guilds[guild.id].exit = true;
-                setTimeout(() => __awaiter(this, void 0, void 0, function* () { return exit ? main_2.stop(guild) : 0; }), 30000);
+                setTimeout(() => __awaiter(this, void 0, void 0, function* () { return exit ? music_1.stop(guild) : 0; }), 30000);
             }
             else
                 storage.guilds[guild.id].exit = false;
@@ -606,42 +606,18 @@ class Handler {
             }
             ;
             const commandName = args.shift().toLowerCase();
-            if (commandName === "guild" && client.id != 1)
-                return;
             const command = storage.commands.get(commandName) || storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
             if (!command)
                 return;
-            if (command.args && args.length < command.args)
-                return msg.channel.send(`The command \`${msg.prefix}${commandName}\` requires ${command.args} arguments.\nHere's how you are supposed to use it: \`${msg.prefix}${command.name}${command.usage ? ` ${command.usage}` : ""}\``);
-            if (command.category === 10 && msg.author.id != process.env.DC)
-                return yield msg.channel.send("Please don't use Dev Commands.");
-            if (client.id == 0) {
-                if (timeout) {
-                    clearTimeout(timeout);
-                    timeout = undefined;
-                }
-                else
-                    msg.client.user.setPresence({ activity: { name: `${msg.author.username}'s Commands`, type: "WATCHING" }, status: "online", afk: false });
-                timeout = setTimeout(() => {
-                    msg.client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
-                    timeout = undefined;
-                }, 10000);
-            }
-            if (msg.guild && !msg.channel.permissionsFor(msg.guild.me).has(84992))
-                return yield msg.author.send(`I need at least the permissions to \`${new discord_js_1.Permissions(84992).toArray().join("`, `")}\` in order to run any command! Please tell your server administrator about that.`);
             msg.pool = client.pool;
             try {
-                if (command.category === 8)
-                    yield main_1.music(msg, commandName);
-                else
+                const catFilter = filter[require("../commands/information/help").sCategories.map(x => x.toLowerCase())[(command.category)]];
+                if ((yield filter.all(command, msg, args)) && (catFilter ? yield catFilter(command, msg) : true))
                     yield command.execute(msg, args);
             }
             catch (error) {
-                storage.error(`Error running command ${command.name}`);
-                if (command.name === "musescore")
-                    storage.error(`Arguments: ${args.join(" ")}`);
-                storage.error(error);
-                msg.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
+                storage.error(command.name + ": " + error);
+                yield msg.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
             }
         });
     }
@@ -1167,7 +1143,6 @@ exports.AliceHandler = AliceHandler;
 class CanaryHandler extends Handler {
     static ready(client) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield require("../n0rthwestw1nd/slash")(client);
             const storage = NorthClient_1.NorthClient.storage;
             const pool = client.pool;
             const id = client.id;
@@ -1200,7 +1175,7 @@ class CanaryHandler extends Handler {
                         catch (err) {
                             storage.error(`Error parsing queue of ${result.id}`);
                         }
-                        main_1.setQueue(result.id, queue, !!result.looping, !!result.repeating, pool);
+                        music_1.setQueue(result.id, queue, !!result.looping, !!result.repeating, pool);
                     }
                     if (result.prefix)
                         storage.guilds[result.id].prefix = result.prefix;

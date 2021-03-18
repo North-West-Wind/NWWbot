@@ -438,9 +438,6 @@ module.exports = {
   getKeyByValue(object, value) {
     return Object.keys(object).find(key => object[key] === value);
   },
-  capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  },
   commonModerationEmbed(guild, author, member, word, past, reason) {
     const Discord = require("discord.js");
     const notiEmbed = new Discord.MessageEmbed()
@@ -448,12 +445,12 @@ module.exports = {
       .setTitle(`You've been ${past}`)
       .setDescription(`In **${guild.name}**`)
       .setTimestamp()
-      .setFooter(`${this.capitalizeFirstLetter(past)} by ${author.tag}`, author.displayAvatarURL());
+      .setFooter(`${this.capitalize(past)} by ${author.tag}`, author.displayAvatarURL());
     if (reason !== "") notiEmbed.addField("Reason", reason);
     const successfulEmbed = new Discord.MessageEmbed()
       .setColor(this.color())
-      .setTitle(`User ${this.capitalizeFirstLetter(past)}!`)
-      .setDescription(`${this.capitalizeFirstLetter(past)} **${member.user.tag}** in server **${guild.name}**.`);
+      .setTitle(`User ${this.capitalize(past)}!`)
+      .setDescription(`${this.capitalize(past)} **${member.user.tag}** in server **${guild.name}**.`);
     const failureEmbed = new Discord.MessageEmbed()
       .setColor(this.color())
       .setTitle(`Failed to ${word} the user!`)
@@ -471,7 +468,7 @@ module.exports = {
     const successEmbed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(`Role ${past} Successfully`)
-      .setDescription(`${this.capitalizeFirstLetter(past)} a new role **${name}**`)
+      .setDescription(`${this.capitalize(past)} a new role **${name}**`)
       .setTimestamp()
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return [successEmbed, failEmbed];
@@ -479,5 +476,35 @@ module.exports = {
   async msgOrRes(message, str) {
     if (message) return await message.channel.send(str);
     else return InteractionResponse.sendMessage(str);
+  },
+  deepReaddir(dir) {
+    const fs = require("fs");
+    const path = require("path");
+    var results = [];
+    const list = fs.readdirSync(dir);
+    var i = 0;
+    function next() {
+      var file = list[i++];
+      if (!file) return results;
+      file = path.resolve(dir, file);
+      const stat = fs.statSync(file);
+      if (stat && stat.isDirectory()) {
+        const res = module.exports.deepReaddir(file);
+        results = results.concat(res);
+        return next();
+      } else {
+        results.push(file);
+        return next();
+      }
+    };
+    return next();
+  },
+  extractHostname(url) {
+    var hostname;
+    if (url.indexOf("//") > -1) hostname = url.split('/')[2];
+    else hostname = url.split('/')[0];
+    hostname = hostname.split(':')[0];
+    hostname = hostname.split('?')[0];
+    return hostname;
   }
 };

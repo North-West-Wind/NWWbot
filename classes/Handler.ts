@@ -1,20 +1,20 @@
 import { createCanvas, loadImage, Image } from "canvas";
 import cleverbot from "cleverbot-free";
-import { Guild, GuildMember, Message, MessageAttachment, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialUser, Permissions, TextChannel, User, VoiceState } from "discord.js";
+import { Guild, GuildMember, Message, MessageAttachment, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialUser, TextChannel, User, VoiceState } from "discord.js";
 import moment from "moment";
 require("moment-duration-format")(moment);
 import { RowDataPacket } from "mysql2";
-import { endGiveaway } from "../commands/giveaway";
-import { expire } from "../commands/role-message";
+import { endGiveaway } from "../commands/miscellaneous/giveaway";
+import { expire } from "../commands/managements/role-message";
 import { color, duration, getRandomNumber, jsDate2Mysql, nameToUuid, profile, readableDateTimeText, replaceMsgContent, setTimeout_ } from "../function";
-import { music, setQueue } from "../musics/main";
+import { setQueue, stop } from "../helpers/music";
 import { LevelData } from "./LevelData";
 import { NorthClient } from "./NorthClient";
 import { NorthMessage } from "./NorthMessage";
-import { stop } from "../musics/main";
+import slash from "../helpers/slash";
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: (attempt: number) => Math.pow(2, attempt) * 1000 });
+const filter = require("../helpers/filter");
 
-var timeout: NodeJS.Timeout | undefined;
 export class Handler {
     static async messageLevel(message: Message) {
         const storage = NorthClient.storage;
@@ -39,7 +39,7 @@ export class Handler {
     }
 
     static async ready(client: NorthClient) {
-        await require("../n0rthwestw1nd/slash")(client);
+        await slash(client);
         const storage = NorthClient.storage;
         const pool = client.pool;
         const id = client.id;
@@ -469,7 +469,7 @@ export class Handler {
         await client.pool.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`);
     }
 
-    static async message(message: Message) {
+    static async message(message: Message): Promise<any> {
         const client = <NorthClient>message.client;
         const storage = NorthClient.storage;
         const msg = (<NorthMessage>message);
@@ -482,31 +482,15 @@ export class Handler {
             return;
         };
         const commandName = args.shift().toLowerCase();
-        if (commandName === "guild" && client.id != 1) return;
         const command = storage.commands.get(commandName) || storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
-        if (command.args && args.length < command.args) return msg.channel.send(`The command \`${msg.prefix}${commandName}\` requires ${command.args} arguments.\nHere's how you are supposed to use it: \`${msg.prefix}${command.name}${command.usage ? ` ${command.usage}` : ""}\``);
-        if (command.category === 10 && msg.author.id != process.env.DC) return await msg.channel.send("Please don't use Dev Commands.");
-        if (client.id == 0) {
-            if (timeout) {
-                clearTimeout(timeout);
-                timeout = undefined;
-            } else msg.client.user.setPresence({ activity: { name: `${msg.author.username}'s Commands`, type: "WATCHING" }, status: "online", afk: false });
-            timeout = setTimeout(() => {
-                msg.client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
-                timeout = undefined;
-            }, 10000);
-        }
-        if (msg.guild && !(<TextChannel>msg.channel).permissionsFor(msg.guild.me).has(84992)) return await msg.author.send(`I need at least the permissions to \`${new Permissions(84992).toArray().join("`, `")}\` in order to run any command! Please tell your server administrator about that.`);
         msg.pool = client.pool;
         try {
-            if (command.category === 8) await music(msg, commandName);
-            else await command.execute(msg, args);
+            const catFilter = filter[require("../commands/information/help").sCategories.map(x => x.toLowerCase())[(command.category)]];
+            if(await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.execute(msg, args);
         } catch (error) {
-            storage.error(`Error running command ${command.name}`);
-            if (command.name === "musescore") storage.error(`Arguments: ${args.join(" ")}`);
-            storage.error(error);
-            msg.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
+            storage.error(command.name + ": " + error);
+            await msg.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
         }
     }
 }
@@ -946,7 +930,6 @@ export class AliceHandler extends Handler {
 
 export class CanaryHandler extends Handler {
     static async ready(client: NorthClient) {
-        await require("../n0rthwestw1nd/slash")(client);
         const storage = NorthClient.storage;
         const pool = client.pool;
         const id = client.id;

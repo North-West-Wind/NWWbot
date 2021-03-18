@@ -1,9 +1,9 @@
-const { twoDigits } = require("./function.js");
+const { twoDigits, deepReaddir } = require("./function.js");
 const fs = require("fs");
 const { registerFont } = require("canvas");
 const { NorthClient } = require("./classes/NorthClient.js");
 const mysql = require("mysql2");
-const { updateQueue, getQueues } = require("./musics/main.js");
+const { updateQueue, getQueues } = require("./helpers/music.js");
 const { Card } = require("./classes/Card.js");
 const mysql_config = {
     connectTimeout: 60 * 60 * 1000,
@@ -27,16 +27,11 @@ module.exports = (...clients) => {
     NorthClient.storage.card.set("0413", new Card(4, 13));
     NorthClient.storage.card.set("0414", new Card(4, 14));
 
-    const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
-    const musicCommandFiles = fs.readdirSync("./musics").filter(file => file.endsWith(".js") && !file.startsWith("main"));
+    const commandFiles = deepReaddir("./commands").filter(file => file.endsWith(".js"));
     const itemFiles = fs.readdirSync("./items").filter(file => file.endsWith(".js"));
     for (const file of commandFiles) {
-        const command = require(`./commands/${file}`);
-        NorthClient.storage.commands.set(command.name, command);
-    }
-    for (const file of musicCommandFiles) {
-        const command = require(`./musics/${file}`);
-        NorthClient.storage.commands.set(command.name, command);
+        const command = require(file);
+        if (command.description) NorthClient.storage.commands.set(command.name, command);
     }
     for (const file of itemFiles) {
         const item = require(`./items/${file}`);
