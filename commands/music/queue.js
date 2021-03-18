@@ -35,7 +35,7 @@ module.exports = {
     const guild = await client.guilds.fetch(interaction.guild_id);
     const author = await guild.members.fetch(interaction.member.user.id);
     var serverQueue = getQueues().get(guild.id);
-
+    console.log(args);
     if (args[0].value === "save") return await this.save(null, client.pool, author.user, guild, serverQueue, args[0].options[0].value);
     if (args[0].value === "load") return await this.load(null, client.pool, author.user, guild, serverQueue, args[0].options[0].value);
     if (args[0].value === "delete") return await this.delete(null, client.pool, author.user, args[0].options[0].value);
