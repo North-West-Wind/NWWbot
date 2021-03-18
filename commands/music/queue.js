@@ -206,9 +206,7 @@ module.exports = {
   async sync(message, pool, author, guild, client, serverQueue, name) {
     if (serverQueue && serverQueue.playing) return await msgOrRes(message, "Someone is listening to the music. Don't ruin their day.");
     if (!name) return await msgOrRes(message, "Please provide the name or ID of the server.");
-    console.log(name);
     const g = await client.guilds.cache.find(x => x.name.toLowerCase() === name.toLowerCase() || x.id == name);
-    console.log(g);
     if (!g) return await msgOrRes(message, "I cannot find that server! Maybe I am not in that server?");
     try {
       await g.members.fetch(author.id);

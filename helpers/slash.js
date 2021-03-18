@@ -1,5 +1,6 @@
 const { NorthClient } = require("../classes/NorthClient");
 const deepEqual = require("deep-equal");
+const { wait } = require("../function");
 
 async function setup(client) {
 
@@ -49,10 +50,11 @@ async function setup(client) {
             else await client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: JSON.parse(JSON.stringify(response))
             });
-            if (command.postSlash) {
+            await wait(3000);
+            if (command.postSlash) try {
                 const channel = await (interaction.channel_id ? client.channels.fetch(interaction.channel_id) : client.users.fetch(interaction.user.id));
                 await command.postSlash(await channel.messages.fetch(interaction.id), interaction, args);
-            }
+            } catch (err) { NorthClient.storage.error(err); }
         }
     });
 }
