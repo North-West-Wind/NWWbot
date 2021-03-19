@@ -430,7 +430,8 @@ module.exports = {
     return [].concat.apply([], arr);
   },
   profile: (str) => new Promise((resolve, reject) => require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); })),
-  nameToUuid: (str) => new Promise((resolve, reject) => require("mojang-api").nameToUuid(str, function (err, res) { if (err) reject(err); else resolve(res[0]?.id); })),
+  nameToUuid: (str, full = false) => new Promise((resolve, reject) => require("mojang-api").nameToUuid(str, function (err, res) { if (err) reject(err); else if (full) resolve(res); else resolve(res[0]?.id); })),
+  nameHistory: (str) => new Promise((resolve, reject) => require("mojang-api").nameHistory(str, function (err, res) { if (err) reject(err); else resolve(res); })),
   duration: (seconds) => {
     const moment = require("moment");
     require("moment-duration-format")(moment);

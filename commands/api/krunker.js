@@ -43,7 +43,7 @@ module.exports = {
         message = await (await client.users.fetch(interaction.user.id)).messages.fetch(id);
         author = { id: interaction.member.user.id };
       }
-      await this.server(message, args[0].options[0].value, client, author);
+      await this.server(message, (args[0].options && args[0].options[0]?.value) ? args[0].options[0].value : null, client, author);
     } else if (args[0].name === "changelog") {
       const { id } = await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { content: "Loading changelogs..." } });
       var message;
@@ -55,7 +55,7 @@ module.exports = {
         message = await (await client.users.fetch(interaction.user.id)).messages.fetch(id);
         author = { id: interaction.member.user.id };
       }
-      await this.changelog(message, args[0].options[0].value, author);
+      await this.changelog(message, (args[0].options && args[0].options[0]?.value) ? args[0].options[0].value : null, author);
     }
   },
   async execute(message, args) {
