@@ -18,10 +18,7 @@ module.exports = {
   args: 1,
   slashInit: true,
   async register() {
-    const categoryChoices = [];
     const sortChoices = []
-    for (const section in SectionTypes) categoryChoices.push(new ApplicationCommandOptionChoice(section.toLowerCase(), section));
-    for (const category in CategoryList) categoryChoices.push(new ApplicationCommandOptionChoice(category.toLowerCase(), category));
     for (const sort in SortTypes) sortChoices.push(new ApplicationCommandOptionChoice(sort.toLowerCase(), sort));
     return ApplicationCommand.createBasic(module.exports).setOptions([
       new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), this.subcommands[0], this.subdesc[0]).setOptions([
@@ -34,7 +31,7 @@ module.exports = {
         new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "username", "The username or UUID of the player.").setRequired(true)
       ]),
       new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), this.subcommands[3], this.subdesc[3]).setOptions([
-        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "category", "The category of CurseForge project to search.").setChoices(categoryChoices),
+        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "category", "The category of CurseForge project to search."),
         new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "version", "The version of the game."),
         new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "sort", "The way to sort projects.").setChoices(sortChoices),
         new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "keywords", "The project to search for.")
