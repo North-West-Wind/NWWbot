@@ -269,9 +269,9 @@ module.exports = {
     return buffer.toString("hex");
   },
   async createEmbedScrolling(message, allEmbeds, id = 0, additionalData = undefined) {
-    const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === (id == 4 ? additionalData : message.author.id));
+    const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === (id == 4 ? additionalData.author : message.author.id));
     var s = 0;
-    var msg = await message.channel.send(allEmbeds[0]);
+    var msg = await (id == 4 ? additionalData.channel : message.channel).send(allEmbeds[0]);
     await msg.react("⏮");
     await msg.react("◀");
     await msg.react("▶");

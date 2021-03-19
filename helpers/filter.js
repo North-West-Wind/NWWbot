@@ -41,5 +41,9 @@ module.exports = {
             return false;
         }
         return true;
+    },
+    async dev(_command, message) {
+		if (message.author.id != process.env.DC) return false;
+        return true;
     }
 }

@@ -35,7 +35,7 @@ async function findAllSearchResult(term) {
       item.attribs.href &&
       item.attribs.href.startsWith("/memes/")
   );
-  return new Set(items.map(item => config.BASE_URL + item.attribs.href));
+  return Array.from(new Set(items.map(item => config.BASE_URL + item.attribs.href)));
 }
 
 function childrenToText(children) {
@@ -55,12 +55,12 @@ function parseMemeBody(url, body) {
   const $ = cheerio.load(body);
 
   const name = $(".info h1 a")[0].children[0].data;
-  const bodycopy = $(".bodycopy");
+  const bodycopy = $(".entry-section-container .entry-section");
   const header = $("header.rel.c");
   const photo = header.find($(".photo"));
   const image = photo[0] && photo[0].children[0] && photo[0].children[0].attribs && photo[0].children[0].attribs["data-src"] ? photo[0].children[0].attribs["data-src"] : null;
 
-  const children = Array.from(bodycopy.children());
+  const children = Array.from(bodycopy.find("h2"));
   let about = [];
   let origin = [];
   let spread = [];
@@ -68,26 +68,12 @@ function parseMemeBody(url, body) {
   let impact = [];
   for (let i = 0; i < children.length; i++) {
     const child = children[i];
-    if (child.attribs.id === "about") while (children[i + 1] && children[i + 1].name === "p") {
-      if (/[a-zA-Z]/g.test(childrenToText(children[i + 1].children))) about.push(childrenToText(children[i + 1].children));
-      i++;
-    }
-    else if (child.attribs.id === "origin") while (children[i + 1] && children[i + 1].name === "p") {
-      if (/[a-zA-Z]/g.test(childrenToText(children[i + 1].children))) origin.push(childrenToText(children[i + 1].children));
-      i++;
-    }
-    else if (child.attribs.id === "spread") while (children[i + 1] && children[i + 1].name === "p") {
-      if (/[a-zA-Z]/g.test(childrenToText(children[i + 1].children))) spread.push(childrenToText(children[i + 1].children));
-      i++;
-    }
-    else if (child.attribs.id === "reaction") while (children[i + 1] && children[i + 1].name === "p") {
-      if (/[a-zA-Z]/g.test(childrenToText(children[i + 1].children))) reaction.push(childrenToText(children[i + 1].children));
-      i++;
-    }
-    else if (child.attribs.id === "impact") while (children[i + 1] && children[i + 1].name === "p") {
-      if (/[a-zA-Z]/g.test(childrenToText(children[i + 1].children))) impact.push(childrenToText(children[i + 1].children));
-      i++;
-    }
+    const sliced = child.parent.children.slice(1);
+    if (child.attribs.id === "about" && child.parent.children) about.push(childrenToText(sliced));
+    else if (child.attribs.id === "origin" && child.parent.children) origin.push(childrenToText(sliced));
+    else if (child.attribs.id === "spread" && child.parent.children) spread.push(childrenToText(sliced));
+    else if (child.attribs.id === "reaction" && child.parent.children) reaction.push(childrenToText(sliced));
+    else if (child.attribs.id === "impact" && child.parent.children) impact.push(childrenToText(sliced));
   }
   return { name, url, image, about, origin, spread, reaction, impact };
 }
@@ -145,16 +131,15 @@ module.exports = {
       if (result.impact.length > 0) em.addField("Impact", result.impact.join("\n\n").length > 1024 ? result.impact.join("\n\n").slice(0, 1021) + "..." : result.impact.join("\n\n"));
       allEmbeds.push(em);
     }
-    const { id } = await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { content: "Getting ready!" } });
-    var message;
-    if (interaction.channel_id) message = await (await client.channels.fetch(interaction.channel_id)).messages.fetch(id);
-    else message = await (await client.users.fetch(interaction.user.id)).messages.fetch(id);
-    await createEmbedScrolling(message, allEmbeds, 4, interaction.member ? interaction.member.user.id : interaction.user.id);
+    await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
+    var channel;
+    if (interaction.channel_id) channel = await client.channels.fetch(interaction.channel_id);
+    else channel = await client.users.fetch(interaction.user.id);
+    await createEmbedScrolling(null, allEmbeds, 4, { author: interaction.member ? interaction.member.user.id : interaction.user.id, channel });
   },
   async execute(message, args) {
     var msg = await message.channel.send("Loading the memes...");
-    msg.channel.startTyping();
-    var results = await doSearch(args.join(" "));
+    const results = await doSearch(args.join(" "));
     const allEmbeds = [];
     let num = 0;
     for (const result of results) {
@@ -172,6 +157,7 @@ module.exports = {
       if (result.impact.length > 0) em.addField("Impact", result.impact.join("\n\n").length > 1024 ? result.impact.join("\n\n").slice(0, 1021) + "..." : result.impact.join("\n\n"));
       allEmbeds.push(em);
     }
+    await msg.delete();
     await createEmbedScrolling(message, allEmbeds);
   }
 };

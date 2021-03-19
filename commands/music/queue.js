@@ -35,39 +35,53 @@ module.exports = {
     const guild = await client.guilds.fetch(interaction.guild_id);
     const author = await guild.members.fetch(interaction.member.user.id);
     var serverQueue = getQueues().get(guild.id);
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false, client.pool);
     if (args[0].name === "save") return await this.save(null, client.pool, author.user, guild, serverQueue, args[0].options[0].value);
     if (args[0].name === "load") return await this.load(null, client.pool, author.user, guild, serverQueue, args[0].options[0].value);
     if (args[0].name === "delete") return await this.delete(null, client.pool, author.user, args[0].options[0].value);
     if (args[0].name === "sync") return await this.sync(null, client.pool, author.user, guild, client, serverQueue, args[0].options[0].value);
+    return InteractionResponse.sendMessage("Loading queue...");
+  },
+  async postSlash(client, interaction, args) {
+    if (!interaction.guild_id) return;
+    const guild = await client.guilds.fetch(interaction.guild_id);
+    const author = await guild.members.fetch(interaction.member.user.id);
+    const channel = await client.channels.fetch(interaction.channel_id);
+    var serverQueue = getQueues().get(guild.id);
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false, client.pool);
-    if (serverQueue.songs.length < 1) return InteractionResponse.sendMessage("Nothing is in the queue now.");
-    const filtered = serverQueue.songs.filter(song => !!song);
-    if (serverQueue.songs.length !== filtered.length) {
-      serverQueue.songs = filtered;
-      updateQueue(guild.id, serverQueue, client.pool);
+    if (args[0].name === "current") {
+      if (serverQueue.songs.length < 1) return await channel.send("Nothing is in the queue now.");
+      const filtered = serverQueue.songs.filter(song => !!song);
+      if (serverQueue.songs.length !== filtered.length) {
+        serverQueue.songs = filtered;
+        updateQueue(guild.id, serverQueue, client.pool);
+      }
+      var index = 0;
+      function getIndex() {
+        if (index == 0 || !serverQueue.random) return ++index;
+        return "???";
+      }
+      const songArray = serverQueue.songs.map(song => `**${getIndex()} - ** **[${song.title}](${song.type === 1 ? song.spot : song.url})** : **${song.time}**`);
+      const allEmbeds = [];
+      for (let i = 0; i < Math.ceil(songArray.length / 10); i++) {
+        const pageArray = songArray.slice(i * 10, i * 10 + 10);
+        const queueEmbed = new Discord.MessageEmbed()
+          .setColor(color())
+          .setTitle(`Song queue for ${guild.name} [${i + 1}/${Math.ceil(songArray.length / 10)}]`)
+          .setDescription(`There are ${songArray.length} tracks in total.\n\n${pageArray.join("\n")}`)
+          .setTimestamp()
+          .setFooter(`Now playing: ${(serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing")}`, client.user.displayAvatarURL());
+        allEmbeds.push(queueEmbed);
+      }
+      await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
+      if (allEmbeds.length == 1) channel.send(allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
+      else createEmbedScrolling(null, allEmbeds, 4, { author: author.user, channel: interaction.channel_id }).then(x => setTimeout(() => x.msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
+      setTimeout(async () => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { embeds: null, content: `**[Queue: ${songArray.length} tracks in total]**` } }), 60000)
     }
-    var index = 0;
-    function getIndex() {
-      if (index == 0 || !serverQueue.random) return ++index;
-      return "???";
-    }
-    const songArray = serverQueue.songs.map(song => `**${getIndex()} - ** **[${song.title}](${song.type === 1 ? song.spot : song.url})** : **${song.time}**`);
-    const allEmbeds = [];
-    for (let i = 0; i < Math.ceil(songArray.length / 10); i++) {
-      const pageArray = songArray.slice(i * 10, i * 10 + 10);
-      const queueEmbed = new Discord.MessageEmbed()
-        .setColor(color())
-        .setTitle(`Song queue for ${guild.name} [${i + 1}/${Math.ceil(songArray.length / 10)}]`)
-        .setDescription(`There are ${songArray.length} tracks in total.\n\n${pageArray.join("\n")}`)
-        .setTimestamp()
-        .setFooter(`Now playing: ${(serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing")}`, client.user.displayAvatarURL());
-      allEmbeds.push(queueEmbed);
-    }
-    setTimeout(async () => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { embeds: null, content: `**[Queue: ${songArray.length} tracks in total]**` } }), 60000)
-    return InteractionResponse.sendEmbeds(...(allEmbeds.slice(0, 10)));
   },
   async execute(message) {
     var serverQueue = getQueues().get(message.guild.id);
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
     const args = message.content.slice(message.prefix.length).split(/ +/);
     if (args[1] && (args[1].toLowerCase() === "save" || args[1].toLowerCase() === "s")) return await this.save(message, message.pool, message.author, message.guild, serverQueue, args.slice(2).join(" "));
     if (args[1] && (args[1].toLowerCase() === "load" || args[1].toLowerCase() === "l")) return await this.load(message, message.pool, message.author, message.guild, serverQueue, args.slice(2).join(" "));
@@ -76,7 +90,6 @@ module.exports = {
     if (args[1] && (args[1].toLowerCase() === "sync" || args[1].toLowerCase() === "sy")) return await this.sync(message, message.pool, message.author, message.guild, message.client, serverQueue, args.slice(2).join(" "));
     if (args[1] && (args[1].toLowerCase() === "export" || args[1].toLowerCase() === "ex")) return await this.export(message, serverQueue);
     if (args[1] && (args[1].toLowerCase() === "import" || args[1].toLowerCase() === "im")) return await this.import(message, serverQueue);
-    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
     if (serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");
     const filtered = serverQueue.songs.filter(song => !!song);
     if (serverQueue.songs.length !== filtered.length) {
