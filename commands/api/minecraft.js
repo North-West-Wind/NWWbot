@@ -65,7 +65,7 @@ module.exports = {
     } else if (args[0].name === this.subcommands[2]) {
       const res = await nameToUuid(args[0].options[0].value, true);
       if (!res[0]) return InteractionResponse.sendMessage("No player named **" + args[0].options[0].value + "** were found");
-      return InteractionResponse.sendMessage(this.getHistoryEmbed(res, client));
+      return InteractionResponse.sendMessage(await this.getHistoryEmbed(res, client));
     } else if (args[0].name === this.subcommands[3]) return InteractionResponse.sendMessage("Fetching CurseForge projects...");
   },
   async postSlash(client, interaction, args) {
@@ -109,7 +109,7 @@ module.exports = {
     } else if (args[0] === "history" || args[0] === "his") {
       const res = await nameToUuid(args[1], true);
       if (!res[0]) return message.channel.send("No player named **" + args[1] + "** were found");
-      await message.channel.send(this.getHistoryEmbed(res, message.client));
+      await message.channel.send(await this.getHistoryEmbed(res, message.client));
     } else if (args[0] === "curseforge" || args[0] === "cf") return await this.cf(message, args);
   },
   async cf(message, args) {
@@ -206,7 +206,7 @@ module.exports = {
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return Embed;
   },
-  getHistoryEmbed(res, client) {
+  async getHistoryEmbed(res, client) {
     const result = await nameHistory(res[0].id);
     var names = [];
     var num = 0
