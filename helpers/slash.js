@@ -52,8 +52,7 @@ async function setup(client) {
             });
             await wait(3000);
             if (command.postSlash) try {
-                const channel = await (interaction.channel_id ? client.channels.fetch(interaction.channel_id) : client.users.fetch(interaction.user.id));
-                await command.postSlash(await channel.messages.fetch(interaction.id), interaction, args);
+                await command.postSlash(client, interaction, args);
             } catch (err) { NorthClient.storage.error(err); }
         }
     });

@@ -126,7 +126,7 @@ module.exports = {
   async slash() {
     return InteractionResponse.sendMessage("Loading the memes...");
   },
-  async postSlash(message, interaction, args) {
+  async postSlash(client, interaction, args) {
     var results = await doSearch(args[0].value);
     const allEmbeds = [];
     let num = 0;
@@ -138,15 +138,18 @@ module.exports = {
         .setURL(result.url)
         .setDescription(result.about.join("\n\n").length > 2048 ? result.about.join("\n\n").slice(0, 2045) + "..." : result.about.join("\n\n"))
         .setTimestamp()
-        .setFooter(`Page ${++num} out of ${results.length}`, message.client.user.displayAvatarURL());
+        .setFooter(`Page ${++num} out of ${results.length}`, client.user.displayAvatarURL());
       if (result.origin.length > 0) em.addField("Origin", result.origin.join("\n\n").length > 1024 ? result.origin.join("\n\n").slice(0, 1021) + "..." : result.origin.join("\n\n"));
       if (result.spread.length > 0) em.addField("Spread", result.spread.join("\n\n").length > 1024 ? result.spread.join("\n\n").slice(0, 1021) + "..." : result.spread.join("\n\n"));
       if (result.reaction.length > 0) em.addField("Reaction", result.reaction.join("\n\n").length > 1024 ? result.reaction.join("\n\n").slice(0, 1021) + "..." : result.reaction.join("\n\n"));
       if (result.impact.length > 0) em.addField("Impact", result.impact.join("\n\n").length > 1024 ? result.impact.join("\n\n").slice(0, 1021) + "..." : result.impact.join("\n\n"));
       allEmbeds.push(em);
     }
-    await message.client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
-    await createEmbedScrolling(message, allEmbeds);
+    const { id } = await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { content: "Getting ready!" } });
+    var message;
+    if (interaction.channel_id) message = await (await client.channels.fetch(interaction.channel_id)).messages.fetch(id);
+    else message = await (await client.users.fetch(interaction.user.id)).messages.fetch(id);
+    await createEmbedScrolling(message, allEmbeds, 4, interaction.member ? interaction.member.user.id : interaction.user.id);
   },
   async execute(message, args) {
     var msg = await message.channel.send("Loading the memes...");
