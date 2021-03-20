@@ -60,7 +60,7 @@ module.exports = {
   },
   async postSlash(client, interaction, args) {
     await InteractionResponse.deleteMessage(client, interaction);
-    args = args[0]?.value.split(/ +/);
+    args = args[0]?.value.split(/ +/) || [];
     const message = await InteractionResponse.createFakeMessage(client, interaction);
     await this.execute(message, args);
   },

@@ -16,6 +16,7 @@ var redditConn = new RedditAPI({
 const fetch = require("node-fetch").default;
 const cheerio = require("cheerio");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse, ApplicationCommandOptionChoice } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "porn",
@@ -419,8 +420,44 @@ module.exports = {
     wives: ["wifesharing", "hotwife", "wouldyoufuckmywife", "slutwife", "naughtywives"],
     yoga_pants: ["girlsinyogapants", "yogapants"]
   },
+  slashInit: true,
+  register() {
+    return ApplicationCommand.createBasic(module.exports).setOptions([
+      new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "single", "Returns a single post.").setOptions([
+        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "tags", "The tags of porn."),
+        new ApplicationCommandOption(ApplicationCommandOptionType.BOOLEAN.valueOf(), "listofsubreddits", "If chosen, fetches porn from ListOfSubreddits list, else, NSFW411.")
+      ]),
+      new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "auto", "Automatically fetch porn.").setOptions([
+        new ApplicationCommandOption(ApplicationCommandOptionType.INTEGER.valueOf(), "amount", "The amount of porn to fetch.").setRequired(true),
+        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "interval", "The interval between each fetch.").setRequired(true),
+        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "tags", "The tags of porn."),
+        new ApplicationCommandOption(ApplicationCommandOptionType.BOOLEAN.valueOf(), "listofsubreddits", "If chosen, fetches porn from ListOfSubreddits list, else, NSFW411.")
+      ]),
+      new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "tags", "Displays available tags.")
+    ])
+  },
+  async slash(client, interaction) {
+    if (interaction.channel_id && !(await client.channels.fetch(interaction.channel_id).nsfw)) return InteractionResponse.sendMessage("Please use an NSFW channel to use this command!");
+    return InteractionResponse.sendMessage("Finding Porn...");
+  },
+  async postSlash(client, interaction, args) {
+    if (interaction.channel_id && !(await client.channels.fetch(interaction.channel_id).nsfw)) return;
+    await InteractionResponse.deleteMessage(client, interaction);
+    var nArgs = [];
+    if (args[0].name === "single") {
+      nArgs = args[0].options ? (args[0].options[0]?.value?.split(/ +/) || []) : [];
+      if (args[0].options[1]?.value) nArgs.push("los");
+    } else if (args[0].name === "auto") {
+      nArgs = args[0].options[2]?.value?.split(/ +/) || [];
+      if (args[0].options[3]?.value) nArgs.push("los");
+      nArgs.unshift(args[0].options[1].value);
+      nArgs.unshift(args[0].options[0].value);
+      nArgs.unshift("auto");
+    } else nArgs = ["tags"];
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message, nArgs);
+  },
   async execute(message, args) {
-    if (message.channel.nsfw === false) return await message.channel.send("Please use an NSFW channel to use this command!");
     if (args[0]?.toLowerCase() === "auto") return await this.auto(message, args);
     if (args[0]?.toLowerCase() === "tags") return await this.tags(message, args);
     if (!message.msg) message.msg = await message.channel.send("Fetching takes a while. Please be patient.");

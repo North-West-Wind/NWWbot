@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const { capitalize, color, xmlToJson } = require("../../function.js");
 const fetch = require("node-fetch").default;
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "rule34",
@@ -9,6 +10,23 @@ module.exports = {
   usage: "<tags>",
   category: 5,
   args: 1,
+  slashInit: true,
+  register() {
+    return ApplicationCommand.createBasic(module.exports).setOptions([
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "tags", "The tags of rule34 to search for.").setRequired(true)
+    ])
+  },
+  async slash(client, interaction) {
+    if (interaction.channel_id && !(await client.channels.fetch(interaction.channel_id).nsfw)) return InteractionResponse.sendMessage("Please use an NSFW channel to use this command!");
+    return InteractionResponse.sendMessage("Finding Rule34...");
+  },
+  async postSlash(client, interaction, args) {
+    if (interaction.channel_id && !(await client.channels.fetch(interaction.channel_id).nsfw)) return;
+    await InteractionResponse.deleteMessage(client, interaction);
+    args = args[0]?.value.split(/ +/) || [];
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message, args);
+  },
   async execute(message, args) {
     args = args.map(x => x.split("_").map(y => encodeURIComponent(capitalize(y))).join("_"));
     async function pick() {

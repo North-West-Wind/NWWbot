@@ -36,7 +36,7 @@ module.exports = {
         return true;
     },
     async nsfw(_command, message) {
-        if (!message.channel.nsfw) {
+        if (message.guild && !message.channel.nsfw) {
             await message.channel.send("Please use an NSFW channel to use this command!");
             return false;
         }
