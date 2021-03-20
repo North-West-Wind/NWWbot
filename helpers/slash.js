@@ -52,7 +52,7 @@ async function setup(client) {
             });
             await wait(1500);
             if (command.postSlash) try {
-                await command.postSlash(client, interaction, args);
+                await command.postSlash(client, interaction, args || []);
             } catch (err) { NorthClient.storage.error(err); }
         }
     });
