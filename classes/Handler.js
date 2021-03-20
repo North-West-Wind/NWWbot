@@ -1043,6 +1043,14 @@ class AliceHandler extends Handler {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const client = message.client;
+            if (message.mentions.users.size > 10) {
+                yield message.delete();
+                const msg = yield message.reply("do not spam ping.");
+                yield function_1.wait(3000);
+                yield msg.delete();
+                yield message.member.roles.set(["755263714940289125"]);
+                return;
+            }
             if (message.channel.id == "647630951169523762") {
                 if (!message.content.match(/^\w{3,16}$/))
                     return;

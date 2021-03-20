@@ -6,7 +6,7 @@ require("moment-duration-format")(moment);
 import { RowDataPacket } from "mysql2";
 import { endGiveaway } from "../commands/miscellaneous/giveaway";
 import { expire } from "../commands/managements/role-message";
-import { color, duration, getRandomNumber, jsDate2Mysql, nameToUuid, profile, readableDateTimeText, replaceMsgContent, setTimeout_ } from "../function";
+import { color, duration, getRandomNumber, jsDate2Mysql, nameToUuid, profile, readableDateTimeText, replaceMsgContent, setTimeout_, wait } from "../function";
 import { setQueue, stop } from "../helpers/music";
 import { LevelData } from "./LevelData";
 import { NorthClient } from "./NorthClient";
@@ -851,6 +851,16 @@ export class AliceHandler extends Handler {
 
     static async message(message: Message) {
         const client = <NorthClient>message.client;
+
+        if (message.mentions.users.size > 10) {
+            await message.delete();
+            const msg = await message.reply("do not spam ping.");
+            await wait(3000);
+            await msg.delete();
+            await message.member.roles.set(["755263714940289125"]);
+            return;
+        }
+
         if (message.channel.id == "647630951169523762") {
             if (!message.content.match(/^\w{3,16}$/)) return;
             const mcName = message.content;
