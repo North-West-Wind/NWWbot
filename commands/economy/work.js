@@ -6,7 +6,7 @@ const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash
 
 module.exports = {
   name: "work",
-  description: "Work in the server and gain virtual money. By working more, you will gain experience and level up. That can make you gain more.",
+  description: "Work in the server and gain virtual money.",
   category: 2,
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports),
