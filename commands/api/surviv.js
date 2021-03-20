@@ -2,6 +2,7 @@ const { MessageEmbed } = require("discord.js");
 const { readableDateTime, createEmbedScrolling, color } = require("../../function.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const { emotes } = require("../../config.json");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 const createModeEmbed = (message, mode, stats) => {
     const em = new MessageEmbed()
         .setColor(color())
@@ -27,6 +28,19 @@ module.exports = {
     args: 1,
     aliases: ["survivio"],
     category: 7,
+    slashInit: true,
+    register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "user", "The username of the Survivr.").setRequired(true)
+    ]),
+    async slash() {
+      return InteractionResponse.sendMessage("Fetching user stats...");
+    },
+    async postSlash(client, interaction, args) {
+      await InteractionResponse.deleteMessage(client, interaction);
+      args = args[0].value.split(/ +/);
+      const message = await InteractionResponse.createFakeMessage(client, interaction);
+      await this.execute(message, args);
+    },
     async execute(message, args) {
         try {
             const body = { slug: args.join(" ").toLowerCase(), interval: "all", mapIdFilter: "-1" };

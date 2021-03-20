@@ -2,6 +2,7 @@ var RedditAPI = require("reddit-wrapper-v2");
 const Discord = require("discord.js");
 const { validImgurURL, color } = require("../../function.js")
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 
 var redditConn = new RedditAPI({
   // Options for Reddit Wrapper
@@ -21,6 +22,19 @@ module.exports = {
   usage: "[subreddits]",
   aliases: ["meme"],
   category: 7,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "subreddit", "The subreddits to find memes from.")
+  ]),
+  async slash() {
+      return InteractionResponse.sendMessage("Finding your memes...");
+  },
+  async postSlash(client, interaction, args) {
+      await InteractionResponse.deleteMessage(client, interaction);
+      args = args[0].value.split(/ +/);
+      const message = await InteractionResponse.createFakeMessage(client, interaction);
+      await this.execute(message, args);
+  },
   async execute(message, args) {
     var subreddits;
     var def = ["memes", "dankmemes", "meme"];
@@ -44,9 +58,7 @@ module.exports = {
         .setURL(`https://reddit.com${data.permalink}`)
         .setImage(data.url)
         .setColor(color())
-        .setFooter(
-          `${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`
-        )
+        .setFooter(`${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`, message.client.user.displayAvatarURL())
         .setTimestamp();
       message.channel.send(em);
   }

@@ -75,7 +75,7 @@ module.exports = {
       }
       await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
       if (allEmbeds.length == 1) channel.send(allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
-      else createEmbedScrolling(null, allEmbeds, 4, { author: author.user, channel: interaction.channel_id }).then(x => setTimeout(() => x.msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
+      else createEmbedScrolling({ author: author.user, channel: await(interaction.channel_id ? client.channels.fetch(interaction.channel_id) : author.user) }, allEmbeds).then(x => setTimeout(() => x.msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
       setTimeout(async () => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { embeds: null, content: `**[Queue: ${songArray.length} tracks in total]**` } }), 60000)
     }
   },

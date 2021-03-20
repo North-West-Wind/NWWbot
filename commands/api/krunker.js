@@ -142,7 +142,7 @@ module.exports = {
       await msg.react("▶");
       await msg.react("⏭");
       await msg.react("⏹");
-      var collector = await msg.createReactionCollector((reaction, user) => (["🎲", "🔗", "⏩", "◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id), {
+      var collector = await msg.createReactionCollector((reaction, user) => (["🎲", "🔗", "⏩", "◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author.id), {
         idle: 60000
       });
       const linkEmbed = new Discord.MessageEmbed()

@@ -11,13 +11,13 @@ module.exports = {
   args: 1,
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
-    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "song", "The song to search for.")
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "song", "The song to search for.").setRequired(true)
   ]),
   async slash() {
     return InteractionResponse.sendMessage("Lyrics are loading!");
   },
   async postSlash(client, interaction, args) {
-    const song = args[0].options[0].value;
+    const song = args[0].value;
 
     var lyrics = await solenolyrics.requestLyricsFor(song);
     var title = await solenolyrics.requestTitleFor(song);
@@ -94,7 +94,7 @@ module.exports = {
       a = channel;
     }
     if (allEmbeds.length == 1) await channel.send(allEmbeds[0]);
-    else await createEmbedScrolling(null, allEmbeds, 4, { channel, author: a });
+    else await createEmbedScrolling({ channel, author: a }, allEmbeds);
   },
   async execute(message, args) {
     var lyrics = await solenolyrics.requestLyricsFor(args.join(" "));

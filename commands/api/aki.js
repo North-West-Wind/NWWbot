@@ -2,6 +2,8 @@ const Discord = require("discord.js");
 const { Aki } = require("aki-api");
 const { genPermMsg, color } = require("../../function");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse, ApplicationCommandOptionChoice } = require("../../classes/Slash.js");
+
 module.exports = {
   name: "aki",
   description: "Play Akinator on Discord!",
@@ -31,7 +33,8 @@ module.exports = {
     'pl',
     'pt',
     'ru',
-    'tr'
+    'tr',
+    'id'
   ],
   maxSteps: 420,
   yes: "✅",
@@ -42,6 +45,25 @@ module.exports = {
   back: "⬅",
   stop: "⏹",
   permission: 90176,
+  slashInit: true,
+  register() {
+    return ApplicationCommand.createBasic(module.exports).setOptions([
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "region", "The region/language to play in.").setChoices(
+        this.regions.map(region => new ApplicationCommandOptionChoice(region, region)).concat([
+          new ApplicationCommandOptionChoice("region", "Displays all regions available.")
+        ])
+      )
+    ])
+  },
+  async slash() {
+    return InteractionResponse.sendMessage("Initializing Akinator game...");
+  },
+  async postSlash(client, interaction, args) {
+    await InteractionResponse.deleteMessage(client, interaction);
+    args = args[0]?.value.split(/ +/);
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message, args);
+  },
   async execute(message, args) {
     var ended = new Map();
     if (args.length >= 1 && args[0].toLowerCase() === "region") return await this.region(message);

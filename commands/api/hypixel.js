@@ -4,6 +4,7 @@ const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryD
 const MojangAPI = require("mojang-api");
 const nameToUuid = (name) => new Promise((resolve, reject) => MojangAPI.nameToUuid(name, (err, res) => err ? reject(err) : resolve(res)));
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse, ApplicationCommandOptionChoice } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "hypixel",
@@ -41,6 +42,22 @@ module.exports = {
     "bazaar"
   ],
   subaliases: ["g", "ach", "tnt", "bw", "du", "sw", "sg", "ar", "mm", "bb", "mcgo", "vz", "pb", "q", "uhc", "wa", "mw", "cw", "sh", "suhc", "are", "p", "sb", "ah", "ba"],
+  slashInit: true,
+  register() {
+    return ApplicationCommand.createBasic(module.exports).setOptions([
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "category", "The category of information.").setChoices(this.subcommands.map(sub => new ApplicationCommandOptionChoice(sub, sub))),
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "username", "The username of the Hypixel player.").setRequired(true)
+    ])
+  },
+  async slash() {
+    return InteractionResponse.sendMessage("Fetching player stats...");
+  },
+  async postSlash(client, interaction, args) {
+    await InteractionResponse.deleteMessage(client, interaction);
+    args = args.map(x => x.value);
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message, args);
+  },
   async execute(message, args) {
     if (!args[0]) return message.channel.send("Please provide a Minecraft username or use the subcommands.");
     const color = color();

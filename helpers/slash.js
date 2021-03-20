@@ -50,7 +50,7 @@ async function setup(client) {
             else await client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: JSON.parse(JSON.stringify(response))
             });
-            await wait(3000);
+            await wait(1500);
             if (command.postSlash) try {
                 await command.postSlash(client, interaction, args);
             } catch (err) { NorthClient.storage.error(err); }

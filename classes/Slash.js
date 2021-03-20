@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractionResponseType = exports.InteractionApplicationCommandCallbackData = exports.InteractionResponse = exports.ApplicationCommandOptionType = exports.ApplicationCommandOptionChoice = exports.ApplicationCommandOption = exports.ApplicationCommand = void 0;
 class ApplicationCommand {
@@ -101,6 +110,33 @@ class InteractionResponse {
     }
     static reply(id, message) {
         return this.sendMessage(`<@${id}>, ${message}`);
+    }
+    static editMessage(client, interaction, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = yield client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: data });
+            return id;
+        });
+    }
+    static deleteMessage(client, interaction) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
+        });
+    }
+    static createFakeMessage(client, interaction) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var message = { prefix: "/", client, guild: null, channel: null, author: null, reply: null, pool: client.pool };
+            if (interaction.guild_id) {
+                message.guild = yield client.guilds.fetch(interaction.guild_id);
+                message.channel = yield client.channels.fetch(interaction.channel_id);
+                message.author = yield client.users.fetch(interaction.member.user.id);
+            }
+            else {
+                message.author = yield client.users.fetch(interaction.user.id);
+                message.channel = message.author;
+            }
+            message.reply = (str) => __awaiter(this, void 0, void 0, function* () { return yield message.channel.send(`<@${message.author.id}>, ${str}`); });
+            return message;
+        });
     }
 }
 exports.InteractionResponse = InteractionResponse;

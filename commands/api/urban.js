@@ -2,18 +2,30 @@ const querystring = require("querystring");
 const Discord = require("discord.js");
 const fetch = require("node-fetch").default;
 const { createEmbedScrolling, color } = require("../../function.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 module.exports = {
   name: "urban",
   description: "Search the Urban Dictionary on Discord.",
   usage: "<query>",
   category: 7,
   args: 1,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "query", "The thing to lookup.").setRequired(true)
+  ]),
+  async slash() {
+    return InteractionResponse.sendMessage("Looking up in Urban Dictionary...");
+  },
+  async postSlash(client, interaction, args) {
+    await InteractionResponse.deleteMessage(client, interaction);
+    args = args[0].value.split(/ +/);
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message, args);
+  },
   async execute(message, args) {
     const query = querystring.stringify({ term: args.join(" ") });
-    message.channel.startTyping();
     const { list } = await fetch(`https://api.urbandictionary.com/v0/define?${query}`).then(response => response.json());
     if (!list.length) {
-      message.channel.stopTyping(true);
       return message.channel.send(`No results found for **${args.join(" ")}**.`);
     }
     const trim = (str, max) => str.length > max ? `${str.slice(0, max - 3)}...` : str;
@@ -30,7 +42,6 @@ module.exports = {
         .setFooter(`👍 ${answer.thumbs_up} | 👎 ${answer.thumbs_down}`, message.client.user.displayAvatarURL());
       allEmbeds.push(embed);
     }
-    message.channel.stopTyping(true);
     await createEmbedScrolling(message, allEmbeds);
   }
 };

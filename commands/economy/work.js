@@ -2,11 +2,22 @@ const randomWords = require("random-words");
 const Canvas = require("canvas");
 const Discord = require("discord.js");
 const { getRandomNumber, applyText, jsDate2Mysql } = require("../../function.js");
+const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "work",
   description: "Work in the server and gain virtual money. By working more, you will gain experience and level up. That can make you gain more.",
   category: 2,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports),
+  async slash() {
+    return InteractionResponse.sendMessage("Getting ready to work...");
+  },
+  async postSlash(client, interaction) {
+    await InteractionResponse.deleteMessage(client, interaction);
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message);
+  },
   async execute(message) {
     const currentDateSql = jsDate2Mysql(new Date());
     const con = await message.pool.getConnection();

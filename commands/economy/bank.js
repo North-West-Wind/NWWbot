@@ -1,11 +1,22 @@
 const Discord = require("discord.js");
 const { color } = require("../../function");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "bank",
   description: "Display your Discord Economy status. You can also deposit or withdraw money with this command.",
   category: 2,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports),
+  async slash() {
+    return InteractionResponse.sendMessage("Finding your account...");
+  },
+  async postSlash(client, interaction) {
+    await InteractionResponse.deleteMessage(client, interaction);
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message);
+  },
   async execute(message) {
     const con = await message.pool.getConnection();
     var [results] = await con.query(`SELECT * FROM currency WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);

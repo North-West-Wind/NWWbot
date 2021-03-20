@@ -53,12 +53,7 @@ module.exports = {
       }
       return InteractionResponse.sendEmbeds(em);
     } else if (args[0].name === this.subcommands[1]) {
-      const url = `https://api.mcsrvstat.us/2/${args[0].options[0].value}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Received HTTP Status Code " + res.status);
-      const body = await res.json();
-      if (body.online) return InteractionResponse.sendMessage(this.getServerEmbed(body, client, args[0].options[0].value));
-      else return InteractionResponse.sendMessage("The server - **" + args.slice(1).join(" ") + "** - is offline/under maintenance.");
+      return InteractionResponse.sendMessage("Retrieving server information...");
     } else if (args[0].name === this.subcommands[2]) {
       const res = await nameToUuid(args[0].options[0].value, true);
       if (!res[0]) return InteractionResponse.sendMessage("No player named **" + args[0].options[0].value + "** were found");
@@ -66,7 +61,14 @@ module.exports = {
     } else if (args[0].name === this.subcommands[3]) return InteractionResponse.sendMessage("Fetching CurseForge projects...");
   },
   async postSlash(client, interaction, args) {
-    if (args[0].name === this.subcommands[3]) {
+    if (args[0].name === this.subcommands[1]) {
+      const url = `https://api.mcsrvstat.us/2/${args[0].options[0].value}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Received HTTP Status Code " + res.status);
+      const body = await res.json();
+      if (body.online) return InteractionResponse.editMessage(client, interaction, { embed: this.getServerEmbed(body, client, args[0].options[0].value), content: "" });
+      else return InteractionResponse.editMessage(client, interaction, { content: "The server - **" + args.slice(1).join(" ") + "** - is offline/under maintenance." });
+    } else if (args[0].name === this.subcommands[3]) {
       await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
       const cArgs = ["0"].concat(args[0].options.filter(x => !!x).map(x => x.value));
       var channel;

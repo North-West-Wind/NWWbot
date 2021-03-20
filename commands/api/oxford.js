@@ -7,6 +7,7 @@ var config = {
   source_lang: "en-us"
 };
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 
 var dict = new Dictionary(config);
 
@@ -17,6 +18,19 @@ module.exports = {
   aliases: ["ox"],
   category: 7,
   args: 1,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "keywords", "The word to search for.").setRequired(true)
+  ]),
+  async slash() {
+      return InteractionResponse.sendMessage("Finding your word...");
+  },
+  async postSlash(client, interaction, args) {
+      await InteractionResponse.deleteMessage(client, interaction);
+      args = args[0].value.split(/ +/);
+      const message = await InteractionResponse.createFakeMessage(client, interaction);
+      await this.execute(message, args);
+  },
   async execute(message, args) {
     try {
       var lookup = await dict.find(escape(args.join(" ")));

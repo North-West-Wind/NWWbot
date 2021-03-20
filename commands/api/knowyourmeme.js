@@ -68,7 +68,7 @@ function parseMemeBody(url, body) {
   let impact = [];
   for (let i = 0; i < children.length; i++) {
     const child = children[i];
-    const sliced = child.parent.children.slice(1);
+    const sliced = child.parent.children.slice(2);
     if (child.attribs.id === "about" && child.parent.children) about.push(childrenToText(sliced));
     else if (child.attribs.id === "origin" && child.parent.children) origin.push(childrenToText(sliced));
     else if (child.attribs.id === "spread" && child.parent.children) spread.push(childrenToText(sliced));
@@ -133,9 +133,12 @@ module.exports = {
     }
     await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
     var channel;
-    if (interaction.channel_id) channel = await client.channels.fetch(interaction.channel_id);
-    else channel = await client.users.fetch(interaction.user.id);
-    await createEmbedScrolling(null, allEmbeds, 4, { author: interaction.member ? interaction.member.user.id : interaction.user.id, channel });
+    var author;
+    if (interaction.channel_id) {
+      channel = await client.channels.fetch(interaction.channel_id);
+      author = await client.users.fetch(interaction.member.user.id);
+    } else channel = author = await client.users.fetch(interaction.user.id);
+    await createEmbedScrolling({ channel, author }, allEmbeds);
   },
   async execute(message, args) {
     var msg = await message.channel.send("Loading the memes...");

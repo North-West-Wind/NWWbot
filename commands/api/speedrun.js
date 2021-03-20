@@ -2,6 +2,7 @@ const Discord = require("discord.js");
 const fetch = require("node-fetch").default;
 const { createEmbedScrolling, color } = require("../../function.js");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "speedrun",
@@ -10,8 +11,20 @@ module.exports = {
   usage: "<game>",
   category: 7,
   args: 1,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "game", "The game of the speedrun.").setRequired(true)
+  ]),
+  async slash() {
+    return InteractionResponse.sendMessage("Fetching speedruns...");
+  },
+  async postSlash(client, interaction, args) {
+    await InteractionResponse.deleteMessage(client, interaction);
+    args = args[0].value.split(/ +/);
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message, args);
+  },
   async execute(message, args) {
-    message.channel.startTyping();
     const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(args.join(" "))}`).then(res => res.json());
     if (gameFetch.status && gameFetch.status === 404) {
       const games = [];
@@ -24,11 +37,9 @@ module.exports = {
         .setTimestamp()
         .setFooter("Cannot find your game? Try to be more specified.", message.client.user.displayAvatarURL());
       if (result.data.length == 0) {
-        message.channel.stopTyping(true);
         return await message.channel.send("No game was found!");
       }
       if (result.data.length > 1) {
-        message.channel.stopTyping(true);
         var msg = await message.channel.send(em);
         var choices = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "⏹"];
         for (var i = 0; i < games.length; i++) await msg.react(choices[i]);
@@ -41,7 +52,6 @@ module.exports = {
         }
         em.setTitle("Loading...").setDescription("This will take a while.").setTimestamp().setFooter("Please be patient.", message.client.user.displayAvatarURL());
         await msg.edit(em);
-        message.channel.startTyping();
         const reaction = collected.first();
         if (reaction.emoji.name === choices[10]) {
           em.setTitle("Action Cancelled.").setDescription("").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
@@ -62,7 +72,6 @@ module.exports = {
         .setTimestamp()
         .setFooter("Please be patient.", message.client.user.displayAvatarURL());
       var msg = await message.channel.send(em);
-      message.channel.startTyping();
       var id = gameFetch.data.id;
     }
     const allEmbeds = [];
@@ -97,6 +106,5 @@ module.exports = {
       em.setTitle(result && result.data[0] ? result.data[index ? index : 0].names.international : gameFetch.data.names.international).setDescription("No record was found for this game!").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       await msg.edit(em);
     } else await createEmbedScrolling(message, allEmbeds);
-    message.channel.stopTyping(true);
   }
 };

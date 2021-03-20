@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const { wait, ID, genPermMsg, color } = require("../../function.js");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "shop",
@@ -10,8 +11,21 @@ module.exports = {
   permissions: 32,
   subcommands: ["add"],
   subdesc: ["Adds a new item to the server shop."],
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "menu", "View the shop menu."),
+    new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "add", "Adds a new item to the server shop.")
+  ]),
+  async slash() {
+    return InteractionResponse.sendMessage("Opening shop...");
+  },
+  async postSlash(client, interaction, args) {
+    await InteractionResponse.deleteMessage(client, interaction);
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message, args[0].name === "add" ? args[0].name : undefined);
+  },
   async execute(message, args) {
-    if (args[0] && args[0] == "add") return await this.add(message, args);
+    if (args[0] && args[0] == "add") return await this.add(message);
     const c = color();
     const pool = message.pool;
     mainMenu();

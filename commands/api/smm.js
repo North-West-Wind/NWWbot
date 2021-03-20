@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
 const smm = require("smm-api");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 const { createEmbedScrolling, readableDateTime, color } = require("../../function.js");
 const themes = ["Ground", "Underground", "Castle", "Airship", "Underwater", "Ghost House"];
 const difficulties = ["Easy", "Normal", "Expert", "Super Expert"];
@@ -12,6 +13,19 @@ module.exports = {
   usage: "<keywords>",
   category: 7,
   args: 1,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "keywords", "The course to search for.").setRequired(true)
+  ]),
+  async slash() {
+    return InteractionResponse.sendMessage("Fetching courses...");
+  },
+  async postSlash(client, interaction, args) {
+    await InteractionResponse.deleteMessage(client, interaction);
+    args = args[0].value.split(/ +/);
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message, args);
+  },
   async execute(message, args) {
     smm.searchCourses({ title: args.join(" ") }, async (error, courses) => {
       if (error) throw error;

@@ -2,6 +2,7 @@ const wiki = require('wikijs').default;
 const Discord = require("discord.js");
 const { color } = require("../../function");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "wiki",
@@ -10,8 +11,20 @@ module.exports = {
   aliases: ["wikipedia"],
   args: 1,
   category: 7,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "query", "The thing to lookup.").setRequired(true)
+  ]),
+  async slash() {
+    return InteractionResponse.sendMessage("Looking up in Wikipedia...");
+  },
+  async postSlash(client, interaction, args) {
+    await InteractionResponse.deleteMessage(client, interaction);
+    args = args[0].value.split(/ +/);
+    const message = await InteractionResponse.createFakeMessage(client, interaction); // Fake Message
+    await this.execute(message, args); // Use normal execution code
+  },
   async execute(message, args) {
-    message.channel.startTyping();
     const data = await wiki({ apiUrl: 'https://en.wikipedia.org/w/api.php' }).search(args.join(" "), 100);
     var num = 0;
     const allEmbeds = [];
@@ -40,7 +53,6 @@ module.exports = {
     if(allEmbeds[74]) emojis.push("3️⃣")
     
     var msg = await message.channel.send(allEmbeds[0]);
-    message.channel.stopTyping(true);
     const filter = (reaction, user) => (emojis.includes(reaction.emoji.name) && user.id === message.author.id);
 
     var s = 0;

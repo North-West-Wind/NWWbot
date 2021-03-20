@@ -18,6 +18,7 @@ const requestYTDLStream = (url, opts) => {
 const { validMSURL, findValueByPrefix, streamToString, requestStream, color } = require("../../function.js");
 const PDFDocument = require('pdfkit');
 const SVGtoPDF = require('svg-to-pdfkit');
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 const PNGtoPDF = (doc, url) => new Promise(async (resolve, reject) => {
     const res = await fetch(url).then(res => res.body);
     const chunks = [];
@@ -39,10 +40,22 @@ module.exports = {
     category: 7,
     aliases: ["muse"],
     args: 1,
+    slashInit: true,
+    register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "score", "The link or name of the score.").setRequired(true)
+    ]),
+    async slash() {
+        return InteractionResponse.sendMessage("Fetching score metadata...");
+    },
+    async postSlash(client, interaction, args) {
+        await InteractionResponse.deleteMessage(client, interaction);
+        args = args[0].value.split(/ +/);
+        const message = await InteractionResponse.createFakeMessage(client, interaction);
+        await this.execute(message, args);
+    },
     async execute(message, args) {
         if (!validMSURL(args.join(" "))) return await this.search(message, args);
         var msg = await message.channel.send("Loading score...");
-        msg.channel.startTyping();
         try {
             var data = await muse(args.join(" "));
         } catch (err) {
@@ -64,10 +77,9 @@ module.exports = {
             .addField(`Tags [${data.tags.length}]`, data.tags.length > 0 ? (data.tags.join(", ").length > 1024 ? (data.tags.join(" ").slice(0, 1020) + "...") : data.tags.join(" ")) : "None")
             .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ? (data.parts.join(", ").length > 1024 ? (data.parts.join(" ").slice(0, 1020) + "...") : data.parts.join(" ")) : "None")
             .setTimestamp()
-            .setFooter("Have a nice day! :)");
+            .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
         msg = await msg.edit({ content: "", embed: em });
         await msg.react("📥");
-        msg.channel.stopTyping(true);
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000 });
         await msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
@@ -143,7 +155,6 @@ module.exports = {
             return message.reply("there was an error trying to search for scores!");
         }
         var msg = await message.channel.send("Loading scores...");
-        msg.channel.startTyping();
         var $ = cheerio.load(body);
         const stores = Array.from($('div[class^="js-"]'));
         const store = findValueByPrefix(stores.find(x => x.attribs && x.attribs.class && x.attribs.class.match(/^js-\w+$/)).attribs, "data-");
@@ -183,7 +194,6 @@ module.exports = {
         await msg.react("▶");
         await msg.react("⏭");
         await msg.react("⏹");
-        msg.channel.stopTyping(true);
         var collector = await msg.createReactionCollector(
             filter,
             { idle: 60000 }

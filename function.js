@@ -269,9 +269,9 @@ module.exports = {
     return buffer.toString("hex");
   },
   async createEmbedScrolling(message, allEmbeds, id = 0, additionalData = undefined) {
-    const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === (id == 4 ? additionalData.author : message.author.id));
+    const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
     var s = 0;
-    var msg = await (id == 4 ? additionalData.channel : message.channel).send(allEmbeds[0]);
+    var msg = await message.channel.send(allEmbeds[0]);
     await msg.react("⏮");
     await msg.react("◀");
     await msg.react("▶");
@@ -501,12 +501,11 @@ module.exports = {
     };
     return next();
   },
-  extractHostname(url) {
-    var hostname;
-    if (url.indexOf("//") > -1) hostname = url.split('/')[2];
-    else hostname = url.split('/')[0];
-    hostname = hostname.split(':')[0];
-    hostname = hostname.split('?')[0];
-    return hostname;
+  async xmlToJson(xml) {
+    const { parseString } = require("xml2js");
+    return new Promise((resolve, reject) => parseString(xml, (err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    }));
   }
 };

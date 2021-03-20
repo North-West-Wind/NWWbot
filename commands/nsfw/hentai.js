@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const neko = require("akaneko");
 const { ms, color } = require("../../function.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse, ApplicationCommandOptionChoice } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "hentai",
@@ -40,6 +41,27 @@ module.exports = {
     "neko"
   ],
   category: 5,
+  slashInit: true,
+  register() {
+    return ApplicationCommand.createBasic(module.exports).setOptions([
+      new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "single", "Displays a single Hentai."),
+      new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "auto", "Automatically fetches Hentai.").setOptions[
+        new ApplicationCommandOption(ApplicationCommandOptionType.INTEGER.valueOf(), "amount", "The amount of Hentai to fetch.").setRequired(true),
+        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "interval", "The interval between each fetch.").setRequired(true),
+        new ApplicationCommandOption(ApplicationCommandOptionType.BOOLEAN.valueOf(), "exclude", "Toggle tag excluding."),
+        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "tags", "The tags to (not) fetch.")
+      ]
+    ])
+  },
+  async slash() {
+    return InteractionResponse.sendMessage("Finding Hentai...");
+  },
+  async postSlash(client, interaction, args) {
+    await InteractionResponse.deleteMessage(client, interaction);
+    args = args[0]?.value.split(/ +/);
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message, args);
+  },
   async execute(message, args) {
     if (!message.channel.nsfw) return message.channel.send("Please use an NSFW channel to use this command!");
     var tag = "random";

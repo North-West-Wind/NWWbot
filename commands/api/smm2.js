@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const fetch = require("node-fetch").default;
 const { readableDateTime, createEmbedScrolling, color } = require("../../function.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 const styles = {
     M3: "Super Mario Bros. 3",
     W3: "Super Mario 3D World",
@@ -16,8 +17,20 @@ module.exports = {
     usage: "<keywords>",
     category: 7,
     args: 1,
+    slashInit: true,
+    register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "keywords", "The course to search for.").setRequired(true)
+    ]),
+    async slash() {
+        return InteractionResponse.sendMessage("Fetching courses...");
+    },
+    async postSlash(client, interaction, args) {
+        await InteractionResponse.deleteMessage(client, interaction);
+        args = args[0].value.split(/ +/);
+        const message = await InteractionResponse.createFakeMessage(client, interaction);
+        await this.execute(message, args);
+    },
     async execute(message, args) {
-      message.channel.startTyping();
         const courses = await fetch(`https://api.smmdb.net/courses2?limit=100&title=${encodeURIComponent(args.join(" "))}`).then(res => res.json());
         const allEmbeds = [];
         for (const course of courses) {
@@ -64,10 +77,7 @@ module.exports = {
                 .setFooter(`Votes: ${votes}`);
             allEmbeds.push(em);
         }
-        if(allEmbeds.length < 1) {
-          await message.channel.send("Cannot find any courses!");
-          return message.channel.stopTyping(true);
-        }
+        if(allEmbeds.length < 1) return await message.channel.send("Cannot find any courses!");
         await createEmbedScrolling(message, allEmbeds);
     }
 }

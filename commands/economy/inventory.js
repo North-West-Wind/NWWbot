@@ -2,12 +2,23 @@ const Discord = require("discord.js");
 const fs = require("fs");
 const { wait, color } = require("../../function.js");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "inventory",
   description: "Displays your inventory and allows you to use your purchased items.",
   aliases: ["e"],
   category: 2,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports),
+  async slash() {
+    return InteractionResponse.sendMessage("Getting your inventory ready...");
+  },
+  async postSlash(client, interaction) {
+    await InteractionResponse.deleteMessage(client, interaction);
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message);
+  },
   async execute(message, _args, msg = undefined) {
     const con = await message.pool.getConnection();
     var [result] = await con.query(`SELECT * FROM inventory WHERE id = '${message.author.id}'`);

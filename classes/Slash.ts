@@ -1,5 +1,7 @@
-import { MessageEmbed, Snowflake } from "discord.js";
+import { Guild, MessageEmbed, Snowflake, TextChannel, User } from "discord.js";
+import { Pool } from "mysql2/promise";
 import { Command } from "./Command";
+import { NorthClient } from "./NorthClient";
 
 export class ApplicationCommand {
     name: string;
@@ -124,6 +126,26 @@ export class InteractionResponse {
     }
     static reply(id: Snowflake, message: string): InteractionResponse {
         return this.sendMessage(`<@${id}>, ${message}`);
+    }
+    static async editMessage(client: any, interaction: any, data: any): Promise<Snowflake> {
+        const { id } = await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: data });
+        return id;
+    }
+    static async deleteMessage(client: any, interaction: any): Promise<void> {
+        await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
+    }
+    static async createFakeMessage(client: NorthClient, interaction: any): Promise<any> {
+        var message = { prefix: "/", client, guild: <Guild>null, channel: <any>null, author: <User>null, reply: null, pool: client.pool };
+        if (interaction.guild_id) {
+            message.guild = await client.guilds.fetch(interaction.guild_id);
+            message.channel = await client.channels.fetch(interaction.channel_id);
+            message.author = await client.users.fetch(interaction.member.user.id);
+        } else {
+            message.author = await client.users.fetch(interaction.user.id);
+            message.channel = message.author;
+        }
+        message.reply = async(str: string) => await message.channel.send(`<@${message.author.id}>, ${str}`);
+        return message;
     }
 }
 
