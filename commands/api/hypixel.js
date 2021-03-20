@@ -45,7 +45,7 @@ module.exports = {
   slashInit: true,
   register() {
     return ApplicationCommand.createBasic(module.exports).setOptions([
-      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "category", "The category of information.").setChoices(this.subcommands.map(sub => new ApplicationCommandOptionChoice(sub, sub))),
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "category", "The category of information.").setChoices([new ApplicationCommandOptionChoice("general", "general")].concat(this.subcommands.map(sub => new ApplicationCommandOptionChoice(sub, sub)))).setRequired(true),
       new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "username", "The username of the Hypixel player.").setRequired(true)
     ])
   },
@@ -55,6 +55,7 @@ module.exports = {
   async postSlash(client, interaction, args) {
     await InteractionResponse.deleteMessage(client, interaction);
     args = args.map(x => x.value);
+    if (args[0] === "general") args.shift();
     const message = await InteractionResponse.createFakeMessage(client, interaction);
     await this.execute(message, args);
   },
