@@ -14,6 +14,7 @@ module.exports = {
     return InteractionResponse.sendMessage("Alright, gimme a sec...");
   },
   async postSlash(client, interaction) {
+    await InteractionResponse.deleteMessage(client, interaction);
     const message = await InteractionResponse.createFakeMessage(client, interaction);
     return await this.execute(message);
   },

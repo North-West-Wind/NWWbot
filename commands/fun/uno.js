@@ -40,6 +40,7 @@ module.exports = {
       return InteractionResponse.sendMessage("UNO game initializing...");
   },
   async postSlash(client, interaction, args) {
+    await InteractionResponse.deleteMessage(client, interaction);
     const message = await InteractionResponse.createFakeMessage(client, interaction);
     args = args[0]?.value?.split(/ +/) || [];
     return await this.execute(message, args);

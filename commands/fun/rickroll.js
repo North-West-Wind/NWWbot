@@ -19,6 +19,7 @@ module.exports = {
     },
     async postSlash(client, interaction, args) {
         if (!args[0]?.value) return;
+        await InteractionResponse.deleteMessage(client, interaction);
         await wait(3500);
         var channel;
         if (interaction.channel_id) channel = await client.channels.fetch(interaction.channel_id);

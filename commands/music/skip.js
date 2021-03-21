@@ -24,7 +24,7 @@ module.exports = {
     if (serverQueue.songs.length < 1) return InteractionResponse.sendMessage("There is nothing in the queue!");
     if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
     if (serverQueue.repeating) skipped = 0;
-    else if (args[0].value) skipped = parseInt(args[0].value);
+    else if (args[0]?.value) skipped = parseInt(args[0].value);
     for (var i = 0; i < skipped; i++) {
       if (serverQueue.looping) serverQueue.songs.push(serverQueue.songs[0]);
       serverQueue.songs.shift();
