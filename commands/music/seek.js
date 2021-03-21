@@ -32,7 +32,6 @@ module.exports = {
         if(serverQueue.songs.length < 1 || !serverQueue.connection || !serverQueue.connection.dispatcher || !serverQueue.playing) return message.channel.send("There is nothing in the queue.");
         if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to change the time of the soundtrack begins when the bot is playing!");
         if(serverQueue.songs[0].time === "∞") return message.channel.send("This command does not work for live videos.");
-        const args = message.content.slice(message.prefix.length).split(/ +/);
         if(args.length < 1) return message.channel.send("You didn't provide the time to skip to!");
         var parsed = ms(args.join(" "));
         if(args.join(" ").endsWith("%")) {
