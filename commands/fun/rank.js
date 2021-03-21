@@ -3,7 +3,7 @@ const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash
 const { color } = require("../../function");
 module.exports = {
   name: "rank",
-  description: "Display your rank in the server. However, this command requires a DLC to work. Leveling system was inspired by MEE6.",
+  description: "Display your rank in the server. Leveling system was inspired by MEE6.",
   category: 3,
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports),

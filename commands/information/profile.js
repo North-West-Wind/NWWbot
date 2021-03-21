@@ -18,6 +18,7 @@ module.exports = {
     const guild = await client.guilds.fetch(interaction.guild_id);
     var member = await guild.members.fetch(args[0]?.value ? args[0].value : interaction.member.user.id);
     const Embed = this.createProfileEmbed(member, client, guild);
+    if (Embed.error) return InteractionResponse.sendMessage("Something went wrong while creating the embed!");
     return InteractionResponse.sendEmbeds(Embed);
   },
   async execute(message, args) {
@@ -26,6 +27,7 @@ module.exports = {
     if (args[0]) member = await findMember(message, args[0]);
     if (!member) return;
     const Embed = this.createProfileEmbed(member, message.client, message.guild);
+    if (Embed.error) return await message.channel.send("Something went wrong while creating the embed!");
     await message.channel.send(Embed);
     /*const allEmbeds = [Embed];
     if (member.presence.activities.length > 0) {
@@ -69,5 +71,6 @@ module.exports = {
       .setColor(color())
       .setTimestamp()
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+    return Embed;
   }
 };
