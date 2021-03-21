@@ -137,6 +137,9 @@ export class InteractionResponse {
         const { id } = await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: data });
         return id;
     }
+    static async createResponse(client: any, interaction: any, response: InteractionResponse): Promise<void> {
+        await client.api.interactions(interaction.id, interaction.token).callback.post({ data: JSON.parse(JSON.stringify(response)) });
+    }
     static async deleteMessage(client: any, interaction: any): Promise<void> {
         await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
     }

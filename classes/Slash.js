@@ -124,6 +124,11 @@ class InteractionResponse {
             return id;
         });
     }
+    static createResponse(client, interaction, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield client.api.interactions(interaction.id, interaction.token).callback.post({ data: JSON.parse(JSON.stringify(response)) });
+        });
+    }
     static deleteMessage(client, interaction) {
         return __awaiter(this, void 0, void 0, function* () {
             yield client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
