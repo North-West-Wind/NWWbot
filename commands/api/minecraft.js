@@ -64,9 +64,9 @@ module.exports = {
     if (args[0].name === this.subcommands[1]) {
       const url = `https://api.mcsrvstat.us/2/${args[0].options[0].value}`;
       const res = await fetch(url);
-      if (!res.ok) return InteractionResponse.editMessage("Received HTTP Status Code " + res.status);
+      if (!res.ok) return InteractionResponse.editMessage(client, interaction, "Received HTTP Status Code " + res.status);
       const body = await res.json();
-      if (body.online) return InteractionResponse.editMessage(client, interaction, { embed: this.getServerEmbed(body, client, args[0].options[0].value), content: "" });
+      if (body.online) return InteractionResponse.editMessage(client, interaction, { embeds: [this.getServerEmbed(body, client, args[0].options[0].value)], content: "" });
       else return InteractionResponse.editMessage(client, interaction, { content: "The server - **" + args.slice(1).join(" ") + "** - is offline/under maintenance." });
     } else if (args[0].name === this.subcommands[3]) {
       InteractionResponse.deleteMessage(client, interaction).catch(() => { });
