@@ -17,7 +17,6 @@ module.exports = {
   category: 7,
   args: 1,
   slashInit: true,
-  slashWait: true,
   async register() {
     const sortChoices = []
     for (const sort in SortTypes) sortChoices.push(new ApplicationCommandOptionChoice(sort.toLowerCase(), sort));
@@ -54,23 +53,24 @@ module.exports = {
       }
       return InteractionResponse.sendEmbeds(em);
     } else if (args[0].name === this.subcommands[1]) {
-      return InteractionResponse.wait();
+      return InteractionResponse.sendMessage("Retrieving server information...");
     } else if (args[0].name === this.subcommands[2]) {
       const res = await nameToUuid(args[0].options[0].value, true);
       if (!res[0]) return InteractionResponse.sendMessage("No player named **" + args[0].options[0].value + "** were found");
       return InteractionResponse.sendMessage(await this.getHistoryEmbed(res, client));
-    } else if (args[0].name === this.subcommands[3]) return InteractionResponse.ackknowledge();
+    } else if (args[0].name === this.subcommands[3]) return InteractionResponse.sendMessage("Fetching CurseForge projects...");
   },
   async postSlash(client, interaction, args) {
     if (args[0].name === this.subcommands[1]) {
       const url = `https://api.mcsrvstat.us/2/${args[0].options[0].value}`;
       const res = await fetch(url);
-      if (!res.ok) return InteractionResponse.createResponse(client, interaction, InteractionResponse.sendMessage("Received HTTP Status Code " + res.status));
+      if (!res.ok) return InteractionResponse.editMessage("Received HTTP Status Code " + res.status);
       const body = await res.json();
-      if (body.online) return InteractionResponse.createResponse(client, interaction, InteractionResponse.sendEmbeds(this.getServerEmbed(body, client, args[0].options[0].value)));
-      else return InteractionResponse.createResponse(client, interaction, InteractionResponse.sendMessage("The server - **" + args[0].options[0].value + "** - is offline/under maintenance."));
+      if (body.online) return InteractionResponse.editMessage(client, interaction, { embed: this.getServerEmbed(body, client, args[0].options[0].value), content: "" });
+      else return InteractionResponse.editMessage(client, interaction, { content: "The server - **" + args.slice(1).join(" ") + "** - is offline/under maintenance." });
     } else if (args[0].name === this.subcommands[3]) {
-      const cArgs = ["0"].concat(args[0].options.filter(x => !!x).map(x => x.value));
+      InteractionResponse.deleteMessage(client, interaction).catch(() => { });
+      const cArgs = ["curseforge"].concat(args[0].options.filter(x => !!x).map(x => x.value));
       await this.cf(await InteractionResponse.createFakeMessage(client, interaction), cArgs);
     }
   },

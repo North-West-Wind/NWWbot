@@ -44,7 +44,7 @@ module.exports = {
         new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "color", "The color to display.")
     ]),
     async slash(client, _interaction, args) {
-        args = args[0]?.value?.split(/ +/) || [];
+        args = args?.map(x => x?.value).filter(x => !!x) || [];
         const { red, green, blue, random } = getColor(args);
         const em = new Discord.MessageEmbed()
         .setTitle(`Color: ${red} ${green} ${blue}`)

@@ -14,19 +14,17 @@ module.exports = {
     new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "song", "The song to search for.").setRequired(true)
   ]),
   async slash() {
-    return InteractionResponse.ackknowledge();
+    return InteractionResponse.sendMessage("Lyrics are loading!");
   },
   async postSlash(client, interaction, args) {
-    args = args?.map(x => x?.value).filter(x => !!x);
-    const message = await InteractionResponse.createFakeMessage(client, interaction);
-    await this.execute(message, args);
-  },
-  async execute(message, args) {
-    var lyrics = await solenolyrics.requestLyricsFor(args.join(" "));
-    var title = await solenolyrics.requestTitleFor(args.join(" "));
-    var author = await solenolyrics.requestAuthorFor(args.join(" "));
+    InteractionResponse.deleteMessage(client, interaction).catch(() => { });
+    const song = args[0].value;
+
+    var lyrics = await solenolyrics.requestLyricsFor(song);
+    var title = await solenolyrics.requestTitleFor(song);
+    var author = await solenolyrics.requestAuthorFor(song);
     try {
-      var icon = await solenolyrics.requestIconFor(args.join(" "));
+      var icon = await solenolyrics.requestIconFor(song);
     } catch(err) {
       var icon = undefined;
     }
@@ -35,7 +33,29 @@ module.exports = {
     if(!title) title = "Title Not Found";
     if(!author) author = "No Authors Found";
     if(!lyrics) lyrics = "No lyrics were found";
+    const allEmbeds = await this.createLyricsEmbeds(lyrics, title, author, icon, message.client);
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    if (allEmbeds.length == 1) await message.channel.send(allEmbeds[0]);
+    else await createEmbedScrolling(message, allEmbeds);
+  },
+  async execute(message, args) {
+    var lyrics = await solenolyrics.requestLyricsFor(args.join(" "));
+    var title = await solenolyrics.requestTitleFor(args.join(" "));
+    var author = await solenolyrics.requestAuthorFor(args.join(" "));
+    var icon;
+    try {
+      icon = await solenolyrics.requestIconFor(args.join(" "));
+    } catch(err) { }
     
+    if(!author && !title) return message.channel.send("Cannot find the song! Try to be more specific?");
+    if(!title) title = "Title Not Found";
+    if(!author) author = "No Authors Found";
+    if(!lyrics) lyrics = "No lyrics were found";
+    const allEmbeds = await this.createLyricsEmbeds(lyrics, title, author, icon, message.client);
+    if (allEmbeds.length == 1) await message.channel.send(allEmbeds[0]);
+    else await createEmbedScrolling(message, allEmbeds, 2);
+  },
+  async createLyricsEmbeds(lyrics, title, author, icon, client) {
     var lyricsArr = lyrics.split("\n\n");
     if(lyricsArr.length === 1) lyricsArr = lyrics.split("\n");
     const allEmbeds = [];
@@ -61,7 +81,7 @@ module.exports = {
           .setAuthor(author)
           .setDescription(str.join("\n"))
           .setTimestamp()
-          .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+          .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
           allEmbeds.push(em);
         }
         continue;
@@ -84,10 +104,9 @@ module.exports = {
       .setAuthor(author)
       .setDescription(str.join("\n\n"))
       .setTimestamp()
-      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+      .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
       allEmbeds.push(em);
     }
-    if (allEmbeds.length == 1) await message.channel.send(allEmbeds[0]);
-    else await createEmbedScrolling(message, allEmbeds, 2);
+    return allEmbeds;
   }
 }

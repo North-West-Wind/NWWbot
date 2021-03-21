@@ -30,15 +30,16 @@ module.exports = {
     category: 7,
     slashInit: true,
     register: () => ApplicationCommand.createBasic(module.exports).setOptions([
-      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "user", "The username of the Survivr.").setRequired(true)
+        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "user", "The username of the Survivr.").setRequired(true)
     ]),
     async slash() {
-      return InteractionResponse.ackknowledge();
+        return InteractionResponse.sendMessage("Fetching user stats...");
     },
     async postSlash(client, interaction, args) {
-      args = args?.map(x => x?.value).filter(x => !!x);
-      const message = await InteractionResponse.createFakeMessage(client, interaction);
-      await this.execute(message, args);
+        InteractionResponse.deleteMessage(client, interaction).catch(() => { });
+        args = args?.map(x => x?.value).filter(x => !!x);
+        const message = await InteractionResponse.createFakeMessage(client, interaction);
+        await this.execute(message, args);
     },
     async execute(message, args) {
         try {
@@ -69,10 +70,10 @@ module.exports = {
                 .setTimestamp()
                 .setFooter("Made with Surviv.io API", message.client.user.displayAvatarURL());
             allEmbeds.push(overall);
-            if(stats.modes[0]) allEmbeds.push(createModeEmbed(message, stats.modes[0], stats));
-            if(stats.modes[1]) allEmbeds.push(createModeEmbed(message, stats.modes[1], stats));
-            if(stats.modes[2]) allEmbeds.push(createModeEmbed(message, stats.modes[2], stats));
-            if(history[0]) {
+            if (stats.modes[0]) allEmbeds.push(createModeEmbed(message, stats.modes[0], stats));
+            if (stats.modes[1]) allEmbeds.push(createModeEmbed(message, stats.modes[1], stats));
+            if (stats.modes[2]) allEmbeds.push(createModeEmbed(message, stats.modes[2], stats));
+            if (history[0]) {
                 const last = new MessageEmbed()
                     .setColor(color())
                     .setTitle(`${stats.username} - Last Played Game`)
@@ -90,7 +91,7 @@ module.exports = {
                     .setFooter("Made with Surviv.io API", message.client.user.displayAvatarURL());
                 allEmbeds.push(last);
             }
-            if(allEmbeds.length == 1) await message.channel.send(allEmbeds[0]);
+            if (allEmbeds.length == 1) await message.channel.send(allEmbeds[0]);
             else await createEmbedScrolling(message, allEmbeds);
         } catch (err) {
             await message.channel.send("Cannot find that user!");

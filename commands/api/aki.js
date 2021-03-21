@@ -56,9 +56,10 @@ module.exports = {
     ])
   },
   async slash() {
-    return InteractionResponse.ackknowledge();
+    return InteractionResponse.sendMessage("Initializing Akinator game...");
   },
   async postSlash(client, interaction, args) {
+    InteractionResponse.deleteMessage(client, interaction).catch(() => { });
     args = args?.map(x => x?.value).filter(x => !!x) || [];
     const message = await InteractionResponse.createFakeMessage(client, interaction);
     await this.execute(message, args);

@@ -9,9 +9,10 @@ module.exports = {
     slashInit: true,
     register: () => ApplicationCommand.createBasic(module.exports),
     async slash() {
-        return InteractionResponse.ackknowledge();
+        return InteractionResponse.sendMessage("Yacht Dice Game initializing...");
     },
     async postSlash(client, interaction) {
+        InteractionResponse.deleteMessage(client, interaction).catch(() => { });
         const message = await InteractionResponse.createFakeMessage(client, interaction);
         return await this.execute(message);
     },

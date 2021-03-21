@@ -16,7 +16,7 @@ const requestYTDLStream = (url, opts) => {
 };
 const sanitize = require("sanitize-filename");
 const { NorthClient } = require("../../classes/NorthClient.js");
-const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType } = require("../../classes/Slash.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 
 module.exports = {
     name: "download",
@@ -30,10 +30,11 @@ module.exports = {
     ]),
     async slash(_client, interaction) {
         if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-        return InteractionResponse.ackknowledge();
+        return InteractionResponse.sendMessage("Downloading soundtrack...");
     },
     async postSlash(client, interaction, args) {
         if (!interaction.guild_id) return;
+        InteractionResponse.deleteMessage(client, interaction).catch(() => { });
         const message = await InteractionResponse.createFakeMessage(client, interaction);
         args = args?.map(x => x?.value).filter(x => !!x) || [];
         await this.execute(message, args);

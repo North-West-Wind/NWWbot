@@ -15,10 +15,11 @@ module.exports = {
     ]),
     async slash(_client, interaction) {
       if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-      return InteractionResponse.ackknowledge();
+      return InteractionResponse.sendMessage("Searching soundtracks...");
     },
     async postSlash(client, interaction, args) {
       if (!interaction.guild_id) return;
+      InteractionResponse.deleteMessage(client, interaction).catch(() => { });
       const message = await InteractionResponse.createFakeMessage(client, interaction);
       args = args?.map(x => x?.value).filter(x => !!x)|| [];
       await this.execute(message, args);

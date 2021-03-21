@@ -14,12 +14,13 @@ module.exports = {
     register: () => ApplicationCommand.createBasic(module.exports).setOptions([
         new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "link", "The link of the soundtrack. (Use /search to search)").setRequired(true)
     ]),
-    async slash(_client, interaction, _args) {
+    async slash(_client, interaction) {
       if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-      return InteractionResponse.ackknowledge();
+      return InteractionResponse.sendMessage("Adding soundtrack...");
     },
     async postSlash(client, interaction, args) {
       if (!interaction.guild_id) return;
+      InteractionResponse.deleteMessage(client, interaction).catch(() => { });
       const message = await InteractionResponse.createFakeMessage(client, interaction);
       args = args[0]?.value?.split(/ +/) || [];
       await this.execute(message, args);

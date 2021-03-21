@@ -17,11 +17,12 @@ module.exports = {
     new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "add", "Adds a new item to the server shop.")
   ]),
   async slash() {
-    return InteractionResponse.ackknowledge();
+    return InteractionResponse.sendMessage("Opening shop...");
   },
   async postSlash(client, interaction, args) {
+    InteractionResponse.deleteMessage(client, interaction).catch(() => { });
     const message = await InteractionResponse.createFakeMessage(client, interaction);
-    await this.execute(message, args[0].name === "add" ? ["add"] : undefined);
+    await this.execute(message, args[0].name === "add" ? args[0].name : undefined);
   },
   async execute(message, args) {
     if (args[0] && args[0] == "add") return await this.add(message);

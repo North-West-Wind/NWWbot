@@ -33,10 +33,11 @@ module.exports = {
   ]),
   async slash(_client, interaction) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    return InteractionResponse.ackknowledge();
+    return InteractionResponse.sendMessage("Accessing soundtracks...");
   },
   async postSlash(client, interaction, args) {
     if (!interaction.guild_id) return;
+    InteractionResponse.deleteMessage(client, interaction).catch(() => { });
     const message = await InteractionResponse.createFakeMessage(client, interaction);
     args = [args[0].name].concat(args[0]?.options[0]?.value?.split(/ +/) || []);
     await this.execute(message, args);

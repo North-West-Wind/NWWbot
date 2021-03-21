@@ -24,10 +24,11 @@ module.exports = {
   register: () => ApplicationCommand.createBasic(module.exports),
   async slash(_client, interaction) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    return InteractionResponse.ackknowledge();
+    return InteractionResponse.sendMessage("Retrieving current soundtrack...");
   },
   async postSlash(client, interaction) {
     if (!interaction.guild_id) return;
+    InteractionResponse.deleteMessage(client, interaction).catch(() => { });
     const message = await InteractionResponse.createFakeMessage(client, interaction);
     await this.execute(message);
   },

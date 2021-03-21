@@ -13,12 +13,13 @@ module.exports = {
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user's information to find.")
   ]),
-  async slash(_client, interaction, _args) {
+  async slash(_client, interaction) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    return InteractionResponse.ackknowledge();
+    return InteractionResponse.sendMessage("Fetching profile...");
   },
   async postSlash(client, interaction, args) {
     if (!interaction.guild_id) return;
+    InteractionResponse.deleteMessage(client, interaction).catch(() => { });
     const message = await InteractionResponse.createFakeMessage(client, interaction);
     args = args[0]?.value?.split(/ +/) || [];
     return await this.execute(message, args);

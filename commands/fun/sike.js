@@ -10,9 +10,10 @@ module.exports = {
     slashInit: true,
     register: () => ApplicationCommand.createBasic(module.exports),
     async slash() {
-        return InteractionResponse.ackknowledge();
+        return InteractionResponse.sendMessage("Hold up...");
     },
     async postSlash(client, interaction) {
+        InteractionResponse.deleteMessage(client, interaction).catch(() => { });
         const { channel } = await InteractionResponse.createFakeMessage(client, interaction);
         await channel.send(attachment);
         await wait(10000 - 1500);

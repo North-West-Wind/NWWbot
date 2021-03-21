@@ -45,9 +45,10 @@ module.exports = {
         new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "score", "The link or name of the score.").setRequired(true)
     ]),
     async slash() {
-        return InteractionResponse.ackknowledge();
+        return InteractionResponse.sendMessage("Fetching score metadata...");
     },
     async postSlash(client, interaction, args) {
+        InteractionResponse.deleteMessage(client, interaction).catch(() => { });
         args = args?.map(x => x?.value).filter(x => !!x);
         const message = await InteractionResponse.createFakeMessage(client, interaction);
         await this.execute(message, args);
