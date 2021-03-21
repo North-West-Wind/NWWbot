@@ -1,5 +1,5 @@
 var Discord = require("discord.js");
-var { shuffleArray, twoDigits, color } = require("../../function.js");
+var { shuffleArray, twoDigits, color, findMember } = require("../../function.js");
 const { NorthClient } = require("../../classes/NorthClient.js");
 var converter = require("number-to-words");
 var { createCanvas, loadImage } = require("canvas");
@@ -14,6 +14,7 @@ function toString(x) {
   if (x.number > 9) number = NUMBER[x.number - 10];
   return `**${colorStr}** - **${number}**`;
 }
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash");
 
 async function canvasImg(assets, cards) {
   let canvas = createCanvas((cards.length < 5 ? 165 * cards.length : 825), Math.ceil(cards.length / 5) * 256);
@@ -31,11 +32,29 @@ module.exports = {
   description: "Play UNO with your friends!",
   category: 3,
   usage: "[users]",
-  async execute(message) {
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "users", "The users to invite.")
+  ]),
+  async slash() {
+      return InteractionResponse.sendMessage("UNO game initializing...");
+  },
+  async postSlash(client, interaction, args) {
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    args = args[0]?.value?.split(/ +/) || [];
+    return await this.execute(message, args);
+  },
+  async execute(message, args) {
     var c = color();
-    if (message.mentions.members.size > 0) {
-      var msg = await message.channel.send(`You invited ${message.mentions.members.map(user => `<@${user.id}>`).join(" ")} to play UNO.`);
-      var mentions = message.mentions.members;
+    if (args.length > 0) {
+      var mentions = new Discord.Collection();
+      for (const arg of args) {
+        const member = await findMember(message, arg);
+        if (!member) continue;
+        mentions.set(member.id, member);
+      }
+      if (mentions.size < 1) return await message.channel.send("Your mentions are not valid!");
+      var msg = await message.channel.send(`You invited ${mentions.map(user => `<@${user.id}>`).join(" ")} to play UNO.`);
     } else {
       var msg = await message.channel.send("Alright, we will start an UNO game. Who will be invited? Please mention them!");
       var collected = await message.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 });

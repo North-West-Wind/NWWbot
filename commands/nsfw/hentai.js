@@ -54,11 +54,11 @@ module.exports = {
     ])
   },
   async slash(client, interaction) {
-    if (interaction.channel_id && !(await client.channels.fetch(interaction.channel_id).nsfw)) return InteractionResponse.sendMessage("Please use an NSFW channel to use this command!");
+    if (interaction.channel_id && !(await client.channels.fetch(interaction.channel_id)).nsfw) return InteractionResponse.sendMessage("Please use an NSFW channel to use this command!");
     return InteractionResponse.sendMessage("Finding Hentai...");
   },
   async postSlash(client, interaction, args) {
-    if (interaction.channel_id && !(await client.channels.fetch(interaction.channel_id).nsfw)) return;
+    if (interaction.channel_id && !(await client.channels.fetch(interaction.channel_id)).nsfw) return;
     await InteractionResponse.deleteMessage(client, interaction);
     args = args[0]?.value.split(/ +/) || [];
     const message = await InteractionResponse.createFakeMessage(client, interaction);

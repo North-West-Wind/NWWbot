@@ -6,6 +6,7 @@ const { createCanvas } = require("canvas");
 const Discord = require("discord.js");
 const sanitize = require("sanitize-filename");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 module.exports = {
     name: "ascii",
     description: "Generate ASCII arts from text or image.",
@@ -15,6 +16,23 @@ module.exports = {
     subdesc: ["Generate ASCII art from text.", "Generate ASCII art from image."],
     subusage: ["<subcommand> <text>", "<subcommand> <attachment>"],
     args: 2,
+    slashInit: true,
+    register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "text", "The text to be converted into ASCII art.").setRequired(true)
+    ]),
+    async slash(_client, _interaction, args) {
+        const text = figlet.textSync(args[0].value);
+        if (text.length + 83 > 2000) return InteractionResponse.sendMessage("The text is too long to send in Discord! Wait for a second for a text file!");
+        else InteractionResponse.sendMessage("```" + text + "```\nYour text might not show properly! Wait for a second for a text file!");
+    },
+    async postSlash(client, interaction, args) {
+        const text = figlet.textSync(args[0].value);
+        const attachment = new Discord.MessageAttachment(Buffer.from(text, 'utf8'), sanitize(`${args[0].value}.txt`));
+        var channel;
+        if (interaction.channel_id) channel = await client.channels.fetch(interaction.channel_id);
+        else channel = await client.users.fetch(interaction.user.id);
+        await channel.send(attachment);
+    },
     async execute(message, args) {
         if (!args[0]) return await message.channel.send(`Please provide a subcommand!\nUsage: \`${message.prefix}${this.name} ${this.usage}\`\nAvailable Subcommands: \`${this.subcomamnds.join(", ")}\``);
         switch (args[0].toLowerCase()) {

@@ -1,12 +1,22 @@
 const Discord = require("discord.js");
 const { color } = require("../../function");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash");
 
 module.exports = {
   name: "rps",
   description: "Play rock, paper, scissors with the randomizer.",
   aliases: ["rockscissorspaper", "rockpaperscissors", "paperscissorsstone", "rsp", "pss"],
   category: 3,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports),
+  async slash() {
+    return InteractionResponse.sendMessage("Alright, gimme a sec...");
+  },
+  async postSlash(client, interaction) {
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    return await this.execute(message);
+  },
   async execute(message) {
     const options = ["🖐", "✌", "👊"];
     var em = new Discord.MessageEmbed()

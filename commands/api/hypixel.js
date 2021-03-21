@@ -61,7 +61,7 @@ module.exports = {
   },
   async execute(message, args) {
     if (!args[0]) return message.channel.send("Please provide a Minecraft username or use the subcommands.");
-    const color = color();
+    const c = color();
     args[0] = args[0].toLowerCase();
     if (args[0] === "auctionhouse" || args[0] === "ah") {
       if (!args[1]) return message.channel.send("Please enter an item!");
@@ -92,7 +92,7 @@ module.exports = {
       var median = Math.max(auctions[Math.ceil(auctions.length / 2)].highest_bid_amount, auctions[Math.ceil(auctions.length / 2)].starting_bid) / auctions[Math.ceil(auctions.length / 2)].item.count;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(`Price deatails of "${id.replace(/_/g, " ")}" from ${auctions.length} auctions`)
         .setDescription(`Highest: \$${numberWithCommas(Math.round(highest))} - **${auctions[auctions.length - 1].item_name}**\nLowest: \$${numberWithCommas(Math.round(lowest))} - **${auctions[0].item_name}**\nAverage: \$${numberWithCommas(Math.round(average))}\nMedian: \$${numberWithCommas(Math.round(median))}`)
         .setTimestamp()
@@ -156,7 +156,7 @@ module.exports = {
       var sellOrder = stats.sellOrders;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle("Price details of \"" + searchedID.replace(/_/g, " ") + "\" from Bazaar")
         .addField("Buy Price", numberWithCommas(Math.round(buyPrice * 100) / 100), true)
         .addField("Buy Volume", numberWithCommas(buyVol), true)
@@ -208,7 +208,7 @@ module.exports = {
         const rank2 = rank.replace(/[\[\]']+/g, "");
         const skin = "https://visage.surgeplay.com/full/256/" + res[0].id;
         const Embed = new Discord.MessageEmbed()
-          .setColor(color)
+          .setColor(c)
           .setTitle(res[0].name)
           .setURL("https://hypixel.net/player/" + res[0].name)
           .setDescription("General stats")
@@ -291,7 +291,7 @@ module.exports = {
         members[i].name = username;
       }
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(guildName)
         .setDescription("Guild of " + res[0].name)
         .addField("Guild ID", "`" + guildId + "`", true)
@@ -302,7 +302,7 @@ module.exports = {
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       const topPlayer = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(guildName)
         .setDescription("Top 10 GEXP gatherer")
         .setTimestamp()
@@ -334,7 +334,7 @@ module.exports = {
       if (tnt.wins_capture) wins_capture = tnt.wins_capture;
       if (tnt.kills_capture) kills_capture = tnt.kills_capture;
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("TNT Games - **Overall**")
@@ -383,7 +383,7 @@ module.exports = {
       const bbr = Math.round((bed / bedlost) * 100) / 100;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Bedwars - **Overall**")
@@ -433,7 +433,7 @@ module.exports = {
       const fkdrSolo = Math.round((finalSolo / fdeathSolo) * 100) / 100;
 
       const EmbedSolo = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Bedwars - **Solo**")
@@ -524,7 +524,7 @@ module.exports = {
       var fkdrTwo = Math.round((finalTwo / fdeathTwo) * 100) / 100;
 
       const EmbedTwo = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Bedwars - **Double**")
@@ -625,7 +625,7 @@ module.exports = {
       var fkdrTri = Math.round((finalTri / fdeathTri) * 100) / 100;
 
       const EmbedTri = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Bedwars - **3v3v3v3**")
@@ -726,7 +726,7 @@ module.exports = {
       var fkdr4 = Math.round((final4 / fdeath4) * 100) / 100;
 
       const Embed4 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Bedwars - **4v4v4v4**")
@@ -842,7 +842,7 @@ module.exports = {
       var uhcKdr = Math.round((uhcKills / uhcDeaths) * 100) / 100;
 
       const EmbedUhc = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Duels - **UHC**")
@@ -948,7 +948,7 @@ module.exports = {
       var swKdr = Math.round((swKills / swDeaths) * 100) / 100;
 
       const EmbedSw = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Duels - **Skywars**")
@@ -1054,7 +1054,7 @@ module.exports = {
       var mwKdr = Math.round((mwKills / mwDeaths) * 100) / 100;
 
       const EmbedMw = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Duels - **Mega Walls**")
@@ -1160,7 +1160,7 @@ module.exports = {
       var clsKdr = Math.round((clsKills / clsDeaths) * 100) / 100;
 
       const EmbedCls = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Duels - **Classic**")
@@ -1266,7 +1266,7 @@ module.exports = {
       var bowKdr = Math.round((bowKills / bowDeaths) * 100) / 100;
 
       const EmbedBow = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Duels - **Bow**")
@@ -1372,7 +1372,7 @@ module.exports = {
       var bliKdr = Math.round((bliKills / bliDeaths) * 100) / 100;
 
       const EmbedBli = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Duels - **Blitz**")
@@ -1478,7 +1478,7 @@ module.exports = {
       var opKdr = Math.round((opKills / opDeaths) * 100) / 100;
 
       const EmbedOp = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Duels - **OP**")
@@ -1584,7 +1584,7 @@ module.exports = {
       var poKdr = Math.round((poKills / poDeaths) * 100) / 100;
 
       const EmbedPo = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Duels - **No Debuff**")
@@ -1681,7 +1681,7 @@ module.exports = {
       var comKdr = Math.round((comKills / comDeaths) * 100) / 100;
 
       const EmbedCom = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Duels - **Combo**")
@@ -1799,7 +1799,7 @@ module.exports = {
       var briKdr = Math.round((briKills / briDeaths) * 100) / 100;
 
       const EmbedBri = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Duels - **Bridge**")
@@ -1892,7 +1892,7 @@ module.exports = {
       var sumKdr = Math.round((sumKills / sumDeaths) * 100) / 100;
 
       const EmbedSum = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Duels - **Sumo**")
@@ -1998,7 +1998,7 @@ module.exports = {
       var kdr = Math.round((kills / deaths) * 100) / 100;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Duels - **Overall**")
@@ -2151,7 +2151,7 @@ module.exports = {
       }
 
       const overallEmbed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("SkyWars - **Overall**")
@@ -2250,7 +2250,7 @@ module.exports = {
       }
 
       const soloEmbed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("SkyWars - **Solo**")
@@ -2350,7 +2350,7 @@ module.exports = {
       }
 
       const teamEmbed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("SkyWars - **Team**")
@@ -2415,7 +2415,7 @@ module.exports = {
       }
 
       const rankedEmbed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("SkyWars - **Ranked**")
@@ -2462,7 +2462,7 @@ module.exports = {
         : Math.round((kills / deaths) * 100) / 100;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Blitz Survival - **Overall**")
@@ -2615,7 +2615,7 @@ module.exports = {
       var gwShots = ar.sw_shots_fired ? ar.sw_shots_fired : 0;
 
       const Embed1 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription(
@@ -2645,7 +2645,7 @@ module.exports = {
         );
 
       const Embed2 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription(
@@ -2670,7 +2670,7 @@ module.exports = {
         );
 
       const Embed3 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Arcade - **Hole in the Wall/Mini Walls**")
@@ -2697,7 +2697,7 @@ module.exports = {
         );
 
       const Embed4 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Arcade - **Party Games/Throw Out**")
@@ -2717,7 +2717,7 @@ module.exports = {
         );
 
       const Embed5 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Arcade - **Zombies**")
@@ -2742,7 +2742,7 @@ module.exports = {
         );
 
       const Embed6 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Arcade - **Galaxy Wars/Creeper Attack**")
@@ -2969,7 +2969,7 @@ module.exports = {
         : 0;
 
       const overall = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Murder Mystery - **Overall**")
@@ -3007,7 +3007,7 @@ module.exports = {
         );
 
       const classic = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Murder Mystery - **Classic**")
@@ -3051,7 +3051,7 @@ module.exports = {
         );
 
       const double = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Murder Mystery - **Double Up**")
@@ -3088,7 +3088,7 @@ module.exports = {
         );
 
       const assassin = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Murder Mystery - **Assassins**")
@@ -3112,7 +3112,7 @@ module.exports = {
         );
 
       const infection = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Murder Mystery - **Infection**")
@@ -3136,7 +3136,7 @@ module.exports = {
         );
 
       const showdown = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Murder Mystery - **Showdown**")
@@ -3189,7 +3189,7 @@ module.exports = {
         : 0;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Build Battle - **Overall**")
@@ -3248,7 +3248,7 @@ module.exports = {
       var deaths = cc.deaths ? cc.deaths : deathmatchDeaths;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Cops and Crims - **Overall**")
@@ -3309,7 +3309,7 @@ module.exports = {
       vampKdr = isNaN(vampKdr) ? "0.00" : vampKdr;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("VampireZ - **Overall**")
@@ -3345,7 +3345,7 @@ module.exports = {
 
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Paintball - **Overall**")
@@ -3388,7 +3388,7 @@ module.exports = {
 
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("QuakeCraft - **Overall**")
@@ -3430,7 +3430,7 @@ module.exports = {
       var kdr = isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("UHC - **Overall**")
@@ -3504,7 +3504,7 @@ module.exports = {
       var wlr = isNaN(Math.round((wins / losses) * 100) / 100) ? "0.00" : Math.round((wins / losses) * 100) / 100;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Walls - **Overall**")
@@ -3541,7 +3541,7 @@ module.exports = {
       var finalKdr = isNaN(Math.round((finalKills / finalDeaths) * 100) / 100) ? "0.00" : Math.round((finalKills / finalDeaths) * 100) / 100;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Mega Walls - **Overall**")
@@ -3613,7 +3613,7 @@ module.exports = {
       var teamWlr = isNaN(Math.round((teamWins / teamLosses) * 100) / 100) ? "0.00" : Math.round((teamWins / teamLosses) * 100) / 100;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Crazy Walls - **Overall**")
@@ -3635,7 +3635,7 @@ module.exports = {
         );
 
       const Embed2 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Crazy Walls - **Solo Normal**")
@@ -3654,7 +3654,7 @@ module.exports = {
         );
 
       const Embed3 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Crazy Walls - **Solo Lucky**")
@@ -3673,7 +3673,7 @@ module.exports = {
         );
 
       const Embed4 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Crazy Walls - **Team Normal**")
@@ -3692,7 +3692,7 @@ module.exports = {
         );
 
       const Embed5 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Crazy Walls - **Team Lucky**")
@@ -3776,7 +3776,7 @@ module.exports = {
 
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Smash Hero - **Overall**")
@@ -3809,7 +3809,7 @@ module.exports = {
         );
 
       const Embed1 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Smash Hero - **Team**")
@@ -3836,7 +3836,7 @@ module.exports = {
         );
 
       const Embed2 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Smash Hero - **Normal**")
@@ -3863,7 +3863,7 @@ module.exports = {
         );
 
       const Embed3 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Smash Hero - **2v2**")
@@ -3890,7 +3890,7 @@ module.exports = {
         );
 
       const Embed4 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Smash Hero - **3v3**")
@@ -4011,7 +4011,7 @@ module.exports = {
       var teamInsaneWlr = isNaN(Math.round((teamInsaneWins / teamInsaneLosses) * 100) / 100) ? "0.00" : Math.round((teamInsaneWins / teamInsaneLosses) * 100) / 100;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Speed UHC - **Overall**")
@@ -4045,7 +4045,7 @@ module.exports = {
         );
 
       const Embed1 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Speed UHC - **Normal**")
@@ -4071,7 +4071,7 @@ module.exports = {
         );
 
       const Embed2 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Speed UHC - **Insane**")
@@ -4097,7 +4097,7 @@ module.exports = {
         );
 
       const Embed3 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Speed UHC - **Solo**")
@@ -4123,7 +4123,7 @@ module.exports = {
         );
 
       const Embed4 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Speed UHC - **Team**")
@@ -4149,7 +4149,7 @@ module.exports = {
         );
 
       const Embed5 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Speed UHC - **Solo Normal**")
@@ -4169,7 +4169,7 @@ module.exports = {
         );
 
       const Embed6 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Speed UHC - **Solo Insane**")
@@ -4189,7 +4189,7 @@ module.exports = {
         );
 
       const Embed7 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Speed UHC - **Team Normal**")
@@ -4209,7 +4209,7 @@ module.exports = {
         );
 
       const Embed8 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Speed UHC - **Team Insane**")
@@ -4279,7 +4279,7 @@ module.exports = {
 
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Arena - **Overall**")
@@ -4305,7 +4305,7 @@ module.exports = {
         );
 
       const Embed1 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Arena - **1v1**")
@@ -4331,7 +4331,7 @@ module.exports = {
         );
 
       const Embed2 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Arena - **2v2**")
@@ -4356,7 +4356,7 @@ module.exports = {
           message.client.user.displayAvatarURL()
         );
       const Embed4 = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Arena - **4v4**")
@@ -4406,7 +4406,7 @@ module.exports = {
       var kdr = isNaN(Math.round((kills / deaths) * 100) / 100) ? "0.00" : Math.round((kills / deaths) * 100) / 100;
 
       const Embed = new Discord.MessageEmbed()
-        .setColor(color)
+        .setColor(c)
         .setTitle(rank + res[0].name)
         .setURL("https://hypixel.net/player/" + res[0].name)
         .setDescription("Pit - **Overall**")
@@ -4565,7 +4565,7 @@ module.exports = {
         }
 
         const Embed = new Discord.MessageEmbed()
-          .setColor(color)
+          .setColor(c)
           .setTitle(rank + res[0].name)
           .setURL("https://sky.shiiyu.moe/stats/" + res[0].name)
           .setDescription("SkyBlock - **" + profile.cute_name + "**\n" + `Members [${memberCount}]: ${memberName.join(", ")}\n\n**Magma Boss** in **${magmaStr}**\n**Dark Auction** in **${darkStr}**\n**Bank Interest** in **${bankStr}**\n**New Year** in **${yearStr}**\n**Travelling Zoo** in **${zooStr}**\n**Spooky Festival** in **${spookStr}**\n**Winter Event** in **${winterStr}**\n**Jerry Workshop** in **${jerryStr}**`)

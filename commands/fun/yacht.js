@@ -1,10 +1,20 @@
 const Discord = require("discord.js");
 const { color } = require("../../function");
+const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash");
 
 module.exports = {
     name: "yacht",
     description: "Play the Yacht Dice Game on Discord.",
     category: 3,
+    slashInit: true,
+    register: () => ApplicationCommand.createBasic(module.exports),
+    async slash() {
+        return InteractionResponse.sendMessage("Yacht Dice Game initializing...");
+    },
+    async postSlash(client, interaction) {
+      const message = await InteractionResponse.createFakeMessage(client, interaction);
+      return await this.execute(message);
+    },
     async execute(message) {
         if(!message.channel.permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
         var dices = [];
