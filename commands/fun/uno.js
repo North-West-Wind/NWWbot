@@ -34,7 +34,7 @@ module.exports = {
   usage: "[users]",
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
-    new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "users", "The users to invite.")
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "users", "The users to invite.")
   ]),
   async slash() {
       return InteractionResponse.sendMessage("UNO game initializing...");

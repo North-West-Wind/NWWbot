@@ -8,9 +8,9 @@ module.exports = {
 	register: () => ApplicationCommand.createBasic(module.exports),
 	async slash(client, interaction) {
 		const { author } = await InteractionResponse.createFakeMessage(client, interaction);
-		return InteractionResponse.sendMessage(`You're welcome, ${message.author}`);
+		return InteractionResponse.sendMessage(`You're welcome, <@${author.id}>`);
 	},
 	execute(message) {
-		message.channel.send(`You're welcome, ${message.author}`);
+		message.channel.send(`You're welcome, <@${message.author.id}>`);
 	},
 };

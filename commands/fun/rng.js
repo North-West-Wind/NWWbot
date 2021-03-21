@@ -32,7 +32,7 @@ module.exports = {
 		}
     return InteractionResponse.sendMessage(msg);
   },
-  execute(message, args) {
+  async execute(message, args) {
 		let count = 1;
 		let decimal = -1;
     const min = Number(args[0]);
