@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { numberWithCommas, readableDateTime, createEmbedScrolling } = require("../../function.js");
+const { numberWithCommas, readableDateTime, createEmbedScrolling, color } = require("../../function.js");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: 1000 });
 const MojangAPI = require("mojang-api");
 const nameToUuid = (name) => new Promise((resolve, reject) => MojangAPI.nameToUuid(name, (err, res) => err ? reject(err) : resolve(res)));

@@ -65,7 +65,6 @@ module.exports = {
     await this.execute(message, args);
   },
   async execute(message, args) {
-    var ended = new Map();
     if (args.length >= 1 && args[0].toLowerCase() === "region") return await this.region(message);
     if (!message.guild.me.permissions.has(this.permission) && message.channel.permissionsFor(message.guild.me).has(this.permission)) return await message.channel.send(genPermMsg(this.permission, 1));
     let region = "en";
@@ -75,7 +74,7 @@ module.exports = {
       if (i !== -1) region = this.regions[i];
     }
     const aki = new Aki(region);
-    await aki.start().catch(NorthClient.storage.error);
+    await aki.start();
     let loop = 0;
     let found = false;
     const str = `${this.yes} **Yes**\n${this.no} **No**\n${this.probably} **Probably**\n${this.probablyNot} **Probably Not**\n${this.unknown} **Don't know**\n${this.back} **Back**\n${this.stop} **Stop**`;
@@ -94,11 +93,6 @@ module.exports = {
     await msg.react(this.unknown);
     await msg.react(this.back);
     await msg.react(this.stop);
-    ended.set(msg.id, false);
-    function pushEnded(ended) {
-      ended.set(msg.id, true);
-      if (msg != null && msg.deleted != true) msg.reactions.removeAll().catch(() => { });
-    }
     const filter = (reaction, user) =>
       [
         this.yes,
@@ -138,22 +132,21 @@ module.exports = {
             break;
         }
         await r.users.remove(message.author.id);
-        if (answerID === 5) {
-          if (aki.currentStep > 0) await aki.back();
-        } else if (answerID === 6) {
-          pushEnded(ended);
+        if (answerID === 5 && aki.currentStep > 0) await aki.back();
+        else if (answerID === 6) {
           embed.setTitle("Akinator was stopped");
           embed.setDescription("Thanks for playing!");
           embed.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-          return await msg.edit(embed);
-        } else if (answerID) {
+          await msg.edit(embed);
+          return collector.emit("end", true);
+        } else if (answerID !== undefined) {
           if (found) {
             if (answerID === 0) {
               embed.setFooter("I am right!", message.client.user.displayAvatarURL());
               embed.setTitle("I got the correct answer!");
               embed.setDescription("");
               msg = await msg.edit({ content: `Looks like I got another one correct! This time after ${aki.currentStep} steps. Thanks for playing!`, embed: embed });
-              return pushEnded(ended);
+              return msg.reactions.removeAll().catch(() => { });
             }
             if (answerID === 1) {
               embed
@@ -162,13 +155,11 @@ module.exports = {
                 .setImage(undefined)
                 .setFooter("Please wait patiently", message.client.user.displayAvatarURL());
               await msg.edit(embed);
-              msg.channel.startTyping();
               await msg.react(this.probably);
               await msg.react(this.probablyNot);
               await msg.react(this.unknown);
               await msg.react(this.back);
               await msg.react(this.stop);
-              msg.channel.stopTyping(true);
             }
             found = false;
           }
@@ -176,15 +167,8 @@ module.exports = {
         }
         if ((aki.progress >= 90 && loop > 3) || aki.currentStep >= 419) {
           loop = 0;
-          await aki.win().catch(async error => {
-            NorthClient.storage.error(error);
-            if (aki.currentStep < this.maxSteps) await aki.step(answerID);
-            else {
-              msg = await msg.edit("Akinator error has occurred.", { embed: null });
-              pushEnded(ended);
-            }
-          });
-          if (aki.answers != null && aki.answers.length > 0) {
+          await aki.win();
+          if (aki.answers && aki.answers.length) {
             found = true;
             const { name } = aki.answers[aki.guessCount - 1];
             const image = aki.answers[aki.guessCount - 1].absolute_picture_path;
@@ -194,56 +178,34 @@ module.exports = {
               .setDescription("Loading result...")
               .setFooter("Please wait patiently", message.client.user.displayAvatarURL());
             await msg.edit(embed);
-            msg.channel.startTyping();
             const probably = msg.reactions.cache.get(this.probably);
-            try {
-              await probably.remove();
-            } catch (error) {
-              NorthClient.storage.error("Failed to remove reactions.");
-            }
             const probablyNot = msg.reactions.cache.get(this.probablyNot);
-            try {
-              await probablyNot.remove();
-            } catch (error) {
-              NorthClient.storage.error("Failed to remove reactions.");
-            }
             const unknown = msg.reactions.cache.get(this.unknown);
-            try {
-              await unknown.remove();
-            } catch (error) {
-              NorthClient.storage.error("Failed to remove reactions.");
-            }
             const back = msg.reactions.cache.get(this.back);
-            try {
-              await back.remove();
-            } catch (error) {
-              NorthClient.storage.error("Failed to remove reactions.");
-            }
             const stop = msg.reactions.cache.get(this.stop);
             try {
+              await probably.remove();
+              await probablyNot.remove();
+              await unknown.remove();
+              await back.remove();
               await stop.remove();
             } catch (error) {
               NorthClient.storage.error("Failed to remove reactions.");
             }
-            if (aki.currentStep >= 419) {
-              embed.setTitle("My Final Guess is... 🤔");
-            } else {
-              embed.setTitle("I'm thinking of... 🤔");
-            }
+            if (aki.currentStep >= 419) embed.setTitle("My Final Guess is... 🤔");
+            else embed.setTitle("I'm thinking of... 🤔");
             embed.setDescription(`**${name}**\n**${description}**\n${this.yes} **Yes**\n${this.no} **No**`);
             embed.setFooter("Am I correct?", message.client.user.displayAvatarURL());
             if (image) embed.setImage(image);
-            msg.channel.stopTyping(true);
             msg = await msg.edit(embed);
             if (aki.currentStep >= 419) {
               embed.setDescription(`**${name}**\n**${description}**`);
               embed.setFooter("Hope I am correct!", message.client.user.displayAvatarURL());
-              msg.edit(embed);
-              pushEnded(ended);
+              await msg.edit(embed);
+              msg.reactions.removeAll().catch(() => { });
             }
           }
-        }
-        else {
+        } else {
           loop++;
           embed
             .setTitle(`Question ${aki.currentStep + 1}: ${aki.question}`)
@@ -255,8 +217,7 @@ module.exports = {
       }, 1000);
     };
     collector.on("collect", collectorFunction);
-    collector.on("end", async () => {
-      const isEnded = await ended.get(msg.id);
+    collector.on("end", async (isEnded) => {
       if (!isEnded) {
         embed
           .setTitle("Akinator has timed out")
@@ -264,9 +225,8 @@ module.exports = {
           .setImage(undefined)
           .setFooter("60 seconds have passed!", message.client.user.displayAvatarURL());
         await msg.edit(embed);
-        if (msg && !msg.deleted) msg.reactions.removeAll().catch(() => { });
+        msg.reactions.removeAll().catch(() => { });
       }
-      ended.delete(msg.id);
     });
   },
   async region(message) {
