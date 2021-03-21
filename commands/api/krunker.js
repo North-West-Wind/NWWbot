@@ -38,14 +38,12 @@ module.exports = {
       const { id } = await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { content: "Loading servers..." } });
       if (interaction.guild_id) msg = await (await client.channels.fetch(interaction.channel_id)).messages.fetch(id);
       else msg = await (await client.users.fetch(interaction.user.id)).messages.fetch(id);
-      await this.server(message, args[0]?.options[0]?.value || null, client, author);
+      await this.server(msg, args[0]?.options[0]?.value || null, client, author);
     } else if (args[0].name === "changelog") {
       const { id } = await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { content: "Loading changelogs..." } });
-      var message;
-      var author;
       if (interaction.guild_id) msg = await (await client.channels.fetch(interaction.channel_id)).messages.fetch(id);
       else msg = await (await client.users.fetch(interaction.user.id)).messages.fetch(id);
-      await this.changelog(message, args[0]?.options[0]?.value || null, author);
+      await this.changelog(msg, args[0]?.options[0]?.value || null, author);
     }
   },
   async execute(message, args) {
