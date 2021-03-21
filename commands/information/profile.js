@@ -15,21 +15,16 @@ module.exports = {
   ]),
   async slash(_client, interaction) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    return InteractionResponse.sendMessage("Fetching profile...");
-  },
-  async postSlash(client, interaction, args) {
-    if (!interaction.guild_id) return;
-    InteractionResponse.deleteMessage(client, interaction).catch(() => { });
-    const message = await InteractionResponse.createFakeMessage(client, interaction);
-    args = args[0]?.value?.split(/ +/) || [];
-    return await this.execute(message, args);
+    const guild = await client.guilds.fetch(interaction.guild_id);
+    const member = await guild.members.fetch(args[0]?.value ? args[0].value : interaction.member.user.id);
+    return InteractionResponse.sendEmbeds(this.createProfileEmbed(member, guild));
   },
   async execute(message, args) {
     if (!message.guild) return await message.channel.send("This command only works on server.");
     var member = message.member;
     if (args[0]) member = await findMember(message, args[0]);
     if (!member) return;
-    const Embed = this.createProfileEmbed(member, message.client, message.guild);
+    const Embed = this.createProfileEmbed(member, message.guild);
     if (Embed.error) return await message.channel.send("Something went wrong while creating the embed!");
     const allEmbeds = [Embed];
     if (member.presence.activities.length > 0) {
@@ -49,7 +44,7 @@ module.exports = {
     else await createEmbedScrolling(message, allEmbeds);
 
   },
-  createProfileEmbed(member, client, guild) {
+  createProfileEmbed(member, guild) {
     const user = member.user;
     const username = user.username;
     const tag = user.tag;
@@ -72,7 +67,7 @@ module.exports = {
       .addField("Joined", joinedTime, true)
       .setColor(color())
       .setTimestamp()
-      .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+      .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
     return Embed;
   }
 };

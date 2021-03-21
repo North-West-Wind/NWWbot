@@ -28,6 +28,13 @@ module.exports = {
         }
         return true;
     },
+    async managements(_command, message) {
+        if (!message.guild) {
+            await message.channel.send("You can only use management commands in server!");
+            return false;
+        }
+        return true;
+    },
     async music(_command, message) {
         if (!message.guild) {
             await message.channel.send("You can only use music commands in server!");

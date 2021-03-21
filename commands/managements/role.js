@@ -1,5 +1,6 @@
 const { NorthClient } = require("../../classes/NorthClient.js");
-const { findMember, wait } = require("../../function.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
+const { findMember, wait, genPermMsg } = require("../../function.js");
 
 module.exports = {
   name: 'role',
@@ -8,26 +9,37 @@ module.exports = {
   usage: '<user | user ID> <role | role ID | role name>',
   category: 0,
   args: 2,
-  async execute(message, args) {
-    if (!message.member.permissions.has(268435456)) {
-      message.channel.send(`You don\'t have the permission to use this command.`)
-      return;
+  permissions: 268435456,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user to be added to the role.").setRequired(true),
+    new ApplicationCommandOption(ApplicationCommandOptionType.ROLE.valueOf(), "role", "The role to add.").setRequired(true)
+  ]),
+  async slash(client, interaction, args) {
+    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
+    const guild = await client.guilds.fetch(interaction.guild_id);
+    const author = await guild.members.fetch(interaction.member.user.id);
+    if (!author.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
+    if (!guild.me.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
+    const member = await guild.members.fetch(args[0].value);
+    const role = await guild.roles.fetch(args[1].value);
+    try {
+      await member.roles.add(role);
+      return InteractionResponse.sendMessage(`Successfully added **${member.user.tag}** to role **${role.name}**.`);
+    } catch (err) {
+      return InteractionResponse.sendMessage(`Failed to add **${member.user.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
     }
+  },
+  async execute(message, args) {
+    if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
+    if (!message.guild.me.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
     var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
-      var role = await message.guild.roles.cache.find(
-        x => x.name.toLowerCase() === `${args[1].toLowerCase()}`
-      );
-      if (role === null) {
-        return message.channel.send(
-          "No role was found with the name " + args[1]
-        );
-      }
+      var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === args[1].toLowerCase());
+      if (!role) return message.channel.send("No role was found with the name " + args[1]);
     } else {
       var role = await message.guild.roles.cache.get(roleID);
-      if (role === null) {
-        return message.channel.send("No role was found!");
-      }
+      if (!role) return message.channel.send("No role was found!");
     }
 
     if (!role) return message.channel.send("No role was found!");
@@ -48,7 +60,6 @@ module.exports = {
       const taggedUser = member.user;
       try {
         await member.roles.add(role);
-        NorthClient.storage.log(`Gave ${taggedUser.username} the role ${role.name}`);
         await message.channel.send(`Successfully added **${taggedUser.tag}** to role **${role.name}**.`);
       } catch (err) {
         await message.channel.send(`Failed to add **${taggedUser.tag}** to role **${role.name}**. (Error: **${err.message}**)`);

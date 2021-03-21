@@ -13,16 +13,12 @@ module.exports = {
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.ROLE.valueOf(), "role", "The role's information to display.").setRequired(true)
   ]),
-  async slash(_client, interaction) {
+  async slash(client, interaction, args) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    return InteractionResponse.sendMessage("Retrieving role information...");
-  },
-  async postSlash(client, interaction, args) {
-    if (!interaction.guild_id) return;
-    InteractionResponse.deleteMessage(client, interaction).catch(() => { });
-    const message = await InteractionResponse.createFakeMessage(client, interaction);
-    args = args?.map(x => x?.value).filter(x => !!x)|| [];
-    await this.execute(message, args);
+    const guild = await client.guilds.fetch(interaction.guild_id);
+    const role = await guild.roles.fetch(args[0].value);
+    const Embed = this.createRoleEmbed(role, guild, client);
+    return InteractionResponse.sendEmbeds(Embed);
   },
   async execute(message, args) {
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
@@ -33,7 +29,10 @@ module.exports = {
       var role = await message.guild.roles.cache.get(roleID);
       if (!role) return message.channel.send("No role was found!");
     }
-    
+    const Embed = this.createRoleEmbed(role, message.guild, message.client);
+    message.channel.send(Embed);
+  },
+  createRoleEmbed(role, guild, client) {
     const userMember = role.members;
     const userMemberCount = [];
     const botMemberCount = [];
@@ -51,7 +50,7 @@ module.exports = {
     const Embed = new Discord.MessageEmbed()
     .setColor(color())
     .setTitle("Information of " + role.name)
-    .setDescription("In server **" + message.guild.name + "**")
+    .setDescription("In server **" + guild.name + "**")
     .addField("ID", role.id, true)
     .addField("Name", role.name, true)
     .addField("Member Count", `Members: \`${memberCount}\`\nUsers: \`${userMemberCount.length}\`\nBots: \`${botMemberCount.length}\``, true)
@@ -60,8 +59,7 @@ module.exports = {
     .addField("Color", (role.hexColor.startsWith("#") ? "#" : "") + role.hexColor.toUpperCase(), true)
     .addField("Permissions", "`" + (permissions.length > 0 ? permissions.join("`, `").replace(/_/g, " ") : "N/A") + "`")
     .setTimestamp()
-    .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL())
-    
-    message.channel.send(Embed);
+    .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+    return Embed;
   }
 };

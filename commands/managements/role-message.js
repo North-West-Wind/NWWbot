@@ -1,6 +1,7 @@
 const moment = require("moment");
 const { setTimeout_, genPermMsg, findRole } = require("../../function.js");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "role-message",
@@ -14,9 +15,24 @@ module.exports = {
   category: 0,
   args: 1,
   permission: 10240,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "create", "Create a new role-message."),
+    new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "refresh", "Refresh an existing role-message.").setOptions([
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "ID", "The ID of the role-message.").setRequired(true)
+    ])
+  ]),
+  async slash() {
+    return InteractionResponse.sendMessage("Executing command...");
+  },
+  async postSlash(client, interaction, args) {
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    if (args[0].name === "create") return await this.create(message);
+    if (args[0].name === "refresh") return await this.refresh(message, args[0].options[0].value);
+  },
   async execute(message, args) {
     if (args[0] === "create" || args[0] === "cr") return await this.create(message);
-    if (args[0] === "refresh" || args[0] === "re") return await this.refresh(message, args);
+    if (args[0] === "refresh" || args[0] === "re") return await this.refresh(message, args[1]);
   },
   async create(message) {
     if (!message.guild.me.permissions.has(268435456)) return await message.channel.send(genPermMsg(268435456, 1));
@@ -97,10 +113,10 @@ module.exports = {
       await message.reply("there was an error trying to record the message!");
     }
   },
-  async refresh(message, args) {
+  async refresh(message, id) {
     const con = await message.pool.getConnection();
     try {
-      var [results] = await con.query(`SELECT * FROM rolemsg WHERE id = '${args[1]}' AND guild = '${message.guild.id}' AND author = '${message.author.id}'`);
+      var [results] = await con.query(`SELECT * FROM rolemsg WHERE id = '${id}' AND guild = '${message.guild.id}' AND author = '${message.author.id}'`);
       if (results.length == 0) await message.channel.send("No message was found with that ID!");
       else {
         await con.query(`UPDATE rolemsg SET expiration = '${moment(Date.now() + (7 * 24 * 3600 * 1000)).format("YYYY-MM-DD HH:mm:ss")}' WHERE id = '${results[0].id}'`);
