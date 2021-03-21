@@ -56,11 +56,10 @@ module.exports = {
     ])
   },
   async slash() {
-    return InteractionResponse.sendMessage("Initializing Akinator game...");
+    return InteractionResponse.ackknowledge();
   },
   async postSlash(client, interaction, args) {
-    await InteractionResponse.deleteMessage(client, interaction);
-    args = args[0]?.value.split(/ +/) || [];
+    args = args?.map(x => x?.value).filter(x => !!x) || [];
     const message = await InteractionResponse.createFakeMessage(client, interaction);
     await this.execute(message, args);
   },

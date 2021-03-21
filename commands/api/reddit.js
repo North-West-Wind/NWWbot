@@ -27,11 +27,10 @@ module.exports = {
       new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "subreddit", "The subreddits to find memes from.")
   ]),
   async slash() {
-      return InteractionResponse.sendMessage("Finding your memes...");
+      return InteractionResponse.ackknowledge();
   },
   async postSlash(client, interaction, args) {
-      await InteractionResponse.deleteMessage(client, interaction);
-      args = args[0].value.split(/ +/);
+      args = args?.map(x => x?.value).filter(x => !!x);
       const message = await InteractionResponse.createFakeMessage(client, interaction);
       await this.execute(message, args);
   },

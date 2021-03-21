@@ -16,6 +16,7 @@ const requestYTDLStream = (url, opts) => {
 };
 const sanitize = require("sanitize-filename");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType } = require("../../classes/Slash.js");
 
 module.exports = {
     name: "download",
@@ -23,19 +24,31 @@ module.exports = {
     usage: "[index | link | keywords]",
     aliases: ["dl"],
     category: 8,
-    async execute(message) {
+    slashInit: true,
+    register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "keywords", "Index/Link/Keywords of soundtrack.")
+    ]),
+    async slash(_client, interaction) {
+        if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
+        return InteractionResponse.ackknowledge();
+    },
+    async postSlash(client, interaction, args) {
+        if (!interaction.guild_id) return;
+        const message = await InteractionResponse.createFakeMessage(client, interaction);
+        args = args?.map(x => x?.value).filter(x => !!x) || [];
+        await this.execute(message, args);
+    },
+    async execute(message, args) {
         var serverQueue = getQueues().get(message.guild.id);
-        const args = message.content.slice(message.prefix.length).split(/ +/);
-        if (args[1] && isNaN(parseInt(args[1]))) return await this.downloadFromArgs(message, serverQueue, args.slice(1).join(" "));
+        if (args[0] && isNaN(parseInt(args[0]))) return await this.downloadFromArgs(message, serverQueue, args.join(" "));
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
         if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the queue.");
-        const index = parseInt(args[1]);
+        const index = parseInt(args[0]);
         var song = serverQueue.songs[0];
         if (!isNaN(index) && index <= serverQueue.songs.length && index > 0) song = serverQueue.songs[index - 1];
-        await this.download(message, serverQueue, song);
+        await this.download(message, args, serverQueue, song);
     },
-    async download(message, serverQueue, song) {
-        const args = message.content.slice(message.prefix.length).split(/ +/);
+    async download(message, args, serverQueue, song) {
         try {
             if (song.isLive) {
                 const result = await addYTURL(song.url, song.type);
@@ -105,15 +118,15 @@ module.exports = {
     async downloadFromArgs(message, serverQueue, link) {
         var result = { error: true };
         try {
-            if (validYTPlaylistURL(link)) result = await addYTPlaylist(args);
-            else if (validYTURL(link)) result = await addYTURL(args);
-            else if (validSPURL(link)) result = await addSPURL(message, args);
-            else if (validSCURL(link)) result = await addSCURL(args);
+            if (validYTPlaylistURL(link)) result = await addYTPlaylist(link);
+            else if (validYTURL(link)) result = await addYTURL(link);
+            else if (validSPURL(link)) result = await addSPURL(message, link);
+            else if (validSCURL(link)) result = await addSCURL(link);
             else if (validGDURL(link)) return message.channel.send("Wait. You should be able to access this file?");
-            else if (validMSURL(link)) result = await addMSURL(args);
-            else if (validPHURL(link)) result = await addPHURL(args);
+            else if (validMSURL(link)) result = await addMSURL(link);
+            else if (validPHURL(link)) result = await addPHURL(link);
             else if (validURL(link)) return message.channel.send("Wait. You should be able to access this file?");
-            else result = await search(message, args);
+            else result = await search(message, link);
             if (result.error) return;
             if (result.msg) result.msg.delete({ timeout: 10000 });
             for (const song of result.songs) await this.download(message, serverQueue, song);

@@ -50,10 +50,9 @@ module.exports = {
     ])
   },
   async slash() {
-    return InteractionResponse.sendMessage("Fetching player stats...");
+    return InteractionResponse.ackknowledge();
   },
   async postSlash(client, interaction, args) {
-    await InteractionResponse.deleteMessage(client, interaction);
     args = args.map(x => x?.value);
     if (args[1]) args.reverse();
     const message = await InteractionResponse.createFakeMessage(client, interaction);

@@ -60,7 +60,7 @@ module.exports = {
   async postSlash(client, interaction, args) {
     if (interaction.channel_id && !(await client.channels.fetch(interaction.channel_id)).nsfw) return;
     await InteractionResponse.deleteMessage(client, interaction);
-    args = args[0]?.value.split(/ +/) || [];
+    args = args?.map(x => x?.value).filter(x => !!x) || [];
     const message = await InteractionResponse.createFakeMessage(client, interaction);
     await this.execute(message, args);
   },

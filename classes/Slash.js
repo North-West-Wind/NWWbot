@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractionResponseType = exports.InteractionApplicationCommandCallbackData = exports.InteractionResponse = exports.ApplicationCommandOptionType = exports.ApplicationCommandOptionChoice = exports.ApplicationCommandOption = exports.ApplicationCommand = void 0;
+const discord_js_1 = require("discord.js");
 class ApplicationCommand {
     constructor(name, description) {
         this.name = name;
@@ -102,6 +103,12 @@ class InteractionResponse {
         this.data = data;
         return this;
     }
+    static ackknowledge() {
+        return new InteractionResponse(2);
+    }
+    static wait() {
+        return new InteractionResponse(InteractionResponseType.DeferredChannelMessageWithSource.valueOf());
+    }
     static sendMessage(message) {
         return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setContent(message));
     }
@@ -124,11 +131,12 @@ class InteractionResponse {
     }
     static createFakeMessage(client, interaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            var message = { prefix: "/", client, guild: null, channel: null, author: null, reply: null, pool: client.pool };
+            var message = { prefix: "/", client, guild: null, channel: null, author: null, reply: null, pool: client.pool, member: null, attachments: new discord_js_1.Collection() };
             if (interaction.guild_id) {
                 message.guild = yield client.guilds.fetch(interaction.guild_id);
                 message.channel = yield client.channels.fetch(interaction.channel_id);
-                message.author = yield client.users.fetch(interaction.member.user.id);
+                message.member = yield message.guild.members.fetch(interaction.member.user.id);
+                message.author = message.member.user;
             }
             else {
                 message.author = yield client.users.fetch(interaction.user.id);

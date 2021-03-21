@@ -17,6 +17,7 @@ module.exports = {
   category: 7,
   args: 1,
   slashInit: true,
+  slashWait: true,
   async register() {
     const sortChoices = []
     for (const sort in SortTypes) sortChoices.push(new ApplicationCommandOptionChoice(sort.toLowerCase(), sort));
@@ -53,34 +54,24 @@ module.exports = {
       }
       return InteractionResponse.sendEmbeds(em);
     } else if (args[0].name === this.subcommands[1]) {
-      return InteractionResponse.sendMessage("Retrieving server information...");
+      return InteractionResponse.wait();
     } else if (args[0].name === this.subcommands[2]) {
       const res = await nameToUuid(args[0].options[0].value, true);
       if (!res[0]) return InteractionResponse.sendMessage("No player named **" + args[0].options[0].value + "** were found");
       return InteractionResponse.sendMessage(await this.getHistoryEmbed(res, client));
-    } else if (args[0].name === this.subcommands[3]) return InteractionResponse.sendMessage("Fetching CurseForge projects...");
+    } else if (args[0].name === this.subcommands[3]) return InteractionResponse.ackknowledge();
   },
   async postSlash(client, interaction, args) {
     if (args[0].name === this.subcommands[1]) {
       const url = `https://api.mcsrvstat.us/2/${args[0].options[0].value}`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error("Received HTTP Status Code " + res.status);
+      if (!res.ok) return InteractionResponse.editMessage(client, interaction, { content: "Received HTTP Status Code " + res.status });
       const body = await res.json();
       if (body.online) return InteractionResponse.editMessage(client, interaction, { embed: this.getServerEmbed(body, client, args[0].options[0].value), content: "" });
-      else return InteractionResponse.editMessage(client, interaction, { content: "The server - **" + args.slice(1).join(" ") + "** - is offline/under maintenance." });
+      else return InteractionResponse.editMessage(client, interaction, { content: "The server - **" + args[0].options[0].value + "** - is offline/under maintenance." });
     } else if (args[0].name === this.subcommands[3]) {
-      await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
       const cArgs = ["0"].concat(args[0].options.filter(x => !!x).map(x => x.value));
-      var channel;
-      var author;
-      if (interaction.guild_id) {
-        channel = await client.channels.fetch(interaction.channel_id);
-        author = { id: interaction.member.user.id };
-      } else {
-        channel = await client.users.fetch(interaction.user.id);
-        author = { id: interaction.user.id };
-      }
-      await this.cf({ client, channel, author }, cArgs);
+      await this.cf(await InteractionResponse.createFakeMessage(client, interaction), cArgs);
     }
   },
   async execute(message, args) {

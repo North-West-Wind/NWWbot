@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash");
 const { color } = require("../../function");
 
 module.exports = {
@@ -8,22 +9,28 @@ module.exports = {
   usage: "<role | role ID | role name>",
   category: 6,
   args: 1,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.ROLE.valueOf(), "role", "The role's information to display.").setRequired(true)
+  ]),
+  async slash(_client, interaction) {
+    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
+    return InteractionResponse.ackknowledge();
+  },
+  async postSlash(client, interaction, args) {
+    if (!interaction.guild_id) return;
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    args = args?.map(x => x?.value).filter(x => !!x)|| [];
+    await this.execute(message, args);
+  },
   async execute(message, args) {
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID)) || args.length > 1) {
-      var role = await message.guild.roles.cache.find(
-        x => x.name.toLowerCase() === `${args.join(" ").toLowerCase()}`
-      );
-      if (role === null) {
-        return message.channel.send(
-          "No role was found with the name " + args.join(" ")
-        );
-      }
+      var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === args.join(" ").toLowerCase());
+      if (!role) return message.channel.send("No role was found with the name " + args.join(" "));
     } else {
       var role = await message.guild.roles.cache.get(roleID);
-      if (role === null) {
-        return message.channel.send("No role was found!");
-      }
+      if (!role) return message.channel.send("No role was found!");
     }
     
     const userMember = role.members;
@@ -37,9 +44,7 @@ module.exports = {
     var permissions = [];
     var flags = ["VIEW_AUDIT_LOG", "MANAGE_GUILD", "MANAGE_ROLES", "MANAGE_CHANNELS", "KICK_MEMBERS", "BAN_MEMBERS", "CREATE_INSTANT_INVITE", "CHANGE_NICKNAME", "MANAGE_NICKNAMES", "MANAGE_EMOJIS", "MANAGE_WEBHOOKS", "VIEW_CHANNEL", "SEND_TTS_MESSAGES", "EMBED_LINKS", "READ_MESSAGE_HISTORY", "USE_EXTERNAL_EMOJIS", "SEND_MESSAGES", "MANAGE_MESSAGES", "ATTACH_FILES", "MENTION_EVERYONE", "ADD_REACTIONS", "CONNECT", "MUTE_MEMBERS", "MOVE_MEMBERS", "SPEAK", "DEAFEN_MEMBERS", "USE_VAD", "PRIORITY_SPEAKER", "STREAM"]
     
-    for(const flag of flags) {
-    if(role.permissions.has(flag)) permissions.push(flag);
-    }
+    for(const flag of flags) if(role.permissions.has(flag)) permissions.push(flag);
     if(role.permissions.has("ADMINISTRATOR")) permissions = ["ADMINISTRATOR"];
     
     const Embed = new Discord.MessageEmbed()

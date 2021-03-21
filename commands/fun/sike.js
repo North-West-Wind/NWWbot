@@ -10,7 +10,7 @@ module.exports = {
     slashInit: true,
     register: () => ApplicationCommand.createBasic(module.exports),
     async slash() {
-        return new InteractionResponse(InteractionResponseType.Pong.valueOf());
+        return InteractionResponse.ackknowledge();
     },
     async postSlash(client, interaction) {
         const { channel } = await InteractionResponse.createFakeMessage(client, interaction);

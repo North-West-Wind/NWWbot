@@ -207,96 +207,23 @@ module.exports = {
   permissions: 3145728,
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
-    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "link", "The link of the soundtrack.")
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "link", "The link of the soundtrack or keywords to search.")
   ]),
-  async slash(client, interaction, args) {
+  async slash(_client, interaction, _args) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    const guild = await client.guilds.fetch(interaction.guild_id);
-    const author = await guild.members.fetch(interaction.member.user.id);
-    var serverQueue = getQueues().get(guild.id);
-    const voiceChannel = author.voice.channel;
-    if (!voiceChannel) return InteractionResponse.sendMessage("You need to be in a voice channel to play music!");
-    if (!voiceChannel.permissionsFor(client.user).has(this.permissions)) return InteractionResponse.sendMessage("I can't play in your voice channel!");
-    if (!args[0]?.value) {
-      if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false, client.pool);
-      if (serverQueue.songs.length < 1) return InteractionResponse.sendMessage("The queue is empty for this server! Please provide a link or keywords to get a music played!");
-      if (serverQueue.playing || NorthClient.storage.migrating.find(x => x === guild.id)) return await slash(client, interaction);
-      try {
-        if (guild.me.voice.channel && guild.me.voice.channelID === voiceChannel.id) serverQueue.connection = guild.me.voice.connection;
-        else {
-          if (guild.me.voice.channel) await guild.me.voice.channel.leave();
-          serverQueue.connection = await voiceChannel.join();
-        }
-        if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
-      } catch (err) {
-        NorthClient.storage.error(err);
-        if (guild.me.voice.channel) await guild.me.voice.channel.leave();
-        return InteractionResponse.reply(author.id, "there was an error trying to connect to the voice channel!");
-      }
-      serverQueue.voiceChannel = voiceChannel;
-      serverQueue.playing = true;
-      serverQueue.textChannel = await client.channels.fetch(interaction.channel_id);
-      updateQueue(guild.id, serverQueue, client.pool);
-      if (!serverQueue.random) play(guild, serverQueue.songs[0]);
-      else {
-        const int = Math.floor(Math.random() * serverQueue.songs.length);
-        const pending = serverQueue.songs[int];
-        serverQueue.songs = moveArray(serverQueue.songs, int);
-        updateQueue(guild.id, serverQueue, serverQueue.pool);
-        play(guild, pending);
-      }
-      return new InteractionResponse(InteractionResponseType.Pong.valueOf());
-    }
-    try {
-      var songs = [];
-      var result = { error: true };
-      if (validYTPlaylistURL(args[0].value)) result = await this.addYTPlaylist(args[0].value);
-      else if (validYTURL(args[0].value)) result = await this.addYTURL(args[0].value);
-      else if (validSCURL(args[0].value)) result = await this.addSCURL(args[0].value);
-      else if (validGDFolderURL(args[0].value)) result = await this.addGDFolderURL(args[0].value);
-      else if (validGDURL(args[0].value)) result = await this.addGDURL(args[0].value);
-      else if (validMSURL(args[0].value)) result = await this.addMSURL(args[0].value);
-      else if (validPHURL(args[0].value)) result = await this.addPHURL(args[0].value);
-      else if (validURL(args[0].value)) result = await this.addURL(args[0].value);
-      else return InteractionResponse.sendMessage("The link is invalid. Note that Spotify feature is trimmed in this slash command.")
-      if (result.error) return InteractionResponse.sendMessage(result.message);
-      songs = result.songs;
-      if (!songs || songs.length < 1) return InteractionResponse.reply(author.id, "there was an error trying to add the soundtrack!");
-      const Embed = createEmbed(client, songs);
-      if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, songs, false, false, client.pool);
-      else serverQueue.songs = ((!guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
-      updateQueue(guild.id, serverQueue, client.pool);
-      if (!guild.me.voice.channel) {
-        serverQueue.voiceChannel = voiceChannel;
-        serverQueue.connection = await voiceChannel.join();
-        serverQueue.textChannel = await client.channels.fetch(interaction.channel_id);
-        if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
-      }
-      updateQueue(guild.id, serverQueue, null);
-      if (!serverQueue.playing) {
-        if (!serverQueue.random) play(guild, serverQueue.songs[0]);
-        else {
-          const int = Math.floor(Math.random() * serverQueue.songs.length);
-          const pending = serverQueue.songs[int];
-          serverQueue.songs = moveArray(serverQueue.songs, int);
-          updateQueue(guild.id, serverQueue, serverQueue.pool);
-          play(guild, pending);
-        }
-      }
-      setTimeout(async () => await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { embeds: null, content: `**[Added Track: ${songs.length > 1 ? `${songs.length} in total` : songs[0]?.title}]**` } }), 30000);
-      return InteractionResponse.sendEmbeds(Embed);
-    } catch (err) {
-      if (guild.me.voice.channel) await guild.me.voice.channel.leave();
-      NorthClient.storage.error(err);
-      return InteractionResponse.reply(author.id, "there was an error trying to connect to the voice channel!");
-    }
+    return InteractionResponse.ackknowledge();
   },
-  async execute(message) {
+  async postSlash(client, interaction, args) {
+    if (!interaction.guild_id) return;
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    args = args[0]?.value?.split(/ +/) || [];
+    await this.execute(message, args);
+  },
+  async execute(message, args) {
     var serverQueue = getQueues().get(message.guild.id);
-    const args = message.content.slice(message.prefix.length).split(/ +/);
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) return await message.channel.send("You need to be in a voice channel to play music!");
-    if (!voiceChannel.permissionsFor(message.client.user).has(3145728)) return await message.channel.send("I can't play in your voice channel!");
+    if (!voiceChannel.permissionsFor(message.client.user).has(this.permissions)) return await message.channel.send("I can't play in your voice channel!");
     if (!args[1] && message.attachments.size < 1) {
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
       if (serverQueue.songs.length < 1) return await message.channel.send("The queue is empty for this server! Please provide a link or keywords to get a music played!");
@@ -330,17 +257,17 @@ module.exports = {
     try {
       var songs = [];
       var result = { error: true };
-      if (validYTPlaylistURL(args.slice(1).join(" "))) result = await this.addYTPlaylist(args.slice(1).join(" "));
-      else if (validYTURL(args.slice(1).join(" "))) result = await this.addYTURL(args.slice(1).join(" "));
-      else if (validSPURL(args.slice(1).join(" "))) result = await this.addSPURL(message, args.slice(1).join(" "));
-      else if (validSCURL(args.slice(1).join(" "))) result = await this.addSCURL(args.slice(1).join(" "));
-      else if (validGDFolderURL(args.slice(1).join(" "))) result = await this.addGDFolderURL(args.slice(1).join(" "));
-      else if (validGDURL(args.slice(1).join(" "))) result = await this.addGDURL(args.slice(1).join(" "));
-      else if (validMSURL(args.slice(1).join(" "))) result = await this.addMSURL(args.slice(1).join(" "));
-      else if (validPHURL(args.slice(1).join(" "))) result = await this.addPHURL(args.slice(1).join(" "));
-      else if (validURL(args.slice(1).join(" "))) result = await this.addURL(args.slice(1).join(" "));
+      if (validYTPlaylistURL(args.join(" "))) result = await this.addYTPlaylist(args.join(" "));
+      else if (validYTURL(args.join(" "))) result = await this.addYTURL(args.join(" "));
+      else if (validSPURL(args.join(" "))) result = await this.addSPURL(message, args.join(" "));
+      else if (validSCURL(args.join(" "))) result = await this.addSCURL(args.join(" "));
+      else if (validGDFolderURL(args.join(" "))) result = await this.addGDFolderURL(args.join(" "));
+      else if (validGDURL(args.join(" "))) result = await this.addGDURL(args.join(" "));
+      else if (validMSURL(args.join(" "))) result = await this.addMSURL(args.join(" "));
+      else if (validPHURL(args.join(" "))) result = await this.addPHURL(args.join(" "));
+      else if (validURL(args.join(" "))) result = await this.addURL(args.join(" "));
       else if (message.attachments.size > 0) result = await this.addAttachment(message);
-      else result = await this.search(message, args.slice(1).join(" "));
+      else result = await this.search(message, args.join(" "));
       if (result.error) return await message.channel.send(result.message);
       songs = result.songs;
       if (!songs || songs.length < 1) return await message.reply("there was an error trying to add the soundtrack!");

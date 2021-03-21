@@ -1,4 +1,4 @@
-import { Guild, MessageEmbed, Snowflake, TextChannel, User } from "discord.js";
+import { Collection, Guild, GuildMember, MessageEmbed, Snowflake, TextChannel, User } from "discord.js";
 import { Pool } from "mysql2/promise";
 import { Command } from "./Command";
 import { NorthClient } from "./NorthClient";
@@ -118,6 +118,12 @@ export class InteractionResponse {
         return this;
     }
 
+    static ackknowledge(): InteractionResponse {
+        return new InteractionResponse(2);
+    }
+    static wait(): InteractionResponse {
+        return new InteractionResponse(InteractionResponseType.DeferredChannelMessageWithSource.valueOf());
+    }
     static sendMessage(message: string): InteractionResponse {
         return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setContent(message));
     }
@@ -135,11 +141,12 @@ export class InteractionResponse {
         await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
     }
     static async createFakeMessage(client: NorthClient, interaction: any): Promise<any> {
-        var message = { prefix: "/", client, guild: <Guild>null, channel: <any>null, author: <User>null, reply: null, pool: client.pool };
+        var message = { prefix: "/", client, guild: <Guild>null, channel: <any>null, author: <User>null, reply: null, pool: client.pool, member: <GuildMember>null, attachments: new Collection() };
         if (interaction.guild_id) {
             message.guild = await client.guilds.fetch(interaction.guild_id);
             message.channel = await client.channels.fetch(interaction.channel_id);
-            message.author = await client.users.fetch(interaction.member.user.id);
+            message.member = await message.guild.members.fetch(interaction.member.user.id);
+            message.author = message.member.user;
         } else {
             message.author = await client.users.fetch(interaction.user.id);
             message.channel = message.author;

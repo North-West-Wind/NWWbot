@@ -2,12 +2,27 @@ const Discord = require("discord.js");
 const { createCanvas, Image, loadImage } = require("canvas");
 const { findMember, replaceMsgContent } = require("../../function.js");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "welcome",
   description: "Test the welcome message and image.",
   category: 6,
   usage: "[user | user ID]",
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user for testing.")
+  ]),
+  async slash(_client, interaction) {
+    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
+    return InteractionResponse.ackknowledge();
+  },
+  async postSlash(client, interaction, args) {
+    if (!interaction.guild_id) return;
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    args = args?.map(x => x?.value).filter(x => !!x)|| [];
+    await this.execute(message, args);
+  },
   async execute(message, args) {
     var member = message.member;
     if (args[0]) {

@@ -13,13 +13,15 @@ module.exports = {
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user's information to find.")
   ]),
-  async slash(client, interaction, args) {
+  async slash(_client, interaction, _args) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    const guild = await client.guilds.fetch(interaction.guild_id);
-    var member = await guild.members.fetch(args[0]?.value ? args[0].value : interaction.member.user.id);
-    const Embed = this.createProfileEmbed(member, client, guild);
-    if (Embed.error) return InteractionResponse.sendMessage("Something went wrong while creating the embed!");
-    return InteractionResponse.sendEmbeds(Embed);
+    return InteractionResponse.ackknowledge();
+  },
+  async postSlash(client, interaction, args) {
+    if (!interaction.guild_id) return;
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    args = args[0]?.value?.split(/ +/) || [];
+    return await this.execute(message, args);
   },
   async execute(message, args) {
     if (!message.guild) return await message.channel.send("This command only works on server.");
@@ -28,8 +30,7 @@ module.exports = {
     if (!member) return;
     const Embed = this.createProfileEmbed(member, message.client, message.guild);
     if (Embed.error) return await message.channel.send("Something went wrong while creating the embed!");
-    await message.channel.send(Embed);
-    /*const allEmbeds = [Embed];
+    const allEmbeds = [Embed];
     if (member.presence.activities.length > 0) {
       const activityEm = new Discord.MessageEmbed()
         .setTitle("Presence of " + username)
@@ -44,7 +45,7 @@ module.exports = {
       allEmbeds.push(activityEm);
     }
     if (allEmbeds.length == 1) await message.channel.send(Embed);
-    else await createEmbedScrolling(message, allEmbeds);*/
+    else await createEmbedScrolling(message, allEmbeds);
 
   },
   createProfileEmbed(member, client, guild) {

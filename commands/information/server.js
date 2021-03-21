@@ -1,10 +1,22 @@
 const Discord = require("discord.js");
+const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash.js");
 const { twoDigits, color } = require("../../function.js")
 
 module.exports = {
 	name: 'server',
 	description: 'Display some server information.',
   category: 6,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports),
+  async slash(_client, interaction) {
+    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
+    return InteractionResponse.ackknowledge();
+  },
+  async postSlash(client, interaction) {
+    if (!interaction.guild_id) return;
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message);
+  },
 	async execute(message) {
     const name = message.guild.name;
     const id = message.guild.id;

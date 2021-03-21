@@ -8,23 +8,14 @@ module.exports = {
   category: 8,
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports),
-  async slash(client, interaction) {
+  async slash(_client, interaction) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    const guild = await client.guilds.fetch(interaction.guild_id);
-    const author = await guild.members.fetch(interaction.member.user.id);
-    var serverQueue = getQueues().get(guild.id);
-    if ((author.voice.channelID !== guild.me.voice.channelID) && serverQueue?.playing) return InteractionResponse.sendMessage("You have to be in a voice channel to stop the music when the bot is playing!");
-    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false, client.pool);
-    if (serverQueue.connection != null && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
-    serverQueue.playing = false;
-    serverQueue.connection = null;
-    serverQueue.voiceChannel = null;
-    serverQueue.textChannel = null;
-    updateQueue(guild.id, serverQueue, null);
-    if (guild.me.voice.channel) {
-      await guild.me.voice.channel.leave();
-      return InteractionResponse.sendMessage(":wave:");
-    } else return InteractionResponse.sendMessage("Re-stopped");
+    return InteractionResponse.ackknowledge();
+  },
+  async postSlash(client, interaction) {
+    if (!interaction.guild_id) return;
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message);
   },
   async execute(message) {
     var serverQueue = getQueues().get(message.guild.id);

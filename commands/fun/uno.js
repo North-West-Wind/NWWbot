@@ -37,10 +37,9 @@ module.exports = {
     new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "users", "The users to invite.")
   ]),
   async slash() {
-      return InteractionResponse.sendMessage("UNO game initializing...");
+      return InteractionResponse.ackknowledge();
   },
   async postSlash(client, interaction, args) {
-    await InteractionResponse.deleteMessage(client, interaction);
     const message = await InteractionResponse.createFakeMessage(client, interaction);
     args = args[0]?.value?.split(/ +/) || [];
     return await this.execute(message, args);

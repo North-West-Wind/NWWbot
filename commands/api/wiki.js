@@ -16,11 +16,10 @@ module.exports = {
     new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "query", "The thing to lookup.").setRequired(true)
   ]),
   async slash() {
-    return InteractionResponse.sendMessage("Looking up in Wikipedia...");
+    return InteractionResponse.ackknowledge();
   },
   async postSlash(client, interaction, args) {
-    await InteractionResponse.deleteMessage(client, interaction);
-    args = args[0].value.split(/ +/);
+    args = args?.map(x => x?.value).filter(x => !!x);
     const message = await InteractionResponse.createFakeMessage(client, interaction); // Fake Message
     await this.execute(message, args); // Use normal execution code
   },

@@ -6,20 +6,14 @@ module.exports = {
   category: 8,
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports),
-  async slash(client, interaction) {
+  async slash(_client, interaction) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    var serverQueue = getQueues().get(interaction.guild_id);
-    const guild = await client.guilds.fetch(interaction.guild_id);
-    const author = await guild.members.fetch(interaction.member.user.id);
-    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(interaction.guild_id, [], false, false, client.pool);
-    if (serverQueue.songs.length < 1) return InteractionResponse.sendMessage("The queue is already empty!");
-    if ((author.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing) return InteractionResponse.sendMessage("You have to be in a voice channel to clear the queue when the bot is playing!");
-    if (serverQueue && serverQueue.connection != null && serverQueue.connection.dispatcher)
-      serverQueue.connection.dispatcher.destroy();
-    if (guild.me.voice.channel)
-      guild.me.voice.channel.leave();
-    updateQueue(interaction.guild_id, null, client.pool);
-    return InteractionResponse.sendMessage("The queue has been cleared!");
+    return InteractionResponse.ackknowledge();
+  },
+  async postSlash(client, interaction) {
+    if (!interaction.guild_id) return;
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message);
   },
   async execute(message) {
     var serverQueue = getQueues().get(message.guild.id);

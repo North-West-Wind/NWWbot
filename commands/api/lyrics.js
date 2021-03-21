@@ -14,87 +14,12 @@ module.exports = {
     new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "song", "The song to search for.").setRequired(true)
   ]),
   async slash() {
-    return InteractionResponse.sendMessage("Lyrics are loading!");
+    return InteractionResponse.ackknowledge();
   },
   async postSlash(client, interaction, args) {
-    const song = args[0].value;
-
-    var lyrics = await solenolyrics.requestLyricsFor(song);
-    var title = await solenolyrics.requestTitleFor(song);
-    var author = await solenolyrics.requestAuthorFor(song);
-    try {
-      var icon = await solenolyrics.requestIconFor(song);
-    } catch(err) {
-      var icon = undefined;
-    }
-    
-    if(!author && !title) return message.channel.send("Cannot find the song! Try to be more specific?");
-    if(!title) title = "Title Not Found";
-    if(!author) author = "No Authors Found";
-    if(!lyrics) lyrics = "No lyrics were found";
-    
-    var lyricsArr = lyrics.split("\n\n");
-    if(lyricsArr.length === 1) lyricsArr = lyrics.split("\n");
-    const allEmbeds = [];
-    for(let i = 0; i < lyricsArr.length; i++) {
-      var str = [];
-      if(lyricsArr[i].length >= 2048) {
-        var oneLine = lyricsArr[i].split("\n");
-        for(let s = 0; s < oneLine.length; s++) {
-          str = [];
-          async function recheck() {
-            var tempLength = str.join("\n").length;
-            if((isNaN(tempLength) ? 0 : tempLength) + ("\n").length + (oneLine[s] ? oneLine[s].length : 2048) < 2048) {
-              str.push(oneLine[s]);
-              s++;
-              return await recheck();
-            }
-          }
-          recheck();
-          const em = new Discord.MessageEmbed()
-          .setThumbnail(icon)
-          .setColor(color())
-          .setTitle(title)
-          .setAuthor(author)
-          .setDescription(str.join("\n"))
-          .setTimestamp()
-          .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
-          allEmbeds.push(em);
-        }
-        continue;
-      }
-      async function recheck() {
-        var tempLength = str.join("\n\n").length;
-        if((isNaN(tempLength) ? 0 : tempLength) + ("\n\n").length + (lyricsArr[i] ? lyricsArr[i].length : 2048) < 2048) {
-          str.push(lyricsArr[i]);
-          i++;
-          return await recheck();
-        } else {
-          i--;
-        }
-      }
-      recheck();
-      var em = new Discord.MessageEmbed()
-      .setThumbnail(icon)
-      .setColor(color())
-      .setTitle(title)
-      .setAuthor(author)
-      .setDescription(str.join("\n\n"))
-      .setTimestamp()
-      .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
-      allEmbeds.push(em);
-    }
-    var channel;
-    var a;
-    if (interaction.guild_id) {
-      channel = await client.channels.fetch(interaction.channel_id);
-      a = await client.users.fetch(interaction.member.user.id);
-    } else {
-      channel = await client.users.fetch(interaction.user.id);
-      a = channel;
-    }
-    if (allEmbeds.length == 1) await channel.send(allEmbeds[0]);
-    else await createEmbedScrolling({ channel, author: a }, allEmbeds);
+    args = args?.map(x => x?.value).filter(x => !!x);
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message, args);
   },
   async execute(message, args) {
     var lyrics = await solenolyrics.requestLyricsFor(args.join(" "));

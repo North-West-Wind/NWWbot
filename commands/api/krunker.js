@@ -27,35 +27,17 @@ module.exports = {
       new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "version", "The version of changelog to fetch.")
     ])
   ]),
-  async slash(_client, _interaction, args) {
-    if (args[0].name === "server") return InteractionResponse.sendMessage("Loading servers...");
-    if (args[0].name === "changelog") return InteractionResponse.sendMessage("Loading changelogs...");
+  async slash() {
+    return InteractionResponse.ackknowledge();
   },
   async postSlash(client, interaction, args) {
+    const { channel, author } = await InteractionResponse.createFakeMessage(client, interaction);
     if (args[0].name === "server") {
-      const { id } = await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { content: "Loading servers..." } });
-      var message;
-      var author;
-      if (interaction.guild_id) {
-        message = await (await client.channels.fetch(interaction.channel_id)).messages.fetch(id);
-        author = { id: interaction.member.user.id };
-      } else {
-        message = await (await client.users.fetch(interaction.user.id)).messages.fetch(id);
-        author = { id: interaction.member.user.id };
-      }
-      await this.server(message, (args[0].options && args[0].options[0]?.value) ? args[0].options[0].value : null, client, author);
+      const msg = await channel.send("Loading servers...");
+      await this.server(msg, (args[0].options && args[0].options[0]?.value) ? args[0].options[0].value : null, client, author);
     } else if (args[0].name === "changelog") {
-      const { id } = await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: { content: "Loading changelogs..." } });
-      var message;
-      var author;
-      if (interaction.guild_id) {
-        message = await (await client.channels.fetch(interaction.channel_id)).messages.fetch(id);
-        author = { id: interaction.member.user.id };
-      } else {
-        message = await (await client.users.fetch(interaction.user.id)).messages.fetch(id);
-        author = { id: interaction.member.user.id };
-      }
-      await this.changelog(message, (args[0].options && args[0].options[0]?.value) ? args[0].options[0].value : null, author);
+      const msg = await channel.send("Loading changelogs...");
+      await this.changelog(msg, (args[0].options && args[0].options[0]?.value) ? args[0].options[0].value : null, author);
     }
   },
   async execute(message, args) {

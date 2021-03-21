@@ -8,24 +8,14 @@ module.exports = {
   aliases: ["lp"],
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports),
-  async slash(client, interaction) {
+  async slash(_client, interaction) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    var serverQueue = getQueues().get(interaction.guild_id);
-    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(interaction.guild_id, [], false, false, client.pool);
-    serverQueue.looping = !serverQueue.looping;
-    const lines = [];
-    if (serverQueue.repeating && serverQueue.looping) {
-      serverQueue.repeating = false;
-      lines.push("Disabled repeating to prevent conflict.");
-    }
-    try {
-      await updateQueue(interaction.guild_id, serverQueue, client.pool);
-      if (serverQueue.looping) lines.push("The queue is now being looped.");
-      else lines.push("The queue is no longer being looped.");
-      return InteractionResponse.sendMessage(lines.join("\n"));
-    } catch (err) {
-      return InteractionResponse.reply(interaction.member.user.id, "there was an error trying to update the status!");
-    }
+    return InteractionResponse.ackknowledge();
+  },
+  async postSlash(client, interaction) {
+    if (!interaction.guild_id) return;
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message);
   },
   async execute(message) {
     var serverQueue = getQueues().get(message.guild.id);

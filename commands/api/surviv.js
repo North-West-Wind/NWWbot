@@ -33,11 +33,10 @@ module.exports = {
       new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "user", "The username of the Survivr.").setRequired(true)
     ]),
     async slash() {
-      return InteractionResponse.sendMessage("Fetching user stats...");
+      return InteractionResponse.ackknowledge();
     },
     async postSlash(client, interaction, args) {
-      await InteractionResponse.deleteMessage(client, interaction);
-      args = args[0].value.split(/ +/);
+      args = args?.map(x => x?.value).filter(x => !!x);
       const message = await InteractionResponse.createFakeMessage(client, interaction);
       await this.execute(message, args);
     },

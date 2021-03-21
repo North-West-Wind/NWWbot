@@ -8,20 +8,14 @@ module.exports = {
   category: 8,
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports),
-  async slash(client, interaction) {
+  async slash(_client, interaction) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    const guild = await client.guilds.fetch(interaction.guild_id);
-    const author = await guild.members.fetch(interaction.member.user.id);
-    var serverQueue = getQueues().get(guild.id);
-    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false, client.pool);
-    serverQueue.random = !serverQueue.random;
-    try {
-      await updateQueue(guild.id, serverQueue, client.pool);
-      if (serverQueue.random) return InteractionResponse.sendMessage("The queue will be played randomly.");
-      else return InteractionResponse.sendMessage("The queue will be played in order.");
-    } catch (err) {
-      return InteractionResponse.reply(author.id, "there was an error trying to update the status!");
-    }
+    return InteractionResponse.ackknowledge();
+  },
+  async postSlash(client, interaction) {
+    if (!interaction.guild_id) return;
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    await this.execute(message);
   },
   async execute(message) {
     var serverQueue = getQueues().get(message.guild.id);

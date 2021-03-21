@@ -110,9 +110,11 @@ module.exports = {
     new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "keywords", "The memes to search for.").setRequired(true)
   ]),
   async slash() {
-    return InteractionResponse.sendMessage("Loading the memes...");
+    return InteractionResponse.ackknowledge();
   },
   async postSlash(client, interaction, args) {
+    const { channel, author } = await InteractionResponse.createFakeMessage(client, interaction);
+    const msg = await channel.send("Loading the memes...");
     var results = await doSearch(args[0].value);
     const allEmbeds = [];
     let num = 0;
@@ -131,13 +133,7 @@ module.exports = {
       if (result.impact.length > 0) em.addField("Impact", result.impact.join("\n\n").length > 1024 ? result.impact.join("\n\n").slice(0, 1021) + "..." : result.impact.join("\n\n"));
       allEmbeds.push(em);
     }
-    await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
-    var channel;
-    var author;
-    if (interaction.channel_id) {
-      channel = await client.channels.fetch(interaction.channel_id);
-      author = await client.users.fetch(interaction.member.user.id);
-    } else channel = author = await client.users.fetch(interaction.user.id);
+    await msg.delete();
     await createEmbedScrolling({ channel, author }, allEmbeds);
   },
   async execute(message, args) {
