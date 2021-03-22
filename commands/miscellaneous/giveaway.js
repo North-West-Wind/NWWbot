@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 
 const { setTimeout_, jsDate2Mysql, readableDateTime, genPermMsg, ms, readableDateTimeText, findRole, color } = require("../../function.js");
 async function endGiveaway(pool, client, result) {
@@ -76,7 +77,6 @@ async function endGiveaway(pool, client, result) {
   }
 }
 async function setupGiveaway(message, channel, time, item, winnerCount, weight = {}) {
-  await message.channel.send(`Created new giveaway in channel <#${channel.id}> for**${readableDateTimeText(time)}** with the item **${item}** and **${winnerCount} winner${winnerCount > 1 ? "s" : ""}**.`);
   const giveawayEmo = NorthClient.storage.guilds[message.guild.id]?.giveaway ? NorthClient.storage.guilds[message.guild.id].giveaway : "🎉";
   const newDate = new Date(Date.now() + time);
   const newDateSql = jsDate2Mysql(newDate);
@@ -109,6 +109,57 @@ module.exports = {
   subusage: ["<subcommand> [channel] [duration] [winner count] [item]", "<subcommand> <ID>"],
   category: 4,
   permission: 18432,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "create", "Creates a giveaway on the server.").setOptions([
+      new ApplicationCommandOption(ApplicationCommandOptionType.CHANNEL.valueOf(), "channel", "The channel of the giveaway."),
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "duration", "The duration of the giveaway."),
+      new ApplicationCommandOption(ApplicationCommandOptionType.INTEGER.valueOf(), "winner", "The amount of winner of the giveaway."),
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "item", "The item of the giveaway.")
+    ]),
+    new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "end", "Ends a giveaway on the server.").setOptions([
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "id", "The ID of the giveaway message.").setRequired(true)
+    ]),
+    new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "list", "Lists all the giveaways on the server.")
+  ]),
+  async slash(client, interaction, args) {
+    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
+    if (args[0].name === "create") {
+      if (args[0].options.findIndex(Object.is.bind(null, undefined))) return InteractionResponse.sendMessage("Getting ready to create giveaway...");
+      const channel = await client.channels.fetch(args[0].options[0].value);
+      const time = ms(args[0].options[1].value);
+      const winnerCount = parseInt(args[0].options[2].value);
+      const item = args[0].options[3].value;
+      setupGiveaway(await InteractionResponse.createFakeMessage(client, interaction), channel, time, item, winnerCount);
+      return InteractionResponse.sendMessage(`Created new giveaway in channel <#${channel.id}> for**${readableDateTimeText(time)}** with the item **${item}** and **${winnerCount} winner${winnerCount > 1 ? "s" : ""}**.`)
+    } else if (args[0].name === "end") {
+      const msgID = args[0].options[0].value;
+      const [result] = await client.pool.query("SELECT * FROM giveaways WHERE id = '" + msgID + "'");
+      if (result.length != 1 || !result) return InteractionResponse.sendMessage("No giveaway was found!");
+      if (result[0].author !== interaction.member.user.id) return InteractionResponse.sendMessage("You cannot end a giveaway that is not hosted by you!");
+      endGiveaway(client.pool, client, result[0]);
+      return InteractionResponse.sendMessage("The giveaway is being terminated...");
+    } else if (args[0].name === "list") {
+      const guild = await client.guilds.fetch(interaction.guild_id)
+      const [results] = await client.pool.query(`SELECT * FROM giveaways WHERE guild = '${guild.id}'`)
+      const Embed = new Discord.MessageEmbed()
+        .setColor(color())
+        .setTitle("Giveaway list")
+        .setDescription("**" + guild.name + "** - " + results.length + " giveaways")
+        .setTimestamp()
+        .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+      for (var i = 0; i < Math.min(25, results.length); i++) {
+        const readableTime = readableDateTime(new Date(results[i].endAt));
+        Embed.addField(readableTime, unescape(results[i].item));
+      }
+      return InteractionResponse.sendEmbeds(Embed);
+    }
+  },
+  async postSlash(client, interaction, args) {
+    if (!interaction.guild_id) return;
+    if (args[0].name === "create" && args[0].options.findIndex(Object.is.bind(null, undefined))) return await this.execute(await InteractionResponse.createFakeMessage(client, interaction), ["create"]);
+
+  },
   async execute(message, args) {
     if (args[0] === "create") {
       if (args[1]) {
@@ -127,6 +178,7 @@ module.exports = {
         const winnerCount = parseInt(args[3]);
         if (isNaN(winnerCount)) return message.channel.send(`**${args[3]}** is not a valid winner count!`);
         const item = args.slice(4).join(" ");
+        await message.channel.send(`Created new giveaway in channel <#${channel.id}> for**${readableDateTimeText(time)}** with the item **${item}** and **${winnerCount} winner${winnerCount > 1 ? "s" : ""}**.`)
         return await setupGiveaway(message, channel, time, item, winnerCount);
       }
       return await this.create(message);
@@ -185,7 +237,10 @@ module.exports = {
       }
       weight[role.id] = we;
     }
-    setupGiveaway(message, channel, duration, collected4.first().content, parseInt(collected3.first().content), weight);
+    const winnerCount = parseInt(collected3.first().content);
+    const item = collected4.first().content;
+    await message.channel.send(`Created new giveaway in channel <#${channel.id}> for**${readableDateTimeText(duration)}** with the item **${item}** and **${winnerCount} winner${winnerCount > 1 ? "s" : ""}**.`);
+    setupGiveaway(message, channel, duration, item, winnerCount, weight);
   },
   async end(message, args) {
     if (!args[1]) return message.channel.send("You didn't provide any message ID!");
@@ -193,7 +248,7 @@ module.exports = {
     const [result] = await message.pool.query("SELECT * FROM giveaways WHERE id = '" + msgID + "'");
     if (result.length != 1 || !result) return message.channel.send("No giveaway was found!");
     if (result[0].author !== message.author.id) return message.channel.send("You cannot end a giveaway that is not hosted by you!");
-    await endGiveaway(message.pool, message.client, result);
+    await endGiveaway(message.pool, message.client, result[0]);
   },
   async list(message) {
     const guild = message.guild;
