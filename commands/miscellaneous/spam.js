@@ -23,7 +23,7 @@ module.exports = {
     if (time > 120) return InteractionResponse.sendMessage("Please don't spam more than 120 times. That would be annoying.")
     const msg = args[2].value;
     var i = 0;
-    var spam = setInterval(function () {
+    var spam = setInterval(async function () {
       if (i == time) return clearInterval(spam);
       if (taggedUser.id === process.env.DC) await author.send("Admin power forbids this >:)").catch(() => i = time);
       else await taggedUser.send(`\`[${guild.name} : ${author.tag}]\` ${msg}`).catch(err => {
@@ -47,7 +47,7 @@ module.exports = {
     const msg = args.slice(2).join(" ");
     message.delete().catch(() => { });
     var i = 0;
-    var spam = setInterval(function () {
+    var spam = setInterval(async function () {
       if (i == time) return clearInterval(spam);
       if (taggedUser.id === process.env.DC) await message.author.send("Admin power forbids this >:)").catch(() => i = time);
       else await taggedUser.send(`\`[${message.guild.name} : ${message.author.tag}]\` ${msg}`).catch(err => {
