@@ -165,7 +165,7 @@ module.exports = {
           }
           await aki.step(answerID);
         }
-        if ((aki.progress >= 90 && loop > 3) || aki.currentStep >= 419) {
+        if ((aki.progress >= 90 && loop > 3) || aki.currentStep >= 79) {
           loop = 0;
           await aki.win();
           if (aki.answers && aki.answers.length) {
@@ -192,13 +192,13 @@ module.exports = {
             } catch (error) {
               NorthClient.storage.error("Failed to remove reactions.");
             }
-            if (aki.currentStep >= 419) embed.setTitle("My Final Guess is... 🤔");
+            if (aki.currentStep >= 79) embed.setTitle("My Final Guess is... 🤔");
             else embed.setTitle("I'm thinking of... 🤔");
             embed.setDescription(`**${name}**\n**${description}**\n${this.yes} **Yes**\n${this.no} **No**`);
             embed.setFooter("Am I correct?", message.client.user.displayAvatarURL());
             if (image) embed.setImage(image);
             msg = await msg.edit(embed);
-            if (aki.currentStep >= 419) {
+            if (aki.currentStep >= 79) {
               embed.setDescription(`**${name}**\n**${description}**`);
               embed.setFooter("Hope I am correct!", message.client.user.displayAvatarURL());
               await msg.edit(embed);
