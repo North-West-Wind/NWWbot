@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
-const { findUser, color } = require("../../function.js");
+const { color, genPermMsg, commonModerationEmbed, findMember } = require("../../function.js");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "unban",
@@ -8,43 +9,45 @@ module.exports = {
   usage: "<user | user ID> [reason]",
   args: 1,
   category: 1,
+  permissions: 4,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user to unban.").setRequired(true),
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "reason", "The reason of unbanning.")
+  ]),
+  async slash(client, interaction, args) {
+    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works in a server.");
+    const { guild, member: author } = await InteractionResponse.createFakeMessage(client, interaction);
+    if (!author.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
+    if (!guild.me.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
+    const member = await guild.members.fetch(args[0].value);
+    var reason;
+    if (args[1]?.value) reason = args[1].value;
+    const embeds = commonModerationEmbed(guild, author.user, member, "unban", "unbanned", reason);
+    try {
+      if (reason) await guild.members.unban(member.user, reason);
+      else await guild.members.unban(member.user);
+      member.user.send(embeds[0]).catch(() => { });
+      return InteractionResponse.sendEmbeds(embeds[1]);
+    } catch (err) {
+      return InteractionResponse.sendEmbeds(embeds[2]);
+    }
+  },
   async execute(message, args) {
-    if (!message.guild) return message.channel.send("This command only works in a server.");
-    if (!message.member.permissions.has(4)) return message.channel.send(`You don\'t have the permission to use this command.`);
-    if (!message.guild.me.permissions.has(4)) return message.channel.send(`I don\'t have the permission to unban members.`);
-    const user = await findUser(message, args[0])
-    if (!user) return;
-    if (args[1]) {
-      var reason = args.slice(1).join(" ");
-      await message.guild.members.unban(user, reason);
-    } else {
-      await message.guild.members.unban(user);
+    if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
+    if (!message.guild.me.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
+    const member = await findMember(message, args[0])
+    if (!member) return;
+    var reason;
+    if (args[1]) reason = args.slice(1).join(" ");
+    const embeds = commonModerationEmbed(message.guild, message.author, member, "unban", "unbanned", reason);
+    try {
+      if (reason) await message.guild.members.unban(member.user, reason);
+      else await message.guild.members.unban(member.user);
+      member.send(embeds[0]).catch(() => { });
+      await message.channel.send(embeds[1]);
+    } catch (err) {
+      await message.channel.send(embeds[2]);
     }
-    var unbanEmbed = new Discord.MessageEmbed()
-      .setColor(color())
-      .setTitle(`You've been unbanned`)
-      .setDescription(`In **${message.guild.name}**`)
-      .setTimestamp()
-      .setFooter(
-        "Unbanned by " + message.author.tag,
-        message.author.displayAvatarURL()
-      );
-    if (args[1]) {
-      unbanEmbed.addField("Reason", reason);
-    }
-    user.send(unbanEmbed).catch(() => {
-      NorthClient.storage.log("Failed to send DM to " + user.username);
-    });
-    var unbanSuccessfulEmbed = new Discord.MessageEmbed()
-      .setColor(color())
-      .setTitle("User Unbanned!")
-      .setDescription(
-        "Unbanned **" +
-        user.username +
-        "** in server **" +
-        message.guild.name +
-        "**."
-      );
-    message.channel.send(unbanSuccessfulEmbed);
   }
 };

@@ -12,7 +12,7 @@ module.exports = {
   register: () => new ApplicationCommand(module.exports.name, module.exports.description).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user to ban.").setRequired(true),
     new ApplicationCommandOption(ApplicationCommandOptionType.INTEGER.valueOf(), "days", "The duration (in days) of getting banned."),
-    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "reason", "The reason of banning the user.")
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "reason", "The reason of banning.")
   ]),
   async slash(client, interaction, args) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
@@ -39,7 +39,6 @@ module.exports = {
     return InteractionResponse.sendEmbeds(embeds[1]);
   },
   async execute(message, args) {
-    if (!message.guild) return message.channel.send("This command only works on server.");
     if (!message.member.permissions.has(4)) return message.channel.send(genPermMsg(this.permissions, 0));
     if (!message.guild.me.permissions.has(4)) return message.channel.send(genPermMsg(this.permissions, 1));
     const member = await findMember(message, args[0])

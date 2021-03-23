@@ -1,6 +1,5 @@
-const Discord = require("discord.js");
-const { findMember, color } = require("../../function.js");
-const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
+const { findMember, genPermMsg, commonModerationEmbed } = require("../../function.js");
 
 module.exports = {
   name: "mute",
@@ -8,75 +7,47 @@ module.exports = {
   args: 1,
   usage: "<user | user ID> [reason]",
   category: 1,
+  permissions: 4194304,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user to mute.").setRequired(true),
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "reason", "The reason of muting this user.")
+  ]),
+  async slash(client, interaction, args) {
+    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works in a server.");
+    const { guild, member: author } = await InteractionResponse.createFakeMessage(client, interaction);
+    if (!author.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
+    if (!guild.me.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
+    const member = await guild.members.fetch(args[0].value);
+    var reason;
+    if (args[1]?.value) reason = args[1].value;
+    const embeds = commonModerationEmbed(guild, author.user, member, "mute", "muted", reason);
+    try {
+      if (reason) await member.voice.setMute(true, reason)
+      else await member.voice.setMute(true);
+      member.user.send(embeds[0]).catch(() => { });
+      return InteractionResponse.sendEmbeds(embeds[1]);
+    } catch (err) {
+      return InteractionResponse.sendEmbeds(embeds[2]);
+    }
+  },
   async execute(message, args) {
-    if (!message.member.permissions.has(4194304)) {
-      message.channel.send(
-        `You don\'t have the permission to use this command.`
-      );
-      return;
-    }
-    if (!message.guild.me.permissions.has(4194304)) {
-      message.channel.send(`I don\'t have the permission to mute members.`)
-      return;
-    }
-    if (!message.guild) return;
-    var member = await findMember(message, args[0]);
+    if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
+    if (!message.guild.me.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
+    const member = await findMember(message, args[0]);
 
     if (!member) return;
     if (!member.voice.channel) return message.channel.send("The member is not connected to any voice channel.")
     message.delete().catch(() => { });
+    var reason;
+    if (args[1]) reason = args.slice(1).join(" ");
+    const embeds = commonModerationEmbed(message.guild, message.author, member, "mute", "muted", reason);
     try {
-      if (args[1]) {
-        var reason = args.slice(1).join(" ");
-      }
-      if (reason) {
-        member.voice.setMute(true, reason)
-      } else {
-        member.voice.setMute(true);
-      }
-      var muteEmbed = new Discord.MessageEmbed() // Creates the embed that's DM'ed to the user when their warned!
-        .setColor(color())
-        .setTitle(`You've been muted`)
-        .setDescription(`In **${message.guild.name}**`)
-        .setTimestamp()
-        .setFooter(
-          "Muted by " + message.author.tag,
-          message.author.displayAvatarURL()
-        );
-      if (reason) muteEmbed.addField("Reason", reason);
-      var muteSuccessfulEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
-        .setColor(color())
-        .setTitle("User Successfully Muted!")
-        .setDescription(
-          "Muted **" +
-          member.user.tag +
-          "** in server **" +
-          message.guild.name +
-          "**."
-        );
-      try {
-        member.user.send(muteEmbed);
-      } catch (error) {
-        NorthClient.storage.log("Failed to send DM to " + member.user.username);
-      }
-
-      message.author.send(muteSuccessfulEmbed)
-
+      if (reason) await member.voice.setMute(true, reason)
+      else await member.voice.setMute(true);
+      member.user.send(embeds[0]).catch(() => { });
+      await message.channel.send(embeds[1]);
     } catch (error) {
-      var muteFailureEmbed = new Discord.MessageEmbed() // Creates the embed thats returned to the person warning if its sent.
-        .setColor(color())
-        .setTitle("Failed to Mute User!")
-        .setDescription(
-          "Couldn't mute **" +
-          member.user.tag +
-          "** in server **" +
-          message.guild.name +
-          "**."
-        );
-      message.author.send(muteFailureEmbed);
+      await message.channel.send(embeds[2]);
     }
-
-
-
   }
 }

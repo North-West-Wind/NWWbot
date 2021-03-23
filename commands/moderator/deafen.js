@@ -12,7 +12,7 @@ module.exports = {
   slashInit: true,
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user to deafen.").setRequired(true),
-    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "reason", "The reason of deafening this user.")
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "reason", "The reason of deafening.")
   ]),
   async slash(client, interaction, args) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
@@ -50,9 +50,9 @@ module.exports = {
       if (reason) await member.voice.setDeaf(true, reason)
       else await member.voice.setDeaf(true);
       member.user.send(embeds[0]).catch(() => { });
-      await message.author.send(embeds[1]);
+      await message.channel.send(embeds[1]);
     } catch (error) {
-      await message.author.send(embeds[2]);
+      await message.channel.send(embeds[2]);
     }
   }
 }

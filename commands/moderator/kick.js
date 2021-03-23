@@ -1,50 +1,53 @@
 const Discord = require("discord.js");
-const { findMember, color } = require("../../function.js");
-const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
+const { findMember, color, genPermMsg, commonModerationEmbed } = require("../../function.js");
+
 module.exports = {
   name: "kick",
   description: "Kick a member from the server.",
   args: 1,
   usage: "<user | user ID> [reason]",
   category: 1,
+  permissions: 2,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user to kick.").setRequired(true),
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "reason", "The reason of kicking.")
+  ]),
+  async slash(client, interaction, args) {
+    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works in a server.");
+    const { guild, member: author } = await InteractionResponse.createFakeMessage(client, interaction);
+    if (!author.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
+    if (!guild.me.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
+    const member = await guild.members.fetch(args[0].value);
+    var reason;
+    if (args[1]?.value) reason = args[1].value;
+    const embeds = commonModerationEmbed(guild, author.user, member, "kick", "kicked", reason);
+    try {
+      if (reason) await member.kick(reason);
+      else await member.kick();
+      member.user.send(embeds[0]).catch(() => { });
+      return InteractionResponse.sendEmbeds(embeds[1]);
+    } catch (err) {
+      return InteractionResponse.sendEmbeds(embeds[2]);
+    }
+  },
   async execute(message, args) {
-    if (!message.guild) return message.channel.send("This command only works in a server.");
-    if (!message.member.permissions.has(2)) return message.channel.send(`You don\'t have the permission to use this command.`);
-    if (!message.guild.me.permissions.has(2)) return message.channel.send(`I don\'t have the permission to kick members.`);
+    if (!message.guild) return await message.channel.send("This command only works in a server.");
+    if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
+    if (!message.guild.me.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
     const member = await findMember(message, args[0]);
     if (!member) return;
-    if (args[1]) {
-      var reason = args.slice(1).join(" ")
-      await member.kick(reason)
-    } else {
-      await member.kick()
+    var reason;
+    if (args[1]) reason = args.slice(1).join(" ");
+    const embeds = commonModerationEmbed(message.guild, message.author, member, "kick", "kicked", reason);
+    try {
+      if (reason) await member.kick(reason);
+      else await member.kick();
+      user.send(embeds[0]).catch(() => { });
+      await message.channel.send(embeds[1]);
+    } catch (err) {
+      await message.channel.send(embeds[2]);
     }
-    var kickEmbed = new Discord.MessageEmbed()
-      .setColor(color())
-      .setTitle(`You've been kicked`)
-      .setDescription(`In **${message.guild.name}**`)
-      .setTimestamp()
-      .setFooter(
-        "Kicked by " + message.author.tag,
-        message.author.displayAvatarURL()
-      );
-    if (args[1]) {
-      kickEmbed.addField("Reason", reason);
-    }
-    user.send(kickEmbed).catch(() => {
-      NorthClient.storage.log("Failed to send DM to " + user.username)
-    });
-
-    var kickSuccessfulEmbed = new Discord.MessageEmbed()
-      .setColor(color())
-      .setTitle("User Kicked!")
-      .setDescription(
-        "Kicked **" +
-        user.tag +
-        "** in server **" +
-        message.guild.name +
-        "**."
-      );
-    message.channel.send(kickSuccessfulEmbed);
   }
 };

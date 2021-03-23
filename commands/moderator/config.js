@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const iiu = require("is-image-url");
 const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 const { genPermMsg, ID, color } = require("../../function");
 var panelEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⏹"],
   welcomeEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⬅", "⏹"],
@@ -16,58 +17,65 @@ module.exports = {
   category: 1,
   permission: 32,
   channelPermission: 8192,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "token", "Retrieves the token of the server."),
+    new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "new", "Generates a new token for the server."),
+    new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "panel", "Configures the server settings.")
+  ]),
+  async slash(client, interaction, args) {
+    if (!interaction.guild_id) return InteractionResponse.sendMessage("Direct messages is not configurable.");
+    const { member, guild, channel, author } = await InteractionResponse.createFakeMessage(client, interaction);
+    if (!member.permissions.has(this.permission)) return InteractionResponse.sendMessage(genPermMsg(this.permission, 0));
+    if (!channel.permissionsFor(guild.me).has(this.channelPermission)) return InteractionResponse.sendMessage(genPermMsg(this.channelPermission, 1));
+    if (args[0].name === "panel") return InteractionResponse.sendMessage("Initializing configuration panel...");
+    const config = NorthClient.storage.guilds[guild.id];
+    const generated = await ID();
+    try {
+      await author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
+      if (!config) {
+        NorthClient.storage.guilds[guild.id] = { token: generated };
+        await client.pool.query(`INSERT INTO servers (id, autorole, giveaway, token) VALUES ('${guild.id}', '[]', '🎉', '${generated}')`);
+      } else if (config.token && args[0].name !== "new") await author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
+      else {
+        NorthClient.storage.guilds[guild.id].token = generated;
+        await client.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
+      }
+      return InteractionResponse.ackknowledge();
+    } catch (err) {
+      NorthClient.storage.error(err);
+      return InteractionResponse.reply(member.id, "there was an error trying to update the token! This token will be temporary.");
+    }
+  },
+  async postSlash(client, interaction, args) {
+    if (!interaction.guild_id) return;
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    if (!message.member.permissions.has(this.permission)) return;
+    if (!message.channel.permissionsFor(message.guild.me).has(this.channelPermission)) return;
+    if (args[0].name !== "panel") return;
+    return await this.panel(message);
+  },
   async execute(message, args) {
     if (!message.guild) return await message.channel.send("Direct messages is not configurable.");
     if (!message.member.permissions.has(this.permission)) return await message.channel.send(genPermMsg(this.permission, 0));
     if (!message.channel.permissionsFor(message.guild.me).has(this.channelPermission)) return message.channel.send(genPermMsg(this.channelPermission, 1));
-
     const guild = message.guild;
     const config = NorthClient.storage.guilds[guild.id];
-
-    if (args[0] === "new") return await this.new(message);
     if (args[0] === "panel") return await this.panel(message);
-    if (!config) try {
-      await message.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
-      NorthClient.storage.guilds[guild.id] = {};
-      NorthClient.storage.log("Inserted record for " + guild.name);
-      return await this.execute(message, args);
-    } catch (err) {
-      message.reply("there was an error trying to insert record for your server!");
-      NorthClient.storage.error(err);
-    }
-    if (config.token !== null) message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
-    else try {
-      const generated = await ID();
-      await message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
-      NorthClient.storage.guilds[guild.id].token = generated;
-      await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
-      NorthClient.storage.log("Created token for server " + guild.name);
-    } catch (err) {
-      NorthClient.storage.error(err);
-      message.reply("there was an error trying to update the token! This token will be temporary.");
-    }
-  },
-  async new(message) {
-    const guild = message.guild;
-    const config = NorthClient.storage.guilds[guild.id];
-    if (!config) try {
-      await message.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '🎉')`);
-      NorthClient.storage.guilds[guild.id] = {};
-      NorthClient.storage.log("Inserted record for " + guild.name);
-      return await this.new(message);
-    } catch (err) {
-      message.reply("there was an error trying to insert record for your server!");
-      NorthClient.storage.error(err);
-    }
+    const generated = await ID();
     try {
-      const generated = await ID();
-      NorthClient.storage.guilds[guild.id].token = generated;
-      message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
-      await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
-      NorthClient.storage.log("Created token for server " + guild.name);
+      await message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
+      if (!config) {
+        NorthClient.storage.guilds[guild.id] = { token: generated };
+        await message.pool.query(`INSERT INTO servers (id, autorole, giveaway, token) VALUES ('${guild.id}', '[]', '🎉', '${generated}')`);
+      } else if (config.token && args[0] !== "new") await message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
+      else {
+        NorthClient.storage.guilds[guild.id].token = generated;
+        await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
+      }
     } catch (err) {
-      NorthClient.storage.error(err);
       message.reply("there was an error trying to update the token! This token will be temporary.");
+      NorthClient.storage.error(err);
     }
   },
   async panel(message) {

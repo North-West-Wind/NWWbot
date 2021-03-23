@@ -35,6 +35,13 @@ module.exports = {
         }
         return true;
     },
+    async moderator(_command, message) {
+        if (!message.guild) {
+            await message.channel.send("You can only use moderator commands in server!");
+            return false;
+        }
+        return true;
+    },
     async music(_command, message) {
         if (!message.guild) {
             await message.channel.send("You can only use music commands in server!");

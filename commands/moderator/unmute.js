@@ -1,6 +1,5 @@
-const Discord = require("discord.js");
-const { findMember, color } = require("../../function.js");
-const { NorthClient } = require("../../classes/NorthClient.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
+const { findMember, commonModerationEmbed } = require("../../function.js");
 
 module.exports = {
   name: "unmute",
@@ -8,72 +7,45 @@ module.exports = {
   args: 1,
   usage: "<user | user ID> [reason]",
   category: 1,
+  permissions: 4194304,
+  slashInit: true,
+  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
+    new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user to unmute.").setRequired(true),
+    new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "reason", "The reason of unmuting.")
+  ]),
+  async slash(client, interaction, args) {
+    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works in a server.");
+    const { guild, member: author } = await InteractionResponse.createFakeMessage(client, interaction);
+    if (!author.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
+    if (!guild.me.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
+    const member = await guild.members.fetch(args[0].value);
+    var reason;
+    if (args[1]?.value) reason = args[1].value;
+    const embeds = commonModerationEmbed(guild, author.user, member, "unmute", "unmuted", reason);
+    try {
+      if (reason) await member.voice.setMute(false, reason);
+      else await member.voice.setMute(false);
+      member.user.send(embeds[0]).catch(() => { });
+      return InteractionResponse.sendEmbeds(embeds[1]);
+    } catch (err) {
+      return InteractionResponse.sendEmbeds(embeds[2]);
+    }
+  },
   async execute(message, args) {
-    if (!message.member.permissions.has(4194304)) {
-      message.channel.send(
-        `You don\'t have the permission to use this command.`
-      );
-      return;
-    }
-    if (!message.guild.me.permissions.has(4194304)) {
-      message.channel.send(`I don\'t have the permission to unmute members.`)
-      return;
-    }
-    if (!message.guild) return;
+    if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
+    if (!message.guild.me.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
     const member = await findMember(message, args[0]);
     if (!member) return;
-    if (!member.voice.channel) return message.channel.send("The member is not connected to any voice channel.")
-    message.delete()
+    var reason;
+    if (args[1]) reason = args.slice(1).join(" ");
+    const embeds = commonModerationEmbed(message.guild, message.author, member, "unmute", "unmuted", reason);
     try {
-      if (args[1]) {
-        var reason = args.slice(1).join(" ");
-      }
-      if (reason) {
-        member.voice.setMute(false, reason)
-      } else {
-        member.voice.setMute(false);
-      }
-
-      var muteEmbed = new Discord.MessageEmbed()
-        .setColor(color())
-        .setTitle(`You've been unmuted`)
-        .setDescription(`In **${message.guild.name}**`)
-        .setTimestamp()
-        .setFooter(
-          "Unmuted by " + message.author.tag,
-          message.author.displayAvatarURL()
-        );
-      if (reason) muteEmbed.addField("Reason", reason);
-      var muteSuccessfulEmbed = new Discord.MessageEmbed()
-        .setColor(color())
-        .setTitle("User Successfully Unmuted!")
-        .setDescription(
-          "Unmuted **" +
-          member.user.tag +
-          "** in server **" +
-          message.guild.name +
-          "**."
-        );
-      try {
-        member.user.send(muteEmbed);
-      } catch (error) {
-        NorthClient.storage.log("Failed to send DM to " + member.user.username);
-      }
-
-      message.author.send(muteSuccessfulEmbed)
-
+      if (reason) await member.voice.setMute(false, reason);
+      else await member.voice.setMute(false);
+      member.user.send(embeds[0]).catch(() => { });
+      await message.channel.send(embeds[1]);
     } catch (error) {
-      var muteFailureEmbed = new Discord.MessageEmbed()
-        .setColor(color())
-        .setTitle("Failed to Unmute User!")
-        .setDescription(
-          "Couldn't unmute **" +
-          member.user.tag +
-          "** in server **" +
-          message.guild.name +
-          "**."
-        );
-      message.author.send(muteFailureEmbed);
+      await message.author.send(embeds[2]);
     }
   }
 }

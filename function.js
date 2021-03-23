@@ -448,7 +448,7 @@ module.exports = {
       .setDescription(`In **${guild.name}**`)
       .setTimestamp()
       .setFooter(`${this.capitalize(past)} by ${author.tag}`, author.displayAvatarURL());
-    if (reason !== "") notiEmbed.addField("Reason", reason);
+    if (reason) notiEmbed.addField("Reason", reason);
     const successfulEmbed = new Discord.MessageEmbed()
       .setColor(this.color())
       .setTitle(`User ${this.capitalize(past)}!`)
