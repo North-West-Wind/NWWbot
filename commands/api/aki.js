@@ -81,10 +81,9 @@ module.exports = {
 
     const embed = new Discord.MessageEmbed()
       .setColor(color())
-      .setTitle("Question 1: " + aki.question)
-      .setDescription(str)
+      .setTitle("Getting ready...")
       .setTimestamp()
-      .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL());
+      .setFooter("Please wait until all reactions appear.", message.client.user.displayAvatarURL());
     var msg = await message.channel.send(embed);
     await msg.react(this.yes);
     await msg.react(this.no);
@@ -93,6 +92,9 @@ module.exports = {
     await msg.react(this.unknown);
     await msg.react(this.back);
     await msg.react(this.stop);
+    embed.setTitle("Question 1: " + aki.question)
+      .setDescription(str)
+      .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL());
     const filter = (reaction, user) =>
       [
         this.yes,
