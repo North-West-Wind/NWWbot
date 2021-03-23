@@ -20,7 +20,7 @@ module.exports = {
     const author = await guild.members.fetch(interaction.member.user.id);
     if (!author.permissions.has(this.permission)) return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setContent(genPermMsg(this.permission, 0)));
     if (!guild.me.permissions.has(this.permission)) return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setContent(genPermMsg(this.permission, 1)));
-    const embeds = commonRoleEmbed(message.client, "create", "created", args[0].value);
+    const embeds = commonRoleEmbed(client, "create", "created", args[0].value);
     try {
       if (!args[1]?.value) await guild.roles.create({ data: { name: args[0].value } });
       else await guild.roles.create({ data: { name: args[0].value, color: args[1].value } });

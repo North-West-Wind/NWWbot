@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 const { validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream, moveArray, color } = require("../../function.js");
 const { getMP3 } = require("../api/musescore.js");
 const muse = require("musescore-metadata");
-const { execute: music, slash } = require("./migrate.js");
+const { execute: music } = require("./migrate.js");
 const ytdl = require("ytdl-core");
 const { NorthClient } = require("../../classes/NorthClient.js");
 var SpotifyWebApi = require("spotify-web-api-node");
@@ -521,7 +521,7 @@ module.exports = {
         mesg.edit("Track processing completed").then(msg => msg.delete({ timeout: 10000 })).catch(() => { });
         break;
       case "track":
-        var tracks = await spotifyApi.getTracks([musicID]).body.tracks;
+        var tracks = (await spotifyApi.getTracks([musicID])).body.tracks;
         for (var i = 0; i < tracks.length; i++) {
           var results;
           try {

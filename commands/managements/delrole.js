@@ -22,7 +22,7 @@ module.exports = {
     if(!guild.me.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
     const role = await guild.roles.fetch(args[0].value);
     if (!role) return InteractionResponse.sendMessage("No role was found!");
-    const embeds = commonRoleEmbed(message.client, "delete", "Deleted", role.name);
+    const embeds = commonRoleEmbed(client, "delete", "Deleted", role.name);
     try {
       await role.delete();
       return InteractionResponse.sendEmbeds(embeds[1]);
