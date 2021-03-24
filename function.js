@@ -442,33 +442,35 @@ module.exports = {
   },
   commonModerationEmbed(guild, author, member, word, past, reason) {
     const Discord = require("discord.js");
+    const color = () => Math.floor(Math.random() * 16777214) + 1;
     const notiEmbed = new Discord.MessageEmbed()
-      .setColor(this.color())
+      .setColor(color())
       .setTitle(`You've been ${past}`)
       .setDescription(`In **${guild.name}**`)
       .setTimestamp()
       .setFooter(`${this.capitalize(past)} by ${author.tag}`, author.displayAvatarURL());
     if (reason) notiEmbed.addField("Reason", reason);
     const successfulEmbed = new Discord.MessageEmbed()
-      .setColor(this.color())
+      .setColor(color())
       .setTitle(`User ${this.capitalize(past)}!`)
       .setDescription(`${this.capitalize(past)} **${member.user.tag}** in server **${guild.name}**.`);
     const failureEmbed = new Discord.MessageEmbed()
-      .setColor(this.color())
+      .setColor(color())
       .setTitle(`Failed to ${word} the user!`)
       .setDescription(`Couldn't ${word} **${member.user.tag}** in server **${guild.name}**.`);
     return [notiEmbed, successfulEmbed, failureEmbed];
   },
   commonRoleEmbed(client, word, past, name) {
     const Discord = require("discord.js");
+    const color = () => Math.floor(Math.random() * 16777214) + 1;
     const failEmbed = new Discord.MessageEmbed()
-      .setColor(this.color())
+      .setColor(color())
       .setTitle(`Failed to ${word} role`)
       .setDescription(`Failed to ${word} the role **${name}**`)
       .setTimestamp()
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     const successEmbed = new Discord.MessageEmbed()
-      .setColor(this.color())
+      .setColor(color())
       .setTitle(`Role ${past} Successfully`)
       .setDescription(`${this.capitalize(past)} a new role **${name}**`)
       .setTimestamp()
