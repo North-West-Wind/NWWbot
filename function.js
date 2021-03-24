@@ -468,7 +468,7 @@ module.exports = {
       .setTimestamp()
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     const successEmbed = new Discord.MessageEmbed()
-      .setColor(color())
+      .setColor(this.color())
       .setTitle(`Role ${past} Successfully`)
       .setDescription(`${this.capitalize(past)} a new role **${name}**`)
       .setTimestamp()
