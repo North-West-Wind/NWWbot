@@ -462,7 +462,7 @@ module.exports = {
   commonRoleEmbed(client, word, past, name) {
     const Discord = require("discord.js");
     const failEmbed = new Discord.MessageEmbed()
-      .setColor(color())
+      .setColor(this.color())
       .setTitle(`Failed to ${word} role`)
       .setDescription(`Failed to ${word} the role **${name}**`)
       .setTimestamp()
