@@ -443,17 +443,18 @@ module.exports = {
   commonModerationEmbed(guild, author, member, word, past, reason) {
     const Discord = require("discord.js");
     const color = () => Math.floor(Math.random() * 16777214) + 1;
+    const capitalize = (s) => (typeof s !== 'string') ? '' : s.charAt(0).toUpperCase() + s.slice(1);
     const notiEmbed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(`You've been ${past}`)
       .setDescription(`In **${guild.name}**`)
       .setTimestamp()
-      .setFooter(`${this.capitalize(past)} by ${author.tag}`, author.displayAvatarURL());
+      .setFooter(`${capitalize(past)} by ${author.tag}`, author.displayAvatarURL());
     if (reason) notiEmbed.addField("Reason", reason);
     const successfulEmbed = new Discord.MessageEmbed()
       .setColor(color())
-      .setTitle(`User ${this.capitalize(past)}!`)
-      .setDescription(`${this.capitalize(past)} **${member.user.tag}** in server **${guild.name}**.`);
+      .setTitle(`User ${capitalize(past)}!`)
+      .setDescription(`${capitalize(past)} **${member.user.tag}** in server **${guild.name}**.`);
     const failureEmbed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(`Failed to ${word} the user!`)
@@ -463,6 +464,7 @@ module.exports = {
   commonRoleEmbed(client, word, past, name) {
     const Discord = require("discord.js");
     const color = () => Math.floor(Math.random() * 16777214) + 1;
+    const capitalize = (s) => (typeof s !== 'string') ? '' : s.charAt(0).toUpperCase() + s.slice(1);
     const failEmbed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(`Failed to ${word} role`)
@@ -472,7 +474,7 @@ module.exports = {
     const successEmbed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(`Role ${past} Successfully`)
-      .setDescription(`${this.capitalize(past)} a new role **${name}**`)
+      .setDescription(`${capitalize(past)} a new role **${name}**`)
       .setTimestamp()
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return [successEmbed, failEmbed];
