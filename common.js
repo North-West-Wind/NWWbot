@@ -18,6 +18,13 @@ const mysql_config = {
     queueLimit: 0
 };
 
+if (!String.prototype.splice) {
+    String.prototype.splice = function(start, delCount, newSubStr) {
+        return this.slice(0, start) + newSubStr + this.slice(start + Math.abs(delCount));
+    };
+    console.log("Registered String.splice()");
+}
+
 module.exports = (...clients) => {
     const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
     for (const file of fontFiles) registerFont(`./fonts/${file}`, { family: "NotoSans", style: file.split(/[\-\.]/)[1].toLowerCase() });

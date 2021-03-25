@@ -508,7 +508,7 @@ module.exports = {
 		const result = new Discord.MessageEmbed()
 		.setTitle(`Points of ${args[1]}`)
 		.setColor(color())
-		.setDescription(`Total Points: **${points}**${points == Infinity ? " (Instant Accept!)" : ""}\nSkyBlock Points: **${sbpt}**\nBedWars Points: **${bwpt}**`)
+		.setDescription(`Total Points: **${points}**${points == Infinity ? " (Instant Accept!)" : (points >= 12 ? " (Accepted)" : "")}\nSkyBlock Points: **${sbpt}**${sbpt >= 8 ? " (Accepted)" : ""}\nBedWars Points: **${bwpt}**${bwpt >= 4 ? " (Accepted)" : ""}`)
 		.addField("Average Skill Level", maxSa, true)
 		.addField("Catacomb Level", maxCatacomb, true)
 		.addField("Slayer EXP", maxSlayer, true)
