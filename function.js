@@ -454,11 +454,11 @@ module.exports = {
     const successfulEmbed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(`User ${capitalize(past)}!`)
-      .setDescription(`${capitalize(past)} **${member.user.tag}** in server **${guild.name}**.`);
+      .setDescription(`${capitalize(past)} **${member.user?.tag || member.tag}** in server **${guild.name}**.`);
     const failureEmbed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(`Failed to ${word} the user!`)
-      .setDescription(`Couldn't ${word} **${member.user.tag}** in server **${guild.name}**.`);
+      .setDescription(`Couldn't ${word} **${member.user?.tag || member.tag}** in server **${guild.name}**.`);
     return [notiEmbed, successfulEmbed, failureEmbed];
   },
   commonRoleEmbed(client, word, past, name) {

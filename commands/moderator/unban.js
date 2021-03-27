@@ -20,14 +20,14 @@ module.exports = {
     const { guild, member: author } = await InteractionResponse.createFakeMessage(client, interaction);
     if (!author.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
     if (!guild.me.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
-    const member = await guild.members.fetch(args[0].value);
+    const member = await client.users.fetch(args[0].value);
     var reason;
     if (args[1]?.value) reason = args[1].value;
     const embeds = commonModerationEmbed(guild, author.user, member, "unban", "unbanned", reason);
     try {
-      if (reason) await guild.members.unban(member.user, reason);
-      else await guild.members.unban(member.user);
-      member.user.send(embeds[0]).catch(() => { });
+      if (reason) await guild.members.unban(member, reason);
+      else await guild.members.unban(member);
+      member.send(embeds[0]).catch(() => { });
       return InteractionResponse.sendEmbeds(embeds[1]);
     } catch (err) {
       return InteractionResponse.sendEmbeds(embeds[2]);
