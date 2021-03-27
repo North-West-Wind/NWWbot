@@ -269,7 +269,7 @@ module.exports = {
       else if (validURL(args.join(" "))) result = await this.addURL(args.join(" "));
       else if (message.attachments.size > 0) result = await this.addAttachment(message);
       else result = await this.search(message, args.join(" "));
-      if (result.error) return await message.channel.send(result.message);
+      if (result.error) return await message.channel.send(result.message || "Failed to add soundtracks");
       songs = result.songs;
       if (!songs || songs.length < 1) return await message.reply("there was an error trying to add the soundtrack!");
       const Embed = createEmbed(message.client, songs);
