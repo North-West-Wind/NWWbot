@@ -446,7 +446,7 @@ module.exports = {
     var nArgs = [];
     if (args[0].name === "single") {
       nArgs = args[0].options ? (args[0].options[0]?.value?.split(/ +/) || []) : [];
-      if (args[0].options[1]?.value) nArgs.push("los");
+      if (args[0].options ? args[0].options[1]?.value : false) nArgs.push("los");
     } else if (args[0].name === "auto") {
       nArgs = args[0].options[2]?.value?.split(/ +/) || [];
       if (args[0].options[3]?.value) nArgs.push("los");

@@ -56,7 +56,7 @@ module.exports = {
     gain *= (correct / words.length) * (doubling ? 2 : 1);
     var newCurrency = Math.round((Number(results[0].currency) + gain + Number.EPSILON) * 100) / 100;
     await con.query(`UPDATE currency SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? `, doubling = NULL` : "")} WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
-    await message.channel.send(`<@${message.author.id}> worked and gained **$${newCurrency - Number(results[0].currency)}**${correct < words.length ? ` (and it's multiplied by **${correct}/${words.length}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
+    await message.channel.send(`<@${message.author.id}> worked and gained **$${Math.round((gain + Number.EPSILON) * 100) / 100}**${correct < words.length ? ` (and it's multiplied by **${correct}/${words.length}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
     con.release();
   }
 };

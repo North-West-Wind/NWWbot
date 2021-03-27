@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 const neko = require("akaneko");
 const { ms, color } = require("../../function.js");
-const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse, ApplicationCommandOptionChoice } = require("../../classes/Slash.js");
 
 module.exports = {
   name: "hentai",
@@ -44,7 +44,9 @@ module.exports = {
   slashInit: true,
   register() {
     return ApplicationCommand.createBasic(module.exports).setOptions([
-      new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "single", "Displays a single Hentai."),
+      new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "single", "Displays a single Hentai.").setOptions([
+        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "tag", "The tag of Hentai to fetch.").setChoices(this.tags.map(tag => new ApplicationCommandOptionChoice(tag, tag)))
+      ]),
       new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "auto", "Automatically fetches Hentai.").setOptions([
         new ApplicationCommandOption(ApplicationCommandOptionType.INTEGER.valueOf(), "amount", "The amount of Hentai to fetch.").setRequired(true),
         new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "interval", "The interval between each fetch.").setRequired(true),

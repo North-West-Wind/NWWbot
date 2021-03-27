@@ -4,7 +4,7 @@ const formatSetup = require("moment-duration-format");
 const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash.js");
 formatSetup(moment);
 const { ms, color } = require("../../function.js");
-const { updateQueue, getQueues } = require("../../helpers/music.js");
+const { updateQueue, getQueues, setQueue } = require("../../helpers/music.js");
 const type = [
   "YouTube",
   "Spotify",

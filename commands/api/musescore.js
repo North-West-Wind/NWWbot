@@ -83,7 +83,6 @@ module.exports = {
         const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000 });
         await msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
-            NorthClient.storage.log(`Downloading ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}...`);
             try {
                 try {
                     var mesg = await message.channel.send("Generating MP3...");
@@ -133,9 +132,7 @@ module.exports = {
                         await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``);
                         await message.channel.send(`However, you may still be able to download it from this link:\n${mscz.url}`);
                     }
-                    NorthClient.storage.log(`Completed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
                 } catch (err) {
-                    NorthClient.storage.log(`Failed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
                     NorthClient.storage.error(err);
                     await message.reply("there was an error trying to send the files!");
                 }
@@ -159,6 +156,7 @@ module.exports = {
         const stores = Array.from($('div[class^="js-"]'));
         const store = findValueByPrefix(stores.find(x => x.attribs && x.attribs.class && x.attribs.class.match(/^js-\w+$/)).attribs, "data-");
         var data = JSON.parse(store);
+        console.log(data);
         const allEmbeds = [];
         const importants = [];
         var num = 0;

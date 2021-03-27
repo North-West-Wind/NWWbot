@@ -13,10 +13,10 @@ module.exports = {
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user's information to find.")
   ]),
-  async slash(_client, interaction) {
+  async slash(client, interaction) {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     const guild = await client.guilds.fetch(interaction.guild_id);
-    const member = await guild.members.fetch(args[0]?.value ? args[0].value : interaction.member.user.id);
+    const member = await guild.members.fetch(args[0]?.value || interaction.member.user.id);
     return InteractionResponse.sendEmbeds(this.createProfileEmbed(member, guild));
   },
   async execute(message, args) {

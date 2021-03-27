@@ -157,8 +157,8 @@ module.exports = {
   },
   async postSlash(client, interaction, args) {
     if (!interaction.guild_id) return;
-    if (args[0].name === "create" && args[0].options.findIndex(Object.is.bind(null, undefined))) return await this.execute(await InteractionResponse.createFakeMessage(client, interaction), ["create"]);
-
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    if (args[0].name === "create") return await this.execute(message, ["create"].concat(args[0].options ? args[0].options.map(x => x?.value).filter(x => !!x) : []));
   },
   async execute(message, args) {
     if (args[0] === "create") {

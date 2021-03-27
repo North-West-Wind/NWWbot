@@ -15,8 +15,7 @@ module.exports = {
   ]),
   async slash(client, _interaction, args) {
     const results = [];
-    var links = await googleIt({ query: args[0].value });
-    links = links.slice(0, 10);
+    var links = await googleIt({ limit: 10, query: args[0].value });
     var num = 0;
     for(var i = 0; i < links.length; i++) {
       try {results.push(`${++num}. **[${links[i].title}](${links[i].link})**`);}

@@ -32,7 +32,7 @@ module.exports = {
     async slash(_client, _interaction, args) {
         if (args[0].name === "help") return InteractionResponse.sendMessage("Deploying help...");
         let done = "Error!";
-        switch(args[0]) {
+        switch(args[0].name) {
             case "evaluate":
                 try { done = await math.evaluate(args[0].options[0].value); } catch(err) {done = "Evaluation Error"; NorthClient.storage.error(err);}
                 break;

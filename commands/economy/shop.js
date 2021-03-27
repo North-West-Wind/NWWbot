@@ -25,7 +25,7 @@ module.exports = {
     await this.execute(message, args[0].name === "add" ? args[0].name : undefined);
   },
   async execute(message, args) {
-    if (args[0] && args[0] == "add") return await this.add(message);
+    if (args[0]?.name && args[0]?.name == "add") return await this.add(message);
     const c = color();
     const pool = message.pool;
     mainMenu();

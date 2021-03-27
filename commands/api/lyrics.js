@@ -33,7 +33,7 @@ module.exports = {
     if(!title) title = "Title Not Found";
     if(!author) author = "No Authors Found";
     if(!lyrics) lyrics = "No lyrics were found";
-    const allEmbeds = await this.createLyricsEmbeds(lyrics, title, author, icon, message.client);
+    const allEmbeds = await this.createLyricsEmbeds(lyrics, title, author, icon, client);
     const message = await InteractionResponse.createFakeMessage(client, interaction);
     if (allEmbeds.length == 1) await message.channel.send(allEmbeds[0]);
     else await createEmbedScrolling(message, allEmbeds);

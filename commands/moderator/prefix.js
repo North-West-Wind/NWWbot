@@ -17,7 +17,7 @@ module.exports = {
         if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
         const guild = await client.guilds.fetch(interaction.guild_id);
         const member = await guild.members.fetch(interaction.member.user.id);
-        if (!args[0]?.value) return InteractionResponse.sendMessage(`The prefix of this server is \`${NorthClient.storage.guilds[guild.id].prefix}\`. Use \`/prefix [prefix]\` to change the prefix.`);
+        if (!args[0]?.value) return InteractionResponse.sendMessage(`The prefix of this server is \`${NorthClient.storage.guilds[guild.id].prefix || client.prefix}\`. Use \`/prefix [prefix]\` to change the prefix.`);
         if (!member.hasPermission(this.permission)) return InteractionResponse.sendMessage(genPermMsg(this.permission, 0));
         NorthClient.storage.guilds[guild.id].prefix = args.join(" ");
         try {

@@ -25,9 +25,9 @@ module.exports = {
     const embeds = commonRoleEmbed(client, "delete", "Deleted", role.name);
     try {
       await role.delete();
-      return InteractionResponse.sendEmbeds(embeds[1]);
-    } catch (err) {
       return InteractionResponse.sendEmbeds(embeds[0]);
+    } catch (err) {
+      return InteractionResponse.sendEmbeds(embeds[1]);
     }
   },
   async execute(message, args) {

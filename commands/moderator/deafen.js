@@ -22,7 +22,6 @@ module.exports = {
     if (!guild.me.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
     const member = await guild.members.fetch(args[0].value);
     if (!member) return InteractionResponse.sendMessage("Cannot find the user.");
-    await message.delete();
     var reason;
     if (args[1]?.value) reason = args[1].value;
     const embeds = commonModerationEmbed(guild, author, member, "deafen", "deafened", reason);

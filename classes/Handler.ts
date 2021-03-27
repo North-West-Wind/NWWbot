@@ -76,6 +76,7 @@ export class Handler {
                     setQueue(result.id, queue, !!result.looping, !!result.repeating, pool);
                 }
                 if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
+                else storage.guilds[result.id].prefix = client.prefix;
                 storage.guilds[result.id].token = result.token;
                 storage.guilds[result.id].giveaway = unescape(result.giveaway);
                 storage.guilds[result.id].welcome = {
@@ -964,6 +965,7 @@ export class CanaryHandler extends Handler {
                     setQueue(result.id, queue, !!result.looping, !!result.repeating, pool);
                 }
                 if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
+                else storage.guilds[result.id].prefix = client.prefix;
                 storage.guilds[result.id].token = result.token;
                 storage.guilds[result.id].giveaway = unescape(result.giveaway);
                 storage.guilds[result.id].welcome = {

@@ -23,7 +23,7 @@ module.exports = {
     if (isNaN(min)) return InteractionResponse.sendMessage("The minimum must be a number!");
     if (isNaN(max)) return InteractionResponse.sendMessage("The maximum must be a number!");
     if(args[2]?.value && !isNaN(Number(args[2].value))) count = parseInt(args[2].value);
-		if(args[3]?.value && !isNaN(parseInt(args[3].value))) decimal = parseInt(args[3].value);
+		if(args[3]?.value !== undefined && !isNaN(parseInt(args[3].value))) decimal = parseInt(args[3].value);
 		let msg = "";
 		for(let i = 0; i < count; i++) {
     	var number = decimal < 0 ? getRandomNumber(min, max) : Math.round((getRandomNumber(Number(args[0]), Number(args[1])) + Number.EPSILON) * Math.pow(10, decimal)) / Math.pow(10, decimal);
@@ -40,7 +40,7 @@ module.exports = {
     if(isNaN(min) || isNaN(max)) return message.channel.send("Discovered non-number objects!");
     
     if(args[2] && !isNaN(Number(args[2]))) count = parseInt(args[2]);
-		if(args[3] && !isNaN(parseInt(args[3]))) decimal = parseInt(args[3]);
+		if(args[3] !== undefined && !isNaN(parseInt(args[3]))) decimal = parseInt(args[3]);
 		let msg = "";
 		for(let i = 0; i < count; i++) {
     	var number = decimal < 0 ? getRandomNumber(min, max) : Math.round((getRandomNumber(Number(args[0]), Number(args[1])) + Number.EPSILON) * Math.pow(10, decimal)) / Math.pow(10, decimal);

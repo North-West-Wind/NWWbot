@@ -20,7 +20,7 @@ module.exports = {
     const guild = await client.guilds.fetch(interaction.guild_id);
     const author = await guild.members.fetch(interaction.member.user.id);
     if (!author.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
-    if (!guild.me.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
+    if (!guild.me.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
     const member = await guild.members.fetch(args[0].value);
     const role = await guild.roles.fetch(args[1].value);
     try {

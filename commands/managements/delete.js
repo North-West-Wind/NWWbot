@@ -26,7 +26,7 @@ module.exports = {
     const author = await guild.members.fetch(interaction.member.user.id);
     const cChannel = await client.channels.fetch(interaction.channel_id);
     if (!author.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
-    if (!guild.me.permissions.has(this.permissions) || !cChannel.permissionsFor(message.guild.me).has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
+    if (!guild.me.permissions.has(this.permissions) || !cChannel.permissionsFor(guild.me).has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
 
     var amount = parseInt(args[0].value);
     var channel = cChannel;

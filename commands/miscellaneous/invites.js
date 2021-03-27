@@ -22,7 +22,7 @@ module.exports = {
     if (args[0].name === "server") {
       const guild = await client.guilds.fetch(interaction.guild_id);
       if (!guild.me.hasPermission(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
-      const allEmbeds = await this.createInvitesEmbed(message.guild, message.client, true);
+      const allEmbeds = await this.createInvitesEmbed(guild, client, true);
       return InteractionResponse.sendEmbeds(allEmbeds[0]);
     } else if (args[0].name === "me") {
       const guild = await client.guilds.fetch(interaction.guild_id);
@@ -33,7 +33,7 @@ module.exports = {
     } else if (args[0].name === "toggle") {
       const { author } = await InteractionResponse.createFakeMessage(client, interaction);
       try {
-        const [result] = await client.pool.query(`SELECT * FROM nolog WHERE id = '${message.author.id}'`);
+        const [result] = await client.pool.query(`SELECT * FROM nolog WHERE id = '${author.id}'`);
         if (result.length < 1) {
           await client.pool.query(`INSERT INTO nolog VALUES('${author.id}')`);
           if (NorthClient.storage.noLog.indexOf(author.id) == -1) NorthClient.storage.noLog.push(author.id);
@@ -129,5 +129,6 @@ module.exports = {
       .addField("Links Created", invites.size, true)
       .setTimestamp()
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+    return em;
   }
 };

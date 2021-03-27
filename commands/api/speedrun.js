@@ -28,7 +28,7 @@ module.exports = {
     const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(args.join(" "))}`).then(res => res.json());
     if (gameFetch.status && gameFetch.status === 404) {
       const games = [];
-      const result = await fetch(`https://www.speedrun.com/api/v1/games?name=${escape(args.join(" "))}&_bulk=1`).then(res => res.json());
+      var result = await fetch(`https://www.speedrun.com/api/v1/games?name=${escape(args.join(" "))}&_bulk=1`).then(res => res.json());
       for (var i = 0; i < (result.data.length > 10 ? 10 : result.data.length); i++) games.push(`${i + 1}. **${result.data[i].names.international}** : **${result.data[i].abbreviation}**`);
       const em = new Discord.MessageEmbed()
         .setColor(color())
@@ -83,7 +83,7 @@ module.exports = {
       const category = categoryFetch && categoryFetch.data ? categoryFetch.data.name : "N/A";
       const embed = new Discord.MessageEmbed()
         .setColor(color())
-        .setTitle(results && results.data[0] ? results.data[index ? index : 0].names.international : gameFetch.data.names.international)
+        .setTitle(result && result.data[0] ? result.data[index ? index : 0]?.names?.international : gameFetch.data.names.international)
         .setDescription(`Category: **${category}**\nLevel: **${level}**`)
         .setURL(record.weblink ? record.weblink : undefined)
         .setTimestamp()
