@@ -1,6 +1,6 @@
 {
   "name": "nwwbot",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "NorthWestWind's bot!",
   "main": "main.js",
   "scripts": {
@@ -15,7 +15,7 @@
   "author": "NorthWestWind",
   "license": "MIT",
   "dependencies": {
-    "@discordjs/opus": "^0.4.0",
+    "@discordjs/opus": "^0.5.0",
     "@justalk/pornhub-api": "^3.5.0",
     "aio-mc-api": "^1.2.2",
     "akaneko": "^5.0.1",

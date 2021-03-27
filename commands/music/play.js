@@ -225,7 +225,7 @@ module.exports = {
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) return await message.channel.send("You need to be in a voice channel to play music!");
     if (!voiceChannel.permissionsFor(message.client.user).has(this.permissions)) return await message.channel.send("I can't play in your voice channel!");
-    if (!args[1] && message.attachments.size < 1) {
+    if (!args[0] && message.attachments.size < 1) {
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
       if (serverQueue.songs.length < 1) return await message.channel.send("The queue is empty for this server! Please provide a link or keywords to get a music played!");
       if (serverQueue.playing || NorthClient.storage.migrating.find(x => x === message.guild.id)) return await music(message, serverQueue);
