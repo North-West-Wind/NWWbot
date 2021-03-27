@@ -39,7 +39,7 @@ module.exports = {
     if (!interaction.guild_id) return;
     InteractionResponse.deleteMessage(client, interaction).catch(() => { });
     const message = await InteractionResponse.createFakeMessage(client, interaction);
-    args = [args[0].name].concat(args[0]?.options[0]?.value?.split(/ +/) || []);
+    args = [args[0].name].concat((args[0]?.options ? args[0].options[0] : undefined)?.value?.split(/ +/) || []);
     await this.execute(message, args);
   },
   async execute(message, args) {
