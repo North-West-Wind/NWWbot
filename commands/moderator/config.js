@@ -32,9 +32,10 @@ module.exports = {
     const config = NorthClient.storage.guilds[guild.id];
     const generated = await ID();
     try {
-      await author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
-      if (!config) {
-        NorthClient.storage.guilds[guild.id] = { token: generated };
+      if (args[0].name === "new" || !config?.token) await author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
+      if (!config?.token) {
+        if (!config) NorthClient.storage.guilds[guild.id] = {};
+        NorthClient.storage.guilds[guild.id].token = generated;
         await client.pool.query(`INSERT INTO servers (id, autorole, giveaway, token) VALUES ('${guild.id}', '[]', '🎉', '${generated}')`);
       } else if (config.token && args[0].name !== "new") await author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
       else {
@@ -64,9 +65,10 @@ module.exports = {
     if (args[0] === "panel") return await this.panel(message);
     const generated = await ID();
     try {
-      await message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
-      if (!config) {
-        NorthClient.storage.guilds[guild.id] = { token: generated };
+      if (args[0] === "new" || !config?.token) await message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
+      if (!config?.token) {
+        if (!config) NorthClient.storage.guilds[guild.id] = {};
+        NorthClient.storage.guilds[guild.id].token = generated;
         await message.pool.query(`INSERT INTO servers (id, autorole, giveaway, token) VALUES ('${guild.id}', '[]', '🎉', '${generated}')`);
       } else if (config.token && args[0] !== "new") await message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
       else {
@@ -93,7 +95,7 @@ module.exports = {
     if (!loginToken.first() || !loginToken.first().content) return timedOut();
     const receivedToken = loginToken.first().content;
     loginToken.first().delete();
-    if (config.token == receivedToken) {
+    if (config.token !== receivedToken) {
       login.setDescription("Invalid token.").setFooter("Try again when you have the correct one for your server.", message.client.user.displayAvatarURL());
       return await mesg.edit(login);
     }
