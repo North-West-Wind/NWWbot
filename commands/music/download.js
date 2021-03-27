@@ -2,7 +2,7 @@ const scdl = require("soundcloud-downloader").default;
 const ytdl = require("ytdl-core");
 const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, requestStream } = require("../../function.js");
 const { addYTPlaylist, addYTURL, addSPURL, addSCURL, addMSURL, addPHURL, search } = require("./play.js");
-const { updateQueue } = require("../../helpers/music.js");
+const { updateQueue, getQueues, setQueue } = require("../../helpers/music.js");
 const Discord = require("discord.js");
 const { getMP3 } = require("../api/musescore.js");
 const requestYTDLStream = (url, opts) => {

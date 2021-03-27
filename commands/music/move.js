@@ -26,12 +26,11 @@ module.exports = {
     args = args?.map(x => x?.value).filter(x => !!x)|| [];
     await this.execute(message, args);
   },
-  async execute(message) {
+  async execute(message, args) {
     var serverQueue = getQueues().get(message.guild.id);
-    const args = message.content.slice(message.prefix.length).split(/ +/);
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to alter the queue when the bot is playing!");
-    var queueIndex = parseInt(args[1]);
-    var dest = parseInt(args[2]);
+    var queueIndex = parseInt(args[0]);
+    var dest = parseInt(args[1]);
     if (isNaN(queueIndex)) return message.channel.send("The target provided is not a number.");
     if (isNaN(dest)) return message.channel.send("The destination provided is not a number.");
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
