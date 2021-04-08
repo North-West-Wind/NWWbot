@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream, moveArray, color } = require("../../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream, moveArray, color, validGDDLURL } = require("../../function.js");
 const { getMP3 } = require("../api/musescore.js");
 const muse = require("musescore-metadata");
 const { execute: music } = require("./migrate.js");
@@ -91,6 +91,12 @@ async function play(guild, song, skipped = 0, seek = 0) {
       case 2:
       case 4:
         const a = await requestStream(song.url);
+        if (!song.time) {
+          const metadata = await mm.parseStream(a, { duration: true });
+          const i = serverQueue.songs.indexOf(song);
+          song.time = moment.duration(metadata.format.duration, "seconds");
+          if (i != -1) serverQueue.songs[i] = song;
+        }
         dispatcher = serverQueue.connection.play(new StreamConcat([a, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
       case 3:
@@ -262,8 +268,11 @@ module.exports = {
       else if (validYTURL(args.join(" "))) result = await this.addYTURL(args.join(" "));
       else if (validSPURL(args.join(" "))) result = await this.addSPURL(message, args.join(" "));
       else if (validSCURL(args.join(" "))) result = await this.addSCURL(args.join(" "));
-      else if (validGDFolderURL(args.join(" "))) result = await this.addGDFolderURL(args.join(" "));
-      else if (validGDURL(args.join(" "))) result = await this.addGDURL(args.join(" "));
+      else if (validGDFolderURL(args.join(" "))) {
+        const msg = await message.channel.send("Processing track: (Initializing)");
+        result = await addGDFolderURL(args.join(" "), async (i, l) => await msg.edit(`Processing track: **${i}/${l}**`));
+        await msg.delete();
+      } else if (validGDURL(args.join(" ")) || validGDDLURL(args.join(" "))) result = await this.addGDURL(args.join(" "));
       else if (validMSURL(args.join(" "))) result = await this.addMSURL(args.join(" "));
       else if (validPHURL(args.join(" "))) result = await this.addPHURL(args.join(" "));
       else if (validURL(args.join(" "))) result = await this.addURL(args.join(" "));
@@ -557,7 +566,7 @@ module.exports = {
   },
   async addSCURL(link) {
     const res = await fetch(`https://api.soundcloud.com/resolve?url=${link}&client_id=${process.env.SCID}`);
-    if (res.status !== 200) return { error: true, message: "A problem occured while fetching the track information! Status Code: " + res.status };
+    if (!res.ok) return { error: true, message: "A problem occured while fetching the track information! Status Code: " + res.status };
     const data = await res.json();
     if (data.kind == "user") return { error: true, message: "What do you think you can do with a user?" };
     const songs = [];
@@ -593,25 +602,39 @@ module.exports = {
     return { error: false, songs: songs };
   },
   async addGDURL(link) {
-    const formats = [/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing/, /https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/];
-    const alphanumeric = /^[a-zA-Z0-9\-_]+$/;
+    var dl;
     let id;
-    formats.forEach((regex) => {
-      const matches = link.match(regex)
-      if (matches && matches.groups && matches.groups.id) id = matches.groups.id
-    });
-    if (!id) {
-      if (alphanumeric.test(link)) id = link;
-      else return { error: true, message: `The link/keywords you provided is invalid!` };
+    const alphanumeric = /^[a-zA-Z0-9\-_]+$/;
+    if (!validGDDLURL(link)) {
+      const formats = [/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)(\?usp=sharing)?/, /https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/];
+      formats.forEach((regex) => {
+        const matches = link.match(regex)
+        if (matches && matches.groups && matches.groups.id) id = matches.groups.id
+      });
+      if (!id) {
+        if (alphanumeric.test(link)) id = link;
+        else return { error: true, message: `The link/keywords you provided is invalid!` };
+      }
+      dl = "https://drive.google.com/uc?export=download&id=" + id;
+    } else {
+      dl = link;
+      const matches = link.match(/^(https?)?:\/\/drive\.google\.com\/uc\?export=download&id=(?<id>.*?)$/);
+      if (matches && matches.groups && matches.groups.id) id = matches.groups.id;
+      if (!id) {
+        id = link.split("=")[link.split("=").length - 1];
+        if (alphanumeric.test(id)) link = `https://drive.google.com/file/d/${id}/view`;
+        else return { error: true, message: `The link/keywords you provided is invalid!` };
+      }
     }
-    var link = "https://drive.google.com/uc?export=download&id=" + id;
-    var stream = await fetch(link).then(res => res.body);
+    const f = await fetch(dl);
+    if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}` };
+    const stream = f.body;
     var title = "No Title";
     try {
       var metadata = await mm.parseStream(stream, {}, { duration: true });
-      var html = await rp(link);
-      var $ = cheerio.load(html);
-      title = $("title").text().split(" - ").slice(0, -1).join(" - ").split(".").slice(0, -1).join(".");
+      const html = await rp(link);
+      const $ = cheerio.load(html);
+      title = metadata.common.title ? metadata.common.title : $("title").text().split(" - ").slice(0, -1).join(" - ").split(".").slice(0, -1).join(".");
     } catch (err) {
       return { error: true, message: "An error occured while parsing the audio file into stream! Maybe it is not link to the file?" };
     }
@@ -630,34 +653,32 @@ module.exports = {
     var songs = [song];
     return { error: false, songs: songs };
   },
-  async addGDFolderURL(link) {
+  async addGDFolderURL(link, cb = async () => { }) {
     const songs = [];
     try {
       const body = await rp(link);
       const $ = cheerio.load(body);
       const elements = $("div[data-target='doc']");
+      var i = 0;
       for (const el of elements.toArray()) {
         const id = el.attribs["data-id"];
         const link = "https://drive.google.com/uc?export=download&id=" + id;
-        const stream = await fetch(link).then(res => res.body);
+        ++i;
+        cb(i, elements.length);
         var title = "No Title";
         try {
-          const metadata = await mm.parseStream(stream, {}, { duration: true });
-          if (!metadata) continue;
           const html = await rp("https://drive.google.com/file/d/" + id + "/view");
           const $1 = cheerio.load(html);
           title = $1("title").text().split(" - ").slice(0, -1).join(" - ").split(".").slice(0, -1).join(".");
-          const songLength = moment.duration(Math.round(metadata.format.duration), "seconds").format();
           songs.push({
             title: title,
             url: link,
             type: 4,
-            time: songLength,
             volume: 1,
             thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg",
             isLive: false
           });
-        } catch (err) { }
+        } catch (err) { console.error(err); }
       }
     } catch (err) {
       return { error: true, message: "Cannot open your link!" };

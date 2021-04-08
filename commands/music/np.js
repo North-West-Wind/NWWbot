@@ -47,7 +47,7 @@ module.exports = {
     for (let i = 0; i < 20; i++) processBar.push("═");
     var progress = 0;
     const isLive = serverQueue.songs[0].isLive;
-    const length = isLive ? 0 : ms(serverQueue.songs[0].time);
+    const length = isLive ? 0 : (serverQueue.songs[0].time ? ms(serverQueue.songs[0].time) : 1);
     if (isLive) {
       processBar.splice(19, 1, "■");
       var positionTime = "∞";
@@ -66,7 +66,7 @@ module.exports = {
       .setFooter(`Looping: ${serverQueue.looping ? "Enabled" : "Disabled"} | Repeating: ${serverQueue.repeating ? "Enabled" : "Disabled"} | Random: ${serverQueue.random ? "Enabled" : "Disabled"}`, message.client.user.displayAvatarURL());
     if (serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
     else info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLive: **${isLive ? "Yes" : "No"}**\nVolume: **${serverQueue.songs[0].volume ? (`${serverQueue.volume * serverQueue.songs[0].volume * 100}% (Local) | ${serverQueue.volume * 100}% (Global)`) : `${serverQueue.volume * 100}%`}**\nType: **${type[serverQueue.songs[0].type]}**`, serverQueue.songs[0].thumbnail];
-    embed.setDescription(`${info[0]}\n\n${positionTime} \`${processBar.join("")}\` ${serverQueue.songs[0].time}`).setThumbnail(info[1]);
+    embed.setDescription(`${info[0]}\n\n${positionTime} \`${processBar.join("")}\` ${serverQueue.songs[0].time ? serverQueue.songs[0].time : "Unknown"}`).setThumbnail(info[1]);
     const msg = await message.channel.send(embed);
     setTimeout(() => msg.edit({ content: "**[Outdated Now-Playing Information]**", embed: null }), 60000);
   }

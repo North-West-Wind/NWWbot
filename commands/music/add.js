@@ -1,8 +1,9 @@
-const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL } = require("../../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, validGDFolderURL, validGDDLURL } = require("../../function.js");
 const { setQueue, updateQueue, getQueues } = require("../../helpers/music.js");
-const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDURL, addMSURL, addPHURL, addURL, search, createEmbed } = require("./play.js");
+const { addAttachment, addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addPHURL, addURL, search, createEmbed } = require("./play.js");
 const { NorthClient } = require("../../classes/NorthClient.js");
 const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
+const Discord = require("discord.js");
 
 module.exports = {
     name: "add",
@@ -34,7 +35,11 @@ module.exports = {
             else if (validYTURL(args.join(" "))) result = await addYTURL(args.join(" "));
             else if (validSPURL(args.join(" "))) result = await addSPURL(message, args.join(" "));
             else if (validSCURL(args.join(" "))) result = await addSCURL(args.join(" "));
-            else if (validGDURL(args.join(" "))) result = await addGDURL(args.join(" "));
+            else if (validGDFolderURL(args.join(" "))) {
+                const msg = await message.channel.send("Processing track: (Initializing)");
+                result = await addGDFolderURL(args.join(" "), async(i, l) => await msg.edit(`Processing track: **${i}/${l}**`));
+                await msg.delete();
+            } else if (validGDURL(args.join(" ")) || validGDDLURL(args.join(" "))) result = await addGDURL(args.join(" "));
             else if (validMSURL(args.join(" "))) result = await addMSURL(args.join(" "));
             else if (validPHURL(args.join(" "))) result = await addPHURL(args.join(" "));
             else if (validURL(args.join(" "))) result = await addURL(args.join(" "));

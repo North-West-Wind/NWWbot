@@ -99,8 +99,6 @@ class Handler {
                     }
                     if (result.prefix)
                         storage.guilds[result.id].prefix = result.prefix;
-                    else
-                        storage.guilds[result.id].prefix = client.prefix;
                     storage.guilds[result.id].token = result.token;
                     storage.guilds[result.id].giveaway = unescape(result.giveaway);
                     storage.guilds[result.id].welcome = {
