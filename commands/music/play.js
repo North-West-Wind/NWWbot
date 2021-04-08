@@ -76,9 +76,9 @@ async function play(guild, song, skipped = 0, seek = 0) {
     updateQueue(guild.id, serverQueue, serverQueue.pool);
     play(guild, serverQueue.songs[0], skipped);
   }
-  if (!serverQueue.connection && skipped === 0) try {
+  if (!serverQueue.connection) try {
     serverQueue.connection = await serverQueue.voiceChannel.join();
-    if (serverQueue.voice && !serverQueue.voice.selfDeaf) serverQueue.voice.setSelfDeaf(true);
+    if (serverQueue.connection.voice && !serverQueue.connection.voice.selfDeaf) await serverQueue.voice.setSelfDeaf(true);
   } catch (err) {
     if (guild.me.voice.channel) await guild.me.voice.channel.leave();
     if (serverQueue.textChannel) return await serverQueue.textChannel.send("An error occured while trying to connect to the channel! Disconnecting the bot...").then(msg => msg.delete({ timeout: 30000 }));
