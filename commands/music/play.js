@@ -643,7 +643,7 @@ module.exports = {
     var songLength = moment.duration(length, "seconds").format();
     var song = {
       title: title,
-      url: link,
+      url: dl,
       type: 4,
       time: songLength,
       volume: 1,
