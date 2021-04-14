@@ -66,7 +66,7 @@ module.exports = {
       const res = await fetch(url);
       if (!res.ok) return InteractionResponse.editMessage(client, interaction, "Received HTTP Status Code " + res.status);
       const body = await res.json();
-      if (body.online) return InteractionResponse.editMessage(client, interaction, { embeds: [this.getServerEmbed(body, client, args[0].options[0].value)], content: "" });
+      if (body.online) return InteractionResponse.editMessage(client, interaction, { embeds: [this.getServerEmbed(body, client, args[0].options[0].value)[0]], content: "" });
       else return InteractionResponse.editMessage(client, interaction, { content: "The server - **" + args.slice(1).join(" ") + "** - is offline/under maintenance." });
     } else if (args[0].name === this.subcommands[3]) {
       InteractionResponse.deleteMessage(client, interaction).catch(() => { });
@@ -94,8 +94,11 @@ module.exports = {
       const res = await fetch(url);
       if (!res.ok) throw new Error("Received HTTP Status Code " + res.status);
       const body = await res.json();
-      if (body.online) return message.channel.send(this.getServerEmbed(body, message.client, args.slice(1).join(" ")));
-      else return message.channel.send("The server - **" + args.slice(1).join(" ") + "** - is offline/under maintenance.");
+      if (body.online) {
+        const allEmbeds = this.getServerEmbed(body, message.client, args.slice(1).join(" "));
+        if (allEmbeds.length < 2) await message.channel.send(allEmbeds[0]);
+        else await createEmbedScrolling(message, allEmbeds);
+      } else return message.channel.send("The server - **" + args.slice(1).join(" ") + "** - is offline/under maintenance.");
     } else if (args[0] === "history" || args[0] === "his") {
       const res = await nameToUuid(args[1], true);
       if (!res[0]) return message.channel.send("No player named **" + args[1] + "** were found");
@@ -194,7 +197,18 @@ module.exports = {
       .addField("Description", "`" + spaceRemoved + "`")
       .setTimestamp()
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
-    return Embed;
+    const allEmbeds = [Embed];
+    if (body.players?.list) for (let i = 0; i < Math.ceil(body.players.list.length / 10); i++) {
+      const em = new Discord.MessageEmbed()
+        .setTitle("Online Players")
+        .setTimestamp()
+        .setFooter(`Page ${i + 1}/${Math.ceil(body.players.list.length / 10)}`, client.user.displayAvatarURL());
+      const strs = [];
+      for (let j = i * 10; j < body.players.list.length - i * 10; j++) strs.push(body.players.list[j]);
+      em.setDescription(strs.join("\n"));
+      allEmbeds.push(em);
+    }
+    return allEmbeds;
   },
   async getHistoryEmbed(res, client) {
     const result = await nameHistory(res[0].id);

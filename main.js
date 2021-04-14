@@ -21,7 +21,7 @@ setInterval(async () => {
     const body = await res.json();
     const online = body.players?.online ? body.players.online : 0;
     const channel = await alice.channels.fetch("817963845795708948");
-    await channel.edit({ name: `Server Online: [${online}]` })
+    await channel.edit({ name: `Server Online: [${online}]` });
   } catch (err) { }
   if (NorthClient.storage.queries.length < 1) return;
   try {
