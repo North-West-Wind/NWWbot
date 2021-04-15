@@ -13,12 +13,15 @@ require("./common")(client, alice);
 require("./n0rthwestw1nd/init")(client);
 require("./alice/init")(alice);
 
+var notified = false;
 setInterval(async () => {
   try {
     const url = `https://api.mcsrvstat.us/2/${process.env.IP}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error("Received HTTP Status Code " + res.status);
     const body = await res.json();
+    if (!body.online && !notified) { await (await alice.users.fetch("461516729047318529")).send("Server is offline!"); notified = true; }
+    else notified = false;
     const online = body.players?.online ? body.players.online : 0;
     const channel = await alice.channels.fetch("817963845795708948");
     await channel.edit({ name: `Server Online: [${online}]` });
