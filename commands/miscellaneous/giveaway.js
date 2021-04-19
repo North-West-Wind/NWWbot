@@ -188,14 +188,13 @@ module.exports = {
   },
   async create(message) {
     const filter = user => user.author.id === message.author.id;
-    const guild = message.guild;
     var mesg = await message.channel.send('Giveaway creation started. Type "cancel" to cancel.\n\n`Which channel do you want the giveaway be in? (Please mention the channel)`');
     const collected = await message.channel.awaitMessages(filter, { time: 30000, max: 1 });
     if (collected && collected.first()) await collected.first().delete();
     else return await mesg.edit("30 seconds have passed. Giveaway cancelled.");
     if (collected.first().content === "cancel") return await mesg.edit("Cancelled giveaway.");
     const channelID = collected.first().content.replace(/<#/, "").replace(/>/, "");
-    const channel = guild.channels.resolve(channelID);
+    const channel = message.client.channels.fetch(channelID);
     if (!channel) return await mesg.edit(collected.first().content + " is not a valid channel!");
     const permissions = channel.permissionsFor(message.guild.me);
     const userPermission = channel.permissionsFor(message.member);
@@ -239,6 +238,7 @@ module.exports = {
     }
     const winnerCount = parseInt(collected3.first().content);
     const item = collected4.first().content;
+    await mesg.delete();
     await message.channel.send(`Created new giveaway in channel <#${channel.id}> for**${readableDateTimeText(duration)}** with the item **${item}** and **${winnerCount} winner${winnerCount > 1 ? "s" : ""}**.`);
     setupGiveaway(message, channel, duration, item, winnerCount, weight);
   },

@@ -105,10 +105,10 @@ module.exports = {
     updateQueue(guild.id, serverQueue, pool);
     return await msgOrRes(message, `The queue **${results[0].name}** has been loaded.`);
   },
-  async delete(message, pool, author, args) {
-    if (!args[1]) return await msgOrRes(message, "Please provide the name of the queue.");
+  async delete(message, pool, author, name) {
+    if (!name) return await msgOrRes(message, "Please provide the name of the queue.");
     const con = await pool.getConnection();
-    const [results] = await con.query(`SELECT * FROM queue WHERE name = '${args.slice(1).join(" ")}' AND user = '${author.id}'`);
+    const [results] = await con.query(`SELECT * FROM queue WHERE name = '${name}' AND user = '${author.id}'`);
     if (results.length == 0) return await msgOrRes(message, "No queue was found!");
     await con.query(`DELETE FROM queue WHERE id = ${results[0].id}`);
     con.release();
