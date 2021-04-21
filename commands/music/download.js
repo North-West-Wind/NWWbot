@@ -51,14 +51,14 @@ module.exports = {
     },
     async download(message, args, serverQueue, song) {
         try {
-            if (song.isLive) {
+            if (song?.isLive) {
                 const result = await addYTURL(song.url, song.type);
                 if (result.error) throw "Failed to find video";
                 if (!isEquivalent(result.songs[0], song)) {
                     song = result.songs[0];
                     serverQueue.songs[0] = song;
                     updateQueue(message.guild.id, serverQueue, message.pool);
-                    if (song.isLive) return await message.channel.send("Livestream downloading is not supported and recommended! Come back later when the livestream is over.");
+                    if (song?.isLive) return await message.channel.send("Livestream downloading is not supported and recommended! Come back later when the livestream is over.");
                 }
             }
         } catch (err) {

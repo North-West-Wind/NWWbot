@@ -1,4 +1,4 @@
-import { Collection, Guild, GuildMember, MessageEmbed, Snowflake, TextChannel, User } from "discord.js";
+import { Collection, Guild, GuildMember, MessageAttachment, MessageEmbed, Snowflake, TextChannel, User } from "discord.js";
 import { Pool } from "mysql2/promise";
 import { Command } from "./Command";
 import { NorthClient } from "./NorthClient";
@@ -143,11 +143,11 @@ export class InteractionResponse {
     static async deleteMessage(client: any, interaction: any): Promise<void> {
         await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
     }
-    static async createFakeMessage(client: NorthClient, interaction: any): Promise<any> {
-        var message = { prefix: "/", client, guild: <Guild>null, channel: <any>null, author: <User>null, reply: null, pool: client.pool, member: <GuildMember>null, attachments: new Collection() };
+    static async createFakeMessage(client: NorthClient, interaction: any): Promise<FakeMessage> {
+        var message = new FakeMessage(client);
         if (interaction.guild_id) {
             message.guild = await client.guilds.fetch(interaction.guild_id);
-            message.channel = await client.channels.fetch(interaction.channel_id);
+            message.channel = <TextChannel>(await client.channels.fetch(interaction.channel_id));
             message.member = await message.guild.members.fetch(interaction.member.user.id);
             message.author = message.member.user;
         } else {
@@ -156,6 +156,23 @@ export class InteractionResponse {
         }
         message.reply = async(str: string) => await message.channel.send(`<@${message.author.id}>, ${str}`);
         return message;
+    }
+}
+
+class FakeMessage {
+    prefix: string = "/";
+    client: NorthClient;
+    guild?: Guild;
+    channel?: TextChannel | User;
+    author?: User;
+    reply: Function;
+    pool: Pool;
+    member?: GuildMember;
+    readonly attachments: Collection<Snowflake, MessageAttachment> = new Collection();
+
+    constructor(client: NorthClient) {
+        this.client = client;
+        this.pool = client.pool;
     }
 }
 

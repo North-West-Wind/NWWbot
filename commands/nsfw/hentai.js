@@ -55,12 +55,19 @@ module.exports = {
       ])
     ])
   },
-  async slash(client, interaction) {
-    if (interaction.channel_id && !(await client.channels.fetch(interaction.channel_id)).nsfw) return InteractionResponse.sendMessage("Please use an NSFW channel to use this command!");
-    return InteractionResponse.sendMessage("Searching Hentai...");
+  async slash(client, interaction, args) {
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    if (message.guild && !message.channel.nsfw) return InteractionResponse.sendMessage("Please use an NSFW channel to use this command!");
+    if (args[0].value === "single") {
+      var embed;
+      if (args[0].options && args[0].options[0]?.value) embed = await (args[0].value.toLowerCase() === "tags" ? this.tagsList(client) : this.tagged(client, args[0].value));
+      else embed = await this.random(client);
+      return InteractionResponse.sendEmbeds(embed);
+    } else return InteractionResponse.sendMessage("Initializing Auto-Hentai...");
   },
   async postSlash(client, interaction, args) {
-    if (interaction.channel_id && !(await client.channels.fetch(interaction.channel_id)).nsfw) return;
+    const message = await InteractionResponse.createFakeMessage(client, interaction);
+    if ((message.guild && !message.channel.nsfw) || args[0].value !== "auto") return;
     InteractionResponse.deleteMessage(client, interaction).catch(() => { });
     args = args?.map(x => x?.value).filter(x => !!x) || [];
     const message = await InteractionResponse.createFakeMessage(client, interaction);
@@ -69,27 +76,28 @@ module.exports = {
   async execute(message, args) {
     var tag = "random";
     if (args.length >= 1) {
-      if (args[0].toLowerCase() === "tags") return await this.tagsList(message); 
+      if (args[0].toLowerCase() === "tags") return await message.channel.send(await this.tagsList(message));
       else if (["auto", "a"].includes(args[0].toLowerCase())) return await this.auto(message, args);
       const testTag = args[0];
       const i = this.tags.findIndex(t => testTag === t);
       if (i !== -1) tag = this.tags[i];
     }
-    if (tag === "random") return await this.random(message);
-    await this.tagged(message, tag);
+    if (tag === "random") return await message.channel.send(await this.random(message.client));
+    await message.channel.send(await this.tagged(message.client, tag));
   },
-  async tagged(message, tag) {
+  async tagged(client, tag) {
     if (tag === "neko") var result = await neko.lewdNeko();
-    else var result = await neko.nsfw[tag]();
+    else if (neko.nsfw[tag]) var result = await neko.nsfw[tag]();
+    else return await this.random(client);
     const embed = new Discord.MessageEmbed()
       .setTitle("Tag: " + tag)
       .setColor(color())
       .setImage(result)
       .setTimestamp()
-      .setFooter("Made with Akaneko", message.client.user.displayAvatarURL());
-    await message.channel.send(embed);
+      .setFooter("Made with Akaneko", client.user.displayAvatarURL());
+    return embed;
   },
-  async random(message) {
+  async random(client) {
     var index = Math.floor(Math.random() * this.tags.length);
     var tag = this.tags[index];
     if (tag === "neko") var result = await neko.lewdNeko();
@@ -99,42 +107,43 @@ module.exports = {
       .setColor(color())
       .setImage(result)
       .setTimestamp()
-      .setFooter("Made with Akaneko", message.client.user.displayAvatarURL());
-    await message.channel.send(embed);
+      .setFooter("Made with Akaneko", client.user.displayAvatarURL());
+    return embed;
   },
-  async tagsList(message) {
-    const list = new Discord.MessageEmbed()
+  async tagsList(client) {
+    return new Discord.MessageEmbed()
       .setTitle("Tag list")
       .setColor(color())
       .setDescription("**" + this.tags.join("**\n**") + "**")
-      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL())
-    message.channel.send(list);
+      .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
   },
   async auto(message, args) {
-    if(!args[1]) return message.channel.send("You didn't provide the amount of messages to be sent!");
-    else if(!args[2]) return message.channel.send("You didn't provide the interval between each message!");
+    if (!args[1]) return message.channel.send("You didn't provide the amount of messages to be sent!");
+    else if (!args[2]) return message.channel.send("You didn't provide the interval between each message!");
     var amount = parseInt(args[1]);
     var interval = ms(args[2]);
-    if(isNaN(amount)) return message.channel.send("The amount of message is invalid!");
-    else if(!interval) return message.channel.send("The interval is not valid!");
-    else if(interval < 1000) return message.channel.send("The interval must be larger than 1 second!");
-    else if(interval > 300000) return message.channel.send("The interval must be smaller than 5 minutes!");
-    else if(amount < 1) return message.channel.send("The amount of message must be larger than 0!");
-    else if(amount > 120) return message.channel.send("The amount of message must be smaller than 120!");
+    if (isNaN(amount)) return message.channel.send("The amount of message is invalid!");
+    else if (!interval) return message.channel.send("The interval is not valid!");
+    else if (interval < 1000) return message.channel.send("The interval must be larger than 1 second!");
+    else if (interval > 300000) return message.channel.send("The interval must be smaller than 5 minutes!");
+    else if (amount < 1) return message.channel.send("The amount of message must be larger than 0!");
+    else if (amount > 120) return message.channel.send("The amount of message must be smaller than 120!");
     await message.channel.send(`Auto-hentai initialized. **${amount} messages** with interval **${interval} milliseconds**`);
     var tags = this.tags;
     const reverse = !!args[3] && args[3].toLowerCase() == "true";
     if (reverse) tags = args.slice(3).filter(str => !this.tags.includes(str));
     else tags = args.slice(3).filter(str => this.tags.includes(str));
     var counter = 0;
-    var i = setInterval(async() => {
-      if(counter === amount) {
+    var i = setInterval(async () => {
+      if (counter === amount) {
         await message.channel.send("Auto-hentai ended. Thank you for using that!");
         return clearInterval(i);
       }
-      if (tags.length < 1) this.random(message).catch(() => { });
-      else if (tags.length > 1) this.tagged(message, tags[Math.floor(Math.random() * tags.length)]).catch(() => { });
-      else this.tagged(message, tags[0]).catch(() => { });
+      var embed;
+      if (tags.length < 1) embed = await this.random(message.client);
+      else if (tags.length > 1) embed = await this.tagged(message.client, tags[Math.floor(Math.random() * tags.length)]);
+      else embed = await this.tagged(message.client, tags[0]);
+      await message.channel.send(embed);
       counter++;
     }, interval);
   }

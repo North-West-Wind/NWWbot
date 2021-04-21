@@ -1,6 +1,7 @@
 const { NorthClient } = require("../classes/NorthClient");
 const deepEqual = require("deep-equal");
 const { wait } = require("../function");
+const { InteractionResponse } = require("../classes/Slash");
 
 async function setup(client) {
 
@@ -32,6 +33,11 @@ async function setup(client) {
     NorthClient.storage.log(`[${client.id}] Registered all slash commands`);
 
     client.ws.on('INTERACTION_CREATE', async interaction => {
+        const message = await InteractionResponse.createFakeMessage(client, interaction);
+        if (message.guild && !(message.channel).permissionsFor(message.guild.me).has(84992)) {
+            await client.api.interactions(interaction.id, interaction.token).callback.post({ data: JSON.parse(JSON.stringify(InteractionResponse.ackknowledge())) });
+            return await message.author.send(`I need at least the permissions to \`${new Permissions(84992).toArray().join("`, `")}\` in order to run any command! Please tell your server administrator about that.`);
+        }
         const cmd = interaction.data.name.toLowerCase();
         const args = interaction.data.options;
 

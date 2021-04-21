@@ -133,7 +133,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
         dispatcher = serverQueue.connection.play(new StreamConcat([j, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
       default:
-        if (song.isLive) {
+        if (song?.isLive) {
           const k = await module.exports.addYTURL(args, song.type);
           if (k.error) throw "Failed to find video";
           if (!isEquivalent(k.songs[0], song)) {
@@ -142,7 +142,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
             updateQueue(guild.id, serverQueue, serverQueue.pool);
           }
         }
-        if (!song.isLive && !song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
+        if (!song?.isLive && !song?.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
         else if (song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }), { seek: seek });
         else dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25, requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } }));
         break;
@@ -373,7 +373,7 @@ module.exports = {
       time: video.duration,
       thumbnail: video.bestThumbnail.url,
       volume: 1,
-      isLive: video.isLive
+      isLive: !!video?.isLive
     });
     return { error: false, songs: songs };
   },
@@ -412,7 +412,7 @@ module.exports = {
         thumbnail: thumbUrl,
         volume: 1,
         isLive: length == 0,
-        isPastLive: songInfo.videoDetails.isLiveContent
+        isPastLive: !!songInfo?.videoDetails?.isLiveContent
       }
     ];
     return { error: false, songs: songs };
@@ -469,7 +469,7 @@ module.exports = {
                 thumbnail: tracks[i].track.album.images[0]?.url,
                 time: songLength,
                 volume: 1,
-                isLive: results[o].live
+                isLive: !!results[o]?.live
               });
             }
           }
@@ -522,7 +522,7 @@ module.exports = {
                 thumbnail: highlight ? tracks[i].album.images[o]?.url : image,
                 time: songLength,
                 volume: 1,
-                isLive: results[o].live
+                isLive: !!results[o]?.live
               });
             }
           }
@@ -555,7 +555,7 @@ module.exports = {
                 thumbnail: tracks[i].album.images[o].url,
                 time: songLength,
                 volume: 1,
-                isLive: results[o].live
+                isLive: !!results[o]?.live
               });
             }
           }
