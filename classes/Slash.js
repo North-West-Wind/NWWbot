@@ -136,10 +136,10 @@ class InteractionResponse {
     }
     static createFakeMessage(client, interaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            var message = { prefix: "/", client, guild: null, channel: null, author: null, reply: null, pool: client.pool, member: null, attachments: new discord_js_1.Collection() };
+            var message = new FakeMessage(client);
             if (interaction.guild_id) {
                 message.guild = yield client.guilds.fetch(interaction.guild_id);
-                message.channel = yield client.channels.fetch(interaction.channel_id);
+                message.channel = (yield client.channels.fetch(interaction.channel_id));
                 message.member = yield message.guild.members.fetch(interaction.member.user.id);
                 message.author = message.member.user;
             }
@@ -153,6 +153,14 @@ class InteractionResponse {
     }
 }
 exports.InteractionResponse = InteractionResponse;
+class FakeMessage {
+    constructor(client) {
+        this.prefix = "/";
+        this.attachments = new discord_js_1.Collection();
+        this.client = client;
+        this.pool = client.pool;
+    }
+}
 class InteractionApplicationCommandCallbackData {
     setTTS(tts) {
         this.tts = tts;

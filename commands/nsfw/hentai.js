@@ -70,7 +70,6 @@ module.exports = {
     if ((message.guild && !message.channel.nsfw) || args[0].value !== "auto") return;
     InteractionResponse.deleteMessage(client, interaction).catch(() => { });
     args = args?.map(x => x?.value).filter(x => !!x) || [];
-    const message = await InteractionResponse.createFakeMessage(client, interaction);
     await this.execute(message, args);
   },
   async execute(message, args) {
