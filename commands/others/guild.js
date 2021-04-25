@@ -1,18 +1,8 @@
-const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_, readableDateTimeText, color } = require("../../function.js");
+const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_, readableDateTimeText, color, nameToUuid, profile } = require("../../function.js");
 const Discord = require("discord.js");
 const { ms, createEmbedScrolling } = require("../../function.js");
 const fetch = require("node-fetch").default;
 const { NorthClient } = require("../../classes/NorthClient.js");
-const nameToUuid = (str) => {
-	return new Promise((resolve, reject) => {
-		require("mojang-api").nameToUuid(str, function (err, res) { if (err) reject(err); else resolve(res); })
-	});
-}
-const profile = (str) => {
-	return new Promise((resolve, reject) => {
-		require("mojang-api").profile(str, function (err, res) { if (err) reject(err); else resolve(res); });
-	})
-}
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
