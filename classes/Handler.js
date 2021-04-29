@@ -1104,33 +1104,33 @@ class AliceHandler extends Handler {
                         yield message.member.roles.remove("622319008758104064");
                         yield message.member.roles.add("676754719120556042");
                     }
-                    yield message.member.roles.remove("649556742434324491");
-                    yield message.member.roles.remove("649556742832783369");
-                    yield message.member.roles.remove("649556743294156810");
-                    yield message.member.roles.remove("662895829815787530");
-                    yield message.member.roles.remove("649556745110159370");
-                    yield message.member.roles.remove("649556744732803102");
-                    yield message.member.roles.remove("649556744078491649");
-                    yield message.member.roles.remove("649556743982022657");
-                    yield message.member.roles.remove("649556743646347284");
+                    yield message.member.roles.remove("837271157912633395");
+                    yield message.member.roles.remove("837271158738255912");
+                    yield message.member.roles.remove("837271163121041458");
+                    yield message.member.roles.remove("837271170717057065");
+                    yield message.member.roles.remove("837271174827212850");
+                    yield message.member.roles.remove("837271174073155594");
+                    yield message.member.roles.remove("837271173027856404");
+                    yield message.member.roles.remove("837271172319674378");
+                    yield message.member.roles.remove("837271171619356692");
                     if (res.rank === "ADMIN")
-                        yield message.member.roles.add("649556742434324491");
+                        yield message.member.roles.add("837271157912633395");
                     else if (res.rank === "MOD")
-                        yield message.member.roles.add("649556742832783369");
+                        yield message.member.roles.add("837271158738255912");
                     else if (res.rank === "HELPER")
-                        yield message.member.roles.add("649556743294156810");
+                        yield message.member.roles.add("837271163121041458");
                     else if (res.rank === "YOUTUBER")
-                        yield message.member.roles.add("662895829815787530");
+                        yield message.member.roles.add("837271170717057065");
                     else if (res.rank === "VIP")
-                        yield message.member.roles.add("649556745110159370");
+                        yield message.member.roles.add("837271174827212850");
                     else if (res.rank === "VIP_PLUS")
-                        yield message.member.roles.add("649556744732803102");
+                        yield message.member.roles.add("837271174073155594");
                     else if (res.rank === "MVP")
-                        yield message.member.roles.add("649556744078491649");
+                        yield message.member.roles.add("837271173027856404");
                     else if (res.rank === "MVP_PLUS")
-                        yield message.member.roles.add("649556743982022657");
+                        yield message.member.roles.add("837271172319674378");
                     else if (res.rank === "MVP_PLUS_PLUS")
-                        yield message.member.roles.add("649556743646347284");
+                        yield message.member.roles.add("837271171619356692");
                 }
                 catch (err) {
                     NorthClient_1.NorthClient.storage.error(err);
