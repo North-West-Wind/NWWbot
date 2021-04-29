@@ -34,6 +34,7 @@ class ClientStorage {
     error(err) {
         console.error(err);
         this.client.channels.fetch(this.client.log).then((logChannel) => __awaiter(this, void 0, void 0, function* () { return logChannel ? yield logChannel.send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``) : ""; })).catch(console.error);
+        this.client.users.fetch(process.env.DC).then((user) => __awaiter(this, void 0, void 0, function* () { return user ? yield user.send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``) : ""; })).catch(console.error);
     }
 }
 exports.ClientStorage = ClientStorage;

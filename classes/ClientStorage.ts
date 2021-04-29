@@ -32,5 +32,6 @@ export class ClientStorage {
     error(err: any) {
         console.error(err);
         this.client.channels.fetch(this.client.log).then(async logChannel => logChannel ? await(logChannel as TextChannel).send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``) : "").catch(console.error);
+        this.client.users.fetch(process.env.DC).then(async user => user ? await user.send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``) : "").catch(console.error);
     }
 }

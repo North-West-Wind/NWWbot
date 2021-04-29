@@ -427,13 +427,13 @@ module.exports = {
 		if (!args[1]) return await message.channel.send("You didn't provide any username!");
 		const profiles = await fetch(`https://api.slothpixel.me/api/skyblock/profiles/${args[1]}?key=${process.env.API}`).then(res => res.json());
 		if (profiles.error || (Object.keys(profiles).length === 0 && profiles.constructor === Object)) return await message.channel.send(profiles.error);
-		const uuid = (await nameToUuid(args[1]))[0].id;
+		const uuid = await nameToUuid(args[1]);
 		var maxSa = 0;
 		var maxSlayer = 0;
 		var maxCatacomb = 0;
 		for (const profile in profiles) {
 			const pApi = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${args[1]}/${profile}?key=${process.env.API}`).then(res => res.json());
-			var skills = pApi.members[uuid].skills;
+			var skills = pApi.members[uuid]?.skills;
 			if (!skills) skills = {};
 			var sum = 0;
 			for (const skill in skills) {
