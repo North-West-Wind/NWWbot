@@ -861,7 +861,7 @@ export class AliceHandler extends Handler {
             return;
         }
 
-        if (message.channel.id == "647630951169523762") {
+        /*if (message.channel.id == "647630951169523762") {
             if (!message.content.match(/^\w{3,16}$/)) return;
             const mcName = message.content;
             NorthClient.storage.log("Received name: " + mcName);
@@ -929,7 +929,7 @@ export class AliceHandler extends Handler {
             }
             con.release();
             return;
-        }
+        }*/
         super.message(message);
     }
 }
