@@ -22,6 +22,7 @@ async function setup(client) {
                 delete posted["default_permission"];
 
                 if (!deepEqual(posted, registration)) {
+                    NorthClient.storage.log(`[${client.id}] Registering command "${name}"`);
                     await client.api.applications(client.user.id).commands.post({
                         data: registration
                     });
