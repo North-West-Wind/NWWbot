@@ -19,7 +19,7 @@ module.exports = {
   register: () => ApplicationCommand.createBasic(module.exports).setOptions([
     new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "create", "Create a new role-message."),
     new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "refresh", "Refresh an existing role-message.").setOptions([
-      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "ID", "The ID of the role-message.").setRequired(true)
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "message", "The ID of the role-message.").setRequired(true)
     ])
   ]),
   async slash() {
