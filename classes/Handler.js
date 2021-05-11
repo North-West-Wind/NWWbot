@@ -1040,6 +1040,7 @@ class AliceHandler extends Handler {
         const _super = Object.create(null, {
             message: { get: () => super.message }
         });
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const client = message.client;
             if (message.mentions.users.size > 10) {
@@ -1050,75 +1051,88 @@ class AliceHandler extends Handler {
                 yield message.member.roles.set(["755263714940289125"]);
                 return;
             }
-            /*if (message.channel.id == "647630951169523762") {
-                if (!message.content.match(/^\w{3,16}$/)) return;
+            if (message.channel.id == "647630951169523762") {
+                if (!message.content.match(/^\w{3,16}$/))
+                    return;
                 const mcName = message.content;
-                NorthClient.storage.log("Received name: " + mcName);
+                NorthClient_1.NorthClient.storage.log("Received name: " + mcName);
                 const dcUserID = message.author.id;
-                const msg = await message.channel.send("Processing...");
-                const con = await client.pool.getConnection();
+                const msg = yield message.channel.send("Processing...");
+                const con = yield client.pool.getConnection();
                 try {
-                    const mcUuid = await nameToUuid(mcName);
-                    if (!mcUuid) return await msg.edit("Error finding that user!").then(msg => msg.delete({ timeout: 10000 }));
-                    NorthClient.storage.log("Found UUID: " + mcUuid);
+                    const mcUuid = yield function_1.nameToUuid(mcName);
+                    if (!mcUuid)
+                        return yield msg.edit("Error finding that user!").then(msg => msg.delete({ timeout: 10000 }));
+                    NorthClient_1.NorthClient.storage.log("Found UUID: " + mcUuid);
                     var res;
                     try {
-                        res = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
-                    } catch (err) {
-                        return await msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
+                        res = yield fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
                     }
-                    const hyDc = res.links?.DISCORD;
-                    if (!hyDc || hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
-                    await message.member.roles.remove("811824361215623188");
-                    var [results] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
+                    catch (err) {
+                        return yield msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
+                    }
+                    const hyDc = (_a = res.links) === null || _a === void 0 ? void 0 : _a.DISCORD;
+                    if (!hyDc || hyDc !== message.author.tag)
+                        return yield msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
+                    yield message.member.roles.remove("811824361215623188");
+                    var [results] = yield con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                     if (results.length == 0) {
-                        await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
-                        await msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
-                        NorthClient.storage.log("Inserted record for mc-name.");
-                    } else {
-                        await con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
-                        await msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
-                        NorthClient.storage.log("Updated record for mc-name.");
+                        yield con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
+                        yield msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                        NorthClient_1.NorthClient.storage.log("Inserted record for mc-name.");
+                    }
+                    else {
+                        yield con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
+                        yield msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                        NorthClient_1.NorthClient.storage.log("Updated record for mc-name.");
                     }
                     const mcLen = res.username.length + 3;
                     var nickname = message.member.displayName;
                     const matches = nickname.match(/ \[\w+\]$/);
-                    if (matches) nickname = nickname.replace(matches[0], "");
-                    if (nickname.length + mcLen > 32) await message.member.setNickname(`${nickname.slice(0, 29 - mcLen)}... [${res.username}]`);
-                    else await message.member.setNickname(`${nickname} [${res.username}]`);
-                    const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
-                    if (gInfo.id === "5b25306a0cf212fe4c98d739") {
-                        await message.member.roles.remove("676754719120556042");
-                        await message.member.roles.add("622319008758104064");
-                    } else {
-                        await message.member.roles.remove("622319008758104064");
-                        await message.member.roles.add("676754719120556042");
-                    }
-                    await message.member.roles.remove("837271157912633395");
-                    await message.member.roles.remove("837271158738255912");
-                    await message.member.roles.remove("837271163121041458");
-                    await message.member.roles.remove("837271170717057065");
-                    await message.member.roles.remove("837271174827212850");
-                    await message.member.roles.remove("837271174073155594");
-                    await message.member.roles.remove("837271173027856404");
-                    await message.member.roles.remove("837271172319674378");
-                    await message.member.roles.remove("837271171619356692");
-                    if (res.rank === "ADMIN") await message.member.roles.add("837271157912633395");
-                    else if (res.rank === "MOD") await message.member.roles.add("837271158738255912");
-                    else if (res.rank === "HELPER") await message.member.roles.add("837271163121041458");
-                    else if (res.rank === "YOUTUBER") await message.member.roles.add("837271170717057065");
-                    else if (res.rank === "VIP") await message.member.roles.add("837271174827212850");
-                    else if (res.rank === "VIP_PLUS") await message.member.roles.add("837271174073155594");
-                    else if (res.rank === "MVP") await message.member.roles.add("837271173027856404");
-                    else if (res.rank === "MVP_PLUS") await message.member.roles.add("837271172319674378");
-                    else if (res.rank === "MVP_PLUS_PLUS") await message.member.roles.add("837271171619356692");
-                } catch (err) {
-                    NorthClient.storage.error(err);
-                    await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
+                    if (matches)
+                        nickname = nickname.replace(matches[0], "");
+                    if (nickname.length + mcLen > 32)
+                        yield message.member.setNickname(`${nickname.slice(0, 29 - mcLen)}... [${res.username}]`);
+                    else
+                        yield message.member.setNickname(`${nickname} [${res.username}]`);
+                    const gInfo = yield fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                    if (gInfo.id === "5b25306a0cf212fe4c98d739")
+                        yield message.member.roles.add("622319008758104064");
+                    yield message.member.roles.remove("837271157912633395");
+                    yield message.member.roles.remove("837271158738255912");
+                    yield message.member.roles.remove("837271163121041458");
+                    yield message.member.roles.remove("837271170717057065");
+                    yield message.member.roles.remove("837271174827212850");
+                    yield message.member.roles.remove("837271174073155594");
+                    yield message.member.roles.remove("837271173027856404");
+                    yield message.member.roles.remove("837271172319674378");
+                    yield message.member.roles.remove("837271171619356692");
+                    if (res.rank === "ADMIN")
+                        yield message.member.roles.add("837271157912633395");
+                    else if (res.rank === "MOD")
+                        yield message.member.roles.add("837271158738255912");
+                    else if (res.rank === "HELPER")
+                        yield message.member.roles.add("837271163121041458");
+                    else if (res.rank === "YOUTUBER")
+                        yield message.member.roles.add("837271170717057065");
+                    else if (res.rank === "VIP")
+                        yield message.member.roles.add("837271174827212850");
+                    else if (res.rank === "VIP_PLUS")
+                        yield message.member.roles.add("837271174073155594");
+                    else if (res.rank === "MVP")
+                        yield message.member.roles.add("837271173027856404");
+                    else if (res.rank === "MVP_PLUS")
+                        yield message.member.roles.add("837271172319674378");
+                    else if (res.rank === "MVP_PLUS_PLUS")
+                        yield message.member.roles.add("837271171619356692");
+                }
+                catch (err) {
+                    NorthClient_1.NorthClient.storage.error(err);
+                    yield msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
                 }
                 con.release();
                 return;
-            }*/
+            }
             _super.message.call(this, message);
         });
     }

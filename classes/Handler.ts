@@ -861,7 +861,7 @@ export class AliceHandler extends Handler {
             return;
         }
 
-        /*if (message.channel.id == "647630951169523762") {
+        if (message.channel.id == "647630951169523762") {
             if (!message.content.match(/^\w{3,16}$/)) return;
             const mcName = message.content;
             NorthClient.storage.log("Received name: " + mcName);
@@ -898,13 +898,7 @@ export class AliceHandler extends Handler {
                 if (nickname.length + mcLen > 32) await message.member.setNickname(`${nickname.slice(0, 29 - mcLen)}... [${res.username}]`);
                 else await message.member.setNickname(`${nickname} [${res.username}]`);
                 const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
-                if (gInfo.id === "5b25306a0cf212fe4c98d739") {
-                    await message.member.roles.remove("676754719120556042");
-                    await message.member.roles.add("622319008758104064");
-                } else {
-                    await message.member.roles.remove("622319008758104064");
-                    await message.member.roles.add("676754719120556042");
-                }
+                if (gInfo.id === "5b25306a0cf212fe4c98d739") await message.member.roles.add("622319008758104064");
                 await message.member.roles.remove("837271157912633395");
                 await message.member.roles.remove("837271158738255912");
                 await message.member.roles.remove("837271163121041458");
@@ -929,7 +923,7 @@ export class AliceHandler extends Handler {
             }
             con.release();
             return;
-        }*/
+        }
         super.message(message);
     }
 }
