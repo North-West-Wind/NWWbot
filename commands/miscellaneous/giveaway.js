@@ -167,7 +167,7 @@ module.exports = {
         if (!args[3]) return await message.channel.send("Please provide the winner count if you want to use this command in 1 line.");
         if (!args[4]) return await message.channel.send("Please provide the items if you want to use this command in 1 line.");
 
-        const channel = await message.guild.channels.resolve(args[1].replace(/<#/g, "").replace(/>/g, ""));
+        const channel = await message.client.channels.fetch(args[1].replace(/<#/g, "").replace(/>/g, ""));
         if (!channel) return await message.channel.send(args[1] + " is not a valid channel!");
         const permissions = channel.permissionsFor(message.guild.me);
         const userPermission = channel.permissionsFor(message.member);

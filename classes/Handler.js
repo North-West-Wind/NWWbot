@@ -1074,7 +1074,6 @@ class AliceHandler extends Handler {
                     const hyDc = (_a = res.links) === null || _a === void 0 ? void 0 : _a.DISCORD;
                     if (!hyDc || hyDc !== message.author.tag)
                         return yield msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
-                    yield message.member.roles.remove("811824361215623188");
                     var [results] = yield con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                     if (results.length == 0) {
                         yield con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
@@ -1261,7 +1260,7 @@ class CanaryHandler extends Handler {
                         var channel = yield client.channels.fetch(result.channel);
                         var msg = yield channel.messages.fetch(result.msg);
                         var author = yield client.users.fetch(result.author);
-                        var guild = client.guilds.resolve(result.guild);
+                        var guild = yield client.guilds.fetch(result.guild);
                     }
                     catch (err) {
                         return;
