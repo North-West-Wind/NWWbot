@@ -270,7 +270,7 @@ module.exports = {
       else if (validSCURL(args.join(" "))) result = await this.addSCURL(args.join(" "));
       else if (validGDFolderURL(args.join(" "))) {
         const msg = await message.channel.send("Processing track: (Initializing)");
-        result = await addGDFolderURL(args.join(" "), async (i, l) => await msg.edit(`Processing track: **${i}/${l}**`));
+        result = await this.addGDFolderURL(args.join(" "), async (i, l) => await msg.edit(`Processing track: **${i}/${l}**`));
         await msg.delete();
       } else if (validGDURL(args.join(" ")) || validGDDLURL(args.join(" "))) result = await this.addGDURL(args.join(" "));
       else if (validMSURL(args.join(" "))) result = await this.addMSURL(args.join(" "));
