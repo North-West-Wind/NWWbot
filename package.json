@@ -1,6 +1,6 @@
 {
   "name": "nwwbot",
-  "version": "4.0.4",
+  "version": "4.0.5",
   "description": "NorthWestWind's bot!",
   "main": "main.js",
   "scripts": {
@@ -23,7 +23,7 @@
     "anser": "^2.0.1",
     "array-move": "^3.0.1",
     "asciify-image": "^0.1.6",
-    "canvas": "^2.7.0",
+    "canvas": "^2.8.0",
     "cheerio": "^1.0.0-rc.9",
     "cleverbot-free": "^1.1.6",
     "deep-equal": "^2.0.5",
@@ -38,7 +38,7 @@
     "google-it": "^1.6.2",
     "is-image-url": "^1.1.8",
     "krunker.js": "^1.2.4",
-    "mathjs": "^9.3.2",
+    "mathjs": "^9.4.0",
     "mojang-api": "^0.0.2",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",

@@ -687,7 +687,7 @@ module.exports = {
   },
   async addMSURL(link) {
     try {
-      var data = muse(link);
+      var data = await muse(link);
     } catch (err) {
       return { error: true, message: "Failed to fetch metadata of the score!" };
     }
