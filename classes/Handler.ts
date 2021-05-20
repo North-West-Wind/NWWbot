@@ -150,21 +150,21 @@ export class Handler {
     }
 
     static async ready(client: NorthClient) {
-        this.preReady(client);
+        Handler.preReady(client);
         const storage = NorthClient.storage;
         const pool = client.pool;
         const id = client.id;
         storage.log(`[${id}] Ready!`);
-        this.setPresence(client);
+        Handler.setPresence(client);
         const con = await pool.getConnection();
         try {
-            await this.preRead(client, con);
-            await this.readCurrency(client, con);
-            await this.readServers(client, con);
-            await this.readRoleMsg(client, con);
-            await this.readGiveaways(client, con);
-            await this.readPoll(client, con);
-            await this.readNoLog(client, con);
+            await Handler.preRead(client, con);
+            await Handler.readCurrency(client, con);
+            await Handler.readServers(client, con);
+            await Handler.readRoleMsg(client, con);
+            await Handler.readGiveaways(client, con);
+            await Handler.readPoll(client, con);
+            await Handler.readNoLog(client, con);
         } catch (err) { storage.error(err); };
         con.release();
     }
@@ -258,7 +258,7 @@ export class Handler {
                         ctx.drawImage(avatar, canvas.width / 2 - canvas.height / 5, canvas.height / 3 - canvas.height / 5, canvas.height / 2.5, canvas.height / 2.5);
                         var attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
                         try {
-                            await this.preWelcomeImage(channel);
+                            await Handler.preWelcomeImage(channel);
                             await channel.send(attachment);
                         } catch (err) {
                             storage.error(err);
@@ -446,7 +446,7 @@ export class Handler {
     }
 
     static async message(message: Message) {
-        await this.preMessage(message);
+        await Handler.preMessage(message);
         const client = <NorthClient>message.client;
         const storage = NorthClient.storage;
         const msg = (<NorthMessage>message);

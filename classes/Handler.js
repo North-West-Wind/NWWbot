@@ -183,21 +183,21 @@ class Handler {
     }
     static ready(client) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.preReady(client);
+            Handler.preReady(client);
             const storage = NorthClient_1.NorthClient.storage;
             const pool = client.pool;
             const id = client.id;
             storage.log(`[${id}] Ready!`);
-            this.setPresence(client);
+            Handler.setPresence(client);
             const con = yield pool.getConnection();
             try {
-                yield this.preRead(client, con);
-                yield this.readCurrency(client, con);
-                yield this.readServers(client, con);
-                yield this.readRoleMsg(client, con);
-                yield this.readGiveaways(client, con);
-                yield this.readPoll(client, con);
-                yield this.readNoLog(client, con);
+                yield Handler.preRead(client, con);
+                yield Handler.readCurrency(client, con);
+                yield Handler.readServers(client, con);
+                yield Handler.readRoleMsg(client, con);
+                yield Handler.readGiveaways(client, con);
+                yield Handler.readPoll(client, con);
+                yield Handler.readNoLog(client, con);
             }
             catch (err) {
                 storage.error(err);
@@ -309,7 +309,7 @@ class Handler {
                             ctx.drawImage(avatar, canvas.width / 2 - canvas.height / 5, canvas.height / 3 - canvas.height / 5, canvas.height / 2.5, canvas.height / 2.5);
                             var attachment = new discord_js_1.MessageAttachment(canvas.toBuffer(), "welcome-image.png");
                             try {
-                                yield this.preWelcomeImage(channel);
+                                yield Handler.preWelcomeImage(channel);
                                 yield channel.send(attachment);
                             }
                             catch (err) {
@@ -563,7 +563,7 @@ class Handler {
     static message(message) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.preMessage(message);
+            yield Handler.preMessage(message);
             const client = message.client;
             const storage = NorthClient_1.NorthClient.storage;
             const msg = message;
