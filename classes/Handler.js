@@ -183,21 +183,21 @@ class Handler {
     }
     static ready(client) {
         return __awaiter(this, void 0, void 0, function* () {
-            Handler.preReady(client);
+            this.preReady(client);
             const storage = NorthClient_1.NorthClient.storage;
             const pool = client.pool;
             const id = client.id;
             storage.log(`[${id}] Ready!`);
-            Handler.setPresence(client);
+            this.setPresence(client);
             const con = yield pool.getConnection();
             try {
-                yield Handler.preRead(client, con);
-                yield Handler.readCurrency(client, con);
-                yield Handler.readServers(client, con);
-                yield Handler.readRoleMsg(client, con);
-                yield Handler.readGiveaways(client, con);
-                yield Handler.readPoll(client, con);
-                yield Handler.readNoLog(client, con);
+                yield this.preRead(client, con);
+                yield this.readCurrency(client, con);
+                yield this.readServers(client, con);
+                yield this.readRoleMsg(client, con);
+                yield this.readGiveaways(client, con);
+                yield this.readPoll(client, con);
+                yield this.readNoLog(client, con);
             }
             catch (err) {
                 storage.error(err);
@@ -309,7 +309,7 @@ class Handler {
                             ctx.drawImage(avatar, canvas.width / 2 - canvas.height / 5, canvas.height / 3 - canvas.height / 5, canvas.height / 2.5, canvas.height / 2.5);
                             var attachment = new discord_js_1.MessageAttachment(canvas.toBuffer(), "welcome-image.png");
                             try {
-                                yield Handler.preWelcomeImage(channel);
+                                yield this.preWelcomeImage(channel);
                                 yield channel.send(attachment);
                             }
                             catch (err) {
@@ -563,7 +563,7 @@ class Handler {
     static message(message) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            yield Handler.preMessage(message);
+            yield this.preMessage(message);
             const client = message.client;
             const storage = NorthClient_1.NorthClient.storage;
             const msg = message;
@@ -597,6 +597,9 @@ class Handler {
 }
 exports.Handler = Handler;
 class AliceHandler extends Handler {
+    static readServers(_client, _con) {
+        return __awaiter(this, void 0, void 0, function* () { });
+    }
     static preReady(client) {
         return __awaiter(this, void 0, void 0, function* () {
             client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });

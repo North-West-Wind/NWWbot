@@ -150,21 +150,21 @@ export class Handler {
     }
 
     static async ready(client: NorthClient) {
-        Handler.preReady(client);
+        this.preReady(client);
         const storage = NorthClient.storage;
         const pool = client.pool;
         const id = client.id;
         storage.log(`[${id}] Ready!`);
-        Handler.setPresence(client);
+        this.setPresence(client);
         const con = await pool.getConnection();
         try {
-            await Handler.preRead(client, con);
-            await Handler.readCurrency(client, con);
-            await Handler.readServers(client, con);
-            await Handler.readRoleMsg(client, con);
-            await Handler.readGiveaways(client, con);
-            await Handler.readPoll(client, con);
-            await Handler.readNoLog(client, con);
+            await this.preRead(client, con);
+            await this.readCurrency(client, con);
+            await this.readServers(client, con);
+            await this.readRoleMsg(client, con);
+            await this.readGiveaways(client, con);
+            await this.readPoll(client, con);
+            await this.readNoLog(client, con);
         } catch (err) { storage.error(err); };
         con.release();
     }
@@ -258,7 +258,7 @@ export class Handler {
                         ctx.drawImage(avatar, canvas.width / 2 - canvas.height / 5, canvas.height / 3 - canvas.height / 5, canvas.height / 2.5, canvas.height / 2.5);
                         var attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
                         try {
-                            await Handler.preWelcomeImage(channel);
+                            await this.preWelcomeImage(channel);
                             await channel.send(attachment);
                         } catch (err) {
                             storage.error(err);
@@ -446,7 +446,7 @@ export class Handler {
     }
 
     static async message(message: Message) {
-        await Handler.preMessage(message);
+        await this.preMessage(message);
         const client = <NorthClient>message.client;
         const storage = NorthClient.storage;
         const msg = (<NorthMessage>message);
@@ -473,6 +473,8 @@ export class Handler {
 }
 
 export class AliceHandler extends Handler {
+    static async readServers(_client: NorthClient, _con: Connection) { }
+
     static async preReady(client: NorthClient) {
         client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
     }
