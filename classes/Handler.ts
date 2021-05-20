@@ -18,15 +18,11 @@ const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryD
 const filter = require("../helpers/filter");
 
 export class Handler {
-    static async messageLevel(message: Message) {
-        const storage = NorthClient.storage;
-        if (!message || !message.author || !message.author.id || !message.guild || message.author.bot) return;
-        const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
-        const sqlDate = jsDate2Mysql(new Date());
-        storage.queries.push(new LevelData(message.author.id, message.guild.id, exp, sqlDate));
+    static setup(client: NorthClient) {
+        new Handler(client);
     }
 
-    static setup(client: NorthClient) {
+    constructor(client: NorthClient) {
         client.once("ready", () => this.ready(client));
         client.on("guildMemberAdd", this.guildMemberAdd);
         client.on("guildMemberRemove", this.guildMemberRemove);
@@ -40,18 +36,26 @@ export class Handler {
         client.on("message", this.message);
     }
 
-    static async preReady(client: NorthClient) {
+    async messageLevel(message: Message) {
+        const storage = NorthClient.storage;
+        if (!message || !message.author || !message.author.id || !message.guild || message.author.bot) return;
+        const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
+        const sqlDate = jsDate2Mysql(new Date());
+        storage.queries.push(new LevelData(message.author.id, message.guild.id, exp, sqlDate));
+    }
+
+    async preReady(client: NorthClient) {
         await slash(client);
         client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
     }
 
-    static async preRead(_client: NorthClient, _con: Connection) { }
+    async preRead(_client: NorthClient, _con: Connection) { }
 
-    static async setPresence(client: NorthClient) {
+    async setPresence(client: NorthClient) {
         client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
     }
 
-    static async readCurrency(_client: NorthClient, con: Connection) {
+    async readCurrency(_client: NorthClient, con: Connection) {
         const [r] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM currency");
         for (const result of r) {
             try {
@@ -64,7 +68,7 @@ export class Handler {
         }
     }
 
-    static async readServers(client: NorthClient, con: Connection) {
+    async readServers(client: NorthClient, con: Connection) {
         const storage = NorthClient.storage;
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers");
         results.forEach(async result => {
@@ -104,7 +108,7 @@ export class Handler {
         storage.log(`[${client.id}] Set ${results.length} configurations`);
     }
 
-    static async readRoleMsg(client: NorthClient, con: Connection) {
+    async readRoleMsg(client: NorthClient, con: Connection) {
         const storage = NorthClient.storage
         const [res] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY expiration");
         storage.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
@@ -112,7 +116,7 @@ export class Handler {
         res.forEach(async result => expire({ pool: client.pool, client }, result.expiration - Date.now(), result.id));
     }
 
-    static async readGiveaways(client: NorthClient, con: Connection) {
+    async readGiveaways(client: NorthClient, con: Connection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY endAt ASC");
         NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
         results.forEach(async result => {
@@ -124,7 +128,7 @@ export class Handler {
         });
     }
 
-    static async readPoll(client: NorthClient, con: Connection) {
+    async readPoll(client: NorthClient, con: Connection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM poll WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY endAt ASC");
         NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(result => {
@@ -144,12 +148,12 @@ export class Handler {
         });
     }
 
-    static async readNoLog(_client: NorthClient, con: Connection) {
+    async readNoLog(_client: NorthClient, con: Connection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM nolog");
         NorthClient.storage.noLog = results.map(x => x.id);
     }
 
-    static async ready(client: NorthClient) {
+    async ready(client: NorthClient) {
         this.preReady(client);
         const storage = NorthClient.storage;
         const pool = client.pool;
@@ -169,9 +173,9 @@ export class Handler {
         con.release();
     }
 
-    static async preWelcomeImage(_channel: TextChannel) { }
+    async preWelcomeImage(_channel: TextChannel) { }
 
-    static async guildMemberAdd(member: GuildMember) {
+    async guildMemberAdd(member: GuildMember) {
         const client = (member.client as NorthClient);
         const storage = NorthClient.storage;
         const guild = member.guild;
@@ -290,7 +294,7 @@ export class Handler {
         } catch (err) { storage.error(err) };
     }
 
-    static async guildMemberRemove(member: GuildMember | PartialGuildMember) {
+    async guildMemberRemove(member: GuildMember | PartialGuildMember) {
         const client = (member.client as NorthClient);
         const guild = member.guild;
         const storage = NorthClient.storage;
@@ -320,7 +324,7 @@ export class Handler {
         } catch (err) { storage.error(err) };
     }
 
-    static async guildCreate(guild: Guild) {
+    async guildCreate(guild: Guild) {
         const client = <NorthClient>guild.client;
         const storage = NorthClient.storage;
         storage.log("Joined a new guild: " + guild.name);
@@ -340,7 +344,7 @@ export class Handler {
         }
     }
 
-    static async guildDelete(guild: Guild) {
+    async guildDelete(guild: Guild) {
         const client = <NorthClient>guild.client;
         const storage = NorthClient.storage;
         storage.log("Left a guild: " + guild.name);
@@ -353,7 +357,7 @@ export class Handler {
         }
     }
 
-    static async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
+    async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
         const guild = oldState.guild || newState.guild;
         const client = <NorthClient>guild.client;
         const storage = NorthClient.storage;
@@ -372,7 +376,7 @@ export class Handler {
         } else storage.guilds[guild.id].exit = false;
     }
 
-    static async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
+    async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
         const client = <NorthClient>(oldMember.client || newMember.client);
         const storage = NorthClient.storage;
         if (client.id == 1 && oldMember.displayName !== newMember.displayName) {
@@ -396,7 +400,7 @@ export class Handler {
         } catch (err) { }
     }
 
-    static async messageReactionAdd(r: MessageReaction, user: User | PartialUser) {
+    async messageReactionAdd(r: MessageReaction, user: User | PartialUser) {
         const storage = NorthClient.storage;
         var roleMessage = storage.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
@@ -414,7 +418,7 @@ export class Handler {
         }
     }
 
-    static async messageReactionRemove(r: MessageReaction, user: User | PartialUser) {
+    async messageReactionRemove(r: MessageReaction, user: User | PartialUser) {
         const storage = NorthClient.storage;
         var roleMessage = storage.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
@@ -432,7 +436,7 @@ export class Handler {
         }
     }
 
-    static async messageDelete(message: Message | PartialMessage) {
+    async messageDelete(message: Message | PartialMessage) {
         const client = <NorthClient>message.client;
         const storage = NorthClient.storage;
         var roleMessage = storage.rm.find(x => x.id === message.id);
@@ -441,11 +445,11 @@ export class Handler {
         await client.pool.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`);
     }
 
-    static async preMessage(_message: Message): Promise<any> {
+    async preMessage(_message: Message): Promise<any> {
 
     }
 
-    static async message(message: Message) {
+    async message(message: Message) {
         await this.preMessage(message);
         const client = <NorthClient>message.client;
         const storage = NorthClient.storage;
@@ -473,13 +477,21 @@ export class Handler {
 }
 
 export class AliceHandler extends Handler {
-    static async readServers(_client: NorthClient, _con: Connection) { }
+    static setup(client: NorthClient) {
+        new AliceHandler(client);
+    }
 
-    static async preReady(client: NorthClient) {
+    constructor(client: NorthClient) {
+        super(client);
+    }
+
+    async readServers(_client: NorthClient, _con: Connection) { }
+
+    async preReady(client: NorthClient) {
         client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
     }
 
-    static async preRead(client: NorthClient, con: Connection) {
+    async preRead(client: NorthClient, con: Connection) {
         const storage = NorthClient.storage;
         client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => storage.guilds[g.id].invites = guildInvites).catch(() => { }));
         const [res] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
@@ -610,7 +622,7 @@ export class AliceHandler extends Handler {
         }, 30000);
     }
 
-    static async readGiveaways(client: NorthClient, con: Connection) {
+    async readGiveaways(client: NorthClient, con: Connection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' OR id = '819539026792808448' ORDER BY endAt ASC");
         NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
         results.forEach(async result => {
@@ -622,7 +634,7 @@ export class AliceHandler extends Handler {
         });
     }
 
-    static async readPoll(client: NorthClient, con: Connection) {
+    async readPoll(client: NorthClient, con: Connection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM poll WHERE guild = '622311594654695434' OR guild = '819539026792808448' ORDER BY endAt ASC");
         NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(result => {
@@ -641,11 +653,11 @@ export class AliceHandler extends Handler {
         });
     }
 
-    static async preWelcomeImage(channel: TextChannel) {
+    async preWelcomeImage(channel: TextChannel) {
         await channel.send(new MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
     }
 
-    static async preMessage(message: Message) {
+    async preMessage(message: Message) {
         const client = <NorthClient>message.client;
 
         if (message.mentions.users.size > 10) {
@@ -723,7 +735,15 @@ export class AliceHandler extends Handler {
 }
 
 export class CanaryHandler extends Handler {
-    static async readServers(client: NorthClient, con: Connection) {
+    static setup(client: NorthClient) {
+        new CanaryHandler(client);
+    }
+
+    constructor(client: NorthClient) {
+        super(client);
+    }
+
+    async readServers(client: NorthClient, con: Connection) {
         const storage = NorthClient.storage;
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
         results.forEach(async result => {

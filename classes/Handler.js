@@ -29,17 +29,10 @@ const slash_1 = __importDefault(require("../helpers/slash"));
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: (attempt) => Math.pow(2, attempt) * 1000 });
 const filter = require("../helpers/filter");
 class Handler {
-    static messageLevel(message) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const storage = NorthClient_1.NorthClient.storage;
-            if (!message || !message.author || !message.author.id || !message.guild || message.author.bot)
-                return;
-            const exp = Math.round(function_1.getRandomNumber(5, 15) * (1 + message.content.length / 100));
-            const sqlDate = function_1.jsDate2Mysql(new Date());
-            storage.queries.push(new LevelData_1.LevelData(message.author.id, message.guild.id, exp, sqlDate));
-        });
-    }
     static setup(client) {
+        new Handler(client);
+    }
+    constructor(client) {
         client.once("ready", () => this.ready(client));
         client.on("guildMemberAdd", this.guildMemberAdd);
         client.on("guildMemberRemove", this.guildMemberRemove);
@@ -52,21 +45,31 @@ class Handler {
         client.on("messageDelete", this.messageDelete);
         client.on("message", this.message);
     }
-    static preReady(client) {
+    messageLevel(message) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const storage = NorthClient_1.NorthClient.storage;
+            if (!message || !message.author || !message.author.id || !message.guild || message.author.bot)
+                return;
+            const exp = Math.round(function_1.getRandomNumber(5, 15) * (1 + message.content.length / 100));
+            const sqlDate = function_1.jsDate2Mysql(new Date());
+            storage.queries.push(new LevelData_1.LevelData(message.author.id, message.guild.id, exp, sqlDate));
+        });
+    }
+    preReady(client) {
         return __awaiter(this, void 0, void 0, function* () {
             yield slash_1.default(client);
             client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => NorthClient_1.NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
         });
     }
-    static preRead(_client, _con) {
+    preRead(_client, _con) {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    static setPresence(client) {
+    setPresence(client) {
         return __awaiter(this, void 0, void 0, function* () {
             client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
         });
     }
-    static readCurrency(_client, con) {
+    readCurrency(_client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             const [r] = yield con.query("SELECT * FROM currency");
             for (const result of r) {
@@ -82,7 +85,7 @@ class Handler {
             }
         });
     }
-    static readServers(client, con) {
+    readServers(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
             var [results] = yield con.query("SELECT * FROM servers");
@@ -130,7 +133,7 @@ class Handler {
             storage.log(`[${client.id}] Set ${results.length} configurations`);
         });
     }
-    static readRoleMsg(client, con) {
+    readRoleMsg(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
             const [res] = yield con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY expiration");
@@ -139,7 +142,7 @@ class Handler {
             res.forEach((result) => __awaiter(this, void 0, void 0, function* () { return role_message_1.expire({ pool: client.pool, client }, result.expiration - Date.now(), result.id); }));
         });
     }
-    static readGiveaways(client, con) {
+    readGiveaways(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             var [results] = yield con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY endAt ASC");
             NorthClient_1.NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
@@ -152,7 +155,7 @@ class Handler {
             }));
         });
     }
-    static readPoll(client, con) {
+    readPoll(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             var [results] = yield con.query("SELECT * FROM poll WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY endAt ASC");
             NorthClient_1.NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
@@ -175,13 +178,13 @@ class Handler {
             });
         });
     }
-    static readNoLog(_client, con) {
+    readNoLog(_client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             var [results] = yield con.query("SELECT * FROM nolog");
             NorthClient_1.NorthClient.storage.noLog = results.map(x => x.id);
         });
     }
-    static ready(client) {
+    ready(client) {
         return __awaiter(this, void 0, void 0, function* () {
             this.preReady(client);
             const storage = NorthClient_1.NorthClient.storage;
@@ -206,10 +209,10 @@ class Handler {
             con.release();
         });
     }
-    static preWelcomeImage(_channel) {
+    preWelcomeImage(_channel) {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    static guildMemberAdd(member) {
+    guildMemberAdd(member) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const client = member.client;
@@ -352,7 +355,7 @@ class Handler {
             ;
         });
     }
-    static guildMemberRemove(member) {
+    guildMemberRemove(member) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const client = member.client;
@@ -396,7 +399,7 @@ class Handler {
             ;
         });
     }
-    static guildCreate(guild) {
+    guildCreate(guild) {
         return __awaiter(this, void 0, void 0, function* () {
             const client = guild.client;
             const storage = NorthClient_1.NorthClient.storage;
@@ -422,7 +425,7 @@ class Handler {
             }
         });
     }
-    static guildDelete(guild) {
+    guildDelete(guild) {
         return __awaiter(this, void 0, void 0, function* () {
             const client = guild.client;
             const storage = NorthClient_1.NorthClient.storage;
@@ -437,7 +440,7 @@ class Handler {
             }
         });
     }
-    static voiceStateUpdate(oldState, newState) {
+    voiceStateUpdate(oldState, newState) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const guild = oldState.guild || newState.guild;
@@ -463,7 +466,7 @@ class Handler {
                 storage.guilds[guild.id].exit = false;
         });
     }
-    static guildMemberUpdate(oldMember, newMember) {
+    guildMemberUpdate(oldMember, newMember) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const client = (oldMember.client || newMember.client);
@@ -495,7 +498,7 @@ class Handler {
             catch (err) { }
         });
     }
-    static messageReactionAdd(r, user) {
+    messageReactionAdd(r, user) {
         return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
             var roleMessage = storage.rm.find(x => x.id == r.message.id);
@@ -520,7 +523,7 @@ class Handler {
             }
         });
     }
-    static messageReactionRemove(r, user) {
+    messageReactionRemove(r, user) {
         return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
             var roleMessage = storage.rm.find(x => x.id == r.message.id);
@@ -545,7 +548,7 @@ class Handler {
             }
         });
     }
-    static messageDelete(message) {
+    messageDelete(message) {
         return __awaiter(this, void 0, void 0, function* () {
             const client = message.client;
             const storage = NorthClient_1.NorthClient.storage;
@@ -556,11 +559,11 @@ class Handler {
             yield client.pool.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`);
         });
     }
-    static preMessage(_message) {
+    preMessage(_message) {
         return __awaiter(this, void 0, void 0, function* () {
         });
     }
-    static message(message) {
+    message(message) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             yield this.preMessage(message);
@@ -597,15 +600,21 @@ class Handler {
 }
 exports.Handler = Handler;
 class AliceHandler extends Handler {
-    static readServers(_client, _con) {
+    static setup(client) {
+        new AliceHandler(client);
+    }
+    constructor(client) {
+        super(client);
+    }
+    readServers(_client, _con) {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    static preReady(client) {
+    preReady(client) {
         return __awaiter(this, void 0, void 0, function* () {
             client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         });
     }
-    static preRead(client, con) {
+    preRead(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
             client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => storage.guilds[g.id].invites = guildInvites).catch(() => { }));
@@ -750,7 +759,7 @@ class AliceHandler extends Handler {
             }), 30000);
         });
     }
-    static readGiveaways(client, con) {
+    readGiveaways(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             var [results] = yield con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' OR id = '819539026792808448' ORDER BY endAt ASC");
             NorthClient_1.NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
@@ -763,7 +772,7 @@ class AliceHandler extends Handler {
             }));
         });
     }
-    static readPoll(client, con) {
+    readPoll(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             var [results] = yield con.query("SELECT * FROM poll WHERE guild = '622311594654695434' OR guild = '819539026792808448' ORDER BY endAt ASC");
             NorthClient_1.NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
@@ -785,12 +794,12 @@ class AliceHandler extends Handler {
             });
         });
     }
-    static preWelcomeImage(channel) {
+    preWelcomeImage(channel) {
         return __awaiter(this, void 0, void 0, function* () {
             yield channel.send(new discord_js_1.MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
         });
     }
-    static preMessage(message) {
+    preMessage(message) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const client = message.client;
@@ -888,7 +897,13 @@ class AliceHandler extends Handler {
 }
 exports.AliceHandler = AliceHandler;
 class CanaryHandler extends Handler {
-    static readServers(client, con) {
+    static setup(client) {
+        new CanaryHandler(client);
+    }
+    constructor(client) {
+        super(client);
+    }
+    readServers(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
             var [results] = yield con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
