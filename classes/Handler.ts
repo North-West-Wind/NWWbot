@@ -764,7 +764,7 @@ export class CanaryHandler extends Handler {
                     channel: result.boost_channel
                 };
             });
-            storage.log(`[${client.id}] Set ${results.length} configurations`);
+            storage.log(`[${client.id}] Set ${results.length} configurations`)
         }
     }
 }
