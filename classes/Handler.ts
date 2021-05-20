@@ -24,16 +24,16 @@ export class Handler {
 
     constructor(client: NorthClient) {
         client.once("ready", () => this.ready(client));
-        client.on("guildMemberAdd", this.guildMemberAdd);
-        client.on("guildMemberRemove", this.guildMemberRemove);
-        client.on("guildCreate", this.guildCreate);
-        client.on("guildDelete", this.guildDelete);
-        client.on("voiceStateUpdate", this.voiceStateUpdate);
-        client.on("guildMemberUpdate", this.guildMemberUpdate);
-        client.on("messageReactionAdd", this.messageReactionAdd);
-        client.on("messageReactionRemove", this.messageReactionRemove);
-        client.on("messageDelete", this.messageDelete);
-        client.on("message", this.message);
+        client.on("guildMemberAdd", member => this.guildMemberAdd(member));
+        client.on("guildMemberRemove", member => this.guildMemberRemove(member));
+        client.on("guildCreate", guild => this.guildCreate(guild));
+        client.on("guildDelete", guild => this.guildDelete(guild));
+        client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(oldState, newState));
+        client.on("guildMemberUpdate", (oldMember, newMember) => this.guildMemberUpdate(oldMember, newMember));
+        client.on("messageReactionAdd", (reaction, user) => this.messageReactionAdd(reaction, user));
+        client.on("messageReactionRemove", (reaction, user) => this.messageReactionRemove(reaction, user));
+        client.on("messageDelete", message => this.messageDelete(message));
+        client.on("message", message => this.message(message));
     }
 
     async messageLevel(message: Message) {
@@ -44,18 +44,18 @@ export class Handler {
         storage.queries.push(new LevelData(message.author.id, message.guild.id, exp, sqlDate));
     }
 
-    preReady = async(client: NorthClient) => {
+    async preReady(client: NorthClient) {
         await slash(client);
         client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
     }
 
-    preRead = async(_client: NorthClient, _con: Connection) => { }
+    async preRead(_client: NorthClient, _con: Connection) { }
 
-    setPresence = (client: NorthClient) => {
+    async setPresence(client: NorthClient) {
         client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
     }
 
-    readCurrency = async(_client: NorthClient, con: Connection) => {
+    async readCurrency(_client: NorthClient, con: Connection) {
         const [r] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM currency");
         for (const result of r) {
             try {
@@ -68,7 +68,7 @@ export class Handler {
         }
     }
 
-    readServers = async(client: NorthClient, con: Connection) => {
+    async readServers(client: NorthClient, con: Connection) {
         const storage = NorthClient.storage;
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers");
         results.forEach(async result => {
@@ -108,7 +108,7 @@ export class Handler {
         storage.log(`[${client.id}] Set ${results.length} configurations`);
     }
 
-    readRoleMsg = async(client: NorthClient, con: Connection) => {
+    async readRoleMsg(client: NorthClient, con: Connection) {
         const storage = NorthClient.storage
         const [res] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY expiration");
         storage.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
@@ -116,7 +116,7 @@ export class Handler {
         res.forEach(async result => expire({ pool: client.pool, client }, result.expiration - Date.now(), result.id));
     }
 
-    readGiveaways = async(client: NorthClient, con: Connection) => {
+    async readGiveaways(client: NorthClient, con: Connection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY endAt ASC");
         NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
         results.forEach(async result => {
@@ -128,7 +128,7 @@ export class Handler {
         });
     }
 
-    readPoll = async(client: NorthClient, con: Connection) => {
+    async readPoll(client: NorthClient, con: Connection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM poll WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY endAt ASC");
         NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(result => {
@@ -148,7 +148,7 @@ export class Handler {
         });
     }
 
-    readNoLog = async(_client: NorthClient, con: Connection) => {
+    async readNoLog(_client: NorthClient, con: Connection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM nolog");
         NorthClient.storage.noLog = results.map(x => x.id);
     }
@@ -173,7 +173,7 @@ export class Handler {
         con.release();
     }
 
-    preWelcomeImage = async(_channel: TextChannel) => { }
+    async preWelcomeImage(_channel: TextChannel) { }
 
     async guildMemberAdd(member: GuildMember) {
         const client = (member.client as NorthClient);
@@ -445,7 +445,7 @@ export class Handler {
         await client.pool.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`);
     }
 
-    preMessage = async(_message: Message): Promise<any> => {
+    async preMessage(_message: Message): Promise<any> {
 
     }
 
@@ -483,246 +483,253 @@ export class AliceHandler extends Handler {
 
     constructor(client: NorthClient) {
         super(client);
-        this.readServers = async(_client: NorthClient, _con: Connection) => { };
-        this.preReady = async(client: NorthClient) => {
-            client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
-        }
-        this.preRead = async(client: NorthClient, con: Connection) => {
-            const storage = NorthClient.storage;
-            client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => storage.guilds[g.id].invites = guildInvites).catch(() => { }));
-            const [res] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
-            storage.log(`[${client.id}] Found ${res.length} guild timers`);
-            res.forEach(async result => {
-                let endAfter = result.endAt.getTime() - Date.now();
-                let mc = await profile(result.mc);
-                let username = "undefined";
-                if (mc) username = mc.name;
-                let dc = `<@${result.user}>`;
-                let rank = unescape(result.dc_rank);
-                let title = `${dc} - ${rank} [${username}]`;
-                setTimeout_(async () => {
-                    let asuna = await client.users.fetch("461516729047318529");
-                    const conn = await client.pool.getConnection();
+    }
+
+    async readServers(_client: NorthClient, _con: Connection) { }
+
+    async preReady(client: NorthClient) {
+        client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
+    }
+
+    async preRead(client: NorthClient, con: Connection) {
+        const storage = NorthClient.storage;
+        client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => storage.guilds[g.id].invites = guildInvites).catch(() => { }));
+        const [res] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
+        storage.log(`[${client.id}] Found ${res.length} guild timers`);
+        res.forEach(async result => {
+            let endAfter = result.endAt.getTime() - Date.now();
+            let mc = await profile(result.mc);
+            let username = "undefined";
+            if (mc) username = mc.name;
+            let dc = `<@${result.user}>`;
+            let rank = unescape(result.dc_rank);
+            let title = `${dc} - ${rank} [${username}]`;
+            setTimeout_(async () => {
+                let asuna = await client.users.fetch("461516729047318529");
+                const conn = await client.pool.getConnection();
+                try {
+                    const [results] = <[RowDataPacket[]]><unknown>await conn.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
+                    if (results.length == 0) return;
                     try {
-                        const [results] = <[RowDataPacket[]]><unknown>await conn.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
-                        if (results.length == 0) return;
-                        try {
-                            asuna.send(title + " expired");
-                            var user = await client.users.fetch(result.user);
-                            user.send(`Your rank **${rank}** in War of Underworld has expired.`);
-                        } catch (err) { }
-                        await conn.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
-                        storage.log("A guild timer expired.");
-                    } catch (err) {
-                        storage.error(err);
-                    }
-                    conn.release();
-                }, endAfter);
-            });
-            const [gtimers] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
-            storage.gtimers = gtimers;
-            setInterval(async () => {
-                try {
-                    var timerChannel = <TextChannel>await client.channels.fetch(process.env.TIME_LIST_CHANNEL);
-                    var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
-                } catch (err) {
-                    storage.error("Failed to fetch timer list message");
-                    return;
-                }
-                try {
-                    let now = Date.now();
-                    let tmp = [];
-                    for (const result of storage.gtimers) {
-                        let mc = await profile(result.mc);
-                        let username = "undefined";
-                        if (mc) username = mc.name;
-                        const str = result.user;
-                        let dc = "0";
-                        try {
-                            var user = await client.users.fetch(str);
-                            dc = user.id;
-                        } catch (err) { }
-                        let rank = unescape(result.dc_rank);
-                        let title = `<@${dc}> - ${rank} [${username}]`;
-                        let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                        tmp.push({ title: title, time: duration(seconds) });
-                    }
-                    if (tmp.length <= 10) {
-                        timerMsg.reactions.removeAll().catch(storage.error);
-                        let description = "";
-                        let num = 0;
-                        for (const result of tmp) description += `${++num}. ${result.title} : ${result.time}\n`;
-                        const em = new MessageEmbed()
-                            .setColor(color())
-                            .setTitle("Rank Expiration Timers")
-                            .setDescription(description)
-                            .setTimestamp()
-                            .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
-                        timerMsg.edit({ content: "", embed: em });
-                    } else {
-                        const allEmbeds = [];
-                        for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
-                            let desc = "";
-                            for (let num = 0; num < 10; num++) {
-                                if (!tmp[i + num]) break;
-                                desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
-                            }
-                            const em = new MessageEmbed()
-                                .setColor(color())
-                                .setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
-                                .setDescription(desc)
-                                .setTimestamp()
-                                .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
-                            allEmbeds.push(em);
-                        }
-                        const filter = (reaction) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name);
-                        var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
-                        var s = 0;
-                        await msg.react("⏮");
-                        await msg.react("◀");
-                        await msg.react("▶");
-                        await msg.react("⏭");
-                        await msg.react("⏹");
-                        const collector = msg.createReactionCollector(filter, { time: 30000 });
-                        collector.on("collect", function (reaction, user) {
-                            reaction.users.remove(user.id);
-                            switch (reaction.emoji.name) {
-                                case "⏮":
-                                    s = 0;
-                                    msg.edit(allEmbeds[s]);
-                                    break;
-                                case "◀":
-                                    s -= 1;
-                                    if (s < 0) s = allEmbeds.length - 1;
-                                    msg.edit(allEmbeds[s]);
-                                    break;
-                                case "▶":
-                                    s += 1;
-                                    if (s > allEmbeds.length - 1) s = 0;
-                                    msg.edit(allEmbeds[s]);
-                                    break;
-                                case "⏭":
-                                    s = allEmbeds.length - 1;
-                                    msg.edit(allEmbeds[s]);
-                                    break;
-                                case "⏹":
-                                    collector.emit("end");
-                                    break;
-                            }
-                        });
-                        collector.on("end", () => msg.reactions.removeAll().catch(storage.error));
-                    }
+                        asuna.send(title + " expired");
+                        var user = await client.users.fetch(result.user);
+                        user.send(`Your rank **${rank}** in War of Underworld has expired.`);
+                    } catch (err) { }
+                    await conn.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
+                    storage.log("A guild timer expired.");
                 } catch (err) {
                     storage.error(err);
                 }
-            }, 30000);
-        }
-        this.readGiveaways = async(client: NorthClient, con: Connection) => {
-            var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' OR id = '819539026792808448' ORDER BY endAt ASC");
-            NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
-            results.forEach(async result => {
-                var currentDate = Date.now();
-                var millisec = result.endAt - currentDate;
-                setTimeout_(async () => {
-                    endGiveaway(client.pool, client, result);
-                }, millisec);
-            });
-        }
-        this.readPoll = async(client: NorthClient, con: Connection) => {
-            var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM poll WHERE guild = '622311594654695434' OR guild = '819539026792808448' ORDER BY endAt ASC");
-            NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
-            results.forEach(result => {
-                var currentDate = Date.now();
-                var time = result.endAt - currentDate;
-                setTimeout_(async () => {
-                    try {
-                        var channel = <TextChannel>await client.channels.fetch(result.channel);
-                        var msg = await channel.messages.fetch(result.id);
-                        if (msg.deleted) throw new Error("Deleted");
-                    } catch (err) {
-                        await client.pool.query("DELETE FROM poll WHERE id = " + result.id);
-                    }
-                    await endPoll(client, con, result.id, msg, null, result.title, result.author, result.options, result.color);
-                }, time);
-            });
-        }
-        this.preWelcomeImage = async (channel: TextChannel) => {
-            await channel.send(new MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
-        }
-        this.preMessage = async(message: Message) => {
-            const client = <NorthClient>message.client;
-    
-            if (message.mentions.users.size > 10) {
-                await message.delete();
-                const msg = await message.reply("do not spam ping.");
-                await wait(3000);
-                await msg.delete();
-                await message.member.roles.set(["755263714940289125"]);
+                conn.release();
+            }, endAfter);
+        });
+        const [gtimers] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
+        storage.gtimers = gtimers;
+        setInterval(async () => {
+            try {
+                var timerChannel = <TextChannel>await client.channels.fetch(process.env.TIME_LIST_CHANNEL);
+                var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
+            } catch (err) {
+                storage.error("Failed to fetch timer list message");
                 return;
             }
-    
-            if (message.channel.id == "647630951169523762") {
-                if (!message.content.match(/^\w{3,16}$/)) return;
-                const mcName = message.content;
-                NorthClient.storage.log("Received name: " + mcName);
-                const dcUserID = message.author.id;
-                const msg = await message.channel.send("Processing...");
-                const con = await client.pool.getConnection();
-                try {
-                    const mcUuid = await nameToUuid(mcName);
-                    if (!mcUuid) return await msg.edit("Error finding that user!").then(msg => msg.delete({ timeout: 10000 }));
-                    NorthClient.storage.log("Found UUID: " + mcUuid);
-                    var res;
+            try {
+                let now = Date.now();
+                let tmp = [];
+                for (const result of storage.gtimers) {
+                    let mc = await profile(result.mc);
+                    let username = "undefined";
+                    if (mc) username = mc.name;
+                    const str = result.user;
+                    let dc = "0";
                     try {
-                        res = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
-                    } catch (err) {
-                        return await msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
-                    }
-                    const hyDc = res.links?.DISCORD;
-                    if (!hyDc || hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
-                    var [results] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
-                    if (results.length == 0) {
-                        await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
-                        await msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
-                        NorthClient.storage.log("Inserted record for mc-name.");
-                    } else {
-                        await con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
-                        await msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
-                        NorthClient.storage.log("Updated record for mc-name.");
-                    }
-                    const mcLen = res.username.length + 3;
-                    var nickname = message.member.displayName;
-                    const matches = nickname.match(/ \[\w+\]$/);
-                    if (matches) nickname = nickname.replace(matches[0], "");
-                    if (nickname.length + mcLen > 32) await message.member.setNickname(`${nickname.slice(0, 29 - mcLen)}... [${res.username}]`);
-                    else await message.member.setNickname(`${nickname} [${res.username}]`);
-                    const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
-                    if (gInfo.id === "5b25306a0cf212fe4c98d739") await message.member.roles.add("622319008758104064");
-                    await message.member.roles.remove("837271157912633395");
-                    await message.member.roles.remove("837271158738255912");
-                    await message.member.roles.remove("837271163121041458");
-                    await message.member.roles.remove("837271170717057065");
-                    await message.member.roles.remove("837271174827212850");
-                    await message.member.roles.remove("837271174073155594");
-                    await message.member.roles.remove("837271173027856404");
-                    await message.member.roles.remove("837271172319674378");
-                    await message.member.roles.remove("837271171619356692");
-                    if (res.rank === "ADMIN") await message.member.roles.add("837271157912633395");
-                    else if (res.rank === "MOD") await message.member.roles.add("837271158738255912");
-                    else if (res.rank === "HELPER") await message.member.roles.add("837271163121041458");
-                    else if (res.rank === "YOUTUBER") await message.member.roles.add("837271170717057065");
-                    else if (res.rank === "VIP") await message.member.roles.add("837271174827212850");
-                    else if (res.rank === "VIP_PLUS") await message.member.roles.add("837271174073155594");
-                    else if (res.rank === "MVP") await message.member.roles.add("837271173027856404");
-                    else if (res.rank === "MVP_PLUS") await message.member.roles.add("837271172319674378");
-                    else if (res.rank === "MVP_PLUS_PLUS") await message.member.roles.add("837271171619356692");
-                } catch (err) {
-                    NorthClient.storage.error(err);
-                    await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
+                        var user = await client.users.fetch(str);
+                        dc = user.id;
+                    } catch (err) { }
+                    let rank = unescape(result.dc_rank);
+                    let title = `<@${dc}> - ${rank} [${username}]`;
+                    let seconds = Math.round((result.endAt.getTime() - now) / 1000);
+                    tmp.push({ title: title, time: duration(seconds) });
                 }
-                con.release();
-                return;
+                if (tmp.length <= 10) {
+                    timerMsg.reactions.removeAll().catch(storage.error);
+                    let description = "";
+                    let num = 0;
+                    for (const result of tmp) description += `${++num}. ${result.title} : ${result.time}\n`;
+                    const em = new MessageEmbed()
+                        .setColor(color())
+                        .setTitle("Rank Expiration Timers")
+                        .setDescription(description)
+                        .setTimestamp()
+                        .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+                    timerMsg.edit({ content: "", embed: em });
+                } else {
+                    const allEmbeds = [];
+                    for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
+                        let desc = "";
+                        for (let num = 0; num < 10; num++) {
+                            if (!tmp[i + num]) break;
+                            desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
+                        }
+                        const em = new MessageEmbed()
+                            .setColor(color())
+                            .setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
+                            .setDescription(desc)
+                            .setTimestamp()
+                            .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+                        allEmbeds.push(em);
+                    }
+                    const filter = (reaction) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name);
+                    var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
+                    var s = 0;
+                    await msg.react("⏮");
+                    await msg.react("◀");
+                    await msg.react("▶");
+                    await msg.react("⏭");
+                    await msg.react("⏹");
+                    const collector = msg.createReactionCollector(filter, { time: 30000 });
+                    collector.on("collect", function (reaction, user) {
+                        reaction.users.remove(user.id);
+                        switch (reaction.emoji.name) {
+                            case "⏮":
+                                s = 0;
+                                msg.edit(allEmbeds[s]);
+                                break;
+                            case "◀":
+                                s -= 1;
+                                if (s < 0) s = allEmbeds.length - 1;
+                                msg.edit(allEmbeds[s]);
+                                break;
+                            case "▶":
+                                s += 1;
+                                if (s > allEmbeds.length - 1) s = 0;
+                                msg.edit(allEmbeds[s]);
+                                break;
+                            case "⏭":
+                                s = allEmbeds.length - 1;
+                                msg.edit(allEmbeds[s]);
+                                break;
+                            case "⏹":
+                                collector.emit("end");
+                                break;
+                        }
+                    });
+                    collector.on("end", () => msg.reactions.removeAll().catch(storage.error));
+                }
+            } catch (err) {
+                storage.error(err);
             }
+        }, 30000);
+    }
+
+    async readGiveaways(client: NorthClient, con: Connection) {
+        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' OR id = '819539026792808448' ORDER BY endAt ASC");
+        NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
+        results.forEach(async result => {
+            var currentDate = Date.now();
+            var millisec = result.endAt - currentDate;
+            setTimeout_(async () => {
+                endGiveaway(client.pool, client, result);
+            }, millisec);
+        });
+    }
+
+    async readPoll(client: NorthClient, con: Connection) {
+        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM poll WHERE guild = '622311594654695434' OR guild = '819539026792808448' ORDER BY endAt ASC");
+        NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
+        results.forEach(result => {
+            var currentDate = Date.now();
+            var time = result.endAt - currentDate;
+            setTimeout_(async () => {
+                try {
+                    var channel = <TextChannel>await client.channels.fetch(result.channel);
+                    var msg = await channel.messages.fetch(result.id);
+                    if (msg.deleted) throw new Error("Deleted");
+                } catch (err) {
+                    await client.pool.query("DELETE FROM poll WHERE id = " + result.id);
+                }
+                await endPoll(client, con, result.id, msg, null, result.title, result.author, result.options, result.color);
+            }, time);
+        });
+    }
+
+    async preWelcomeImage(channel: TextChannel) {
+        await channel.send(new MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
+    }
+
+    async preMessage(message: Message) {
+        const client = <NorthClient>message.client;
+
+        if (message.mentions.users.size > 10) {
+            await message.delete();
+            const msg = await message.reply("do not spam ping.");
+            await wait(3000);
+            await msg.delete();
+            await message.member.roles.set(["755263714940289125"]);
+            return;
+        }
+
+        if (message.channel.id == "647630951169523762") {
+            if (!message.content.match(/^\w{3,16}$/)) return;
+            const mcName = message.content;
+            NorthClient.storage.log("Received name: " + mcName);
+            const dcUserID = message.author.id;
+            const msg = await message.channel.send("Processing...");
+            const con = await client.pool.getConnection();
+            try {
+                const mcUuid = await nameToUuid(mcName);
+                if (!mcUuid) return await msg.edit("Error finding that user!").then(msg => msg.delete({ timeout: 10000 }));
+                NorthClient.storage.log("Found UUID: " + mcUuid);
+                var res;
+                try {
+                    res = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                } catch (err) {
+                    return await msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
+                }
+                const hyDc = res.links?.DISCORD;
+                if (!hyDc || hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
+                var [results] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
+                if (results.length == 0) {
+                    await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
+                    await msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                    NorthClient.storage.log("Inserted record for mc-name.");
+                } else {
+                    await con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
+                    await msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                    NorthClient.storage.log("Updated record for mc-name.");
+                }
+                const mcLen = res.username.length + 3;
+                var nickname = message.member.displayName;
+                const matches = nickname.match(/ \[\w+\]$/);
+                if (matches) nickname = nickname.replace(matches[0], "");
+                if (nickname.length + mcLen > 32) await message.member.setNickname(`${nickname.slice(0, 29 - mcLen)}... [${res.username}]`);
+                else await message.member.setNickname(`${nickname} [${res.username}]`);
+                const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                if (gInfo.id === "5b25306a0cf212fe4c98d739") await message.member.roles.add("622319008758104064");
+                await message.member.roles.remove("837271157912633395");
+                await message.member.roles.remove("837271158738255912");
+                await message.member.roles.remove("837271163121041458");
+                await message.member.roles.remove("837271170717057065");
+                await message.member.roles.remove("837271174827212850");
+                await message.member.roles.remove("837271174073155594");
+                await message.member.roles.remove("837271173027856404");
+                await message.member.roles.remove("837271172319674378");
+                await message.member.roles.remove("837271171619356692");
+                if (res.rank === "ADMIN") await message.member.roles.add("837271157912633395");
+                else if (res.rank === "MOD") await message.member.roles.add("837271158738255912");
+                else if (res.rank === "HELPER") await message.member.roles.add("837271163121041458");
+                else if (res.rank === "YOUTUBER") await message.member.roles.add("837271170717057065");
+                else if (res.rank === "VIP") await message.member.roles.add("837271174827212850");
+                else if (res.rank === "VIP_PLUS") await message.member.roles.add("837271174073155594");
+                else if (res.rank === "MVP") await message.member.roles.add("837271173027856404");
+                else if (res.rank === "MVP_PLUS") await message.member.roles.add("837271172319674378");
+                else if (res.rank === "MVP_PLUS_PLUS") await message.member.roles.add("837271171619356692");
+            } catch (err) {
+                NorthClient.storage.error(err);
+                await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
+            }
+            con.release();
+            return;
         }
     }
 }
@@ -734,37 +741,38 @@ export class CanaryHandler extends Handler {
 
     constructor(client: NorthClient) {
         super(client);
-        this.readServers = async(client: NorthClient, con: Connection) => {
-            const storage = NorthClient.storage;
-            var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
-            results.forEach(async result => {
-                storage.guilds[result.id] = {};
-                if (result.queue || result.looping || result.repeating) {
-                    var queue = [];
-                    try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
-                    catch (err) { storage.error(`Error parsing queue of ${result.id}`); }
-                    setQueue(result.id, queue, !!result.looping, !!result.repeating, client.pool);
-                }
-                if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
-                else storage.guilds[result.id].prefix = client.prefix;
-                storage.guilds[result.id].token = result.token;
-                storage.guilds[result.id].giveaway = unescape(result.giveaway);
-                storage.guilds[result.id].welcome = {
-                    message: result.welcome,
-                    channel: result.wel_channel,
-                    image: result.wel_img,
-                    autorole: result.autorole
-                };
-                storage.guilds[result.id].leave = {
-                    message: result.leave_msg,
-                    channel: result.leave_channel
-                };
-                storage.guilds[result.id].boost = {
-                    message: result.boost_msg,
-                    channel: result.boost_channel
-                };
-            });
-            storage.log(`[${client.id}] Set ${results.length} configurations`)
-        }
+    }
+
+    async readServers(client: NorthClient, con: Connection) {
+        const storage = NorthClient.storage;
+        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
+        results.forEach(async result => {
+            storage.guilds[result.id] = {};
+            if (result.queue || result.looping || result.repeating) {
+                var queue = [];
+                try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
+                catch (err) { storage.error(`Error parsing queue of ${result.id}`); }
+                setQueue(result.id, queue, !!result.looping, !!result.repeating, client.pool);
+            }
+            if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
+            else storage.guilds[result.id].prefix = client.prefix;
+            storage.guilds[result.id].token = result.token;
+            storage.guilds[result.id].giveaway = unescape(result.giveaway);
+            storage.guilds[result.id].welcome = {
+                message: result.welcome,
+                channel: result.wel_channel,
+                image: result.wel_img,
+                autorole: result.autorole
+            };
+            storage.guilds[result.id].leave = {
+                message: result.leave_msg,
+                channel: result.leave_channel
+            };
+            storage.guilds[result.id].boost = {
+                message: result.boost_msg,
+                channel: result.boost_channel
+            };
+        });
+        storage.log(`[${client.id}] Set ${results.length} configurations`);
     }
 }

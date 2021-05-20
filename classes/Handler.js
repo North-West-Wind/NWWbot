@@ -29,16 +29,48 @@ const slash_1 = __importDefault(require("../helpers/slash"));
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: (attempt) => Math.pow(2, attempt) * 1000 });
 const filter = require("../helpers/filter");
 class Handler {
+    static setup(client) {
+        new Handler(client);
+    }
     constructor(client) {
-        this.preReady = (client) => __awaiter(this, void 0, void 0, function* () {
+        client.once("ready", () => this.ready(client));
+        client.on("guildMemberAdd", member => this.guildMemberAdd(member));
+        client.on("guildMemberRemove", member => this.guildMemberRemove(member));
+        client.on("guildCreate", guild => this.guildCreate(guild));
+        client.on("guildDelete", guild => this.guildDelete(guild));
+        client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(oldState, newState));
+        client.on("guildMemberUpdate", (oldMember, newMember) => this.guildMemberUpdate(oldMember, newMember));
+        client.on("messageReactionAdd", (reaction, user) => this.messageReactionAdd(reaction, user));
+        client.on("messageReactionRemove", (reaction, user) => this.messageReactionRemove(reaction, user));
+        client.on("messageDelete", message => this.messageDelete(message));
+        client.on("message", message => this.message(message));
+    }
+    messageLevel(message) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const storage = NorthClient_1.NorthClient.storage;
+            if (!message || !message.author || !message.author.id || !message.guild || message.author.bot)
+                return;
+            const exp = Math.round(function_1.getRandomNumber(5, 15) * (1 + message.content.length / 100));
+            const sqlDate = function_1.jsDate2Mysql(new Date());
+            storage.queries.push(new LevelData_1.LevelData(message.author.id, message.guild.id, exp, sqlDate));
+        });
+    }
+    preReady(client) {
+        return __awaiter(this, void 0, void 0, function* () {
             yield slash_1.default(client);
             client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => NorthClient_1.NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
         });
-        this.preRead = (_client, _con) => __awaiter(this, void 0, void 0, function* () { });
-        this.setPresence = (client) => {
+    }
+    preRead(_client, _con) {
+        return __awaiter(this, void 0, void 0, function* () { });
+    }
+    setPresence(client) {
+        return __awaiter(this, void 0, void 0, function* () {
             client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
-        };
-        this.readCurrency = (_client, con) => __awaiter(this, void 0, void 0, function* () {
+        });
+    }
+    readCurrency(_client, con) {
+        return __awaiter(this, void 0, void 0, function* () {
             const [r] = yield con.query("SELECT * FROM currency");
             for (const result of r) {
                 try {
@@ -52,7 +84,9 @@ class Handler {
                 }
             }
         });
-        this.readServers = (client, con) => __awaiter(this, void 0, void 0, function* () {
+    }
+    readServers(client, con) {
+        return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
             var [results] = yield con.query("SELECT * FROM servers");
             results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
@@ -98,14 +132,18 @@ class Handler {
             }));
             storage.log(`[${client.id}] Set ${results.length} configurations`);
         });
-        this.readRoleMsg = (client, con) => __awaiter(this, void 0, void 0, function* () {
+    }
+    readRoleMsg(client, con) {
+        return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
             const [res] = yield con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY expiration");
             storage.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
             storage.rm = res;
             res.forEach((result) => __awaiter(this, void 0, void 0, function* () { return role_message_1.expire({ pool: client.pool, client }, result.expiration - Date.now(), result.id); }));
         });
-        this.readGiveaways = (client, con) => __awaiter(this, void 0, void 0, function* () {
+    }
+    readGiveaways(client, con) {
+        return __awaiter(this, void 0, void 0, function* () {
             var [results] = yield con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY endAt ASC");
             NorthClient_1.NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
             results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
@@ -116,7 +154,9 @@ class Handler {
                 }), millisec);
             }));
         });
-        this.readPoll = (client, con) => __awaiter(this, void 0, void 0, function* () {
+    }
+    readPoll(client, con) {
+        return __awaiter(this, void 0, void 0, function* () {
             var [results] = yield con.query("SELECT * FROM poll WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY endAt ASC");
             NorthClient_1.NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
             results.forEach(result => {
@@ -137,36 +177,11 @@ class Handler {
                 }), time);
             });
         });
-        this.readNoLog = (_client, con) => __awaiter(this, void 0, void 0, function* () {
+    }
+    readNoLog(_client, con) {
+        return __awaiter(this, void 0, void 0, function* () {
             var [results] = yield con.query("SELECT * FROM nolog");
             NorthClient_1.NorthClient.storage.noLog = results.map(x => x.id);
-        });
-        this.preWelcomeImage = (_channel) => __awaiter(this, void 0, void 0, function* () { });
-        this.preMessage = (_message) => __awaiter(this, void 0, void 0, function* () {
-        });
-        client.once("ready", () => this.ready(client));
-        client.on("guildMemberAdd", this.guildMemberAdd);
-        client.on("guildMemberRemove", this.guildMemberRemove);
-        client.on("guildCreate", this.guildCreate);
-        client.on("guildDelete", this.guildDelete);
-        client.on("voiceStateUpdate", this.voiceStateUpdate);
-        client.on("guildMemberUpdate", this.guildMemberUpdate);
-        client.on("messageReactionAdd", this.messageReactionAdd);
-        client.on("messageReactionRemove", this.messageReactionRemove);
-        client.on("messageDelete", this.messageDelete);
-        client.on("message", this.message);
-    }
-    static setup(client) {
-        new Handler(client);
-    }
-    messageLevel(message) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const storage = NorthClient_1.NorthClient.storage;
-            if (!message || !message.author || !message.author.id || !message.guild || message.author.bot)
-                return;
-            const exp = Math.round(function_1.getRandomNumber(5, 15) * (1 + message.content.length / 100));
-            const sqlDate = function_1.jsDate2Mysql(new Date());
-            storage.queries.push(new LevelData_1.LevelData(message.author.id, message.guild.id, exp, sqlDate));
         });
     }
     ready(client) {
@@ -193,6 +208,9 @@ class Handler {
             ;
             con.release();
         });
+    }
+    preWelcomeImage(_channel) {
+        return __awaiter(this, void 0, void 0, function* () { });
     }
     guildMemberAdd(member) {
         var _a;
@@ -541,6 +559,10 @@ class Handler {
             yield client.pool.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`);
         });
     }
+    preMessage(_message) {
+        return __awaiter(this, void 0, void 0, function* () {
+        });
+    }
     message(message) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
@@ -583,11 +605,17 @@ class AliceHandler extends Handler {
     }
     constructor(client) {
         super(client);
-        this.readServers = (_client, _con) => __awaiter(this, void 0, void 0, function* () { });
-        this.preReady = (client) => __awaiter(this, void 0, void 0, function* () {
+    }
+    readServers(_client, _con) {
+        return __awaiter(this, void 0, void 0, function* () { });
+    }
+    preReady(client) {
+        return __awaiter(this, void 0, void 0, function* () {
             client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         });
-        this.preRead = (client, con) => __awaiter(this, void 0, void 0, function* () {
+    }
+    preRead(client, con) {
+        return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
             client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => storage.guilds[g.id].invites = guildInvites).catch(() => { }));
             const [res] = yield con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
@@ -730,7 +758,9 @@ class AliceHandler extends Handler {
                 }
             }), 30000);
         });
-        this.readGiveaways = (client, con) => __awaiter(this, void 0, void 0, function* () {
+    }
+    readGiveaways(client, con) {
+        return __awaiter(this, void 0, void 0, function* () {
             var [results] = yield con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' OR id = '819539026792808448' ORDER BY endAt ASC");
             NorthClient_1.NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
             results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
@@ -741,7 +771,9 @@ class AliceHandler extends Handler {
                 }), millisec);
             }));
         });
-        this.readPoll = (client, con) => __awaiter(this, void 0, void 0, function* () {
+    }
+    readPoll(client, con) {
+        return __awaiter(this, void 0, void 0, function* () {
             var [results] = yield con.query("SELECT * FROM poll WHERE guild = '622311594654695434' OR guild = '819539026792808448' ORDER BY endAt ASC");
             NorthClient_1.NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
             results.forEach(result => {
@@ -761,11 +793,15 @@ class AliceHandler extends Handler {
                 }), time);
             });
         });
-        this.preWelcomeImage = (channel) => __awaiter(this, void 0, void 0, function* () {
+    }
+    preWelcomeImage(channel) {
+        return __awaiter(this, void 0, void 0, function* () {
             yield channel.send(new discord_js_1.MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
         });
-        this.preMessage = (message) => __awaiter(this, void 0, void 0, function* () {
-            var _a;
+    }
+    preMessage(message) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
             const client = message.client;
             if (message.mentions.users.size > 10) {
                 yield message.delete();
@@ -866,7 +902,9 @@ class CanaryHandler extends Handler {
     }
     constructor(client) {
         super(client);
-        this.readServers = (client, con) => __awaiter(this, void 0, void 0, function* () {
+    }
+    readServers(client, con) {
+        return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
             var [results] = yield con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
             results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
