@@ -6,6 +6,11 @@ const { InteractionResponse } = require("../classes/Slash");
 async function setup(client) {
 
     const exist = await client.api.applications(client.user.id).commands.get();
+    for (const ex of exist) {
+        if (NorthClient.storage.commands.array().map(cmd => cmd.name).includes(exist.name)) {
+            // Delete command
+        }
+    }
     for (const [name, command] of NorthClient.storage.commands) try {
         if (command.slashInit) {
             const registration = JSON.parse(JSON.stringify(await command.register()));
