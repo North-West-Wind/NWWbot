@@ -12,7 +12,8 @@ const type = [
   "SoundCloud",
   "Google Drive",
   "Musescore",
-  "PornHub"
+  "PornHub",
+  "MSCZ/MSCX"
 ];
 
 module.exports = {

@@ -8,9 +8,8 @@ const Discord = require("discord.js");
 module.exports = {
     name: "add",
     description: "Add soundtracks to the queue without playing it.",
-    usage: "<link | keywords>",
+    usage: "[link | keywords]",
     category: 8,
-    args: 1,
     slashInit: true,
     register: () => ApplicationCommand.createBasic(module.exports).setOptions([
         new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "link", "The link of the soundtrack. (Use /search to search)").setRequired(true)

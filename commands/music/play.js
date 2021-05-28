@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, bufferToStream, moveArray, color, validGDDLURL } = require("../../function.js");
+const { validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, isGoodMusicVideoContent, decodeHtmlEntity, validYTPlaylistURL, validSCURL, validMSURL, validPHURL, isEquivalent, ID, requestStream, moveArray, color, validGDDLURL } = require("../../function.js");
 const { getMP3 } = require("../api/musescore.js");
 const muse = require("musescore-metadata");
 const { execute: music } = require("./migrate.js");
@@ -125,11 +125,19 @@ async function play(guild, song, skipped = 0, seek = 0) {
       case 7:
         const h = await fetch(song.url);
         if (!h.ok) throw new Error("Received HTTP Status Code: " + h.status);
+        console.log("Fetched Musescore file");
         await WebMscore.ready;
-        const i = await WebMscore.load(song.url.split(".").slice(-1)[0], new Uint8Array(await h.arrayBuffer()));
+        console.log("WebMscore ready");
+        const i = await WebMscore.load(song.url.split(".").slice(-1)[0], (await h.buffer()));
+        console.log("Loaded Musescore file");
         const sf3 = await fetch("https://www.dropbox.com/s/2pphk3a9llfiree/MuseScore_General.sf3?dl=1").then(res => res.arrayBuffer());
+        console.log("Fetched Musescore SoundFont");
         await i.setSoundFont(new Uint8Array(sf3));
+        console.log("Set SoundFont");
         const j = bufferToStream(Buffer.from((await i.saveAudio("wav")).buffer));
+        console.log("Exported to WAV");
+        i.destroy();
+        console.log("Destroyed WebMscore");
         dispatcher = serverQueue.connection.play(new StreamConcat([j, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
       default:
@@ -201,7 +209,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
     skipped = oldSkipped;
     await skip();
   });
-  dispatcher.setVolume(song && song.volume ? serverQueue.volume * song.volume : serverQueue.volume);
+  dispatcher.setVolumeLogarithmic(song && song.volume ? serverQueue.volume * song.volume : serverQueue.volume);
 }
 
 module.exports = {
