@@ -362,17 +362,18 @@ export class Handler {
         const client = <NorthClient>guild.client;
         const storage = NorthClient.storage;
         const exit = storage.guilds[guild.id]?.exit;
-        if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel)) return await stop(guild);
+        if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice?.channel)) return await stop(guild);
         if (!guild.me.voice?.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
         if (!storage.guilds[guild.id]) {
             await client.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '${escape("🎉")}')`);
             storage.guilds[guild.id] = {};
             storage.log("Inserted record for " + guild.name);
         }
+        storage.log(guild.me.voice.channel.members.size);
         if (guild.me.voice.channel.members.size <= 1) {
             if (exit) return;
             storage.guilds[guild.id].exit = true;
-            setTimeout(async () => exit ? stop(guild) : 0, 30000);
+            setTimeout(() => storage.guilds[guild.id]?.exit ? stop(guild) : 0, 30000);
         } else storage.guilds[guild.id].exit = false;
     }
 

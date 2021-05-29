@@ -1,6 +1,6 @@
 {
   "name": "nwwbot",
-  "version": "4.0.5",
+  "version": "4.0.6",
   "description": "NorthWestWind's bot!",
   "main": "main.js",
   "scripts": {

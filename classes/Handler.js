@@ -441,26 +441,27 @@ class Handler {
         });
     }
     voiceStateUpdate(oldState, newState) {
-        var _a, _b;
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const guild = oldState.guild || newState.guild;
             const client = guild.client;
             const storage = NorthClient_1.NorthClient.storage;
             const exit = (_a = storage.guilds[guild.id]) === null || _a === void 0 ? void 0 : _a.exit;
-            if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice || !guild.me.voice.channel))
+            if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!((_b = guild.me.voice) === null || _b === void 0 ? void 0 : _b.channel)))
                 return yield music_1.stop(guild);
-            if (!((_b = guild.me.voice) === null || _b === void 0 ? void 0 : _b.channel) || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID))
+            if (!((_c = guild.me.voice) === null || _c === void 0 ? void 0 : _c.channel) || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID))
                 return;
             if (!storage.guilds[guild.id]) {
                 yield client.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '${escape("🎉")}')`);
                 storage.guilds[guild.id] = {};
                 storage.log("Inserted record for " + guild.name);
             }
+            storage.log(guild.me.voice.channel.members.size);
             if (guild.me.voice.channel.members.size <= 1) {
                 if (exit)
                     return;
                 storage.guilds[guild.id].exit = true;
-                setTimeout(() => __awaiter(this, void 0, void 0, function* () { return exit ? music_1.stop(guild) : 0; }), 30000);
+                setTimeout(() => { var _a; return ((_a = storage.guilds[guild.id]) === null || _a === void 0 ? void 0 : _a.exit) ? music_1.stop(guild) : 0; }, 30000);
             }
             else
                 storage.guilds[guild.id].exit = false;

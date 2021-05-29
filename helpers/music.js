@@ -12,7 +12,7 @@ module.exports = {
         else queue.set(id, serverQueue);
         if (!pool) return;
         try {
-            await pool.query(`UPDATE servers SET looping = ${serverQueue && serverQueue.looping ? 1 : "NULL"}, repeating = ${serverQueue && serverQueue.repeating ? 1 : "NULL"}, random = ${serverQueue && serverQueue.random ? 1 : "NULL"}, queue = ${!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs) || serverQueue.songs.length < 1 ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${id}'`);
+            await pool.query(`UPDATE servers SET looping = ${serverQueue?.looping ? 1 : "NULL"}, repeating = ${serverQueue?.repeating ? 1 : "NULL"}, random = ${serverQueue?.random ? 1 : "NULL"}, queue = ${!serverQueue?.songs?.length || !Array.isArray(serverQueue.songs) ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${id}'`);
         } catch (err) {
             NorthClient.storage.error(err);
         }
@@ -20,14 +20,12 @@ module.exports = {
     stop(guild) {
         const serverQueue = queue.get(guild.id);
         if (!serverQueue) return;
-        if (serverQueue.connection && serverQueue.connection.dispatcher)
-            serverQueue.connection.dispatcher.destroy();
+        serverQueue.connection?.dispatcher?.destroy();
         serverQueue.playing = false;
         serverQueue.connection = null;
         serverQueue.voiceChannel = null;
         serverQueue.textChannel = null;
-        if (guild.me.voice.channel)
-            guild.me.voice.channel.leave();
+        guild.me.voice?.channel?.leave();
     },
     setQueue(guild, songs, loopStatus, repeatStatus, pool) {
         const queueContruct = {
