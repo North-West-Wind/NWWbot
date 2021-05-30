@@ -67,9 +67,11 @@ module.exports = {
     try {
       if (args[0] === "new" || !config?.token) await message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
       if (!config?.token) {
-        if (!config) NorthClient.storage.guilds[guild.id] = {};
+        if (!config) {
+          NorthClient.storage.guilds[guild.id] = {};
+          await message.pool.query(`INSERT INTO servers (id, autorole, giveaway, token) VALUES ('${guild.id}', '[]', '🎉', '${generated}')`);
+        }
         NorthClient.storage.guilds[guild.id].token = generated;
-        await message.pool.query(`INSERT INTO servers (id, autorole, giveaway, token) VALUES ('${guild.id}', '[]', '🎉', '${generated}')`);
       } else if (config.token && args[0] !== "new") await message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
       else {
         NorthClient.storage.guilds[guild.id].token = generated;
@@ -101,11 +103,8 @@ module.exports = {
     }
     const panelEmbed = new Discord.MessageEmbed()
       .setColor(color())
-      .setTitle(message.guild.name + "'s Configuration Panel")
-      .setDescription("Please choose an option to configure:\n\n1️⃣ Welcome Message\n2️⃣ Leave Message\n3️⃣ Giveaway Emoji\n⏹ Quit")
-      .setTimestamp()
-      .setFooter("Try again when you have the correct one for your server.", message.client.user.displayAvatarURL());
-    return await mesg.edit(login);
+      .setTitle(message.guild.name + "'s Configuration Panel");
+    await start(mesg);
     function end(msg) {
       panelEmbed.setDescription("Panel shutted down.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       msg.edit(panelEmbed);
