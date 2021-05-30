@@ -69,5 +69,5 @@
     "forceConsistentCasingInFileNames": true        /* Disallow inconsistently-cased references to the same file. */
   },
   "include": ["**/*"],
-  "exclude": ["node_modules", "**/*.js"]
+  "exclude": ["node_modules", "**/*.js", "**/hypixel.ts"]
 }
