@@ -1,6 +1,7 @@
 import { Collection, Guild, GuildMember, MessageAttachment, MessageEmbed, Snowflake, TextChannel, User } from "discord.js";
 import { Pool } from "mysql2/promise";
 import { Command } from "./Command";
+import { ChannelObject, GuildMemberObject, RoleObject, UserObject } from "./Discord";
 import { NorthClient } from "./NorthClient";
 
 export class ApplicationCommand {
@@ -133,17 +134,17 @@ export class InteractionResponse {
     static reply(id: Snowflake, message: string): InteractionResponse {
         return this.sendMessage(`<@${id}>, ${message}`);
     }
-    static async editMessage(client: any, interaction: any, data: any): Promise<Snowflake> {
+    static async editMessage(client: any, interaction: Interaction, data: any): Promise<Snowflake> {
         const { id } = await client.api.webhooks(client.user.id, interaction.token).messages["@original"].patch({ data: data });
         return id;
     }
-    static async createResponse(client: any, interaction: any, response: InteractionResponse): Promise<void> {
+    static async createResponse(client: any, interaction: Interaction, response: InteractionResponse): Promise<void> {
         await client.api.interactions(interaction.id, interaction.token).callback.post({ data: JSON.parse(JSON.stringify(response)) });
     }
-    static async deleteMessage(client: any, interaction: any): Promise<void> {
+    static async deleteMessage(client: any, interaction: Interaction): Promise<void> {
         await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
     }
-    static async createFakeMessage(client: NorthClient, interaction: any): Promise<FakeMessage> {
+    static async createFakeMessage(client: NorthClient, interaction: Interaction): Promise<FakeMessage> {
         var message = new FakeMessage(client);
         if (interaction.guild_id) {
             message.guild = await client.guilds.fetch(interaction.guild_id);
@@ -159,7 +160,7 @@ export class InteractionResponse {
     }
 }
 
-class FakeMessage {
+export class FakeMessage {
     prefix: string = "/";
     client: NorthClient;
     guild?: Guild;
@@ -211,4 +212,40 @@ export enum InteractionResponseType {
     ChannelMessage = 3,
     ChannelMessageWithSource = 4,
     DeferredChannelMessageWithSource = 5
+}
+
+export interface Interaction {
+    id: Snowflake;
+    application_id: Snowflake;
+    type: InteractionType;
+    data?: ApplicationCommandInteractionData;
+    guild_id?: Snowflake;
+    channel_id?: Snowflake;
+    member?: GuildMemberObject;
+    user?: UserObject;
+    token: string;
+    version: number;
+    message?: any;
+}
+
+export enum InteractionType {
+    Ping = 1,
+    ApplicationCommand = 2,
+    MessageComponent = 3
+}
+
+export interface ApplicationCommandInteractionData {
+    id: Snowflake;
+    name: string;
+    resolved?: ApplicationCommandInteractionDataResolved;
+    options?: ApplicationCommandOption;
+    custom_id: string;
+    component_type: number;
+}
+
+export interface ApplicationCommandInteractionDataResolved {
+    users?: Map<Snowflake, UserObject>;
+    members?: Map<Snowflake, GuildMemberObject>;
+    roles?: Map<Snowflake, RoleObject>;
+    channels?: Map<Snowflake, ChannelObject>;
 }

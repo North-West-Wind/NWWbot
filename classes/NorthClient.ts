@@ -1,4 +1,4 @@
-import { Client, ClientOptions, Snowflake } from "discord.js";
+import { Client, ClientOptions, Message, Snowflake } from "discord.js";
 import { Pool } from "mysql2/promise";
 import { ClientStorage } from "./ClientStorage";
 
