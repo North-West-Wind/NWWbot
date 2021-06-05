@@ -46,7 +46,7 @@ module.exports = {
     return await this.execute(message, args);
   },
   async execute(message, args) {
-    var c = color();
+    const c = color();
     if (args.length > 0) {
       var mentions = new Discord.Collection();
       for (const arg of args) {
@@ -433,9 +433,9 @@ module.exports = {
               let data = await NorthClient.storage.uno.get(nano);
               var scores = 0;
               for (var p of Array.from(data.players.values())) {
-                for (var c of p.card) {
-                  if (c.number < 10) scores += c.number;
-                  else if (c.number < 13) scores += 20;
+                for (const card of p.card) {
+                  if (card.number < 10) scores += card.number;
+                  else if (card.number < 13) scores += 20;
                   else scores += 50;
                 }
               }

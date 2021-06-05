@@ -456,7 +456,6 @@ class Handler {
                 storage.guilds[guild.id] = {};
                 storage.log("Inserted record for " + guild.name);
             }
-            storage.log(guild.me.voice.channel.members.size);
             if (guild.me.voice.channel.members.size <= 1) {
                 if (exit)
                     return;
