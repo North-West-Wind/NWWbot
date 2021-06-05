@@ -3,6 +3,7 @@ import { Pool } from "mysql2/promise";
 import { Command } from "./Command";
 import { ChannelObject, GuildMemberObject, RoleObject, UserObject } from "./Discord";
 import { NorthClient } from "./NorthClient";
+import { Interaction } from "slashcord/dist/utilities/interaction";
 
 export class ApplicationCommand {
     name: string;
@@ -144,16 +145,17 @@ export class InteractionResponse {
     static async deleteMessage(client: any, interaction: Interaction): Promise<void> {
         await client.api.webhooks(client.user.id, interaction.token).messages["@original"].delete();
     }
-    static async createFakeMessage(client: NorthClient, interaction: Interaction): Promise<FakeMessage> {
+    static async createFakeMessage(interaction: Interaction): Promise<FakeMessage> {
+        const client: NorthClient = <NorthClient> interaction.client;
         var message = new FakeMessage(client);
-        if (interaction.guild_id) {
-            message.guild = await client.guilds.fetch(interaction.guild_id);
-            message.channel = <TextChannel>(await client.channels.fetch(interaction.channel_id));
-            message.member = await message.guild.members.fetch(interaction.member.user.id);
-            message.author = message.member.user;
+        if (interaction.guild) {
+            message.guild = interaction.guild;
+            message.channel = interaction.channel;
+            message.member = interaction.member;
+            message.author = interaction.member.user;
         } else {
-            message.author = await client.users.fetch(interaction.user.id);
-            message.channel = message.author;
+            message.channel = interaction.channel;
+            message.author = <User> <any> interaction.channel;
         }
         message.reply = async(str: string) => await message.channel.send(`<@${message.author.id}>, ${str}`);
         return message;
@@ -174,6 +176,22 @@ export class FakeMessage {
     constructor(client: NorthClient) {
         this.client = client;
         this.pool = client.pool;
+    }
+
+    static async createFakeMessage(interaction: Interaction): Promise<FakeMessage> {
+        const client: NorthClient = <NorthClient> interaction.client;
+        var message = new FakeMessage(client);
+        if (interaction.guild) {
+            message.guild = interaction.guild;
+            message.channel = interaction.channel;
+            message.member = interaction.member;
+            message.author = interaction.member.user;
+        } else {
+            message.channel = interaction.channel;
+            message.author = <User> <any> interaction.channel;
+        }
+        message.reply = async(str: string) => await message.channel.send(`<@${message.author.id}>, ${str}`);
+        return message;
     }
 }
 
@@ -212,20 +230,6 @@ export enum InteractionResponseType {
     ChannelMessage = 3,
     ChannelMessageWithSource = 4,
     DeferredChannelMessageWithSource = 5
-}
-
-export interface Interaction {
-    id: Snowflake;
-    application_id: Snowflake;
-    type: InteractionType;
-    data?: ApplicationCommandInteractionData;
-    guild_id?: Snowflake;
-    channel_id?: Snowflake;
-    member?: GuildMemberObject;
-    user?: UserObject;
-    token: string;
-    version: number;
-    message?: any;
 }
 
 export enum InteractionType {

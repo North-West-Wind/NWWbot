@@ -56,6 +56,7 @@
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "sanitize-filename": "^1.6.3",
+    "slashcord": "^1.4.6",
     "smm-api": "^2.1.2",
     "solenolyrics": "^5.0.0",
     "soundcloud-downloader": "^1.0.0",

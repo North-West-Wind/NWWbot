@@ -1,6 +1,7 @@
 import { NorthClient } from "./NorthClient";
 import { NorthMessage } from "./NorthMessage";
-import { ApplicationCommand, FakeMessage, Interaction, InteractionResponse } from "./Slash";
+import { Interaction } from "slashcord/dist/utilities/interaction";
+import { CommandHandler } from "slashcord/dist/handlers/CommandHandler";
 
 export interface Command {
     name: string;
@@ -14,13 +15,13 @@ export interface Command {
     permission?: number;
     slashInit?: boolean;
 
-    execute(message: NorthMessage | FakeMessage, ...args: string[]): Promise<any | void>;
+    run(message: NorthMessage, args: string[]): Promise<any | void>;
 }
 
 export interface SlashCommand extends Command {
-    slashInit: boolean;
+    options?: any[];
+    testOnly?: boolean;
+    devOnly?: boolean;
 
-    register(): ApplicationCommand;
-    slash(client: NorthClient, interaction: Interaction, args: any[]): Promise<InteractionResponse>;
-    postSlash?(client: NorthClient, interaction: Interaction, args: any[]): Promise<any | void>;
+    execute(args: { client: NorthClient, interaction: Interaction, args: any, handler: CommandHandler }): Promise<void>;
 }

@@ -468,7 +468,7 @@ export class Handler {
         msg.pool = client.pool;
         try {
             const catFilter = filter[require("../commands/information/help").sCategories.map(x => x.toLowerCase())[(command.category)]];
-            if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.execute(msg, args);
+            if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
         } catch (error) {
             storage.error(command.name + ": " + error);
             await msg.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
