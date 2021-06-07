@@ -688,12 +688,11 @@ export class AliceHandler extends Handler {
                     await msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
                     NorthClient.storage.log("Updated record for mc-name.");
                 }
-                const mcLen = res.username.length + 3;
-                var nickname = message.member.displayName;
-                const matches = nickname.match(/ \[\w+\]$/);
-                if (matches) nickname = nickname.replace(matches[0], "");
-                if (nickname.length + mcLen > 32) await message.member.setNickname(`${nickname.slice(0, 29 - mcLen)}... [${res.username}]`);
-                else await message.member.setNickname(`${nickname} [${res.username}]`);
+                const mcLen = res.username.length + 1;
+                const bw = res.stats.BedWars;
+                const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;
+                if (firstHalf.length + mcLen > 32) await message.member.setNickname(`${firstHalf} ${res.username.slice(0, 28 - firstHalf.length)}...`);
+                else await message.member.setNickname(`${firstHalf} ${res.username}`);
                 const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
                 if (gInfo.id === "5b25306a0cf212fe4c98d739") await message.member.roles.add("622319008758104064");
                 await message.member.roles.remove("837271157912633395");
