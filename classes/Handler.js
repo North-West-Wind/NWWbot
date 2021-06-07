@@ -841,35 +841,92 @@ class AliceHandler extends Handler {
                     else
                         yield message.member.setNickname(`${firstHalf} ${res.username}`);
                     const gInfo = yield fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                    const roles = message.member.roles;
                     if (gInfo.id === "5b25306a0cf212fe4c98d739")
-                        yield message.member.roles.add("622319008758104064");
-                    yield message.member.roles.remove("837271157912633395");
-                    yield message.member.roles.remove("837271158738255912");
-                    yield message.member.roles.remove("837271163121041458");
-                    yield message.member.roles.remove("837271170717057065");
-                    yield message.member.roles.remove("837271174827212850");
-                    yield message.member.roles.remove("837271174073155594");
-                    yield message.member.roles.remove("837271173027856404");
-                    yield message.member.roles.remove("837271172319674378");
-                    yield message.member.roles.remove("837271171619356692");
+                        yield roles.add("622319008758104064");
+                    yield roles.add("837345908697989171");
+                    yield roles.remove("837345919010603048");
+                    if (bw.level < 100)
+                        yield roles.add("851471525802803220");
+                    else if (bw.level < 200)
+                        yield roles.add("851469005168181320");
+                    else if (bw.level < 300)
+                        yield roles.add("851469138647842896");
+                    else if (bw.level < 400)
+                        yield roles.add("851469218310389770");
+                    else if (bw.level < 500)
+                        yield roles.add("851469264664789022");
+                    else if (bw.level < 600)
+                        yield roles.add("851469323444944907");
+                    else if (bw.level < 700)
+                        yield roles.add("851469358076788766");
+                    else if (bw.level < 800)
+                        yield roles.add("851469389806829596");
+                    else if (bw.level < 900)
+                        yield roles.add("851469422971584573");
+                    else if (bw.level < 1000)
+                        yield roles.add("851469455791489034");
+                    else if (bw.level < 1100)
+                        yield roles.add("851469501115793408");
+                    else if (bw.level < 1200)
+                        yield roles.add("851469537030307870");
+                    else if (bw.level < 1300)
+                        yield roles.add("851469565287858197");
+                    else if (bw.level < 1400)
+                        yield roles.add("851469604840013905");
+                    else if (bw.level < 1500)
+                        yield roles.add("851469652940161084");
+                    else if (bw.level < 1600)
+                        yield roles.add("851469683764887572");
+                    else if (bw.level < 1700)
+                        yield roles.add("851469718955229214");
+                    else if (bw.level < 1800)
+                        yield roles.add("851469754677985280");
+                    else if (bw.level < 1900)
+                        yield roles.add("851469812050690068");
+                    else if (bw.level < 2000)
+                        yield roles.add("851469858675097660");
+                    else if (bw.level < 2100)
+                        yield roles.add("851469898547068938");
+                    else if (bw.level < 2200)
+                        yield roles.add("851469933606862848");
+                    else if (bw.level < 2300)
+                        yield roles.add("851469969685479424");
+                    else if (bw.level < 2400)
+                        yield roles.add("851470006520905748");
+                    else if (bw.level < 2500)
+                        yield roles.add("851470041031245854");
+                    else if (bw.level < 2600)
+                        yield roles.add("851470070022406204");
+                    else if (bw.level < 2700)
+                        yield roles.add("851470099558039622");
+                    else if (bw.level < 2800)
+                        yield roles.add("851470140410822677");
+                    else if (bw.level < 2900)
+                        yield roles.add("851470173503881218");
+                    else if (bw.level < 3000)
+                        yield roles.add("851470230370910248");
+                    else
+                        yield roles.add("851471153188569098");
+                    yield roles.remove(["837271157912633395", "837271158738255912", "837271163121041458", "837271170717057065", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"]);
                     if (res.rank === "ADMIN")
-                        yield message.member.roles.add("837271157912633395");
+                        yield roles.add("837271157912633395");
                     else if (res.rank === "MOD")
-                        yield message.member.roles.add("837271158738255912");
+                        yield roles.add("837271158738255912");
                     else if (res.rank === "HELPER")
-                        yield message.member.roles.add("837271163121041458");
+                        yield roles.add("837271163121041458");
                     else if (res.rank === "YOUTUBER")
-                        yield message.member.roles.add("837271170717057065");
+                        yield roles.add("837271170717057065");
                     else if (res.rank === "VIP")
-                        yield message.member.roles.add("837271174827212850");
+                        yield roles.add("837271174827212850");
                     else if (res.rank === "VIP_PLUS")
-                        yield message.member.roles.add("837271174073155594");
+                        yield roles.add("837271174073155594");
                     else if (res.rank === "MVP")
-                        yield message.member.roles.add("837271173027856404");
+                        yield roles.add("837271173027856404");
                     else if (res.rank === "MVP_PLUS")
-                        yield message.member.roles.add("837271172319674378");
+                        yield roles.add("837271172319674378");
                     else if (res.rank === "MVP_PLUS_PLUS")
-                        yield message.member.roles.add("837271171619356692");
+                        yield roles.add("837271171619356692");
                 }
                 catch (err) {
                     NorthClient_1.NorthClient.storage.error(err);
