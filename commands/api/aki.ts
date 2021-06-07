@@ -2,7 +2,7 @@ import { MessageEmbed, MessageReaction, TextChannel } from "discord.js";
 import { Aki } from "aki-api";
 import { SlashCommand } from "../../classes/Command";
 import { NorthClient } from "../../classes/NorthClient";
-import { FakeMessage } from "../../classes/Slash";
+import { ApplicationCommandOption, ApplicationCommandOptionChoice, ApplicationCommandOptionType, FakeMessage } from "../../classes/Slash";
 import { color, genPermMsg } from "../../function.js";
 import { NorthMessage } from "../../classes/NorthMessage";
 import { Interaction } from "slashcord/dist/utilities/interaction";
@@ -51,15 +51,17 @@ class AkiCommand implements SlashCommand {
     'tr',
     'id'
   ];
+  options: any[];
 
-  options: [
-    {
-      name: "region",
-      description: "The region/language to play in.",
-      type: 3,
-      // TODO: choices: 
-    }
-  ]
+  constructor() {
+    this.options = [
+      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "region", "The region/language to play in.").setChoices(
+        this.regions.map(region => new ApplicationCommandOptionChoice(region, region)).concat([
+          new ApplicationCommandOptionChoice("region", "Displays all regions available.")
+        ])
+      )
+    ].map(x => JSON.parse(JSON.stringify(x)));
+  }
 
   async execute(obj: { interaction: Interaction, args: any[] }) {
     await obj.interaction.reply("Initializing Akinator...");

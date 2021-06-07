@@ -23,5 +23,5 @@ export interface SlashCommand extends Command {
     testOnly?: boolean;
     devOnly?: boolean;
 
-    execute(args: { client: NorthClient, interaction: Interaction, args: any, handler: CommandHandler }): Promise<void>;
+    execute(args: { client: NorthClient, interaction: Interaction, args: any, handler: CommandHandler }): Promise<any | void>;
 }

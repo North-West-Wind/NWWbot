@@ -1,26 +1,19 @@
-const rp = require("request-promise-native");
-const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
-const cheerio = require("cheerio");
-const Discord = require("discord.js");
-const ytdl = require("ytdl-core");
-const sanitize = require("sanitize-filename");
-const muse = require("musescore-metadata");
-const { NorthClient } = require("../../classes/NorthClient.js");
-const requestYTDLStream = (url, opts) => {
-    const timeoutMS = opts.timeout && !isNaN(parseInt(opts.timeout)) ? parseInt(opts.timeout) : 30000;
-    const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${timeoutMS}ms`)), timeoutMS));
-    const getStream = new Promise((resolve, reject) => {
-        const stream = ytdl(url, opts);
-        stream.on("finish", () => resolve(stream)).on("error", err => reject(err));
-    });
-    return Promise.race([timeout, getStream]);
-};
-const { validMSURL, findValueByPrefix, streamToString, requestStream, color } = require("../../function.js");
-const PDFDocument = require('pdfkit');
-const SVGtoPDF = require('svg-to-pdfkit');
-const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
-const PNGtoPDF = (doc, url) => new Promise(async (resolve, reject) => {
-    const res = await fetch(url).then(res => res.body);
+import cheerio from "cheerio/lib/cheerio";
+import { Interaction } from "slashcord/dist/utilities/interaction";
+import { SlashCommand } from "../../classes/Command";
+import { NorthClient } from "../../classes/NorthClient";
+import { NorthMessage } from "../../classes/NorthMessage";
+import { ApplicationCommandOption, ApplicationCommandOptionType } from "../../classes/Slash";
+import { validMSURL, requestStream, findValueByPrefix, streamToString, color, nameHistory } from "../../function";
+import muse from "musescore-metadata";
+import * as Discord from "discord.js";
+import ytdl from "ytdl-core";
+import sanitize from "sanitize-filename";
+import PDFDocument from "pdfkit";
+import SVGtoPDF from "svg-to-pdfkit";
+import rp from "request-promise-native";
+const PNGtoPDF = (doc, url): Promise<void> => new Promise(async (resolve, reject) => {
+    const res = <any> await fetch(url).then(res => res.body);
     const chunks = [];
     res.on("data", chunk => chunks.push(chunk));
     res.on("end", () => {
@@ -33,27 +26,38 @@ const PNGtoPDF = (doc, url) => new Promise(async (resolve, reject) => {
     });
 });
 
-module.exports = {
-    name: "musescore",
-    description: "Get information of a MuseScore link, or search the site, and download if requested.",
-    usage: "<link | keywords>",
-    category: 7,
-    aliases: ["muse"],
-    args: 1,
-    slashInit: true,
-    register: () => ApplicationCommand.createBasic(module.exports).setOptions([
-        new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "score", "The link or name of the score.").setRequired(true)
-    ]),
-    async slash() {
-        return InteractionResponse.sendMessage("Fetching score metadata...");
-    },
-    async postSlash(client, interaction, args) {
-        InteractionResponse.deleteMessage(client, interaction).catch(() => { });
-        args = args?.map(x => x?.value).filter(x => !!x);
-        const message = await InteractionResponse.createFakeMessage(client, interaction);
-        await this.execute(message, args);
-    },
-    async execute(message, args) {
+const requestYTDLStream = (url: string, opts) => {
+    const timeoutMS = opts.timeout && !isNaN(parseInt(opts.timeout)) ? parseInt(opts.timeout) : 30000;
+    const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${timeoutMS}ms`)), timeoutMS));
+    const getStream = new Promise((resolve, reject) => {
+        const stream = ytdl(url, opts);
+        stream.on("finish", () => resolve(stream)).on("error", err => reject(err));
+    });
+    return Promise.race([timeout, getStream]);
+};
+
+class MusescoreCommand implements SlashCommand {
+    name: "musescore";
+    description: "Get information of a MuseScore link, or search the site, and download if requested.";
+    usage: "<link | keywords>";
+    category: 7;
+    aliases: ["muse"];
+    args: 1;
+    options: any[];
+
+    constructor() {
+        this.options = [
+            new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "score", "The link or name of the score.").setRequired(true)
+        ].map(x => JSON.parse(JSON.stringify(x)));
+    }
+    
+    async execute(obj: { interaction: Interaction, args: any[] }) {
+        await obj.interaction.reply("Fetching score metadata...");
+        await this.run(<NorthMessage> await obj.interaction.fetchReply(), <string[]> obj.args?.map(x => x?.value).filter(x => !!x));
+        await obj.interaction.delete();
+    }
+
+    async run(message: NorthMessage, args: string[]) {
         if (!validMSURL(args.join(" "))) return await this.search(message, args);
         var msg = await message.channel.send("Loading score...");
         try {
@@ -89,9 +93,10 @@ module.exports = {
                     const mp3 = await this.getMP3(args.join(" "));
                     try {
                         if (mp3.error) throw new Error(mp3.message);
+                        var res;
                         if (mp3.url.startsWith("https://www.youtube.com/embed/")) {
                             const ytid = mp3.url.split("/").slice(-1)[0].split("?")[0];
-                            var res = await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
+                            res = await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
                         } else var res = await requestStream(mp3.url);
                         const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mp3`));
                         if (!res) throw new Error("Failed to get Readable Stream");
@@ -121,7 +126,7 @@ module.exports = {
                     mesg = await message.channel.send("Generating MSCZ...");
                     const mscz = await this.getMSCZ(data);
                     try {
-                        if (mscz.error) throw new Error(mscz.message);
+                        if (mscz.error) throw new Error(mscz.err);
                         const res = await requestStream(mscz.url);
                         const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mscz`));
                         if (!res) throw new Error("Failed to get Readable Stream");
@@ -137,13 +142,14 @@ module.exports = {
                     await message.reply("there was an error trying to send the files!");
                 }
             } catch (err) {
-                NorthClient.storage.log(`Failed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.name}`}`);
+                NorthClient.storage.log(`Failed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.username}`}`);
                 NorthClient.storage.error(err);
                 await message.channel.send("Failed to generate files!");
             }
         }
-    },
-    async search(message, args) {
+    }
+
+    async search(message: NorthMessage, args: string[]) {
         try {
             const response = await rp({ uri: `https://musescore.com/sheetmusic?text=${encodeURIComponent(args.join(" "))}`, resolveWithFullResponse: true });
             if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
@@ -226,11 +232,15 @@ module.exports = {
         collector.on("end", function () {
             msg.reactions.removeAll().catch(() => { });
         });
-    },
-    getMP3: async (url) => await (Object.getPrototypeOf(async function () { }).constructor("fetch", "url", process.env.FUNCTION3))(fetch, encodeURIComponent(url)),
-    getPDF: async (url, data) => {
+    }
+
+    async getMP3(url: string) {
+        return await (Object.getPrototypeOf(async function () { }).constructor("fetch", "url", process.env.FUNCTION3))(fetch, encodeURIComponent(url))
+    }
+
+    async getPDF(url: string, data): Promise<{ hasPDF: boolean, doc?: PDFDocument, err?: string | null, pages?: string[]}> {
         if (!data) data = muse(url);
-        var result = { doc: null, hasPDF: false };
+        var result = { doc: null, hasPDF: false, err: null };
         var score = data.firstPage.replace(/png$/, "svg");
         var fetched = await fetch(score);
         if (!fetched.ok) {
@@ -268,8 +278,9 @@ module.exports = {
         }
         doc.end();
         return { doc: doc, hasPDF: hasPDF, pages: pdf };
-    },
-    getMSCZ: async (data) => {
+    }
+
+    async getMSCZ(data) {
         // Credit to Xmader/musescore-downloader
         const IPNS_KEY = 'QmSdXtvzC8v8iTTZuj5cVmiugnzbR1QATYRcGix4bBsioP';
         const IPNS_RS_URL = `https://ipfs.io/api/v0/dag/resolve?arg=/ipns/${IPNS_KEY}`;
@@ -291,6 +302,9 @@ module.exports = {
         const msczUrl = `https://ipfs.infura.io/ipfs/${cid}`;
         const r1 = await fetch(msczUrl);
         if (!r1.ok) return { error: true, err: "Received HTTP Status Code: " + r.status };
-        return { error: false, url: msczUrl };
+        return { error: false, url: msczUrl, err: null };
     }
 }
+
+const cmd = new MusescoreCommand();
+module.exports = JSON.parse(JSON.stringify(cmd));
