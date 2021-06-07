@@ -471,21 +471,6 @@ class Handler {
         return __awaiter(this, void 0, void 0, function* () {
             const client = (oldMember.client || newMember.client);
             const storage = NorthClient_1.NorthClient.storage;
-            if (client.id == 1 && oldMember.displayName !== newMember.displayName) {
-                const [results] = yield client.pool.query(`SELECT uuid FROM dcmc WHERE dcid = '${newMember.id}'`);
-                if (results.length == 1) {
-                    const { name } = yield function_1.profile(results[0].uuid);
-                    const mcLen = name.length + 3;
-                    var nickname = newMember.displayName;
-                    const matches = nickname.match(/ \[\w+\]$/);
-                    if (matches)
-                        nickname = nickname.replace(matches[0], "");
-                    if (nickname.length + mcLen > 32)
-                        yield newMember.setNickname(`${nickname.slice(0, 29 - mcLen)}... [${name}]`);
-                    else
-                        yield newMember.setNickname(`${nickname} [${name}]`);
-                }
-            }
             if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp)
                 return;
             const boost = (_a = storage.guilds[newMember.guild.id]) === null || _a === void 0 ? void 0 : _a.boost;
@@ -609,7 +594,10 @@ class AliceHandler extends Handler {
     readServers(_client, _con) {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    preReady(client) {
+    preReady(_client) {
+        return __awaiter(this, void 0, void 0, function* () { });
+    }
+    setPresence(client) {
         return __awaiter(this, void 0, void 0, function* () {
             client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         });
@@ -892,6 +880,29 @@ class AliceHandler extends Handler {
                 con.release();
                 return;
             }
+        });
+    }
+    guildMemberUpdate(oldMember, newMember) {
+        const _super = Object.create(null, {
+            guildMemberUpdate: { get: () => super.guildMemberUpdate }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            const client = (oldMember.client || newMember.client);
+            const storage = NorthClient_1.NorthClient.storage;
+            if (oldMember.displayName !== newMember.displayName) {
+                const [results] = yield client.pool.query(`SELECT uuid FROM dcmc WHERE dcid = '${newMember.id}'`);
+                if (results.length == 1) {
+                    const { name } = yield function_1.profile(results[0].uuid);
+                    const mcLen = name.length + 1;
+                    const bw = (yield fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => res.json())).stats.BedWars;
+                    const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;
+                    if (firstHalf.length + mcLen > 32)
+                        yield newMember.setNickname(`${firstHalf} ${name.slice(0, 28 - firstHalf.length)}...`);
+                    else
+                        yield newMember.setNickname(`${firstHalf} ${name}`);
+                }
+            }
+            _super.guildMemberUpdate.call(this, oldMember, newMember);
         });
     }
 }

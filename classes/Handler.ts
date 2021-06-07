@@ -379,18 +379,6 @@ export class Handler {
     async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
         const client = <NorthClient>(oldMember.client || newMember.client);
         const storage = NorthClient.storage;
-        if (client.id == 1 && oldMember.displayName !== newMember.displayName) {
-            const [results] = <[RowDataPacket[]]><unknown>await client.pool.query(`SELECT uuid FROM dcmc WHERE dcid = '${newMember.id}'`);
-            if (results.length == 1) {
-                const { name } = await profile(results[0].uuid);
-                const mcLen = name.length + 3;
-                var nickname = newMember.displayName;
-                const matches = nickname.match(/ \[\w+\]$/);
-                if (matches) nickname = nickname.replace(matches[0], "");
-                if (nickname.length + mcLen > 32) await newMember.setNickname(`${nickname.slice(0, 29 - mcLen)}... [${name}]`);
-                else await newMember.setNickname(`${nickname} [${name}]`);
-            }
-        }
         if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
         const boost = storage.guilds[newMember.guild.id]?.boost;
         if (!boost?.channel || !boost.message) return;
@@ -487,7 +475,9 @@ export class AliceHandler extends Handler {
 
     async readServers(_client: NorthClient, _con: Connection) { }
 
-    async preReady(client: NorthClient) {
+    async preReady(_client: NorthClient) { }
+
+    async setPresence(client: NorthClient) {
         client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
     }
 
@@ -731,6 +721,23 @@ export class AliceHandler extends Handler {
             con.release();
             return;
         }
+    }
+
+    async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
+        const client = <NorthClient>(oldMember.client || newMember.client);
+        const storage = NorthClient.storage;
+        if (oldMember.displayName !== newMember.displayName) {
+            const [results] = <[RowDataPacket[]]><unknown>await client.pool.query(`SELECT uuid FROM dcmc WHERE dcid = '${newMember.id}'`);
+            if (results.length == 1) {
+                const { name } = await profile(results[0].uuid);
+                const mcLen = name.length + 1;
+                const bw = (await fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => res.json())).stats.BedWars;
+                const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;
+                if (firstHalf.length + mcLen > 32) await newMember.setNickname(`${firstHalf} ${name.slice(0, 28 - firstHalf.length)}...`);
+                else await newMember.setNickname(`${firstHalf} ${name}`);
+            }
+        }
+        super.guildMemberUpdate(oldMember, newMember);
     }
 }
 

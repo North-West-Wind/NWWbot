@@ -39,3 +39,20 @@ setInterval(async () => {
     con.release();
   } catch (err) { }
 }, 60000);
+
+setInterval(async () => {
+  try {
+    const guild = await alice.guilds.fetch("622311594654695434");
+    const [results] = await alice.pool.query(`SELECT uuid, dcid FROM dcmc`);
+    for (const result of results) {
+      const member = guild.members.fetch(result.dcid);
+      if (!member) continue;
+      const { name } = await require("./function").profile(result.uuid);
+      const mcLen = name.length + 1;
+      const bw = (await fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => res.json())).stats.BedWars;
+      const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;
+      if (firstHalf.length + mcLen > 32) await member.setNickname(`${firstHalf} ${name.slice(0, 28 - firstHalf.length)}...`);
+      else await member.setNickname(`${firstHalf} ${name}`);
+    }
+  } catch (err) { }
+}, 3600000);
