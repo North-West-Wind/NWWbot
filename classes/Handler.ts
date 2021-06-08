@@ -696,6 +696,7 @@ export class AliceHandler extends Handler {
                 const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
                 const roles = message.member.roles;
                 if (gInfo.id === "5b25306a0cf212fe4c98d739") await roles.add("622319008758104064");
+                await roles.add("676754719120556042");
                 await roles.add("837345908697989171");
                 await roles.remove("837345919010603048");
 

@@ -844,6 +844,7 @@ class AliceHandler extends Handler {
                     const roles = message.member.roles;
                     if (gInfo.id === "5b25306a0cf212fe4c98d739")
                         yield roles.add("622319008758104064");
+                    yield roles.add("676754719120556042");
                     yield roles.add("837345908697989171");
                     yield roles.remove("837345919010603048");
                     if (bw.level < 100)
