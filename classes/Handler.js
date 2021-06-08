@@ -836,6 +836,7 @@ class AliceHandler extends Handler {
                     const mcLen = res.username.length + 1;
                     const bw = res.stats.BedWars;
                     const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;
+                    NorthClient_1.NorthClient.storage.log(`Attempting to change nickname of ${message.author.tag} to ${firstHalf} ${res.username}`);
                     if (firstHalf.length + mcLen > 32)
                         yield message.member.setNickname(`${firstHalf} ${res.username.slice(0, 28 - firstHalf.length)}...`);
                     else

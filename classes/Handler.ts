@@ -691,6 +691,7 @@ export class AliceHandler extends Handler {
                 const mcLen = res.username.length + 1;
                 const bw = res.stats.BedWars;
                 const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;
+                NorthClient.storage.log(`Attempting to change nickname of ${message.author.tag} to ${firstHalf} ${res.username}`);
                 if (firstHalf.length + mcLen > 32) await message.member.setNickname(`${firstHalf} ${res.username.slice(0, 28 - firstHalf.length)}...`);
                 else await message.member.setNickname(`${firstHalf} ${res.username}`);
                 const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
