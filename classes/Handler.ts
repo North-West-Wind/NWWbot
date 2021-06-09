@@ -681,11 +681,11 @@ export class AliceHandler extends Handler {
                 var [results] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                 if (results.length == 0) {
                     await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
-                    await msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                    msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
                     NorthClient.storage.log("Inserted record for mc-name.");
                 } else {
                     await con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
-                    await msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                    msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
                     NorthClient.storage.log("Updated record for mc-name.");
                 }
                 const mcLen = res.username.length + 1;
@@ -733,7 +733,7 @@ export class AliceHandler extends Handler {
                 else if (bw.level < 3000) await roles.add("851470230370910248");
                 else await roles.add("851471153188569098");
 
-                await roles.remove(["837271157912633395", "837271158738255912", "837271163121041458", "837271170717057065", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"]);
+                for (const role of ["837271157912633395", "837271158738255912", "837271163121041458", "837271170717057065", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"]) await roles.remove(role);
                 if (res.rank === "ADMIN") await roles.add("837271157912633395");
                 else if (res.rank === "MOD") await roles.add("837271158738255912");
                 else if (res.rank === "HELPER") await roles.add("837271163121041458");

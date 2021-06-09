@@ -825,12 +825,12 @@ class AliceHandler extends Handler {
                     var [results] = yield con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                     if (results.length == 0) {
                         yield con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
-                        yield msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                        msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
                         NorthClient_1.NorthClient.storage.log("Inserted record for mc-name.");
                     }
                     else {
                         yield con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
-                        yield msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                        msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
                         NorthClient_1.NorthClient.storage.log("Updated record for mc-name.");
                     }
                     const mcLen = res.username.length + 1;
@@ -910,7 +910,8 @@ class AliceHandler extends Handler {
                         yield roles.add("851470230370910248");
                     else
                         yield roles.add("851471153188569098");
-                    yield roles.remove(["837271157912633395", "837271158738255912", "837271163121041458", "837271170717057065", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"]);
+                    for (const role of ["837271157912633395", "837271158738255912", "837271163121041458", "837271170717057065", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"])
+                        yield roles.remove(role);
                     if (res.rank === "ADMIN")
                         yield roles.add("837271157912633395");
                     else if (res.rank === "MOD")
