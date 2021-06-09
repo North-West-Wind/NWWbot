@@ -910,15 +910,8 @@ class AliceHandler extends Handler {
                         yield roles.add("851470230370910248");
                     else
                         yield roles.add("851471153188569098");
-                    for (const role of ["837271157912633395", "837271158738255912", "837271163121041458", "837271170717057065", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"])
-                        yield roles.remove(role);
-                    if (res.rank === "ADMIN")
-                        yield roles.add("837271157912633395");
-                    else if (res.rank === "MOD")
-                        yield roles.add("837271158738255912");
-                    else if (res.rank === "HELPER")
-                        yield roles.add("837271163121041458");
-                    else if (res.rank === "YOUTUBER")
+                    yield roles.remove(["837271170717057065", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"]);
+                    if (res.rank === "YOUTUBER")
                         yield roles.add("837271170717057065");
                     else if (res.rank === "VIP")
                         yield roles.add("837271174827212850");

@@ -733,11 +733,8 @@ export class AliceHandler extends Handler {
                 else if (bw.level < 3000) await roles.add("851470230370910248");
                 else await roles.add("851471153188569098");
 
-                for (const role of ["837271157912633395", "837271158738255912", "837271163121041458", "837271170717057065", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"]) await roles.remove(role);
-                if (res.rank === "ADMIN") await roles.add("837271157912633395");
-                else if (res.rank === "MOD") await roles.add("837271158738255912");
-                else if (res.rank === "HELPER") await roles.add("837271163121041458");
-                else if (res.rank === "YOUTUBER") await roles.add("837271170717057065");
+                await roles.remove(["837271170717057065", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"]);
+                if (res.rank === "YOUTUBER") await roles.add("837271170717057065");
                 else if (res.rank === "VIP") await roles.add("837271174827212850");
                 else if (res.rank === "VIP_PLUS") await roles.add("837271174073155594");
                 else if (res.rank === "MVP") await roles.add("837271173027856404");
