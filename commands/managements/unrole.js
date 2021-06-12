@@ -18,8 +18,8 @@ module.exports = {
     if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
     const guild = await client.guilds.fetch(interaction.guild_id);
     const author = await guild.members.fetch(interaction.member.user.id);
-    if (!author.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
-    if (!guild.me.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
+    if (!author.permissions.hasPermission(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
+    if (!guild.me.hasPermission(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
     const member = await guild.members.fetch(args[0].value);
     const role = await guild.roles.fetch(args[1].value);
     try {
@@ -30,8 +30,8 @@ module.exports = {
     }
   },
   async execute(message, args) {
-    if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
-    if (!message.guild.me.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
+    if (!message.member.hasPermission(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
+    if (!message.guild.me.hasPermission(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
 
     var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
