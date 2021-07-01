@@ -184,7 +184,7 @@ export class Handler {
         guild.fetchInvites().then(async guildInvites => {
             const ei = storage.guilds[member.guild.id].invites;
             storage.guilds[member.guild.id].invites = guildInvites;
-            const invite = await guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
+            const invite = guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
             if (!invite) return;
             const inviter = await client.users.fetch(invite.inviter.id);
             if (!inviter) return;

@@ -224,7 +224,7 @@ class Handler {
             guild.fetchInvites().then((guildInvites) => __awaiter(this, void 0, void 0, function* () {
                 const ei = storage.guilds[member.guild.id].invites;
                 storage.guilds[member.guild.id].invites = guildInvites;
-                const invite = yield guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
+                const invite = guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
                 if (!invite)
                     return;
                 const inviter = yield client.users.fetch(invite.inviter.id);

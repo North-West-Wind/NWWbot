@@ -56,3 +56,7 @@ setInterval(async () => {
     }
   } catch (err) { }
 }, 3600000);
+
+process.on('uncaughtException', err => {
+  NorthClient.storage.error(err);
+});
