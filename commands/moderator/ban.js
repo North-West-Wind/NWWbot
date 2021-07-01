@@ -56,7 +56,7 @@ module.exports = {
     } catch (err) {
       return await message.channel.send(embeds[2]);
     }
-    user.send(embeds[0]).catch(() => NorthClient.storage.log("Failed to send DM to " + user.username));
+    member.user.send(embeds[0]).catch(() => NorthClient.storage.log("Failed to send DM to " + user.username));
     await message.channel.send(embeds[1]);
   }
 };

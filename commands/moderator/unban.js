@@ -44,7 +44,7 @@ module.exports = {
     try {
       if (reason) await message.guild.members.unban(member.user, reason);
       else await message.guild.members.unban(member.user);
-      member.send(embeds[0]).catch(() => { });
+      member.user.send(embeds[0]).catch(() => { });
       await message.channel.send(embeds[1]);
     } catch (err) {
       await message.channel.send(embeds[2]);

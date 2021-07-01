@@ -24,11 +24,11 @@ module.exports = {
     const warnEmbeds = commonModerationEmbed(guild, author.user, member, "warn", "warned", reason);
     try {
       const amount = await this.warn(guild, member, client.pool, reason);
-      member.send(warnEmbeds[0]).catch(() => { });
+      member.user.send(warnEmbeds[0]).catch(() => { });
       if (amount >= 3) {
         const banEmbeds = commonModerationEmbed(guild, author.user, member, "ban", "banned", "Received 3 warnings.");
         await member.ban({ reason: "Received 3 warnings." });
-        member.send(banEmbeds[0]).catch(() => { });
+        member.user.send(banEmbeds[0]).catch(() => { });
         await client.pool.query(`DELETE FROM warn WHERE guild = '${guild.id}' AND user = '${member.id}'`);
       }
       return InteractionResponse.sendEmbeds(warnEmbeds[1]);
@@ -46,11 +46,11 @@ module.exports = {
     const warnEmbeds = commonModerationEmbed(message.guild, message.author, member, "warn", "warned", reason);
     try {
       const amount = await this.warn(message.guild, member, message.pool, reason);
-      member.send(warnEmbeds[0]).catch(() => { });
+      member.user.send(warnEmbeds[0]).catch(() => { });
       if (amount >= 3) {
         const banEmbeds = commonModerationEmbed(message.guild, message.author, member, "ban", "banned", "Received 3 warnings.");
         await member.ban({ reason: "Received 3 warnings." });
-        member.send(banEmbeds[0]).catch(() => { });
+        member.user.send(banEmbeds[0]).catch(() => { });
         await message.pool.query(`DELETE FROM warn WHERE guild = '${message.guild.id}' AND user = '${member.id}'`);
       }
       await message.channel.send(warnEmbeds[1]);
