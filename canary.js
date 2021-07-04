@@ -6,7 +6,6 @@ const canary = new NorthClient({ restRequestTimeout: 60000, messageCacheMaxSize:
 canary.log = "733912780679413886";
 NorthClient.storage = new ClientStorage(canary);
 
-require("./common")(canary);
 require("./canary/init")(canary);
 
 setInterval(async () => {
