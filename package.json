@@ -18,7 +18,7 @@
     "@discordjs/opus": "^0.5.3",
     "@justalk/pornhub-api": "^3.5.0",
     "aio-mc-api": "^1.2.3",
-    "akaneko": "^5.1.2",
+    "akaneko": "^5.1.3",
     "aki-api": "^5.2.1",
     "anser": "^2.0.1",
     "array-move": "^3.0.1",
@@ -71,6 +71,6 @@
   },
   "devDependencies": {
     "tslint": "^6.1.3",
-    "typescript": "^4.3.4"
+    "typescript": "^4.3.5"
   }
 }

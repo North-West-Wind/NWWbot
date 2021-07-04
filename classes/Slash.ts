@@ -1,7 +1,6 @@
 import { Collection, Guild, GuildMember, MessageAttachment, MessageEmbed, Snowflake, TextChannel, User } from "discord.js";
 import { Pool } from "mysql2/promise";
-import { Command } from "./Command";
-import { NorthClient } from "./NorthClient";
+import { NorthClient, Command } from "./NorthClient";
 
 export class ApplicationCommand {
     name: string;
