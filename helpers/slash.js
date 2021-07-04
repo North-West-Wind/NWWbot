@@ -25,6 +25,7 @@ async function setup(client) {
                 delete posted["application_id"];
                 delete posted["version"];
                 delete posted["default_permission"];
+                delete posted["type"];
 
                 if (!deepEqual(posted, registration)) {
                     NorthClient.storage.log(`[${client.id}] Registering command "${name}"`);
