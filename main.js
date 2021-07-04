@@ -6,7 +6,6 @@ const client = new NorthClient({ restRequestTimeout: 60000, messageCacheMaxSize:
 client.log = "678847137391312917";
 NorthClient.storage = new ClientStorage(client);
 
-require("./common")(client, alice);
 require("./n0rthwestw1nd/init")(client);
 
 setInterval(async () => {
