@@ -45,7 +45,7 @@ module.exports = (client) => {
             NorthClient.storage.error(err);
         } finally {
                 pool = mysql.createPool(mysql_config).promise();
-                clients.forEach(c => c.pool = pool);
+                client.pool = pool;
                 const queue = getQueues();
                 for (const [id, serverQueue] of queue) {
                     serverQueue.pool = pool;
