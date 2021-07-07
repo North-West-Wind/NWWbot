@@ -85,17 +85,15 @@ class Handler {
     readServers(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
-            var [results] = yield con.query("SELECT * FROM servers");
+            var [results] = yield con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
             results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                 storage.guilds[result.id] = {};
                 try {
                     yield client.guilds.fetch(result.id);
                 }
                 catch (err) {
-                    if (result.id != '622311594654695434' && result.id != '819539026792808448') {
-                        yield con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
-                        return storage.log("Removed left servers");
-                    }
+                    yield con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
+                    return storage.log("Removed left servers");
                 }
                 if (result.queue || result.looping || result.repeating) {
                     var queue = [];
@@ -126,6 +124,7 @@ class Handler {
                     message: result.boost_msg,
                     channel: result.boost_channel
                 };
+                storage.guilds[result.id].autoReply = result.auto_reply;
             }));
             storage.log(`[${client.id}] Set ${results.length} configurations`);
         });

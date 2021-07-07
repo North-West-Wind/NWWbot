@@ -66,16 +66,14 @@ export class Handler {
 
     async readServers(client: NorthClient, con: Connection) {
         const storage = NorthClient.storage;
-        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers");
+        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
         results.forEach(async result => {
             storage.guilds[result.id] = {};
             try {
                 await client.guilds.fetch(result.id);
             } catch (err) {
-                if (result.id != '622311594654695434' && result.id != '819539026792808448') {
-                    await con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
-                    return storage.log("Removed left servers");
-                }
+                await con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
+                return storage.log("Removed left servers");
             }
             if (result.queue || result.looping || result.repeating) {
                 var queue = [];
@@ -100,6 +98,7 @@ export class Handler {
                 message: result.boost_msg,
                 channel: result.boost_channel
             };
+            storage.guilds[result.id].autoReply = result.auto_reply;
         });
         storage.log(`[${client.id}] Set ${results.length} configurations`);
     }
