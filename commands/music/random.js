@@ -1,5 +1,5 @@
 const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash.js");
-const { updateQueue, getQueues } = require("../../helpers/music.js");
+const { updateQueue, getQueues, setQueue } = require("../../helpers/music.js");
 
 module.exports = {
   name: "random",

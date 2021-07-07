@@ -4,7 +4,8 @@
   "description": "NorthWestWind's bot!",
   "main": "main.js",
   "scripts": {
-    "start": "node --optimize_for_size --max_old_space_size=341 --gc_interval=50 main.js",
+    "start": "node --optimize_for_size --max_old_space_size=341 --gc_interval=50 --trace-warnings main.js",
+    "alice": "node --optimize_for_size --max_old_space_size=341 --gc_interval=50 --trace-warnings alice.js",
     "canary": "node canary",
     "tsc": "tsc"
   },

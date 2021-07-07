@@ -1,4 +1,4 @@
-const { updateQueue, getQueues } = require("../../helpers/music.js");
+const { updateQueue, getQueues, setQueue } = require("../../helpers/music.js");
 const { moveArray } = require("../../function");
 const { NorthClient } = require("../../classes/NorthClient.js");
 const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash.js");

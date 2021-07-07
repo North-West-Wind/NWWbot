@@ -1,5 +1,5 @@
 const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash.js");
-const { updateQueue, getQueues } = require("../../helpers/music.js");
+const { updateQueue, getQueues, setQueue } = require("../../helpers/music.js");
 
 module.exports = {
   name: "pause",
@@ -19,6 +19,7 @@ module.exports = {
   },
   execute(message) {
     var serverQueue = getQueues().get(message.guild.id);
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
     if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to pause the music when the bot is playing!");
     if (!serverQueue || !serverQueue.connection || !serverQueue.connection.dispatcher) return message.channel.send("There is nothing playing.");
     if (!serverQueue.paused) {
