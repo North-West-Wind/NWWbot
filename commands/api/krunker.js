@@ -1,12 +1,11 @@
 const Discord = require("discord.js");
-const cheerio = require("cheerio");
-const { ms, color } = require("../../function.js");
+const { color } = require("../../function.js");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 formatSetup(moment);
-const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const { NorthClient } = require("../../classes/NorthClient.js");
 const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
+const { run } = require("../../helpers/puppeteer");
 
 module.exports = {
   name: "krunker",
@@ -64,7 +63,7 @@ module.exports = {
   },
   async server(msg, search, client, author) {
     try {
-      const servers = await (Object.getPrototypeOf(async function () { }).constructor("fetch", process.env.FUNCTION1))(fetch);
+      const servers = await this.getServers();
       if (servers.error) throw new Error(servers.message);
       var official = [];
       var custom = [];
@@ -213,7 +212,7 @@ module.exports = {
   },
   async changelog(msg, version, author) {
     try {
-      const changelogs = await (Object.getPrototypeOf(async function () { }).constructor("fetch", process.env.FUNCTION2))(fetch);
+      const changelogs = await this.getChangelog();
       if (changelogs.error) throw new Error(changelogs.message);
       var changelog = {};
       changelog[Object.keys(changelogs).find(x => x.includes("UPDATE"))] = changelogs[Object.keys(changelogs).find(x => x.includes("UPDATE"))];
@@ -229,56 +228,38 @@ module.exports = {
       msg.edit(`<@${author.id}>, there was an error trying to display the changelog!`);
     }
   },
-  async profile(message, username) {
+  getServers: async() => await run(async (page) => {
+    var result = { error: true };
     try {
-      const user = await (Object.getPrototypeOf(async function () { }).constructor("p", "cheerio", "username", process.env.FUNCTION5))(NorthClient.storage.p, cheerio, username);
-      const Embed = new Discord.MessageEmbed()
-        .setTitle(user.name)
-        .setColor(color())
-        .setThumbnail("https://camo.githubusercontent.com/ae9a850fda4698b130cb55c496473ad5ee81d4a4/68747470733a2f2f692e696d6775722e636f6d2f6c734b783064772e706e67")
-        .addField("Level", user.LVL, true)
-        .addField("Krunkies", user.KR, true)
-        .addField("Scores", user.Score, true)
 
-        .addField("Kills", user.Kills, true)
-        .addField("Deaths", user.Deaths, true)
-        .addField("KDR", user.KDR, true)
-
-        .addField("Wins", user.Wins, true)
-        .addField("Loses", user.Losses, true)
-        .addField("WLR", user["W/L"], true)
-
-        .addField("Nukes", user.Nukes, true)
-        .addField("Headshots", user.Headshots, true)
-        .addField("Wallbangs", user.Wallbangs, true)
-
-        .addField("Melee Kills", user.Melee, true)
-        .addField("Beatdowns", user.Beatdowns, true)
-        .addField("Bulleyes", user.Bulleyes, true)
-
-        .addField("Accuracy", user.hits, true)
-        .addField("Score/Kill", user.SPK, true)
-        .addField("Time played", moment.duration(ms(user["Time Played"].split(" ").join("")) / 1000, "seconds").format(), true)
-
-        .addField("Games played", user.Games, true)
-        .addField("Kills/Game", user.KPG, true)
-        .addField("XP", `${user.XP} / ${user.NextLVL}`, true)
-
-        .addField("Following", user.Following, true)
-        .addField("Followers", user.Followers, true)
-        .addField("Date Created", user.Created, true)
-
-        .addField("MMR (1v1)", user["MMR (1v1)"], true)
-        .addField("MMR (2v2)", user["MMR (2v2)"], true)
-        .addField("MMR (4v4)", user["MMR (4v4)"], true)
-
-        .addField("Challenge", user.Challenge, true)
-        .addField("Clan", user.Clan ? user.Clan : "No clan", true)
-        .setTimestamp()
-        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-      await message.channel.send(Embed);
-    } catch (e) {
-      await message.reply("there was an error fetch the user profile!");
+      await page.goto("https://matchmaker.krunker.io/game-list?hostname=krunker.io");
+      const element = await page.$("pre");
+      const servers = JSON.parse(await (await element.getProperty('textContent')).jsonValue());
+      servers.error = false;
+      result = servers;
+    } catch (err) {
+      result.message = err.message;
+    } finally {
+      return result;
     }
-  }
+  }),
+  getChangelog: async() => await run(async (page) => {
+    var result = { error: true };
+    try {
+      await page.goto("https://krunker.io/docs/versions.txt");
+      const element = await page.$("pre");
+      const text = await (await element.getProperty("textContent")).jsonValue();
+      const lines = {};
+      for (const x of text.split("\n\n")) {
+        const morelines = x.split("\n");
+        if (morelines[0] === "") morelines.shift();
+        lines[morelines[0]] = morelines.slice(1);
+      }
+      result = lines;
+    } catch (err) {
+      result.message = err.message;
+    } finally {
+      return result;
+    }
+  })
 };

@@ -1,6 +1,7 @@
 const rp = require("request-promise-native");
 const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 const cheerio = require("cheerio");
+const { run } = require("../../helpers/puppeteer");
 const Discord = require("discord.js");
 const ytdl = require("ytdl-core");
 const sanitize = require("sanitize-filename");
@@ -110,18 +111,11 @@ module.exports = {
                         await mesg.delete();
                     } catch (err) {
                         await mesg.edit(`Failed to generate PDF! \`${err.message}\``);
-                        if (hasPDF) {
-                            const r = await fetch("https://North-API.northwestwind.repl.co/upload", { method: "post", body: JSON.stringify({ pages }), headers: { 'Content-Type': 'application/json' } });
-                            if (r.ok){
-                                const { id } = await r.json();
-                                await message.channel.send(`But this link might work:\nhttps://North-API.northwestwind.repl.co/download?id=${id}`);
-                            }
-                        }
                     }
                     mesg = await message.channel.send("Generating MSCZ...");
                     const mscz = await this.getMSCZ(data);
                     try {
-                        if (mscz.error) throw new Error(mscz.message);
+                        if (mscz.error) throw new Error(mscz.err);
                         const res = await requestStream(mscz.url);
                         const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mscz`));
                         if (!res) throw new Error("Failed to get Readable Stream");
@@ -130,7 +124,8 @@ module.exports = {
                         await mesg.delete();
                     } catch (err) {
                         await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``);
-                        await message.channel.send(`However, you may still be able to download it from this link:\n${mscz.url}`);
+                        if (err.message === "Score not in dataset")
+                            await message.channel.send(`The score is not in the dataset. Consider reporting this to #dataset-bug in https://discord.gg/3Jx5TZArAF`);
                     }
                 } catch (err) {
                     NorthClient.storage.error(err);
@@ -227,7 +222,28 @@ module.exports = {
             msg.reactions.removeAll().catch(() => { });
         });
     },
-    getMP3: async (url) => await (Object.getPrototypeOf(async function () { }).constructor("fetch", "url", process.env.FUNCTION3))(fetch, encodeURIComponent(url)),
+    getMP3: async(url) => await run(async (page) => {
+        var result = { error: true };
+        const start = Date.now();
+        try {
+            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36');
+            await page.setRequestInterception(true);
+            page.on('request', (req) => {
+                if (["image", "font", "stylesheet", "media"].includes(req.resourceType())) req.abort();
+                else req.continue();
+            });
+            await page.goto(url, { waitUntil: "domcontentloaded" });
+            await page.waitForSelector("button[title='Toggle Play']").then(el => el.click());
+            const mp3 = await page.waitForRequest(req => req.url().startsWith("https://s3.ultimate-guitar.com/") || req.url().startsWith("https://www.youtube.com/embed/"));
+            result.url = mp3.url();
+            result.error = false;
+        } catch (err) {
+            result.message = err.message;
+        } finally {
+            result.timeTaken = Date.now() - start;
+            return result;
+        }
+    }),
     getPDF: async (url, data) => {
         if (!data) data = muse(url);
         var result = { doc: null, hasPDF: false };
@@ -243,7 +259,60 @@ module.exports = {
         }
         var pdf = [score];
         if (data.pageCount > 1) {
-            const pdfapi = await (Object.getPrototypeOf(async function () { }).constructor("fetch", "url", "pageCount", process.env.FUNCTION4))(fetch, url, data.pageCount);
+            const pdfapi = await run(async (page) => {
+                var result = { error: true };
+                const start = Date.now();
+                const pageCount = data.pageCount;
+                try {
+                    const pattern = /^(https?:\/\/)?s3\.ultimate-guitar\.com\/musescore\.scoredata\/g\/\w+\/score\_\d+\.svg/;
+                    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36');
+                    await page.setRequestInterception(true);
+                    const pages = result.pdf ? result.pdf : [];
+                    await page.setViewport({
+                        width: 1280,
+                        height: 720
+                    });
+                    console.log("[Muse PDF] Set Viewport");
+                    page.on('request', (req) => {
+                        req.continue();
+                        if (req.url().match(pattern)) pages.push(req.url());
+                    });
+                    await page.goto(url, { waitUntil: "domcontentloaded" });
+                    console.log("[Muse PDF] Went to URL");
+                    const thumb = await page.waitForSelector("meta[property='og:image']");
+                    var png = (await (await thumb.getProperty("content")).jsonValue()).split("@")[0];
+                    var svg = png.split(".").slice(0, -1).join(".") + ".svg";
+                    console.log("[Muse PDF] Got First Page");
+                    var el;
+                    try {
+                        el = await page.waitForSelector(`img[src^="${svg}"]`, { timeout: 10000 });
+                        pages.push(svg);
+                    } catch (err) {
+                        el = await page.waitForSelector(`img[src^="${png}"]`, { timeout: 10000 });
+                        pages.push(png);
+                    }
+                    console.log("[Muse PDF] Found Image");
+                    const height = (await el.boxModel()).height;
+                    await el.hover();
+                    console.log("[Muse PDF] Hovered on Image");
+                    var scrolled = 0;
+                    while (pages.length < pageCount && scrolled <= pageCount) {
+                        await page.mouse.wheel({ deltaY: height });
+                        await page.waitForRequest(req => req.url().match(pattern));
+                        scrolled++;
+                    }
+                    console.log("[Muse PDF] Fetched All Page");
+                    result.pdf = pages;
+                    result.error = false;
+                    console.log("[Muse PDF] Success");
+                } catch (err) {
+                    result.message = err.message;
+                    console.log("[Muse PDF] Failure");
+                } finally {
+                    result.timeTaken = Date.now() - start;
+                    return result;
+                }
+            });
             if (pdfapi.error) return { doc: undefined, hasPDF: false };
             pdf = pdfapi.pdf;
         }
@@ -270,7 +339,7 @@ module.exports = {
         return { doc: doc, hasPDF: hasPDF, pages: pdf };
     },
     getMSCZ: async (data) => {
-        // Credit to Xmader/musescore-downloader
+        // Thank you to Xmader/musescore-downloader!
         const IPNS_KEY = 'QmSdXtvzC8v8iTTZuj5cVmiugnzbR1QATYRcGix4bBsioP';
         const IPNS_RS_URL = `https://ipfs.io/api/v0/dag/resolve?arg=/ipns/${IPNS_KEY}`;
         const r = await fetch(IPNS_RS_URL);
