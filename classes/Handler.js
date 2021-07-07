@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CanaryHandler = exports.Handler = void 0;
 const canvas_1 = require("canvas");
-const cleverbot_free_1 = __importDefault(require("cleverbot-free"));
 const discord_js_1 = require("discord.js");
 const moment_1 = __importDefault(require("moment"));
 require("moment-duration-format")(moment_1.default);
@@ -25,7 +24,6 @@ const function_1 = require("../function");
 const music_1 = require("../helpers/music");
 const NorthClient_1 = require("./NorthClient");
 const slash_1 = __importDefault(require("../helpers/slash"));
-const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: (attempt) => Math.pow(2, attempt) * 1000 });
 const filter = require("../helpers/filter");
 class Handler {
     static setup(client) {
@@ -559,12 +557,6 @@ class Handler {
                 msg.prefix = storage.guilds[msg.guild.id].prefix;
             this.messageLevel(msg);
             const args = msg.content.slice(msg.prefix.length).split(/ +/);
-            if (!msg.content.startsWith(msg.prefix) || msg.author.bot) {
-                if (!msg.author.bot && Math.floor(Math.random() * 1000) === 69)
-                    cleverbot_free_1.default(msg.content).then(response => msg.channel.send(response));
-                return;
-            }
-            ;
             const commandName = args.shift().toLowerCase();
             const command = storage.commands.get(commandName) || storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
             if (!command)

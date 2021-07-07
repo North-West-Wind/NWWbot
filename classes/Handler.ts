@@ -1,5 +1,4 @@
 import { createCanvas, loadImage, Image } from "canvas";
-import cleverbot from "cleverbot-free";
 import { Guild, GuildMember, Message, MessageAttachment, MessageReaction, PartialGuildMember, PartialMessage, PartialUser, TextChannel, User, VoiceState } from "discord.js";
 import moment from "moment";
 require("moment-duration-format")(moment);
@@ -12,7 +11,6 @@ import { setQueue, stop } from "../helpers/music";
 import { NorthClient, LevelData, NorthMessage } from "./NorthClient";
 import slash from "../helpers/slash";
 import { Connection } from "mysql2/promise";
-const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: (attempt: number) => Math.pow(2, attempt) * 1000 });
 const filter = require("../helpers/filter");
 
 export class Handler {
@@ -444,10 +442,6 @@ export class Handler {
         if (msg.guild && storage.guilds[msg.guild.id]?.prefix) msg.prefix = storage.guilds[msg.guild.id].prefix;
         this.messageLevel(msg);
         const args = msg.content.slice(msg.prefix.length).split(/ +/);
-        if (!msg.content.startsWith(msg.prefix) || msg.author.bot) {
-            if (!msg.author.bot && Math.floor(Math.random() * 1000) === 69) cleverbot(msg.content).then(response => msg.channel.send(response));
-            return;
-        };
         const commandName = args.shift().toLowerCase();
         const command = storage.commands.get(commandName) || storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
