@@ -574,6 +574,8 @@ class Handler {
             if (msg.guild && ((_a = storage.guilds[msg.guild.id]) === null || _a === void 0 ? void 0 : _a.prefix))
                 msg.prefix = storage.guilds[msg.guild.id].prefix;
             this.messageLevel(msg);
+            if (!msg.content.startsWith(msg.prefix))
+                return;
             const args = msg.content.slice(msg.prefix.length).split(/ +/);
             const commandName = args.shift().toLowerCase();
             const command = storage.commands.get(commandName) || storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
