@@ -11,6 +11,7 @@ import { setQueue, stop } from "../helpers/music";
 import { NorthClient, LevelData, NorthMessage } from "./NorthClient";
 import slash from "../helpers/slash";
 import { Connection } from "mysql2/promise";
+import fetch from "node-fetch";
 const filter = require("../helpers/filter");
 
 export class Handler {

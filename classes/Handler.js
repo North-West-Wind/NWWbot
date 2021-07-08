@@ -43,6 +43,7 @@ const function_1 = require("../function");
 const music_1 = require("../helpers/music");
 const NorthClient_1 = require("./NorthClient");
 const slash_1 = __importDefault(require("../helpers/slash"));
+const node_fetch_1 = __importDefault(require("node-fetch"));
 const filter = require("../helpers/filter");
 class Handler {
     static setup(client) {
@@ -857,7 +858,7 @@ class AliceHandler extends Handler {
                     NorthClient_1.NorthClient.storage.log("Found UUID: " + mcUuid);
                     var res;
                     try {
-                        res = yield fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                        res = yield node_fetch_1.default(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
                     }
                     catch (err) {
                         return yield msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
@@ -884,7 +885,7 @@ class AliceHandler extends Handler {
                         yield message.member.setNickname(`${firstHalf} ${res.username.slice(0, 28 - firstHalf.length)}...`);
                     else
                         yield message.member.setNickname(`${firstHalf} ${res.username}`);
-                    const gInfo = yield fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                    const gInfo = yield node_fetch_1.default(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
                     const roles = message.member.roles;
                     if (gInfo.id === "5b25306a0cf212fe4c98d739")
                         yield roles.add("622319008758104064");
