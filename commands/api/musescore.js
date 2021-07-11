@@ -68,7 +68,7 @@ module.exports = {
             .setTitle(data.title)
             .setURL(data.url)
             .setThumbnail(data.thumbnail)
-            .setDescription(`Description: **${data.description}**\n\nClick 📥 to download MP3 and PDF`)
+            .setDescription(`Description: **${data.description}**\n\nClick 📥 to download MIDI and PDF`)
             .addField("ID", data.id, true)
             .addField("Author", data.user.name, true)
             .addField("Duration", data.duration, true)
@@ -92,7 +92,7 @@ module.exports = {
                         if (mp3.error) throw new Error(mp3.message);
                         if (mp3.url.startsWith("https://www.youtube.com/embed/")) {
                             const ytid = mp3.url.split("/").slice(-1)[0].split("?")[0];
-                            var res = await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
+                            var res = await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 });
                         } else var res = await requestStream(mp3.url);
                         const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mp3`));
                         if (!res) throw new Error("Failed to get Readable Stream");
@@ -103,7 +103,7 @@ module.exports = {
                         await mesg.edit(`Failed to generate MP3! \`${err.message}\``);
                     }
                     mesg = await message.channel.send("Generating PDF...");
-                    const { doc, hasPDF, err, pages } = await this.getPDF(args.join(" "), data);
+                    const { doc, hasPDF, err } = await this.getPDF(args.join(" "), data);
                     try {
                         if (!hasPDF) throw new Error(err ? err : "No PDF available");
                         const att = new Discord.MessageAttachment(doc, sanitize(`${data.title}.pdf`));
@@ -112,20 +112,33 @@ module.exports = {
                     } catch (err) {
                         await mesg.edit(`Failed to generate PDF! \`${err.message}\``);
                     }
-                    mesg = await message.channel.send("Generating MSCZ...");
-                    const mscz = await this.getMSCZ(data);
+                    mesg = await message.channel.send("Generating MIDI...");
+                    const midi = await this.getMIDI(args.join(" "));
                     try {
-                        if (mscz.error) throw new Error(mscz.err);
-                        const res = await requestStream(mscz.url);
-                        const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mscz`));
+                        if (midi.error) throw new Error(midi.message);
+                        var res = await requestStream(midi.url);
+                        const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mid`));
                         if (!res) throw new Error("Failed to get Readable Stream");
                         else if (res.statusCode && res.statusCode != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
                         else await message.channel.send(att);
                         await mesg.delete();
                     } catch (err) {
-                        await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``);
-                        if (err.message === "Score not in dataset")
-                            await message.channel.send(`The score is not in the dataset. Consider reporting this to #dataset-bug in https://discord.gg/3Jx5TZArAF`);
+                        await mesg.edit(`Failed to generate MIDI! \`${err.message}\``);
+                        mesg = await message.channel.send("Falling back to MSCZ...");
+                        const mscz = await this.getMSCZ(data);
+                        try {
+                            if (mscz.error) throw new Error(mscz.err);
+                            const res = await requestStream(mscz.url);
+                            const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mscz`));
+                            if (!res) throw new Error("Failed to get Readable Stream");
+                            else if (res.statusCode && res.statusCode != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
+                            else await message.channel.send(att);
+                            await mesg.delete();
+                        } catch (err) {
+                            await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``);
+                            if (err.message === "Score not in dataset")
+                                await message.channel.send(`The score is not in the dataset. Consider reporting this to #dataset-bug in https://discord.gg/3Jx5TZArAF`);
+                        }
                     }
                 } catch (err) {
                     NorthClient.storage.error(err);
@@ -244,6 +257,31 @@ module.exports = {
             return result;
         }
     }),
+    getMIDI: async(url) => await run(async (page) => {
+        var result = { error: true };
+        const start = Date.now();
+        try {
+            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36');
+            await page.setRequestInterception(true);
+            page.on('request', (req) => {
+                if (["image", "font", "stylesheet", "media"].includes(req.resourceType())) req.abort();
+                else req.continue();
+            });
+            await page.goto(url, { waitUntil: "domcontentloaded" });
+            await page.waitForSelector("button[hasaccess]").then(el => el.click());
+            const midi = await page.waitForResponse(res => {
+                const url = res.url();
+                return url.startsWith("https://musescore.com/api/jmuse") && url.includes("type=midi");
+            });
+            result.url = (await midi.json())?.info?.url;
+            result.error = false;
+        } catch (err) {
+            result.message = err.message;
+        } finally {
+            result.timeTaken = Date.now() - start;
+            return result;
+        }
+    }),
     getPDF: async (url, data) => {
         if (!data) data = muse(url);
         var result = { doc: null, hasPDF: false };
@@ -272,17 +310,14 @@ module.exports = {
                         width: 1280,
                         height: 720
                     });
-                    console.log("[Muse PDF] Set Viewport");
                     page.on('request', (req) => {
                         req.continue();
                         if (req.url().match(pattern)) pages.push(req.url());
                     });
                     await page.goto(url, { waitUntil: "domcontentloaded" });
-                    console.log("[Muse PDF] Went to URL");
                     const thumb = await page.waitForSelector("meta[property='og:image']");
                     var png = (await (await thumb.getProperty("content")).jsonValue()).split("@")[0];
                     var svg = png.split(".").slice(0, -1).join(".") + ".svg";
-                    console.log("[Muse PDF] Got First Page");
                     var el;
                     try {
                         el = await page.waitForSelector(`img[src^="${svg}"]`, { timeout: 10000 });
@@ -291,23 +326,18 @@ module.exports = {
                         el = await page.waitForSelector(`img[src^="${png}"]`, { timeout: 10000 });
                         pages.push(png);
                     }
-                    console.log("[Muse PDF] Found Image");
                     const height = (await el.boxModel()).height;
                     await el.hover();
-                    console.log("[Muse PDF] Hovered on Image");
                     var scrolled = 0;
                     while (pages.length < pageCount && scrolled <= pageCount) {
                         await page.mouse.wheel({ deltaY: height });
                         await page.waitForRequest(req => req.url().match(pattern));
                         scrolled++;
                     }
-                    console.log("[Muse PDF] Fetched All Page");
                     result.pdf = pages;
                     result.error = false;
-                    console.log("[Muse PDF] Success");
                 } catch (err) {
                     result.message = err.message;
-                    console.log("[Muse PDF] Failure");
                 } finally {
                     result.timeTaken = Date.now() - start;
                     return result;
