@@ -1,9 +1,10 @@
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core");
 var browser, timeout;
 async function getBrowser() {
     if (!browser) browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-accelerated-2d-canvas', '--no-first-run', '--no-zygote', '--single-process', '--disable-gpu', "--proxy-server='direct://'", '--proxy-bypass-list=*'],
-      headless: false
+      headless: true,
+      executablePath: "/usr/bin/chromium-browser"
     });
     return browser;
 }
