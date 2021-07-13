@@ -832,7 +832,6 @@ class AliceHandler extends Handler {
         });
     }
     preMessage(message) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const client = message.client;
             if (message.mentions.users.size > 10) {
@@ -858,14 +857,14 @@ class AliceHandler extends Handler {
                     NorthClient_1.NorthClient.storage.log("Found UUID: " + mcUuid);
                     var res;
                     try {
-                        res = yield node_fetch_1.default(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                        const f = yield node_fetch_1.default(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`);
+                        if (f.status == 404)
+                            return yield msg.edit("This player doesn't exist!").then(msg => msg.delete({ timeout: 10000 }));
+                        res = yield f.json();
                     }
                     catch (err) {
                         return yield msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
                     }
-                    const hyDc = (_a = res.links) === null || _a === void 0 ? void 0 : _a.DISCORD;
-                    if (!hyDc || hyDc !== message.author.tag)
-                        return yield msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
                     var [results] = yield con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                     if (results.length == 0) {
                         yield con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);

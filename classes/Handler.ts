@@ -692,12 +692,12 @@ export class AliceHandler extends Handler {
                 NorthClient.storage.log("Found UUID: " + mcUuid);
                 var res;
                 try {
-                    res = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                    const f = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`);
+                    if (f.status == 404) return await msg.edit("This player doesn't exist!").then(msg => msg.delete({ timeout: 10000 }));
+                    res = await f.json();
                 } catch (err) {
                     return await msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
                 }
-                const hyDc = res.links?.DISCORD;
-                if (!hyDc || hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
                 var [results] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                 if (results.length == 0) {
                     await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
