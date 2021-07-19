@@ -1,5 +1,5 @@
 const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
-const { findMember, commonModerationEmbed } = require("../../function.js");
+const { findMember, commonModerationEmbed, genPermMsg } = require("../../function.js");
 
 module.exports = {
   name: "unmute",

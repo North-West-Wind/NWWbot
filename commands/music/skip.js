@@ -1,5 +1,5 @@
 const { play } = require("./play.js");
-const { updateQueue, getQueues } = require("../../helpers/music.js");
+const { updateQueue, getQueues, setQueue } = require("../../helpers/music.js");
 const { moveArray } = require("../../function.js");
 const { ApplicationCommand, InteractionResponse, ApplicationCommandOption, ApplicationCommandOptionType } = require("../../classes/Slash.js");
 
@@ -28,8 +28,8 @@ module.exports = {
     var serverQueue = getQueues().get(message.guild.id);
     var skipped = 1;
     const guild = message.guild;
-    if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to skip the music when the bot is playing!");
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
+    if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to skip the music when the bot is playing!");
     if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the queue!");
     if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
     if (serverQueue.repeating) skipped = 0;

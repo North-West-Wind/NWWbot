@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -14,19 +33,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CanaryHandler = exports.AliceHandler = exports.Handler = void 0;
 const canvas_1 = require("canvas");
-const cleverbot_free_1 = __importDefault(require("cleverbot-free"));
 const discord_js_1 = require("discord.js");
-const moment_1 = __importDefault(require("moment"));
+const moment_1 = __importStar(require("moment"));
 require("moment-duration-format")(moment_1.default);
 const giveaway_1 = require("../commands/miscellaneous/giveaway");
 const poll_1 = require("../commands/miscellaneous/poll");
 const role_message_1 = require("../commands/managements/role-message");
 const function_1 = require("../function");
 const music_1 = require("../helpers/music");
-const LevelData_1 = require("./LevelData");
 const NorthClient_1 = require("./NorthClient");
 const slash_1 = __importDefault(require("../helpers/slash"));
-const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: (attempt) => Math.pow(2, attempt) * 1000 });
+const node_fetch_1 = __importDefault(require("node-fetch"));
 const filter = require("../helpers/filter");
 class Handler {
     static setup(client) {
@@ -52,7 +69,7 @@ class Handler {
                 return;
             const exp = Math.round(function_1.getRandomNumber(5, 15) * (1 + message.content.length / 100));
             const sqlDate = function_1.jsDate2Mysql(new Date());
-            storage.queries.push(new LevelData_1.LevelData(message.author.id, message.guild.id, exp, sqlDate));
+            storage.queries.push(new NorthClient_1.LevelData(message.author.id, message.guild.id, exp, sqlDate));
         });
     }
     preReady(client) {
@@ -71,7 +88,7 @@ class Handler {
     }
     readCurrency(_client, con) {
         return __awaiter(this, void 0, void 0, function* () {
-            const [r] = yield con.query("SELECT * FROM currency");
+            const [r] = yield con.query("SELECT * FROM currency WHERE guild <> '622311594654695434'");
             for (const result of r) {
                 try {
                     if (result.bank <= 0)
@@ -88,17 +105,15 @@ class Handler {
     readServers(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
-            var [results] = yield con.query("SELECT * FROM servers");
+            var [results] = yield con.query("SELECT * FROM servers WHERE id <> '622311594654695434'");
             results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                 storage.guilds[result.id] = {};
                 try {
                     yield client.guilds.fetch(result.id);
                 }
                 catch (err) {
-                    if (result.id != '622311594654695434' && result.id != '819539026792808448') {
-                        yield con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
-                        return storage.log("Removed left servers");
-                    }
+                    yield con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
+                    return storage.log("Removed left servers");
                 }
                 if (result.queue || result.looping || result.repeating) {
                     var queue = [];
@@ -129,6 +144,7 @@ class Handler {
                     message: result.boost_msg,
                     channel: result.boost_channel
                 };
+                storage.guilds[result.id].autoReply = result.auto_reply;
             }));
             storage.log(`[${client.id}] Set ${results.length} configurations`);
         });
@@ -136,7 +152,7 @@ class Handler {
     readRoleMsg(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
             const storage = NorthClient_1.NorthClient.storage;
-            const [res] = yield con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY expiration");
+            const [res] = yield con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434' ORDER BY expiration");
             storage.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
             storage.rm = res;
             res.forEach((result) => __awaiter(this, void 0, void 0, function* () { return role_message_1.expire({ pool: client.pool, client }, result.expiration - Date.now(), result.id); }));
@@ -144,7 +160,7 @@ class Handler {
     }
     readGiveaways(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
-            var [results] = yield con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY endAt ASC");
+            var [results] = yield con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
             NorthClient_1.NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
             results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                 var currentDate = Date.now();
@@ -157,7 +173,7 @@ class Handler {
     }
     readPoll(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
-            var [results] = yield con.query("SELECT * FROM poll WHERE guild <> '622311594654695434' AND guild <> '819539026792808448' ORDER BY endAt ASC");
+            var [results] = yield con.query("SELECT * FROM poll WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
             NorthClient_1.NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
             results.forEach(result => {
                 var currentDate = Date.now();
@@ -224,7 +240,7 @@ class Handler {
             guild.fetchInvites().then((guildInvites) => __awaiter(this, void 0, void 0, function* () {
                 const ei = storage.guilds[member.guild.id].invites;
                 storage.guilds[member.guild.id].invites = guildInvites;
-                const invite = yield guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
+                const invite = guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
                 if (!invite)
                     return;
                 const inviter = yield client.users.fetch(invite.inviter.id);
@@ -471,21 +487,6 @@ class Handler {
         return __awaiter(this, void 0, void 0, function* () {
             const client = (oldMember.client || newMember.client);
             const storage = NorthClient_1.NorthClient.storage;
-            if (client.id == 1 && oldMember.displayName !== newMember.displayName) {
-                const [results] = yield client.pool.query(`SELECT uuid FROM dcmc WHERE dcid = '${newMember.id}'`);
-                if (results.length == 1) {
-                    const { name } = yield function_1.profile(results[0].uuid);
-                    const mcLen = name.length + 3;
-                    var nickname = newMember.displayName;
-                    const matches = nickname.match(/ \[\w+\]$/);
-                    if (matches)
-                        nickname = nickname.replace(matches[0], "");
-                    if (nickname.length + mcLen > 32)
-                        yield newMember.setNickname(`${nickname.slice(0, 29 - mcLen)}... [${name}]`);
-                    else
-                        yield newMember.setNickname(`${nickname} [${name}]`);
-                }
-            }
             if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp)
                 return;
             const boost = (_a = storage.guilds[newMember.guild.id]) === null || _a === void 0 ? void 0 : _a.boost;
@@ -574,13 +575,9 @@ class Handler {
             if (msg.guild && ((_a = storage.guilds[msg.guild.id]) === null || _a === void 0 ? void 0 : _a.prefix))
                 msg.prefix = storage.guilds[msg.guild.id].prefix;
             this.messageLevel(msg);
-            const args = msg.content.slice(msg.prefix.length).split(/ +/);
-            if (!msg.content.startsWith(msg.prefix) || msg.author.bot) {
-                if (!msg.author.bot && Math.floor(Math.random() * 1000) === 69)
-                    cleverbot_free_1.default(msg.content).then(response => msg.channel.send(response));
+            if (!msg.content.startsWith(msg.prefix))
                 return;
-            }
-            ;
+            const args = msg.content.slice(msg.prefix.length).split(/ +/);
             const commandName = args.shift().toLowerCase();
             const command = storage.commands.get(commandName) || storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
             if (!command)
@@ -606,10 +603,45 @@ class AliceHandler extends Handler {
     constructor(client) {
         super(client);
     }
-    readServers(_client, _con) {
-        return __awaiter(this, void 0, void 0, function* () { });
+    readServers(client, con) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const storage = NorthClient_1.NorthClient.storage;
+            var [results] = yield con.query("SELECT * FROM servers WHERE id = '622311594654695434'");
+            const result = results[0];
+            storage.guilds[result.id] = {};
+            if (result.queue || result.looping || result.repeating) {
+                var queue = [];
+                try {
+                    if (result.queue)
+                        queue = JSON.parse(unescape(result.queue));
+                }
+                catch (err) {
+                    storage.error(`Error parsing queue of ${result.id}`);
+                }
+                music_1.setQueue(result.id, queue, !!result.looping, !!result.repeating, client.pool);
+            }
+            if (result.prefix)
+                storage.guilds[result.id].prefix = result.prefix;
+            storage.guilds[result.id].token = result.token;
+            storage.guilds[result.id].giveaway = unescape(result.giveaway);
+            storage.guilds[result.id].welcome = {
+                message: result.welcome,
+                channel: result.wel_channel,
+                image: result.wel_img,
+                autorole: result.autorole
+            };
+            storage.guilds[result.id].leave = {
+                message: result.leave_msg,
+                channel: result.leave_channel
+            };
+            storage.guilds[result.id].boost = {
+                message: result.boost_msg,
+                channel: result.boost_channel
+            };
+            storage.log(`[${client.id}] Set ${results.length} configurations`);
+        });
     }
-    preReady(client) {
+    setPresence(client) {
         return __awaiter(this, void 0, void 0, function* () {
             client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
         });
@@ -680,7 +712,7 @@ class AliceHandler extends Handler {
                         let rank = unescape(result.dc_rank);
                         let title = `<@${dc}> - ${rank} [${username}]`;
                         let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                        tmp.push({ title: title, time: function_1.duration(seconds) });
+                        tmp.push({ title: title, time: moment_1.duration(seconds) });
                     }
                     if (tmp.length <= 10) {
                         timerMsg.reactions.removeAll().catch(storage.error);
@@ -761,7 +793,7 @@ class AliceHandler extends Handler {
     }
     readGiveaways(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
-            var [results] = yield con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' OR id = '819539026792808448' ORDER BY endAt ASC");
+            var [results] = yield con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' ORDER BY endAt ASC");
             NorthClient_1.NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
             results.forEach((result) => __awaiter(this, void 0, void 0, function* () {
                 var currentDate = Date.now();
@@ -774,7 +806,7 @@ class AliceHandler extends Handler {
     }
     readPoll(client, con) {
         return __awaiter(this, void 0, void 0, function* () {
-            var [results] = yield con.query("SELECT * FROM poll WHERE guild = '622311594654695434' OR guild = '819539026792808448' ORDER BY endAt ASC");
+            var [results] = yield con.query("SELECT * FROM poll WHERE guild = '622311594654695434' ORDER BY endAt ASC");
             NorthClient_1.NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
             results.forEach(result => {
                 var currentDate = Date.now();
@@ -800,7 +832,6 @@ class AliceHandler extends Handler {
         });
     }
     preMessage(message) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const client = message.client;
             if (message.mentions.users.size > 10) {
@@ -826,64 +857,115 @@ class AliceHandler extends Handler {
                     NorthClient_1.NorthClient.storage.log("Found UUID: " + mcUuid);
                     var res;
                     try {
-                        res = yield fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                        const f = yield node_fetch_1.default(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`);
+                        if (f.status == 404)
+                            return yield msg.edit("This player doesn't exist!").then(msg => msg.delete({ timeout: 10000 }));
+                        res = yield f.json();
                     }
                     catch (err) {
                         return yield msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
                     }
-                    const hyDc = (_a = res.links) === null || _a === void 0 ? void 0 : _a.DISCORD;
-                    if (!hyDc || hyDc !== message.author.tag)
-                        return yield msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
                     var [results] = yield con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                     if (results.length == 0) {
                         yield con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
-                        yield msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                        msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
                         NorthClient_1.NorthClient.storage.log("Inserted record for mc-name.");
                     }
                     else {
                         yield con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
-                        yield msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                        msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
                         NorthClient_1.NorthClient.storage.log("Updated record for mc-name.");
                     }
-                    const mcLen = res.username.length + 3;
-                    var nickname = message.member.displayName;
-                    const matches = nickname.match(/ \[\w+\]$/);
-                    if (matches)
-                        nickname = nickname.replace(matches[0], "");
-                    if (nickname.length + mcLen > 32)
-                        yield message.member.setNickname(`${nickname.slice(0, 29 - mcLen)}... [${res.username}]`);
+                    const mcLen = res.username.length + 1;
+                    const bw = res.stats.BedWars;
+                    const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;
+                    NorthClient_1.NorthClient.storage.log(`Attempting to change nickname of ${message.author.tag} to ${firstHalf} ${res.username}`);
+                    if (firstHalf.length + mcLen > 32)
+                        yield message.member.setNickname(`${firstHalf} ${res.username.slice(0, 28 - firstHalf.length)}...`);
                     else
-                        yield message.member.setNickname(`${nickname} [${res.username}]`);
-                    const gInfo = yield fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                        yield message.member.setNickname(`${firstHalf} ${res.username}`);
+                    const gInfo = yield node_fetch_1.default(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                    const roles = message.member.roles;
                     if (gInfo.id === "5b25306a0cf212fe4c98d739")
-                        yield message.member.roles.add("622319008758104064");
-                    yield message.member.roles.remove("837271157912633395");
-                    yield message.member.roles.remove("837271158738255912");
-                    yield message.member.roles.remove("837271163121041458");
-                    yield message.member.roles.remove("837271170717057065");
-                    yield message.member.roles.remove("837271174827212850");
-                    yield message.member.roles.remove("837271174073155594");
-                    yield message.member.roles.remove("837271173027856404");
-                    yield message.member.roles.remove("837271172319674378");
-                    yield message.member.roles.remove("837271171619356692");
-                    if (res.rank === "ADMIN")
-                        yield message.member.roles.add("837271157912633395");
-                    else if (res.rank === "MOD")
-                        yield message.member.roles.add("837271158738255912");
-                    else if (res.rank === "HELPER")
-                        yield message.member.roles.add("837271163121041458");
-                    else if (res.rank === "YOUTUBER")
-                        yield message.member.roles.add("837271170717057065");
+                        yield roles.add("622319008758104064");
+                    yield roles.add("676754719120556042");
+                    yield roles.add("837345908697989171");
+                    yield roles.remove("837345919010603048");
+                    if (bw.level < 100)
+                        yield roles.add("851471525802803220");
+                    else if (bw.level < 200)
+                        yield roles.add("851469005168181320");
+                    else if (bw.level < 300)
+                        yield roles.add("851469138647842896");
+                    else if (bw.level < 400)
+                        yield roles.add("851469218310389770");
+                    else if (bw.level < 500)
+                        yield roles.add("851469264664789022");
+                    else if (bw.level < 600)
+                        yield roles.add("851469323444944907");
+                    else if (bw.level < 700)
+                        yield roles.add("851469358076788766");
+                    else if (bw.level < 800)
+                        yield roles.add("851469389806829596");
+                    else if (bw.level < 900)
+                        yield roles.add("851469422971584573");
+                    else if (bw.level < 1000)
+                        yield roles.add("851469455791489034");
+                    else if (bw.level < 1100)
+                        yield roles.add("851469501115793408");
+                    else if (bw.level < 1200)
+                        yield roles.add("851469537030307870");
+                    else if (bw.level < 1300)
+                        yield roles.add("851469565287858197");
+                    else if (bw.level < 1400)
+                        yield roles.add("851469604840013905");
+                    else if (bw.level < 1500)
+                        yield roles.add("851469652940161084");
+                    else if (bw.level < 1600)
+                        yield roles.add("851469683764887572");
+                    else if (bw.level < 1700)
+                        yield roles.add("851469718955229214");
+                    else if (bw.level < 1800)
+                        yield roles.add("851469754677985280");
+                    else if (bw.level < 1900)
+                        yield roles.add("851469812050690068");
+                    else if (bw.level < 2000)
+                        yield roles.add("851469858675097660");
+                    else if (bw.level < 2100)
+                        yield roles.add("851469898547068938");
+                    else if (bw.level < 2200)
+                        yield roles.add("851469933606862848");
+                    else if (bw.level < 2300)
+                        yield roles.add("851469969685479424");
+                    else if (bw.level < 2400)
+                        yield roles.add("851470006520905748");
+                    else if (bw.level < 2500)
+                        yield roles.add("851470041031245854");
+                    else if (bw.level < 2600)
+                        yield roles.add("851470070022406204");
+                    else if (bw.level < 2700)
+                        yield roles.add("851470099558039622");
+                    else if (bw.level < 2800)
+                        yield roles.add("851470140410822677");
+                    else if (bw.level < 2900)
+                        yield roles.add("851470173503881218");
+                    else if (bw.level < 3000)
+                        yield roles.add("851470230370910248");
+                    else
+                        yield roles.add("851471153188569098");
+                    yield roles.remove(["837271170717057065", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"]);
+                    if (res.rank === "YOUTUBER")
+                        yield roles.add("837271170717057065");
                     else if (res.rank === "VIP")
-                        yield message.member.roles.add("837271174827212850");
+                        yield roles.add("837271174827212850");
                     else if (res.rank === "VIP_PLUS")
-                        yield message.member.roles.add("837271174073155594");
+                        yield roles.add("837271174073155594");
                     else if (res.rank === "MVP")
-                        yield message.member.roles.add("837271173027856404");
+                        yield roles.add("837271173027856404");
                     else if (res.rank === "MVP_PLUS")
-                        yield message.member.roles.add("837271172319674378");
+                        yield roles.add("837271172319674378");
                     else if (res.rank === "MVP_PLUS_PLUS")
-                        yield message.member.roles.add("837271171619356692");
+                        yield roles.add("837271171619356692");
                 }
                 catch (err) {
                     NorthClient_1.NorthClient.storage.error(err);

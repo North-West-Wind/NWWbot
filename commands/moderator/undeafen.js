@@ -1,4 +1,4 @@
-const { findMember, commonModerationEmbed } = require("../../function.js");
+const { findMember, commonModerationEmbed, genPermMsg } = require("../../function.js");
 const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 
 module.exports = {

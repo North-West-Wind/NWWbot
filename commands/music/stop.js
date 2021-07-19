@@ -20,8 +20,8 @@ module.exports = {
   },
   async execute(message) {
     var serverQueue = getQueues().get(message.guild.id);
-    if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue?.playing) return await message.channel.send("You have to be in a voice channel to stop the music when the bot is playing!");
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
+    if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue?.playing) return await message.channel.send("You have to be in a voice channel to stop the music when the bot is playing!");
     if (serverQueue.connection != null && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
     serverQueue.playing = false;
     serverQueue.connection = null;

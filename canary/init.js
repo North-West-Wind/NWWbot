@@ -1,4 +1,4 @@
-const { CanaryHandler } = require("../classes/Handler");
+const { CanaryHandler } = require("../classes/Handler.js");
 
 module.exports = (client) => {
     client.prefix = "%";

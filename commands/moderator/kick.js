@@ -44,7 +44,7 @@ module.exports = {
     try {
       if (reason) await member.kick(reason);
       else await member.kick();
-      user.send(embeds[0]).catch(() => { });
+      member.user.send(embeds[0]).catch(() => { });
       await message.channel.send(embeds[1]);
     } catch (err) {
       await message.channel.send(embeds[2]);

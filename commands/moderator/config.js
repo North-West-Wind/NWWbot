@@ -42,7 +42,7 @@ module.exports = {
         NorthClient.storage.guilds[guild.id].token = generated;
         await client.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
       }
-      return InteractionResponse.ackknowledge();
+      return InteractionResponse.sendMessage("See you in DM!");
     } catch (err) {
       NorthClient.storage.error(err);
       return InteractionResponse.reply(member.id, "there was an error trying to update the token! This token will be temporary.");

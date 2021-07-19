@@ -1,5 +1,5 @@
 var Discord = require("discord.js");
-var { shuffleArray, twoDigits, color, findMember } = require("../../function.js");
+var { shuffleArray, twoDigits, color, findMember, ms } = require("../../function.js");
 const { NorthClient } = require("../../classes/NorthClient.js");
 var converter = require("number-to-words");
 var { createCanvas, loadImage } = require("canvas");
@@ -47,6 +47,7 @@ module.exports = {
   },
   async execute(message, args) {
     const c = color();
+    var timeLimit = 12 * 60 * 1000;
     if (args.length > 0) {
       var mentions = new Discord.Collection();
       for (const arg of args) {
@@ -66,6 +67,10 @@ module.exports = {
       else if (collected.first().mentions.members.find(x => x.id === message.author.id)) return msg.edit("Why would you invite yourself?");
       await msg.edit(`You invited ${collected.first().content} to play UNO.`);
       var mentions = collected.first().mentions.members;
+    }
+    if (args.find(x => x.startsWith("time="))) {
+      const time = ms(args.find(x => x.startsWith("time=")).split("=")[1]);
+      if (time) timeLimit = time;
     }
     var responses = 0;
     var accepted = 0;
@@ -120,11 +125,11 @@ module.exports = {
     var players = new Discord.Collection();
 
     async function prepare(mesg, nano) {
-      var uno = NorthClient.storage.uno;
-      var order = shuffleArray(participants);
+      const uno = NorthClient.storage.uno;
+      const order = shuffleArray(participants);
       message.channel.send(`The order has been decided!${order.map(x => `\n${order.indexOf(x) + 1}. **${x.tag}**`)}`);
-      for (var participant of order) players.set(participant.id, { user: participant, card: NorthClient.storage.card.random(7) });
-      for (var [key, player] of players) {
+      for (const participant of order) players.set(participant.id, { user: participant, card: NorthClient.storage.card.random(7) });
+      for (const [_key, player] of players) {
         let em = new Discord.MessageEmbed()
           .setColor(c)
           .setTitle(`The cards have been distributed!`)
@@ -149,6 +154,7 @@ module.exports = {
       return await mesg.channel.send({ content: null, embed: em });
     }
 
+    var overTime = false;
     async function handle(mesg, nano) {
       let uno = NorthClient.storage.uno;
       let drawCard = 0;
@@ -165,6 +171,39 @@ module.exports = {
         nores = 0;
         let i = -1;
         for (var [key, player] of players) {
+          if (overTime) {
+            won = true;
+            let data = await NorthClient.storage.uno.get(nano);
+            var scores = 0;
+            var lowestP = [], lowestS = -1;
+            for (var p of Array.from(data.players.values())) {
+              var s = 0;
+              for (const card of p.card) {
+                if (card.number < 10) s += card.number;
+                else if (card.number < 13) s += 20;
+                else s += 50;
+              }
+              if (lowestS < 0 || s <= lowestS) {
+                lowestS = s;
+                if (s == lowestS) lowestP.push(p.user);
+                else lowestP = [p.user];
+              }
+              scores += s;
+            }
+            scores -= lowestS * lowestP.length;
+            let win = new Discord.MessageEmbed()
+              .setColor(c)
+              .setTitle(`The time limit has been reached!`)
+              .setThumbnail(player.user.displayAvatarURL())
+              .setDescription(`Congratulations to **${lowestP.map(u => u.tag).join("**, **")}** winning with **${scores} scores**!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - nano, "milliseconds").format()}.\nThanks for playing!`)
+              .setTimestamp()
+              .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+            lowestP.forEach(u => u.send("You won the game! Congratulations!"));
+            await mesg.delete();
+            await mesg.channel.send(win);
+            uno.delete(nano);
+            break;
+          }
           player.card.sort((a, b) => (a.color * 100 + a.number) - (b.color * 100 + b.number));
           i++;
           let top = await uno.get(nano).card;
@@ -198,13 +237,13 @@ module.exports = {
             .attachFiles([{ attachment: await canvasImg(assets, player.card), name: "yourCard.png" }])
             .setImage("attachment://yourCard.png")
             .setTimestamp()
-            .setFooter("Please decide in 2 minutes.", message.client.user.displayAvatarURL());
+            .setFooter("Please decide in 30 seconds.", message.client.user.displayAvatarURL());
           let mssg = await player.user.send(em);
           await mssg.react("📥");
           await mssg.react("📤");
           await mssg.react("⏹️");
           try {
-            var collected = await mssg.awaitReactions((r, u) => ["📥", "📤", "⏹️"].includes(r.emoji.name) && u.id === player.user.id, { time: 120 * 1000, max: 1 });
+            var collected = await mssg.awaitReactions((r, u) => ["📥", "📤", "⏹️"].includes(r.emoji.name) && u.id === player.user.id, { time: 30 * 1000, max: 1 });
           } catch (err) { }
           var newCard = NorthClient.storage.card.random(drawCard > 0 ? drawCard : 1);
           var card = !newCard.length ? [toString(newCard)] : newCard.map(x => toString(x));
@@ -220,7 +259,7 @@ module.exports = {
             em = new Discord.MessageEmbed()
               .setColor(c)
               .setTitle(`Your turn ended!`)
-              .setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
+              .setDescription(`30 seconds have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
               .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
               .setImage("attachment://newCard.png")
               .setTimestamp()
@@ -268,17 +307,17 @@ module.exports = {
               .attachFiles([{ attachment: await canvasImg(assets, placeable), name: "place.png" }])
               .setImage("attachment://place.png")
               .setTimestamp()
-              .setFooter(`Please decide in 2 mintues.`, message.client.user.displayAvatarURL());
+              .setFooter(`Please decide in 30 seconds.`, message.client.user.displayAvatarURL());
             await mssg.delete();
             mssg = await mssg.channel.send(em);
             try {
-              var collected = await mssg.channel.awaitMessages(x => x.author.id === player.user.id, { max: 1, time: 120 * 1000 });
+              var collected = await mssg.channel.awaitMessages(x => x.author.id === player.user.id, { max: 1, time: 30 * 1000 });
             } catch (err) { }
             if (!collected || !collected.first() || !collected.first().content) {
               em = new Discord.MessageEmbed()
                 .setColor(c)
                 .setTitle(`Your turn ended!`)
-                .setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
+                .setDescription(`30 seconds have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                 .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                 .setImage("attachment://newCard.png")
                 .setTimestamp()
@@ -330,7 +369,7 @@ module.exports = {
             }
             let placedCard = NorthClient.storage.card.get(collected.first().content);
             if (placedCard.number === 13 || placedCard.number === 14) {
-              em.setDescription("Please choose your color:").setFooter("Please decide in 2 minutes.");
+              em.setDescription("Please choose your color:").setFooter("Please decide in 30 seconds.");
               await mssg.delete();
               mssg = await mssg.channel.send(em);
               let colors = ["🟥", "🟨", "🟦", "🟩"];
@@ -338,13 +377,13 @@ module.exports = {
                 mssg.react(rColor);
               }
               try {
-                var collected = await mssg.awaitReactions((r, u) => colors.includes(r.emoji.name) && u.id === player.user.id, { max: 1, time: 120 * 1000 });
+                var collected = await mssg.awaitReactions((r, u) => colors.includes(r.emoji.name) && u.id === player.user.id, { max: 1, time: 30 * 1000 });
               } catch (err) { }
-              if (!collected || !collected.first()) {
+              if (!collected?.first()) {
                 em = new Discord.MessageEmbed()
                   .setColor(c)
                   .setTitle(`Your turn ended!`)
-                  .setDescription(`2 minutes have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
+                  .setDescription(`30 seconds have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                   .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                   .setImage("attachment://newCard.png")
                   .setTimestamp()
@@ -459,7 +498,7 @@ module.exports = {
                 let valueSliced = playerValues.slice(0, i);
                 playerKeys = playerKeys.slice(i).concat(keySliced).reverse();
                 playerValues = playerValues.slice(i).concat(valueSliced).reverse();
-                await players.clear();
+                players.clear();
                 for (let s = 0; s < playerKeys.length; s++) {
                   players.set(playerKeys[s], playerValues[s]);
                 }
@@ -508,7 +547,7 @@ module.exports = {
     if (responses !== accepted) return message.channel.send("The game cannot start as someone didn't accept the invitation!");
     else if (ingame) return message.channel.send("The game cannot start as somebody is in another game!");
     else {
-      var readFile = await fs.readFileSync("./.glitch-assets", "utf8");
+      var readFile = fs.readFileSync("./.glitch-assets", "utf8");
       var arr = readFile.split("\n");
       for (let i = 0; i < arr.length - 1; i++) arr[i] = JSON.parse(arr[i]);
       assets = arr.filter(x => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map(x => {
@@ -521,6 +560,7 @@ module.exports = {
       var nano = Date.now();
       try {
         mesg = await prepare(mesg, nano);
+        setTimeout(() => overTime = true, timeLimit);
         await handle(mesg, nano);
       } catch (err) { return NorthClient.storage.error(err) }
     }

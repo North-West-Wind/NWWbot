@@ -3,7 +3,7 @@ const { play } = require("./play.js");
 const moment = require("moment");
 const formatSetup = require("moment-duration-format");
 const { ApplicationCommand, InteractionResponse, ApplicationCommandOption, ApplicationCommandOptionType } = require("../../classes/Slash.js");
-const { getQueues } = require("../../helpers/music.js");
+const { getQueues, setQueue } = require("../../helpers/music.js");
 formatSetup(moment);
 
 module.exports = {

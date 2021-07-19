@@ -24,8 +24,7 @@ const cheerio = require("cheerio");
 const StreamConcat = require('stream-concat');
 const ph = require("@justalk/pornhub-api");
 const { setQueue, updateQueue, getQueues } = require("../../helpers/music.js");
-const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse, InteractionResponseType } = require("../../classes/Slash.js");
-var cookie = { cookie: process.env.COOKIE, id: 0 };
+const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
 function createEmbed(client, songs) {
   const Embed = new Discord.MessageEmbed()
     .setColor(color())
@@ -105,8 +104,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
       case 5:
         const c = await getMP3(song.url);
         if (c.error) throw new Error(c.message);
-        if (c.url.startsWith("https://www.youtube.com/embed/")) var d = ytdl(c.url);
-        else var d = await requestStream(c.url);
+        var d = await requestStream(c.url);
         dispatcher = serverQueue.connection.play(new StreamConcat([d, silence], { highWaterMark: 1 << 25 }), { seek: seek });
         break;
       case 6:
@@ -197,15 +195,7 @@ async function play(guild, song, skipped = 0, seek = 0) {
       play(guild, pending);
     }
   }).on("error", async error => {
-    if (error.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
-      NorthClient.storage.error("Received 429 error. Changing ytdl-core cookie...");
-      cookie.id++;
-      if (!process.env[`COOKIE${cookie.id}`]) {
-        cookie.cookie = process.env.COOKIE;
-        cookie.id = 0;
-      }
-      else cookie.cookie = process.env[`COOKIE${cookie.id}`];
-    } else NorthClient.storage.error(error);
+    NorthClient.storage.error(error);
     skipped = oldSkipped;
     await skip();
   });
@@ -387,17 +377,9 @@ module.exports = {
   },
   async addYTURL(link, type = 0) {
     try {
-      var songInfo = await ytdl.getInfo(link, { requestOptions: { headers: { cookie: cookie.cookie, 'x-youtube-identity-token': process.env.YT } } });
+      var songInfo = await ytdl.getInfo(link);
     } catch (err) {
-      if (err.message.toLowerCase() == "input stream: Status code: 429".toLowerCase()) {
-        NorthClient.storage.error("Received 429 error. Changing ytdl-core cookie...");
-        cookie.id++;
-        if (!process.env[`COOKIE${cookie.id}`]) {
-          cookie.cookie = process.env.COOKIE;
-          cookie.id = 0;
-        }
-        else cookie.cookie = process.env[`COOKIE${cookie.id}`];
-      } else NorthClient.storage.error(err);
+      NorthClient.storage.error(err);
       return { error: true, message: "Failed to get video data!" };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);

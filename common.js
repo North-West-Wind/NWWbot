@@ -1,10 +1,9 @@
 const { twoDigits, deepReaddir } = require("./function.js");
 const fs = require("fs");
 const { registerFont } = require("canvas");
-const { NorthClient } = require("./classes/NorthClient.js");
+const { NorthClient, Card } = require("./classes/NorthClient");
 const mysql = require("mysql2");
 const { updateQueue, getQueues } = require("./helpers/music.js");
-const { Card } = require("./classes/Card.js");
 const mysql_config = {
     connectTimeout: 60 * 60 * 1000,
     connectionLimit: 1000,
@@ -18,13 +17,6 @@ const mysql_config = {
     queueLimit: 0
 };
 
-if (!String.prototype.splice) {
-    String.prototype.splice = function(start, delCount, newSubStr) {
-        return this.slice(0, start) + newSubStr + this.slice(start + Math.abs(delCount));
-    };
-    console.log("Registered String.splice()");
-}
-
 module.exports = (...clients) => {
     const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
     for (const file of fontFiles) registerFont(`./fonts/${file}`, { family: "NotoSans", style: file.split(/[\-\.]/)[1].toLowerCase() });
@@ -35,13 +27,13 @@ module.exports = (...clients) => {
     NorthClient.storage.card.set("0414", new Card(4, 14));
 
     const commandFiles = deepReaddir("./commands").filter(file => file.endsWith(".js"));
-    const itemFiles = fs.readdirSync("./items").filter(file => file.endsWith(".js"));
+    const itemFiles = deepReaddir("./items").filter(file => file.endsWith(".js"));
     for (const file of commandFiles) {
         const command = require(file);
         if (command.description) NorthClient.storage.commands.set(command.name, command);
     }
     for (const file of itemFiles) {
-        const item = require(`./items/${file}`);
+        const item = require(file);
         NorthClient.storage.items.set(item.name.toLowerCase(), item);
     }
     var pool = mysql.createPool(mysql_config).promise();
@@ -52,7 +44,7 @@ module.exports = (...clients) => {
             NorthClient.storage.error(err);
         } finally {
                 pool = mysql.createPool(mysql_config).promise();
-                clients.forEach(c => c.pool = pool);
+                clients.forEach(client => client.pool = pool);
                 const queue = getQueues();
                 for (const [id, serverQueue] of queue) {
                     serverQueue.pool = pool;
@@ -60,5 +52,5 @@ module.exports = (...clients) => {
                 }
             }
     }));
-    clients.forEach(c => c.pool = pool);
+    clients.forEach(client => client.pool = pool);
 }

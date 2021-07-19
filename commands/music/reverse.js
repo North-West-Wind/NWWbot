@@ -1,5 +1,5 @@
 const { play } = require("./play.js");
-const { updateQueue, getQueues } = require("../../helpers/music.js");
+const { updateQueue, getQueues, setQueue } = require("../../helpers/music.js");
 const { moveArray } = require("../../function.js");
 const { InteractionResponse, ApplicationCommand } = require("../../classes/Slash.js");
 
