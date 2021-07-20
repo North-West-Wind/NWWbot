@@ -12,6 +12,7 @@ export class NorthClient extends Client {
     prefix: string;
     pool: Pool;
     log: Snowflake;
+    version: string;
     static storage: ClientStorage;
 }
 
@@ -24,8 +25,9 @@ export interface Command {
     aliases?: string[];
     subcommands?: string[];
     subaliases?: string[];
-    permission?: number;
-    slashInit?: boolean;
+    subdesc?: string[];
+    subusage?: (string | number)[];
+    permissions?: number;
 
     run(message: NorthMessage, args: string[]): Promise<any> | any;
 }
@@ -70,6 +72,16 @@ export class UnoGame {
     cards: number;
 }
 
+export interface RoleMessage {
+    id: Snowflake;
+    guild: Snowflake;
+    channel: Snowflake;
+    author: Snowflake;
+    expiration: number;
+    roles: string;
+    emojis: string;
+}
+
 export class ClientStorage {
     private client: NorthClient;
     constructor(c: NorthClient) {
@@ -77,7 +89,7 @@ export class ClientStorage {
     }
 
     guilds: any = {};
-    rm: RowDataPacket[] = [];
+    rm: RoleMessage[] = [];
     timers: Collection<Snowflake, NodeJS.Timeout> = new Collection();
     noLog: Snowflake[] = [];
     commands: Collection<string, SlashCommand> = new Collection();

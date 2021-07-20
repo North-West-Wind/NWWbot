@@ -54,6 +54,7 @@ export default async(client: NorthClient) => {
             }
     }));
     client.pool = pool;
+    client.version = "4.0.7";
     globalClient = client;
 }
 

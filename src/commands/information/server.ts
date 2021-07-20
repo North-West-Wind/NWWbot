@@ -1,21 +1,23 @@
-const Discord = require("discord.js");
-const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash.js");
-const { twoDigits, color, readableDateTime } = require("../../function.js")
+import { Interaction } from "slashcord";
+import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import * as Discord from "discord.js";
+import { color, readableDateTime } from "../../function.js";
 
-module.exports = {
-  name: 'server',
-  description: 'Display some server information.',
-  category: 6,
-  slashInit: true,
-  register: () => ApplicationCommand.createBasic(module.exports),
-  async slash(client, interaction) {
-    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    return InteractionResponse.sendEmbeds(await this.createServerEmbed(await client.guilds.fetch(interaction.guild_id)));
-  },
-  async execute(message) {
-    const Embed = await this.createServerEmbed(message.guild);
-    message.channel.send(Embed);
-  },
+class ServerCommand implements SlashCommand {
+  name = 'server'
+  description = 'Display some server information.'
+  category = 6
+
+  async execute(obj: { interaction: Interaction }) {
+    if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
+    await obj.interaction.reply(await this.createServerEmbed(obj.interaction.guild));
+  }
+
+  async run(message: NorthMessage) {
+    if (!message.guild) return await message.channel.send("This command only works on server.");
+    await message.channel.send(await this.createServerEmbed(message.guild));
+  }
+
   async createServerEmbed(guild) {
     const name = guild.name;
     const id = guild.id;
@@ -61,3 +63,6 @@ module.exports = {
     return Embed;
   }
 };
+
+const cmd = new ServerCommand();
+export default cmd;

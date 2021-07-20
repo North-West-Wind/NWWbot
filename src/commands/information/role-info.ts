@@ -1,26 +1,30 @@
-const Discord = require("discord.js");
-const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash");
-const { color } = require("../../function");
+import { PermissionResolvable, Role } from "discord.js";
+import { Interaction } from "slashcord";
+import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+import * as Discord from "discord.js";
+import { color } from "../../function";
 
-module.exports = {
-  name: "role-info",
-  description: "Display information of a role.",
-  aliases: ["ri"],
-  usage: "<role | role ID | role name>",
-  category: 6,
-  args: 1,
-  slashInit: true,
-  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
-    new ApplicationCommandOption(ApplicationCommandOptionType.ROLE.valueOf(), "role", "The role's information to display.").setRequired(true)
-  ]),
-  async slash(client, interaction, args) {
-    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    const guild = await client.guilds.fetch(interaction.guild_id);
-    const role = await guild.roles.fetch(args[0].value);
-    const Embed = this.createRoleEmbed(role, guild, client);
-    return InteractionResponse.sendEmbeds(Embed);
-  },
-  async execute(message, args) {
+class RoleInfoCommand implements SlashCommand {
+  name = "role-info"
+  description = "Display information of a role."
+  aliases = ["ri"]
+  usage = "<role | role ID | role name>"
+  category = 6
+  args = 1
+  options = [{
+      name: "role",
+      description: "The role's information to display.",
+      required: true,
+      type: 8
+  }];
+  
+  async execute(obj: { interaction: Interaction, client: NorthClient, args: any[] }) {
+    if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
+    const role = await obj.interaction.guild.roles.fetch(obj.args[0].value);
+    await obj.interaction.reply(this.createRoleEmbed(role, obj.client));
+  }
+
+  async run(message, args) {
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID)) || args.length > 1) {
       var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === args.join(" ").toLowerCase());
@@ -29,10 +33,12 @@ module.exports = {
       var role = await message.guild.roles.cache.get(roleID);
       if (!role) return message.channel.send("No role was found!");
     }
-    const Embed = this.createRoleEmbed(role, message.guild, message.client);
+    const Embed = this.createRoleEmbed(role, message.client);
     message.channel.send(Embed);
-  },
-  createRoleEmbed(role, guild, client) {
+  }
+
+  createRoleEmbed(role: Role, client: NorthClient) {
+      const guild = role.guild;
     const userMember = role.members;
     const userMemberCount = [];
     const botMemberCount = [];
@@ -44,7 +50,7 @@ module.exports = {
     var permissions = [];
     var flags = ["VIEW_AUDIT_LOG", "MANAGE_GUILD", "MANAGE_ROLES", "MANAGE_CHANNELS", "KICK_MEMBERS", "BAN_MEMBERS", "CREATE_INSTANT_INVITE", "CHANGE_NICKNAME", "MANAGE_NICKNAMES", "MANAGE_EMOJIS", "MANAGE_WEBHOOKS", "VIEW_CHANNEL", "SEND_TTS_MESSAGES", "EMBED_LINKS", "READ_MESSAGE_HISTORY", "USE_EXTERNAL_EMOJIS", "SEND_MESSAGES", "MANAGE_MESSAGES", "ATTACH_FILES", "MENTION_EVERYONE", "ADD_REACTIONS", "CONNECT", "MUTE_MEMBERS", "MOVE_MEMBERS", "SPEAK", "DEAFEN_MEMBERS", "USE_VAD", "PRIORITY_SPEAKER", "STREAM"]
     
-    for(const flag of flags) if(role.permissions.has(flag)) permissions.push(flag);
+    for(const flag of flags) if(role.permissions.has(<PermissionResolvable> flag)) permissions.push(flag);
     if(role.permissions.has("ADMINISTRATOR")) permissions = ["ADMINISTRATOR"];
     
     const Embed = new Discord.MessageEmbed()
@@ -62,4 +68,7 @@ module.exports = {
     .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return Embed;
   }
-};
+}
+
+const cmd = new RoleInfoCommand();
+export default cmd;

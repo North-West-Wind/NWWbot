@@ -9,7 +9,7 @@ import { endPoll } from "../commands/miscellaneous/poll";
 import { expire } from "../commands/managements/role-message";
 import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, wait, nameToUuid, color } from "../function";
 import { setQueue, stop } from "../helpers/music";
-import { NorthClient, LevelData, NorthMessage } from "./NorthClient";
+import { NorthClient, LevelData, NorthMessage, RoleMessage } from "./NorthClient";
 import { Connection } from "mysql2/promise";
 import fetch from "node-fetch";
 import * as filter from "../helpers/filter";
@@ -109,7 +109,7 @@ export class Handler {
         const storage = NorthClient.storage
         const [res] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434' ORDER BY expiration");
         storage.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
-        storage.rm = res;
+        storage.rm = <RoleMessage[]> res;
         res.forEach(async result => expire({ pool: client.pool, client }, result.expiration - Date.now(), result.id));
     }
 

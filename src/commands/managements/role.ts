@@ -1,36 +1,44 @@
-const { NorthClient } = require("../../classes/NorthClient.js");
-const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
-const { findMember, wait, genPermMsg } = require("../../function.js");
+import { Interaction } from "slashcord";
+import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+import { genPermMsg, wait, findMember } from "../../function";
 
-module.exports = {
-  name: 'role',
-  description: 'Give a role to the mentioned user or the user ID in the message.',
-  args: true,
-  usage: '<user | user ID> <role | role ID | role name>',
-  category: 0,
-  args: 2,
-  permissions: 268435456,
-  slashInit: true,
-  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
-    new ApplicationCommandOption(ApplicationCommandOptionType.USER.valueOf(), "user", "The user to be added to the role.").setRequired(true),
-    new ApplicationCommandOption(ApplicationCommandOptionType.ROLE.valueOf(), "role", "The role to add.").setRequired(true)
-  ]),
-  async slash(client, interaction, args) {
-    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    const guild = await client.guilds.fetch(interaction.guild_id);
-    const author = await guild.members.fetch(interaction.member.user.id);
-    if (!author.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
-    if (!guild.me.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
-    const member = await guild.members.fetch(args[0].value);
-    const role = await guild.roles.fetch(args[1].value);
+class RoleCommand implements SlashCommand {
+  name = 'role'
+  description = 'Give a role to the mentioned user or the user ID in the message.'
+  usage = '<user | user ID> <role | role ID | role name>'
+  category = 0
+  args = 2
+  permissions = 268435456
+  options = [
+      {
+          name: "user",
+          description: "The user to be added to the role.",
+          required: true,
+          type: 6
+      },
+      {
+          name: "role",
+          description: "The role to add.",
+          required: true,
+          type: 8
+      }
+  ];
+  
+  async execute(obj: { interaction: Interaction, args: any[] }) {
+    if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
+    if (!obj.interaction.member.permissions.has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 0));
+    if (!obj.interaction.guild.me.permissions.has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 1));
+    const member = await obj.interaction.guild.members.fetch(obj.args[0].value);
+    const role = await obj.interaction.guild.roles.fetch(obj.args[1].value);
     try {
       await member.roles.add(role);
-      return InteractionResponse.sendMessage(`Successfully added **${member.user.tag}** to role **${role.name}**.`);
+      return await obj.interaction.reply(`Successfully added **${member.user.tag}** to role **${role.name}**.`);
     } catch (err) {
-      return InteractionResponse.sendMessage(`Failed to add **${member.user.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
+      return await obj.interaction.reply(`Failed to add **${member.user.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
     }
-  },
-  async execute(message, args) {
+  }
+
+  async run(message, args) {
     if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
     if (!message.guild.me.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
     var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
@@ -65,5 +73,8 @@ module.exports = {
         await message.channel.send(`Failed to add **${taggedUser.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
       }
     }
-  },
+  }
 };
+
+const cmd = new RoleCommand();
+export default cmd;

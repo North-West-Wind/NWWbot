@@ -1,40 +1,53 @@
-const Discord = require("discord.js");
-const { NorthClient } = require("../../classes/NorthClient.js");
-const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
-const { genPermMsg } = require("../../function.js");
+import { TextChannel } from "discord.js";
+import { Interaction } from "slashcord";
+import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+import { genPermMsg } from "../../function";
 
-module.exports = {
-  name: "delete",
-  description: "Delete a specific amount of message in a channel. Sadly, this command does not work for DMs.",
-  aliases: ["del"],
-  usage: "[channel] <amount | subcommand | start> [end]",
-  subcommands: ["all"],
-  subdesc: ["Deletes everything in the channel."],
-  subusage: ["[channel] <subcommand>"],
-  category: 0,
-  args: 1,
-  permissions: 8192,
-  slashInit: true,
-  register: () => ApplicationCommand.createBasic(module.exports).setOptions([
-    new ApplicationCommandOption(ApplicationCommandOptionType.INTEGER.valueOf(), "amount", "The amount of messages to delete.").setRequired(true),
-    new ApplicationCommandOption(ApplicationCommandOptionType.CHANNEL.valueOf(), "channel", "The channel of the messages."),
-    new ApplicationCommandOption(ApplicationCommandOptionType.BOOLEAN.valueOf(), "all", "Whether or not to delete all messages in the channel.")
-  ]),
-  async slash(client, interaction, args) {
-    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command only works on server.");
-    const guild = await client.guilds.fetch(interaction.guild_id);
-    const author = await guild.members.fetch(interaction.member.user.id);
-    const cChannel = await client.channels.fetch(interaction.channel_id);
-    if (!author.permissions.has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 0));
-    if (!guild.me.permissions.has(this.permissions) || !cChannel.permissionsFor(guild.me).has(this.permissions)) return InteractionResponse.sendMessage(genPermMsg(this.permissions, 1));
+class DeleteCommand implements SlashCommand {
+  name = "delete"
+  description = "Delete a specific amount of message in a channel. Sadly, this command does not work for DMs."
+  aliases = ["del"]
+  usage = "[channel] <amount | subcommand | start> [end]"
+  subcommands = ["all"]
+  subdesc = ["Deletes everything in the channel."]
+  subusage = ["[channel] <subcommand>"]
+  category = 0
+  args = 1
+  permissions = 8192
+  options = [
+    {
+        name: "amount",
+        description: "The amount of messages to delete.",
+        required: true,
+        type: 4
+    },
+    {
+        name: "channel",
+        description: "The channel of the messages.",
+        required: false,
+        type: 7
+    },
+    {
+        name: "all",
+        description: "Whether or not to delete all messages in the channel.",
+        required: false,
+        type: 5
+    }
+];
 
-    var amount = parseInt(args[0].value);
-    var channel = cChannel;
-    if (args[1]?.value) channel = await client.channels.fetch(args[1].value);
-    if (!channel) return InteractionResponse.sendMessage("The channel is not valid!");
-    if (args[2]?.value) {
-      if (!author.permissions.has(16)) return InteractionResponse.sendMessage(genPermMsg(16, 0));
-      if (!guild.me.permissions.has(16)) return InteractionResponse.sendMessage(genPermMsg(16, 1));
+  async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
+    if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
+    const author = obj.interaction.member;
+    if (!author.permissions.has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 0));
+    if (!obj.interaction.guild.me.permissions.has(this.permissions) || !obj.interaction.channel.permissionsFor(obj.interaction.guild.me).has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 1));
+
+    var amount = parseInt(obj.args[0].value);
+    var channel = obj.interaction.channel;
+    if (obj.args[1]?.value) channel = <TextChannel> await obj.client.channels.fetch(obj.args[1].value);
+    if (!channel || !(channel instanceof TextChannel)) return await obj.interaction.reply("The channel is not valid!");
+    if (obj.args[2]?.value) {
+      if (!author.permissions.has(16)) return await obj.interaction.reply(genPermMsg(16, 0));
+      if (!obj.interaction.guild.me.permissions.has(16)) return await obj.interaction.reply(genPermMsg(16, 1));
       var name = channel.name;
       var type = channel.type;
       var topic = channel.topic;
@@ -42,23 +55,24 @@ module.exports = {
       var parent = channel.parent;
       var permissionOverwrites = channel.permissionOverwrites;
       var position = channel.position;
-      var rateLimit = channel.rateLimitPerUser;
+      var rateLimitPerUser = channel.rateLimitPerUser;
 
       await channel.delete();
-      await message.guild.channels.create(name, { type, topic, nsfw, parent, permissionOverwrites, position, rateLimit });
+      await obj.interaction.guild.channels.create(name, { type, topic, nsfw, parent, permissionOverwrites, position, rateLimitPerUser });
       
-      await author.user.send("Deleted all message in the channel **" + message.channel.name + "** of the server **" + message.guild.name + "**.");
-      return InteractionResponse.sendMessage(`Deleted all messages in ${channel.name}.`);
+      await author.user.send("Deleted all message in the channel **" + obj.interaction.channel.name + "** of the server **" + obj.interaction.guild.name + "**.");
+      return await obj.interaction.reply(`Deleted all messages in ${channel.name}.`);
     } else {
       try {
         await channel.bulkDelete(amount, true);
-        return InteractionResponse.sendMessage(`Deleted ${amount} messages in ${channel.name}.`);
+        return await obj.interaction.reply(`Deleted ${amount} messages in ${channel.name}.`);
       } catch (err) {
-        return InteractionResponse.sendMessage("I can't delete them. Try a smaller amount.");
+        return await obj.interaction.reply("I can't delete them. Try a smaller amount.");
       }
     }
-  },
-  async execute(message, args) {
+  }
+
+  async run(message, args) {
     if (!message.guild) return await message.channel.send("This command only works on server.");
 
     if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
@@ -120,3 +134,6 @@ module.exports = {
     }
   }
 };
+
+const cmd = new DeleteCommand();
+export default cmd;

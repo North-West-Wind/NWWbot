@@ -87,18 +87,21 @@ export async function findUser(message, str) {
     }
     return;
 }
-export async function findMember(message, str): Promise<Discord.GuildMember> {
-    if (isNaN(parseInt(str))) if (!str.startsWith("<@")) {
-        await message.channel.send("**" + str + "** is neither a mention or ID.");
-        return;
-    }
+export async function findMemberWithGuild(guild: Discord.Guild, str: string): Promise<Discord.GuildMember> {
+    if (isNaN(parseInt(str))) if (!str.startsWith("<@")) throw "**" + str + "** is neither a mention or ID.";
     const userID = str.replace(/<@/g, "").replace(/!/g, "").replace(/>/g, "");
     try {
-        return await message.guild.members.fetch(userID);
+        return await guild.members.fetch(userID);
     } catch (err) {
-        await message.channel.send("No user was found!");
+        throw "No user was found!";
     }
-    return;
+}
+export async function findMember(message: Discord.Message, str: string): Promise<Discord.GuildMember> {
+    try {
+        return await findMemberWithGuild(message.guild, str);
+    } catch (err) {
+        await message.channel.send(err);
+    }
 }
 export async function findRole(message, str, suppress = false) {
     var roleID = str.replace(/<@&/g, "").replace(/>/g, "");

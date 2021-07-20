@@ -5,7 +5,7 @@ import { color, genPermMsg } from "../../function.js";
 import { Interaction } from "slashcord";
 import { ApplicationCommandOption, ApplicationCommandOptionChoice, ApplicationCommandOptionType } from "../../classes/Slash";
 
-class AkiCommand implements SlashCommand {
+export class AkiCommand implements SlashCommand {
   name = "aki";
   description = "Play Akinator on Discord!";
   aliases = ["akinator"];
