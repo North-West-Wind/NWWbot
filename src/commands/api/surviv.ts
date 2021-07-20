@@ -1,5 +1,5 @@
 import { MessageEmbed } from "discord.js";
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, createEmbedScrolling, getFetch, readableDateTime } from "../../function";
 import { globalClient as client } from "../../common";
@@ -113,7 +113,7 @@ class SurvivCommand implements SlashCommand {
 }
 
 const cmd = new SurvivCommand();
-export default JSON.parse(JSON.stringify(cmd));
+export default cmd;
 
 const emotes = [
     "acorn",

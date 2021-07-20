@@ -1,23 +1,22 @@
+import { TextChannel } from "discord.js";
+import { Interaction } from "slashcord";
+import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { FakeMessage, InteractionResponse } from "../../classes/Slash";
+
 const Discord = require("discord.js");
 const { color } = require("../../function");
-const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash");
 
-module.exports = {
-    name: "yacht",
-    description: "Play the Yacht Dice Game on Discord.",
-    category: 3,
-    slashInit: true,
-    register: () => ApplicationCommand.createBasic(module.exports),
-    async slash() {
-        return InteractionResponse.sendMessage("Yacht Dice Game initializing...");
-    },
-    async postSlash(client, interaction) {
-        InteractionResponse.deleteMessage(client, interaction).catch(() => { });
-        const message = await InteractionResponse.createFakeMessage(client, interaction);
-        return await this.execute(message);
-    },
-    async execute(message) {
-        if (!message.channel.permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
+class YachtCommand implements SlashCommand {
+    name = "yacht"
+    description = "Play the Yacht Dice Game on Discord."
+    category = 3
+    
+    async execute(obj: { interaction: Interaction }) {
+        await this.run(await InteractionResponse.createFakeMessage(obj.interaction));
+    }
+    
+    async run(message: NorthMessage | FakeMessage) {
+        if (!(<TextChannel>message.channel).permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
         var dices = [];
         var scores = {
             "1s": { score: 0, used: false },
@@ -46,7 +45,7 @@ module.exports = {
             .setTimestamp()
             .setFooter("Please type in commands within 2 minutes.", message.client.user.displayAvatarURL());
         var msg = await message.channel.send(em);
-        const collector = message.channel.createMessageCollector(m => m.author.id === message.author.id, { max: Infinity, idle: 120000 });
+        const collector = (<TextChannel>message.channel).createMessageCollector(m => m.author.id === message.author.id, { max: Infinity, idle: 120000 });
         collector.on("collect", async mesg => {
             if (round > 12) return collector.emit("end");
             let success = false;
@@ -247,3 +246,6 @@ module.exports = {
         }
     }
 }
+
+const cmd = new YachtCommand();
+export default cmd;

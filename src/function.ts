@@ -1,6 +1,6 @@
 import { NorthClient } from "./classes/NorthClient";
 import crypto from "crypto";
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import * as Discord from "discord.js";
 import originalFetch from "node-fetch";
 import fetchBuilder from "fetch-retry-ts";
@@ -9,6 +9,9 @@ import superms from "ms";
 import { mojang } from "aio-mc-api";
 import * as fs from "fs";
 import * as path from "path";
+import * as moment from "moment";
+import formatSetup from "moment-duration-format";
+formatSetup(moment);
 const fetch = fetchBuilder(originalFetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 
 export function twoDigits(d) {
@@ -84,7 +87,7 @@ export async function findUser(message, str) {
     }
     return;
 }
-export async function findMember(message, str) {
+export async function findMember(message, str): Promise<Discord.GuildMember> {
     if (isNaN(parseInt(str))) if (!str.startsWith("<@")) {
         await message.channel.send("**" + str + "** is neither a mention or ID.");
         return;
@@ -228,7 +231,7 @@ export function readableDateTimeText(time) {
     if (dmi !== 0) mi = " " + dmi + " milliseconds";
     return d + h + m + s + mi;
 }
-export function ms(val, options) {
+export function ms(val, options = undefined) {
     if (typeof val === "string" && superms(val) === undefined) {
         if (val.split(":").length > 1) {
             const nums = val.split(":").reverse();
@@ -278,16 +281,11 @@ export async function ID() {
 }
 export async function createEmbedScrolling(message: Discord.Message | Interaction, allEmbeds: Discord.MessageEmbed[], id: number = 0, additionalData: any = undefined) {
     var author: Discord.Snowflake;
-    if (message instanceof Discord.Message) author = (<Discord.Message> message).author.id;
-    else author = (<Interaction> message).member.user.id;
+    if (message instanceof Discord.Message) author = message.author.id;
+    else author = message.member?.user.id ?? message.channelID;
     const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author);
     var s = 0;
-    var msg: Discord.Message;
-    if (message instanceof Discord.Message) msg = await message.channel.send(allEmbeds[0]);
-    else {
-        await message.reply(allEmbeds[0]);
-        msg = await message.fetchReply();
-    }
+    var msg: Discord.Message = message instanceof Discord.Message ? await message.channel.send(allEmbeds[0]) : <Discord.Message> await message.reply(allEmbeds[0], { fetchReply: true });
     await msg.react("⏮");
     await msg.react("◀");
     await msg.react("▶");
@@ -454,8 +452,6 @@ export async function nameHistory(str) {
     return await (await profile(str)).getNameHistory();
 }
 export function duration(seconds) {
-    const moment = require("moment");
-    require("moment-duration-format")(moment);
     return moment.duration(seconds, "seconds").format();
 }
 export function getKeyByValue(object, value) {
@@ -535,4 +531,24 @@ export function flatDeep(arr, d = 1) {
 
 export function getFetch() {
     return fetch;
+}
+
+export function isImageUrl(url, timeoutT = 0) {
+    return new Promise(function (resolve, reject) {
+        var timeout = timeoutT || 5000;
+        var timer, img = new Image();
+        img.onerror = img.onabort = function () {
+            clearTimeout(timer);
+            reject(false);
+        };
+        img.onload = function () {
+            clearTimeout(timer);
+            resolve(true);
+        };
+        timer = setTimeout(function () {
+            img.src = "//!!!!/test.jpg";
+            reject(true);
+        }, timeout);
+        img.src = url;
+    });
 }

@@ -1,17 +1,24 @@
-const Discord = require("discord.js");
-const { ms, color } = require("../../function.js");
-const math = require("mathjs");
-const moment = require("moment");
-const formatSetup = require("moment-duration-format");
+import { TextChannel, User } from "discord.js";
+import { Interaction } from "slashcord";
+import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import * as Discord from "discord.js";
+import { color, ms } from "../../function";
+import * as math from "mathjs";
+import * as moment from "moment";
+import formatSetup from "moment-duration-format";
 formatSetup(moment);
-const { NorthClient } = require("../../classes/NorthClient.js");
-module.exports = {
-    name: "mathgame",
-    description: "Math Game prototype.",
-    category: 9,
-    async execute(message, args) {
+class MathGameCommand implements SlashCommand {
+    name = "mathgame"
+    description = "Math Game prototype."
+    category = 9
+
+    async execute(obj: { interaction: Interaction }) {
+        await obj.interaction.reply("This command is not available in slash.")
+    }
+
+    async run(message: NorthMessage, args: string[]) {
         if (!message.guild) return await message.channel.send("This command doesn't support DMs.");
-        if(!message.channel.permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
+        if(!(<TextChannel>message.channel).permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
         /*
         if(args[0] && args[0].toLowerCase() === "clear" && message.author.id === process.env.DC) {
             console.mathgames.clear();
@@ -20,17 +27,18 @@ module.exports = {
         for (const arrs of Array.from(console.mathgames.values())) if (arrs.includes(message.author.id)) return message.channel.send("You are already in another game!");
         */
         var msg = await message.channel.send("Who will be playing this game? (Please mention them)");
-        let collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 });
+        var collected;
+        collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 });
         if (!collected || !collected.first() || !collected.first().content) return msg.edit("You didn't answer me within 30 seconds! Please try again.");
         await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
         var players = [message.author];
         var scores = {};
         scores[message.author.id] = 0;
         //for (const arrs of Array.from(console.mathgames.values()))
-            for (const user of Array.from(collected.first().mentions.users.values()))
+            for (const user of <User[]> Array.from(collected.first().mentions.users.values()))
                 //if (arrs.includes(user.id)) return msg.edit(`**${user.tag}** is already in another game!`);
                 /*else */if (user.id !== message.author.id) { players.push(user); scores[user.id] = 0; }
-        let mode = await this.selectMode(message, args);
+        let mode = await this.selectMode(message);
         var questions = -1;
         var time = -1;
         collected = undefined;
@@ -43,7 +51,7 @@ module.exports = {
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
                 await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
                 questions = parseInt(collected.first().content);
-                if(!questions || questions === 0 | isNaN(questions)) return msg.edit("That's not a valid number!");
+                if(!questions || questions === 0 || isNaN(questions)) return msg.edit("That's not a valid number!");
                 break;
             case 1:
                 msg = await msg.edit("Please enter the time allowed.");
@@ -105,7 +113,8 @@ module.exports = {
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
         msg.edit({ content: "", embed: em });
         //console.mathgames.delete(now);
-    },
+    }
+
     async selectMode(message) {
         var em1 = new Discord.MessageEmbed()
             .setColor(color())
@@ -185,7 +194,8 @@ module.exports = {
                 resolve(chosen);
             });
         });
-    },
+    }
+
     async generateQuestion(questionCount) {
         const operatorConst = [
             "+",
@@ -216,3 +226,6 @@ module.exports = {
         }
     }
 }
+
+const cmd = new MathGameCommand();
+export default cmd;

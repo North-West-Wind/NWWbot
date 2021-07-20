@@ -1,7 +1,7 @@
-import { Client, ClientOptions, Collection, Message, Snowflake, TextChannel, VoiceChannel, VoiceConnection } from "discord.js";
+import { Client, ClientOptions, Collection, Message, MessageEmbed, Snowflake, TextChannel, User, VoiceChannel, VoiceConnection } from "discord.js";
 import { Pool, RowDataPacket } from "mysql2/promise";
-import { Interaction } from "slashcord/dist/utilities/interaction";
-import { CommandHandler } from "slashcord/dist/handlers/CommandHandler";
+import { Interaction } from "slashcord";
+import { Handler } from "slashcord/dist/handlers/Handler";
 
 export class NorthClient extends Client {
     constructor(options: ClientOptions) {
@@ -27,7 +27,7 @@ export interface Command {
     permission?: number;
     slashInit?: boolean;
 
-    run(message: NorthMessage, args: string[]): Promise<any | void>;
+    run(message: NorthMessage, args: string[]): Promise<any> | any;
 }
 
 export interface SlashCommand extends Command {
@@ -35,7 +35,7 @@ export interface SlashCommand extends Command {
     testOnly?: boolean;
     devOnly?: boolean;
 
-    execute(args: { client: NorthClient, interaction: Interaction, args: any, handler: CommandHandler }): Promise<any | void>;
+    execute(args: { client: NorthClient, interaction: Interaction, args: any, handler: Handler }): Promise<any> | any;
 }
 
 export class Card {
@@ -48,6 +48,28 @@ export class Card {
     number: number;
 }
 
+export class Player {
+    constructor(u: User, c: Card[]) {
+        this.user = u;
+        this.card = c;
+    }
+
+    user: User;
+    card: Card[];
+}
+
+export class UnoGame {
+    constructor(p: Collection<Snowflake, Player>, c: Card, cs: number) {
+        this.players = p;
+        this.card = c;
+        this.cards = cs;
+    }
+
+    players: Collection<Snowflake, Player>;
+    card: Card;
+    cards: number;
+}
+
 export class ClientStorage {
     private client: NorthClient;
     constructor(c: NorthClient) {
@@ -58,10 +80,10 @@ export class ClientStorage {
     rm: RowDataPacket[] = [];
     timers: Collection<Snowflake, NodeJS.Timeout> = new Collection();
     noLog: Snowflake[] = [];
-    commands: Collection<String, Command> = new Collection();
-    items: Collection<String, any> = new Collection();
-    card: Collection<String, Card> = new Collection();
-    uno: Collection<any, any> = new Collection();
+    commands: Collection<string, SlashCommand> = new Collection();
+    items: Collection<string, Item> = new Collection();
+    card: Collection<string, Card> = new Collection();
+    uno: Collection<number, UnoGame> = new Collection();
     mathgames: Collection<any, any> = new Collection();
     migrating: any[] = [];
     gtimers: any[] = [];
@@ -121,4 +143,10 @@ export class SoundTrack {
     volume: number;
     thumbnail: string;
     isLive: boolean;
+}
+
+export interface Item {
+    name: string;
+    id: string;
+    run(message: NorthMessage | Interaction, msg: Message, em: MessageEmbed, itemObject: any): Promise<any> | any;
 }

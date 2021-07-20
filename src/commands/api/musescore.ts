@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { ApplicationCommandOption, ApplicationCommandOptionType } from "../../classes/Slash";
 import { validMSURL, requestStream, findValueByPrefix, streamToString, color } from "../../function";
@@ -396,4 +396,4 @@ class MusescoreCommand implements SlashCommand {
 }
 
 const cmd = new MusescoreCommand();
-export default JSON.parse(JSON.stringify(cmd));
+export default cmd;

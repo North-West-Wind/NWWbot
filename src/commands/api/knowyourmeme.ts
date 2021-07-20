@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import { color, createEmbedScrolling } from "../../function.js";
 import * as Discord from "discord.js";
 import cheerio from "cheerio";
@@ -140,4 +140,4 @@ class KnowYourMemeCommand implements SlashCommand {
 }
 
 const cmd = new KnowYourMemeCommand();
-export default JSON.parse(JSON.stringify(cmd));
+export default cmd;

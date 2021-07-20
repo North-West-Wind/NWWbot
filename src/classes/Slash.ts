@@ -2,7 +2,7 @@ import { Collection, Guild, GuildMember, MessageAttachment, MessageEmbed, Snowfl
 import { Pool } from "mysql2/promise";
 import { ChannelObject, GuildMemberObject, RoleObject, UserObject } from "./Discord";
 import { NorthClient, Command } from "./NorthClient";
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 
 export class ApplicationCommand {
     name: string;

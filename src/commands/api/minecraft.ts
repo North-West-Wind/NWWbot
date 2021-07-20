@@ -1,5 +1,5 @@
 import { CategoryList, SectionTypes, SortTypes } from "aio-mc-api/lib/typings/CurseForge/Constants";
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory } from "../../function";
 import { Message, MessageEmbed } from "discord.js";
 import { curseforge, SimpleProject } from "aio-mc-api";
@@ -221,4 +221,4 @@ class MinecraftCommand implements SlashCommand {
 }
 
 const cmd = new MinecraftCommand();
-export default JSON.parse(JSON.stringify(cmd));
+export default cmd;

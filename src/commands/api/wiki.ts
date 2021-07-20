@@ -1,7 +1,7 @@
 import wiki from "wikijs";
 import * as Discord from "discord.js";
 import { NorthClient, SlashCommand } from "../../classes/NorthClient";
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import { color } from "../../function";
 
 class WikiCommand implements SlashCommand {
@@ -62,7 +62,7 @@ class WikiCommand implements SlashCommand {
         } else {
             await message.reply(allEmbeds[0]);
             msg = await message.fetchReply();
-            author = message.member.id;
+            author = message.member?.id ?? message.channelID;
         }
         const filter = (reaction, user) => (emojis.includes(reaction.emoji.name) && user.id === author);
 
@@ -122,4 +122,4 @@ class WikiCommand implements SlashCommand {
 }
 
 const cmd = new WikiCommand();
-export default JSON.parse(JSON.stringify(cmd));
+export default cmd;

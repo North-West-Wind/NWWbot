@@ -1,31 +1,33 @@
-const Discord = require("discord.js");
-const { ApplicationCommand, InteractionResponse } = require("../../classes/Slash");
-const { color } = require("../../function");
-module.exports = {
-  name: "rank",
-  description: "Display your rank in the server. Leveling system was inspired by MEE6.",
-  category: 3,
-  slashInit: true,
-  register: () => ApplicationCommand.createBasic(module.exports),
-  async slash(client, interaction) {
-    if (!interaction.guild_id) return InteractionResponse.sendMessage("This command doesn't support DMs.");
-    const guild = await client.guilds.fetch(interaction.guild_id);
-    const author = await client.users.fetch(interaction.member.user.id);
-    const [result] = await client.pool.query(`SELECT * FROM leveling WHERE guild = '${guild.id}' ORDER BY exp DESC`);
-    const rankEmbed = this.createEmbed(author, guild, client, result);
-    if (rankEmbed.error) return InteractionResponse.sendMessage("Failed to get your ranking!");
-    return InteractionResponse.sendEmbeds(rankEmbed);
-  },
-  async execute(message) {
+import { Interaction } from "slashcord";
+import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+import * as Discord from "discord.js";
+import { color } from "../../function";
+
+class RankCommand implements SlashCommand {
+  name = "rank"
+  description = "Display your rank in the server. Leveling system was inspired by MEE6."
+  category = 3
+  
+  async execute(obj: { interaction: Interaction, client: NorthClient }) {
+    if (!obj.interaction.guild) return await obj.interaction.reply("This command doesn't support DMs.");
+    const author = obj.interaction.member.user;;
+    const [result] = await obj.client.pool.query(`SELECT * FROM leveling WHERE guild = '${obj.interaction.guild.id}' ORDER BY exp DESC`);
+    const rankEmbed = this.createEmbed(author, obj.interaction.guild, obj.client, result);
+    if (!rankEmbed) return await obj.interaction.reply("Failed to get your ranking!");
+    await obj.interaction.reply(rankEmbed);
+  }
+
+  async run(message) {
     if (!message.guild) return await message.channel.send("This command doesn't support DMs.");
     const [result] = await message.pool.query(`SELECT * FROM leveling WHERE guild = '${message.guild.id}' ORDER BY exp DESC`);
     const rankEmbed = this.createEmbed(message.author, message.guild, message.client, result);
-    if (rankEmbed.error) return await message.channel.send("Failed to get your ranking!");
+    if (!rankEmbed) return await message.channel.send("Failed to get your ranking!");
     await message.channel.send(rankEmbed);
-  },
+  }
+
   createEmbed(author, guild, client, result) {
     const user = result.find(x => x.user == author.id);
-    if (!user) return { error: true };
+    if (!user) return null;
     var expBackup = parseInt(user.exp);
     var exp = parseInt(user.exp);
     var cost = 50;
@@ -55,3 +57,6 @@ module.exports = {
     return rankEmbed;
   }
 };
+
+const cmd = new RankCommand();
+export default cmd;

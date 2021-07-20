@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, createEmbedScrolling, getFetch } from "../../function";
 import * as Discord from "discord.js";
@@ -77,7 +77,7 @@ class SpeedrunCommand implements SlashCommand {
 
     async chooseGame(message: Discord.Message | Interaction, name: string) {
         const games = [];
-        const author = message instanceof Discord.Message ? message.author.id : message.member.id;
+        const author = message instanceof Discord.Message ? message.author.id : (message.member?.id ?? message.channelID);
         var result = await fetch(`https://www.speedrun.com/api/v1/games?name=${escape(name)}&_bulk=1`).then(res => res.json());
         for (var i = 0; i < (result.data.length > 10 ? 10 : result.data.length); i++) games.push(`${i + 1}. **${result.data[i].names.international}** : **${result.data[i].abbreviation}**`);
         const em = new Discord.MessageEmbed()
@@ -154,4 +154,4 @@ class SpeedrunCommand implements SlashCommand {
 };
 
 const cmd = new SpeedrunCommand();
-export default JSON.parse(JSON.stringify(cmd));
+export default cmd;

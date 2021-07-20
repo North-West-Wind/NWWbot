@@ -1,5 +1,5 @@
 import RedditAPI from "reddit-wrapper-v2";
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { validImgurURL, color } from "../../function";
 import * as Discord from "discord.js";
@@ -67,4 +67,4 @@ class RedditCommand implements SlashCommand {
 };
 
 const cmd = new RedditCommand();
-export default JSON.parse(JSON.stringify(cmd));
+export default cmd;

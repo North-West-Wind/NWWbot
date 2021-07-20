@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, createEmbedScrolling, getFetch, readableDateTime } from "../../function";
 import * as Discord from "discord.js";
@@ -91,4 +91,4 @@ class SMM2Command implements SlashCommand {
 }
 
 const cmd = new SMM2Command();
-export default JSON.parse(JSON.stringify(cmd));
+export default cmd;

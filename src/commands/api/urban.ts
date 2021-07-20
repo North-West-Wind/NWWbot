@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, createEmbedScrolling, getFetch } from "../../function";
 import * as Discord from "discord.js";
@@ -53,4 +53,4 @@ class UrbanCommand implements SlashCommand {
 };
 
 const cmd = new UrbanCommand();
-export default JSON.parse(JSON.stringify(cmd));
+export default cmd;

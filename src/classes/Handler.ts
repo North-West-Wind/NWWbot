@@ -1,7 +1,8 @@
 import { createCanvas, loadImage, Image } from "canvas";
 import { Guild, GuildMember, Message, MessageAttachment, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialUser, TextChannel, User, VoiceState } from "discord.js";
-import moment, { duration } from "moment";
-require("moment-duration-format")(moment);
+import * as moment from "moment";
+import formatSetup from "moment-duration-format";
+formatSetup(moment);
 import { RowDataPacket } from "mysql2";
 import { endGiveaway } from "../commands/miscellaneous/giveaway";
 import { endPoll } from "../commands/miscellaneous/poll";
@@ -12,7 +13,7 @@ import { NorthClient, LevelData, NorthMessage } from "./NorthClient";
 import { Connection } from "mysql2/promise";
 import fetch from "node-fetch";
 import * as filter from "../helpers/filter";
-import Slashcord from "slashcord";
+import Slashcord from "slashcord/dist/Index";
 
 export class Handler {
     static setup(client: NorthClient) {
@@ -42,7 +43,7 @@ export class Handler {
     }
 
     async preReady(client: NorthClient) {
-        new Slashcord(client, "../commands", {});
+        new Slashcord(client, { commandsDir: "../commands"});
         client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
     }
 
@@ -559,7 +560,7 @@ export class AliceHandler extends Handler {
                     let rank = unescape(result.dc_rank);
                     let title = `<@${dc}> - ${rank} [${username}]`;
                     let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                    tmp.push({ title: title, time: duration(seconds) });
+                    tmp.push({ title: title, time: moment.duration(seconds) });
                 }
                 if (tmp.length <= 10) {
                     timerMsg.reactions.removeAll().catch(storage.error);

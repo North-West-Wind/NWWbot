@@ -1,4 +1,10 @@
-var links = [
+import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+import { getFetch } from "../../function";
+import * as Discord from "discord.js";
+import { Interaction } from "slashcord";
+
+const fetch = getFetch();
+const links = [
     "https://i.redd.it/kxtmqdzdwra41.png",
     "https://i.pinimg.com/originals/74/a5/4b/74a54bc2dcf744ed8772b495f6d572b1.jpg",
     "https://i.pinimg.com/564x/94/c1/80/94c1800a5c1a06e8c732832e6e50c778.jpg",
@@ -32,23 +38,18 @@ var links = [
     "https://cdn.discordapp.com/attachments/763034826931699730/763038345319153684/r3696v2v6rn51.gif",
     "https://i.redd.it/usi861az4mx41.jpg"
 ];
-const Discord = require("discord.js");
-const fetch = require("fetch-retry")(require("node-fetch"), { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
-const { NorthClient } = require("../../classes/NorthClient.js");
-const { ApplicationCommand, InteractionResponse, InteractionApplicationCommandCallbackData } = require("../../classes/Slash.js");
 
-module.exports = {
-    name: "axolotl",
-    description: "Get a random Axolotl image.",
-    category: 3,
-    aliases: ["axol"],
-    slashInit: true,
-    register: () => new ApplicationCommand(module.exports.name, module.exports.description),
-    async slash() {
+class AxolotlCommand implements SlashCommand {
+    name = "axolotl"
+    description = "Get a random Axolotl image."
+    category = 3
+    aliases = ["axol"]
+    
+    async execute(obj: { interaction: Interaction }) {
         const selected = links[Math.floor(Math.random() * links.length)];
-        return new InteractionResponse(4).setData(new InteractionApplicationCommandCallbackData().setContent(selected));
-    },
-    async execute(message) {
+        await obj.interaction.reply(selected);
+    }
+    async run(message) {
         const selected = links[Math.floor(Math.random() * links.length)];
         try {
             const res = await fetch(selected).then(res => res.body);
@@ -60,3 +61,6 @@ module.exports = {
         }
     }
 }
+
+const cmd = new AxolotlCommand();
+export default cmd;

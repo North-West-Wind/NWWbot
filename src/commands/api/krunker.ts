@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import * as Discord from "discord.js";
 import { color } from "../../function";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
@@ -284,4 +284,4 @@ class KrunkerCommand implements SlashCommand {
 }
 
 const cmd = new KrunkerCommand();
-export default JSON.parse(JSON.stringify(cmd));
+export default cmd;

@@ -2,7 +2,7 @@ import { Message, MessageEmbed, MessageReaction, Snowflake, TextChannel } from "
 import { Aki } from "aki-api";
 import { NorthClient, SlashCommand, NorthMessage } from "../../classes/NorthClient";
 import { color, genPermMsg } from "../../function.js";
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import { ApplicationCommandOption, ApplicationCommandOptionChoice, ApplicationCommandOptionType } from "../../classes/Slash";
 
 class AkiCommand implements SlashCommand {
@@ -91,7 +91,7 @@ class AkiCommand implements SlashCommand {
 
     var author: Snowflake;
     if (message instanceof Message) author = message.author.id;
-    else author = message.member.id;
+    else author = message.member?.id ?? message.channelID;
     const embed = new MessageEmbed()
       .setColor(color())
       .setTitle("Getting ready...")
@@ -208,4 +208,4 @@ class AkiCommand implements SlashCommand {
 }
 
 const cmd = new AkiCommand();
-export default JSON.parse(JSON.stringify(cmd));
+export default cmd;

@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord/dist/utilities/interaction";
+import { Interaction } from "slashcord";
 import * as solenolyrics from "solenolyrics";
 import * as Discord from "discord.js";
 import { createEmbedScrolling, color } from "../../function";
@@ -115,4 +115,4 @@ class LyricsCommand implements SlashCommand {
 }
 
 const cmd = new LyricsCommand();
-export default JSON.parse(JSON.stringify(cmd));
+export default cmd;
