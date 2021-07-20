@@ -1,58 +1,47 @@
-const math = require("mathjs");
-const Discord = require("discord.js");
-const { createEmbedScrolling, color } = require("../../function.js");
-const { NorthClient } = require("../../classes/NorthClient.js");
-const { ApplicationCommand, ApplicationCommandOption, ApplicationCommandOptionType, InteractionResponse } = require("../../classes/Slash.js");
+import { Interaction } from "slashcord";
+import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import math from "mathjs";
+import * as Discord from "discord.js";
+import { color, createEmbedScrolling } from "../../function";
 
-module.exports = {
-    name: "math",
-    description: "Solve your Mathematical problems.",
-    usage: "<subcommand> <expression>",
-    subcommands: ["evaluate", "derivative", "rationalize", "simplify", "help"],
-    subaliases: ["eval", "ddx", "rat", "sim", "help"],
-    subdesc: ["Evaluate a Mathematical expression.", "Perform derivative with respect to x.", "Rationalize a Mathematical expression.", "Simplify a Mathematical expression.", "Display all available constants and operators for this command."],
-    category: 4,
-    args: 2,
-    slashInit: true,
-    register: () => ApplicationCommand.createBasic(module.exports).setOptions([
-        new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "evaluate", "Evaluates a Mathematical expression.").setOptions([
-            new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "expression", "The Mathematical expression to be processed.").setRequired(true)
-        ]),
-        new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "derivative", "Performs derivative with respect to x.").setOptions([
-            new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "expression", "The Mathematical expression to be processed.").setRequired(true)
-        ]),
-        new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "rationalize", "Rationalizes a Mathematical expression.").setOptions([
-            new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "expression", "The Mathematical expression to be processed.").setRequired(true)
-        ]),
-        new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "simplify", "Simplifies a Mathematical expression.").setOptions([
-            new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "expression", "The Mathematical expression to be processed.").setRequired(true)
-        ]),
-        new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), "help", "Displays all available constants and operators for this command."),
-    ]),
-    async slash(_client, _interaction, args) {
-        if (args[0].name === "help") return InteractionResponse.sendMessage("Deploying help...");
+class MathCommand implements SlashCommand {
+    name = "math"
+    description = "Solve your Mathematical problems."
+    usage = "<subcommand> <expression>"
+    subcommands = ["evaluate", "derivative", "rationalize", "simplify", "help"]
+    subaliases = ["eval", "ddx", "rat", "sim", "help"]
+    subdesc = ["Evaluate a Mathematical expression.", "Perform derivative with respect to x.", "Rationalize a Mathematical expression.", "Simplify a Mathematical expression.", "Display all available constants and operators for this command."]
+    category = 4
+    args = 2
+    options = [
+        { name: "evaluate", description: "Evaluates a Mathematical expression.", type: 1, options: [{ name: "expression", description: "The Mathematical expression to be processed.", required: true, type: 3 }] },
+        { name: "derivative", description: "Performs derivative with respect to x.", type: 1, options: [{ name: "expression", description: "The Mathematical expression to be processed.", required: true, type: 3 }] },
+        { name: "rationalize", description: "Rationalizes a Mathematical expression.", type: 1, options: [{ name: "expression", description: "The Mathematical expression to be processed.", required: true, type: 3 }] },
+        { name: "simplify", description: "Simplifies a Mathematical expression.", type: 1, options: [{ name: "expression", description: "The Mathematical expression to be processed.", required: true, type: 3 }] },
+        { name: "help", description: "Displays all available constants and operators for this command.", type: 1 }
+    ];
+
+    async execute(obj: { interaction: Interaction, args: any[] }) {
+        if (obj.args[0].name === "help") return await this.help(obj.interaction);
         let done = "Error!";
-        switch(args[0].name) {
+        switch(obj.args[0].name) {
             case "evaluate":
-                try { done = await math.evaluate(args[0].options[0].value); } catch(err) {done = "Evaluation Error"; NorthClient.storage.error(err);}
+                try { done = await math.evaluate(obj.args[0].options[0].value); } catch(err) {done = "Evaluation Error"; NorthClient.storage.error(err);}
                 break;
             case "derivative":
-                try { done = await math.derivative(args[0].options[0].value, "x").compile().evaluate(); } catch(err) {done = "Differentiation Error"; NorthClient.storage.error(err);}
+                try { done = await math.derivative(obj.args[0].options[0].value, "x").compile().evaluate(); } catch(err) {done = "Differentiation Error"; NorthClient.storage.error(err);}
                 break;
             case "rationalize":
-                try { done = math.rationalize(args[0].options[0].value).toString(); } catch(err) {done = "Rationalization Error"; NorthClient.storage.error(err);}
+                try { done = math.rationalize(obj.args[0].options[0].value).toString(); } catch(err) {done = "Rationalization Error"; NorthClient.storage.error(err);}
                 break;
             case "simplify":
-                try { done = math.simplify(args[0].options[0].value).toString(); } catch(err) {done = "Simplification Error"; NorthClient.storage.error(err);}
+                try { done = math.simplify(obj.args[0].options[0].value).toString(); } catch(err) {done = "Simplification Error"; NorthClient.storage.error(err);}
                 break;
         }
-        return InteractionResponse.sendMessage(done);
-    },
-    async postSlash(client, interaction, args) {
-        if (args[0].name !== "help") return;
-        return await this.help(await InteractionResponse.createFakeMessage(client, interaction));
-    },
-    async execute(message, args) {
+        return await obj.interaction.reply(done);
+    }
+
+    async run(message: NorthMessage, args: string[]) {
         let done = "Error!";
         switch(args[0]) {
             case "evaluate":
@@ -76,9 +65,9 @@ module.exports = {
             default:
                 return message.channel.send(`No such subcommand! (**${args[0]}**)`);
         }
-        message.channel.send(done);
-    },
-    async help(message) {
+        await message.channel.send(done);
+    }
+    async help(message: NorthMessage | Interaction) {
         var operators = {
             "Add": "x + y // add(x, y)",
             "Subtract": "x - y // subtract(x, y)",
@@ -236,3 +225,6 @@ module.exports = {
         await createEmbedScrolling(message, allEmbeds);
     }
 }
+
+const cmd = new MathCommand();
+export default cmd;

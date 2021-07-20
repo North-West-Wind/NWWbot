@@ -120,7 +120,7 @@ export class Handler {
             var currentDate = Date.now();
             var millisec = result.endAt - currentDate;
             setTimeout_(async () => {
-                endGiveaway(client.pool, client, result);
+                endGiveaway(client.pool, result);
             }, millisec);
         });
     }
@@ -640,7 +640,7 @@ export class AliceHandler extends Handler {
             var currentDate = Date.now();
             var millisec = result.endAt - currentDate;
             setTimeout_(async () => {
-                endGiveaway(client.pool, client, result);
+                endGiveaway(client.pool, result);
             }, millisec);
         });
     }

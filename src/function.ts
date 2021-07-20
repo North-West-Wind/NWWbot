@@ -234,7 +234,7 @@ export function readableDateTimeText(time) {
     if (dmi !== 0) mi = " " + dmi + " milliseconds";
     return d + h + m + s + mi;
 }
-export function ms(val, options = undefined) {
+export function ms(val: string) {
     if (typeof val === "string" && superms(val) === undefined) {
         if (val.split(":").length > 1) {
             const nums = val.split(":").reverse();
@@ -262,7 +262,7 @@ export function ms(val, options = undefined) {
             if (val[i + 1] === undefined) mses.push(superms(temp));
         }
         return mses.reduce((acc, c) => acc + c);
-    } else return superms(val, options);
+    } else return superms(val);
 }
 export function findValueByPrefix(object, prefix) {
     for (const property in object) if (object[property] && property.toString().startsWith(prefix)) return object[property];
@@ -497,9 +497,8 @@ export function commonRoleEmbed(client, word, past, name) {
         .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return [successEmbed, failEmbed];
 }
-export async function msgOrRes(message: Discord.Message | Interaction, str) {
-    if (message instanceof Discord.Message) return await message.channel.send(str);
-    else return await message.reply(str);
+export function msgOrRes(message: Discord.Message | Interaction) {
+    return message instanceof Discord.Message ? message.channel.send : message.reply;
 }
 export function deepReaddir(dir) {
     var results = [];
