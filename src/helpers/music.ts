@@ -39,7 +39,7 @@ export function setQueue(guild, songs, loopStatus, repeatStatus, pool) {
         repeating: repeatStatus,
         random: false,
         pool: pool
-    };
+    } as ServerQueue;
     queue.set(guild, queueContruct);
     return queueContruct;
 }

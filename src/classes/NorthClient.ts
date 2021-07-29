@@ -145,6 +145,7 @@ export class ServerQueue {
     repeating: boolean;
     random: boolean;
     pool: Pool;
+    startTime?: number;
 }
 
 export class SoundTrack {

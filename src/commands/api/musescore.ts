@@ -39,6 +39,31 @@ const requestYTDLStream = (url: string, opts) => {
     return Promise.race([timeout, getStream]);
 };
 
+export async function getMP3(url) {
+    return await run(async (page) => {
+        var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
+        const start = Date.now();
+        try {
+            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36');
+            await page.setRequestInterception(true);
+            page.on('request', (req) => {
+                if (["image", "font", "stylesheet", "media"].includes(req.resourceType())) req.abort();
+                else req.continue();
+            });
+            await page.goto(url, { waitUntil: "domcontentloaded" });
+            await page.waitForSelector("button[title='Toggle Play']").then(el => el.click());
+            const mp3 = await page.waitForRequest(req => req.url().startsWith("https://s3.ultimate-guitar.com/") || req.url().startsWith("https://www.youtube.com/embed/"));
+            result.url = mp3.url();
+            result.error = false;
+        } catch (err) {
+            result.message = err.message;
+        } finally {
+            result.timeTaken = Date.now() - start;
+            return result;
+        }
+    })
+}
+
 class MusescoreCommand implements SlashCommand {
     name = "musescore";
     description = "Get information of a MuseScore link, or search the site, and download if requested.";
@@ -93,7 +118,7 @@ class MusescoreCommand implements SlashCommand {
             try {
                 try {
                     var mesg = await message.channel.send("Generating MP3...");
-                    const mp3 = await this.getMP3(args.join(" "));
+                    const mp3 = await getMP3(args.join(" "));
                     try {
                         if (mp3.error) throw new Error(mp3.message);
                         var res;
@@ -228,31 +253,6 @@ class MusescoreCommand implements SlashCommand {
         collector.on("end", function () {
             msg.reactions.removeAll().catch(() => { });
         });
-    }
-
-    async getMP3(url) {
-        return await run(async (page) => {
-            var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
-            const start = Date.now();
-            try {
-                await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36');
-                await page.setRequestInterception(true);
-                page.on('request', (req) => {
-                    if (["image", "font", "stylesheet", "media"].includes(req.resourceType())) req.abort();
-                    else req.continue();
-                });
-                await page.goto(url, { waitUntil: "domcontentloaded" });
-                await page.waitForSelector("button[title='Toggle Play']").then(el => el.click());
-                const mp3 = await page.waitForRequest(req => req.url().startsWith("https://s3.ultimate-guitar.com/") || req.url().startsWith("https://www.youtube.com/embed/"));
-                result.url = mp3.url();
-                result.error = false;
-            } catch (err) {
-                result.message = err.message;
-            } finally {
-                result.timeTaken = Date.now() - start;
-                return result;
-            }
-        })
     }
 
     async getMIDI(url) {
