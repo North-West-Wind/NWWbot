@@ -1,9 +1,9 @@
 import { Message, TextChannel } from "discord.js";
 import { Interaction } from "slashcord";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { globalClient as client } from "../../common";
 import { moveArray, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
+import { play } from "./play";
 
 export async function migrate(message: Message | Interaction) {
     var serverQueue = getQueues().get(message.guild.id);
@@ -13,7 +13,7 @@ export async function migrate(message: Message | Interaction) {
     if (!message.member.voice.channel) return await msgOrRes(message)("You are not in any voice channel!");
     if (!message.guild.me.voice.channel) return await msgOrRes(message)("I am not in any voice channel!");
     if (message.member.voice.channelID === message.guild.me.voice.channelID) return await msgOrRes(message)("I'm already in the same channel with you!");
-    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, client.pool);
+    if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
     if (serverQueue.songs.length < 1) return await msgOrRes(message)("There is nothing in the queue.");
     if (!serverQueue.playing) return await msgOrRes(message)("I'm not playing anything.");
     if (!message.member.voice.channel.permissionsFor(message.guild.me).has(3145728)) return await msgOrRes(message)("I don't have the required permissions to play music here!");
@@ -40,14 +40,13 @@ export async function migrate(message: Message | Interaction) {
         serverQueue.textChannel = <TextChannel>message.channel;
         migrating.splice(migrating.indexOf(message.guild.id));
         await msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`).catch(() => { });
-        updateQueue(message.guild.id, serverQueue, null);
-        const { play } = require("./play.js");
-        if (!serverQueue.random) play(message.guild, serverQueue.songs[0], 0, seek);
+        await updateQueue(message.guild.id, serverQueue, false);
+        if (!serverQueue.random) await play(message.guild, serverQueue.songs[0], 0, seek);
         else {
             const int = Math.floor(Math.random() * serverQueue.songs.length);
             const pending = serverQueue.songs[int];
             serverQueue.songs = moveArray(serverQueue.songs, int);
-            updateQueue(message.guild.id, serverQueue, serverQueue.pool);
+            await updateQueue(message.guild.id, serverQueue);
             play(message.guild, pending);
         }
     }, 3000);

@@ -2,7 +2,6 @@ import { Message } from "discord.js";
 import { Interaction } from "slashcord";
 import { SlashCommand } from "../../classes/NorthClient";
 import { msgOrRes } from "../../function";
-import { globalClient as client } from "../../common";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 
 class ClearCommand implements SlashCommand {
@@ -21,12 +20,12 @@ class ClearCommand implements SlashCommand {
 
     async clear(message: Message | Interaction) {
         var serverQueue = getQueues().get(message.guild.id);
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, client.pool);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (serverQueue.songs.length < 1) return await msgOrRes(message)("The queue is already empty!");
         if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return await msgOrRes(message)("You have to be in a voice channel to clear the queue when the bot is playing!");
         serverQueue?.connection?.dispatcher?.destroy();
         message.guild.me?.voice?.channel?.leave();
-        updateQueue(message.guild.id, null, client.pool);
+        await updateQueue(message.guild.id, null);
         await msgOrRes(message)("The queue has been cleared!");
     }
 }

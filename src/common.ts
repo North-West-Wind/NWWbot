@@ -46,11 +46,6 @@ export default async(client: NorthClient) => {
         } finally {
                 pool = mysql.createPool(mysql_config).promise();
                 client.pool = pool;
-                const queue = getQueues();
-                for (const [id, serverQueue] of queue) {
-                    serverQueue.pool = pool;
-                    await updateQueue(id, serverQueue, null);
-                }
             }
     }));
     client.pool = pool;

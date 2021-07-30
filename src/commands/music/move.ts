@@ -1,12 +1,10 @@
 import { Message } from "discord.js";
 import { Interaction } from "slashcord";
 import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { globalClient as client } from "../../common";
 import { moveArray } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 import arrayMove from "array-move";
-
-const { play } = require("./play");
+import { play } from "./play";
 
 class MoveCommand implements SlashCommand {
     name = "move"
@@ -45,7 +43,7 @@ class MoveCommand implements SlashCommand {
     async move(message: Message | Interaction, queueIndex: number, dest: number) {
         var serverQueue = getQueues().get(message.guild.id);
         if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to alter the queue when the bot is playing!");
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, client.pool);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (serverQueue.songs.length < 1) return await message.channel.send("There is nothing in the queue.");
         var targetIndex = queueIndex - 1;
         var destIndex = dest - 1;
@@ -53,16 +51,16 @@ class MoveCommand implements SlashCommand {
         if (targetIndex > serverQueue.songs.length - 1) return message.channel.send(`You cannot move a soundtrack that doesn't exist.`);
         var title = serverQueue.songs[targetIndex].title;
         arrayMove.mutate(serverQueue.songs, targetIndex, destIndex);
-        updateQueue(message.guild.id, serverQueue, client.pool);
+        await updateQueue(message.guild.id, serverQueue);
         message.channel.send(`**${title}** has been moved from **#${queueIndex}** to **#${dest}**.`);
         if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing) {
-            if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
+            if (!serverQueue.random) await play(message.guild, serverQueue.songs[0]);
             else {
                 const int = Math.floor(Math.random() * serverQueue.songs.length);
                 const pending = serverQueue.songs[int];
                 serverQueue.songs = moveArray(serverQueue.songs, int);
-                updateQueue(message.guild.id, serverQueue, serverQueue.pool);
-                play(message.guild, pending);
+                await updateQueue(message.guild.id, serverQueue);
+                await play(message.guild, pending);
             }
         }
     }

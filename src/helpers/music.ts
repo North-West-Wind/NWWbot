@@ -1,17 +1,18 @@
 import * as Discord from "discord.js";
 import { NorthClient, ServerQueue } from "../classes/NorthClient";
+import { globalClient as client } from "../common";
 const queue = new Discord.Collection<Discord.Snowflake, ServerQueue>();
 
 export function getQueues() { return queue; }
 export function getQueue(id) {
     return queue.get(id);
 }
-export async function updateQueue(id, serverQueue, pool) {
+export async function updateQueue(id: Discord.Snowflake, serverQueue: ServerQueue, update: boolean = true) {
     if (!serverQueue) queue.delete(id);
     else queue.set(id, serverQueue);
-    if (!pool) return;
+    if (!update) return;
     try {
-        await pool.query(`UPDATE servers SET looping = ${serverQueue?.looping ? 1 : "NULL"}, repeating = ${serverQueue?.repeating ? 1 : "NULL"}, random = ${serverQueue?.random ? 1 : "NULL"}, queue = ${!serverQueue?.songs?.length || !Array.isArray(serverQueue.songs) ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${id}'`);
+        await client.pool.query(`UPDATE servers SET looping = ${serverQueue?.looping ? 1 : "NULL"}, repeating = ${serverQueue?.repeating ? 1 : "NULL"}, random = ${serverQueue?.random ? 1 : "NULL"}, queue = ${!serverQueue?.songs?.length || !Array.isArray(serverQueue.songs) ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${id}'`);
     } catch (err) {
         NorthClient.storage.error(err);
     }
@@ -26,7 +27,7 @@ export function stop(guild) {
     serverQueue.textChannel = null;
     guild.me.voice?.channel?.leave();
 }
-export function setQueue(guild, songs, loopStatus, repeatStatus, pool) {
+export function setQueue(guild, songs, loopStatus, repeatStatus) {
     const queueContruct = {
         textChannel: null,
         voiceChannel: null,
@@ -37,8 +38,7 @@ export function setQueue(guild, songs, loopStatus, repeatStatus, pool) {
         paused: false,
         looping: loopStatus,
         repeating: repeatStatus,
-        random: false,
-        pool: pool
+        random: false
     } as ServerQueue;
     queue.set(guild, queueContruct);
     return queueContruct;

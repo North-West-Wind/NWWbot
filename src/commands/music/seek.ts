@@ -1,14 +1,12 @@
 import { Message } from "discord.js";
 import { Interaction } from "slashcord";
 import { NorthMessage, ServerQueue, SlashCommand } from "../../classes/NorthClient";
-import { globalClient as client } from "../../common";
 import { ms, msgOrRes } from "../../function";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 import { getQueues, setQueue } from "../../helpers/music";
 formatSetup(moment);
-
-const { play } = require("./play.js");
+import { play } from "./play";
 
 class SeekCommand implements SlashCommand {
     name = "seek"
@@ -26,7 +24,7 @@ class SeekCommand implements SlashCommand {
     async execute(obj: { interaction: Interaction, args: any[] }) {
         if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
         var serverQueue = getQueues().get(obj.interaction.guild.id);
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(obj.interaction.guild.id, [], false, false, client.pool);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(obj.interaction.guild.id, [], false, false);
         var parsed = ms(obj.args[0].value);
         if (obj.args[0].value.endsWith("%")) {
             const percentage = Number(obj.args[0].value.slice(0, -1));
@@ -38,7 +36,7 @@ class SeekCommand implements SlashCommand {
 
     async run(message: NorthMessage, args: string[]) {
         var serverQueue = getQueues().get(message.guild.id);
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, client.pool);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (args.length < 1) return await message.channel.send("You didn't provide the time to skip to!");
         var parsed = ms(args.join(" "));
         if (args.join(" ").endsWith("%")) {

@@ -1,7 +1,6 @@
 import { Message } from "discord.js";
 import { Interaction } from "slashcord";
 import { SlashCommand } from "../../classes/NorthClient";
-import { globalClient as client } from "../../common";
 import { msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 
@@ -22,14 +21,14 @@ class LoopCommand implements SlashCommand {
 
     async loop(message: Message | Interaction) {
         var serverQueue = getQueues().get(message.guild.id);
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, client.pool);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         serverQueue.looping = !serverQueue.looping;
         if (serverQueue.repeating && serverQueue.looping) {
             serverQueue.repeating = false;
             await msgOrRes(message)("Disabled repeating to prevent conflict.");
         }
         try {
-            await updateQueue(message.guild.id, serverQueue, client.pool);
+            await updateQueue(message.guild.id, serverQueue, true);
             if (serverQueue.looping) await msgOrRes(message)("The queue is now being looped.");
             else await msgOrRes(message)("The queue is no longer being looped.");
         } catch (err) {

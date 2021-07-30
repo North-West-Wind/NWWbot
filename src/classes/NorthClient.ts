@@ -144,7 +144,6 @@ export class ServerQueue {
     looping: boolean;
     repeating: boolean;
     random: boolean;
-    pool: Pool;
     startTime?: number;
 }
 

@@ -4,8 +4,7 @@ import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 import { moveArray, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
-
-const { play } = require("./play.js");
+import { play } from "./play";
 
 class RemoveCommand implements SlashCommand {
     name = "remove"
@@ -47,27 +46,27 @@ class RemoveCommand implements SlashCommand {
     async remove(message: Message | Interaction, queueIndex: number, amount: number) {
         var serverQueue = getQueues().get(message.guild.id);
         if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to alter the queue when the bot is playing!");
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, client.pool);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (serverQueue.songs.length < 1) return await msgOrRes(message, "There is nothing in the queue.");
         const deleteIndex = queueIndex < 0 ? serverQueue.songs.length + queueIndex : queueIndex - 1;
         if (deleteIndex > serverQueue.songs.length - 1 || queueIndex === 0) return await msgOrRes(message, `You cannot remove a soundtrack that doesn't exist.`);
         const song = serverQueue.songs[deleteIndex];
         const oldSong = serverQueue.songs[0];
         const title = song.title;
-        const removed = await serverQueue.songs.splice(deleteIndex, amount);
-        updateQueue(message.guild.id, serverQueue, client.pool);
+        const removed = serverQueue.songs.splice(deleteIndex, amount);
+        await updateQueue(message.guild.id, serverQueue);
         await msgOrRes(message, `${removed.length > 1 ? `**${removed.length} tracks** have` : `**${title}** has`} been removed from the queue.`);
         if (oldSong != serverQueue.songs[0] && serverQueue.playing) {
             if (serverQueue.connection && serverQueue.connection.dispatcher) {
                 serverQueue.connection.dispatcher.destroy();
             }
-            if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
+            if (!serverQueue.random) await play(message.guild, serverQueue.songs[0]);
             else {
                 const int = Math.floor(Math.random() * serverQueue.songs.length);
                 const pending = serverQueue.songs[int];
                 serverQueue.songs = moveArray(serverQueue.songs, int);
-                updateQueue(message.guild.id, serverQueue, serverQueue.pool);
-                play(message.guild, pending);
+                await updateQueue(message.guild.id, serverQueue);
+                await play(message.guild, pending);
             }
         }
     }

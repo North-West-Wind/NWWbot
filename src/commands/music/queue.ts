@@ -77,7 +77,7 @@ class QueueCommand implements SlashCommand {
     async execute(obj: { interaction: Interaction, args: any[] }) {
         if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
         var serverQueue = getQueues().get(obj.interaction.guild.id);
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(obj.interaction.guild.id, [], false, false, client.pool);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(obj.interaction.guild.id, [], false, false);
         if (obj.args[0].name === "current") return await this.viewQueue(obj.interaction, serverQueue);
         if (obj.args[0].name === "save") return await this.save(obj.interaction, serverQueue, obj.args[0].options[0].value);
         if (obj.args[0].name === "load") return await this.load(obj.interaction, serverQueue, obj.args[0].options[0].value);
@@ -88,7 +88,7 @@ class QueueCommand implements SlashCommand {
     
     async run(message: NorthMessage, args: string[]) {
         var serverQueue = getQueues().get(message.guild.id);
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, message.pool);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (args[0] && (args[0].toLowerCase() === "save" || args[0].toLowerCase() === "s")) return await this.save(message, serverQueue, args.slice(1).join(" "));
         if (args[0] && (args[0].toLowerCase() === "load" || args[0].toLowerCase() === "l")) return await this.load(message, serverQueue, args.slice(1).join(" "));
         if (args[0] && (args[0].toLowerCase() === "delete" || args[0].toLowerCase() === "d")) return await this.delete(message, args.slice(1).join(" "));
@@ -101,7 +101,7 @@ class QueueCommand implements SlashCommand {
         const filtered = serverQueue.songs.filter(song => !!song);
         if (serverQueue.songs.length !== filtered.length) {
             serverQueue.songs = filtered;
-            updateQueue(message.guild.id, serverQueue, client.pool);
+            await updateQueue(message.guild.id, serverQueue);
         }
         var index = 0;
         function getIndex() {
@@ -128,7 +128,7 @@ class QueueCommand implements SlashCommand {
         const guild = message.guild;
         const pool = client.pool;
         const author = message.member.user;
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false, pool);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false);
         if (serverQueue.songs.length < 1) return await msgOrRes(message, "There is no queue playing in this server right now!");
         const con = await pool.getConnection();
         const [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM queue WHERE user = '${author.id}'`);
@@ -153,9 +153,9 @@ class QueueCommand implements SlashCommand {
         if (!name) return await msgOrRes(message, "Please provide the name of the queue.");
         const [results] = <RowDataPacket[][]> await pool.query(`SELECT * FROM queue WHERE name = '${name}' AND user = '${author.id}'`);
         if (results.length == 0) return await msgOrRes(message, "No queue was found!");
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false, pool);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false);
         else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-        updateQueue(guild.id, serverQueue, pool);
+        await updateQueue(guild.id, serverQueue);
         return await msgOrRes(message, `The queue **${results[0].name}** has been loaded.`);
     }
 
@@ -254,9 +254,9 @@ class QueueCommand implements SlashCommand {
         }
         const [results] = <RowDataPacket[][]> await pool.query(`SELECT queue FROM servers WHERE id = '${g.id}'`);
         if (results.length == 0) return await msgOrRes(message, "No queue was found!");
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, JSON.parse(unescape(results[0].queue)), false, false, pool);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, JSON.parse(unescape(results[0].queue)), false, false);
         else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-        updateQueue(guild.id, serverQueue, pool);
+        await updateQueue(guild.id, serverQueue);
         return await msgOrRes(message, `The queue of this server has been synchronize to the queue of server **${g.name}**.`);
     }
 }

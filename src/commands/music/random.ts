@@ -1,7 +1,6 @@
 import { Message } from "discord.js";
 import { Interaction } from "slashcord";
 import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { globalClient as client } from "../../common";
 import { msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 
@@ -22,10 +21,10 @@ class RandomCommand implements SlashCommand {
 
     async random(message: Message | Interaction) {
         var serverQueue = getQueues().get(message.guild.id);
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false, client.pool);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         serverQueue.random = !serverQueue.random;
         try {
-            await updateQueue(message.guild.id, serverQueue, client.pool);
+            await updateQueue(message.guild.id, serverQueue);
             if (serverQueue.random) await msgOrRes(message, "The queue will be played randomly.");
             else await msgOrRes(message, "The queue will be played in order.");
         } catch (err) {

@@ -81,7 +81,7 @@ export class Handler {
                 var queue = [];
                 try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
                 catch (err) { storage.error(`Error parsing queue of ${result.id}`); }
-                setQueue(result.id, queue, !!result.looping, !!result.repeating, client.pool);
+                setQueue(result.id, queue, !!result.looping, !!result.repeating);
             }
             if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
             storage.guilds[result.id].token = result.token;
@@ -476,7 +476,7 @@ export class AliceHandler extends Handler {
             var queue = [];
             try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
             catch (err) { storage.error(`Error parsing queue of ${result.id}`); }
-            setQueue(result.id, queue, !!result.looping, !!result.repeating, client.pool);
+            setQueue(result.id, queue, !!result.looping, !!result.repeating);
         }
         if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
         storage.guilds[result.id].token = result.token;
@@ -789,7 +789,7 @@ export class CanaryHandler extends Handler {
                 var queue = [];
                 try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
                 catch (err) { storage.error(`Error parsing queue of ${result.id}`); }
-                setQueue(result.id, queue, !!result.looping, !!result.repeating, client.pool);
+                setQueue(result.id, queue, !!result.looping, !!result.repeating);
             }
             if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
             else storage.guilds[result.id].prefix = client.prefix;

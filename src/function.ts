@@ -423,7 +423,7 @@ export async function requestStream(url) {
 }
 export function capitalize(s) { return (typeof s !== 'string') ? '' : s.charAt(0).toUpperCase() + s.slice(1); }
 export function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-export function bufferToStream(buf, chunkSize) {
+export function bufferToStream(buf, chunkSize = undefined) {
     const { Readable } = require("stream");
     if (typeof buf === 'string') buf = Buffer.from(buf, 'utf8');
     if (!Buffer.isBuffer(buf)) throw new TypeError(`"buf" argument must be a string or an instance of Buffer`);
@@ -497,7 +497,7 @@ export function commonRoleEmbed(client, word, past, name) {
         .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return [successEmbed, failEmbed];
 }
-export function msgOrRes(message: Discord.Message | Interaction, str: string = undefined) {
+export function msgOrRes(message: Discord.Message | Interaction, str: any = undefined) {
     if (str) return msgOrRes(message)(str);
     return message instanceof Discord.Message ? message.channel.send : message.reply;
 }
