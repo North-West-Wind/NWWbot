@@ -3,6 +3,7 @@ import { Interaction } from "slashcord";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, createEmbedScrolling, getFetch, readableDateTime } from "../../function";
 import { globalClient as client } from "../../common";
+import { getHistory, getStats } from "survivio-api";
 
 const fetch = getFetch();
 const createModeEmbed = (mode, stats) => {
@@ -59,11 +60,9 @@ class SurvivCommand implements SlashCommand {
         }
     }
 
-    async getPlayerEmbed(player) {
-        const body = { slug: player, interval: "all", mapIdFilter: "-1" };
-        const hisBody = { slug: player, offset: 0, count: 1, teamModeFilter: 7 };
-        const stats = await fetch("https://surviv.io/api/user_stats", { method: "POST", body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } }).then(res => res.json());
-        const history = await fetch("https://surviv.io/api/match_history", { method: "POST", body: JSON.stringify(hisBody), headers: { 'Content-Type': 'application/json' } }).then(res => res.json());
+    async getPlayerEmbed(player: string) {
+        const stats = await getStats(player);
+        const history = await getHistory(player);
         if (!stats.player_icon) stats.player_icon = "https://surviv.io/stats/img/ui/player.svg";
         else for (const emote of emotes) if (emote.replace(/-/g, "") === stats.player_icon.split("_")[1]) {
             stats.player_icon = `https://surviv.io/img/emotes/${emote}.svg`;
@@ -87,9 +86,7 @@ class SurvivCommand implements SlashCommand {
             .setTimestamp()
             .setFooter("Made with Surviv.io API", client.user.displayAvatarURL());
         allEmbeds.push(overall);
-        if (stats.modes[0]) allEmbeds.push(createModeEmbed(stats.modes[0], stats));
-        if (stats.modes[1]) allEmbeds.push(createModeEmbed(stats.modes[1], stats));
-        if (stats.modes[2]) allEmbeds.push(createModeEmbed(stats.modes[2], stats));
+        for (const mode of stats.modes) allEmbeds.push(createModeEmbed(mode, stats));
         if (history[0]) {
             const last = new MessageEmbed()
                 .setColor(color())

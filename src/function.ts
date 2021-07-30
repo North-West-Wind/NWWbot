@@ -497,7 +497,8 @@ export function commonRoleEmbed(client, word, past, name) {
         .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return [successEmbed, failEmbed];
 }
-export function msgOrRes(message: Discord.Message | Interaction) {
+export function msgOrRes(message: Discord.Message | Interaction, str: string = undefined) {
+    if (str) return msgOrRes(message)(str);
     return message instanceof Discord.Message ? message.channel.send : message.reply;
 }
 export function deepReaddir(dir) {

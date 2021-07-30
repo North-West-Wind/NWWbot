@@ -156,6 +156,7 @@ export class SoundTrack {
     volume: number;
     thumbnail: string;
     isLive: boolean;
+    spot?: string;
 }
 
 export interface Item {
