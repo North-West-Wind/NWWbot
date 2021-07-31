@@ -21,16 +21,16 @@ class PauseCommand implements SlashCommand {
     async pause(message: Message | Interaction) {
         var serverQueue = getQueues().get(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
-        if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return await msgOrRes(message)("You have to be in a voice channel to pause the music when the bot is playing!");
-        if (!serverQueue || !serverQueue.connection || !serverQueue.connection.dispatcher) return await msgOrRes(message)("There is nothing playing.");
+        if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to pause the music when the bot is playing!");
+        if (!serverQueue || !serverQueue.connection || !serverQueue.connection.dispatcher) return await msgOrRes(message, "There is nothing playing.");
         if (!serverQueue.paused) {
             serverQueue.paused = true;
             if (serverQueue.connection.dispatcher)
                 serverQueue.connection.dispatcher.pause(true);
             await updateQueue(message.guild.id, serverQueue);
-            return await msgOrRes(message)("The playback has been stopped.");
+            return await msgOrRes(message, "The playback has been stopped.");
         } else {
-            return await msgOrRes(message)("The playback is already stopped.");
+            return await msgOrRes(message, "The playback is already stopped.");
         }
     }
 }

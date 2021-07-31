@@ -3,12 +3,12 @@ import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { genPermMsg, commonModerationEmbed, findMember } from "../../function";
 
 class UnMuteCommand implements SlashCommand {
-    name: "unmute"
-    description: "Unmute a member while the member is in a voice channel."
-    args: 1
-    usage: "<user | user ID> [reason]"
-    category: 1
-    permissions: 4194304
+    name = "unmute"
+    description = "Unmute a member while the member is in a voice channel."
+    args = 1
+    usage = "<user | user ID> [reason]"
+    category = 1
+    permissions = 4194304
     options = [
         {
             name: "user",

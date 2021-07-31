@@ -44,4 +44,7 @@ class AvatarCommand implements SlashCommand {
             .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
         await message.channel.send(Embed);
     }
-};
+}
+
+const cmd = new AvatarCommand();
+export default cmd;

@@ -4,21 +4,24 @@ import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);
 import { RowDataPacket } from "mysql2";
-import { endGiveaway } from "../commands/miscellaneous/giveaway";
-import { endPoll } from "../commands/miscellaneous/poll";
-import { expire } from "../commands/managements/role-message";
-import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, wait, nameToUuid, color } from "../function";
-import { setQueue, stop } from "../helpers/music";
-import { NorthClient, LevelData, NorthMessage, RoleMessage } from "./NorthClient";
+import { endGiveaway } from "./commands/miscellaneous/giveaway";
+import { endPoll } from "./commands/miscellaneous/poll";
+import { expire } from "./commands/managements/role-message";
+import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, wait, nameToUuid, color } from "./function";
+import { setQueue, stop } from "./helpers/music";
+import { NorthClient, LevelData, NorthMessage, RoleMessage } from "./classes/NorthClient";
 import { Connection } from "mysql2/promise";
 import fetch from "node-fetch";
-import * as filter from "../helpers/filter";
+import * as filter from "./helpers/filter";
 import Slashcord from "slashcord/dist/Index";
-import { sCategories } from "../commands/information/help";
+import { sCategories } from "./commands/information/help";
+import common from "./common";
 
 export class Handler {
-    static setup(client: NorthClient) {
+    static async setup(client: NorthClient, token: string) {
+        await common(client);
         new Handler(client);
+        client.login(token);
     }
 
     constructor(client: NorthClient) {
@@ -44,7 +47,7 @@ export class Handler {
     }
 
     async preReady(client: NorthClient) {
-        new Slashcord(client, { commandsDir: "../commands"});
+        new Slashcord(client, { commandsDir: "commands" });
         client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
     }
 
@@ -460,8 +463,10 @@ export class Handler {
 }
 
 export class AliceHandler extends Handler {
-    static setup(client: NorthClient) {
+    static async setup(client: NorthClient, token: string) {
+        await common(client);
         new AliceHandler(client);
+        client.login(token);
     }
 
     constructor(client: NorthClient) {
@@ -773,8 +778,10 @@ export class AliceHandler extends Handler {
 }
 
 export class CanaryHandler extends Handler {
-    static setup(client: NorthClient) {
+    static async setup(client: NorthClient, token: string) {
+        await common(client);
         new CanaryHandler(client);
+        client.login(token);
     }
 
     constructor(client: NorthClient) {

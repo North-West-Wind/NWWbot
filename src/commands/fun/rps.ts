@@ -53,3 +53,6 @@ class RPSCommand implements SlashCommand {
     msg.edit(em);
   }
 }
+
+const cmd = new RPSCommand();
+export default cmd;

@@ -8,7 +8,7 @@ class DisguiseCommand implements SlashCommand {
     category = 10
 
     execute(obj: { interaction: Interaction }) {
-        obj.interaction.onlyReply("This command doesn't work in slash.", {});
+        obj.interaction.reply("This command doesn't work in slash.");
     }
 
     run(message: NorthMessage, args: string[]) {

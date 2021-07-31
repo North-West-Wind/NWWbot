@@ -1,12 +1,12 @@
 {
   "name": "nwwbot",
-  "version": "4.0.7",
+  "version": "5.0.0",
   "description": "NorthWestWind's bot!",
   "main": "out/main.js",
   "scripts": {
-    "start": "node --optimize_for_size --max_old_space_size=341 --gc_interval=50 --trace-warnings main.js",
-    "alice": "node --optimize_for_size --max_old_space_size=341 --gc_interval=50 --trace-warnings alice.js",
-    "canary": "node --optimize_for_size --max_old_space_size=341 --gc_interval=50 --trace-warnings canary.js",
+    "start": "node --optimize_for_size --max_old_space_size=2048 --gc_interval=100 --trace-warnings out/main.js",
+    "alice": "node --optimize_for_size --max_old_space_size=2048 --gc_interval=100 --trace-warnings out/alice.js",
+    "canary": "node --optimize_for_size --max_old_space_size=2048 --gc_interval=100 --trace-warnings out/canary.js",
     "tsc": "tsc"
   },
   "engines": {

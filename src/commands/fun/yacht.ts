@@ -1,7 +1,6 @@
 import { TextChannel } from "discord.js";
 import { Interaction } from "slashcord";
 import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { FakeMessage, InteractionResponse } from "../../classes/Slash";
 import * as Discord from "discord.js";
 import { color, msgOrRes } from "../../function";
 
@@ -11,13 +10,13 @@ class YachtCommand implements SlashCommand {
     category = 3
     
     async execute(obj: { interaction: Interaction }) {
+        if (!(<TextChannel>obj.interaction.channel).permissionsFor(obj.interaction.guild.me).has(8192)) return await obj.interaction.reply("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
         await this.logic(obj.interaction);
     }
     
     async run(message: NorthMessage) {
         if (!(<TextChannel>message.channel).permissionsFor(message.guild.me).has(8192)) return await message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
         await this.logic(message);
-        
     }
 
     async logic(message: Discord.Message | Interaction) {

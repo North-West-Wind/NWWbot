@@ -3,7 +3,6 @@ import { Aki, region } from "aki-api";
 import { NorthClient, SlashCommand, NorthMessage } from "../../classes/NorthClient";
 import { color, genPermMsg } from "../../function.js";
 import { Interaction } from "slashcord";
-import { ApplicationCommandOption, ApplicationCommandOptionChoice, ApplicationCommandOptionType } from "../../classes/Slash";
 import { guess } from "aki-api/typings/functions";
 
 export class AkiCommand implements SlashCommand {

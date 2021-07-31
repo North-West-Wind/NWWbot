@@ -511,7 +511,7 @@ export async function search(message: Message | Interaction, link: string) {
     }
     var val = { error: true, songs: [], msg: null, message: null };
     var s = 0;
-    var msg = await msgOrRes(message, allEmbeds[0]);
+    var msg = <Message> await msgOrRes(message, allEmbeds[0]);
     const filter = x => x.author.id === message.member.id;
     const collector = await msg.channel.createMessageCollector(filter, { idle: 60000 });
     collector.on("collect", async collected => {

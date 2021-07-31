@@ -1,7 +1,6 @@
 import { Interaction } from "slashcord";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
-import { InteractionResponse } from "../../classes/Slash";
 import { jsDate2Mysql, readableDateTime, setTimeout_, readableDateTimeText, genPermMsg, findRole, ms, color } from "../../function";
 import { RowDataPacket } from "mysql2";
 import { globalClient as client } from "../../common";
@@ -152,10 +151,10 @@ class GiveawayCommand implements SlashCommand {
     } else if (obj.args[0].name === "end") {
       const msgID = obj.args[0].options[0].value;
       const [result] = <RowDataPacket[][]> await obj.client.pool.query("SELECT * FROM giveaways WHERE id = '" + msgID + "'");
-      if (result.length != 1 || !result) return InteractionResponse.sendMessage("No giveaway was found!");
-      if (result[0].author !== obj.interaction.member.user.id) return InteractionResponse.sendMessage("You cannot end a giveaway that is not hosted by you!");
+      if (result.length != 1 || !result) return await obj.interaction.reply("No giveaway was found!");
+      if (result[0].author !== obj.interaction.member.user.id) return await obj.interaction.reply("You cannot end a giveaway that is not hosted by you!");
       endGiveaway(obj.client.pool, result[0]);
-      return InteractionResponse.sendMessage("The giveaway is being terminated...");
+      return await obj.interaction.reply("The giveaway is being terminated...");
     } else if (obj.args[0].name === "list") {
       const [results] = <RowDataPacket[][]> await obj.client.pool.query(`SELECT * FROM giveaways WHERE guild = '${obj.interaction.guild.id}'`)
       const Embed = new Discord.MessageEmbed()
@@ -168,7 +167,7 @@ class GiveawayCommand implements SlashCommand {
         const readableTime = readableDateTime(new Date(results[i].endAt));
         Embed.addField(readableTime, unescape(results[i].item));
       }
-      return InteractionResponse.sendEmbeds(Embed);
+      return await obj.interaction.reply(Embed);
     }
   }
 

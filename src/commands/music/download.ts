@@ -70,7 +70,7 @@ class DownloadCommand implements SlashCommand {
             NorthClient.storage.error(err);
             return await msgOrRes(message, `There was an error trying to download the soundtrack!`);
         }
-        const msg = await msgOrRes(message, `Downloading... (Soundtrack Type: **Type ${song.type}**)`);
+        const msg = <Discord.Message> await msgOrRes(message, `Downloading... (Soundtrack Type: **Type ${song.type}**)`);
         let stream;
         try {
             switch (song.type) {

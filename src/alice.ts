@@ -1,10 +1,9 @@
 import * as dotenv from "dotenv";
-import { AliceHandler } from "./classes/Handler";
+import { AliceHandler } from "./handler";
 import { NorthClient, ClientStorage } from "./classes/NorthClient";
 import { RowDataPacket } from "mysql2";
-import common from "./common";
 import { getFetch, profile } from "./function";
-dotenv.config({ path: __dirname+'/.env' });
+dotenv.config();
 
 const fetch = getFetch();
 
@@ -13,11 +12,9 @@ const client = new NorthClient({ restRequestTimeout: 60000, messageCacheMaxSize:
 client.log = "678847114935271425";
 NorthClient.storage = new ClientStorage(client);
 
-common(client);
 client.prefix = prefix;
 client.id = 1;
-AliceHandler.setup(client);
-client.login(process.env.TOKEN1);
+AliceHandler.setup(client, process.env.TOKEN1);
 
 setInterval(async () => {
   if (NorthClient.storage.queries.length < 1) return;

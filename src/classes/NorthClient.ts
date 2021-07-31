@@ -1,5 +1,5 @@
 import { Client, ClientOptions, Collection, Message, MessageEmbed, Snowflake, TextChannel, User, VoiceChannel, VoiceConnection } from "discord.js";
-import { Pool, RowDataPacket } from "mysql2/promise";
+import { Pool } from "mysql2/promise";
 import { Interaction } from "slashcord";
 import { Handler } from "slashcord/dist/handlers/Handler";
 
@@ -14,6 +14,9 @@ export class NorthClient extends Client {
     log: Snowflake;
     version: string;
     static storage: ClientStorage;
+
+    setPool(pool: Pool) { this.pool = pool; }
+    setVersion(version: string) { this.version = version; }
 }
 
 export interface Command {

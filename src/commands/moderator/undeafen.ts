@@ -3,13 +3,13 @@ import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { genPermMsg, commonModerationEmbed, findMember } from "../../function";
 
 class UnDeafenCommand implements SlashCommand {
-    name: "undeafen"
-    description: "Undeafen a member while the member is in a voice channel."
-    args: 1
-    aliases: ["undeaf"]
-    usage: "<user | user ID> [reason]"
-    category: 1
-    permissions: 8388608
+    name = "undeafen"
+    description = "Undeafen a member while the member is in a voice channel."
+    args = 1
+    aliases = ["undeaf"]
+    usage = "<user | user ID> [reason]"
+    category = 1
+    permissions = 8388608
     options = [
         {
             name: "user",

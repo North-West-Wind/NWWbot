@@ -3,7 +3,6 @@ import { Interaction } from "slashcord";
 import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory } from "../../function";
 import { Message, MessageEmbed } from "discord.js";
 import { curseforge, SimpleProject } from "aio-mc-api";
-import { ApplicationCommandOption, ApplicationCommandOptionType, ApplicationCommandOptionChoice } from "../../classes/Slash";
 import { SlashCommand, NorthMessage } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 
@@ -22,24 +21,75 @@ class MinecraftCommand implements SlashCommand {
 
     constructor() {
         const sortChoices = [];
-        for (const sort in SortTypes) sortChoices.push(new ApplicationCommandOptionChoice(sort.toLowerCase(), sort));
+        for (const sort in SortTypes) sortChoices.push({ name: sort.toLowerCase(), value: sort });
 
         this.options = [
-            new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), this.subcommands[0], this.subdesc[0]).setOptions([
-                new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "username", "The username or UUID of the player.").setRequired(true)
-            ]),
-            new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), this.subcommands[1], this.subdesc[1]).setOptions([
-                new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "ip", "The IP of the server.").setRequired(true)
-            ]),
-            new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), this.subcommands[2], this.subdesc[2]).setOptions([
-                new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "username", "The username or UUID of the player.").setRequired(true)
-            ]),
-            new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), this.subcommands[3], this.subdesc[3]).setOptions([
-                new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "category", "The category of CurseForge project to search."),
-                new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "version", "The version of the game."),
-                new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "sort", "The way to sort projects.").setChoices(sortChoices),
-                new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "keywords", "The project to search for.")
-            ])].map(x => JSON.parse(JSON.stringify(x)));
+            {
+                name: this.subcommands[0],
+                description: this.subdesc[0],
+                type: 1,
+                options: [{
+                    name: "username",
+                    description: "The username or UUID of the player.",
+                    required: true,
+                    type: 3
+                }]
+            },
+            {
+                name: this.subcommands[1],
+                description: this.subdesc[1],
+                type: 1,
+                options: [{
+                    name: "ip",
+                    description: "The IP of the server.",
+                    required: true,
+                    type: 3
+                }]
+            },
+            {
+                name: this.subcommands[2],
+                description: this.subdesc[2],
+                type: 1,
+                options: [{
+                    name: "username",
+                    description: "The username or UUID of the player.",
+                    required: true,
+                    type: 3
+                }]
+            },
+            {
+                name: this.subcommands[3],
+                description: this.subdesc[3],
+                type: 1,
+                options: [
+                    {
+                        name: "category",
+                        description: "The category of CurseForge project to search.",
+                        required: false,
+                        type: 3
+                    },
+                    {
+                        name: "version",
+                        description: "The version of the game.",
+                        required: false,
+                        type: 3
+                    },
+                    {
+                        name: "sort",
+                        description: "The way to sort projects.",
+                        required: false,
+                        type: 3,
+                        choices: sortChoices
+                    },
+                    {
+                        name: "keywords",
+                        description: "The project to search for.",
+                        required: false,
+                        type: 3
+                    }
+                ]
+            }
+        ]
     }
 
     async execute(obj: { interaction: Interaction, args: any[] }) {
@@ -60,7 +110,7 @@ class MinecraftCommand implements SlashCommand {
         } else if (obj.args[0].name === this.subcommands[2]) {
             const res = await nameToUuid(obj.args[0].options[0].value);
             if (!res) await obj.interaction.reply("No player named **" + obj.args[0].options[0].value + "** were found");
-            else await obj.interaction.reply(await this.getHistoryEmbed(<{name: string, changedToAt: number}[]> <unknown> await nameHistory(obj.args[0].options[0].value)));
+            else await obj.interaction.reply(await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(obj.args[0].options[0].value)));
         } else if (obj.args[0].name === this.subcommands[3]) {
             await obj.interaction.reply("Fetching CurseForge projects...");
             const cArgs = ["curseforge"].concat(obj.args[0].options.filter(x => !!x).map(x => x.value));
@@ -90,7 +140,7 @@ class MinecraftCommand implements SlashCommand {
         } else if (args[0] === "history" || args[0] === "his") {
             const res = await profile(args[1]);
             if (!res) return message.channel.send("No player named **" + args[1] + "** were found");
-            await message.channel.send(await this.getHistoryEmbed(<{name: string, changedToAt: number}[]> <unknown> await nameHistory(args[1])));
+            await message.channel.send(await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(args[1])));
         } else if (args[0] === "curseforge" || args[0] === "cf") return await this.cf(message, args);
     }
 
@@ -202,7 +252,7 @@ class MinecraftCommand implements SlashCommand {
         return allEmbeds;
     }
 
-    async getHistoryEmbed(history: {name: string, changedToAt?: number}[]) {
+    async getHistoryEmbed(history: { name: string, changedToAt?: number }[]) {
         const result = history;
         var names = [];
         var num = 0

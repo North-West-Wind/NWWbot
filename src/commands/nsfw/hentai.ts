@@ -150,15 +150,15 @@ class HentaiCommand implements SlashCommand {
             .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     }
     async auto(message: NorthMessage | Interaction, amount = undefined, interval = undefined, reverse = false, tags = []) {
-        if (!amount) return await msgOrRes(message)("You didn't provide the amount of messages to be sent!");
-        else if (!interval) return await msgOrRes(message)("You didn't provide the interval between each message!");
-        if (isNaN(amount)) return await msgOrRes(message)("The amount of message is invalid!");
-        else if (!interval) return await msgOrRes(message)("The interval is not valid!");
-        else if (interval < 1000) return await msgOrRes(message)("The interval must be larger than 1 second!");
-        else if (interval > 300000) return await msgOrRes(message)("The interval must be smaller than 5 minutes!");
-        else if (amount < 1) return await msgOrRes(message)("The amount of message must be larger than 0!");
-        else if (amount > 120) return await msgOrRes(message)("The amount of message must be smaller than 120!");
-        await msgOrRes(message)(`Auto-hentai initialized. **${amount} messages** with interval **${interval} milliseconds**`);
+        if (!amount) return await msgOrRes(message, "You didn't provide the amount of messages to be sent!");
+        else if (!interval) return await msgOrRes(message, "You didn't provide the interval between each message!");
+        if (isNaN(amount)) return await msgOrRes(message, "The amount of message is invalid!");
+        else if (!interval) return await msgOrRes(message, "The interval is not valid!");
+        else if (interval < 1000) return await msgOrRes(message, "The interval must be larger than 1 second!");
+        else if (interval > 300000) return await msgOrRes(message, "The interval must be smaller than 5 minutes!");
+        else if (amount < 1) return await msgOrRes(message, "The amount of message must be larger than 0!");
+        else if (amount > 120) return await msgOrRes(message, "The amount of message must be smaller than 120!");
+        await msgOrRes(message, `Auto-hentai initialized. **${amount} messages** with interval **${interval} milliseconds**`);
         if (reverse) tags = tags.filter(str => !this.tags.includes(str));
         else tags = tags.filter(str => this.tags.includes(str));
         var counter = 0;

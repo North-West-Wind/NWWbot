@@ -75,4 +75,7 @@ class ProfileCommand implements SlashCommand {
             .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
         return Embed;
     }
-};
+}
+
+const cmd = new ProfileCommand();
+export default cmd;

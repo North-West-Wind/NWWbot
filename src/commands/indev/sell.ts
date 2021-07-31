@@ -4,11 +4,11 @@ import { color, jsDate2Mysql } from "../../function";
 import { Interaction } from "slashcord";
 
 class SellCommand implements SlashCommand {
-    name: "sell"
-    description: "Put something to the cross-server shop and sell it!"
-    usage: "<price> <item>"
-    args: 2
-    category: 9
+    name = "sell"
+    description = "Put something to the cross-server shop and sell it!"
+    usage = "<price> <item>"
+    args = 2
+    category = 9
 
     async execute(obj: { interaction: Interaction }) {
         await obj.interaction.reply("This command is not available in slash.");

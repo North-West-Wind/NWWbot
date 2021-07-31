@@ -1,7 +1,6 @@
 import { Interaction } from "slashcord";
-import { NorthClient, SlashCommand } from "../../classes/NorthClient";
-import { InteractionResponse } from "../../classes/Slash";
-import { mergeObjArr, color, validNotImgurURL, validImgurURL, validRedditURL, validImgurVideoURL, validRedditVideoURL, validGfyURL, validRedGifURL, decodeHtmlEntity, wait, ms, getFetch } from "../../function";
+import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { mergeObjArr, color, validNotImgurURL, validImgurURL, validRedditURL, validImgurVideoURL, validRedditVideoURL, validGfyURL, validRedGifURL, decodeHtmlEntity, wait, ms, getFetch, msgOrRes } from "../../function";
 import * as cheerio from 'cheerio';
 import * as Discord from "discord.js";
 import RedditAPI from "reddit-wrapper-v2";
@@ -476,7 +475,15 @@ class PornCommand implements SlashCommand {
         {
             name: "tags",
             description: "Displays available tags.",
-            type: 1
+            type: 1,
+            options: [
+                {
+                    name: "listofsubreddits",
+                    description: "If chosen, shows tags of ListOfSubreddits list, else, NSFW411.",
+                    required: false,
+                    type: 5
+                }
+            ]
         }
     ];
     
@@ -486,27 +493,25 @@ class PornCommand implements SlashCommand {
         var nArgs = [];
         if (obj.args[0].name === "single") {
             nArgs = obj.args[0].options ? (obj.args[0].options[0]?.value?.split(/ +/) || []) : [];
-            if (obj.args[0].options ? obj.args[0].options[1]?.value : false) nArgs.push("los");
+            if (obj.args[0].options ? obj.args[0].options[1]?.value : false) return await this.los(obj.interaction, nArgs);
+            else return await this.nsfw411(obj.interaction, nArgs);
         } else if (obj.args[0].name === "auto") {
             nArgs = obj.args[0].options[2]?.value?.split(/ +/) || [];
             if (obj.args[0].options[3]?.value) nArgs.push("los");
             nArgs.unshift(obj.args[0].options[1].value);
             nArgs.unshift(obj.args[0].options[0].value);
             nArgs.unshift("auto");
-        } else nArgs = ["tags"];
-        const message = await InteractionResponse.createFakeMessage(obj.interaction);
-        await obj.interaction.delete();
-        await this.run(message, nArgs);
+            return await this.auto(obj.interaction, nArgs);
+        } else await this.tags(obj.interaction, (obj.args[0].options ? obj.args[0].options[1]?.value : false) ? ["los"] : []);
     }
     
-    async run(message, args) {
+    async run(message: NorthMessage, args: string[]) {
         if (args[0]?.toLowerCase() === "auto") return await this.auto(message, args);
         if (args[0]?.toLowerCase() === "tags") return await this.tags(message, args);
-        if (!message.msg) message.msg = await message.channel.send("Fetching takes a while. Please be patient.");
         if (["listofsubreddits", "los"].includes(args[0]?.toLowerCase())) return await this.los(message, args);
         else return await this.nsfw411(message, args);
     }
-    async nsfw411(message, args) {
+    async nsfw411(message: NorthMessage | Interaction, args: string[]) {
         var subs = [];
         var tags = [];
         var more = [];
@@ -2238,7 +2243,7 @@ class PornCommand implements SlashCommand {
 
         return await this.send(message, args, subs, tags, more);
     }
-    async los(message, args: string[]) {
+    async los(message: NorthMessage | Interaction, args: string[]) {
         const filtered = args.filter(x => Object.keys(this.listofsubreddits).includes(x));
         const subs = args.filter(x => Object.values(this.listofsubreddits).some(y => y.includes(x)));
         if (filtered.length < 1 && subs.length < 1) await this.send(message, args, [""].concat.apply([], Object.values(this.listofsubreddits)).slice(1));
@@ -2246,7 +2251,7 @@ class PornCommand implements SlashCommand {
         else if (filtered.length < 1 && subs.length > 0) await this.send(message, args, subs);
         else await this.send(message, args, mergeObjArr(this.listofsubreddits, filtered).concat(subs));
     }
-    async send(message, args, subs, tags = undefined, more = undefined) {
+    async send(message: NorthMessage | Interaction, args: string[], subs: string[], tags: string[] = undefined, more: string[] = undefined) {
         const picked = subs[Math.floor(Math.random() * subs.length)];
         const response = await redditConn.api.get("/r/" + picked + "/hot", { limit: 100 });
         if (!response || !response[1]?.data?.children || !response[1].data.children[0]) return await this.send(message, args, subs, tags, more);
@@ -2293,24 +2298,22 @@ class PornCommand implements SlashCommand {
         if (link) {
             try {
                 var video = new Discord.MessageAttachment(link, "video.mp4");
-                await message.channel.send(em);
+                await msgOrRes(message, em);
                 await message.channel.send(video);
             } catch (err) {
                 await message.channel.send(`Failed to send video (\`${err.message}\`)! Running again...`);
-                delete message.msg;
                 return await this.send(message, args, subs, tags, more);
             }
-        } else message.channel.send(em);
-        if (message.msg) await message.msg.delete();
+        } else msgOrRes(message, em);
     }
-    async auto(message, args) {
-        if (!args[1]) return await message.channel.send("You didn't input the amount!");
-        else if (!args[2]) return await message.channel.send("You didn't input the interval!");
+    async auto(message: NorthMessage | Interaction, args: string[]) {
+        if (!args[1]) return await msgOrRes(message, "You didn't input the amount!");
+        else if (!args[2]) return await msgOrRes(message, "You didn't input the interval!");
         const amount = parseInt(args[1]);
         const interval = ms(args[2]);
-        if (isNaN(amount)) return await message.channel.send("The amount is not valid!");
-        else if (isNaN(interval)) return await message.channel.send("The interval is not valid!");
-        await message.channel.send(`Auto-porn initialized. **${amount} messages** with interval **${interval} milliseconds**`);
+        if (isNaN(amount)) return await msgOrRes(message, "The amount is not valid!");
+        else if (isNaN(interval)) return await msgOrRes(message, "The interval is not valid!");
+        await msgOrRes(message, `Auto-porn initialized. **${amount} messages** with interval **${interval} milliseconds**`);
         if (["listofsubreddits", "los"].some(l => args.includes(l))) for (let i = 0; i < amount; i++) {
             await wait(interval);
             await this.los(message, args);
@@ -2320,8 +2323,8 @@ class PornCommand implements SlashCommand {
         }
         await message.channel.send("Auto-porn ended. Thank you for using that!");
     }
-    async tags(message, args) {
-        if (["listofsubreddits", "los"].includes(args[1]?.toLowerCase())) return await message.channel.send(Object.keys(this.listofsubreddits).join(", "));
+    async tags(message: NorthMessage | Interaction, args: string[]) {
+        if (["listofsubreddits", "los"].includes(args[1]?.toLowerCase())) return await msgOrRes(message, Object.keys(this.listofsubreddits).join(", "));
         else return await this.nsfw411(message, args);
     }
 }

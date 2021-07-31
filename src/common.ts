@@ -2,7 +2,6 @@ import { registerFont } from "canvas";
 import * as fs from "fs";
 import { NorthClient, Card, SlashCommand, Item } from "./classes/NorthClient";
 import { twoDigits, deepReaddir } from "./function";
-import { getQueues, updateQueue } from "./helpers/music";
 import * as mysql from "mysql2";
 const mysql_config = {
     connectTimeout: 60 * 60 * 1000,
@@ -27,8 +26,8 @@ export default async(client: NorthClient) => {
     NorthClient.storage.card.set("0413", new Card(4, 13));
     NorthClient.storage.card.set("0414", new Card(4, 14));
     
-    const commandFiles = deepReaddir("./commands").filter(file => file.endsWith(".js"));
-    const itemFiles = deepReaddir("./items").filter(file => file.endsWith(".js"));
+    const commandFiles = deepReaddir("./out/commands").filter(file => file.endsWith(".js"));
+    const itemFiles = deepReaddir("./out/items").filter(file => file.endsWith(".js"));
     for (const file of commandFiles) {
         const command = <SlashCommand> (await import(file)).default;
         NorthClient.storage.commands.set(command.name, command);
@@ -48,8 +47,8 @@ export default async(client: NorthClient) => {
                 client.pool = pool;
             }
     }));
-    client.pool = pool;
-    client.version = "4.0.7";
+    client.setPool(pool);
+    client.setVersion("5.0.0");
     globalClient = client;
 }
 

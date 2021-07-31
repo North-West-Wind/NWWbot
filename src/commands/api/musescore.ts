@@ -1,18 +1,17 @@
 import * as cheerio from 'cheerio';
 import { Interaction } from "slashcord";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { ApplicationCommandOption, ApplicationCommandOptionType } from "../../classes/Slash";
-import { validMSURL, requestStream, findValueByPrefix, streamToString, color } from "../../function";
+import { validMSURL, requestStream, findValueByPrefix, streamToString, color, msgOrRes } from "../../function";
 import { run } from '../../helpers/puppeteer';
 import muse from "musescore-metadata";
 import * as Discord from "discord.js";
 import ytdl from "ytdl-core";
 import sanitize from "sanitize-filename";
-import SVGtoPDF from "svg-to-pdfkit";
 import rp from "request-promise-native";
 import PDFKit from "pdfkit";
 import fetch from "node-fetch";
 import { globalClient as client } from "../../common";
+const SVGtoPDF: any = require("svg-to-pdfkit");
 function PNGtoPDF(doc: PDFKit.PDFDocument, url: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
         const res = <any>await fetch(url).then(res => res.body);
@@ -71,28 +70,30 @@ class MusescoreCommand implements SlashCommand {
     category = 7;
     aliases = ["muse"];
     args = 1;
-    options: any[];
-
-    constructor() {
-        this.options = [
-            new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "score", "The link or name of the score.").setRequired(true)
-        ].map(x => JSON.parse(JSON.stringify(x)));
-    }
+    options = [{
+        name: "score",
+        description: "The link or name of the score.",
+        required: true,
+        type: 3
+    }];
 
     async execute(obj: { interaction: Interaction, args: any[] }) {
-        await obj.interaction.reply("Fetching score metadata...");
-        await this.run(<NorthMessage>await obj.interaction.fetchReply(), <string[]>obj.args?.map(x => x?.value).filter(x => !!x));
-        await obj.interaction.delete();
+        if (!validMSURL(obj.args[0].value)) return await this.search(obj.interaction, obj.args[0].value);
+        await this.metadata(obj.interaction, obj.args[0].value);
     }
 
     async run(message: NorthMessage, args: string[]) {
         if (!validMSURL(args.join(" "))) return await this.search(message, args);
-        var msg = await message.channel.send("Loading score...");
+        await this.metadata(message, args.join(" "));
+    }
+
+    async metadata(message: NorthMessage | Interaction, url: string) {
+        var msg = <Discord.Message> await msgOrRes(message, "Loading score...");
         try {
-            var data = await muse(args.join(" "));
+            var data = await muse(url);
         } catch (err) {
             console.error(err);
-            return message.reply("there was an error trying to fetch data of the score!");
+            return await msg.edit("There was an error trying to fetch data of the score!");
         }
         const em = new Discord.MessageEmbed()
             .setColor(color())
@@ -112,19 +113,20 @@ class MusescoreCommand implements SlashCommand {
             .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
         msg = await msg.edit({ content: "", embed: em });
         await msg.react("📥");
-        const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === message.author.id, { max: 1, time: 30000 });
+        const author = (message instanceof Discord.Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelID))).id;
+        const collected = await msg.awaitReactions((r, u) => r.emoji.name === "📥" && u.id === author, { max: 1, time: 30000 });
         await msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
             try {
                 try {
                     var mesg = await message.channel.send("Generating MP3...");
-                    const mp3 = await getMP3(args.join(" "));
+                    const mp3 = await getMP3(url);
                     try {
                         if (mp3.error) throw new Error(mp3.message);
                         var res;
                         if (mp3.url.startsWith("https://www.youtube.com/embed/")) {
                             const ytid = mp3.url.split("/").slice(-1)[0].split("?")[0];
-                            res = await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0, requestOptions: { headers: { cookie: process.env.COOKIE, 'x-youtube-identity-token': process.env.YT } } });
+                            res = await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 });
                         } else res = await requestStream(mp3.url);
                         const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mp3`));
                         if (!res) throw new Error("Failed to get Readable Stream");
@@ -135,7 +137,7 @@ class MusescoreCommand implements SlashCommand {
                         await mesg.edit(`Failed to generate MP3! \`${err.message}\``);
                     }
                     mesg = await message.channel.send("Generating PDF...");
-                    const { doc, hasPDF, err } = await this.getPDF(args.join(" "), data);
+                    const { doc, hasPDF, err } = await this.getPDF(url, data);
                     try {
                         if (!hasPDF) throw new Error(err ? err : "No PDF available");
                         const att = new Discord.MessageAttachment(doc, sanitize(`${data.title}.pdf`));
@@ -163,14 +165,13 @@ class MusescoreCommand implements SlashCommand {
                     await message.reply("there was an error trying to send the files!");
                 }
             } catch (err) {
-                NorthClient.storage.log(`Failed download ${args.join(" ")} ${message.guild ? `in server ${message.guild.name}` : `for user ${message.author.username}`}`);
                 NorthClient.storage.error(err);
                 await message.channel.send("Failed to generate files!");
             }
         }
     }
 
-    async search(message: NorthMessage, args: string[]) {
+    async search(message: NorthMessage | Interaction, args: string[]) {
         try {
             const response = await rp({ uri: `https://musescore.com/sheetmusic?text=${encodeURIComponent(args.join(" "))}`, resolveWithFullResponse: true });
             if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
@@ -178,7 +179,8 @@ class MusescoreCommand implements SlashCommand {
         } catch (err) {
             return message.reply("there was an error trying to search for scores!");
         }
-        var msg = await message.channel.send("Loading scores...");
+        const author = (message instanceof Discord.Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelID))).id;
+        var msg = <Discord.Message> await msgOrRes(message, "Loading scores...");
         var $ = cheerio.load(body);
         const stores = Array.from($('div[class^="js-"]'));
         const store = findValueByPrefix(stores.find((x: any) => x.attribs?.class?.match(/^js-\w+$/)), "data-");
@@ -195,7 +197,7 @@ class MusescoreCommand implements SlashCommand {
                 .setTitle(data.title)
                 .setURL(data.url)
                 .setThumbnail(data.thumbnail)
-                .setDescription(`Description: **${data.description}**\n\nTo download, please copy the URL and use \`${message.prefix}${this.name} <link>\``)
+                .setDescription(`Description: **${data.description}**\n\nTo download, please copy the URL and use \`${message instanceof NorthMessage ? message.prefix : "/"}${this.name} <link>\``)
                 .addField("ID", data.id, true)
                 .addField("Author", data.user.name, true)
                 .addField("Duration", data.duration, true)
@@ -210,7 +212,7 @@ class MusescoreCommand implements SlashCommand {
             importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl, title: data.title, id: data.id });
         }
         if (allEmbeds.length < 1) return message.channel.send("No score was found!");
-        const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
+        const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author);
         var s = 0;
         await msg.delete();
         msg = await message.channel.send(allEmbeds[0]);

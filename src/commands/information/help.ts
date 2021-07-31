@@ -1,5 +1,4 @@
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { ApplicationCommandOption, ApplicationCommandOptionType, ApplicationCommandOptionChoice } from "../../classes/Slash";
 import { color, wait } from "../../function";
 import * as Discord from "discord.js";
 import { Interaction } from "slashcord";
@@ -15,24 +14,33 @@ class HelpCommand implements SlashCommand {
   usage = "[command]"
   cooldown = 5
   category = 6
-    options: any[];
+  options: any[];
 
   constructor() {
-      this.options = [
-          new ApplicationCommandOption(1, "all", "Display all the commands."),
-      ];
-      for (const category of sCategories) {
-        const option = new ApplicationCommandOption(ApplicationCommandOptionType.SUB_COMMAND.valueOf(), category.toLowerCase(), `${category} - Command Category`);
-        const filtered = Array.from(NorthClient.storage.commands.filter(x => x.category === sCategories.indexOf(category)).keys());
-        const fetchOpt = new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "command", "The command to fetch.").setRequired(true);
-        fetchOpt.setChoices([]);
-        for (const command of filtered) fetchOpt.choices.push(new ApplicationCommandOptionChoice(command, command));
-        option.setOptions([fetchOpt]);
-        this.options.push(option);
+    this.options = [
+      {
+        name: "all",
+        description: "Display all the commands.",
+        type: 1
       }
-      this.options = this.options.map(x => JSON.parse(JSON.stringify(x)));
+    ];
+    for (const category of sCategories) {
+      const fetchOpt = {
+        name: "command",
+        description: "The command to fetch.",
+        required: true,
+        type: 3
+      };
+      const option = {
+        name: category.toLowerCase(),
+        description: `${category} - Command Category`,
+        type: 1,
+        options: [fetchOpt]
+      };
+      this.options.push(option);
+    }
   }
-  
+
   async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
     if (obj.args[0]?.name === "all" || !obj.args[0]?.options || !obj.args[0]?.options[0]?.value) {
       await obj.interaction.reply(this.getAllCommands());
@@ -50,7 +58,7 @@ class HelpCommand implements SlashCommand {
   async run(message: NorthMessage, args: string[]) {
     if (!args.length) {
       const msg = await message.channel.send(this.getAllCommands());
-      setTimeout(async() => {
+      setTimeout(async () => {
         await msg.edit({ content: "This is the **manual**, my friend:\nhttps://northwestwind.ml/manual.pdf", embed: null });
       }, 60000);
       return;
@@ -72,7 +80,7 @@ class HelpCommand implements SlashCommand {
   }
 
   getCommand(name, prefix) {
-      const data = [];
+    const data = [];
     const { commands } = NorthClient.storage;
     const command = commands.get(name) || commands.find(c => c.aliases && c.aliases.includes(name));
     if (!command) return ["That's not a valid command!"];
@@ -89,7 +97,7 @@ class HelpCommand implements SlashCommand {
         if (command.subaliases) str = `**${command.subcommands[i]} | ${command.subaliases[i]}**${command.subdesc ? ` - ${command.subdesc[i]}` : ""}`;
         else str = `**${command.subcommands[i]}**${command.subdesc ? ` - ${command.subdesc[i]}` : ""}`;
         str += "\n        • "
-        if (command.subusage && (command.subusage[i] || command.subusage[i] == 0) && !isNaN(<number> command.subusage[i])) str += `${prefix}${command.name} ${command.subusage[command.subusage[i]].replace("<subcommand>", command.subcommands[i])}`;
+        if (command.subusage && (command.subusage[i] || command.subusage[i] == 0) && !isNaN(<number>command.subusage[i])) str += `${prefix}${command.name} ${command.subusage[command.subusage[i]].replace("<subcommand>", command.subcommands[i])}`;
         else if (command.subusage && command.subusage[i]) str += `${prefix}${command.name} ${command.subusage[i].toString().replace("<subcommand>", command.subcommands[i])}`;
         else str += `${prefix}${command.name} ${command.usage ? command.usage.replace(/(?!\s)[\<\[\w\s\|]*subcommand[\w\s\|\>\]]*/, command.subcommands[i]) : command.subcommands[i]}`;
         strs.push(str);

@@ -38,7 +38,7 @@ class NPCommand implements SlashCommand {
     async nowplaying(message: Discord.Message | Interaction) {
         var serverQueue = getQueues().get(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
-        if (serverQueue.songs.length < 1) return await msgOrRes(message)("There is nothing in the queue.");
+        if (serverQueue.songs.length < 1) return await msgOrRes(message, "There is nothing in the queue.");
         const filtered = serverQueue.songs.filter(song => !!song);
         if (serverQueue.songs.length !== filtered.length) {
             serverQueue.songs = filtered;
