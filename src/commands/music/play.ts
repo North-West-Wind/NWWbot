@@ -12,11 +12,11 @@ import { Interaction } from "slashcord";
 import moment from "moment";
 import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search } from "../../helpers/addTrack.js";
 import * as Stream from 'stream';
+import { globalClient as client } from "../../common.js";
 const fetch = getFetch();
-const StreamConcat = require('stream-concat');
 
 
-function createEmbed(client, songs) {
+export function createEmbed(songs) {
   const Embed = new Discord.MessageEmbed()
     .setColor(color())
     .setTitle("New track added:")
@@ -76,7 +76,6 @@ export async function play(guild, song, skipped = 0, seek = 0) {
   if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;
   try {
-    const silence = await requestStream("https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3");
     switch (song.type) {
       case 2:
       case 4:
@@ -194,11 +193,13 @@ class PlayCommand implements SlashCommand {
     type: 3
   }]
 
-  async execute(obj: { interaction: Interaction }) {
-    if (!obj.interaction.guild) return obj.interaction.reply("This command only works on server.");
+  async execute(obj: { interaction: Interaction, args: any[] }) {
+    if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
+    await this.logic(obj.interaction, obj.args[0]?.value);
   }
 
   async run(message: NorthMessage, args: string[]) {
+    await this.logic(message, args.join(" "));
   }
 
   async logic(message: Discord.Message | Interaction, str: string) {
@@ -255,7 +256,7 @@ class PlayCommand implements SlashCommand {
       if (result.error) return await message.channel.send(result.message || "Failed to add soundtracks");
       songs = result.songs;
       if (!songs || songs.length < 1) return await message.reply("there was an error trying to add the soundtrack!");
-      const Embed = createEmbed(message.client, songs);
+      const Embed = createEmbed(songs);
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, songs, false, false);
       else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
       if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }).catch(() => { }), 30000)).catch(() => { });
