@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { mergeObjArr, color, validNotImgurURL, validImgurURL, validRedditURL, validImgurVideoURL, validRedditVideoURL, validGfyURL, validRedGifURL, decodeHtmlEntity, wait, ms, getFetch, msgOrRes } from "../../function";
 import * as cheerio from 'cheerio';

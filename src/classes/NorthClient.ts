@@ -1,6 +1,6 @@
 import { Client, ClientOptions, Collection, Message, MessageEmbed, Snowflake, TextChannel, User, VoiceChannel, VoiceConnection } from "discord.js";
 import { Pool } from "mysql2/promise";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { Handler } from "slashcord/dist/handlers/Handler";
 
 export class NorthClient extends Client {

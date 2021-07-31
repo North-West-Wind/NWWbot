@@ -14,7 +14,7 @@ import { NorthClient } from "../classes/NorthClient";
 import { getFetch, decodeHtmlEntity, isGoodMusicVideoContent, validGDDLURL, color, msgOrRes } from "../function";
 import * as Stream from 'stream';
 import SpotifyWebApi from "spotify-web-api-node";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import rp from "request-promise-native";
 import * as cheerio from "cheerio";
 import * as Discord from "discord.js";

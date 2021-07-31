@@ -1,6 +1,6 @@
 import { Message, TextChannel } from "discord.js";
 import moment from "moment";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { setTimeout_, genPermMsg, findRole } from "../../function";
 import { globalClient as client } from "../../common";

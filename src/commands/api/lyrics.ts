@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import * as solenolyrics from "solenolyrics";
 import * as Discord from "discord.js";
 import { createEmbedScrolling, color } from "../../function";

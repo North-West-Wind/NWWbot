@@ -4,11 +4,11 @@ import { getMP3 } from "../api/musescore.js";
 import scdl from "soundcloud-downloader";
 import * as mm from "music-metadata";
 import { migrate as music } from "./migrate.js";
-import ytdl from "ytdl-core";
+import ytdl, { downloadOptions } from "ytdl-core";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { getQueues, updateQueue, setQueue } from "../../helpers/music.js";
 import WebMscore from "webmscore";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import moment from "moment";
 import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search } from "../../helpers/addTrack.js";
 import * as Stream from 'stream';
@@ -125,7 +125,7 @@ export async function play(guild, song, skipped = 0, seek = 0) {
             await updateQueue(guild.id, serverQueue);
           }
         }
-        if (!song?.isLive && !song?.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 }), { seek: seek });
+        if (!song?.isLive && !song?.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, <downloadOptions> { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 }), { seek: seek });
         else if (song.isPastLive) dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25 }), { seek: seek });
         else dispatcher = serverQueue.connection.play(ytdl(song.url, { highWaterMark: 1 << 25 }));
         break;

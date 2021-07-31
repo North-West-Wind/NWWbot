@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 import { moveArray, msgOrRes } from "../../function";

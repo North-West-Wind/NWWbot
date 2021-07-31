@@ -1,5 +1,5 @@
 import { Message, TextChannel } from "discord.js";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { moveArray, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";

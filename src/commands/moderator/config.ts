@@ -1,5 +1,5 @@
 import { Message, MessageReaction, TextChannel, User } from "discord.js";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { msgOrRes, genPermMsg, ID, color } from "../../function";
 import { globalClient as client } from "../../common";

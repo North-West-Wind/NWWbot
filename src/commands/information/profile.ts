@@ -1,5 +1,5 @@
 import moment from "moment";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { findMember, color, createEmbedScrolling, readableDateTime } from "../../function";
 import * as Discord from "discord.js";

@@ -1,5 +1,5 @@
 import { MessageEmbed } from "discord.js";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, createEmbedScrolling, getFetch, readableDateTime } from "../../function";
 import { globalClient as client } from "../../common";

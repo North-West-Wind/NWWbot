@@ -1,5 +1,5 @@
 import { RowDataPacket } from "mysql2";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { genPermMsg, findUser, color } from "../../function";

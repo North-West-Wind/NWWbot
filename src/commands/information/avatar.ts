@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, findUser } from "../../function";
 import * as Discord from "discord.js";

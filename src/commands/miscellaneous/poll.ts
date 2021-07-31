@@ -1,7 +1,7 @@
 import { NorthMessage, SlashCommand, NorthClient } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { color, jsDate2Mysql, ms, readableDateTime, readableDateTimeText, setTimeout_ } from "../../function";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
 
 export async function endPoll(client, con, id, msg, message, title, authorID, options, color) {

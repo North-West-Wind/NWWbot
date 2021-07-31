@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { validMSURL, requestStream, findValueByPrefix, streamToString, color, msgOrRes } from "../../function";
 import { run } from '../../helpers/puppeteer';

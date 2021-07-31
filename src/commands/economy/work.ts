@@ -3,7 +3,7 @@ import * as Canvas from "canvas";
 import * as Discord from "discord.js";
 import { getRandomNumber, applyText, jsDate2Mysql } from "../../function.js";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { RowDataPacket } from "mysql2";
 
 class WorkCommand implements SlashCommand {

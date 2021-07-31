@@ -417,7 +417,7 @@ export class Handler {
         else if (emojis.includes(r.emoji.name)) index = emojis.indexOf(r.emoji.name);
         else return;
         try {
-            const guild = await r.client.guilds.fetch(roleMessage.guild);
+            const guild = await r.message.client.guilds.fetch(roleMessage.guild);
             const member = await guild.members.fetch(user.id);
             if (index > -1) await member.roles.remove(JSON.parse(roleMessage.roles)[index]);
         } catch (err) {

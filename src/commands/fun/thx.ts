@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
 
 class ThxCommand implements SlashCommand {

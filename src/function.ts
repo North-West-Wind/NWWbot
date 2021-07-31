@@ -1,6 +1,6 @@
 import { NorthClient } from "./classes/NorthClient";
 import crypto from "crypto";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import * as Discord from "discord.js";
 import originalFetch from "node-fetch";
 import fetchBuilder from "fetch-retry-ts";

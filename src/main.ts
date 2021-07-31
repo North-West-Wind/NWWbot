@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 import { RowDataPacket } from "mysql2";
 import { Handler } from "./handler";
 import { NorthClient, ClientStorage } from "./classes/NorthClient";
-dotenv.config();
+dotenv.config({ path: __dirname+'/.env' });
 
 const prefix = "?";
 const client = new NorthClient({ restRequestTimeout: 60000, messageCacheMaxSize: 50, messageCacheLifetime: 3600, messageSweepInterval: 300, partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER', 'GUILD_MEMBER'] });

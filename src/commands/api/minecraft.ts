@@ -1,5 +1,5 @@
 import { CategoryList, SectionTypes, SortTypes } from "aio-mc-api/lib/typings/CurseForge/Constants";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory } from "../../function";
 import { Message, MessageEmbed } from "discord.js";
 import { curseforge, SimpleProject } from "aio-mc-api";

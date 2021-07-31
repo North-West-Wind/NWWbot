@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { color, createEmbedScrolling } from "../../function.js";
 import * as Discord from "discord.js";
 import cheerio from "cheerio";

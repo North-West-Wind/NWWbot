@@ -2,7 +2,7 @@ import { Message, MessageEmbed, MessageReaction, Snowflake, TextChannel } from "
 import { Aki, region } from "aki-api";
 import { NorthClient, SlashCommand, NorthMessage } from "../../classes/NorthClient";
 import { color, genPermMsg } from "../../function.js";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { guess } from "aki-api/typings/functions";
 
 export class AkiCommand implements SlashCommand {

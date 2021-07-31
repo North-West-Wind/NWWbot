@@ -1,5 +1,5 @@
 import { TextChannel } from "discord.js";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, SlashCommand } from "../../classes/NorthClient";
 import { genPermMsg } from "../../function";
 

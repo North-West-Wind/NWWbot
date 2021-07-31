@@ -1,5 +1,5 @@
 import { NorthClient, SlashCommand } from "../../classes/NorthClient";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import * as Discord from "discord.js";
 import { createCanvas } from "canvas";
 import { hexToRgb, decimalToRgb } from "../../function";

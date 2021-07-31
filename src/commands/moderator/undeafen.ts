@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { genPermMsg, commonModerationEmbed, findMember } from "../../function";
 

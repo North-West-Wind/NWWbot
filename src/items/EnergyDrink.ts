@@ -1,5 +1,5 @@
 import { Message, MessageEmbed } from "discord.js";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { Item, NorthClient, NorthMessage } from "../classes/NorthClient";
 import { globalClient as client } from "../common";
 import { jsDate2Mysql } from "../function";

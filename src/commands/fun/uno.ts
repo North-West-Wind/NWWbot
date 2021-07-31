@@ -5,7 +5,7 @@ import { NorthClient } from "../../classes/NorthClient.js";
 import converter from "number-to-words";
 import { createCanvas, loadImage } from "canvas";
 import * as fs from "fs";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);

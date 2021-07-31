@@ -1,4 +1,4 @@
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, ServerQueue, SlashCommand, SoundTrack } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import sanitize from "sanitize-filename";

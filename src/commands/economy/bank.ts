@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { RowDataPacket } from "mysql2";
 import { Connection } from "mysql2/promise";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";

@@ -1,7 +1,7 @@
 import { NorthClient, SlashCommand } from "../../classes/NorthClient";
 import { getFetch } from "../../function";
 import * as Discord from "discord.js";
-import { Interaction } from "slashcord";
+import { Interaction } from "slashcord/dist/Index";
 
 const fetch = getFetch();
 const links = [
