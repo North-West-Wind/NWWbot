@@ -2,9 +2,8 @@ import { TextChannel } from "discord.js";
 import { Interaction } from "slashcord";
 import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { FakeMessage, InteractionResponse } from "../../classes/Slash";
-
-const Discord = require("discord.js");
-const { color } = require("../../function");
+import * as Discord from "discord.js";
+import { color, msgOrRes } from "../../function";
 
 class YachtCommand implements SlashCommand {
     name = "yacht"
@@ -12,11 +11,17 @@ class YachtCommand implements SlashCommand {
     category = 3
     
     async execute(obj: { interaction: Interaction }) {
-        await this.run(await InteractionResponse.createFakeMessage(obj.interaction));
+        await this.logic(obj.interaction);
     }
     
-    async run(message: NorthMessage | FakeMessage) {
-        if (!(<TextChannel>message.channel).permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
+    async run(message: NorthMessage) {
+        if (!(<TextChannel>message.channel).permissionsFor(message.guild.me).has(8192)) return await message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
+        await this.logic(message);
+        
+    }
+
+    async logic(message: Discord.Message | Interaction) {
+        const author = message instanceof Discord.Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelID));
         var dices = [];
         var scores = {
             "1s": { score: 0, used: false },
@@ -44,8 +49,8 @@ class YachtCommand implements SlashCommand {
             .setDescription(st + `\nCommands:\n**Roll** - Roll the dices (${3 - rolled} times left)\n**Lock <index>** - Lock the dices with indexes 1 to 6\n**Score <category>** Choose a category to place your score and move to the next turn\n**End** - End the game immediately`)
             .setTimestamp()
             .setFooter("Please type in commands within 2 minutes.", message.client.user.displayAvatarURL());
-        var msg = await message.channel.send(em);
-        const collector = (<TextChannel>message.channel).createMessageCollector(m => m.author.id === message.author.id, { max: Infinity, idle: 120000 });
+        var msg = <Discord.Message> await msgOrRes(message, em);
+        const collector = (<TextChannel>message.channel).createMessageCollector(m => m.author.id === author.id, { max: Infinity, idle: 120000 });
         collector.on("collect", async mesg => {
             if (round > 12) return collector.emit("end");
             let success = false;

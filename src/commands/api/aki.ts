@@ -1,9 +1,10 @@
 import { Message, MessageEmbed, MessageReaction, Snowflake, TextChannel } from "discord.js";
-import { Aki } from "aki-api";
+import { Aki, region } from "aki-api";
 import { NorthClient, SlashCommand, NorthMessage } from "../../classes/NorthClient";
 import { color, genPermMsg } from "../../function.js";
 import { Interaction } from "slashcord";
 import { ApplicationCommandOption, ApplicationCommandOptionChoice, ApplicationCommandOptionType } from "../../classes/Slash";
+import { guess } from "aki-api/typings/functions";
 
 export class AkiCommand implements SlashCommand {
   name = "aki";
@@ -53,21 +54,19 @@ export class AkiCommand implements SlashCommand {
 
   constructor() {
     this.options = [
-      new ApplicationCommandOption(ApplicationCommandOptionType.STRING.valueOf(), "region", "The region/language to play in.").setChoices(
-        this.regions.map(region => new ApplicationCommandOptionChoice(region, region)).concat([
-          new ApplicationCommandOptionChoice("region", "Displays all regions available.")
-        ])
-      )
-    ].map(x => JSON.parse(JSON.stringify(x)));
+      {
+        name: "region",
+        description: "The region/language to play in.",
+        required: false,
+        type: 3,
+        choices: this.regions.map(region => ({ name: region, value: region })).concat([{ name: "region", value: "region" }])
+      }
+    ];
   }
 
   async execute(obj: { interaction: Interaction, args: any[] }) {
-    await obj.interaction.reply("Initializing Akinator...");
-    const args = obj.args?.map(x => <string>x?.value).filter(x => !!x) || [];
-    const msg = <NorthMessage> await obj.interaction.fetchReply();
-    msg.prefix = "/";
-    msg.pool = (<NorthClient> obj.interaction.client).pool;
-    await this.run(msg, <string[]>args);
+    let region = obj.args[0]?.value || "en";
+    await this.logic(obj.interaction, region);
   }
 
   async run(message: NorthMessage, args: string[]) {
@@ -83,7 +82,7 @@ export class AkiCommand implements SlashCommand {
   };
 
   async logic(message: Message | Interaction, region: string) {
-    const aki = new Aki(region);
+    const aki = new Aki({ region: <region> region });
     await aki.start();
     let loop = 0;
     let found = false;
@@ -136,16 +135,16 @@ export class AkiCommand implements SlashCommand {
             }
             found = false;
           }
-          await aki.step(answerID);
+          await aki.step(<any> answerID);
         }
         if ((aki.progress >= 90 && loop > 3) || aki.currentStep >= 79) {
           loop = 0;
           await aki.win();
           if (aki.answers && aki.answers.length) {
             found = true;
-            const { name } = aki.answers[aki.guessCount - 1];
-            const image = aki.answers[aki.guessCount - 1].absolute_picture_path;
-            const description = aki.answers[aki.guessCount - 1].description || "";
+            const guess = <guess> aki.answers[aki.guessCount - 1];
+            const { name, absolute_picture_path: image } = guess;
+            const description = guess.description || "";
             embed
               .setTitle("Akinator")
               .setDescription("Loading result...")

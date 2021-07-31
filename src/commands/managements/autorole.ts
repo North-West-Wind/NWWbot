@@ -1,8 +1,6 @@
 import { Interaction } from "slashcord";
 import { SlashCommand } from "../../classes/NorthClient";
-import { findMemberWithGuild } from "../../function";
-
-const { genPermMsg, findMember } = require("../../function");
+import { findMember, findMemberWithGuild, genPermMsg } from "../../function";
 
 class AutoRoleCommand implements SlashCommand {
   name = "autorole"
@@ -12,18 +10,18 @@ class AutoRoleCommand implements SlashCommand {
   args = 2
   permissions = 268435456
   options = [
-      {
-          name: "role",
-          description: "The name of the role.",
-          required: true,
-          type: 8
-      },
-      {
-          name: "user",
-          description: "The users that will get the role.",
-          required: true,
-          type: 3
-      }
+    {
+      name: "role",
+      description: "The name of the role.",
+      required: true,
+      type: 8
+    },
+    {
+      name: "user",
+      description: "The users that will get the role.",
+      required: true,
+      type: 3
+    }
   ];
   async execute(obj: { interaction: Interaction, args: any[] }) {
     if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");

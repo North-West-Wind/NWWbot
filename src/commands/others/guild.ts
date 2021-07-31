@@ -1,11 +1,12 @@
-const { findRole, findUser, getWithWeight, getRandomNumber, jsDate2Mysql, setTimeout_, readableDateTimeText, color, nameToUuid, profile } = require("../../function.js");
-const Discord = require("discord.js");
-const { ms, createEmbedScrolling } = require("../../function.js");
-const fetch = require("node-fetch").default;
-const { NorthClient } = require("../../classes/NorthClient.js");
-const moment = require("moment");
-const formatSetup = require("moment-duration-format");
+import { Interaction } from "slashcord";
+import { NorthMessage, SlashCommand, NorthClient } from "../../classes/NorthClient";
+import * as Discord from "discord.js";
+import * as moment from "moment";
+import formatSetup from "moment-duration-format";
+import { color, createEmbedScrolling, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, readableDateTimeText, setTimeout_ } from "../../function";
 formatSetup(moment);
+
+const fetch = getFetch();
 const catabombLevels = [
 	50,
 	125,
@@ -59,16 +60,21 @@ const catabombLevels = [
 	569809640
 ]
 
-module.exports = {
-	name: "guild",
-	description: "Made specificly for the Hypixel guild War of Underworld.",
-	usage: "<subcommand>",
-	aliases: ["gu"],
-	subcommands: ["splash", "invite", "lottery", "timer", "calculate"],
-	subaliases: ["sp", "in", "lot", "tim", "calc"],
-	subdesc: ["Create a splash notification.", "Manage invites.", "Start a lottery.", "Manage timers.", "Calculate user points."],
-	args: 1,
-	async execute(message, args) {
+class GuildCommand implements SlashCommand {
+	name = "guild"
+	description = "Made specificly for the Hypixel guild War of Underworld."
+	usage = "<subcommand>"
+	aliases = ["gu"]
+	subcommands = ["splash", "invite", "lottery", "timer", "calculate"]
+	subaliases = ["sp", "in", "lot", "tim", "calc"]
+	subdesc = ["Create a splash notification.", "Manage invites.", "Start a lottery.", "Manage timers.", "Calculate user points."]
+	args = 1
+
+	async execute(obj: { interaction: Interaction }) {
+		await obj.interaction.reply("This one does not support slash yet.");
+	}
+
+	async run(message: NorthMessage, args: string[]) {
 		if (message.guild.id !== "622311594654695434") return;
 		switch (args[0]) {
 			case "sp":
@@ -89,7 +95,8 @@ module.exports = {
 			default:
 				return message.channel.send("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${message.prefix}${this.name} ${this.usage}`);
 		}
-	},
+	}
+
 	async invite(message, args) {
 		if (message.guild.id != "622311594654695434") return message.channel.send("Please use this command in the server War of Underworld. Thank you.");
 		const divine = message.guild.roles.fetch("640148120579211265");
@@ -141,7 +148,8 @@ module.exports = {
 			NorthClient.storage.error(err);
 			await message.reply("there was an error fetching the player!");
 		}
-	},
+	}
+	
 	async splash(message) {
 		let msg = await message.channel.send("Which channel do you want the message to be announced?");
 		let collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
@@ -261,7 +269,8 @@ module.exports = {
 		channel.send({ content: `<@&${role.id}>`, embed: em });
 
 		await msg.edit("The message has been sent!");
-	},
+	}
+
 	async lottery(message) {
 		let items = {
 			"1": 65,
@@ -298,7 +307,8 @@ module.exports = {
 				break;
 		}
 		message.channel.send(prize);
-	},
+	}
+
 	async timer(message, args) {
 		if (!message.member.hasPermission(8) || !message.guild) return;
 		switch (args[1]) {
@@ -317,15 +327,15 @@ module.exports = {
 				if (isNaN(duration)) return message.channel.send("The duration given is not valid!");
 				time = duration;
 				let uuid = await nameToUuid(args[3]);
-				if (!uuid || !uuid[0]) return message.reply("there was an error trying to find the player in Minecraft!");
+				if (!uuid) return message.reply("there was an error trying to find the player in Minecraft!");
 				try {
 					NorthClient.storage.gtimers.push({
 						user: user.id,
 						dc_rank: escape(args.slice(4).join(" ")),
-						mc: uuid[0].id,
+						mc: uuid,
 						endAt: new Date(Date.now() + time)
 					});
-					await message.pool.query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid[0].id}', '${jsDate2Mysql(new Date(Date.now() + time))}')`);
+					await message.pool.query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + time))}')`);
 					message.channel.send("Timer recorded.");
 				} catch (err) {
 					NorthClient.storage.error(err);
@@ -338,9 +348,9 @@ module.exports = {
 					try {
 						const index = NorthClient.storage.gtimers.indexOf(NorthClient.storage.gtimers.find(t => t.user == user.id));
 						if (index > -1) NorthClient.storage.gtimers.splice(index, 1);
-						var [results] = await con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
+						var [results] = await con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
 						if (results.length == 0) throw new Error("Not found");
-						await con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid[0].id}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
+						await con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
 					} catch (err) {
 						NorthClient.storage.error(err);
 					}
@@ -350,7 +360,7 @@ module.exports = {
 				break;
 			case "delete":
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
-				let userd = await findUser(args[2]);
+				let userd = await findUser(message, args[2]);
 				if (!userd) return;
 				const con = await message.pool.getConnection();
 				try {
@@ -422,7 +432,8 @@ module.exports = {
 			default:
 				await message.channel.send("That is not a sub-subcommand!");
 		}
-	},
+	}
+
 	async calculate(message, args) {
 		if (!args[1]) return await message.channel.send("You didn't provide any username!");
 		const profiles = await fetch(`https://api.slothpixel.me/api/skyblock/profiles/${args[1]}?key=${process.env.API}`).then(res => res.json());
@@ -446,7 +457,7 @@ module.exports = {
 			var slayers = pApi.members[uuid].slayer;
 			if (!slayers) slayers = {};
 			var slayerXp = 0;
-			for (const slayer of Object.values(slayers)) {
+			for (const slayer of (<any[]> Object.values(slayers))) {
 				slayerXp += slayer.xp;
 			}
 			if (slayerXp > maxSlayer) maxSlayer = slayerXp;
@@ -509,3 +520,6 @@ module.exports = {
 		await message.channel.send(result);
 	}
 }
+
+const cmd = new GuildCommand();
+export default cmd;

@@ -7,7 +7,7 @@ import { AkiCommand } from "../api/aki";
 import { globalClient as client } from "../../common";
 
 const categories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Music", "Under Development", "Dev Command"];
-const sCategories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Music", "InDev", "Dev"];
+export const sCategories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Music", "InDev", "Dev"];
 
 class HelpCommand implements SlashCommand {
   name = "help"

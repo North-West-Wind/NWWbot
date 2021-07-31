@@ -14,6 +14,7 @@ import { Connection } from "mysql2/promise";
 import fetch from "node-fetch";
 import * as filter from "../helpers/filter";
 import Slashcord from "slashcord/dist/Index";
+import { sCategories } from "../commands/information/help";
 
 export class Handler {
     static setup(client: NorthClient) {
@@ -449,7 +450,7 @@ export class Handler {
         if (!command) return;
         msg.pool = client.pool;
         try {
-            const catFilter = filter[require("../commands/information/help").sCategories.map(x => x.toLowerCase())[(command.category)]];
+            const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
         } catch (error) {
             storage.error(command.name + ": " + error);

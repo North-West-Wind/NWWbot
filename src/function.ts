@@ -12,6 +12,7 @@ import * as path from "path";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);
+import { Readable } from "stream";
 const fetch = fetchBuilder(originalFetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 
 export function twoDigits(d) {
@@ -424,11 +425,10 @@ export async function requestStream(url) {
 export function capitalize(s) { return (typeof s !== 'string') ? '' : s.charAt(0).toUpperCase() + s.slice(1); }
 export function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 export function bufferToStream(buf, chunkSize = undefined) {
-    const { Readable } = require("stream");
     if (typeof buf === 'string') buf = Buffer.from(buf, 'utf8');
     if (!Buffer.isBuffer(buf)) throw new TypeError(`"buf" argument must be a string or an instance of Buffer`);
     const reader = new Readable();
-    const hwm = reader._readableState.highWaterMark;
+    const hwm = reader.readableHighWaterMark;
     if (!chunkSize || typeof chunkSize !== 'number' || chunkSize < 1 || chunkSize > hwm) chunkSize = hwm;
     const len = buf.length;
     let start = 0;
