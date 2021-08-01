@@ -11,10 +11,10 @@ class QueueCommand implements SlashCommand {
     name = "queue"
     description = "Display the current song queue."
     aliases = ["q"]
-    subcommands = ["save", "load", "delete", "list", "sync", "export", "import"]
-    subdesc = ["Save the current queue to the database.", "Load a queue from the database.", "Delete a queue from the database.", "List all the queues of a user.", "Synchronize the queue with another server you are in.", "Export a queue into a file.", "Import a queue from a file."]
+    subcommands = ["save", "load", "delete", "list", "sync"]
+    subdesc = ["Save the current queue to the database.", "Load a queue from the database.", "Delete a queue from the database.", "List all the queues of a user.", "Synchronize the queue with another server you are in."]
     subusage = ["<subcommand> <name>", 0, 0]
-    subaliases = ["s", "l", "d", "li", "sy", "ex", "im"]
+    subaliases = ["s", "l", "d", "li", "sy"]
     category = 8
     options = [
         {

@@ -29,7 +29,8 @@ class HelpCommand implements SlashCommand {
         name: "command",
         description: "The command to fetch.",
         required: true,
-        type: 3
+        type: 3,
+        choices: NorthClient.storage.commands.filter(command => command.category === sCategories.indexOf(category)).map(x => ({ name: x.name, value: x.name }))
       };
       const option = {
         name: category.toLowerCase(),
@@ -42,13 +43,14 @@ class HelpCommand implements SlashCommand {
   }
 
   async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
-    if (obj.args[0]?.name === "all" || !obj.args[0]?.options || !obj.args[0]?.options[0]?.value) {
+    if (obj.args[0].name === "all" || !obj.args[0]?.options || !obj.args[0]?.options[0]?.value) {
       await obj.interaction.reply(this.getAllCommands());
       await wait(60000);
       await obj.interaction.edit({
         content: "This is the **[manual](https://northwestwind.ml/manual.pdf)**, my friend.",
         embeds: null
       });
+      return;
     }
 
     const name = obj.args[0]?.options[0]?.value?.toLowerCase();

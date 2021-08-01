@@ -138,7 +138,7 @@ export async function addSPURL(message: Message | Interaction, link: string) {
     if (highlight) musicID = url_array[2].split("?")[1].split("=")[1].split(":")[2];
     var type = url_array[1];
     var songs = [];
-    var tracks;
+    var tracks, counter = 0;
     switch (type) {
         case "playlist":
             var musics = await spotifyApi.getPlaylist(musicID);
@@ -152,12 +152,12 @@ export async function addSPURL(message: Message | Interaction, link: string) {
                 }
             }
             await checkAll();
-            var mesg = message instanceof Message ? await message.channel.send(`Processing track: **0/${tracks.length}**`) : <Message>await message.reply(`Processing track: **0/${tracks.length}**`, { fetchReply: true });
-            for (var i = 0; i < tracks.length; i++) {
-                await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`).catch(() => { });
+            var mesg = await msgOrRes(message, `Processing track: **0/${tracks.length}**`);
+            for (const track of <SpotifyApi.PlaylistTrackObject[]> tracks) {
+                await mesg.edit(`Processing track: **${++counter}/${tracks.length}**`).catch(() => { });
                 var results = [];
                 try {
-                    const searched = await ytsr(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
+                    const searched = await ytsr(`${track.track.artists[0].name} - ${track.track.name}`, { limit: 20 });
                     results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
                 } catch (err) {
                     return { error: true, msg: null, songs: [], message: err.message };
@@ -171,11 +171,11 @@ export async function addSPURL(message: Message | Interaction, link: string) {
                     if (s + 1 == results.length) {
                         const songLength = !results[o].live ? results[o].duration : "∞";
                         songs.push({
-                            title: tracks[i].track.name,
+                            title: track.track.name,
                             url: results[o].link,
                             type: 1,
-                            spot: tracks[i].track.external_urls.spotify,
-                            thumbnail: tracks[i].track.album.images[0]?.url,
+                            spot: track.track.external_urls.spotify,
+                            thumbnail: track.track.album.images[0]?.url,
                             time: songLength,
                             volume: 1,
                             isLive: !!results[o]?.live
@@ -183,7 +183,7 @@ export async function addSPURL(message: Message | Interaction, link: string) {
                     }
                 }
             }
-            mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
+            await mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
             break;
         case "album":
             var image;
@@ -204,12 +204,12 @@ export async function addSPURL(message: Message | Interaction, link: string) {
                 const data = await spotifyApi.getTracks([musicID]);
                 tracks = data.body.tracks;
             }
-            var mesg = message instanceof Message ? await message.channel.send(`Processing track: **0/${tracks.length}**`) : <Message>await message.reply(`Processing track: **0/${tracks.length}**`, { fetchReply: true });
-            for (var i = 0; i < tracks.length; i++) {
-                await mesg.edit(`Processing track: **${i + 1}/${tracks.length}**`).catch(() => { });
+            var mesg = await msgOrRes(message, `Processing track: **0/${tracks.length}**`);
+            for (const track of <SpotifyApi.TrackObjectFull[]> tracks) {
+                await mesg.edit(`Processing track: **${++counter}/${tracks.length}**`).catch(() => { });
                 var results = [];
                 try {
-                    const searched = await ytsr(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
+                    const searched = await ytsr(`${track.artists[0].name} - ${track.name}`, { limit: 20 });
                     results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
                 } catch (err) {
                     return { error: true, msg: null, songs: [], message: err.message };
@@ -223,11 +223,11 @@ export async function addSPURL(message: Message | Interaction, link: string) {
                     if (s + 1 == results.length) {
                         const songLength = !results[o].live ? results[o].duration : "∞";
                         songs.push({
-                            title: tracks[i].name,
+                            title: track.name,
                             url: results[o].link,
                             type: 1,
-                            spot: tracks[i].external_urls.spotify,
-                            thumbnail: highlight ? tracks[i].album.images[o]?.url : image,
+                            spot: track.external_urls.spotify,
+                            thumbnail: highlight ? track.album.images[o]?.url : image,
                             time: songLength,
                             volume: 1,
                             isLive: !!results[o]?.live
@@ -235,14 +235,14 @@ export async function addSPURL(message: Message | Interaction, link: string) {
                     }
                 }
             }
-            mesg.edit("Track processing completed").then(msg => msg.delete({ timeout: 10000 })).catch(() => { });
+            await mesg.edit("Track processing completed").then(msg => msg.delete({ timeout: 10000 })).catch(() => { });
             break;
         case "track":
             tracks = (await spotifyApi.getTracks([musicID])).body.tracks;
-            for (var i = 0; i < tracks.length; i++) {
+            for (const track of <SpotifyApi.TrackObjectFull[]> tracks) {
                 var resultss;
                 try {
-                    const searched = await ytsr(`${tracks[i].track.artists[0].name} - ${tracks[i].track.name}`, { limit: 20 });
+                    const searched = await ytsr(`${track.artists[0].name} - ${track.name}`, { limit: 20 });
                     resultss = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
                 } catch (err) {
                     return { error: true, msg: null, songs: [], message: err.message };
@@ -256,11 +256,11 @@ export async function addSPURL(message: Message | Interaction, link: string) {
                     if (s + 1 == resultss.length) {
                         const songLength = !resultss[o].live ? resultss[o].duration : "∞";
                         songs.push({
-                            title: tracks[i].name,
+                            title: track.name,
                             url: resultss[o].link,
                             type: 1,
-                            spot: tracks[i].external_urls.spotify,
-                            thumbnail: tracks[i].album.images[o].url,
+                            spot: track.external_urls.spotify,
+                            thumbnail: track.album.images[o].url,
                             time: songLength,
                             volume: 1,
                             isLive: !!resultss[o]?.live
