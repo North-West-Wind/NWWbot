@@ -44,7 +44,7 @@ class SpeedrunCommand implements SlashCommand {
             await msg.edit(em);
         } else {
             await msg.delete();
-            await createEmbedScrolling(obj.interaction, allEmbeds);
+            await createEmbedScrolling({ interaction: obj.interaction, useEdit: true }, allEmbeds);
         }
     }
 

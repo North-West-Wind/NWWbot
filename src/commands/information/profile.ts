@@ -19,7 +19,7 @@ class ProfileCommand implements SlashCommand {
 
     async execute(obj: { interaction: Interaction, client: NorthClient, args: any[] }) {
         if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        const member = obj.args[0]?.value ? await obj.interaction.guild.members.fetch(obj.args[0].value) : obj.interaction.member;
+        const member = obj.args && obj.args[0]?.value ? await obj.interaction.guild.members.fetch(obj.args[0].value) : obj.interaction.member;
         await obj.interaction.reply(this.createProfileEmbed(member));
     }
 

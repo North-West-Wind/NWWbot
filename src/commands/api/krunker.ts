@@ -44,15 +44,13 @@ class KrunkerCommand implements SlashCommand {
         }
     ];
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
+    async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
         if (obj.args[0].name === "server") {
-            await obj.interaction.reply("Loading servers...");
-            const msg = await obj.interaction.fetchReply();
-            await this.server(msg, obj.args[0]?.options ? obj.args[0]?.options[0]?.value : null, msg.author);
+            const msg = <Discord.Message> await obj.interaction.reply("Loading servers...", { fetchReply: true });
+            await this.server(msg, obj.args[0]?.options ? obj.args[0]?.options[0]?.value : null, obj.interaction.member?.user ?? await obj.client.users.fetch(obj.interaction.channelID));
         } else if (obj.args[0].name === "changelog") {
-            await obj.interaction.reply("Loading changelogs...");
-            const msg = await obj.interaction.fetchReply();
-            await this.changelog(msg, obj.args[0]?.options ? obj.args[0]?.options[0]?.value : null, msg.author);
+            const msg = <Discord.Message> await obj.interaction.reply("Loading changelogs...", { fetchReply: true });
+            await this.changelog(msg, obj.args[0]?.options ? obj.args[0]?.options[0]?.value : null, obj.interaction.member?.user ?? await obj.client.users.fetch(obj.interaction.channelID));
         }
     }
 
@@ -130,7 +128,7 @@ class KrunkerCommand implements SlashCommand {
                     .setFooter(`There are ${customPage} pages for custom games.`, client.user.displayAvatarURL());
                 allEmbeds.push(em);
             }
-            msg = await msg.edit({ content: "", embed: allEmbeds[0] });
+            await msg.edit({ content: "", embed: allEmbeds[0] });
 
             var s = 0;
             await msg.react("🎲");
@@ -141,7 +139,7 @@ class KrunkerCommand implements SlashCommand {
             await msg.react("▶");
             await msg.react("⏭");
             await msg.react("⏹");
-            var collector = await msg.createReactionCollector((reaction, user) => (["🎲", "🔗", "⏩", "◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author.id), {
+            var collector = msg.createReactionCollector((reaction, user) => (["🎲", "🔗", "⏩", "◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author.id), {
                 idle: 60000
             });
             const linkEmbed = new Discord.MessageEmbed()
@@ -264,7 +262,7 @@ class KrunkerCommand implements SlashCommand {
     async getChangelog() {
         return await run(async (page: Page) => {
             var result = { error: true, message: null };
-            var lines;
+            var lines = {};
             try {
                 await page.goto("https://krunker.io/docs/versions.txt");
                 const element = await page.$("pre");

@@ -1,5 +1,5 @@
 import { Interaction } from "slashcord/dist/Index";
-import { SlashCommand } from "../../classes/NorthClient";
+import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { getRandomNumber } from "../../function";
 
 class RNGCommand implements SlashCommand {
@@ -25,13 +25,13 @@ class RNGCommand implements SlashCommand {
         {
             name: "count",
             description: "How many numbers to generate.",
-            required: true,
+            required: false,
             type: 4
         },
         {
             name: "decimal",
             description: "The maximum decimal place.",
-            required: true,
+            required: false,
             type: 4
         }
     ];
@@ -47,13 +47,12 @@ class RNGCommand implements SlashCommand {
         if (obj.args[3]?.value !== undefined && !isNaN(parseInt(obj.args[3].value))) decimal = parseInt(obj.args[3].value);
         let msg = "";
         for (let i = 0; i < count; i++) {
-            var number = decimal < 0 ? getRandomNumber(min, max) : Math.round((getRandomNumber(Number(obj.args[0]), Number(obj.args[1])) + Number.EPSILON) * Math.pow(10, decimal)) / Math.pow(10, decimal);
-            if (decimal >= 0) number = Math.round((number + Number.EPSILON) * Math.pow(10, decimal)) / Math.pow(10, decimal);
+            var number = decimal < 0 ? getRandomNumber(min, max) : Math.round((getRandomNumber(min, max) + Number.EPSILON) * Math.pow(10, decimal)) / Math.pow(10, decimal);
             msg += number + "\n";
         }
         await obj.interaction.reply(msg);
     }
-    async run(message, args) {
+    async run(message: NorthMessage, args: string[]) {
         let count = 1;
         let decimal = -1;
         const min = Number(args[0]);

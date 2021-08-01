@@ -3,8 +3,8 @@ import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, createEmbedScrolling, readableDateTime } from "../../function";
 import { globalClient as client } from "../../common";
-import { getHistory, getStats } from "survivio-api";
-const createModeEmbed = (mode, stats) => {
+import { getHistory, getStats, Stats, StatsMode } from "survivio-api";
+const createModeEmbed = (mode: StatsMode, stats: Stats) => {
     const em = new MessageEmbed()
         .setColor(color())
         .setTitle(`${stats.username} - ${mode.teamMode == 1 ? "Solo" : (mode.teamMode == 2 ? "Duo" : "Squad")} Statistics`)
@@ -15,7 +15,7 @@ const createModeEmbed = (mode, stats) => {
         .addField("Kill per Game", mode.kpg, true)
         .addField("Most Kills", mode.mostKills, true)
         .addField("Most Damage", mode.mostDamage, true)
-        .addField("Win Percentage", mode.winPct + "%", true)
+        .addField("Win Percentage", mode.winPercent + "%", true)
         .addField("Average Time Alive", mode.avgTimeAlive + " seconds", true)
         .addField("Average Damage", mode.avgDamage, true)
         .setTimestamp()

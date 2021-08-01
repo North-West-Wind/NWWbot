@@ -17,8 +17,8 @@ class AvatarCommand implements SlashCommand {
     }];
 
     async execute(obj: { interaction: Interaction, client: NorthClient, args: any[] }) {
-        var user;
-        if (obj.args[0]?.value) user = await obj.client.users.fetch(obj.args[0].value);
+        var user: Discord.User;
+        if (obj.args && obj.args[0]?.value) user = await obj.client.users.fetch(obj.args[0].value);
         else if (obj.interaction.guild) user = obj.interaction.member.user;
         else user = await obj.client.users.fetch(obj.interaction.channelID);
         if (!user) return await obj.interaction.reply("Failed to find the user.");

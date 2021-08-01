@@ -1,5 +1,5 @@
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { color, wait } from "../../function";
+import { color, msgOrRes, wait } from "../../function";
 import * as Discord from "discord.js";
 import { Interaction } from "slashcord/dist/Index";
 import { globalClient as client } from "../../common";
@@ -36,13 +36,7 @@ class InventoryCommand implements SlashCommand {
       .setTimestamp()
       .setFooter("Type the ID of the item you want to use or anything else to exit.", client.user.displayAvatarURL());
     if (msg) msg = await msg.edit({ embed: em, content: "" });
-    else {
-        if (message instanceof Discord.Message) msg = await message.channel.send(em);
-        else {
-            await message.reply(em);
-            msg = await message.fetchReply();
-        }
-    }
+    else msg = await msgOrRes(message, em);
     const collected = await message.channel.awaitMessages(x => x.author.id === author.id, {
       max: 1,
       time: 30000

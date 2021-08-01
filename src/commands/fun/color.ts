@@ -3,11 +3,11 @@ import { Interaction } from "slashcord/dist/Index";
 import * as Discord from "discord.js";
 import { createCanvas } from "canvas";
 import { hexToRgb, decimalToRgb } from "../../function";
-function isArgsRgb(args, length) {
+function isArgsRgb(args: string[], length: number) {
     for(let i = 0; i < length; i++) if(isNaN(parseInt(args[i])) || parseInt(args[i]) > 255 || parseInt(args[i]) < 0) return false;
     return true;
 }
-function getColor(args) {
+function getColor(args: string[]) {
     var red = Math.floor(Math.random() * 256);
     var green = Math.floor(Math.random() * 256);
     var blue = Math.floor(Math.random() * 256);
@@ -43,12 +43,12 @@ class ColorCommand implements SlashCommand {
     options = [{
         name: "color",
         description: "The color to display.",
-        required: true,
+        required: false,
         type: 3
     }];
     
     async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
-        const args = obj.args?.map(x => x?.value).filter(x => !!x) || [];
+        const args = obj.args[0].value.split(/ +/);
         const { red, green, blue, random } = getColor(args);
         const em = new Discord.MessageEmbed()
         .setTitle(`Color: ${red} ${green} ${blue}`)

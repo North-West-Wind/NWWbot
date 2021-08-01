@@ -1,6 +1,6 @@
 import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import math from "mathjs";
+import * as math from "mathjs";
 import * as Discord from "discord.js";
 import { color, createEmbedScrolling } from "../../function";
 

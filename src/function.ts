@@ -505,8 +505,7 @@ export function commonRoleEmbed(client, word, past, name) {
     return [successEmbed, failEmbed];
 }
 export function msgOrRes(message: Discord.Message | Interaction, str: any = undefined) {
-    if (str) return message instanceof Discord.Message ? message.channel.send(str) : <Promise<Discord.Message>> message.reply(str, { fetchReply: true });
-    return message instanceof Discord.Message ? message.channel.send : message.reply;
+    return message instanceof Discord.Message ? message.channel.send(str) : <Promise<Discord.Message>> message.reply(str, { fetchReply: true });
 }
 export function deepReaddir(dir) {
     var results = [];

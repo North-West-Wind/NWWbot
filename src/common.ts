@@ -8,7 +8,7 @@ var globalClient: NorthClient;
 export default async(client: NorthClient) => {
     const mysql_config = {
         connectTimeout: 60 * 60 * 1000,
-        connectionLimit: 1000,
+        connectionLimit: 100,
         host: process.env.DBHOST,
         user: process.env.DBUSER,
         password: process.env.DBPW,
@@ -44,7 +44,7 @@ export default async(client: NorthClient) => {
             NorthClient.storage.error(err);
         } finally {
                 pool = mysql.createPool(mysql_config).promise();
-                client.pool = pool;
+                client.setPool(pool);
             }
     }));
     client.setPool(pool);

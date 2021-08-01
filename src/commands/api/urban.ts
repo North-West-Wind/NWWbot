@@ -34,7 +34,7 @@ class UrbanCommand implements SlashCommand {
 
     async getDictEmbed(query: string) {
         const { list } = await fetch(`https://api.urbandictionary.com/v0/define?term=${encodeURIComponent(query)}`).then(response => response.json());
-        if (!list.length) return null;
+        if (!list?.length) return null;
         const trim = (str, max) => str.length > max ? `${str.slice(0, max - 3)}...` : str;
         const allEmbeds = [];
         for (var i = 0; i < list.length; i++) {
@@ -49,6 +49,7 @@ class UrbanCommand implements SlashCommand {
                 .setFooter(`👍 ${answer.thumbs_up} | 👎 ${answer.thumbs_down}`, client.user.displayAvatarURL());
             allEmbeds.push(embed);
         }
+        return allEmbeds;
     }
 };
 

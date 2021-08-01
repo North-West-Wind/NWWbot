@@ -1,7 +1,7 @@
 import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient"
 import * as Discord from "discord.js";
-import { color, wait, genPermMsg, ID } from "../../function";
+import { color, wait, genPermMsg, ID, msgOrRes } from "../../function";
 import { globalClient as client } from "../../common";
 import { RowDataPacket } from "mysql2";
 
@@ -59,7 +59,7 @@ class ShopCommand implements SlashCommand {
                 .setTitle("You were told to leave.")
                 .setDescription("The staff waited too long and told you to leave.")
                 .setFooter("You have $" + cash, author.displayAvatarURL());
-            if (!mesg) msg = await message.channel.send(shop);
+            if (!mesg) msg = await msgOrRes(message, shop);
             else msg = await mesg.edit(shop);
 
             await msg.react("1️⃣");

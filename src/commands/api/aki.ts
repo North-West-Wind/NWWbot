@@ -65,6 +65,7 @@ export class AkiCommand implements SlashCommand {
 
   async execute(obj: { interaction: Interaction, args: any[] }) {
     let region = obj.args[0]?.value || "en";
+    await obj.interaction.thinking();
     await this.logic(obj.interaction, region);
   }
 
@@ -95,13 +96,18 @@ export class AkiCommand implements SlashCommand {
       .setTitle("Getting ready...")
       .setTimestamp()
       .setFooter("Please wait until all reactions appear.", message.client.user.displayAvatarURL());
-    var msg = await message.channel.send(embed);
+      var msg: Message;
+    if (message instanceof Message) msg = await message.channel.send(embed);
+    else {
+      await message.edit(embed);
+      msg = await message.fetchReply();
+    }
     for (const r of this.reactions) await msg.react(r);
     embed.setTitle("Question 1: " + aki.question)
       .setDescription(str)
       .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL());
+    await msg.edit(embed);
     const filter = (reaction, user) => this.reactions.includes(reaction.emoji.name) && user.id === author && !user.bot;
-
     const collector = msg.createReactionCollector(filter, { idle: 6e4 });
     const collectorFunction = async (r: MessageReaction) => {
       setTimeout(async () => {
@@ -177,7 +183,7 @@ export class AkiCommand implements SlashCommand {
             .setDescription(str)
             .setImage(undefined)
             .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL());
-          msg = await msg.edit(embed);
+          await msg.edit(embed);
         }
       }, 1000);
     };

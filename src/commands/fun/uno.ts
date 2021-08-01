@@ -52,16 +52,16 @@ class UnoCommand implements SlashCommand {
   
   async execute(obj: { interaction: Interaction, args: any[] }) {
     var mentions = new Discord.Collection<Discord.Snowflake, Discord.GuildMember>();
-    if (obj.args[0]?.value) {
+    if (obj.args && obj.args[0]?.value) {
       for (const arg of obj.args[0].value.split(/ +/)) {
         const member = await findMemberWithGuild(obj.interaction.guild, arg);
         if (!member) continue;
         mentions.set(member.id, member);
       }
       if (mentions.size < 1) return await obj.interaction.reply("Your mentions are not valid!");
-      var msg = <Discord.Message> await obj.interaction.reply(`You invited ${mentions.map(user => `<@${user.id}>`).join(" ")} to play UNO.`, { fetchReply: true });
+      await obj.interaction.reply(`You invited ${mentions.map(user => `<@${user.id}>`).join(" ")} to play UNO.`, { fetchReply: true });
     } else {
-      var msg = <Discord.Message> await obj.interaction.reply("Alright, we will start an UNO game. Who will be invited? Please mention them!", { fetchReply: true });
+      await obj.interaction.reply("Alright, we will start an UNO game. Who will be invited? Please mention them!", { fetchReply: true });
       var collected = await (<Discord.TextChannel>obj.interaction.channel).awaitMessages(x => x.author.id === (obj.interaction.member?.user.id ?? obj.interaction.channelID), { max: 1, time: 30000 });
       if (!collected || !collected.first()) return await obj.interaction.edit("Don't make me wait too long. I'm busy.");
       await collected.first().delete();

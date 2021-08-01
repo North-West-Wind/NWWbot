@@ -18,10 +18,9 @@ class WelcomeCommand implements SlashCommand {
 
     async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
         if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        const args = obj.args?.map(x => x?.value).filter(x => !!x) || [];
         var member = obj.interaction.member;
-        if (args[0]) {
-            member = await findMemberWithGuild(obj.interaction.guild, args[0]);
+        if (obj.args && obj.args[0].value) {
+            member = await findMemberWithGuild(obj.interaction.guild, obj.args[0].value);
             if (!member) member = obj.interaction.member;
         }
         const { message, image, error } = await this.getWelcome(member, obj.client);

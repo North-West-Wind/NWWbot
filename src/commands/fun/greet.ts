@@ -19,12 +19,12 @@ class GreetCommand implements SlashCommand {
   category = 3
   args = 1
   options = [{
-      name: "user",
-      description: "The user to greet.",
-      required: true,
-      type: 6
+    name: "user",
+    description: "The user to greet.",
+    required: true,
+    type: 6
   }];
-  
+
   async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
     const chosen = GREETINGS[Math.floor(GREETINGS.length * Math.random())];
     const user = obj.args[0]?.value ? (await obj.client.users.fetch(obj.args[0].value)).id : (obj.interaction.member?.id ?? obj.interaction.channelID);

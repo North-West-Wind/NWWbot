@@ -5,7 +5,7 @@ import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
-import { color } from "../../function";
+import { color, msgOrRes } from "../../function";
 
 class BankCommand implements SlashCommand {
   name = "bank"
@@ -40,7 +40,7 @@ class BankCommand implements SlashCommand {
       .addField("Cash", "$" + cash)
       .setTimestamp()
       .setFooter(`React to navigate.`, client.user.displayAvatarURL());
-    var msg = await message.channel.send(Embed);
+    var msg = await msgOrRes(message, Embed);
     await msg.react("1️⃣");
     await msg.react("2️⃣");
     await MainPage();

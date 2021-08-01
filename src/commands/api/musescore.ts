@@ -38,7 +38,7 @@ const requestYTDLStream = (url: string, opts) => {
     return Promise.race([timeout, getStream]);
 };
 
-export async function getMP3(url: string) {
+export async function getMP3(url: string): Promise<{ error: boolean, url: string, message: string, timeTaken: number }> {
     return await run(async (page) => {
         var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
         const start = Date.now();
@@ -83,7 +83,7 @@ class MusescoreCommand implements SlashCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        if (!validMSURL(args.join(" "))) return await this.search(message, args);
+        if (!validMSURL(args.join(" "))) return await this.search(message, args.join(" "));
         await this.metadata(message, args.join(" "));
     }
 
@@ -127,7 +127,7 @@ class MusescoreCommand implements SlashCommand {
                         if (mp3.url.startsWith("https://www.youtube.com/embed/")) {
                             const ytid = mp3.url.split("/").slice(-1)[0].split("?")[0];
                             res = await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 });
-                        } else res = await requestStream(mp3.url);
+                        } else res = (await requestStream(mp3.url)).data;
                         const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mp3`));
                         if (!res) throw new Error("Failed to get Readable Stream");
                         else if (res.statusCode && res.statusCode != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
@@ -171,9 +171,9 @@ class MusescoreCommand implements SlashCommand {
         }
     }
 
-    async search(message: NorthMessage | Interaction, args: string[]) {
+    async search(message: NorthMessage | Interaction, args: string) {
         try {
-            const response = await rp({ uri: `https://musescore.com/sheetmusic?text=${encodeURIComponent(args.join(" "))}`, resolveWithFullResponse: true });
+            const response = await rp({ uri: `https://musescore.com/sheetmusic?text=${encodeURIComponent(args)}`, resolveWithFullResponse: true });
             if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
             var body = response.body;
         } catch (err) {

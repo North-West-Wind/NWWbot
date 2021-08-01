@@ -1,4 +1,4 @@
-import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { Interaction } from "slashcord/dist/Index";
 import cleverbot from "cleverbot-free";
 
@@ -18,6 +18,7 @@ class ChatCommand implements SlashCommand {
     }];
 
     async execute(obj: { interaction: Interaction, client: NorthClient, args: any[] }) {
+        await obj.interaction.thinking();
         const author = obj.interaction.member.user;
         var past = log.get(author.id);
         if (!past || Date.now() - past.lastChat > 1800000) {
@@ -31,10 +32,10 @@ class ChatCommand implements SlashCommand {
         past.messages.push(obj.args[0].value);
         past.messages.push(response);
         log.set(author.id, past);
-        await obj.interaction.reply(response);
+        await obj.interaction.edit(response);
     }
 
-    async run(message, args) {
+    async run(message: NorthMessage, args: string[]) {
         var past = log.get(message.author.id);
         if (!past || Date.now() - past.lastChat > 1800000) {
             log.set(message.author.id, {

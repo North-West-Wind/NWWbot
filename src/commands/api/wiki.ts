@@ -1,6 +1,6 @@
 import wiki from "wikijs";
 import * as Discord from "discord.js";
-import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { Interaction } from "slashcord/dist/Index";
 import { color } from "../../function";
 
@@ -23,7 +23,7 @@ class WikiCommand implements SlashCommand {
         await this.specialCollector(obj.interaction, obj.args[0].value);
     }
 
-    async run(message, args) {
+    async run(message: NorthMessage, args: string[]) {
         await this.specialCollector(message, args.join(" "));
     }
 

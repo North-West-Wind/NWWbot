@@ -95,7 +95,6 @@ class MinecraftCommand implements SlashCommand {
     }
 
     async execute(obj: { interaction: Interaction, args: any[] }) {
-        console.log(obj.args);
         if (obj.args[0].name === this.subcommands[0]) {
             var str = obj.args[0].options[0].value;
             var r = await profile(str);

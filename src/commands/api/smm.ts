@@ -1,5 +1,5 @@
 import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { readableDateTime, color, createEmbedScrolling } from "../../function";
 import smm from "smm-api";
 import * as Discord from "discord.js";
