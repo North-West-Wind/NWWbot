@@ -1,10 +1,12 @@
 import { CategoryList, SectionTypes, SortTypes } from "aio-mc-api/lib/typings/CurseForge/Constants";
 import { Interaction } from "slashcord/dist/Index";
-import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory } from "../../function";
+import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory, getFetch } from "../../function";
 import { Message, MessageEmbed } from "discord.js";
 import { curseforge, SimpleProject } from "aio-mc-api";
 import { SlashCommand, NorthMessage } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
+
+const fetch = getFetch();
 
 class MinecraftCommand implements SlashCommand {
     name = "minecraft";
@@ -93,6 +95,7 @@ class MinecraftCommand implements SlashCommand {
     }
 
     async execute(obj: { interaction: Interaction, args: any[] }) {
+        console.log(obj.args);
         if (obj.args[0].name === this.subcommands[0]) {
             var str = obj.args[0].options[0].value;
             var r = await profile(str);
@@ -123,9 +126,9 @@ class MinecraftCommand implements SlashCommand {
         if (args[0] === "profile" || args[0] === "pro" || !args[1]) {
             var str = args[0];
             if (args[1]) str = args[1];
-            var em, r = await profile(str);
-            if (!r) return message.channel.send("No player named **" + str + "** were found");
-            em = this.getProfileEmbed(r);
+            var r = await profile(str);
+            if (!r) return await message.channel.send("No player named **" + str + "** were found");
+            const em = this.getProfileEmbed(r);
             await message.channel.send(em);
         } else if (args[0] === "server" || args[0] === "srv") {
             const url = `https://api.mcsrvstat.us/2/${args.slice(1).join(" ")}`;

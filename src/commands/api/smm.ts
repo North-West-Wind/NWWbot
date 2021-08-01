@@ -24,8 +24,7 @@ class SMMCommand implements SlashCommand {
     }];
 
     async execute(obj: { client: NorthClient, interaction: Interaction, args: any }) {
-        const args = obj.args?.map(x => <string>x?.value).filter(x => !!x) || [];
-        await createEmbedScrolling(obj.interaction, await this.getCourseEmbed(args.join(" ")));
+        await createEmbedScrolling(obj.interaction, await this.getCourseEmbed(obj.args[0].value));
     }
 
     async run(message: NorthMessage, args: string[]) {

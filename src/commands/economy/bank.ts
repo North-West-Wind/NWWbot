@@ -20,9 +20,9 @@ class BankCommand implements SlashCommand {
     con.release();
   }
 
-  async run(message) {
+  async run(message: NorthMessage) {
     const con = await message.pool.getConnection();
-    var [results] = await con.query(`SELECT * FROM currency WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
+    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM currency WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
     if (results.length == 0) await message.channel.send("You don't have any bank account registered. Use `" + message.prefix + "work` to work and have an account registered!");
     else await this.useEmbeds(message, con, results[0]);
     con.release();

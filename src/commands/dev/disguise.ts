@@ -7,14 +7,14 @@ class DisguiseCommand implements SlashCommand {
     aliases = ["say"]
     category = 10
 
-    execute(obj: { interaction: Interaction }) {
-        obj.interaction.reply("This command doesn't work in slash.");
+    async execute(obj: { interaction: Interaction }) {
+        await obj.interaction.reply("This command doesn't work in slash.");
     }
 
-    run(message: NorthMessage, args: string[]) {
+    async run(message: NorthMessage, args: string[]) {
         if (message.author.id == process.env.DC) {
-            message.delete();
-            message.channel.send(args.join(" "))
+            await message.delete();
+            await message.channel.send(args.join(" "))
         }
     }
 }

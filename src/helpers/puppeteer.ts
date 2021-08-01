@@ -1,4 +1,4 @@
-import * as puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer-core';
 var browser: puppeteer.Browser, timeout: NodeJS.Timeout;
 
 async function getBrowser() {

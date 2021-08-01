@@ -1,5 +1,5 @@
 import { Interaction } from "slashcord/dist/Index";
-import { SlashCommand } from "../../classes/NorthClient";
+import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
 
 class RestartCommand implements SlashCommand {
     name = "restart"
@@ -13,7 +13,7 @@ class RestartCommand implements SlashCommand {
         process.exit(0);
     }
 
-    async run(message) {
+    async run(message: NorthMessage) {
         if (message.author.id != process.env.DC) return;
         await message.channel.send("Restarted.");
         process.exit(0);

@@ -283,13 +283,20 @@ export async function ID() {
     const buffer: Buffer = await new Promise((resolve, reject) => crypto.randomBytes(24, async (err, buffer) => err ? reject(err) : resolve(buffer)));
     return buffer.toString("hex");
 }
-export async function createEmbedScrolling(message: Discord.Message | Interaction, allEmbeds: Discord.MessageEmbed[], id: number = 0, additionalData: any = undefined) {
+export async function createEmbedScrolling(message: Discord.Message | Interaction | { interaction: Interaction, useEdit: boolean }, allEmbeds: Discord.MessageEmbed[], id: number = 0, additionalData: any = undefined) {
     var author: Discord.Snowflake;
     if (message instanceof Discord.Message) author = message.author.id;
-    else author = message.member?.user.id ?? message.channelID;
+    else if (message instanceof Interaction) author = message.member?.user.id ?? message.channelID;
+    else author = message.interaction.member?.user.id ?? message.interaction.channelID;
     const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author);
     var s = 0;
-    var msg: Discord.Message = message instanceof Discord.Message ? await message.channel.send(allEmbeds[0]) : <Discord.Message> await message.reply(allEmbeds[0], { fetchReply: true });
+    var msg: Discord.Message;
+    if (message instanceof Discord.Message) msg = await message.channel.send(allEmbeds[0]);
+    else if (message instanceof Interaction) msg = <Discord.Message> await message.reply(allEmbeds[0], { fetchReply: true });
+    else {
+        await message.interaction.edit(allEmbeds[0]);
+        msg = await message.interaction.fetchReply();
+    }
     await msg.react("⏮");
     await msg.react("◀");
     await msg.react("▶");

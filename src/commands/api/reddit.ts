@@ -31,10 +31,11 @@ class RedditCommand implements SlashCommand {
     }];
 
     async execute(obj: { client: NorthClient, interaction: Interaction, args: any }) {
+        await obj.interaction.thinking();
         const args = obj.args?.map(x => <string>x?.value).filter(x => !!x) || [];
         const em = await this.getPost(args);
-        if (!em) await obj.interaction.channel.send("Failed to fetch Reddit post!");
-        else await obj.interaction.channel.send(em);
+        if (!em) await obj.interaction.edit("Failed to fetch Reddit post!");
+        else await obj.interaction.edit(em);
     }
 
     async run(message: NorthMessage, args: string[]) {

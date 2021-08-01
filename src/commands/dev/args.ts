@@ -6,9 +6,16 @@ class ArgsCommand implements SlashCommand {
   description = "Check args of messages."
   category = 10
   args = 1
+  options = [{
+    name: "arguments",
+    description: "The texts to log.",
+    required: true,
+    type: 3
+  }]
 
-  async execute(obj: { interaction: Interaction }) {
-      obj.interaction.reply("Please don't use this in slash.", {});
+  async execute(obj: { interaction: Interaction, args: any[] }) {
+    NorthClient.storage.log(obj.args);
+    await obj.interaction.reply("Done");
   }
 
   async run(message: NorthMessage) {
