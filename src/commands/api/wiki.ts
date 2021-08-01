@@ -19,8 +19,8 @@ class WikiCommand implements SlashCommand {
     }];
 
     async execute(obj: { args: any[], interaction: Interaction }) {
-        const args = obj.args?.map(x => x?.value).filter(x => !!x);
-        await this.specialCollector(obj.interaction, args.join(" "));
+        await obj.interaction.thinking();
+        await this.specialCollector(obj.interaction, obj.args[0].value);
     }
 
     async run(message, args) {
@@ -60,7 +60,7 @@ class WikiCommand implements SlashCommand {
             msg = await message.channel.send(allEmbeds[0]);
             author = message.author.id;
         } else {
-            await message.reply(allEmbeds[0]);
+            await message.edit(allEmbeds[0]);
             msg = await message.fetchReply();
             author = message.member?.id ?? message.channelID;
         }

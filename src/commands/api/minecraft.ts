@@ -213,7 +213,6 @@ class MinecraftCommand implements SlashCommand {
         const Embed = new MessageEmbed()
             .setColor(color())
             .setTitle(r.name)
-            .setDescription("Profile:")
             .addField("UUID", r.id, true)
             .addField("Username", r.name, true)
             .setImage(skin)

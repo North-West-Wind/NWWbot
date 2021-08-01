@@ -1,11 +1,9 @@
 import { MessageEmbed } from "discord.js";
 import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { color, createEmbedScrolling, getFetch, readableDateTime } from "../../function";
+import { color, createEmbedScrolling, readableDateTime } from "../../function";
 import { globalClient as client } from "../../common";
 import { getHistory, getStats } from "survivio-api";
-
-const fetch = getFetch();
 const createModeEmbed = (mode, stats) => {
     const em = new MessageEmbed()
         .setColor(color())
@@ -40,13 +38,13 @@ class SurvivCommand implements SlashCommand {
     }];
 
     async execute(obj: { args: any[], interaction: Interaction, client: NorthClient }) {
-        const args = obj.args?.map(x => x?.value).filter(x => !!x);
+        await obj.interaction.thinking();
         try {
-            const allEmbeds = await this.getPlayerEmbed(args.join(" "));
-            if (allEmbeds.length == 1) await obj.interaction.reply(allEmbeds[0]);
-            else await createEmbedScrolling(obj.interaction, allEmbeds);
+            const allEmbeds = await this.getPlayerEmbed(obj.args[0].value);
+            if (allEmbeds.length == 1) await obj.interaction.edit(allEmbeds[0]);
+            else await createEmbedScrolling({ interaction: obj.interaction, useEdit: true }, allEmbeds);
         } catch (err) {
-            await obj.interaction.reply("Cannot find that user!");
+            await obj.interaction.edit("Cannot find that user!");
         }
     }
 

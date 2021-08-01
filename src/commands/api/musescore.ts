@@ -38,7 +38,7 @@ const requestYTDLStream = (url: string, opts) => {
     return Promise.race([timeout, getStream]);
 };
 
-export async function getMP3(url) {
+export async function getMP3(url: string) {
     return await run(async (page) => {
         var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
         const start = Date.now();
@@ -177,7 +177,8 @@ class MusescoreCommand implements SlashCommand {
             if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
             var body = response.body;
         } catch (err) {
-            return message.reply("there was an error trying to search for scores!");
+            NorthClient.storage.error(err);
+            return await message.reply("There was an error trying to search for scores!");
         }
         const author = (message instanceof Discord.Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelID))).id;
         var msg = <Discord.Message> await msgOrRes(message, "Loading scores...");

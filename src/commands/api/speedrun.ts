@@ -21,11 +21,11 @@ class SpeedrunCommand implements SlashCommand {
     }];
 
     async execute(obj: { args: any[], interaction: Interaction, client: NorthClient }) {
-        const args = obj.args?.map(x => x?.value).filter(x => !!x);
-        const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(args.join(" "))}`).then(res => res.json());
-        var data, msg;
+        await obj.interaction.thinking();
+        const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(obj.args[0].value)}`).then(res => res.json());
+        var data: any, msg: Discord.Message;
         if (!gameFetch) {
-            ({ data, msg } = await this.chooseGame(obj.interaction, args.join(" ")));
+            ({ data, msg } = await this.chooseGame(obj.interaction, obj.args[0].value));
             if (!data) return;
         } else {
             var em = new Discord.MessageEmbed()
@@ -34,7 +34,7 @@ class SpeedrunCommand implements SlashCommand {
                 .setDescription("This will take a while.")
                 .setTimestamp()
                 .setFooter("Please be patient.", client.user.displayAvatarURL());
-            msg = await obj.interaction.reply(em);
+            msg = <Discord.Message> await obj.interaction.reply(em, { fetchReply: true });
             data = gameFetch.data;
         }
         const allEmbeds = await this.getEmbedsByID(data);
@@ -88,7 +88,7 @@ class SpeedrunCommand implements SlashCommand {
             .setFooter("Cannot find your game? Try to be more specified.", message.client.user.displayAvatarURL());
         if (result.data.length == 0) {
             if (message instanceof Discord.Message) await message.channel.send("No game was found!");
-            else await message.reply("No game was found!");
+            else await message.edit("No game was found!");
             return { data: null, msg };
         }
         var msg: Discord.Message, index: number;

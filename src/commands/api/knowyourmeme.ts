@@ -105,8 +105,9 @@ class KnowYourMemeCommand implements SlashCommand {
     type: 3
   }];
   async execute(obj: { interaction: Interaction, args: any[] }) {
+    await obj.interaction.thinking();
     const allEmbeds = await this.getEmbeds(obj.args[0].value);
-    await createEmbedScrolling(obj.interaction, allEmbeds);
+    await createEmbedScrolling({ interaction: obj.interaction, useEdit: true }, allEmbeds);
   }
 
   async run(message: NorthMessage, args: string[]) {

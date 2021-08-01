@@ -48,11 +48,11 @@ class KrunkerCommand implements SlashCommand {
         if (obj.args[0].name === "server") {
             await obj.interaction.reply("Loading servers...");
             const msg = await obj.interaction.fetchReply();
-            await this.server(msg, obj.args[0]?.options[0]?.value || null, msg.author);
+            await this.server(msg, obj.args[0]?.options ? obj.args[0]?.options[0]?.value : null, msg.author);
         } else if (obj.args[0].name === "changelog") {
             await obj.interaction.reply("Loading changelogs...");
             const msg = await obj.interaction.fetchReply();
-            await this.changelog(msg, obj.args[0]?.options[0]?.value || null, msg.author);
+            await this.changelog(msg, obj.args[0]?.options ? obj.args[0]?.options[0]?.value : null, msg.author);
         }
     }
 

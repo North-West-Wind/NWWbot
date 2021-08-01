@@ -20,10 +20,10 @@ class UrbanCommand implements SlashCommand {
     }];
 
     async execute(obj: { args: any[], interaction: Interaction }) {
-        const args = obj.args?.map(x => x?.value).filter(x => !!x);
-        const allEmbeds = await this.getDictEmbed(args.join(" "));
-        if (!allEmbeds) return await obj.interaction.reply(`No results found for **${args.join(" ")}**.`);
-        await createEmbedScrolling(obj.interaction, allEmbeds);
+        await obj.interaction.thinking();
+        const allEmbeds = await this.getDictEmbed(obj.args[0].value);
+        if (!allEmbeds) return await obj.interaction.edit(`No results found for **${obj.args[0].value}**.`);
+        await createEmbedScrolling({ interaction: obj.interaction, useEdit: true }, allEmbeds);
     }
 
     async run(message: NorthMessage, args: string[]) {

@@ -27,10 +27,10 @@ class SMM2Command implements SlashCommand {
     }];
 
     async execute(obj: { args: any[], interaction: Interaction }) {
-        const args = obj.args?.map(x => x?.value).filter(x => !!x);
-        const allEmbeds = await this.getCourseEmbed(args.join(" "));
-        if(allEmbeds.length < 1) return await obj.interaction.reply("Cannot find any courses!");
-        await createEmbedScrolling(obj.interaction, allEmbeds);
+        await obj.interaction.thinking();
+        const allEmbeds = await this.getCourseEmbed(obj.args[0].value);
+        if(allEmbeds.length < 1) return await obj.interaction.edit("Cannot find any courses!");
+        await createEmbedScrolling({ interaction: obj.interaction, useEdit: true }, allEmbeds);
     }
     
     async run(message: NorthMessage, args: string[]) {
