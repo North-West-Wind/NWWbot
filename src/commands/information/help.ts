@@ -1,5 +1,5 @@
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { color, wait } from "../../function";
+import { color, deepReaddir, wait } from "../../function";
 import * as Discord from "discord.js";
 import { Interaction } from "slashcord/dist/Index";
 import { AkiCommand } from "../api/aki";
@@ -24,13 +24,14 @@ class HelpCommand implements SlashCommand {
         type: 1
       }
     ];
+    const commandFiles = deepReaddir("./out/commands").filter(file => file.endsWith(".js"));
     for (const category of sCategories) {
       const fetchOpt = {
         name: "command",
         description: "The command to fetch.",
         required: true,
         type: 3,
-        choices: NorthClient.storage.commands.filter(command => command.category === sCategories.indexOf(category)).map(x => ({ name: x.name, value: x.name }))
+        choices: require(commandFiles).filter(command => command.category === sCategories.indexOf(category)).map(x => ({ name: x.name, value: x.name }))
       };
       const option = {
         name: category.toLowerCase(),
