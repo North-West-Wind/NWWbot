@@ -64,7 +64,7 @@ export class AkiCommand implements SlashCommand {
   }
 
   async execute(obj: { interaction: Interaction, args: any[] }) {
-    let region = obj.args[0]?.value || "en";
+    let region = obj.args && obj.args[0]?.value ? obj.args[0].value : "en";
     await obj.interaction.thinking();
     await this.logic(obj.interaction, region);
   }

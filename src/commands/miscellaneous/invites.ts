@@ -36,7 +36,7 @@ class InvitesCommand implements SlashCommand {
     if (obj.args[0].name === "server") {
       if (!obj.interaction.guild.me.hasPermission(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 1));
       const allEmbeds = await this.createInvitesEmbed(obj.interaction.guild, obj.client, true);
-      return await (allEmbeds[0]);
+      return await obj.interaction.reply(allEmbeds[0]);
     } else if (obj.args[0].name === "me") {
       const author = obj.interaction.member?.user ?? await obj.client.users.fetch(obj.interaction.channelID);
       if (!obj.interaction.guild.me.hasPermission(this.permissions)) return obj.interaction.reply(genPermMsg(this.permissions, 1));

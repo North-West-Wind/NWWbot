@@ -34,10 +34,10 @@ class DownloadCommand implements SlashCommand {
         if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
         var serverQueue = getQueues().get(obj.interaction.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(obj.interaction.guild.id, [], false, false);
-        const parsed = parseInt(obj.args[0]?.value);
-        if (obj.args[0]?.value && isNaN(parsed)) return await this.downloadFromArgs(obj.interaction, serverQueue, obj.args[0].value);
+        if (obj.args && isNaN(parseInt(obj.args[0]?.value))) return await this.downloadFromArgs(obj.interaction, serverQueue, obj.args[0].value);
         if (serverQueue.songs.length < 1) return await obj.interaction.reply("There is nothing in the queue.");
         var song = serverQueue.songs[0];
+        const parsed = obj.args && obj.args[0]?.value ? parseInt(obj.args[0]?.value) : -1;
         if (parsed <= serverQueue.songs.length && parsed > 0) song = serverQueue.songs[parsed - 1];
         await this.download(obj.interaction, serverQueue, song);
         

@@ -1,9 +1,9 @@
 import { Interaction } from "slashcord/dist/Index";
 import { SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
-import googleIt from "google-it";
 import { color } from "../../function";
 import { globalClient as client } from "../../common";
+const googleIt: any = require("google-it");
 
 class GoogleCommand implements SlashCommand {
   name = "google"
@@ -19,7 +19,8 @@ class GoogleCommand implements SlashCommand {
   }]
   
   async execute(obj: { interaction: Interaction, args: any[] }) {
-    await obj.interaction.reply(await this.getSearchEmbed(obj.args[0].value));
+    await obj.interaction.thinking();
+    await obj.interaction.edit(await this.getSearchEmbed(obj.args[0].value));
   }
 
   async run(message, args) {

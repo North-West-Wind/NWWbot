@@ -23,16 +23,18 @@ class LoopCommand implements SlashCommand {
         var serverQueue = getQueues().get(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         serverQueue.looping = !serverQueue.looping;
+        var useEdit = false;
         if (serverQueue.repeating && serverQueue.looping) {
             serverQueue.repeating = false;
             await msgOrRes(message, "Disabled repeating to prevent conflict.");
+            useEdit = true;
         }
         try {
             await updateQueue(message.guild.id, serverQueue, true);
-            if (serverQueue.looping) await msgOrRes(message, "The queue is now being looped.");
-            else await msgOrRes(message, "The queue is no longer being looped.");
+            if (serverQueue.looping) await msgOrRes(message, "The queue is now being looped.", useEdit);
+            else await msgOrRes(message, "The queue is no longer being looped.", useEdit);
         } catch (err) {
-            await msgOrRes(message, "There was an error trying to update the status!");
+            await msgOrRes(message, "There was an error trying to update the status!", useEdit);
         }
     }
 }

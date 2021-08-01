@@ -37,7 +37,7 @@ class NicknameCommand implements SlashCommand {
       NorthClient.storage.error(err);
       return await obj.interaction.reply("Failed to set nickname!");
     }
-    return await obj.interaction.reply(`Set **${member.user.tag}**'s nickname to **${args[1].value}**`);
+    await obj.interaction.reply(`Set **${member.user.tag}**'s nickname to **${obj.args[1].value}**`);
   }
 
   async run(message, args) {

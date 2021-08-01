@@ -30,7 +30,7 @@ class RemoveCommand implements SlashCommand {
     async execute(obj: { interaction: Interaction, args: any[] }) {
         if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
         const queueIndex = obj.args[0].value;
-        const amount = obj.args[1].value || 1;
+        const amount = obj.args[1]?.value || 1;
         if (amount < 1) return await obj.interaction.reply("The delete count must be larger than 0!");
         await this.remove(obj.interaction, queueIndex, amount);
     }

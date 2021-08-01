@@ -492,17 +492,17 @@ class PornCommand implements SlashCommand {
         await obj.interaction.reply("Finding porn...");
         var nArgs = [];
         if (obj.args[0].name === "single") {
-            nArgs = obj.args[0].options ? (obj.args[0].options[0]?.value?.split(/ +/) || []) : [];
+            nArgs = obj.args[0].options ? obj.args[0].options[0]?.value?.split(/ +/) : [];
             if (obj.args[0].options ? obj.args[0].options[1]?.value : false) return await this.los(obj.interaction, nArgs);
             else return await this.nsfw411(obj.interaction, nArgs);
         } else if (obj.args[0].name === "auto") {
-            nArgs = obj.args[0].options[2]?.value?.split(/ +/) || [];
-            if (obj.args[0].options[3]?.value) nArgs.push("los");
+            nArgs = obj.args[0].options ? obj.args[0].options[2]?.value?.split(/ +/) : [];
+            if (obj.args[0].options ? obj.args[0].options[3]?.value : false) nArgs.push("los");
             nArgs.unshift(obj.args[0].options[1].value);
             nArgs.unshift(obj.args[0].options[0].value);
             nArgs.unshift("auto");
             return await this.auto(obj.interaction, nArgs);
-        } else await this.tags(obj.interaction, (obj.args[0].options ? obj.args[0].options[1]?.value : false) ? ["los"] : []);
+        } else await this.tags(obj.interaction, (obj.args[0].options && obj.args[0].options[1]?.value) ? ["los"] : []);
     }
     
     async run(message: NorthMessage, args: string[]) {

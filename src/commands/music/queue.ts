@@ -97,7 +97,7 @@ class QueueCommand implements SlashCommand {
     }
 
     async viewQueue(message: Message | Interaction, serverQueue: ServerQueue) {
-        if (serverQueue.songs.length < 1) return message.channel.send("Nothing is in the queue now.");
+        if (serverQueue.songs.length < 1) return await msgOrRes(message, "Nothing is in the queue now.");
         const filtered = serverQueue.songs.filter(song => !!song);
         if (serverQueue.songs.length !== filtered.length) {
             serverQueue.songs = filtered;
@@ -120,7 +120,7 @@ class QueueCommand implements SlashCommand {
                 .setFooter(`Now playing: ${(serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing")}`, message.client.user.displayAvatarURL());
             allEmbeds.push(queueEmbed);
         }
-        if (allEmbeds.length == 1) message.channel.send(allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
+        if (allEmbeds.length == 1) await msgOrRes(message, allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
         else await createEmbedScrolling(message, allEmbeds, 3, { songArray: songArray });
     }
 

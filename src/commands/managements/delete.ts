@@ -58,16 +58,17 @@ class DeleteCommand implements SlashCommand {
       var rateLimitPerUser = channel.rateLimitPerUser;
 
       await channel.delete();
-      await obj.interaction.guild.channels.create(name, { type, topic, nsfw, parent, permissionOverwrites, position, rateLimitPerUser });
+      channel = await obj.interaction.guild.channels.create(name, { type, topic, nsfw, parent, permissionOverwrites, position, rateLimitPerUser });
       
       await author.user.send("Deleted all message in the channel **" + obj.interaction.channel.name + "** of the server **" + obj.interaction.guild.name + "**.");
-      return await obj.interaction.reply(`Deleted all messages in ${channel.name}.`);
+      return await obj.interaction.reply(`Deleted all messages in <#${channel.id}>.`);
     } else {
       try {
         await channel.bulkDelete(amount, true);
-        return await obj.interaction.reply(`Deleted ${amount} messages in ${channel.name}.`);
+        await obj.interaction.reply(`Deleted ${amount} messages in <#${channel.id}>.`);
+        await obj.interaction.delete({ timeout: 10000 });
       } catch (err) {
-        return await obj.interaction.reply("I can't delete them. Try a smaller amount.");
+        await obj.interaction.reply("I can't delete them. Try a smaller amount.");
       }
     }
   }

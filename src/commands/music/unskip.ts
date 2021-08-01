@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { Interaction } from "slashcord/dist/Index";
 import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { moveArray } from "../../function";
+import { moveArray, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 import { play } from "./play";
 
@@ -43,8 +43,8 @@ class UnSkipCommand implements SlashCommand {
         var serverQueue = getQueues().get(message.guild.id);
         const guild = message.guild;
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
-        if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to unskip the music when the bot is playing!");
-        if (serverQueue.songs.length < 1) return message.channel.send("There is nothing in the queue!");
+        if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing) return await msgOrRes(message,"You have to be in a voice channel to unskip the music when the bot is playing!");
+        if (serverQueue.songs.length < 1) return await msgOrRes(message,"There is nothing in the queue!");
         if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
         if (serverQueue.repeating) unskip = 0;
         for (var i = 0; i < unskip; i++) {
@@ -52,7 +52,7 @@ class UnSkipCommand implements SlashCommand {
             serverQueue.songs.unshift(song);
         }
         await updateQueue(message.guild.id, serverQueue);
-        message.channel.send(`Unskipped **${Math.max(1, unskip)}** track${unskip > 1 ? "s" : ""}!`);
+        await msgOrRes(message,`Unskipped **${Math.max(1, unskip)}** track${unskip > 1 ? "s" : ""}!`);
         if (message.member.voice.channel && serverQueue.playing) {
             if (!serverQueue.connection) serverQueue.connection = await message.member.voice.channel.join();
             if (!serverQueue.random) await play(guild, serverQueue.songs[0]);

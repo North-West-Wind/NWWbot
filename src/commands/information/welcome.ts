@@ -25,7 +25,7 @@ class WelcomeCommand implements SlashCommand {
         }
         const { message, image, error } = await this.getWelcome(member, obj.client);
         await obj.interaction.reply(message);
-        if (!error) await obj.interaction.followUp.send(image);
+        if (!error) await obj.interaction.channel.send(image);
     }
 
     async run(message: NorthMessage, args: string[]) {

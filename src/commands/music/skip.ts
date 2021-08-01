@@ -21,7 +21,7 @@ class SkipCommand implements SlashCommand {
     async execute(obj: { interaction: Interaction, args: any[] }) {
         if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
         var skipped = 1;
-        if (obj.args[0]?.value >= 1) skipped = parseInt(obj.args[0].value);
+        if (obj.args && obj.args[0]?.value >= 1) skipped = parseInt(obj.args[0].value);
         await this.skip(obj.interaction, skipped);
     }
 

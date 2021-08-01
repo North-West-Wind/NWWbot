@@ -29,7 +29,7 @@ class VolumeCommand implements SlashCommand {
         if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
         var serverQueue = getQueues().get(obj.interaction.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(obj.interaction.guild.id, [], false, false);
-        if (!obj.args[0]?.value) return await obj.interaction.reply(`The current volume is **${Math.round(serverQueue.volume * 100)}%** and the current volume of the soundtrack is **${Math.round(serverQueue.volume * (serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.songs[0].volume : 1) * 100)}%**`);
+        if (obj.args && !obj.args[0]?.value) return await obj.interaction.reply(`The current volume is **${Math.round(serverQueue.volume * 100)}%** and the current volume of the soundtrack is **${Math.round(serverQueue.volume * (serverQueue.songs[0] && serverQueue.songs[0].volume ? serverQueue.songs[0].volume : 1) * 100)}%**`);
         await this.volume(obj.interaction, serverQueue, obj.args[0].value, obj.args[1]?.value);
     }
 

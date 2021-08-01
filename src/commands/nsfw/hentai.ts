@@ -90,7 +90,7 @@ class HentaiCommand implements SlashCommand {
 
     async execute(obj: { interaction: Interaction, args: any[] }) {
         if (obj.interaction.guild && !obj.interaction.channel.nsfw) return await obj.interaction.reply("Please use an NSFW channel to use this command!");
-        if (obj.args[0].value === "single") {
+        if (obj.args[0].name === "single") {
             var embed;
             if (obj.args[0].options && obj.args[0].options[0]?.value) {
                 var tag = "random";
@@ -100,7 +100,7 @@ class HentaiCommand implements SlashCommand {
             } else embed = await this.random();
             return await obj.interaction.reply(embed);
         } else {
-            const options = obj.args[1].options;
+            const options = obj.args[0].options;
             await this.auto(obj.interaction, options[0].value, ms(options[1].value), options[2].value, options[3].value.split(/ +/));
         }
     }

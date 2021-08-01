@@ -39,7 +39,7 @@ class AddCommand implements SlashCommand {
             else if (validGDFolderURL(str)) {
                 const msg = message instanceof Message ? await message.channel.send("Processing track: (Initializing)") : <Message> await message.reply("Processing track: (Initializing)", { fetchReply: true });
                 result = await addGDFolderURL(str, async(i, l) => await msg.edit(`Processing track: **${i}/${l}**`));
-                await msg.delete();
+                result.msg = msg;
             } else if (validGDURL(str) || validGDDLURL(str)) result = await addGDURL(str);
             else if (validMSURL(str)) result = await addMSURL(str);
             else if (validURL(str)) result = await addURL(str);
@@ -53,7 +53,7 @@ class AddCommand implements SlashCommand {
             else serverQueue.songs = serverQueue.songs.concat(songs);
             await updateQueue(message.guild.id, serverQueue);
             if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
-            else await message.channel.send(Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
+            else await msgOrRes(message, Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
         } catch(err) {
             await msgOrRes(message, "There was an error trying to add the soundtrack to the queue!");
             NorthClient.storage.error(err);

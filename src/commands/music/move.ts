@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { Interaction } from "slashcord/dist/Index";
 import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { moveArray } from "../../function";
+import { moveArray, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 import arrayMove from "array-move";
 import { play } from "./play";
@@ -42,17 +42,17 @@ class MoveCommand implements SlashCommand {
 
     async move(message: Message | Interaction, queueIndex: number, dest: number) {
         var serverQueue = getQueues().get(message.guild.id);
-        if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return message.channel.send("You have to be in a voice channel to alter the queue when the bot is playing!");
+        if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to alter the queue when the bot is playing!");
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
-        if (serverQueue.songs.length < 1) return await message.channel.send("There is nothing in the queue.");
+        if (serverQueue.songs.length < 1) return await msgOrRes(message, "There is nothing in the queue.");
         var targetIndex = queueIndex - 1;
         var destIndex = dest - 1;
-        if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing && serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
-        if (targetIndex > serverQueue.songs.length - 1) return message.channel.send(`You cannot move a soundtrack that doesn't exist.`);
+        if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing) serverQueue.connection?.dispatcher?.destroy();
+        if (targetIndex > serverQueue.songs.length - 1) return await msgOrRes(message, `You cannot move a soundtrack that doesn't exist.`);
         var title = serverQueue.songs[targetIndex].title;
         arrayMove.mutate(serverQueue.songs, targetIndex, destIndex);
         await updateQueue(message.guild.id, serverQueue);
-        message.channel.send(`**${title}** has been moved from **#${queueIndex}** to **#${dest}**.`);
+        await msgOrRes(message, `**${title}** has been moved from **#${queueIndex}** to **#${dest}**.`);
         if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing) {
             if (!serverQueue.random) await play(message.guild, serverQueue.songs[0]);
             else {

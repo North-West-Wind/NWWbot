@@ -504,8 +504,10 @@ export function commonRoleEmbed(client, word, past, name) {
         .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return [successEmbed, failEmbed];
 }
-export function msgOrRes(message: Discord.Message | Interaction, str: any = undefined) {
-    return message instanceof Discord.Message ? message.channel.send(str) : <Promise<Discord.Message>> message.reply(str, { fetchReply: true });
+export function msgOrRes(message: Discord.Message | Interaction, str: any, useEdit: boolean = false): Promise<Discord.Message> {
+    if (message instanceof Discord.Message) return message.channel.send(str);
+    else if (useEdit) return message.edit(str).then(() => message.fetchReply());
+    else return <Promise<Discord.Message>> message.reply(str, { fetchReply: true });
 }
 export function deepReaddir(dir) {
     var results = [];
