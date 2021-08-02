@@ -3,6 +3,7 @@ import { AliceHandler } from "./handler";
 import { NorthClient, ClientStorage } from "./classes/NorthClient";
 import { RowDataPacket } from "mysql2";
 import { getFetch, profile } from "./function";
+import { VoiceChannel } from "discord.js";
 dotenv.config();
 
 const fetch = getFetch();
@@ -15,24 +16,6 @@ NorthClient.storage = new ClientStorage(client);
 client.prefix = prefix;
 client.id = 1;
 AliceHandler.setup(client, process.env.TOKEN1);
-
-setInterval(async () => {
-  if (NorthClient.storage.queries.length < 1) return;
-  try {
-    const con = await client.pool.getConnection();
-    for (const query of NorthClient.storage.queries) try {
-      const [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM leveling WHERE user = '${query.author}' AND guild = '${query.guild}'`);
-      if (results.length < 1) await con.query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${query.author}', '${query.guild}', ${query.exp}, '${query.date}')`);
-      else {
-        if (Date.now() - results[0].last < 60000) return;
-        const newExp = parseInt(results[0].exp) + query.exp;
-        await con.query(`UPDATE leveling SET exp = ${newExp}, last = '${query.date}' WHERE user = '${query.author}' AND guild = '${query.guild}'`);
-      }
-    } catch (err) { }
-    NorthClient.storage.queries = [];
-    con.release();
-  } catch (err) { }
-}, 60000);
 
 setInterval(async () => {
   try {
@@ -50,3 +33,22 @@ setInterval(async () => {
     }
   } catch (err) { }
 }, 3600000);
+
+setInterval(async () => {
+  try {
+    const guildApi = await fetch(`https://api.slothpixel.me/api/guilds/id/5b25306a0cf212fe4c98d739?key=${process.env.API}`).then(res => res.json());
+    const level = Math.round(guildApi.level);
+    const members = guildApi.members;
+    var top = { member: null, exp: 0 };
+    for (const member of members) {
+      const exp = <number> Object.values(member.exp_history)[0];
+      if (exp > top.exp) {
+        top.exp = exp;
+        top.member = member.uuid;
+      }
+    }
+    (<VoiceChannel> await client.channels.fetch("871765968190324796")).edit({ name: `Guild Members: ${members.length}` });
+    (<VoiceChannel> await client.channels.fetch("871768634228355162")).edit({ name: `Guild Level: ${level}` });
+    (<VoiceChannel> await client.channels.fetch("871768862629187606")).edit({ name: `Daily Guild Top: ${(await profile(top.member)).name}` });
+  } catch (err) { }
+}, 60000);

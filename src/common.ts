@@ -3,6 +3,7 @@ import * as fs from "fs";
 import { NorthClient, Card, SlashCommand, Item } from "./classes/NorthClient";
 import { twoDigits, deepReaddir } from "./function";
 import * as mysql from "mysql2";
+import { RowDataPacket } from "mysql2";
 var globalClient: NorthClient;
 
 export default async(client: NorthClient) => {
@@ -50,6 +51,24 @@ export default async(client: NorthClient) => {
     client.setPool(pool);
     client.setVersion("5.0.0");
     globalClient = client;
+
+    setInterval(async () => {
+        if (NorthClient.storage.queries.length < 1) return;
+        try {
+          const con = await client.pool.getConnection();
+          for (const query of NorthClient.storage.queries) try {
+            const [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM leveling WHERE user = '${query.author}' AND guild = '${query.guild}'`);
+            if (results.length < 1) await con.query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${query.author}', '${query.guild}', ${query.exp}, '${query.date}')`);
+            else {
+              if (Date.now() - results[0].last < 60000) return;
+              const newExp = parseInt(results[0].exp) + query.exp;
+              await con.query(`UPDATE leveling SET exp = ${newExp}, last = '${query.date}' WHERE user = '${query.author}' AND guild = '${query.guild}'`);
+            }
+          } catch (err) { }
+          NorthClient.storage.queries = [];
+          con.release();
+        } catch (err) { }
+      }, 60000);
 }
 
 export { globalClient };

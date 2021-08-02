@@ -676,16 +676,6 @@ export class AliceHandler extends Handler {
 
     async preMessage(message: Message) {
         const client = <NorthClient>message.client;
-
-        if (message.mentions.users.size > 10) {
-            await message.delete();
-            const msg = await message.reply("do not spam ping.");
-            await wait(3000);
-            await msg.delete();
-            await message.member.roles.set(["755263714940289125"]);
-            return;
-        }
-
         if (message.channel.id == "647630951169523762") {
             if (!message.content.match(/^\w{3,16}$/)) return;
             const mcName = message.content;
@@ -705,6 +695,8 @@ export class AliceHandler extends Handler {
                 } catch (err) {
                     return await msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
                 }
+                const hyDc = res.links.DISCORD;
+                if (hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
                 var [results] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                 if (results.length == 0) {
                     await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
@@ -760,8 +752,8 @@ export class AliceHandler extends Handler {
                 else if (bw.level < 3000) await roles.add("851470230370910248");
                 else await roles.add("851471153188569098");
 
-                await roles.remove(["837271170717057065", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"]);
-                if (res.rank === "YOUTUBER") await roles.add("837271170717057065");
+                await roles.remove(["662895829815787530", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"]);
+                if (res.rank === "YOUTUBER") await roles.add("662895829815787530");
                 else if (res.rank === "VIP") await roles.add("837271174827212850");
                 else if (res.rank === "VIP_PLUS") await roles.add("837271174073155594");
                 else if (res.rank === "MVP") await roles.add("837271173027856404");

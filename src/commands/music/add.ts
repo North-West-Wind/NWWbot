@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { validYTPlaylistURL, validYTURL, validSPURL, validSCURL, validGDFolderURL, validGDURL, validGDDLURL, validMSURL, validURL, msgOrRes } from "../../function";
+import { validYTPlaylistURL, validYTURL, validSPURL, validSCURL, validGDFolderURL, validGDURL, validGDDLURL, validMSURL, validURL, msgOrRes, wait } from "../../function";
 import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search } from "../../helpers/addTrack";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 import { createEmbed } from "./play";
@@ -52,8 +52,11 @@ class AddCommand implements SlashCommand {
             if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, songs, false, false);
             else serverQueue.songs = serverQueue.songs.concat(songs);
             await updateQueue(message.guild.id, serverQueue);
-            if (result.msg) await result.msg.edit({ content: "", embed: Embed }).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
-            else await msgOrRes(message, Embed).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` }).catch(() => { }), 30000)).catch(() => { });
+            var msg: Message;
+            if (result.msg) msg = await result.msg.edit({ content: "", embed: Embed });
+            else msg = await msgOrRes(message, Embed);
+            await wait(30000);
+            await msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
         } catch(err) {
             await msgOrRes(message, "There was an error trying to add the soundtrack to the queue!");
             NorthClient.storage.error(err);
