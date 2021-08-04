@@ -22,13 +22,13 @@ export function twoDigits(d) {
 }
 
 export function SumArray(arr) { return arr.reduce((a, b) => a + b); }
-export function setTimeout_(fn, delay) {
+export function setTimeout_(fn: Function, delay: number) {
     var maxDelay = Math.pow(2, 31) - 1;
     if (delay > maxDelay) {
         delay -= maxDelay;
-        return setTimeout(() => setTimeout_.apply(fn, delay), maxDelay);
+        return setTimeout(() => setTimeout_(fn, delay), maxDelay);
     }
-    return setTimeout.apply(fn, delay);
+    return setTimeout(fn, delay);
 }
 
 export function validURL(str) { return !!str.match(/^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?.*)?(\#[-a-z\d_]*)?$/i); }
