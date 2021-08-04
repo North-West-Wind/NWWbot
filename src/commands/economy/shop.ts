@@ -88,7 +88,8 @@ class ShopCommand implements SlashCommand {
                     menu.setDescription("30 seconds passed. Returning to main menu in 3 seconds...")
                         .setFooter("Please be patient.", message.client.user.displayAvatarURL());
                     await msg.edit(menu);
-                    return setTimeout(() => mainMenu(msg), 3000);
+                    await wait(3000);
+                    return await mainMenu(msg);
                 }
                 collected.first().delete();
                 const index = parseInt(collected.first().content);
@@ -96,13 +97,15 @@ class ShopCommand implements SlashCommand {
                     menu.setDescription("Invalid number. Returning to main menu in 3 seconds...")
                         .setFooter("Please be patient.", message.client.user.displayAvatarURL());
                     await msg.edit(menu);
-                    return setTimeout(() => mainMenu(msg), 3000);
+                    await wait(3000);
+                    return await mainMenu(msg);
                 }
                 if (index === 0) {
                     menu.setDescription("Cancelled action. Returning to main menu in 3 seconds...")
                         .setFooter("Please be patient.", message.client.user.displayAvatarURL());
                     await msg.edit(menu);
-                    return setTimeout(() => mainMenu(msg), 3000);
+                    await wait(3000);
+                    return await mainMenu(msg);
                 }
                 viewItem(msg, results[index - 1]?.id);
             }
@@ -117,7 +120,8 @@ class ShopCommand implements SlashCommand {
                         .setDescription("Returning to main menu in 3 seconds...")
                         .setFooter("Please be patient.", message.client.user.displayAvatarURL());
                     await msg.edit(itemEmbed);
-                    return setTimeout(() => mainMenu(msg), 3000);
+                    await wait(3000);
+                    return await mainMenu(msg);
                 } else {
                     var itemEmbed = new Discord.MessageEmbed()
                         .setTimestamp()
@@ -137,7 +141,8 @@ class ShopCommand implements SlashCommand {
                             .setDescription("Returning to main menu in 3 seconds...")
                             .setFooter("Please be patient.", message.client.user.displayAvatarURL());
                         await msg.edit(itemEmbed);
-                        setTimeout(() => mainMenu(msg), 3000);
+                        await wait(3000);
+                        return await mainMenu(msg);
                     }
                     msg.reactions.removeAll().catch(NorthClient.storage.error);
 
@@ -155,7 +160,8 @@ class ShopCommand implements SlashCommand {
                                 .setDescription("Returning to main menu in 3 seconds...")
                                 .setFooter("Please be patient.", message.client.user.displayAvatarURL());
                             await msg.edit(itemEmbed);
-                            setTimeout(() => mainMenu(msg), 3000);
+                            await wait(3000);
+                            return await mainMenu(msg);
                         } else {
                             itemEmbed.setTitle("You bought " + result[0].name + "!")
                                 .setDescription("Returning to main menu in 3 seconds...")
@@ -263,7 +269,8 @@ class ShopCommand implements SlashCommand {
                                 itemEmbed.setTitle("Failed to purchase!");
                             }
                             await msg.edit(itemEmbed);
-                            setTimeout(() => mainMenu(msg), 3000);
+                            await wait(3000);
+                            await mainMenu(msg);
                             con.release();
                         }
                     } else if (reaction.emoji.name === "2️⃣") {
@@ -271,7 +278,8 @@ class ShopCommand implements SlashCommand {
                             .setDescription("Returning to main menu in 3 seconds...")
                             .setFooter("Please be patient.", client.user.displayAvatarURL());
                         await msg.edit(itemEmbed);
-                        setTimeout(() => mainMenu(msg), 3000);
+                        await wait(3000);
+                        await mainMenu(msg);
                     }
                 }
             }

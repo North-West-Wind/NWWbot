@@ -158,6 +158,7 @@ export class SoundTrack {
     volume: number;
     thumbnail: string;
     isLive: boolean;
+    isPastLive?: boolean;
     spot?: string;
 }
 

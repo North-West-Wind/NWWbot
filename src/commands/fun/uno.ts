@@ -1,6 +1,6 @@
 import { NorthMessage, Player, SlashCommand, UnoGame } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
-import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild } from "../../function";
+import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild, wait } from "../../function";
 import { NorthClient } from "../../classes/NorthClient.js";
 import converter from "number-to-words";
 import { createCanvas, loadImage } from "canvas";
@@ -581,7 +581,7 @@ class UnoCommand implements SlashCommand {
       }
     }
     while (responses < mentions.size) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await wait(1000);
     }
     if (responses !== accepted) return message.channel.send("The game cannot start as someone didn't accept the invitation!");
     else if (ingame) return message.channel.send("The game cannot start as somebody is in another game!");

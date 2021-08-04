@@ -5,7 +5,7 @@ import { Interaction } from "slashcord/dist/Index";
 import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
-import { color, msgOrRes } from "../../function";
+import { color, msgOrRes, wait } from "../../function";
 
 class BankCommand implements SlashCommand {
   name = "bank"
@@ -80,7 +80,8 @@ class BankCommand implements SlashCommand {
             .setTimestamp()
             .setFooter("Returning to main page in 3 seconds...", message.client.user.displayAvatarURL());
           await msg.edit(depositedEmbed);
-          setTimeout(() => MainPage(), 3000);
+          await wait(3000);
+          await MainPage();
         }
         const amount = await msg.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 30000 });
         if (!amount.first() || !amount.first().content) return await depositNotValid();
@@ -103,7 +104,8 @@ class BankCommand implements SlashCommand {
             .setTimestamp()
             .setFooter("Returning to main page in 3 seconds...", message.client.user.displayAvatarURL());
           await msg.edit(depositedEmbed);
-          setTimeout(() => MainPage(), 3000);
+          await wait(3000);
+          await MainPage();
         } catch (err) {
           NorthClient.storage.error(err);
           message.reply("there was an error trying to fetch data from the database!");
@@ -124,7 +126,8 @@ class BankCommand implements SlashCommand {
           .setTimestamp()
           .setFooter("Returning to main page in 3 seconds...", message.client.user.displayAvatarURL());
           await msg.edit(withdrawedEmbed);
-          setTimeout(() => MainPage(), 3000);
+          await wait(3000);
+          await MainPage();
         }
         const amount = await msg.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 30000 });
         if (!amount.first() || !amount.first().content) return await withdrawNotValid();
@@ -147,7 +150,8 @@ class BankCommand implements SlashCommand {
             .setTimestamp()
             .setFooter("Returning to main page in 3 seconds...", message.client.user.displayAvatarURL());
           await msg.edit(withdrawedEmbed);
-          setTimeout(() => MainPage(), 3000);
+          await wait(3000);
+          await MainPage();
         } catch (err) {
           NorthClient.storage.error(err);
           message.reply("there was an error trying to fetch data from the database!");

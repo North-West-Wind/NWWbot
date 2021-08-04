@@ -5,7 +5,7 @@ import scdl from "soundcloud-downloader";
 import * as mm from "music-metadata";
 import { migrate as music } from "./migrate.js";
 import ytdl, { downloadOptions } from "ytdl-core";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthMessage, SlashCommand, SoundTrack } from "../../classes/NorthClient.js";
 import { getQueues, updateQueue, setQueue } from "../../helpers/music.js";
 import WebMscore from "webmscore";
 import { Interaction } from "slashcord/dist/Index";
@@ -13,6 +13,7 @@ import moment from "moment";
 import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search } from "../../helpers/addTrack.js";
 import * as Stream from 'stream';
 import { globalClient as client } from "../../common.js";
+import { InputFileFormat } from "webmscore/schemas";
 const fetch = getFetch();
 
 
@@ -28,7 +29,7 @@ export function createEmbed(songs) {
   return Embed;
 }
 
-export async function play(guild, song, skipped = 0, seek = 0) {
+export async function play(guild: Discord.Guild, song: SoundTrack, skipped: number = 0, seek: number = 0) {
   const queue = getQueues();
   const serverQueue = queue.get(guild.id);
   if (!serverQueue.voiceChannel && guild.me.voice && guild.me.voice.channel) serverQueue.voiceChannel = guild.me.voice.channel;
@@ -70,7 +71,7 @@ export async function play(guild, song, skipped = 0, seek = 0) {
     serverQueue.connection = await serverQueue.voiceChannel.join();
     if (serverQueue.connection.voice && !serverQueue.connection.voice.selfDeaf) await serverQueue.connection.voice.setSelfDeaf(true);
   } catch (err) {
-    if (guild.me.voice.channel) await guild.me.voice.channel.leave();
+    if (guild.me.voice.channel) guild.me.voice.channel.leave();
     if (serverQueue.textChannel) return await serverQueue.textChannel.send("An error occured while trying to connect to the channel! Disconnecting the bot...").then(msg => msg.delete({ timeout: 30000 }));
   }
   if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.startTime = serverQueue.connection.dispatcher.streamTime - seek * 1000;
@@ -83,7 +84,7 @@ export async function play(guild, song, skipped = 0, seek = 0) {
         if (!song.time) {
           const metadata = await mm.parseStream(a, {}, { duration: true });
           const i = serverQueue.songs.indexOf(song);
-          song.time = moment.duration(metadata.format.duration, "seconds");
+          song.time = moment.duration(metadata.format.duration, "seconds").format();
           if (i != -1) serverQueue.songs[i] = song;
         }
         dispatcher = serverQueue.connection.play(a, { seek: seek });
@@ -103,7 +104,7 @@ export async function play(guild, song, skipped = 0, seek = 0) {
         console.log("Fetched Musescore file");
         await WebMscore.ready;
         console.log("WebMscore ready");
-        const i = await WebMscore.load(song.url.split(".").slice(-1)[0], (await h.buffer()));
+        const i = await WebMscore.load(<InputFileFormat> song.url.split(".").slice(-1)[0], (await h.buffer()));
         console.log("Loaded Musescore file");
         const sf3 = await fetch("https://www.dropbox.com/s/2pphk3a9llfiree/MuseScore_General.sf3?dl=1").then(res => res.arrayBuffer());
         console.log("Fetched Musescore SoundFont");
@@ -206,7 +207,7 @@ class PlayCommand implements SlashCommand {
     var serverQueue = getQueues().get(message.guild.id);
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) return await msgOrRes(message, "You need to be in a voice channel to play music!");
-    if (!voiceChannel.permissionsFor(message.client.user).has(this.permissions)) return await msgOrRes(message, "I can't play in your voice channel!");
+    if (!voiceChannel.permissionsFor(message.guild.me).has(this.permissions)) return await msgOrRes(message, "I can't play in your voice channel!");
     if (!str && message instanceof Discord.Message && message.attachments.size < 1) {
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
       if (serverQueue.songs.length < 1) return await msgOrRes(message, "The queue is empty for this server! Please provide a link or keywords to get a music played!");
@@ -219,9 +220,10 @@ class PlayCommand implements SlashCommand {
         }
         if (message.guild.me.voice && !message.guild.me.voice.selfDeaf) message.guild.me.voice.setSelfDeaf(true);
       } catch (err) {
+        await msgOrRes(message, "There was an error trying to connect to the voice channel!");
+        if (err.message) await message.channel.send(err.message);
         NorthClient.storage.error(err);
-        message.guild.me.voice?.channel?.leave();
-        return await msgOrRes(message, "There was an error trying to connect to the voice channel!");
+        return message.guild.me.voice?.channel?.leave();
       }
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.playing = true;
@@ -283,6 +285,7 @@ class PlayCommand implements SlashCommand {
       }
     } catch (err) {
       await msgOrRes(message, "There was an error trying to connect to the voice channel!");
+      if (err.message) await message.channel.send(err.message);
       message.guild.me.voice?.channel?.leave();
       NorthClient.storage.error(err);
     }

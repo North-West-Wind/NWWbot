@@ -123,9 +123,7 @@ export class Handler {
         results.forEach(async result => {
             var currentDate = Date.now();
             var millisec = result.endAt - currentDate;
-            setTimeout_(async () => {
-                endGiveaway(client.pool, result);
-            }, millisec);
+            setTimeout_(async () => await endGiveaway(client.pool, result), millisec);
         });
     }
 
@@ -457,7 +455,7 @@ export class Handler {
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
         } catch (error) {
             storage.error(command.name + ": " + error);
-            await msg.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server.");
+            await msg.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server (<https://discord.gg/n67DUfQ>) or GitHub (<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.");
         }
     }
 }
@@ -645,9 +643,7 @@ export class AliceHandler extends Handler {
         results.forEach(async result => {
             var currentDate = Date.now();
             var millisec = result.endAt - currentDate;
-            setTimeout_(async () => {
-                endGiveaway(client.pool, result);
-            }, millisec);
+            setTimeout_(async () => await endGiveaway(client.pool, result), millisec);
         });
     }
 

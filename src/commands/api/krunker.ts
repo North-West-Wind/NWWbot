@@ -208,7 +208,7 @@ class KrunkerCommand implements SlashCommand {
                 }
             });
             collector.on("end", async function () {
-                await msg.reactions.removeAll().catch(NorthClient.storage.error);
+                msg.reactions.removeAll().catch(NorthClient.storage.error);
                 var random = "";
                 if (s > officialPage - 1) random = (`https://krunker.io/?game=${custom[Math.floor(Math.random() * custom.length)][0]}`);
                 else random = (`https://krunker.io/?game=${official[Math.floor(Math.random() * official.length)][0]}`);
