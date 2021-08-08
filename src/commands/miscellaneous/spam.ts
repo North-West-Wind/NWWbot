@@ -1,6 +1,6 @@
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { findUser } from "../../function";
+import { findUser, getOwner } from "../../function";
 
 class SpamCommand implements SlashCommand {
     name = "spam"
@@ -25,9 +25,10 @@ class SpamCommand implements SlashCommand {
         var i = 0;
         var spam = setInterval(async function () {
             if (i == time) return clearInterval(spam);
-            if (taggedUser.id === process.env.DC) await author.send("Admin power forbids this >:)").catch(() => i = time);
-            else await taggedUser.send(`\`[${interaction.guild.name} : ${author.tag}]\` ${msg}`).catch(err => {
-                if (author.id !== process.env.DC) author.send(`Failed to spam ${taggedUser.tag} for ${i + 1} time(s) due to \`${err.message}\`.`).catch(() => i = time);
+            const owner = await getOwner();
+            if (taggedUser.id === owner) await author.send("Admin power forbids this >:)").catch(() => i = time);
+            else await taggedUser.send(`\`[${interaction.guild.name} : ${author.tag}]\` ${msg}`).catch(async err => {
+                if (author.id !== owner) author.send(`Failed to spam ${taggedUser.tag} for ${i + 1} time(s) due to \`${err.message}\`.`).catch(() => i = time);
             });
             i++;
         }, 1000);
@@ -50,9 +51,10 @@ class SpamCommand implements SlashCommand {
         var i = 0;
         var spam = setInterval(async function () {
             if (i == time) return clearInterval(spam);
-            if (taggedUser.id === process.env.DC) await message.author.send("Admin power forbids this >:)").catch(() => i = time);
+            const owner = await getOwner();
+            if (taggedUser.id === owner) await message.author.send("Admin power forbids this >:)").catch(() => i = time);
             else await taggedUser.send(`\`[${message.guild.name} : ${message.author.tag}]\` ${msg}`).catch(err => {
-                if (message.author.id !== process.env.DC) message.author.send(`Failed to spam ${taggedUser.tag} for ${i + 1} time(s) due to \`${err.message}\`.`).catch(() => i = time);
+                if (message.author.id !== owner) message.author.send(`Failed to spam ${taggedUser.tag} for ${i + 1} time(s) due to \`${err.message}\`.`).catch(() => i = time);
             });
             i++;
         }, 1000);

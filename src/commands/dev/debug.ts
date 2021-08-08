@@ -16,7 +16,6 @@ class DebugCommand implements SlashCommand {
     }];
 
     async execute(interaction: NorthInteraction) {
-        if (interaction.user.id != process.env.DC) return await interaction.reply("You can't use this!");
         NorthClient.storage.log(await (Object.getPrototypeOf(async function () { }).constructor("message", "args", "functions", "Discord", interaction.options.getString("function")))(interaction, functions, Discord));
     }
 

@@ -1,6 +1,6 @@
 import { GuildMember, Message, Permissions, TextChannel } from "discord.js";
 import { Command, NorthInteraction, NorthMessage } from "../classes/NorthClient";
-import { genPermMsg, msgOrRes } from "../function";
+import { genPermMsg, getOwner, msgOrRes } from "../function";
 
 var timeout: NodeJS.Timeout;
 
@@ -78,7 +78,7 @@ export async function nsfw(_command: Command, message: NorthMessage | NorthInter
     return true;
 }
 export async function dev(_command: Command, message: NorthMessage | NorthInteraction) {
-    if ((message instanceof Message ? message.author : message.user).id != process.env.DC) {
+    if ((message instanceof Message ? message.author : message.user).id != await getOwner()) {
         await msgOrRes(message, "Please don't use Dev Commands.");
         return false;
     }

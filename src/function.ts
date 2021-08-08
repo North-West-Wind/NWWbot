@@ -1,6 +1,6 @@
 import { NorthClient, NorthInteraction } from "./classes/NorthClient";
 import crypto from "crypto";
-
+import { globalClient } from "./common";
 import * as Discord from "discord.js";
 import originalFetch from "node-fetch";
 import fetchBuilder from "fetch-retry-ts";
@@ -568,4 +568,9 @@ export function isImageUrl(url, timeoutT = 0) {
         }, timeout);
         img.src = url;
     });
+}
+
+export async function getOwner() {
+	if (!globalClient.application?.owner) await globalClient.application?.fetch();
+    return globalClient.application?.owner.id;
 }

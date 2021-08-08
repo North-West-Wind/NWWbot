@@ -12,10 +12,8 @@ class DisguiseCommand implements SlashCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        if (message.author.id == process.env.DC) {
-            await message.delete();
-            await message.channel.send(args.join(" "))
-        }
+        await message.delete();
+        await message.channel.send(args.join(" "));
     }
 }
 

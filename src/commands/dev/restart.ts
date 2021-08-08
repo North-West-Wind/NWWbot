@@ -8,13 +8,11 @@ class RestartCommand implements SlashCommand {
     category = 10
 
     async execute(interaction: NorthInteraction) {
-        if (interaction.user.id != process.env.DC) return await interaction.reply("You can't use this!");
         await interaction.reply("Restarted.");
         process.exit(0);
     }
 
     async run(message: NorthMessage) {
-        if (message.author.id != process.env.DC) return;
         await message.channel.send("Restarted.");
         process.exit(0);
     }

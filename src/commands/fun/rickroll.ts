@@ -1,7 +1,7 @@
 
 import { NorthClient, NorthInteraction, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
-import { findUser, wait } from "../../function";
+import { findUser, getOwner, wait } from "../../function";
 
 class RickrollCommand implements SlashCommand {
     name = "rickroll"
@@ -19,7 +19,7 @@ class RickrollCommand implements SlashCommand {
     async execute(interaction: NorthInteraction) {
         var user = interaction.options.getUser("user");
         if (!user) return await interaction.reply("https://inviterick.com/rick.gif");
-        if (user.id === interaction.client.user.id || user.id == process.env.DC) user = interaction.user;
+        if (user.id === interaction.client.user.id || user.id == await getOwner()) user = interaction.user;
         await interaction.reply(`Hey! <@${user.id}>`);
         await wait(5000);
         await interaction.followUp("https://inviterick.com/rick.gif");
@@ -30,7 +30,7 @@ class RickrollCommand implements SlashCommand {
         if (!args[0]) return await message.channel.send(attachment);
         var user = await findUser(message, args[0]);
         if (!user) return;
-        if (user.id === message.client.user.id || user.id == process.env.DC) user = message.author;
+        if (user.id === message.client.user.id || user.id == await getOwner()) user = message.author;
         await message.channel.send(`Hey! <@${user.id}>`);
         await wait(5000);
         await message.channel.send(attachment);
