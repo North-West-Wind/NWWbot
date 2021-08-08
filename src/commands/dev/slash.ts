@@ -31,11 +31,16 @@ class DevSlashCommand implements SlashCommand {
     async register(message: NorthMessage | NorthInteraction) {
         const client = message.client;
         for (const command of NorthClient.storage.commands.values()) {
-            await client.application?.commands.create({
-                name: command.name,
-                description: command.description,
-                options: command.options
-            });
+            try {
+                await client.application?.commands.create({
+                    name: command.name,
+                    description: command.description,
+                    options: command.options
+                });
+            } catch (err) {
+                NorthClient.storage.log("Failed to create slash command " + command.name);
+                NorthClient.storage.error(err);
+            }
         }
         await msgOrRes(message, "Registered all Slash Commands.", true);
     }
