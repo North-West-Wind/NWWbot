@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { color } from "../../function";
 
@@ -8,21 +8,21 @@ class RankCommand implements SlashCommand {
   description = "Display your rank in the server. Leveling system was inspired by MEE6."
   category = 3
   
-  async execute(obj: { interaction: Interaction, client: NorthClient }) {
-    if (!obj.interaction.guild) return await obj.interaction.reply("This command doesn't support DMs.");
-    const author = obj.interaction.member.user;;
-    const [result] = await obj.client.pool.query(`SELECT * FROM leveling WHERE guild = '${obj.interaction.guild.id}' ORDER BY exp DESC`);
-    const rankEmbed = this.createEmbed(author, obj.interaction.guild, obj.client, result);
-    if (!rankEmbed) return await obj.interaction.reply("Failed to get your ranking!");
-    await obj.interaction.reply(rankEmbed);
+  async execute(interaction: NorthInteraction) {
+    if (!interaction.guild) return await interaction.reply("This command doesn't support DMs.");
+    const author = interaction.member.user;;
+    const [result] = await interaction.client.pool.query(`SELECT * FROM leveling WHERE guild = '${interaction.guild.id}' ORDER BY exp DESC`);
+    const rankEmbed = this.createEmbed(author, interaction.guild, interaction.client, result);
+    if (!rankEmbed) return await interaction.reply("Failed to get your ranking!");
+    await interaction.reply({embeds: [rankEmbed]});
   }
 
-  async run(message) {
+  async run(message: NorthMessage) {
     if (!message.guild) return await message.channel.send("This command doesn't support DMs.");
     const [result] = await message.pool.query(`SELECT * FROM leveling WHERE guild = '${message.guild.id}' ORDER BY exp DESC`);
     const rankEmbed = this.createEmbed(message.author, message.guild, message.client, result);
     if (!rankEmbed) return await message.channel.send("Failed to get your ranking!");
-    await message.channel.send(rankEmbed);
+    await message.channel.send({embeds: [rankEmbed]});
   }
 
   createEmbed(author, guild, client, result) {

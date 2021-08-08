@@ -20,7 +20,8 @@ export async function updateQueue(id: Discord.Snowflake, serverQueue: ServerQueu
 export function stop(guild) {
     const serverQueue = queue.get(guild.id);
     if (!serverQueue) return;
-    serverQueue.connection?.dispatcher?.destroy();
+    serverQueue.player.stop();
+    serverQueue.connection?.destroy();
     serverQueue.playing = false;
     serverQueue.connection = null;
     serverQueue.voiceChannel = null;
@@ -32,6 +33,7 @@ export function setQueue(guild, songs, loopStatus, repeatStatus) {
         textChannel: null,
         voiceChannel: null,
         connection: null,
+        player: null,
         songs: songs,
         volume: 1,
         playing: false,

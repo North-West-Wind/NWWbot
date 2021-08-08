@@ -1,6 +1,6 @@
-import { NorthClient } from "./classes/NorthClient";
+import { NorthClient, NorthInteraction } from "./classes/NorthClient";
 import crypto from "crypto";
-import { Interaction } from "slashcord/dist/Index";
+
 import * as Discord from "discord.js";
 import originalFetch from "node-fetch";
 import fetchBuilder from "fetch-retry-ts";
@@ -13,6 +13,7 @@ import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);
 import { Readable } from "stream";
+import { string } from "mathjs";
 const fetch = fetchBuilder(originalFetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 
 export function twoDigits(d) {
@@ -75,7 +76,7 @@ export function moveArray(array, index) {
     const a1 = array.splice(0, index);
     return array.concat(a1);
 }
-export async function findUser(message, str) {
+export async function findUser(message: Discord.Message, str: string) {
     if (isNaN(parseInt(str))) if (!str.startsWith("<@")) {
         await message.channel.send("**" + str + "** is neither a mention or ID.");
         return;
@@ -283,50 +284,50 @@ export async function ID() {
     const buffer: Buffer = await new Promise((resolve, reject) => crypto.randomBytes(24, async (err, buffer) => err ? reject(err) : resolve(buffer)));
     return buffer.toString("hex");
 }
-export async function createEmbedScrolling(message: Discord.Message | Interaction | { interaction: Interaction, useEdit: boolean }, allEmbeds: Discord.MessageEmbed[], id: number = 0, additionalData: any = undefined) {
+export async function createEmbedScrolling(message: Discord.Message | NorthInteraction | { interaction: NorthInteraction, useEdit: boolean }, allEmbeds: Discord.MessageEmbed[], id: number = 0, additionalData: any = undefined) {
     var author: Discord.Snowflake;
     if (message instanceof Discord.Message) author = message.author.id;
-    else if (message instanceof Interaction) author = message.member?.user.id ?? message.channelID;
-    else author = message.interaction.member?.user.id ?? message.interaction.channelID;
-    const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author);
+    else if (message instanceof NorthInteraction) author = message.user.id;
+    else author = message.interaction.user.id;
+    const filter = (reaction: Discord.MessageReaction, user: Discord.User) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author);
     var s = 0;
     var msg: Discord.Message;
-    if (message instanceof Discord.Message) msg = await message.channel.send(allEmbeds[0]);
-    else if (message instanceof Interaction) msg = <Discord.Message> await message.reply(allEmbeds[0], { fetchReply: true });
+    if (message instanceof Discord.Message) msg = await message.channel.send({ embeds: [allEmbeds[0]]});
+    else if (message instanceof NorthInteraction) msg = <Discord.Message> <unknown>await message.reply({ embeds: [allEmbeds[0]] });
     else {
-        await message.interaction.edit(allEmbeds[0]);
-        msg = await message.interaction.fetchReply();
+        if (message.useEdit) msg = <Discord.Message> await message.interaction.editReply({ embeds: [allEmbeds[0]] });
+        else msg = <Discord.Message> <unknown>await message.interaction.reply({ embeds: [allEmbeds[0]] });
     }
     await msg.react("⏮");
     await msg.react("◀");
     await msg.react("▶");
     await msg.react("⏭");
     await msg.react("⏹");
-    const collector = await msg.createReactionCollector(filter, { idle: 60000 });
+    const collector = msg.createReactionCollector({ filter, idle: 60000 });
     collector.on("collect", function (reaction, user) {
         reaction.users.remove(user.id);
         switch (reaction.emoji.name) {
             case "⏮":
                 s = 0;
-                msg.edit(allEmbeds[s]);
+                msg.edit({ embeds: [allEmbeds[s]] });
                 break;
             case "◀":
                 s -= 1;
                 if (s < 0) {
                     s = allEmbeds.length - 1;
                 }
-                msg.edit(allEmbeds[s]);
+                msg.edit({ embeds: [allEmbeds[s]] });
                 break;
             case "▶":
                 s += 1;
                 if (s > allEmbeds.length - 1) {
                     s = 0;
                 }
-                msg.edit(allEmbeds[s]);
+                msg.edit({ embeds: [allEmbeds[s]] });
                 break;
             case "⏭":
                 s = allEmbeds.length - 1;
-                msg.edit(allEmbeds[s]);
+                msg.edit({ embeds: [allEmbeds[s]] });
                 break;
             case "⏹":
                 collector.emit("end");
@@ -336,10 +337,10 @@ export async function createEmbedScrolling(message: Discord.Message | Interactio
     collector.on("end", async () => {
         msg.reactions.removeAll().catch(NorthClient.storage.error);
         if (id == 1) {
-            await msg.edit({ content: "Loading simplier version...", embed: null });
+            await msg.edit({ content: "Loading simplier version...", embeds: null });
             await msg.edit("https://sky.shiiyu.moe/stats/" + additionalData.res[0].name);
-        } else if (id == 2) setTimeout(() => msg.edit({ embed: null, content: `**[Lyrics of ${additionalData.title}**]` }), 10000);
-        else if (id == 3) setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${additionalData.songArray.length} tracks in total]**` }), 60000);
+        } else if (id == 2) setTimeout(() => msg.edit({ embeds: null, content: `**[Lyrics of ${additionalData.title}**]` }), 10000);
+        else if (id == 3) setTimeout(() => msg.edit({ embeds: null, content: `**[Queue: ${additionalData.songArray.length} tracks in total]**` }), 60000);
     });
     return { msg: msg, collector: collector };
 }
@@ -378,9 +379,9 @@ export function streamToString(stream, enc = undefined) {
         stream.on('error', (err) => reject(err));
     })
 }
-export function genPermMsg(permissions, id) {
-    if (id == 0) return `You need the permissions \`${new Discord.Permissions(permissions).toArray().join("`, `")}\` to use this command.`;
-    else return `I need the permissions \`${new Discord.Permissions(permissions).toArray().join("`, `")}\` to run this command.`;
+export function genPermMsg(permissions: number, id) {
+    if (id == 0) return `You need the permissions \`${new Discord.Permissions(BigInt(permissions)).toArray().join("`, `")}\` to use this command.`;
+    else return `I need the permissions \`${new Discord.Permissions(BigInt(permissions)).toArray().join("`, `")}\` to run this command.`;
 }
 export function color() { return Math.floor(Math.random() * 16777214) + 1; }
 export function replaceMsgContent(msg, guild, client, member, flag) {
@@ -504,10 +505,15 @@ export function commonRoleEmbed(client, word, past, name) {
         .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return [successEmbed, failEmbed];
 }
-export function msgOrRes(message: Discord.Message | Interaction, str: any, useEdit: boolean = false): Promise<Discord.Message> {
-    if (message instanceof Discord.Message) return message.channel.send(str);
-    else if (useEdit) return message.edit(str).then(() => message.fetchReply());
-    else return <Promise<Discord.Message>> message.reply(str, { fetchReply: true });
+export async function msgOrRes(message: Discord.Message | NorthInteraction, str: any, useEdit: boolean = false): Promise<Discord.Message> {
+    var func: Function;
+    if (message instanceof Discord.Message) func = message.channel.send;
+    else if (useEdit) func = message.editReply;
+    else func = message.reply;
+    if (str instanceof string) return <Discord.Message> await func({ content: str, fetchReply: true });
+    else if (str instanceof Discord.MessageEmbed) return <Discord.Message> await func({ embeds: [str], fetchReply: true });
+    else if (str instanceof Discord.MessageAttachment) return <Discord.Message> await func({ files: [str], fetchReply: true });
+    return null;
 }
 export function deepReaddir(dir) {
     var results = [];

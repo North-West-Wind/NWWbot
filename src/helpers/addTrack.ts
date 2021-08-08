@@ -10,11 +10,11 @@ import scdl from "soundcloud-downloader";
 import ytdl from "ytdl-core";
 import ytpl from "ytpl";
 import ytsr, { Video } from "ytsr";
-import { NorthClient } from "../classes/NorthClient";
+import { NorthClient, NorthInteraction } from "../classes/NorthClient";
 import { getFetch, decodeHtmlEntity, isGoodMusicVideoContent, validGDDLURL, color, msgOrRes } from "../function";
 import * as Stream from 'stream';
 import SpotifyWebApi from "spotify-web-api-node";
-import { Interaction } from "slashcord/dist/Index";
+
 import rp from "request-promise-native";
 import * as cheerio from "cheerio";
 import * as Discord from "discord.js";
@@ -41,7 +41,7 @@ export async function addAttachment(message: Message) {
             songs.push({
                 title: title,
                 url: file.url,
-                type: 7,
+                type: "CHANNEL",
                 time: duration,
                 volume: 1,
                 thumbnail: "https://pbs.twimg.com/profile_images/1155047958326517761/IUgssah__400x400.jpg",
@@ -125,7 +125,7 @@ export async function addYTURL(link: string, type: number = 0) {
     ];
     return { error: false, songs: songs, msg: null, message: null };
 }
-export async function addSPURL(message: Message | Interaction, link: string) {
+export async function addSPURL(message: Message | NorthInteraction, link: string) {
     const d = await spotifyApi.clientCredentialsGrant();
     spotifyApi.setAccessToken(d.body.access_token);
     spotifyApi.setRefreshToken(process.env.SPOTREFRESH);
@@ -173,7 +173,7 @@ export async function addSPURL(message: Message | Interaction, link: string) {
                         songs.push({
                             title: track.track.name,
                             url: results[o].link,
-                            type: 1,
+                            type: "SUB_COMMAND",
                             spot: track.track.external_urls.spotify,
                             thumbnail: track.track.album.images[0]?.url,
                             time: songLength,
@@ -183,7 +183,7 @@ export async function addSPURL(message: Message | Interaction, link: string) {
                     }
                 }
             }
-            await mesg.edit("Process completed").then(msg => msg.delete({ timeout: 10000 }).catch(() => { })).catch(() => { });
+            await mesg.edit("Track processing completed.").then(msg => setTimeout(msg.delete, 10000));
             break;
         case "album":
             var image;
@@ -225,7 +225,7 @@ export async function addSPURL(message: Message | Interaction, link: string) {
                         songs.push({
                             title: track.name,
                             url: results[o].link,
-                            type: 1,
+                            type: "SUB_COMMAND",
                             spot: track.external_urls.spotify,
                             thumbnail: highlight ? track.album.images[o]?.url : image,
                             time: songLength,
@@ -235,7 +235,7 @@ export async function addSPURL(message: Message | Interaction, link: string) {
                     }
                 }
             }
-            await mesg.edit("Track processing completed").then(msg => msg.delete({ timeout: 10000 })).catch(() => { });
+            await mesg.edit("Track processing completed.").then(msg => setTimeout(msg.delete, 10000));
             break;
         case "track":
             tracks = (await spotifyApi.getTracks([musicID])).body.tracks;
@@ -258,7 +258,7 @@ export async function addSPURL(message: Message | Interaction, link: string) {
                         songs.push({
                             title: track.name,
                             url: resultss[o].link,
-                            type: 1,
+                            type: "SUB_COMMAND",
                             spot: track.external_urls.spotify,
                             thumbnail: track.album.images[o].url,
                             time: songLength,
@@ -284,7 +284,7 @@ export async function addSCURL(link: string) {
             const songLength = moment.duration(length, "seconds").format();
             songs.push({
                 title: track.title,
-                type: 3,
+                type: "STRING",
                 id: track.id,
                 time: songLength,
                 thumbnail: track.artwork_url,
@@ -298,7 +298,7 @@ export async function addSCURL(link: string) {
         const songLength = moment.duration(length, "seconds").format();
         songs.push({
             title: data.title,
-            type: 3,
+            type: "STRING",
             id: data.id,
             time: songLength,
             thumbnail: data.artwork_url,
@@ -352,7 +352,7 @@ export async function addGDURL(link: string) {
     var song = {
         title: title,
         url: dl,
-        type: 4,
+        type: "INTEGER",
         time: songLength,
         volume: 1,
         thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg",
@@ -381,7 +381,7 @@ export async function addGDFolderURL(link: string, cb: Function = async () => { 
                 songs.push({
                     title: title,
                     url: link,
-                    type: 4,
+                    type: "INTEGER",
                     volume: 1,
                     thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg",
                     isLive: false
@@ -404,7 +404,7 @@ export async function addMSURL(link: string) {
     var song = {
         title: data.title,
         url: link,
-        type: 5,
+        type: "BOOLEAN",
         time: songLength,
         volume: 1,
         thumbnail: "https://pbs.twimg.com/profile_images/1155047958326517761/IUgssah__400x400.jpg",
@@ -438,7 +438,7 @@ export async function addURL(link: string) {
     const songs = [song];
     return { error: false, songs: songs, msg: null, message: null };
 }
-export async function search(message: Message | Interaction, link: string) {
+export async function search(message: Message | NorthInteraction, link: string) {
     const allEmbeds = [];
     const Embed = new Discord.MessageEmbed()
         .setTitle(`Search result of ${link} on YouTube`)
@@ -494,7 +494,7 @@ export async function search(message: Message | Interaction, link: string) {
     const scResults = (<TrackInfo[]> scSearched.collection).map(x => ({
         title: x.title,
         url: x.permalink_url,
-        type: 3,
+        type: "STRING",
         time: moment.duration(Math.floor(x.duration / 1000), "seconds").format(),
         thumbnail: x.artwork_url,
         volume: 1,
@@ -512,8 +512,8 @@ export async function search(message: Message | Interaction, link: string) {
     var val = { error: true, songs: [], msg: null, message: null };
     var s = 0;
     var msg = <Message> await msgOrRes(message, allEmbeds[0]);
-    const filter = x => x.author.id === message.member.id;
-    const collector = await msg.channel.createMessageCollector(filter, { idle: 60000 });
+    const filter = x => x.author.id === (message instanceof Message ? message.author : message.user).id;
+    const collector = await msg.channel.createMessageCollector({ filter, idle: 60000 });
     collector.on("collect", async collected => {
         collected.delete().catch(() => { });
         if (isNaN(parseInt(collected.content))) {
@@ -533,7 +533,10 @@ export async function search(message: Message | Interaction, link: string) {
             }
         } else {
             const o = parseInt(collected.content) - 1;
-            if (o < 0 || o > results[s].length - 1) return collector.emit("end");
+            if (o < 0 || o > results[s].length - 1) {
+                collector.emit("end");
+                return;
+            }
             const chosenEmbed = new Discord.MessageEmbed()
                 .setColor(color())
                 .setTitle("Music chosen:")
@@ -541,7 +544,7 @@ export async function search(message: Message | Interaction, link: string) {
                 .setDescription(`**[${decodeHtmlEntity(results[s][o].title)}](${results[s][o].url})** : **${results[s][o].time}**`)
                 .setTimestamp()
                 .setFooter("Have a nice day :)", message.client.user.displayAvatarURL());
-            await msg.edit(chosenEmbed).catch(() => { });
+            await msg.edit({embeds: [chosenEmbed]}).catch(() => { });
             val = { error: false, songs: [results[s][o]], msg, message: null };
             collector.emit("end");
         }
@@ -554,7 +557,7 @@ export async function search(message: Message | Interaction, link: string) {
                     .setTitle("Action cancelled.")
                     .setTimestamp()
                     .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-                await msg.edit(cancelled).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**" }), 30000));
+                await msg.edit({embeds: [cancelled]}).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**" }), 30000));
             }
             resolve(val);
         });

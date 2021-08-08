@@ -1,8 +1,8 @@
-import { Interaction } from "slashcord/dist/Index";
+
 import * as solenolyrics from "solenolyrics";
 import * as Discord from "discord.js";
 import { createEmbedScrolling, color } from "../../function";
-import { SlashCommand, NorthMessage, NorthClient } from "../../classes/NorthClient";
+import { SlashCommand, NorthMessage, NorthClient, NorthInteraction } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 
 class LyricsCommand implements SlashCommand {
@@ -13,16 +13,16 @@ class LyricsCommand implements SlashCommand {
     args = 1;
     options = [
         {
-            type: 3,
+            type: "STRING",
             name: "song",
             description: "The song to search for.",
             required: true
         }
     ]
 
-    async execute(obj: { client: NorthClient, interaction: Interaction, args: any[] }) {
-        const song = obj.args[0].value;
-        await obj.interaction.thinking();
+    async execute(interaction: NorthInteraction) {
+        const song = interaction.options.getString("song");
+        await interaction.deferReply();
         var lyrics = await solenolyrics.requestLyricsFor(song);
         var title = await solenolyrics.requestTitleFor(song);
         var author = await solenolyrics.requestAuthorFor(song);
@@ -31,13 +31,13 @@ class LyricsCommand implements SlashCommand {
             icon = await solenolyrics.requestIconFor(song);
         } catch (err) { }
 
-        if (!author && !title) return await obj.interaction.edit("Cannot find the song! Try to be more specific?");
+        if (!author && !title) return await interaction.editReply("Cannot find the song! Try to be more specific?");
         if (!title) title = "Title Not Found";
         if (!author) author = "No Authors Found";
         if (!lyrics) lyrics = "No lyrics were found";
         const allEmbeds = await this.createLyricsEmbeds(lyrics, title, author, icon);
-        if (allEmbeds.length == 1) return await obj.interaction.edit(allEmbeds[0]);
-        await createEmbedScrolling({ interaction: obj.interaction, useEdit: true }, allEmbeds, 2, { title });
+        if (allEmbeds.length == 1) return await interaction.editReply({ embeds: [allEmbeds[0]] });
+        await createEmbedScrolling({ interaction: interaction, useEdit: true }, allEmbeds, 2, { title });
     }
 
     async run(message: NorthMessage, args: string[]) {

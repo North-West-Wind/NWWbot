@@ -1,7 +1,7 @@
-import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, SlashCommand } from "../../classes/NorthClient";
 import { getFetch } from "../../function";
 import * as Discord from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
+
 
 const fetch = getFetch();
 const links = [
@@ -45,9 +45,9 @@ class AxolotlCommand implements SlashCommand {
     category = 3
     aliases = ["axol"]
     
-    async execute(obj: { interaction: Interaction }) {
+    async execute(interaction: NorthInteraction) {
         const selected = links[Math.floor(Math.random() * links.length)];
-        await obj.interaction.reply(selected);
+        await interaction.reply(selected);
     }
     async run(message) {
         const selected = links[Math.floor(Math.random() * links.length)];

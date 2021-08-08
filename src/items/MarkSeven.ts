@@ -1,6 +1,6 @@
 import { Message, MessageEmbed } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { Item, NorthClient, NorthMessage } from "../classes/NorthClient";
+
+import { Item, NorthClient, NorthInteraction, NorthMessage } from "../classes/NorthClient";
 import { elegantPair } from "../function";
 import { globalClient as client } from "../common";
 import { RowDataPacket } from "mysql2";
@@ -9,16 +9,16 @@ export default class MarkSevenItem implements Item {
     id = "3f4442c06b90c39340394ab33bab928b7a290593a54ea1d4"
     name = "MarkSeven"
 
-    async run(message: NorthMessage | Interaction, msg: Message, em: MessageEmbed, itemObject: any) {
+    async run(message: NorthMessage | NorthInteraction, msg: Message, em: MessageEmbed, itemObject: any) {
         const con = await client.pool.getConnection();
-        const author = message instanceof Message ? message.author.id : (message.member?.id ?? message.channelID);
+        const author = message instanceof Message ? message.author.id : message.user.id;
         try {
             var [results] = <RowDataPacket[][]>await con.query("SELECT * FROM lottery WHERE id = '" + author + "'");
             if (results.length > 0) em.setTitle("ERROR!").setDescription("You have already participate this one.\nPlease wait until the next one come out to participate.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
             else {
                 em.setDescription("Type 7 numbers between 1-39!\nIntegers only!").setFooter("I will only wait for 60 seconds.", client.user.displayAvatarURL());
-                msg.edit(em);
-                const collected = await msg.channel.awaitMessages(x => x.author.id === author, { max: 1, time: 60000 });
+                msg.edit({embeds: [em]});
+                const collected = await msg.channel.awaitMessages({ filter: x => x.author.id === author, max: 1, time: 60000 });
                 if (!collected.first()) em.setTitle("ERROR!").setDescription("You didn't type the numbers in time!").setFooter("Cancelled.", client.user.displayAvatarURL());
                 else {
                     await collected.first().delete();
@@ -34,7 +34,7 @@ export default class MarkSevenItem implements Item {
                             else if (cArgs.filter(x => x === cArg).length > 1) em.setTitle("ERROR!").setDescription("Do not repeat the numbers!").setFooter("Cancelled.", client.user.displayAvatarURL());
                             if (em.title === "ERROR!") {
                                 error = true;
-                                await msg.edit(em);
+                                await msg.edit({embeds: [em]});
                                 break;
                             }
                             numbers.push(integer);
@@ -60,7 +60,7 @@ export default class MarkSevenItem implements Item {
             em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
             NorthClient.storage.error(err);
         }
-        await msg.edit(em);
+        await msg.edit({embeds: [em]});
         con.release();
     }
 }

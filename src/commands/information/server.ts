@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { color, readableDateTime } from "../../function.js";
 
@@ -8,14 +8,14 @@ class ServerCommand implements SlashCommand {
   description = 'Display some server information.'
   category = 6
 
-  async execute(obj: { interaction: Interaction }) {
-    if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-    await obj.interaction.reply(await this.createServerEmbed(obj.interaction.guild));
+  async execute(interaction: NorthInteraction) {
+    if (!interaction.guild) return await interaction.reply("This command only works on server.");
+    await interaction.reply({embeds: [await this.createServerEmbed(interaction.guild)]});
   }
 
   async run(message: NorthMessage) {
     if (!message.guild) return await message.channel.send("This command only works on server.");
-    await message.channel.send(await this.createServerEmbed(message.guild));
+    await message.channel.send({embeds: [await this.createServerEmbed(message.guild)]});
   }
 
   async createServerEmbed(guild) {

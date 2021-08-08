@@ -1,5 +1,6 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+
+import { ColorResolvable, GuildMember } from "discord.js";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { genPermMsg, commonRoleEmbed } from "../../function";
 
 class AddRoleCommand implements SlashCommand {
@@ -8,47 +9,45 @@ class AddRoleCommand implements SlashCommand {
     args = 1
     usage = "<role name> [color]"
     category = 0
-    permissions = 268435456
+    permissions = {
+        guild: { user: 268435456, me: 268435456 }
+    }
     options = [
         {
             name: "name",
             description: "The name of the role.",
             required: true,
-            type: 3
+            type: "STRING"
         },
         {
             name: "color",
             description: "The color of the role.",
             required: false,
-            type: 3
+            type: "STRING"
         }
     ];
-    async execute(obj: { interaction: Interaction, client: NorthClient, args: any[] }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        const author = obj.interaction.member;
-        if (!author.permissions.has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 0));
-        if (!obj.interaction.guild.me.permissions.has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 1));
-        const embeds = commonRoleEmbed(obj.client, "create", "created", obj.args[0].value);
+    async execute(interaction: NorthInteraction) {
+        const name = interaction.options.getString("name");
+        const embeds = commonRoleEmbed(interaction.client, "create", "created", name);
+        const color = interaction.options.getString("color");
         try {
-            if (!obj.args[1]?.value) await obj.interaction.guild.roles.create({ data: { name: obj.args[0].value } });
-            else await obj.interaction.guild.roles.create({ data: { name: obj.args[0].value, color: obj.args[1].value } });
-            await obj.interaction.reply(embeds[0]);
+            if (!color) await interaction.guild.roles.create({ name });
+            else await interaction.guild.roles.create({ name, color: (<ColorResolvable> color) });
+            await interaction.reply({embeds: [embeds[0]]});
         } catch (err) {
-            await obj.interaction.reply(embeds[1]);
+            await interaction.reply({embeds: [embeds[1]]});
         }
     }
 
-    async run(message, args) {
-        if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
-        if (!message.guild.me.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
+    async run(message: NorthMessage, args: string[]) {
         if (!args[0]) return await message.channel.send("You didn't tell me the role name!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
         const embeds = commonRoleEmbed(message.client, "create", "created", args[0]);
         try {
-            if (!args[1]) await message.guild.roles.create({ data: { name: args[0] } });
-            else await message.guild.roles.create({ data: { name: args[0], color: args[1] } });
-            await message.channel.send(embeds[0]);
+            if (!args[1]) await message.guild.roles.create({ name: args[0] });
+            else await message.guild.roles.create({ name: args[0], color: <ColorResolvable> args[1] });
+            await message.channel.send({embeds: [embeds[0]]});
         } catch (err) {
-            await message.channel.send(embeds[1]);
+            await message.channel.send({embeds: [embeds[1]]});
         }
     }
 };

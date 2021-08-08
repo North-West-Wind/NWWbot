@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient"
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient"
 import * as Discord from "discord.js";
 import { color, wait, genPermMsg, ID, msgOrRes } from "../../function";
 import { globalClient as client } from "../../common";
@@ -11,24 +11,23 @@ class ShopCommand implements SlashCommand {
     description = "Spend the money you gained from work on the server shop."
     usage = "[subcommand]"
     category = 2
-    permissions = 32
     subcommands = ["add"]
     subdesc = ["Adds a new item to the server shop."]
     options = [
         {
             name: "menu",
             description: "View the shop menu.",
-            type: 1
+            type: "SUB_COMMAND"
         },
         {
             name: "add",
             description: "Adds a new item to the server shop.",
-            type: 1
+            type: "SUB_COMMAND"
         }
     ];
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        if (obj.args[0]?.name == "add") return await this.add(obj.interaction);
-        this.handleMenu(obj.interaction);
+    async execute(interaction: NorthInteraction) {
+        if (interaction.options.getSubcommand() == "add") return await this.add(interaction);
+        this.handleMenu(interaction);
     }
     
     async run(message: NorthMessage, args: string[]) {
@@ -36,10 +35,10 @@ class ShopCommand implements SlashCommand {
         this.handleMenu(message);
     }
 
-    async handleMenu(message: NorthMessage | Interaction) {
+    async handleMenu(message: NorthMessage | NorthInteraction) {
         const pool = client.pool;
         const c = color();
-        const author = message instanceof Discord.Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelID));
+        const author = message instanceof Discord.Message ? message.author : message.user;
         mainMenu();
         async function mainMenu(msg = undefined) {
             var mesg = msg;
@@ -191,7 +190,7 @@ class ShopCommand implements SlashCommand {
                                 if (requiredArgs.length > 0) {
                                     itemEmbed.setDescription(`Please input the following arguments and separate them by line breaks:\n**${requiredArgs.join(" ")}**`);
                                     await msg.edit(itemEmbed);
-                                    const collected = await message.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 120000 });
+                                    const collected = await message.channel.awaitMessages({ filter: x => x.author.id === author.id,  max: 1, time: 120000 });
                                     if (collected.first()) await collected.first().delete();
                                     if (!collected.first()?.content) {
                                         itemEmbed.setDescription(`You didn't input the arguments in time! Cancelling purchase...`)
@@ -299,24 +298,24 @@ class ShopCommand implements SlashCommand {
         }
     }
 
-    async add(message: NorthMessage | Interaction) {
+    async add(message: NorthMessage | NorthInteraction) {
         if (!message.guild) return await message.channel.send("Please don't use this in Direct Message.");
-        const author = message instanceof Discord.Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelID));
-        if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
+        const author = message instanceof Discord.Message ? message.author : message.user;
+        if (!(<Discord.GuildMember> message.member).permissions.has(BigInt(32))) return await message.channel.send(genPermMsg(32, 0));
         var msg;
         if (message instanceof Discord.Message) await message.channel.send("Please enter the name and the description of the item. (Break a line to separate them) (Description can be multi-line)");
         else {
             await message.reply("Please enter the name and the description of the item. (Break a line to separate them) (Description can be multi-line)");
             msg = await message.fetchReply();
         }
-        const collected = await message.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 120000 });
+        const collected = await message.channel.awaitMessages({ filter: x => x.author.id === author.id,  max: 1, time: 120000 });
         if (collected.first()) await collected.first().delete();
         if (!collected.first()?.content) return await msg.edit("I cannot read the message!");
         if (collected.first().content.toLowerCase() == "cancel") return await msg.edit("Action cancelled.");
         const name = collected.first().content.split("\n")[0];
         const description = collected.first().content.split("\n").slice(1).join("\n");
         await msg.edit(`Received item with the name **${name}**.\nNow, please enter the buying and selling price of the item. (Use space to separate them) (Both should not have more than 2 decimal places)`);
-        const collected1 = await message.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 60000 });
+        const collected1 = await message.channel.awaitMessages({ filter: x => x.author.id === author.id,  max: 1, time: 60000 });
         if (collected1.first()) await collected1.first().delete();
         if (!collected1.first()?.content) return await msg.edit("I cannot read the message!");
         if (collected1.first().content.toLowerCase() == "cancel") return await msg.edit("Action cancelled.");
@@ -328,7 +327,7 @@ class ShopCommand implements SlashCommand {
         else sellPrice = Math.round((Number(prices[1]) + Number.EPSILON) * 100) / 100;
         if (isNaN(sellPrice)) return await msg.edit("The selling price entered is not valid.");
         await msg.edit(`**${name}** will be able to be bought with **$${buyPrice}** and sold at **$${sellPrice}**.\nNext, please enter the purchase limit and the stock limit of it. (Use space to separate them) (negative number for infinity)`);
-        const collected2 = await message.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 30000 });
+        const collected2 = await message.channel.awaitMessages({ filter: x => x.author.id === author.id,  max: 1, time: 30000 });
         if (collected2.first()) await collected2.first().delete();
         if (!collected2.first()?.content) return await msg.edit("I cannot read the message!");
         if (collected2.first().content.toLowerCase() == "cancel") return await msg.edit("Action cancelled.");
@@ -340,14 +339,14 @@ class ShopCommand implements SlashCommand {
         if (!limits[1] || isNaN(parseInt(limits[1]))) await msg.edit("The stock limit entered is not valid. I'll take that as limitless.").then(() => wait(3000));
         else stock = parseInt(limits[1]);
         await msg.edit(`All users will be able to purchase **${limit < 1 ? "limitlessly" : `${limit} ${name}${limit > 1 ? "s" : ""}`}** and there will be **${stock < 0 ? "infinite stocks" : `${stock} in stock`}**.\nTo finish up, please enter the arguments required ("nothing" for no arguments) and what to do when the user uses this item. (Use line break to separate them) (The code can be multi-line) (You may refer to https://northwestwind.ml/shop_help.php)`);
-        const collected3 = await message.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 300000 });
+        const collected3 = await message.channel.awaitMessages({ filter: x => x.author.id === author.id,  max: 1, time: 300000 });
         if (collected3.first()) await collected3.first().delete();
         if (!collected3.first()?.content) return await msg.edit("I cannot read the message!");
         if (collected3.first().content.toLowerCase() == "cancel") return await msg.edit("Action cancelled.");
         const args = collected3.first().content.split("\n")[0].toLowerCase() === "nothing" ? "" : collected3.first().content.split("\n")[0];
         const command = collected3.first().content.split("\n").slice(1).join("\n");
         await msg.edit(`Code to run has been set.\nFinally, if the user must use the upon purchase, type \`1\` or any larger number.\nIf the user can hold the item in their inventory, type \`0\`.`);
-        const collected4 = await message.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 300000 });
+        const collected4 = await message.channel.awaitMessages({ filter: x => x.author.id === author.id,  max: 1, time: 300000 });
         if (collected4.first()) await collected4.first().delete();
         if (!collected4.first()?.content) return await msg.edit("I cannot read the message!");
         if (collected4.first().content.toLowerCase() == "cancel") return await msg.edit("Action cancelled.");
@@ -356,11 +355,11 @@ class ShopCommand implements SlashCommand {
         try {
             await client.pool.query(`INSERT INTO shop VALUES('${await ID()}', '${message.guild.id}', '${name}', '${description}', ${buyPrice}, ${sellPrice}, ${limit}, ${stock}, ${mustUse ? 1 : 0}, '${command}', '${args}')`);
             if (message instanceof Discord.Message) await message.channel.send("Item added to database!");
-            else await message.followUp.send("Item added to database!");
+            else await message.followUp("Item added to database!");
         } catch (err) {
             NorthClient.storage.error(err);
             if (message instanceof Discord.Message) await message.reply("there was an error trying to add the item to the database!");
-            else await message.followUp.send("There was an error trying to add the item to the database!");
+            else await message.followUp("There was an error trying to add the item to the database!");
         }
     }
 };

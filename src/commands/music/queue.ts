@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, ServerQueue, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, ServerQueue, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { color, createEmbedScrolling, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
@@ -20,70 +20,70 @@ class QueueCommand implements SlashCommand {
         {
             name: "current",
             description: "Display the current soundtrack queue.",
-            type: 1
+            type: "SUB_COMMAND"
         },
         {
             name: "save",
             description: "Save the current queue to the database.",
-            type: 1,
+            type: "SUB_COMMAND",
             options: [{
                 name: "name",
                 description: "The name of the queue.",
                 required: true,
-                type: 3
+                type: "STRING"
             }]
         },
         {
             name: "load",
             description: "Load a queue from the database.",
-            type: 1,
+            type: "SUB_COMMAND",
             options: [{
                 name: "name",
                 description: "The name of the queue.",
                 required: true,
-                type: 3
+                type: "STRING"
             }]
         },
         {
             name: "delete",
             description: "Delete a queue from the database.",
-            type: 1,
+            type: "SUB_COMMAND",
             options: [{
                 name: "name",
                 description: "The name of the queue.",
                 required: true,
-                type: 3
+                type: "STRING"
             }]
         },
         {
             name: "list",
             description: "List all the queue of a user.",
-            type: 1
+            type: "SUB_COMMAND"
         },
         {
             name: "sync",
             description: "Synchronize the queue with another server you are in.",
-            type: 1,
+            type: "SUB_COMMAND",
             options: [{
                 name: "name",
                 description: "The name of the server.",
                 required: true,
-                type: 3
+                type: "STRING"
             }]
         },
     ]
 
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        var serverQueue = getQueues().get(obj.interaction.guild.id);
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(obj.interaction.guild.id, [], false, false);
-        if (obj.args[0].name === "current") return await this.viewQueue(obj.interaction, serverQueue);
-        if (obj.args[0].name === "save") return await this.save(obj.interaction, serverQueue, obj.args[0].options[0].value);
-        if (obj.args[0].name === "load") return await this.load(obj.interaction, serverQueue, obj.args[0].options[0].value);
-        if (obj.args[0].name === "delete") return await this.delete(obj.interaction, obj.args[0].options[0].value);
-        if (obj.args[0].name === "list") return await this.list(obj.interaction);
-        if (obj.args[0].name === "sync") return await this.sync(obj.interaction, serverQueue, obj.args[0].options[0].value);
+    async execute(interaction: NorthInteraction) {
+        var serverQueue = getQueues().get(interaction.guild.id);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(interaction.guild.id, [], false, false);
+        const sub = interaction.options.getSubcommand();
+        if (sub === "current") return await this.viewQueue(interaction, serverQueue);
+        if (sub === "save") return await this.save(interaction, serverQueue, interaction.options.getString("name"));
+        if (sub === "load") return await this.load(interaction, serverQueue, interaction.options.getString("name"));
+        if (sub === "delete") return await this.delete(interaction, interaction.options.getString("name"));
+        if (sub === "list") return await this.list(interaction);
+        if (sub === "sync") return await this.sync(interaction, serverQueue, interaction.options.getString("name"));
     }
     
     async run(message: NorthMessage, args: string[]) {
@@ -96,7 +96,7 @@ class QueueCommand implements SlashCommand {
         if (args[0] && (args[0].toLowerCase() === "sync" || args[0].toLowerCase() === "sy")) return await this.sync(message, serverQueue, args.slice(1).join(" "));
     }
 
-    async viewQueue(message: Message | Interaction, serverQueue: ServerQueue) {
+    async viewQueue(message: Message | NorthInteraction, serverQueue: ServerQueue) {
         if (serverQueue.songs.length < 1) return await msgOrRes(message, "Nothing is in the queue now.");
         const filtered = serverQueue.songs.filter(song => !!song);
         if (serverQueue.songs.length !== filtered.length) {
@@ -120,11 +120,11 @@ class QueueCommand implements SlashCommand {
                 .setFooter(`Now playing: ${(serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing")}`, message.client.user.displayAvatarURL());
             allEmbeds.push(queueEmbed);
         }
-        if (allEmbeds.length == 1) await msgOrRes(message, allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embed: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
+        if (allEmbeds.length == 1) await msgOrRes(message, allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embeds: null, content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
         else await createEmbedScrolling(message, allEmbeds, 3, { songArray: songArray });
     }
 
-    async save(message: Message | Interaction, serverQueue: ServerQueue, name: string) {
+    async save(message: Message | NorthInteraction, serverQueue: ServerQueue, name: string) {
         const guild = message.guild;
         const pool = client.pool;
         const author = message.member.user;
@@ -145,7 +145,7 @@ class QueueCommand implements SlashCommand {
         return await msgOrRes(message, `The song queue has been stored with the name **${name}**!\nSlots used: **${query.substring(0, 6) == "INSERT" ? results.length + 1 : results.length}/10**`);
     }
 
-    async load(message: Message | Interaction, serverQueue: ServerQueue, name: string) {
+    async load(message: Message | NorthInteraction, serverQueue: ServerQueue, name: string) {
         const guild = message.guild;
         const pool = client.pool;
         const author = message.member.user;
@@ -159,7 +159,7 @@ class QueueCommand implements SlashCommand {
         return await msgOrRes(message, `The queue **${results[0].name}** has been loaded.`);
     }
 
-    async delete(message: Message | Interaction, name: string) {
+    async delete(message: Message | NorthInteraction, name: string) {
         const pool = client.pool;
         const author = message.member.user;
         if (!name) return await msgOrRes(message, "Please provide the name of the queue.");
@@ -171,10 +171,8 @@ class QueueCommand implements SlashCommand {
         return await msgOrRes(message, `The stored queue **${results[0].name}** has been deleted.`);
     }
 
-    async list(message: Message | Interaction) {
-        const guild = message.guild;
-        const pool = client.pool;
-        const author = message.member.user;
+    async list(message: Message | NorthInteraction) {
+        const author = message instanceof Message ? message.author : message.user;
         const [results] = <RowDataPacket[][]> await client.pool.query(`SELECT * FROM queue WHERE user = '${author.id}'`);
         const queues = [];
         var num = 0;
@@ -206,13 +204,13 @@ class QueueCommand implements SlashCommand {
             .setTimestamp()
             .setFooter("React to the numbers to view your queue.", client.user.displayAvatarURL());
         allEmbeds.unshift(em);
-        var msg = await message.channel.send(em);
+        var msg = await message.channel.send({embeds: [em]});
         for (let i = 0; i < Math.min(num, 10); i++) {
             await msg.react(emojis[i]);
             available.push(emojis[i]);
         }
         await msg.react(available[1]);
-        const collector = msg.createReactionCollector((r, u) => available.includes(r.emoji.name) && u.id === author.id, { idle: 30000 });
+        const collector = msg.createReactionCollector({ filter: (r, u) => available.includes(r.emoji.name) && u.id === author.id, idle: 30000 });
         collector.on("collect", async function (reaction, user) {
             var index = available.indexOf(reaction.emoji.name);
             reaction.users.remove(user.id);
@@ -235,11 +233,11 @@ class QueueCommand implements SlashCommand {
         collector.on("end", function () {
             msg.reactions.removeAll().catch(NorthClient.storage.error);
             msg.edit(allEmbeds[0]);
-            setTimeout(() => msg.edit({ embed: null, content: `**[Queues: ${results.length}/10 slots used]**` }), 60000);
+            setTimeout(() => msg.edit({ embeds: null, content: `**[Queues: ${results.length}/10 slots used]**` }), 60000);
         });
     }
 
-    async sync(message: Message | Interaction, serverQueue: ServerQueue, name: string) {
+    async sync(message: Message | NorthInteraction, serverQueue: ServerQueue, name: string) {
         const guild = message.guild;
         const pool = client.pool;
         const author = message.member.user;

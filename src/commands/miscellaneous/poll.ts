@@ -1,10 +1,12 @@
-import { NorthMessage, SlashCommand, NorthClient } from "../../classes/NorthClient";
+import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { color, jsDate2Mysql, ms, readableDateTime, readableDateTimeText, setTimeout_ } from "../../function";
-import { Interaction } from "slashcord/dist/Index";
+import { RowDataPacket } from "mysql2";
+import { PoolConnection } from "mysql2/promise";
+
 const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
 
-export async function endPoll(client, con, id, msg, message, title, authorID, options, color) {
+export async function endPoll(client: NorthClient, con: PoolConnection, id: Discord.Snowflake, msg: Discord.Message, message: Discord.Message, title: string, authorID: Discord.Snowflake, options: any, color: Discord.ColorResolvable) {
     var shouldDel = true;
     try {
         if (!msg || msg.deleted) throw new Error("Poll is deleted");
@@ -28,7 +30,7 @@ export async function endPoll(client, con, id, msg, message, title, authorID, op
             .setDescription(`Poll ended. Here are the results:\n\n\n${end.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')}`)
             .setTimestamp()
             .setFooter("Hosted by " + author.tag, author.displayAvatarURL());
-        msg.edit(pollMsg, Ended);
+        msg.edit({ content: pollMsg, embeds: [Ended]});
         const link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
 
         await msg.channel.send("A poll has ended!\n" + link);
@@ -54,8 +56,8 @@ class PollCommand implements SlashCommand {
     category = 4
     args = 1
 
-    async execute(obj: { interaction: Interaction }) {
-        await obj.interaction.reply("Not finished yet :/");
+    async execute(interaction: NorthInteraction) {
+        await interaction.reply("Not finished yet :/");
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -72,7 +74,7 @@ class PollCommand implements SlashCommand {
         const duration = ms(durationStr);
         if (isNaN(duration)) return await message.channel.send("**" + durationStr + "** is not a valid duration!");
         var msg = await message.channel.send(`Alright! The poll will last for**${readableDateTimeText(duration)}**. \n\n\`Last but not least, please enter the options. Please break a line for each options!\``);
-        const optionString = await message.channel.awaitMessages(filter, { time: 60000, max: 1 });
+        const optionString = await message.channel.awaitMessages({ filter, time: 60000, max: 1 });
         if (!optionString.first()) return msg.edit("Time's up. Cancelled action.");
         await optionString.first().delete();
         if (optionString.first().content === "cancel") return await msg.edit("Cancelled poll.");
@@ -104,7 +106,7 @@ class PollCommand implements SlashCommand {
             .setDescription(`React with the numbers to vote!\nThis poll will end at:\n**${readableTime}**\n\n\n${optionArray.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')}`)
             .setTimestamp()
             .setFooter("Hosted by " + message.author.tag, message.author.displayAvatarURL());
-        var msg = await channel.send(pollMsg, Embed);
+        var msg = await channel.send({ content: pollMsg, embeds: [Embed] });
         for (var i = 0; i < optionArray.length; i++) await msg.react(emojis[i]);
         for (var i = 0; i < options.length; i++) options[i] = escape(options[i]);
         await message.pool.query(`INSERT INTO poll VALUES(${msg.id}, ${message.guild.id}, ${channel.id}, '["${options.join('", "')}"]', '${newDateSql}', ${message.author.id}, ${color}, '${escape(title)}')`);
@@ -112,30 +114,30 @@ class PollCommand implements SlashCommand {
         setTimeout_(async () => {
             const con = await message.pool.getConnection();
             try {
-                await endPoll(message.client, con, msg.id, msg, null, title, message.author.id, allOptions, color);
+                await endPoll(message.client, con, msg.id, msg, null, title, message.author.id, allOptions, c);
             } catch (err) { }
             con.release();
         }, duration);
 
     }
 
-    async end(message, args) {
+    async end(message: NorthMessage, args: string[]) {
         if (!args[1]) return message.channel.send("Please provide the ID of the message!");
         var msgID = args[1];
         const con = await message.pool.getConnection();
-        var [result] = await con.query("SELECT * FROM poll WHERE id = '" + msgID + "'");
+        var [result] = <RowDataPacket[][]> await con.query("SELECT * FROM poll WHERE id = '" + msgID + "'");
         if (result.length == 0) return message.channel.send("No poll was found!");
         if (result[0].author !== message.author.id) return message.channel.send("You cannot end a poll that was not created by you!");
         try {
-            const channel = await message.client.channels.fetch(result[0].channel);
+            const channel = <Discord.TextChannel> await message.client.channels.fetch(result[0].channel);
             const msg = await channel.messages.fetch(result[0].id);
             await endPoll(message.client, con, result[0].id, msg, message, result[0].title, result[0].author, result[0].options, result[0].color);
         } catch (err) { }
         con.release();
     }
 
-    async list(message) {
-        var [results] = await message.pool.query("SELECT * FROM poll WHERE guild = " + message.guild.id);
+    async list(message: NorthMessage) {
+        var [results] = <RowDataPacket[][]> await message.pool.query("SELECT * FROM poll WHERE guild = " + message.guild.id);
         const Embed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle("Poll list")
@@ -147,7 +149,7 @@ class PollCommand implements SlashCommand {
             const readableTime = readableDateTime(newDate);
             Embed.addField(readableTime, unescape(results[i].title));
         }
-        await message.channel.send(Embed);
+        await message.channel.send({embeds: [Embed]});
     }
 };
 

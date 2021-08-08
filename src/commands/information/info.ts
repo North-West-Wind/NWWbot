@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
 import { readableDateTime, color, readableDateTimeText } from "../../function";
@@ -9,12 +9,12 @@ class InfoCommand implements SlashCommand {
   description = "Display information of the bot."
   category = 6
   
-  async execute(obj: { interaction: Interaction, client: NorthClient }) {
-      await obj.interaction.reply(this.getInfo());
+  async execute(interaction: NorthInteraction) {
+      await interaction.reply({embeds: [this.getInfo()]});
   }
 
   async run(message: NorthMessage) {
-    await message.channel.send(this.getInfo());
+    await message.channel.send({embeds: [this.getInfo()]});
   }
 
   getInfo() {

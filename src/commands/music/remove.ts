@@ -1,7 +1,6 @@
-import { Message } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { globalClient as client } from "../../common";
+import { GuildMember, Message } from "discord.js";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { moveArray, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 import { play } from "./play";
@@ -17,22 +16,21 @@ class RemoveCommand implements SlashCommand {
             name: "index",
             description: "The index of the soundtrack to be removed.",
             required: true,
-            type: 4
+            type: "INTEGER"
         },
         {
             name: "count",
             description: "The amount of soundtrack to delete after the index.",
             required: false,
-            type: 4
+            type: "INTEGER"
         }
     ]
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        const queueIndex = obj.args[0].value;
-        const amount = obj.args[1]?.value || 1;
-        if (amount < 1) return await obj.interaction.reply("The delete count must be larger than 0!");
-        await this.remove(obj.interaction, queueIndex, amount);
+    async execute(interaction: NorthInteraction) {
+        const queueIndex = interaction.options.getInteger("index");
+        const amount = interaction.options.getInteger("count") || 1;
+        if (amount < 1) return await interaction.reply("The delete count must be larger than 0!");
+        await this.remove(interaction, queueIndex, amount);
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -43,9 +41,9 @@ class RemoveCommand implements SlashCommand {
         await this.remove(message, queueIndex, amount);
     }
 
-    async remove(message: Message | Interaction, queueIndex: number, amount: number) {
+    async remove(message: Message | NorthInteraction, queueIndex: number, amount: number) {
         var serverQueue = getQueues().get(message.guild.id);
-        if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to alter the queue when the bot is playing!");
+        if (((<GuildMember> message.member).voice.channelId !== message.guild.me.voice.channelId) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to alter the queue when the bot is playing!");
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (serverQueue.songs.length < 1) return await msgOrRes(message, "There is nothing in the queue.");
         const deleteIndex = queueIndex < 0 ? serverQueue.songs.length + queueIndex : queueIndex - 1;
@@ -57,9 +55,7 @@ class RemoveCommand implements SlashCommand {
         await updateQueue(message.guild.id, serverQueue);
         await msgOrRes(message, `${removed.length > 1 ? `**${removed.length} tracks** have` : `**${title}** has`} been removed from the queue.`);
         if (oldSong != serverQueue.songs[0] && serverQueue.playing) {
-            if (serverQueue.connection && serverQueue.connection.dispatcher) {
-                serverQueue.connection.dispatcher.destroy();
-            }
+            serverQueue.stop();
             if (!serverQueue.random) await play(message.guild, serverQueue.songs[0]);
             else {
                 const int = Math.floor(Math.random() * serverQueue.songs.length);

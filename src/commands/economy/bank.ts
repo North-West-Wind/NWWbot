@@ -1,8 +1,8 @@
 import { Message } from "discord.js";
 import { RowDataPacket } from "mysql2";
 import { Connection } from "mysql2/promise";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
 import { color, msgOrRes, wait } from "../../function";
@@ -12,11 +12,11 @@ class BankCommand implements SlashCommand {
   description = "Display your Discord Economy status. You can also deposit or withdraw money with this command."
   category = 2
   
-  async execute(obj: { interaction: Interaction, client: NorthClient }) {
-    const con = await obj.client.pool.getConnection();
-    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM currency WHERE user_id = '${obj.interaction.member.id}' AND guild = '${obj.interaction.guild.id}'`);
-    if (results.length == 0) await obj.interaction.reply("You don't have any bank account registered. Use `/work` to work and have an account registered!");
-    else await this.useEmbeds(obj.interaction, con, results[0]);
+  async execute(interaction: NorthInteraction) {
+    const con = await interaction.client.pool.getConnection();
+    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM currency WHERE user_id = '${interaction.user.id}' AND guild = '${interaction.guild.id}'`);
+    if (results.length == 0) await interaction.reply("You don't have any bank account registered. Use `/work` to work and have an account registered!");
+    else await this.useEmbeds(interaction, con, results[0]);
     con.release();
   }
 
@@ -28,10 +28,10 @@ class BankCommand implements SlashCommand {
     con.release();
   }
 
-  async useEmbeds(message: NorthMessage | Interaction, con: Connection, result: RowDataPacket) {
+  async useEmbeds(message: NorthMessage | NorthInteraction, con: Connection, result: RowDataPacket) {
     var cash = result.currency;
     var bank = result.bank;
-    const author = message instanceof Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelID));
+    const author = message instanceof Message ? message.author : message.user;
     const Embed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(author.tag)
@@ -56,11 +56,11 @@ class BankCommand implements SlashCommand {
         .addField("Cash", "$" + cash)
         .setTimestamp()
         .setFooter(`Have a nice day! :)`, message.client.user.displayAvatarURL());
-      msg.edit(embed);
+      await msg.edit({embeds: [embed]});
       await msg.react("1️⃣");
       await msg.react("2️⃣");
       const filter = (reaction, user) => ["1️⃣", "2️⃣"].includes(reaction.emoji.name) && user.id === author.id;
-      var collected = await msg.awaitReactions(filter, { max: 1, time: 30000 });
+      var collected = await msg.awaitReactions({ filter, max: 1, time: 30000 });
       msg.reactions.removeAll().catch(NorthClient.storage.error);
       if (!collected || !collected.first()) return;
       const reaction = collected.first();
@@ -71,7 +71,7 @@ class BankCommand implements SlashCommand {
           .setDescription("Please enter the amount you want to deposit.\n(Can also enter `all`, `half` or `quarter`)")
           .setTimestamp()
           .setFooter("Please enter within 60 seconds.", message.client.user.displayAvatarURL());
-        await msg.edit(depositEmbed);
+        await msg.edit({embeds: [depositEmbed]});
         async function depositNotValid() {
           const depositedEmbed = new Discord.MessageEmbed()
             .setColor(color())
@@ -79,11 +79,11 @@ class BankCommand implements SlashCommand {
             .setDescription("That is not a valid amount!")
             .setTimestamp()
             .setFooter("Returning to main page in 3 seconds...", message.client.user.displayAvatarURL());
-          await msg.edit(depositedEmbed);
+          await msg.edit({embeds: [depositedEmbed]});
           await wait(3000);
           await MainPage();
         }
-        const amount = await msg.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 30000 });
+        const amount = await msg.channel.awaitMessages({ filter: x => x.author.id === author.id,  max: 1, time: 30000 });
         if (!amount.first() || !amount.first().content) return await depositNotValid();
         amount.first().delete().catch(() => { });
         var deposits = 0;
@@ -103,12 +103,12 @@ class BankCommand implements SlashCommand {
             .setDescription("Deposited **$" + deposits + "** into bank!")
             .setTimestamp()
             .setFooter("Returning to main page in 3 seconds...", message.client.user.displayAvatarURL());
-          await msg.edit(depositedEmbed);
+          await msg.edit({embeds: [depositedEmbed]});
           await wait(3000);
           await MainPage();
         } catch (err) {
           NorthClient.storage.error(err);
-          message.reply("there was an error trying to fetch data from the database!");
+          message.channel.send("There was an error trying to fetch data from the database!");
         }
       } else {
         var withdrawEmbed = new Discord.MessageEmbed()
@@ -117,7 +117,7 @@ class BankCommand implements SlashCommand {
           .setDescription("Please enter the amount you want to withdraw.\n(Can also enter `all`, `half` or `quarter`)")
           .setTimestamp()
           .setFooter("Please enter within 60 seconds.", message.client.user.displayAvatarURL());
-        await msg.edit(withdrawEmbed);
+        await msg.edit({embeds: [withdrawEmbed]});
         async function withdrawNotValid() {
           const withdrawedEmbed = new Discord.MessageEmbed()
           .setColor(color())
@@ -125,11 +125,11 @@ class BankCommand implements SlashCommand {
           .setDescription("That is not a valid amount!")
           .setTimestamp()
           .setFooter("Returning to main page in 3 seconds...", message.client.user.displayAvatarURL());
-          await msg.edit(withdrawedEmbed);
+          await msg.edit({embeds: [withdrawedEmbed]});
           await wait(3000);
           await MainPage();
         }
-        const amount = await msg.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 30000 });
+        const amount = await msg.channel.awaitMessages({ filter: x => x.author.id === author.id,  max: 1, time: 30000 });
         if (!amount.first() || !amount.first().content) return await withdrawNotValid();
         amount.first().delete().catch(() => { });
         var withdraws = 0;
@@ -149,7 +149,7 @@ class BankCommand implements SlashCommand {
             .setDescription("Withdrawed **$" + withdraws + "** from bank!")
             .setTimestamp()
             .setFooter("Returning to main page in 3 seconds...", message.client.user.displayAvatarURL());
-          await msg.edit(withdrawedEmbed);
+          await msg.edit({embeds: [withdrawedEmbed]});
           await wait(3000);
           await MainPage();
         } catch (err) {

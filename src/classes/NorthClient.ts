@@ -1,7 +1,6 @@
-import { Client, ClientOptions, Collection, Message, MessageEmbed, Snowflake, TextChannel, User, VoiceChannel, VoiceConnection } from "discord.js";
+import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
+import { Client, ClientOptions, Collection, CommandInteraction, Message, MessageEmbed, Snowflake, StageChannel, TextChannel, User, VoiceChannel } from "discord.js";
 import { Pool } from "mysql2/promise";
-import { Interaction } from "slashcord/dist/Index";
-import { Handler } from "slashcord/dist/handlers/Handler";
 
 export class NorthClient extends Client {
     constructor(options: ClientOptions) {
@@ -30,7 +29,7 @@ export interface Command {
     subaliases?: string[];
     subdesc?: string[];
     subusage?: (string | number)[];
-    permissions?: number;
+    permissions?: { guild?: { user?: number, me?: number }, channel?: { user?: number, me?: number } };
 
     run(message: NorthMessage, args: string[]): Promise<any> | any;
 }
@@ -40,7 +39,7 @@ export interface SlashCommand extends Command {
     testOnly?: boolean;
     devOnly?: boolean;
 
-    execute(args: { client: NorthClient, interaction: Interaction, args: any, handler: Handler }): Promise<any> | any;
+    execute(interaction: NorthInteraction): Promise<any> | any;
 }
 
 export class Card {
@@ -136,10 +135,18 @@ export class NorthMessage extends Message {
     client: NorthClient;
 }
 
+export class NorthInteraction extends CommandInteraction {
+    readonly prefix: string = "/";
+    pool: Pool;
+    client: NorthClient;
+}
+
 export class ServerQueue {
     textChannel: TextChannel;
-    voiceChannel: VoiceChannel;
+    voiceChannel: VoiceChannel | StageChannel;
     connection: VoiceConnection;
+    player: AudioPlayer;
+    resource?: AudioResource;
     songs: SoundTrack[];
     volume: number;
     playing: boolean;
@@ -148,6 +155,19 @@ export class ServerQueue {
     repeating: boolean;
     random: boolean;
     startTime?: number;
+    streamTime?: number;
+
+    destroy() {
+        this.player?.stop();
+        this.connection?.destroy();
+        this.player = null;
+        this.connection = null;
+    }
+
+    stop() {
+        this.player?.stop();
+        this.player = null;
+    }
 }
 
 export class SoundTrack {
@@ -165,5 +185,5 @@ export class SoundTrack {
 export interface Item {
     name: string;
     id: string;
-    run(message: NorthMessage | Interaction, msg: Message, em: MessageEmbed, itemObject: any): Promise<any> | any;
+    run(message: NorthMessage | CommandInteraction, msg: Message, em: MessageEmbed, itemObject: any): Promise<any> | any;
 }

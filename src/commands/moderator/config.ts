@@ -1,6 +1,6 @@
 import { Message, MessageReaction, TextChannel, User } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { msgOrRes, genPermMsg, ID, color } from "../../function";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
@@ -18,58 +18,52 @@ class ConfigCommand implements SlashCommand {
   subcommands = ["new", "panel"]
   subdesc = ["Generates a new token for the server.", "Opens the Configuration Panel."]
   category = 1
-  permissions = 32
-  channelPermission = 8192
+  permissions = { guild: { user: 32 }, channel: { me: 8192 } }
   options = [
       {
           name: "token",
           description: "Retrieves the token of the server.",
-          type: 1
+          type: "SUB_COMMAND"
       },
       {
           name: "new",
           description: "Generates a new token for the server.",
-          type: 1
+          type: "SUB_COMMAND"
       },
       {
           name: "panel",
           description: "Configures the server settings.",
-          type: 1
+          type: "SUB_COMMAND"
       }
   ]
   
-  async execute(obj: { interaction: Interaction, client: NorthClient, args: any[] }) {
-    if (!obj.interaction.guild) return await obj.interaction.reply("Direct messages is not configurable.");
-    if (!obj.interaction.member.permissions.has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 0));
-    if (!obj.interaction.channel.permissionsFor(obj.interaction.guild.me).has(this.channelPermission)) return await obj.interaction.reply(genPermMsg(this.channelPermission, 1));
-    if (obj.args[0].name === "panel") return await this.panel(obj.interaction);
-    const guild = obj.interaction.guild;
-    const author = obj.interaction.member.user;
-    const client = obj.client;
+  async execute(interaction: NorthInteraction) {
+    const sub = interaction.options.getSubcommand();
+    if (sub === "panel") return await this.panel(interaction);
+    const guild = interaction.guild;
+    const author = interaction.user;
+    const client = interaction.client;
     const config = NorthClient.storage.guilds[guild.id];
     const generated = await ID();
     try {
-      if (obj.args[0].name === "new" || !config?.token) await author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
+      if (sub === "new" || !config?.token) await author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
       if (!config?.token) {
         if (!config) NorthClient.storage.guilds[guild.id] = {};
         NorthClient.storage.guilds[guild.id].token = generated;
         await client.pool.query(`INSERT INTO servers (id, autorole, giveaway, token) VALUES ('${guild.id}', '[]', '🎉', '${generated}')`);
-      } else if (config.token && obj.args[0].name !== "new") await author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
+      } else if (config.token && sub !== "new") await author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
       else {
         NorthClient.storage.guilds[guild.id].token = generated;
         await client.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
       }
-      return await obj.interaction.reply("See you in DM!");
+      return await interaction.reply("See you in DM!");
     } catch (err) {
       NorthClient.storage.error(err);
-      return await obj.interaction.reply("There was an error trying to update the token! This token will be temporary.");
+      return await interaction.reply("There was an error trying to update the token! This token will be temporary.");
     }
   }
   
   async run(message: NorthMessage, args: string[]) {
-    if (!message.guild) return await message.channel.send("Direct messages is not configurable.");
-    if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
-    if (!(<TextChannel> message.channel).permissionsFor(message.guild.me).has(this.channelPermission)) return message.channel.send(genPermMsg(this.channelPermission, 1));
     const guild = message.guild;
     const config = NorthClient.storage.guilds[guild.id];
     if (args[0] === "panel") return await this.panel(message);
@@ -93,10 +87,10 @@ class ConfigCommand implements SlashCommand {
     }
   }
 
-  async panel(message: Message | Interaction) {
+  async panel(message: Message | NorthInteraction) {
     var config = NorthClient.storage.guilds[message.guild.id];
-    const msgFilter = (x: Message) => x.author.id === message.member.id;
-    const filter = (reaction: MessageReaction, user: User) => welcomeEmoji.includes(reaction.emoji.name) && user.id === message.member.id && !user.bot;
+    const msgFilter = (x: Message) => x.author.id === (message instanceof Message ? message.author : message.user).id;
+    const filter = (reaction: MessageReaction, user: User) => welcomeEmoji.includes(reaction.emoji.name) && user.id === (message instanceof Message ? message.author : message.user).id && !user.bot;
     const login = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(message.guild.name + "'s Configuration Panel")
@@ -104,13 +98,13 @@ class ConfigCommand implements SlashCommand {
       .setTimestamp()
       .setFooter("Please enter within 60 seconds.", message.client.user.displayAvatarURL());
     var mesg = <Message> await msgOrRes(message, login);
-    const loginToken = await message.channel.awaitMessages(msgFilter, { idle: 60000, max: 1 });
+    const loginToken = await message.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
     if (!loginToken.first() || !loginToken.first().content) return timedOut(mesg);
     const receivedToken = loginToken.first().content;
     loginToken.first().delete();
     if (config.token !== receivedToken) {
       login.setDescription("Invalid token.").setFooter("Try again when you have the correct one for your server.", message.client.user.displayAvatarURL());
-      return await mesg.edit(login);
+      return await mesg.edit({embeds: [login]});
     }
     const panelEmbed = new Discord.MessageEmbed()
       .setColor(color())

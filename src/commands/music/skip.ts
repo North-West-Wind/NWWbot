@@ -1,6 +1,7 @@
-import { Message } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { DiscordGatewayAdapterCreator, joinVoiceChannel } from "@discordjs/voice";
+import { GuildMember, Message } from "discord.js";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { moveArray, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 import { play } from "./play";
@@ -15,14 +16,12 @@ class SkipCommand implements SlashCommand {
         name: "amount",
         description: "The amount of soundtrack to skip.",
         required: false,
-        type: 4
+        type: "INTEGER"
     }]
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        var skipped = 1;
-        if (obj.args && obj.args[0]?.value >= 1) skipped = parseInt(obj.args[0].value);
-        await this.skip(obj.interaction, skipped);
+    async execute(interaction: NorthInteraction) {
+        const skipped = interaction.options.getInteger("amount") || 1;
+        await this.skip(interaction, skipped);
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -36,13 +35,14 @@ class SkipCommand implements SlashCommand {
         await this.skip(message, skipped);
     }
 
-    async skip(message: Message | Interaction, skip: number) {
+    async skip(message: Message | NorthInteraction, skip: number) {
         var serverQueue = getQueues().get(message.guild.id);
         const guild = message.guild;
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
-        if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to skip the music when the bot is playing!");
+        const member = (<GuildMember> message.member);
+        if (!serverQueue || !Array.isArray(serverQueue?.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
+        if ((member.voice.channelId !== guild.me.voice.channelId) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to skip the music when the bot is playing!");
         if (serverQueue.songs.length < 1) return await msgOrRes(message, "There is nothing in the queue!");
-        serverQueue.connection?.dispatcher?.destroy();
+        serverQueue.stop();
         if (serverQueue.repeating) skip = 0;
         for (var i = 0; i < skip; i++) {
             if (serverQueue.looping) serverQueue.songs.push(serverQueue.songs[0]);
@@ -50,8 +50,8 @@ class SkipCommand implements SlashCommand {
         }
         await updateQueue(message.guild.id, serverQueue);
         await msgOrRes(message, `Skipped **${Math.max(1, skip)}** track${skip > 1 ? "s" : ""}!`);
-        if (message.member.voice.channel && serverQueue.playing) {
-            if (!serverQueue.connection) serverQueue.connection = await message.member.voice.channel.join();
+        if (member.voice.channel && serverQueue.playing) {
+            if (!serverQueue.connection) serverQueue.connection = joinVoiceChannel({ channelId: member.voice.channel.id, guildId: message.guild.id, adapterCreator: <DiscordGatewayAdapterCreator> <unknown> message.guild.voiceAdapterCreator });
             if (!serverQueue.random) await play(guild, serverQueue.songs[0]);
             else {
                 const int = Math.floor(Math.random() * serverQueue.songs.length);

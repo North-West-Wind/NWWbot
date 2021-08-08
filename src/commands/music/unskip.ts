@@ -1,6 +1,7 @@
-import { Message } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { DiscordGatewayAdapterCreator, joinVoiceChannel } from "@discordjs/voice";
+import { GuildMember, Message } from "discord.js";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { moveArray, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 import { play } from "./play";
@@ -15,17 +16,12 @@ class UnSkipCommand implements SlashCommand {
         name: "amount",
         description: "The amount of soundtrack to go back.",
         required: false,
-        type: 4
+        type: "INTEGER"
     }]
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        var skipped = 1;
-        if (obj.args[0]?.value) {
-            if (obj.args[0].value < 1) await obj.interaction.reply(`**${obj.args[0].value}** is smaller than 1. Will skip 1 track instead.`);
-            else skipped = obj.args[0].value;
-        }
-        await this.unskip(obj.interaction, skipped);
+    async execute(interaction: NorthInteraction) {
+        const skipped = interaction.options.getInteger("amount") || 1;
+        await this.unskip(interaction, skipped);
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -39,13 +35,14 @@ class UnSkipCommand implements SlashCommand {
         await this.unskip(message, skipped);
     }
 
-    async unskip(message: Message | Interaction, unskip: number) {
+    async unskip(message: Message | NorthInteraction, unskip: number) {
         var serverQueue = getQueues().get(message.guild.id);
         const guild = message.guild;
+        const member = (<GuildMember> message.member);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
-        if ((message.member.voice.channelID !== guild.me.voice.channelID) && serverQueue.playing) return await msgOrRes(message,"You have to be in a voice channel to unskip the music when the bot is playing!");
+        if ((member.voice.channelId !== guild.me.voice.channelId) && serverQueue.playing) return await msgOrRes(message,"You have to be in a voice channel to unskip the music when the bot is playing!");
         if (serverQueue.songs.length < 1) return await msgOrRes(message,"There is nothing in the queue!");
-        if (serverQueue.connection && serverQueue.connection.dispatcher) serverQueue.connection.dispatcher.destroy();
+        serverQueue.stop();
         if (serverQueue.repeating) unskip = 0;
         for (var i = 0; i < unskip; i++) {
             var song = serverQueue.songs.pop();
@@ -53,8 +50,8 @@ class UnSkipCommand implements SlashCommand {
         }
         await updateQueue(message.guild.id, serverQueue);
         await msgOrRes(message,`Unskipped **${Math.max(1, unskip)}** track${unskip > 1 ? "s" : ""}!`);
-        if (message.member.voice.channel && serverQueue.playing) {
-            if (!serverQueue.connection) serverQueue.connection = await message.member.voice.channel.join();
+        if (member.voice.channel && serverQueue.playing) {
+            if (!serverQueue.connection) serverQueue.connection = joinVoiceChannel({ channelId: member.voice.channelId, guildId: message.guild.id, adapterCreator: <DiscordGatewayAdapterCreator> <unknown> message.guild.voiceAdapterCreator });
             if (!serverQueue.random) await play(guild, serverQueue.songs[0]);
             else {
                 const int = Math.floor(Math.random() * serverQueue.songs.length);

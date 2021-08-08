@@ -1,13 +1,13 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 
 class ThxCommand implements SlashCommand {
 	name = 'thx'
 	description = 'Thanks the bot.'
 	category = 3
     
-	async execute(obj: { interaction: Interaction }) {
-		await obj.interaction.reply(`You're welcome, <@${obj.interaction.member?.id ?? obj.interaction.channelID}>`);
+	async execute(interaction: NorthInteraction) {
+		await interaction.reply(`You're welcome, <@${interaction.user.id}>`);
 	}
 	
     async run(message: NorthMessage) {

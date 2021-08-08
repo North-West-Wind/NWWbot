@@ -1,8 +1,7 @@
 import { Message, MessageEmbed, MessageReaction, Snowflake, TextChannel } from "discord.js";
 import { Aki, region } from "aki-api";
-import { NorthClient, SlashCommand, NorthMessage } from "../../classes/NorthClient";
+import { NorthClient, SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient";
 import { color, genPermMsg } from "../../function.js";
-import { Interaction } from "slashcord/dist/Index";
 import { guess } from "aki-api/typings/functions";
 
 export class AkiCommand implements SlashCommand {
@@ -11,7 +10,10 @@ export class AkiCommand implements SlashCommand {
   aliases = ["akinator"];
   usage = "[region]";
   category = 7;
-  permission = 90176;
+  permissions = {
+    guild: { me: 90176 },
+    channel: { me: 90176 }
+  };
 
   maxSteps = 420;
   reactions: string[] = [
@@ -57,21 +59,20 @@ export class AkiCommand implements SlashCommand {
         name: "region",
         description: "The region/language to play in.",
         required: false,
-        type: 3,
+        type: "STRING",
         choices: this.regions.map(region => ({ name: region, value: region })).concat([{ name: "region", value: "region" }])
       }
     ];
   }
 
-  async execute(obj: { interaction: Interaction, args: any[] }) {
-    let region = obj.args && obj.args[0]?.value ? obj.args[0].value : "en";
-    await obj.interaction.thinking();
-    await this.logic(obj.interaction, region);
+  async execute(interaction: NorthInteraction) {
+    let region = interaction.options.getString("region") || "en";
+    await interaction.deferReply();
+    await this.logic(interaction, region);
   }
 
   async run(message: NorthMessage, args: string[]) {
     if (args.length >= 1 && args[0].toLowerCase() === "region") return await this.region(message);
-    if (!message.guild.me.permissions.has(this.permission) && (<TextChannel>message.channel).permissionsFor(message.guild.me).has(this.permission)) return await message.channel.send(genPermMsg(this.permission, 1));
     let region = "en";
     if (args.length >= 1) {
       const testRegion = args[0];
@@ -81,7 +82,7 @@ export class AkiCommand implements SlashCommand {
     await this.logic(message, region);
   };
 
-  async logic(message: Message | Interaction, region: string) {
+  async logic(message: Message | NorthInteraction, region: string) {
     const aki = new Aki({ region: <region> region });
     await aki.start();
     let loop = 0;
@@ -90,25 +91,22 @@ export class AkiCommand implements SlashCommand {
 
     var author: Snowflake;
     if (message instanceof Message) author = message.author.id;
-    else author = message.member?.id ?? message.channelID;
+    else author = message.user.id;
     const embed = new MessageEmbed()
       .setColor(color())
       .setTitle("Getting ready...")
       .setTimestamp()
       .setFooter("Please wait until all reactions appear.", message.client.user.displayAvatarURL());
       var msg: Message;
-    if (message instanceof Message) msg = await message.channel.send(embed);
-    else {
-      await message.edit(embed);
-      msg = await message.fetchReply();
-    }
+    if (message instanceof Message) msg = await message.channel.send({ embeds: [embed] });
+    else msg = <Message> await message.editReply({ embeds: [embed] });
     for (const r of this.reactions) await msg.react(r);
     embed.setTitle("Question 1: " + aki.question)
       .setDescription(str)
       .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL());
-    await msg.edit(embed);
+    await msg.edit({ embeds: [embed] });
     const filter = (reaction, user) => this.reactions.includes(reaction.emoji.name) && user.id === author && !user.bot;
-    const collector = msg.createReactionCollector(filter, { idle: 6e4 });
+    const collector = msg.createReactionCollector({ filter, idle: 6e4 });
     const collectorFunction = async (r: MessageReaction) => {
       setTimeout(async () => {
         const answerID = this.reactions.indexOf(r.emoji.name);
@@ -118,7 +116,7 @@ export class AkiCommand implements SlashCommand {
           embed.setTitle("Akinator was stopped");
           embed.setDescription("Thanks for playing!");
           embed.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-          await msg.edit(embed);
+          await msg.edit({ embeds: [embed] });
           return collector.emit("end", true);
         } else if (answerID !== undefined) {
           if (found) {
@@ -126,7 +124,7 @@ export class AkiCommand implements SlashCommand {
               embed.setFooter("I am right!", message.client.user.displayAvatarURL());
               embed.setTitle("I got the correct answer!");
               embed.setDescription("");
-              msg = await msg.edit({ content: `Looks like I got another one correct! This time after ${aki.currentStep} steps. Thanks for playing!`, embed: embed });
+              msg = await msg.edit({ content: `Looks like I got another one correct! This time after ${aki.currentStep} steps. Thanks for playing!`, embeds: [embed] });
               return msg.reactions.removeAll().catch(() => { });
             }
             if (answerID === 1) {
@@ -135,7 +133,7 @@ export class AkiCommand implements SlashCommand {
                 .setDescription("Resuming game...")
                 .setImage(undefined)
                 .setFooter("Please wait patiently", message.client.user.displayAvatarURL());
-              await msg.edit(embed);
+              await msg.edit({ embeds: [embed] });
               for (const r of this.reactions.slice(2)) await msg.react(r);
             }
             found = false;
@@ -154,7 +152,7 @@ export class AkiCommand implements SlashCommand {
               .setTitle("Akinator")
               .setDescription("Loading result...")
               .setFooter("Please wait patiently", message.client.user.displayAvatarURL());
-            await msg.edit(embed);
+            await msg.edit({ embeds: [embed] });
             try {
               for (const r of this.reactions.slice(2)) {
                 const re = msg.reactions.cache.get(r);
@@ -168,11 +166,11 @@ export class AkiCommand implements SlashCommand {
             embed.setDescription(`**${name}**\n**${description}**\n${this.reactions[0]} **Yes**\n${this.reactions[1]} **No**`);
             embed.setFooter("Am I correct?", message.client.user.displayAvatarURL());
             if (image) embed.setImage(image);
-            msg = await msg.edit(embed);
+            msg = await msg.edit({ embeds: [embed] });
             if (aki.currentStep >= 79) {
               embed.setDescription(`**${name}**\n**${description}**`);
               embed.setFooter("Hope I am correct!", message.client.user.displayAvatarURL());
-              await msg.edit(embed);
+              await msg.edit({ embeds: [embed] });
               msg.reactions.removeAll().catch(() => { });
             }
           }
@@ -183,7 +181,7 @@ export class AkiCommand implements SlashCommand {
             .setDescription(str)
             .setImage(undefined)
             .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL());
-          await msg.edit(embed);
+          await msg.edit({ embeds: [embed] });
         }
       }, 1000);
     };
@@ -195,7 +193,7 @@ export class AkiCommand implements SlashCommand {
           .setDescription("Please start a new game.")
           .setImage(undefined)
           .setFooter("60 seconds have passed!", message.client.user.displayAvatarURL());
-        await msg.edit(embed);
+        await msg.edit({ embeds: [embed] });
         msg.reactions.removeAll().catch(() => { });
       }
     });
@@ -207,7 +205,7 @@ export class AkiCommand implements SlashCommand {
       .setTitle("Akinator")
       .setDescription("Region list\n\n`" + this.regions.join("`\n`") + "`")
       .setFooter(`Use "${message.prefix}${this.name} ${this.usage}" to start a game.`, message.client.user.displayAvatarURL());
-    await message.channel.send(regionEmbed);
+    await message.channel.send({ embeds: [regionEmbed] });
   }
 }
 

@@ -1,7 +1,7 @@
 import { Guild } from "discord.js";
 import { RowDataPacket } from "mysql2";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { genPermMsg, createEmbedScrolling, color } from "../../function";
 
@@ -12,66 +12,66 @@ class InvitesCommand implements SlashCommand {
   subcommands = ["me", "toggle"]
   aliases = ["inv"]
   category = 4
-  permissions = 32
   options = [
       {
           name: "server",
           description: "Displays server invites.",
-          type: 1
+          type: "SUB_COMMAND"
       },
       {
           name: "me",
           description: "Displays invites of yours.",
-          type: 1
+          type: "SUB_COMMAND"
       },
       {
           name: "toggle",
           description: "Toggles whether or not the bot should DM you when a user uses your invite.",
-          type: 1
+          type: "SUB_COMMAND"
       }
   ]
 
-  async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
-    if (obj.args[0].name !== "toggle" && !obj.interaction.guild) return await obj.interaction.reply("This subcommand only works on server.");
-    if (obj.args[0].name === "server") {
-      if (!obj.interaction.guild.me.hasPermission(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 1));
-      const allEmbeds = await this.createInvitesEmbed(obj.interaction.guild, obj.client, true);
-      return await obj.interaction.reply(allEmbeds[0]);
-    } else if (obj.args[0].name === "me") {
-      const author = obj.interaction.member?.user ?? await obj.client.users.fetch(obj.interaction.channelID);
-      if (!obj.interaction.guild.me.hasPermission(this.permissions)) return obj.interaction.reply(genPermMsg(this.permissions, 1));
-      const em = await this.createMyInvitesEmbed(obj.interaction.guild, author, obj.client);
-      return await obj.interaction.reply(em);
-    } else if (obj.args[0].name === "toggle") {
-        const author = obj.interaction.member?.user ?? await obj.client.users.fetch(obj.interaction.channelID);
+  async execute(interaction: NorthInteraction) {
+    const sub = interaction.options.getSubcommand();
+    if (sub !== "toggle" && !interaction.guild) return await interaction.reply("This subcommand only works on server.");
+    if (sub === "server") {
+      if (!interaction.guild.me.permissions.has(BigInt(32))) return await interaction.reply(genPermMsg(32, 1));
+      const allEmbeds = await this.createInvitesEmbed(interaction.guild, interaction.client, true);
+      return await interaction.reply({embeds: [allEmbeds[0]]});
+    } else if (sub === "me") {
+      const author = interaction.user;
+      if (!interaction.guild.me.permissions.has(BigInt(32))) return interaction.reply(genPermMsg(32, 1));
+      const em = await this.createMyInvitesEmbed(interaction.guild, author, interaction.client);
+      return await interaction.reply({embeds: [em]});
+    } else if (sub === "toggle") {
+        const author = interaction.user;
       try {
-        const [result] = <RowDataPacket[][]> await obj.client.pool.query(`SELECT * FROM nolog WHERE id = '${author.id}'`);
+        const [result] = <RowDataPacket[][]> await interaction.client.pool.query(`SELECT * FROM nolog WHERE id = '${author.id}'`);
         if (result.length < 1) {
-          await obj.client.pool.query(`INSERT INTO nolog VALUES('${author.id}')`);
+          await interaction.client.pool.query(`INSERT INTO nolog VALUES('${author.id}')`);
           if (NorthClient.storage.noLog.indexOf(author.id) == -1) NorthClient.storage.noLog.push(author.id);
-          return await obj.interaction.reply("You will no longer receive message from me when someone joins the server with your invites.");
+          return await interaction.reply("You will no longer receive message from me when someone joins the server with your invites.");
         } else {
-            obj.client.pool.query(`DELETE FROM nolog WHERE id = '${author.id}'`);
+          interaction.client.pool.query(`DELETE FROM nolog WHERE id = '${author.id}'`);
           if (NorthClient.storage.noLog.indexOf(author.id) != -1) NorthClient.storage.noLog.splice(NorthClient.storage.noLog.indexOf(author.id), 1);
-          return await obj.interaction.reply("We will message you whenever someone joins the server with your invites.");
+          return await interaction.reply("We will message you whenever someone joins the server with your invites.");
         }
       } catch(err) {
         NorthClient.storage.error(err);
-        return await obj.interaction.reply("There was an error trying to remember your decision!");
+        return await interaction.reply("There was an error trying to remember your decision!");
       }
     }
   }
 
   async run(message: NorthMessage, args: string[]) {
     if (!args[0]) {
-      if (!message.guild.me.hasPermission(this.permissions)) return message.channel.send(genPermMsg(this.permissions, 1));
+      if (!message.guild.me.permissions.has(BigInt(32))) return message.channel.send(genPermMsg(32, 1));
       const allEmbeds = await this.createInvitesEmbed(message.guild, message.client);
       if (allEmbeds.length > 1) await createEmbedScrolling(message, allEmbeds);
-      else await message.channel.send(allEmbeds[0]);
+      else await message.channel.send({embeds: [allEmbeds[0]]});
     } else if (args[0].toLowerCase() === "me") {
-      if (!message.guild.me.hasPermission(this.permissions)) return message.channel.send(genPermMsg(this.permissions, 1));
+      if (!message.guild.me.permissions.has(BigInt(32))) return message.channel.send(genPermMsg(32, 1));
       const em = await this.createMyInvitesEmbed(message.guild, message.author, message.client);
-      await message.channel.send(em);
+      await message.channel.send({embeds: [em]});
     } else if (args[0].toLowerCase() === "toggle") {
       const con = await message.pool.getConnection();
       try {
@@ -96,9 +96,9 @@ class InvitesCommand implements SlashCommand {
   async createInvitesEmbed(guild: Guild, client: NorthClient, oneOnly = false) {
     const members = Array.from((await guild.members.fetch()).values());
     const invitedStr = [];
-    const guildInvites = await guild.fetchInvites();
+    const guildInvites = await guild.invites.fetch();
     for (const member of members) {
-      const invites = await guildInvites.filter(i => i.inviter.id === member.id && i.guild.id === guild.id);
+      const invites = guildInvites.filter(i => i.inviter.id === member.id && i.guild.id === guild.id);
       const reducer = (a, b) => a + b;
       var uses = 0;
       if (invites.size > 0) uses = invites.map(i => (i.uses ? i.uses : 0)).reduce(reducer);

@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, createEmbedScrolling, getFetch } from "../../function";
 import * as Discord from "discord.js";
 import { globalClient as client } from "../../common";
@@ -16,14 +16,15 @@ class UrbanCommand implements SlashCommand {
         name: "query",
         description: "The thing to lookup.",
         required: true,
-        type: 3
+        type: "STRING"
     }];
 
-    async execute(obj: { args: any[], interaction: Interaction }) {
-        await obj.interaction.thinking();
-        const allEmbeds = await this.getDictEmbed(obj.args[0].value);
-        if (!allEmbeds) return await obj.interaction.edit(`No results found for **${obj.args[0].value}**.`);
-        await createEmbedScrolling({ interaction: obj.interaction, useEdit: true }, allEmbeds);
+    async execute(interaction: NorthInteraction) {
+        await interaction.deferReply();
+        const query = interaction.options.getString("query");
+        const allEmbeds = await this.getDictEmbed(query);
+        if (!allEmbeds) return await interaction.editReply(`No results found for **${query}**.`);
+        await createEmbedScrolling({ interaction: interaction, useEdit: true }, allEmbeds);
     }
 
     async run(message: NorthMessage, args: string[]) {

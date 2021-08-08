@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { findUser } from "../../function";
 
 class SpamCommand implements SlashCommand {
@@ -10,28 +10,28 @@ class SpamCommand implements SlashCommand {
     usage = "<user | user ID> <amount> <message>"
     category = 4
     options = [
-        { name: "user", description: "The user to spam.", required: true, type: 6 },
-        { name: "amount", description: "The number of time to spam the user.", required: true, type: 4 },
-        { name: "message", description: "The message to send.", required: true, type: 3 }
+        { name: "user", description: "The user to spam.", required: true, type: "USER" },
+        { name: "amount", description: "The number of time to spam the user.", required: true, type: "INTEGER" },
+        { name: "message", description: "The message to send.", required: true, type: "STRING" }
     ]
 
-    async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
-        const author = obj.interaction.member?.user ?? await obj.client.users.fetch(obj.interaction.channelID);
-        const taggedUser = await obj.client.users.fetch(obj.args[0].value);
-        if (taggedUser.id === author.id) return await obj.interaction.reply("Don't try to spam youself.");
-        const time = parseInt(obj.args[1].value);
-        if (time > 120) return await obj.interaction.reply("Please don't spam more than 120 times. That would be annoying.")
-        const msg = obj.args[2].value;
+    async execute(interaction: NorthInteraction) {
+        const author = interaction.user;
+        const taggedUser = interaction.options.getUser("user");
+        if (taggedUser.id === author.id) return await interaction.reply("Don't try to spam youself.");
+        const time = interaction.options.getInteger("amount");
+        if (time > 120) return await interaction.reply("Please don't spam more than 120 times. That would be annoying.")
+        const msg = interaction.options.getString("message");
         var i = 0;
         var spam = setInterval(async function () {
             if (i == time) return clearInterval(spam);
             if (taggedUser.id === process.env.DC) await author.send("Admin power forbids this >:)").catch(() => i = time);
-            else await taggedUser.send(`\`[${obj.interaction.guild.name} : ${author.tag}]\` ${msg}`).catch(err => {
+            else await taggedUser.send(`\`[${interaction.guild.name} : ${author.tag}]\` ${msg}`).catch(err => {
                 if (author.id !== process.env.DC) author.send(`Failed to spam ${taggedUser.tag} for ${i + 1} time(s) due to \`${err.message}\`.`).catch(() => i = time);
             });
             i++;
         }, 1000);
-        await obj.interaction.reply("Spamming started >:)");
+        await interaction.reply("Spamming started >:)");
     }
 
     async run(message: NorthMessage, args: string[]) {

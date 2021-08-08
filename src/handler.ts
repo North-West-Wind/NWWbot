@@ -1,5 +1,5 @@
 import { createCanvas, loadImage, Image } from "canvas";
-import { Guild, GuildMember, Message, MessageAttachment, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialUser, TextChannel, User, VoiceState } from "discord.js";
+import { Guild, GuildMember, Interaction, Message, MessageAttachment, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, TextChannel, User, VoiceState } from "discord.js";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);
@@ -9,11 +9,10 @@ import { endPoll } from "./commands/miscellaneous/poll";
 import { expire } from "./commands/managements/role-message";
 import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, wait, nameToUuid, color } from "./function";
 import { setQueue, stop } from "./helpers/music";
-import { NorthClient, LevelData, NorthMessage, RoleMessage } from "./classes/NorthClient";
-import { Connection } from "mysql2/promise";
+import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction } from "./classes/NorthClient";
+import { Connection, PoolConnection } from "mysql2/promise";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter";
-import Slashcord from "slashcord/dist/Index";
 import { sCategories } from "./commands/information/help";
 import common from "./common";
 
@@ -35,7 +34,18 @@ export class Handler {
         client.on("messageReactionAdd", (reaction, user) => this.messageReactionAdd(reaction, user));
         client.on("messageReactionRemove", (reaction, user) => this.messageReactionRemove(reaction, user));
         client.on("messageDelete", message => this.messageDelete(message));
-        client.on("message", message => this.message(message));
+        client.on("messageCreate", message => this.message(message));
+        client.on("interactionCreate", interaction => this.interactionCreate(interaction));
+    }   
+
+    async interactionCreate(interaction: Interaction) {
+        if (!interaction.isCommand()) return;
+        const command = NorthClient.storage.commands.get(interaction.commandName);
+        if (!command) return;
+        const int = <NorthInteraction> interaction;
+        int.pool = int.client.pool;
+        const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
+        if (await filter.all(command, int) && (catFilter ? await catFilter(command, int) : true)) await command.execute(int);
     }
 
     async messageLevel(message: Message) {
@@ -47,14 +57,13 @@ export class Handler {
     }
 
     async preReady(client: NorthClient) {
-        new Slashcord(client, { commandsDir: "commands" });
-        client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
+        client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
     }
 
     async preRead(_client: NorthClient, _con: Connection) { }
 
     async setPresence(client: NorthClient) {
-        client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
+        client.user.setPresence({ activities: [{ name: "AFK", type: "PLAYING" }], status: "idle", afk: true });
     }
 
     async readCurrency(_client: NorthClient, con: Connection) {
@@ -109,7 +118,7 @@ export class Handler {
         storage.log(`[${client.id}] Set ${results.length} configurations`);
     }
 
-    async readRoleMsg(client: NorthClient, con: Connection) {
+    async readRoleMsg(client: NorthClient, con: PoolConnection) {
         const storage = NorthClient.storage
         const [res] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434' ORDER BY expiration");
         storage.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
@@ -117,7 +126,7 @@ export class Handler {
         res.forEach(async result => expire({ pool: client.pool, client }, result.expiration - Date.now(), result.id));
     }
 
-    async readGiveaways(client: NorthClient, con: Connection) {
+    async readGiveaways(client: NorthClient, con: PoolConnection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
         NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
         results.forEach(async result => {
@@ -127,7 +136,7 @@ export class Handler {
         });
     }
 
-    async readPoll(client: NorthClient, con: Connection) {
+    async readPoll(client: NorthClient, con: PoolConnection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM poll WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
         NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(result => {
@@ -180,7 +189,7 @@ export class Handler {
         const guild = member.guild;
         const pool = client.pool;
         if (member.user.bot) return;
-        guild.fetchInvites().then(async guildInvites => {
+        guild.invites.fetch().then(async guildInvites => {
             const ei = storage.guilds[member.guild.id].invites;
             storage.guilds[member.guild.id].invites = guildInvites;
             const invite = guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
@@ -205,7 +214,7 @@ export class Handler {
             } else {
                 if (!welcome.channel) return;
                 const channel = <TextChannel>guild.channels.resolve(welcome.channel);
-                if (!channel || !channel.permissionsFor(guild.me).has(18432)) return;
+                if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
                 if (welcome.message) try {
                     const welcomeMessage = replaceMsgContent(welcome.message, guild, client, member, "welcome");
                     await channel.send(welcomeMessage);
@@ -262,7 +271,7 @@ export class Handler {
                         var attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
                         try {
                             await this.preWelcomeImage(channel);
-                            await channel.send(attachment);
+                            await channel.send({ files: [attachment] });
                         } catch (err) {
                             storage.error(err);
                         }
@@ -305,13 +314,13 @@ export class Handler {
                 storage.guilds[guild.id] = {};
                 storage.log("Inserted record for " + guild.name);
             } else {
-                if (guild.me.hasPermission(128)) {
+                if (guild.me.permissions.has(BigInt(128))) {
                     const fetchedLogs = await guild.fetchAuditLogs({ limit: 1, type: 'MEMBER_KICK' });
                     const kickLog = fetchedLogs.entries.first();
                     if (kickLog && (kickLog.target as any).id === member.user.id && kickLog.executor.id !== (kickLog.target as any).id) return;
                 } else storage.log("Can't view audit logs of " + guild.name);
                 const channel = <TextChannel>guild.channels.resolve(leave.channel);
-                if (!channel || !channel.permissionsFor(guild.me).has(18432)) return;
+                if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
                 if (!leave.message) return;
                 try {
                     const leaveMessage = replaceMsgContent(leave.message, guild, client, member, "leave");
@@ -327,7 +336,7 @@ export class Handler {
         const client = <NorthClient>guild.client;
         const storage = NorthClient.storage;
         storage.log("Joined a new guild: " + guild.name);
-        try { storage.guilds[guild.id].invites = await guild.fetchInvites(); } catch (err) { }
+        try { storage.guilds[guild.id].invites = await guild.invites.fetch(); } catch (err) { }
         try {
             const con = await client.pool.getConnection();
             const [result] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id = " + guild.id);
@@ -362,7 +371,7 @@ export class Handler {
         const storage = NorthClient.storage;
         const exit = storage.guilds[guild.id]?.exit;
         if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice?.channel)) return await stop(guild);
-        if (!guild.me.voice?.channel || (newState.channelID !== guild.me.voice.channelID && oldState.channelID !== guild.me.voice.channelID)) return;
+        if (!guild.me.voice?.channel || (newState.channelId !== guild.me.voice.channelId && oldState.channelId !== guild.me.voice.channelId)) return;
         if (!storage.guilds[guild.id]) {
             await client.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '${escape("🎉")}')`);
             storage.guilds[guild.id] = {};
@@ -387,7 +396,7 @@ export class Handler {
         } catch (err) { }
     }
 
-    async messageReactionAdd(r: MessageReaction, user: User | PartialUser) {
+    async messageReactionAdd(r: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
         const storage = NorthClient.storage;
         var roleMessage = storage.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
@@ -405,7 +414,7 @@ export class Handler {
         }
     }
 
-    async messageReactionRemove(r: MessageReaction, user: User | PartialUser) {
+    async messageReactionRemove(r: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
         const storage = NorthClient.storage;
         var roleMessage = storage.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
@@ -508,7 +517,7 @@ export class AliceHandler extends Handler {
 
     async preRead(client: NorthClient, con: Connection) {
         const storage = NorthClient.storage;
-        client.guilds.cache.forEach(g => g.fetchInvites().then(guildInvites => storage.guilds[g.id].invites = guildInvites).catch(() => { }));
+        client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => storage.guilds[g.id].invites = guildInvites).catch(() => { }));
         const [res] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
         storage.log(`[${client.id}] Found ${res.length} guild timers`);
         res.forEach(async result => {
@@ -577,7 +586,7 @@ export class AliceHandler extends Handler {
                         .setDescription(description)
                         .setTimestamp()
                         .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
-                    timerMsg.edit({ content: "", embed: em });
+                    timerMsg.edit({ content: "", embeds: [em] });
                 } else {
                     const allEmbeds = [];
                     for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
@@ -595,14 +604,14 @@ export class AliceHandler extends Handler {
                         allEmbeds.push(em);
                     }
                     const filter = (reaction) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name);
-                    var msg = await timerMsg.edit({ content: "", embed: allEmbeds[0] });
+                    var msg = await timerMsg.edit({ content: "", embeds: [allEmbeds[0]] });
                     var s = 0;
                     await msg.react("⏮");
                     await msg.react("◀");
                     await msg.react("▶");
                     await msg.react("⏭");
                     await msg.react("⏹");
-                    const collector = msg.createReactionCollector(filter, { time: 30000 });
+                    const collector = msg.createReactionCollector({ filter, time: 30000 });
                     collector.on("collect", function (reaction, user) {
                         reaction.users.remove(user.id);
                         switch (reaction.emoji.name) {
@@ -647,7 +656,7 @@ export class AliceHandler extends Handler {
         });
     }
 
-    async readPoll(client: NorthClient, con: Connection) {
+    async readPoll(client: NorthClient, con: PoolConnection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM poll WHERE guild = '622311594654695434' ORDER BY endAt ASC");
         NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(result => {
@@ -667,7 +676,7 @@ export class AliceHandler extends Handler {
     }
 
     async preWelcomeImage(channel: TextChannel) {
-        await channel.send(new MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png"));
+        await channel.send({ files: [new MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png")] });
     }
 
     async preMessage(message: Message) {
@@ -681,26 +690,26 @@ export class AliceHandler extends Handler {
             const con = await client.pool.getConnection();
             try {
                 const mcUuid = await nameToUuid(mcName);
-                if (!mcUuid) return await msg.edit("Error finding that user!").then(msg => msg.delete({ timeout: 10000 }));
+                if (!mcUuid) return await msg.edit("Error finding that user!").then(msg => setTimeout(() => msg.delete(), 10000));
                 NorthClient.storage.log("Found UUID: " + mcUuid);
                 var res;
                 try {
                     const f = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`);
-                    if (f.status == 404) return await msg.edit("This player doesn't exist!").then(msg => msg.delete({ timeout: 10000 }));
+                    if (f.status == 404) return await msg.edit("This player doesn't exist!").then(msg => setTimeout(() => msg.delete(), 10000));
                     res = await f.json();
                 } catch (err) {
-                    return await msg.edit("The Hypixel API is down.").then(msg => msg.delete({ timeout: 10000 }));
+                    return await msg.edit("The Hypixel API is down.").then(msg => setTimeout(() => msg.delete(), 10000));
                 }
                 const hyDc = res.links.DISCORD;
-                if (hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => msg.delete({ timeout: 10000 }));
+                if (hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => setTimeout(() => msg.delete(), 10000));
                 var [results] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                 if (results.length == 0) {
                     await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
-                    msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                    msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete(), 10000));
                     NorthClient.storage.log("Inserted record for mc-name.");
                 } else {
                     await con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
-                    msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => msg.delete({ timeout: 10000 }));
+                    msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete(), 10000));
                     NorthClient.storage.log("Updated record for mc-name.");
                 }
                 const mcLen = res.username.length + 1;
@@ -757,7 +766,7 @@ export class AliceHandler extends Handler {
                 else if (res.rank === "MVP_PLUS_PLUS") await roles.add("837271171619356692");
             } catch (err) {
                 NorthClient.storage.error(err);
-                await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => msg.delete({ timeout: 10000 }));
+                await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => setTimeout(() => msg.delete(), 10000));
             }
             con.release();
             return;

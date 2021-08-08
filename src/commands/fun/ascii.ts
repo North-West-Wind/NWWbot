@@ -1,5 +1,5 @@
-import { SlashCommand } from "../../classes/NorthClient";
-import { Interaction } from "slashcord/dist/Index";
+import { NorthInteraction, SlashCommand } from "../../classes/NorthClient";
+
 import anser from "anser";
 import figlet from "figlet";
 import sanitize from "sanitize-filename";
@@ -22,15 +22,16 @@ class AsciiCommand implements SlashCommand {
         name: "text",
         description: "The text to be converted into ASCII art.",
         required: true,
-        type: 3
+        type: "STRING"
     }];
     
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        const text = figlet.textSync(obj.args[0].value);
-        if (text.length + 83 > 2000) await obj.interaction.reply("The text is too long to send in Discord! Wait for the text file!");
-        else await obj.interaction.reply("```" + text + "```");
-        const attachment = new Discord.MessageAttachment(Buffer.from(text, 'utf8'), sanitize(`${obj.args[0].value}.txt`));
-        await obj.interaction.followUp.send(attachment);
+    async execute(interaction: NorthInteraction) {
+        const txt = interaction.options.getString("text");
+        const text = figlet.textSync(txt);
+        if (text.length + 83 > 2000) await interaction.reply("The text is too long to send in Discord! Wait for the text file!");
+        else await interaction.reply("```" + text + "```");
+        const attachment = new Discord.MessageAttachment(Buffer.from(text, 'utf8'), sanitize(`${txt}.txt`));
+        await interaction.followUp({files: [attachment]});
     }
 
     async run(message, args) {

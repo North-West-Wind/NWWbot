@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { getRandomNumber } from "../../function";
 
 class RNGCommand implements SlashCommand {
@@ -14,43 +14,39 @@ class RNGCommand implements SlashCommand {
             name: "min",
             description: "The minimum of the random number.",
             required: true,
-            type: 3
+            type: "NUMBER"
         },
         {
             name: "max",
             description: "The maximum of the random number.",
             required: true,
-            type: 3
+            type: "NUMBER"
         },
         {
             name: "count",
             description: "How many numbers to generate.",
             required: false,
-            type: 4
+            type: "INTEGER"
         },
         {
             name: "decimal",
             description: "The maximum decimal place.",
             required: false,
-            type: 4
+            type: "INTEGER"
         }
     ];
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        let count = 1;
-        let decimal = -1;
-        const min = Number(obj.args[0].value);
-        const max = Number(obj.args[1].value);
-        if (isNaN(min)) return await obj.interaction.reply("The minimum must be a number!");
-        if (isNaN(max)) return await obj.interaction.reply("The maximum must be a number!");
-        if (obj.args[2]?.value && !isNaN(Number(obj.args[2].value))) count = parseInt(obj.args[2].value);
-        if (obj.args[3]?.value !== undefined && !isNaN(parseInt(obj.args[3].value))) decimal = parseInt(obj.args[3].value);
+    async execute(interaction: NorthInteraction) {
+        const count = interaction.options.getInteger("count") || 1;
+        const decimal = interaction.options.getInteger("decimal") || -1;
+        const min = interaction.options.getNumber("min");
+        const max = interaction.options.getNumber("max");
         let msg = "";
         for (let i = 0; i < count; i++) {
             var number = decimal < 0 ? getRandomNumber(min, max) : Math.round((getRandomNumber(min, max) + Number.EPSILON) * Math.pow(10, decimal)) / Math.pow(10, decimal);
             msg += number + "\n";
         }
-        await obj.interaction.reply(msg);
+        await interaction.reply(msg);
     }
     async run(message: NorthMessage, args: string[]) {
         let count = 1;

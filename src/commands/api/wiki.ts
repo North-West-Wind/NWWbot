@@ -1,7 +1,7 @@
 import wiki from "wikijs";
 import * as Discord from "discord.js";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { Interaction } from "slashcord/dist/Index";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
 import { color } from "../../function";
 
 class WikiCommand implements SlashCommand {
@@ -15,19 +15,19 @@ class WikiCommand implements SlashCommand {
         name: "query",
         description: "The thing to lookup.",
         required: true,
-        type: 3
+        type: "STRING"
     }];
 
-    async execute(obj: { args: any[], interaction: Interaction }) {
-        await obj.interaction.thinking();
-        await this.specialCollector(obj.interaction, obj.args[0].value);
+    async execute(interaction: NorthInteraction) {
+        await interaction.deferReply();
+        await this.specialCollector(interaction, interaction.options.getString("query"));
     }
 
     async run(message: NorthMessage, args: string[]) {
         await this.specialCollector(message, args.join(" "));
     }
 
-    async specialCollector(message: Discord.Message | Interaction, query: string) {
+    async specialCollector(message: Discord.Message | NorthInteraction, query: string) {
         const data = await wiki({ apiUrl: 'https://en.wikipedia.org/w/api.php' }).search(query, 100);
         var num = 0;
         const allEmbeds = [];
@@ -55,14 +55,13 @@ class WikiCommand implements SlashCommand {
         if (allEmbeds[49]) emojis.push("2️⃣");
         if (allEmbeds[74]) emojis.push("3️⃣")
 
-        var msg, author;
+        var msg: Discord.Message, author;
         if (message instanceof Discord.Message) {
             msg = await message.channel.send(allEmbeds[0]);
             author = message.author.id;
         } else {
-            await message.edit(allEmbeds[0]);
-            msg = await message.fetchReply();
-            author = message.member?.id ?? message.channelID;
+            msg = <Discord.Message> await message.editReply({embeds: [allEmbeds[0]]});
+            author = message.user.id;
         }
         const filter = (reaction, user) => (emojis.includes(reaction.emoji.name) && user.id === author);
 
@@ -70,7 +69,8 @@ class WikiCommand implements SlashCommand {
         for (const emoji of emojis) {
             msg.react(emoji);
         }
-        var collector = await msg.createReactionCollector(filter, {
+        var collector = msg.createReactionCollector({
+            filter,
             idle: 60000
         });
         collector.on("collect", function (reaction, user) {

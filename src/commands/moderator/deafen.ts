@@ -1,5 +1,6 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { GuildMember } from "discord.js";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { genPermMsg, commonModerationEmbed, findMember } from "../../function";
 
 class DeafenCommand implements SlashCommand {
@@ -9,47 +10,40 @@ class DeafenCommand implements SlashCommand {
   aliases = ["deaf"]
   category = 1
   args = 1
-  permissions = 8388608
+  permissions = { guild: { user: 8388608, me: 8388608 } }
   options = [
       {
           name: "user",
           description: "The user to deafen.",
           required: true,
-          type: 6
+          type: "USER"
       },
       {
           name: "reason",
           description: "The reason of deafening.",
           required: false,
-          type: 3
+          type: "STRING"
       }
   ]
   
-  async execute(obj: { interaction: Interaction, args: any[] }) {
-    if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-    const guild = obj.interaction.guild;
-    const author = obj.interaction.member;
-    if (!author.permissions.has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 0));
-    if (!guild.me.permissions.has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 1));
-    const member = await guild.members.fetch(obj.args[0].value);
-    if (!member) return await obj.interaction.reply("Cannot find the user.");
-    var reason;
-    if (obj.args[1]?.value) reason = obj.args[1].value;
+  async execute(interaction: NorthInteraction) {
+    const guild = interaction.guild;
+    const author = interaction.member;
+    const member = <GuildMember> interaction.options.getMember("user");
+    if (!member) return await interaction.reply("Cannot find the user.");
+    const reason = interaction.options.getString("reason");
     const embeds = commonModerationEmbed(guild, author, member, "deafen", "deafened", reason);
     try {
       if (reason) await member.voice.setDeaf(true, reason)
       else await member.voice.setDeaf(true);
-      member.user.send(embeds[0]).catch(() => { });
-      return await obj.interaction.reply(embeds[1]);
+      member.user.send({embeds: [embeds[0]]}).catch(() => { });
+      return await interaction.reply({embeds: [embeds[1]]});
     } catch (error) {
-      return await obj.interaction.reply(embeds[2]);
+      return await interaction.reply({embeds: [embeds[2]]});
     }
   }
 
   async run(message: NorthMessage, args: string[]) {
-    if (!message.guild) return message.channel.send("This command only works on server.");
-    if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
-    if (!message.guild.me.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
     const member = await findMember(message, args[0]);
 
     if (!member) return;
@@ -60,10 +54,10 @@ class DeafenCommand implements SlashCommand {
     try {
       if (reason) await member.voice.setDeaf(true, reason)
       else await member.voice.setDeaf(true);
-      member.user.send(embeds[0]).catch(() => { });
-      await message.channel.send(embeds[1]);
+      member.user.send({embeds: [embeds[0]]}).catch(() => { });
+      await message.channel.send({embeds: [embeds[1]]});
     } catch (error) {
-      await message.channel.send(embeds[2]);
+      await message.channel.send({embeds: [embeds[2]]});
     }
   }
 }

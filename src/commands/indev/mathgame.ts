@@ -1,6 +1,6 @@
 import { TextChannel, User } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { color, ms } from "../../function";
 import * as math from "mathjs";
@@ -11,14 +11,14 @@ class MathGameCommand implements SlashCommand {
     name = "mathgame"
     description = "Math Game prototype."
     category = 9
+    permissions = { channel: { me: 8192 } };
 
-    async execute(obj: { interaction: Interaction }) {
-        await obj.interaction.reply("This command is not available in slash.")
+    async execute(interaction: NorthInteraction) {
+        await interaction.reply("This command is not available in slash.")
     }
 
     async run(message: NorthMessage, args: string[]) {
         if (!message.guild) return await message.channel.send("This command doesn't support DMs.");
-        if(!(<TextChannel>message.channel).permissionsFor(message.guild.me).has(8192)) return message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
         /*
         if(args[0] && args[0].toLowerCase() === "clear" && message.author.id === process.env.DC) {
             console.mathgames.clear();
@@ -28,7 +28,7 @@ class MathGameCommand implements SlashCommand {
         */
         var msg = await message.channel.send("Who will be playing this game? (Please mention them)");
         var collected;
-        collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 });
+        collected = await msg.channel.awaitMessages({ filter: x => x.author.id === message.author.id, time: 30000, max: 1 });
         if (!collected || !collected.first() || !collected.first().content) return msg.edit("You didn't answer me within 30 seconds! Please try again.");
         await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
         var players = [message.author];
@@ -47,7 +47,7 @@ class MathGameCommand implements SlashCommand {
                 return msg.edit("Nothing was chosen!");
             case 0:
                 msg = await msg.edit("Please enter the amount of questions.");
-                collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 });
+                collected = await msg.channel.awaitMessages({ filter: x => x.author.id === message.author.id, time: 30000, max: 1 });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
                 await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
                 questions = parseInt(collected.first().content);
@@ -55,7 +55,7 @@ class MathGameCommand implements SlashCommand {
                 break;
             case 1:
                 msg = await msg.edit("Please enter the time allowed.");
-                collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { time: 30000, max: 1 });
+                collected = await msg.channel.awaitMessages({ filter: x => x.author.id === message.author.id, time: 30000, max: 1 });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
                 await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
                 time = ms(collected.first().content);
@@ -67,12 +67,12 @@ class MathGameCommand implements SlashCommand {
             .setDescription(`Game Mode: **${questions > 0 ? `Limited Question Mode (${questions} Questions)` : time > 0 ? `Timer Mode (${moment.duration(Math.round(time / 1000), "seconds").format()})` : "Endless Mode"}**\n**${players.length < 2 ? "Singleplayer" : "Multiplayer"} Game**\nReact with "👌🏻" when you are ready!`)
             .setTimestamp()
             .setFooter("I will wait for 60 seconds.", message.client.user.displayAvatarURL());
-        msg = await msg.edit({ content: "", embed: em });
+        msg = await msg.edit({ content: "", embeds: [em] });
         await msg.react("👌🏻");
         collected = undefined;
-        collected = await msg.awaitReactions((reaction, user) => reaction.emoji.name === '👌🏻' && players.map(x => x.id).includes(user.id), { time: 60000, maxUsers: players.length });
-        if (!collected || !collected.first()) return msg.edit({ content: "Seriously? No one reacted?", embed: null });
-        if (collected.first().count - 1 < players.length) return msg.edit({ content: "Someone is not active!", embed: null });
+        collected = await msg.awaitReactions({ filter: (reaction, user) => reaction.emoji.name === '👌🏻' && players.map(x => x.id).includes(user.id), time: 60000, maxUsers: players.length });
+        if (!collected || !collected.first()) return await msg.edit({ content: "Seriously? No one reacted?", embeds: null });
+        if (collected.first().count - 1 < players.length) return await msg.edit({ content: "Someone is not active!", embeds: null });
         await msg.reactions.removeAll();
         let now = Date.now();
         //console.mathgames.set(now, players.map(x => x.id));
@@ -82,11 +82,11 @@ class MathGameCommand implements SlashCommand {
         while(running) {
             const generated = await this.generateQuestion(questionCount);
             em.setTitle(`Question ${++questionCount}`).setDescription(`${generated.question}`).setTimestamp().setFooter("Send your answer here!");
-            msg = await msg.edit(em);
+            msg = await msg.edit({embeds: [em]});
             var correct = false;
             while(!correct) {
                 collected = undefined;
-                collected = await msg.channel.awaitMessages(x => players.map(u => u.id).includes(x.author.id), { time: questions < 0 && time < 0 ? 15000 : 60000 * 5, max: 1 });
+                collected = await msg.channel.awaitMessages({ filter: x => players.map(u => u.id).includes(x.author.id), time: questions < 0 && time < 0 ? 15000 : 60000 * 5, max: 1 });
                 if(!collected || !collected.first() || !collected.first().content) {
                     running = false;
                     break;
@@ -111,7 +111,7 @@ class MathGameCommand implements SlashCommand {
         .setDescription(`Here are the final scores after **${moment.duration(Math.round((Date.now() - now) / 1000), "seconds").format()}**!\n${players.map(x => `**${x.tag}** --- **${scores[x.id]}**\n`)}\nCongratulations to **${winner.name}** for winning this game with **${winner.score} points**!`)
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-        msg.edit({ content: "", embed: em });
+        await msg.edit({ content: "", embeds: [em] });
         //console.mathgames.delete(now);
     }
 

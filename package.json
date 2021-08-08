@@ -10,13 +10,14 @@
     "tsc": "tsc"
   },
   "engines": {
-    "node": "14.x",
-    "npm": "6.14.x"
+    "node": "16.x",
+    "npm": "7.x"
   },
   "author": "NorthWestWind",
   "license": "MIT",
   "dependencies": {
     "@discordjs/opus": "^0.5.3",
+    "@discordjs/voice": "^0.5.5",
     "@justalk/pornhub-api": "^3.5.0",
     "aio-mc-api": "^1.2.3",
     "akaneko": "^5.2.0",
@@ -28,7 +29,7 @@
     "cheerio": "^1.0.0-rc.10",
     "cleverbot-free": "^1.1.6",
     "deep-equal": "^2.0.5",
-    "discord.js": "^12.5.3",
+    "discord.js": "^13.0.1",
     "dotenv": "^10.0.0",
     "fetch-retry-ts": "^1.1.24",
     "ffmpeg-static": "^4.4.0",
@@ -57,7 +58,6 @@
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "sanitize-filename": "^1.6.3",
-    "slashcord": "^1.7.5",
     "smm-api": "^2.1.2",
     "solenolyrics": "^5.0.0",
     "soundcloud-downloader": "^1.0.0",
@@ -75,6 +75,7 @@
   "devDependencies": {
     "@types/cheerio": "^0.22.30",
     "@types/figlet": "^1.5.4",
+    "@types/fluent-ffmpeg": "^2.1.18",
     "@types/moment-duration-format": "^2.2.3",
     "@types/ms": "^0.7.31",
     "@types/node-fetch": "^2.5.12",

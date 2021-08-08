@@ -1,6 +1,7 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, SlashCommand } from "../../classes/NorthClient";
-import { genPermMsg, wait, findMember } from "../../function";
+
+import { GuildMember, Role } from "discord.js";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { wait, findMember } from "../../function";
 
 class RoleCommand implements SlashCommand {
   name = 'role'
@@ -8,39 +9,34 @@ class RoleCommand implements SlashCommand {
   usage = '<user | user ID> <role | role ID | role name>'
   category = 0
   args = 2
-  permissions = 268435456
+  permissions = { guild: { user: 268435456, me: 268435456 } }
   options = [
       {
           name: "user",
           description: "The user to be added to the role.",
           required: true,
-          type: 6
+          type: "USER"
       },
       {
           name: "role",
           description: "The role to add.",
           required: true,
-          type: 8
+          type: "ROLE"
       }
   ];
   
-  async execute(obj: { interaction: Interaction, args: any[] }) {
-    if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-    if (!obj.interaction.member.permissions.has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 0));
-    if (!obj.interaction.guild.me.permissions.has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 1));
-    const member = await obj.interaction.guild.members.fetch(obj.args[0].value);
-    const role = await obj.interaction.guild.roles.fetch(obj.args[1].value);
+  async execute(interaction: NorthInteraction) {
+    const member = <GuildMember> interaction.options.getMember("user");
+    const role = <Role> interaction.options.getRole("role");
     try {
       await member.roles.add(role);
-      return await obj.interaction.reply(`Successfully added **${member.user.tag}** to role **${role.name}**.`);
+      return await interaction.reply(`Successfully added **${member.user.tag}** to role **${role.name}**.`);
     } catch (err) {
-      return await obj.interaction.reply(`Failed to add **${member.user.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
+      return await interaction.reply(`Failed to add **${member.user.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
     }
   }
 
-  async run(message, args) {
-    if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
-    if (!message.guild.me.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
+  async run(message: NorthMessage, args: string[]) {
     var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
       var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === args[1].toLowerCase());

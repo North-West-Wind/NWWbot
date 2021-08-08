@@ -1,9 +1,9 @@
 import { CategoryList, SectionTypes, SortTypes } from "aio-mc-api/lib/typings/CurseForge/Constants";
-import { Interaction } from "slashcord/dist/Index";
+
 import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory, getFetch } from "../../function";
 import { Message, MessageEmbed } from "discord.js";
 import { curseforge, SimpleProject } from "aio-mc-api";
-import { SlashCommand, NorthMessage } from "../../classes/NorthClient";
+import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 
 const fetch = getFetch();
@@ -29,95 +29,98 @@ class MinecraftCommand implements SlashCommand {
             {
                 name: this.subcommands[0],
                 description: this.subdesc[0],
-                type: 1,
+                type: "SUB_COMMAND",
                 options: [{
                     name: "username",
                     description: "The username or UUID of the player.",
                     required: true,
-                    type: 3
+                    type: "STRING"
                 }]
             },
             {
                 name: this.subcommands[1],
                 description: this.subdesc[1],
-                type: 1,
+                type: "SUB_COMMAND",
                 options: [{
                     name: "ip",
                     description: "The IP of the server.",
                     required: true,
-                    type: 3
+                    type: "STRING"
                 }]
             },
             {
                 name: this.subcommands[2],
                 description: this.subdesc[2],
-                type: 1,
+                type: "SUB_COMMAND",
                 options: [{
                     name: "username",
                     description: "The username or UUID of the player.",
                     required: true,
-                    type: 3
+                    type: "STRING"
                 }]
             },
             {
                 name: this.subcommands[3],
                 description: this.subdesc[3],
-                type: 1,
+                type: "SUB_COMMAND",
                 options: [
                     {
                         name: "category",
                         description: "The category of CurseForge project to search.",
                         required: false,
-                        type: 3
+                        type: "STRING"
                     },
                     {
                         name: "version",
                         description: "The version of the game.",
                         required: false,
-                        type: 3
+                        type: "STRING"
                     },
                     {
                         name: "sort",
                         description: "The way to sort projects.",
                         required: false,
-                        type: 3,
+                        type: "STRING",
                         choices: sortChoices
                     },
                     {
                         name: "keywords",
                         description: "The project to search for.",
                         required: false,
-                        type: 3
+                        type: "STRING"
                     }
                 ]
             }
         ]
     }
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        if (obj.args[0].name === this.subcommands[0]) {
-            var str = obj.args[0].options[0].value;
+    async execute(interaction: NorthInteraction) {
+        const sub = interaction.options.getSubcommand();
+        if (sub === this.subcommands[0]) {
+            const str = interaction.options.getString("username");
             var r = await profile(str);
-            if (!r) return await obj.interaction.reply("No player named **" + str + "** were found");
+            if (!r) return await interaction.reply("No player named **" + str + "** were found");
             const em = this.getProfileEmbed(r);
-            await obj.interaction.reply(em);
-        } else if (obj.args[0].name === this.subcommands[1]) {
-            await obj.interaction.reply("Retrieving server information...");
-            const url = `https://api.mcsrvstat.us/2/${obj.args[0].options[0].value}`;
+            await interaction.reply({ embeds: [em] });
+        } else if (sub === this.subcommands[1]) {
+            await interaction.reply("Retrieving server information...");
+            const str = interaction.options.getString("ip");
+            const url = `https://api.mcsrvstat.us/2/${str}`;
             const res = await fetch(url);
-            if (!res.ok) return await obj.interaction.edit("Received HTTP Status Code " + res.status);
+            if (!res.ok) return await interaction.editReply("Received HTTP Status Code " + res.status);
             const body = await res.json();
-            if (body.online) return await obj.interaction.edit({ embeds: [this.getServerEmbed(body, obj.args[0].options[0].value)[0]], content: "" });
-            else await obj.interaction.edit({ content: "The server - **" + obj.args.slice(1).join(" ") + "** - is offline/under maintenance." });
-        } else if (obj.args[0].name === this.subcommands[2]) {
-            const res = await nameToUuid(obj.args[0].options[0].value);
-            if (!res) await obj.interaction.reply("No player named **" + obj.args[0].options[0].value + "** were found");
-            else await obj.interaction.reply(await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(obj.args[0].options[0].value)));
-        } else if (obj.args[0].name === this.subcommands[3]) {
-            await obj.interaction.reply("Fetching CurseForge projects...");
-            const cArgs = ["curseforge"].concat(obj.args[0].options.filter(x => !!x).map(x => x.value));
-            await this.cf(await obj.interaction.fetchReply(), cArgs);
-            await obj.interaction.delete();
+            if (body.online) return await interaction.editReply({ embeds: [this.getServerEmbed(body, str)[0]], content: "" });
+            else await interaction.editReply({ content: "The server - **" + str + "** - is offline/under maintenance." });
+        } else if (sub === this.subcommands[2]) {
+            const str = interaction.options.getString("username");
+            const res = await nameToUuid(str);
+            if (!res) await interaction.reply("No player named **" + str + "** were found");
+            else await interaction.reply({ embeds: [await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(str))] });
+        } else if (sub === this.subcommands[3]) {
+            await interaction.reply("Fetching CurseForge projects...");
+            const cArgs = ["curseforge", interaction.options.getString("category"), interaction.options.getString("version"), interaction.options.getString("sort"), interaction.options.getString("keywords")];
+            await this.cf(<Message> await interaction.fetchReply(), cArgs);
+            await interaction.deleteReply();
         }
     }
 
@@ -128,7 +131,7 @@ class MinecraftCommand implements SlashCommand {
             var r = await profile(str);
             if (!r) return await message.channel.send("No player named **" + str + "** were found");
             const em = this.getProfileEmbed(r);
-            await message.channel.send(em);
+            await message.channel.send({ embeds: [em] });
         } else if (args[0] === "server" || args[0] === "srv") {
             const url = `https://api.mcsrvstat.us/2/${args.slice(1).join(" ")}`;
             const res = await fetch(url);
@@ -136,13 +139,13 @@ class MinecraftCommand implements SlashCommand {
             const body = await res.json();
             if (body.online) {
                 const allEmbeds = this.getServerEmbed(body, args.slice(1).join(" "));
-                if (allEmbeds.length < 2) await message.channel.send(allEmbeds[0]);
+                if (allEmbeds.length < 2) await message.channel.send({ embeds: [allEmbeds[0]] });
                 else await createEmbedScrolling(message, allEmbeds);
             } else return message.channel.send("The server - **" + args.slice(1).join(" ") + "** - is offline/under maintenance.");
         } else if (args[0] === "history" || args[0] === "his") {
             const res = await profile(args[1]);
             if (!res) return message.channel.send("No player named **" + args[1] + "** were found");
-            await message.channel.send(await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(args[1])));
+            await message.channel.send({ embeds:[await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(args[1]))] });
         } else if (args[0] === "curseforge" || args[0] === "cf") return await this.cf(message, args);
     }
 

@@ -1,13 +1,31 @@
 import * as dotenv from "dotenv";
-import { RowDataPacket } from "mysql2";
 import { CanaryHandler } from "./handler";
 import { NorthClient, ClientStorage } from "./classes/NorthClient";
+import { Options, Intents } from "discord.js";
 dotenv.config();
 
-const canary = new NorthClient({ restRequestTimeout: 60000, messageCacheMaxSize: 50, messageCacheLifetime: 3600, messageSweepInterval: 300, partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER', 'GUILD_MEMBER'] });
-canary.log = "733912780679413886";
-NorthClient.storage = new ClientStorage(canary);
+const client = new NorthClient({
+    restRequestTimeout: 60000,
+    makeCache: Options.cacheWithLimits({
+        MessageManager: 50,
+        PresenceManager: 0
+    }),
+    messageCacheLifetime: 3600,
+    messageSweepInterval: 300,
+    partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER', 'GUILD_MEMBER'],
+    intents: [
+        Intents.FLAGS.DIRECT_MESSAGES,
+        Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+        Intents.FLAGS.GUILDS,
+        Intents.FLAGS.GUILD_MEMBERS,
+        Intents.FLAGS.GUILD_MESSAGES,
+        Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+        Intents.FLAGS.GUILD_VOICE_STATES
+    ]
+});
+client.log = "733912780679413886";
+NorthClient.storage = new ClientStorage(client);
 
-canary.prefix = "%";
-canary.id = 0;
-CanaryHandler.setup(canary, process.env.TOKEN_CANARY);
+client.prefix = "%";
+client.id = 0;
+CanaryHandler.setup(client, process.env.TOKEN_CANARY);

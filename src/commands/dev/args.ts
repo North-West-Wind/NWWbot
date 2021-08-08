@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 
 class ArgsCommand implements SlashCommand {
   name = "args"
@@ -10,12 +10,12 @@ class ArgsCommand implements SlashCommand {
     name: "arguments",
     description: "The texts to log.",
     required: true,
-    type: 3
+    type: "STRING"
   }]
 
-  async execute(obj: { interaction: Interaction, args: any[] }) {
-    NorthClient.storage.log(obj.args);
-    await obj.interaction.reply("Done");
+  async execute(interaction: NorthInteraction) {
+    NorthClient.storage.log(interaction.options.getString("arguments"));
+    await interaction.reply("Done");
   }
 
   async run(message: NorthMessage) {

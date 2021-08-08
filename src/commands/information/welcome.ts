@@ -1,8 +1,8 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { createCanvas, loadImage } from "canvas";
-import { findMember, findMemberWithGuild, replaceMsgContent } from "../../function";
+import { findMember, replaceMsgContent } from "../../function";
 
 class WelcomeCommand implements SlashCommand {
     name = "welcome"
@@ -13,19 +13,15 @@ class WelcomeCommand implements SlashCommand {
         name: "user",
         description: "The user for testing.",
         required: false,
-        type: 6
+        type: "USER"
     }];
 
-    async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        var member = obj.interaction.member;
-        if (obj.args && obj.args[0].value) {
-            member = await findMemberWithGuild(obj.interaction.guild, obj.args[0].value);
-            if (!member) member = obj.interaction.member;
-        }
-        const { message, image, error } = await this.getWelcome(member, obj.client);
-        await obj.interaction.reply(message);
-        if (!error) await obj.interaction.channel.send(image);
+    async execute(interaction: NorthInteraction) {
+        if (!interaction.guild) return await interaction.reply("This command only works on server.");
+        var member = <Discord.GuildMember> (interaction.options.getMember("user") || interaction.member);
+        const { message, image, error } = await this.getWelcome(member, interaction.client);
+        await interaction.reply(message);
+        if (!error) await interaction.channel.send(image);
     }
 
     async run(message: NorthMessage, args: string[]) {

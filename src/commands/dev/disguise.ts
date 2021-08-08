@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 
 class DisguiseCommand implements SlashCommand {
     name = "disguise"
@@ -7,8 +7,8 @@ class DisguiseCommand implements SlashCommand {
     aliases = ["say"]
     category = 10
 
-    async execute(obj: { interaction: Interaction }) {
-        await obj.interaction.reply("This command doesn't work in slash.");
+    async execute(interaction: NorthInteraction) {
+        await interaction.reply("This command doesn't work in slash.");
     }
 
     async run(message: NorthMessage, args: string[]) {

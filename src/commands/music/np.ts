@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);
@@ -26,16 +26,15 @@ class NPCommand implements SlashCommand {
     aliases = ["nowplaying"]
     category = 8
 
-    async execute(obj: { interaction: Interaction }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        await this.nowplaying(obj.interaction);
+    async execute(interaction: NorthInteraction) {
+        await this.nowplaying(interaction);
     }
 
     async run(message: NorthMessage) {
         await this.nowplaying(message);
     }
 
-    async nowplaying(message: Discord.Message | Interaction) {
+    async nowplaying(message: Discord.Message | NorthInteraction) {
         var serverQueue = getQueues().get(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (serverQueue.songs.length < 1) return await msgOrRes(message, "There is nothing in the queue.");
@@ -45,7 +44,7 @@ class NPCommand implements SlashCommand {
             await updateQueue(message.guild.id, serverQueue);
         }
         var position = 0;
-        if (serverQueue.connection && serverQueue.connection.dispatcher) position = (serverQueue.connection.dispatcher.streamTime - serverQueue.startTime);
+        if (serverQueue.streamTime && serverQueue.startTime) position = (serverQueue.streamTime - serverQueue.startTime);
         var processBar = [];
         for (let i = 0; i < 20; i++) processBar.push("═");
         var progress = 0;
@@ -70,8 +69,8 @@ class NPCommand implements SlashCommand {
         if (serverQueue.songs[0].type === 1) info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].spot})**\nLength: **${serverQueue.songs[0].time}**`, serverQueue.songs[0].thumbnail];
         else info = [`**[${serverQueue.songs[0].title}](${serverQueue.songs[0].url})**\nLive: **${isLive ? "Yes" : "No"}**\nVolume: **${serverQueue.songs[0].volume ? (`${serverQueue.volume * serverQueue.songs[0].volume * 100}% (Local) | ${serverQueue.volume * 100}% (Global)`) : `${serverQueue.volume * 100}%`}**\nType: **${type[serverQueue.songs[0].type]}**`, serverQueue.songs[0].thumbnail];
         embed.setDescription(`${info[0]}\n\n${positionTime} \`${processBar.join("")}\` ${serverQueue.songs[0].time ? serverQueue.songs[0].time : "Unknown"}`).setThumbnail(info[1]);
-        const msg = message instanceof Discord.Message ? await message.channel.send(embed) : <Discord.Message>await message.reply(embed, { fetchReply: true });;
-        setTimeout(() => msg.edit({ content: "**[Outdated Now-Playing Information]**", embed: null }), 60000);
+        const msg = message instanceof Discord.Message ? await message.channel.send({embeds: [embed]}) : <Discord.Message>await message.reply({ embeds: [embed], fetchReply: true });;
+        setTimeout(() => msg.edit({ content: "**[Outdated Now-Playing Information]**", embeds: null }), 60000);
     }
 }
 

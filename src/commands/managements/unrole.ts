@@ -1,6 +1,7 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { findMember, genPermMsg, wait } from "../../function";
+
+import { GuildMember, Role } from "discord.js";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { findMember, wait } from "../../function";
 
 class UnRoleCommand implements SlashCommand {
   name = 'unrole'
@@ -8,40 +9,34 @@ class UnRoleCommand implements SlashCommand {
   args = 2
   usage = '<user | userID> <role | role ID | role name>'
   category = 0
-  permissions = 268435456
+  permissions = { guild: { user: 268435456, me: 268435456 } }
   options = [
       {
           name: "user",
           description: "The user to be removed from the role.",
           required: true,
-          type: 6
+          type: "USER"
       },
       {
           name: "role",
           description: "The role to remove.",
           required: true,
-          type: 8
+          type: "ROLE"
       }
   ];
   
-  async execute(obj: { interaction: Interaction, args: any[] }) {
-    if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-    if (!obj.interaction.member.hasPermission(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 0));
-    if (!obj.interaction.guild.me.hasPermission(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 1));
-    const member = await obj.interaction.guild.members.fetch(obj.args[0].value);
-    const role = await obj.interaction.guild.roles.fetch(obj.args[1].value);
+  async execute(interaction: NorthInteraction) {
+    const member = <GuildMember> interaction.options.getMember("user");
+    const role = <Role> interaction.options.getRole("role");
     try {
       await member.roles.remove(role);
-      return await obj.interaction.reply(`Successfully removed **${member.user.tag}** from **${role.name}**.`);
+      return await interaction.reply(`Successfully removed **${member.user.tag}** from **${role.name}**.`);
     } catch (err) {
-      return await obj.interaction.reply(`Failed to remove **${member.user.tag}** from **${role.name}**. (Error: **${err.message}**)`);
+      return await interaction.reply(`Failed to remove **${member.user.tag}** from **${role.name}**. (Error: **${err.message}**)`);
     }
   }
 
   async run(message: NorthMessage, args: string[]) {
-    if (!message.member.hasPermission(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
-    if (!message.guild.me.hasPermission(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
-
     var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
       var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === args[1].toLowerCase());

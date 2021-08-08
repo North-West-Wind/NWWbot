@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, ServerQueue, SlashCommand, SoundTrack } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, ServerQueue, SlashCommand, SoundTrack } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import sanitize from "sanitize-filename";
 import scdl from "soundcloud-downloader";
@@ -27,19 +27,19 @@ class DownloadCommand implements SlashCommand {
         name: "keywords",
         description: "Index/Link/Keywords of soundtrack.",
         required: false,
-        type: 3
+        type: "STRING"
     }]
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        var serverQueue = getQueues().get(obj.interaction.guild.id);
-        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(obj.interaction.guild.id, [], false, false);
-        if (obj.args && isNaN(parseInt(obj.args[0]?.value))) return await this.downloadFromArgs(obj.interaction, serverQueue, obj.args[0].value);
-        if (serverQueue.songs.length < 1) return await obj.interaction.reply("There is nothing in the queue.");
+    async execute(interaction: NorthInteraction) {
+        var serverQueue = getQueues().get(interaction.guild.id);
+        if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(interaction.guild.id, [], false, false);
+        const keywords = interaction.options.getString("keywords");
+        if (keywords && isNaN(parseInt(keywords))) return await this.downloadFromArgs(interaction, serverQueue, keywords);
+        if (serverQueue.songs.length < 1) return await interaction.reply("There is nothing in the queue.");
         var song = serverQueue.songs[0];
-        const parsed = obj.args && obj.args[0]?.value ? parseInt(obj.args[0]?.value) : -1;
+        const parsed = keywords ? parseInt(keywords) : -1;
         if (parsed <= serverQueue.songs.length && parsed > 0) song = serverQueue.songs[parsed - 1];
-        await this.download(obj.interaction, serverQueue, song);
+        await this.download(interaction, serverQueue, song);
         
     }
     
@@ -54,7 +54,7 @@ class DownloadCommand implements SlashCommand {
         await this.download(message, serverQueue, song);
     }
 
-    async download(message: Discord.Message | Interaction, serverQueue: ServerQueue, song: SoundTrack) {
+    async download(message: Discord.Message | NorthInteraction, serverQueue: ServerQueue, song: SoundTrack) {
         try {
             if (song?.isLive) {
                 const result = await addYTURL(song.url, song.type);
@@ -100,14 +100,14 @@ class DownloadCommand implements SlashCommand {
             await msg.delete();
             await message.channel.send("The file may not appear just yet. Please be patient!");
             let attachment = new Discord.MessageAttachment(stream, sanitize(`${song.title}.mp3`));
-            await message.channel.send(attachment).catch((err) => message.reply(`there was an error trying to send the soundtrack! (${err.message})`));
+            await message.channel.send({files: [attachment]});
         } catch (err) {
-            await (message instanceof Discord.Message ? message.channel.send : message.followUp.send)(`There was an error trying to send the soundtrack! (${err.message})`);
+            await (message instanceof Discord.Message ? message.channel.send : message.followUp)(`There was an error trying to send the soundtrack! (${err.message})`);
             NorthClient.storage.error(err);
         }
     }
 
-    async downloadFromArgs(message: Discord.Message | Interaction, serverQueue: ServerQueue, link: string) {
+    async downloadFromArgs(message: Discord.Message | NorthInteraction, serverQueue: ServerQueue, link: string) {
         var result = { error: true, songs: [], msg: null };
         try {
             if (validYTPlaylistURL(link)) result = await addYTPlaylist(link);

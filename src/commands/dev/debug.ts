@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as functions from "../../function";
 import * as Discord from "discord.js";
 
@@ -12,13 +12,12 @@ class DebugCommand implements SlashCommand {
         name: "function",
         description: "The stringified function.",
         required: true,
-        type: 3
+        type: "STRING"
     }];
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        if (obj.interaction.member.id != process.env.DC) return await obj.interaction.reply("You can't use this!");
-        const args = obj.args?.map(x => x?.value).filter(x => !!x);
-        NorthClient.storage.log(await (Object.getPrototypeOf(async function () { }).constructor("message", "args", "functions", "Discord", args.join(" ")))(obj.interaction, functions, Discord));
+    async execute(interaction: NorthInteraction) {
+        if (interaction.user.id != process.env.DC) return await interaction.reply("You can't use this!");
+        NorthClient.storage.log(await (Object.getPrototypeOf(async function () { }).constructor("message", "args", "functions", "Discord", interaction.options.getString("function")))(interaction, functions, Discord));
     }
 
     async run(message: NorthMessage, args: string[]) {

@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand, NorthClient } from "../../classes/NorthClient";
+
+import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
@@ -70,8 +70,8 @@ class GuildCommand implements SlashCommand {
 	subdesc = ["Create a splash notification.", "Manage invites.", "Start a lottery.", "Manage timers.", "Calculate user points."]
 	args = 1
 
-	async execute(obj: { interaction: Interaction }) {
-		await obj.interaction.reply("This one does not support slash yet.");
+	async execute(interaction: NorthInteraction) {
+		return;
 	}
 
 	async run(message: NorthMessage, args: string[]) {
@@ -510,9 +510,9 @@ class GuildCommand implements SlashCommand {
 		.setTitle(`Points of ${args[1]}`)
 		.setColor(color())
 		.setDescription(`Total Points: **${points}**${points == Infinity ? " (Instant Accept!)" : (points >= 12 ? " (Accepted)" : "")}\nSkyBlock Points: **${sbpt}**${sbpt >= 8 ? " (Accepted)" : ""}\nBedWars Points: **${bwpt}**${bwpt >= 4 ? " (Accepted)" : ""}`)
-		.addField("Average Skill Level", maxSa, true)
-		.addField("Catacomb Level", maxCatacomb, true)
-		.addField("Slayer EXP", maxSlayer, true)
+		.addField("Average Skill Level", maxSa.toString(), true)
+		.addField("Catacomb Level", maxCatacomb.toString(), true)
+		.addField("Slayer EXP", maxSlayer.toString(), true)
 		.addField("Bedwars Stars", stars, true)
 		.addField("Final Kill/Death Ratio", fkdr, true)
 		.setTimestamp()

@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as math from "mathjs";
 import * as Discord from "discord.js";
 import { color, createEmbedScrolling } from "../../function";
@@ -14,31 +14,32 @@ class MathCommand implements SlashCommand {
     category = 4
     args = 2
     options = [
-        { name: "evaluate", description: "Evaluates a Mathematical expression.", type: 1, options: [{ name: "expression", description: "The Mathematical expression to be processed.", required: true, type: 3 }] },
-        { name: "derivative", description: "Performs derivative with respect to x.", type: 1, options: [{ name: "expression", description: "The Mathematical expression to be processed.", required: true, type: 3 }] },
-        { name: "rationalize", description: "Rationalizes a Mathematical expression.", type: 1, options: [{ name: "expression", description: "The Mathematical expression to be processed.", required: true, type: 3 }] },
-        { name: "simplify", description: "Simplifies a Mathematical expression.", type: 1, options: [{ name: "expression", description: "The Mathematical expression to be processed.", required: true, type: 3 }] },
-        { name: "help", description: "Displays all available constants and operators for this command.", type: 1 }
+        { name: "evaluate", description: "Evaluates a Mathematical expression.", type: "SUB_COMMAND", options: [{ name: "expression", description: "The Mathematical expression to be processed.", required: true, type: "STRING" }] },
+        { name: "derivative", description: "Performs derivative with respect to x.", type: "SUB_COMMAND", options: [{ name: "expression", description: "The Mathematical expression to be processed.", required: true, type: "STRING" }] },
+        { name: "rationalize", description: "Rationalizes a Mathematical expression.", type: "SUB_COMMAND", options: [{ name: "expression", description: "The Mathematical expression to be processed.", required: true, type: "STRING" }] },
+        { name: "simplify", description: "Simplifies a Mathematical expression.", type: "SUB_COMMAND", options: [{ name: "expression", description: "The Mathematical expression to be processed.", required: true, type: "STRING" }] },
+        { name: "help", description: "Displays all available constants and operators for this command.", type: "SUB_COMMAND" }
     ];
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        if (obj.args[0].name === "help") return await this.help(obj.interaction);
+    async execute(interaction: NorthInteraction) {
+        const sub = interaction.options.getSubcommand();
+        if (sub === "help") return await this.help(interaction);
         let done = "Error!";
-        switch(obj.args[0].name) {
+        switch(sub) {
             case "evaluate":
-                try { done = await math.evaluate(obj.args[0].options[0].value); } catch(err) {done = "Evaluation Error"; NorthClient.storage.error(err);}
+                try { done = await math.evaluate(interaction.options.getString("expression")); } catch(err) {done = "Evaluation Error"; NorthClient.storage.error(err);}
                 break;
             case "derivative":
-                try { done = await math.derivative(obj.args[0].options[0].value, "x").compile().evaluate(); } catch(err) {done = "Differentiation Error"; NorthClient.storage.error(err);}
+                try { done = await math.derivative(interaction.options.getString("expression"), "x").compile().evaluate(); } catch(err) {done = "Differentiation Error"; NorthClient.storage.error(err);}
                 break;
             case "rationalize":
-                try { done = math.rationalize(obj.args[0].options[0].value).toString(); } catch(err) {done = "Rationalization Error"; NorthClient.storage.error(err);}
+                try { done = math.rationalize(interaction.options.getString("expression")).toString(); } catch(err) {done = "Rationalization Error"; NorthClient.storage.error(err);}
                 break;
             case "simplify":
-                try { done = math.simplify(obj.args[0].options[0].value).toString(); } catch(err) {done = "Simplification Error"; NorthClient.storage.error(err);}
+                try { done = math.simplify(interaction.options.getString("expression")).toString(); } catch(err) {done = "Simplification Error"; NorthClient.storage.error(err);}
                 break;
         }
-        return await obj.interaction.reply(done);
+        return await interaction.reply(done);
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -67,7 +68,7 @@ class MathCommand implements SlashCommand {
         }
         await message.channel.send(done);
     }
-    async help(message: NorthMessage | Interaction) {
+    async help(message: NorthMessage | NorthInteraction) {
         var operators = {
             "Add": "x + y // add(x, y)",
             "Subtract": "x - y // subtract(x, y)",

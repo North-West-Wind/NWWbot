@@ -1,15 +1,15 @@
 import { Message, MessageEmbed } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { Item, NorthClient, NorthMessage } from "../classes/NorthClient";
+
+import { Item, NorthClient, NorthInteraction, NorthMessage } from "../classes/NorthClient";
 import { globalClient as client } from "../common";
 import { jsDate2Mysql } from "../function";
 
 export default class EnergyDrinkItem implements Item {
     id = "481b8f8aec3b604db23f205b4ce2f52b447ffe5ab911e3f1"
     name = "EnergyDrink"
-    async run(message: NorthMessage | Interaction, msg: Message, em: MessageEmbed, itemObject: any) {
+    async run(message: NorthMessage | NorthInteraction, msg: Message, em: MessageEmbed, itemObject: any) {
         var newDateSql = jsDate2Mysql(new Date(Date.now() + 86400000));
-        const author = message instanceof Message ? message.author.id : (message.member?.id ?? message.channelID);
+        const author = message instanceof Message ? message.author.id : message.user.id;
         const con = await client.pool.getConnection();
         try {
             var [results] = await con.query(`SELECT doubling FROM currency WHERE user_id = '${author}' AND guild = '${message.guild.id}'`);
@@ -23,6 +23,6 @@ export default class EnergyDrinkItem implements Item {
             NorthClient.storage.error(err);
         }
         con.release();
-        await msg.edit(em);
+        await msg.edit({embeds: [em]});
     }
 }

@@ -1,6 +1,6 @@
 import { TextChannel } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { color, msgOrRes } from "../../function";
 
@@ -8,19 +8,18 @@ class YachtCommand implements SlashCommand {
     name = "yacht"
     description = "Play the Yacht Dice Game on Discord."
     category = 3
+    permissions = { channel: { me: 8192 } };
     
-    async execute(obj: { interaction: Interaction }) {
-        if (!(<TextChannel>obj.interaction.channel).permissionsFor(obj.interaction.guild.me).has(8192)) return await obj.interaction.reply("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
-        await this.logic(obj.interaction);
+    async execute(interaction: NorthInteraction) {
+        await this.logic(interaction);
     }
     
     async run(message: NorthMessage) {
-        if (!(<TextChannel>message.channel).permissionsFor(message.guild.me).has(8192)) return await message.channel.send("I need the permissions to MANAGE MESSAGE in order to keep things tidy!");
         await this.logic(message);
     }
 
-    async logic(message: Discord.Message | Interaction) {
-        const author = message instanceof Discord.Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelID));
+    async logic(message: Discord.Message | NorthInteraction) {
+        const author = message instanceof Discord.Message ? message.author : message.user;
         var dice: { locked: boolean, number: number }[] = [];
         var scores = {
             "1s": { score: 0, used: false },
@@ -49,9 +48,12 @@ class YachtCommand implements SlashCommand {
             .setTimestamp()
             .setFooter("Please type in commands within 2 minutes.", message.client.user.displayAvatarURL());
         var msg = <Discord.Message> await msgOrRes(message, em);
-        const collector = (<TextChannel>message.channel).createMessageCollector(m => m.author.id === author.id, { max: Infinity, idle: 120000 });
+        const collector = (<TextChannel>message.channel).createMessageCollector({ filter: m => m.author.id === author.id, max: Infinity, idle: 120000 });
         collector.on("collect", async mesg => {
-            if (round > 12) return collector.emit("end");
+            if (round > 12) {
+                collector.emit("end");
+                return;
+            }
             let success = false;
             const sequceIsConsecutive = (obj) =>
                 Boolean(obj.reduce((output, lastest) => (output ?
@@ -238,7 +240,7 @@ class YachtCommand implements SlashCommand {
             }
             const str = `${dice.map(x => `Dice ${dice.indexOf(x) + 1}: **${x.number}${x.locked ? " (Locked)" : ""}**`).join("\n")}\n\nScores:\n1s: **${scores["1s"].score}**\n2s: **${scores["2s"].score}**\n3s: **${scores["3s"].score}**\n4s: **${scores["4s"].score}**\n5s: **${scores["5s"].score}**\n6s: **${scores["6s"].score}**\nBonus: **${scores.bonus.score}**\n3 of a kind: **${scores.triple.score}**\n4 of a kind: **${scores.quadruple.score}**\nFull House: **${scores.doubtri.score}**\n4 Straight: **${scores["4str"].score}**\n5 Straight: **${scores["5str"].score}**\nYacht: **${scores.quintuple.score}**\nChoice: **${scores.choice.score}**`;
             em.setTitle(`Yacht Dice Game (Round ${round})`).setDescription(str + `\nCommands:\n**Roll** - Roll the dices (${3 - rolled} times left)\n**Lock <index>** - Lock the dices with indexes 1 to 6\n**Score <category>** Choose a category to place your score and move to the next turn\n**End** - End the game immediately`);
-            msg = await msg.edit(em);
+            msg = await msg.edit({embeds: [em]});
             if (round > 12) collector.emit("end");
         });
         collector.on("end", async () => {
@@ -246,7 +248,7 @@ class YachtCommand implements SlashCommand {
         });
         async function end() {
             em.setTitle(`Yacht Dice Game (Ended)`).setDescription(`You scored **${Object.values(scores).map(x => x.score).reduce((a, c) => a + c)} points**\nThanks for playing!`).setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-            msg.edit(em).catch(() => message.channel.send(em));
+            msg.edit({embeds: [em]}).catch(() => message.channel.send({embeds: [em]}));
         }
     }
 }

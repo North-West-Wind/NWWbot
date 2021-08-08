@@ -1,5 +1,5 @@
-import { NorthClient, SlashCommand } from "../../classes/NorthClient";
-import { Interaction } from "slashcord/dist/Index";
+import { NorthInteraction, SlashCommand } from "../../classes/NorthClient";
+
 import { findUser } from "../../function";
 
 const GREETINGS = [
@@ -22,13 +22,13 @@ class GreetCommand implements SlashCommand {
     name: "user",
     description: "The user to greet.",
     required: true,
-    type: 6
+    type: "USER"
   }];
 
-  async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
+  async execute(interaction: NorthInteraction) {
     const chosen = GREETINGS[Math.floor(GREETINGS.length * Math.random())];
-    const user = obj.args[0]?.value ? (await obj.client.users.fetch(obj.args[0].value)).id : (obj.interaction.member?.id ?? obj.interaction.channelID);
-    obj.interaction.reply(chosen.replace(/\<user\>/, `<@${user}>`));
+    const user = interaction.options.getUser("user");
+    interaction.reply(chosen.replace(/\<user\>/, `<@${user}>`));
   }
 
   async run(message, args) {

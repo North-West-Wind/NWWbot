@@ -1,11 +1,11 @@
-import { NorthMessage, Player, SlashCommand, UnoGame } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, Player, SlashCommand, UnoGame } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild, wait } from "../../function";
 import { NorthClient } from "../../classes/NorthClient.js";
 import converter from "number-to-words";
 import { createCanvas, loadImage } from "canvas";
 import * as fs from "fs";
-import { Interaction } from "slashcord/dist/Index";
+
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);
@@ -40,43 +40,45 @@ class UnoCommand implements SlashCommand {
       name: "users",
       description: "The users to invite.",
       required: false,
-      type: 3
+      type: "STRING"
     },
     {
       name: "time",
       description: "The time allowed for the game.",
       required: false,
-      type: 3
+      type: "STRING"
     },
   ];
   
-  async execute(obj: { interaction: Interaction, args: any[] }) {
+  async execute(interaction: NorthInteraction) {
     var mentions = new Discord.Collection<Discord.Snowflake, Discord.GuildMember>();
-    if (obj.args && obj.args[0]?.value) {
-      for (const arg of obj.args[0].value.split(/ +/)) {
-        const member = await findMemberWithGuild(obj.interaction.guild, arg);
+    const users = interaction.options.getString("users");
+    const t = interaction.options.getString("time");
+    if (users) {
+      for (const arg of users.split(/ +/)) {
+        const member = await findMemberWithGuild(interaction.guild, arg);
         if (!member) continue;
         mentions.set(member.id, member);
       }
-      if (mentions.size < 1) return await obj.interaction.reply("Your mentions are not valid!");
-      await obj.interaction.reply(`You invited ${mentions.map(user => `<@${user.id}>`).join(" ")} to play UNO.`, { fetchReply: true });
+      if (mentions.size < 1) return await interaction.reply("Your mentions are not valid!");
+      await interaction.reply({ content: `You invited ${mentions.map(user => `<@${user.id}>`).join(" ")} to play UNO.`, fetchReply: true });
     } else {
-      await obj.interaction.reply("Alright, we will start an UNO game. Who will be invited? Please mention them!", { fetchReply: true });
-      var collected = await (<Discord.TextChannel>obj.interaction.channel).awaitMessages(x => x.author.id === (obj.interaction.member?.user.id ?? obj.interaction.channelID), { max: 1, time: 30000 });
-      if (!collected || !collected.first()) return await obj.interaction.edit("Don't make me wait too long. I'm busy.");
+      await interaction.reply({ content: "Alright, we will start an UNO game. Who will be invited? Please mention them!", fetchReply: true });
+      var collected = await (<Discord.TextChannel>interaction.channel).awaitMessages({ filter: x => x.author.id === interaction.user.id, max: 1, time: 30000 });
+      if (!collected || !collected.first()) return await interaction.editReply("Don't make me wait too long. I'm busy.");
       await collected.first().delete();
-      if (!collected.first().mentions.members || !collected.first().mentions.members.size) return await obj.interaction.edit("You didn't invite anyone!");
-      else if (collected.first().mentions.members.find(x => x.user.bot)) return await obj.interaction.edit("Bots cannot play with you!");
-      else if (collected.first().mentions.members.find(x => x.id === (obj.interaction.member?.user.id ?? obj.interaction.channelID))) return await obj.interaction.edit("Why would you invite yourself?");
-      await obj.interaction.edit(`You invited ${collected.first().content} to play UNO.`);
+      if (!collected.first().mentions.members || !collected.first().mentions.members.size) return await interaction.editReply("You didn't invite anyone!");
+      else if (collected.first().mentions.members.find(x => x.user.bot)) return await interaction.editReply("Bots cannot play with you!");
+      else if (collected.first().mentions.members.find(x => x.id === interaction.user.id)) return await interaction.editReply("Why would you invite yourself?");
+      await interaction.editReply(`You invited ${collected.first().content} to play UNO.`);
       mentions = collected.first().mentions.members;
     }
     var timeLimit = 12 * 60 * 1000;
-    if (obj.args[1]?.value) {
-      const time = ms(obj.args[1].value);
+    if (t) {
+      const time = ms(t);
       if (time) timeLimit = time;
     }
-    await this.logic(obj.interaction, mentions, timeLimit);
+    await this.logic(interaction, mentions, timeLimit);
   }
 
   async run(message: NorthMessage, args: string[]) {
@@ -91,7 +93,7 @@ class UnoCommand implements SlashCommand {
       var msg = await message.channel.send(`You invited ${mentions.map(user => `<@${user.id}>`).join(" ")} to play UNO.`);
     } else {
       var msg = await message.channel.send("Alright, we will start an UNO game. Who will be invited? Please mention them!");
-      var collected = await (<Discord.TextChannel>message.channel).awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 });
+      var collected = await (<Discord.TextChannel>message.channel).awaitMessages({ filter: x => x.author.id === message.author.id, max: 1, time: 30000 });
       if (!collected || !collected.first()) return msg.edit("Don't make me wait too long. I'm busy.");
       await collected.first().delete();
       if (!collected.first().mentions.members || !collected.first().mentions.members.size) return msg.edit("You didn't invite anyone!");
@@ -108,8 +110,8 @@ class UnoCommand implements SlashCommand {
     await this.logic(message, mentions, timeLimit);
   }
 
-  async logic(message: Discord.Message | Interaction, mentions: Discord.Collection<Discord.Snowflake, Discord.GuildMember>, timeLimit: number) {
-    const author = message instanceof Discord.Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelID));
+  async logic(message: Discord.Message | NorthInteraction, mentions: Discord.Collection<Discord.Snowflake, Discord.GuildMember>, timeLimit: number) {
+    const author = message instanceof Discord.Message ? message.author : message.user;
     const c = color();
     var responses = 0;
     var accepted = 0;
@@ -131,7 +133,7 @@ class UnoCommand implements SlashCommand {
         .setTimestamp()
         .setFooter("Please decide in 30 seconds.", message.client.user.displayAvatarURL());
       try {
-        var mesg = await member.user.send(em);
+        var mesg = await member.user.send({embeds: [em]});
       } catch (err) {
         message.channel.send(`Failed to send invitation to **${member.user.tag}**.`);
         responses += mentions.size;
@@ -139,13 +141,13 @@ class UnoCommand implements SlashCommand {
       }
       await mesg.react("✅");
       await mesg.react("❌");
-      var rCollected = await mesg.awaitReactions((r, u) => ["✅", "❌"].includes(r.emoji.name) && u.id === member.id, { max: 1, time: 30000 })
+      var rCollected = await mesg.awaitReactions({ filter: (r, u) => ["✅", "❌"].includes(r.emoji.name) && u.id === member.id, max: 1, time: 30000 })
       responses += 1;
       mesg.reactions.removeAll().catch(() => { });
       if (!rCollected || !rCollected.first()) {
         em.setDescription("Timed Out").setFooter("The game was cancelled.");
         message.channel.send(`**${member.user.tag}** is not active now.`);
-        return await mesg.edit(em);
+        return await mesg.edit({embeds: [em]});
       }
       em.setFooter("Head to the channel now.", message.client.user.displayAvatarURL());
       var reaction = rCollected.first();
@@ -157,7 +159,7 @@ class UnoCommand implements SlashCommand {
         message.channel.send(`**${member.user.tag}** declined the invitation!`);
         em.setDescription(`Server: **${message.guild.name}**\nChannel: **${(<Discord.TextChannel>message.channel).name}**\n"You declined the invitation!`);
       }
-      mesg.edit(em);
+      mesg.edit({embeds: [em]});
     });
 
     let assets;
@@ -172,12 +174,11 @@ class UnoCommand implements SlashCommand {
         let em = new Discord.MessageEmbed()
           .setColor(c)
           .setTitle(`The cards have been distributed!`)
-          .attachFiles([{ attachment: await canvasImg(assets, player.card), name: "canvas.png" }])
           .setImage("attachment://canvas.png")
           .setDescription(`Your cards:\n\n${player.card.map(x => toString(x)).join("\n")}`)
           .setTimestamp()
           .setFooter("Game started.", message.client.user.displayAvatarURL());
-        player.user.send(em);
+        player.user.send({embeds: [em], files: [{ attachment: await canvasImg(assets, player.card), name: "canvas.png" }] });
       }
       var initial = NorthClient.storage.card.filter(x => x.color < 4 && x.number < 10).random();
       uno.set(id, new UnoGame(players, initial, 1));
@@ -253,7 +254,7 @@ class UnoCommand implements SlashCommand {
               .setColor(c)
               .setTimestamp()
               .setFooter("Better luck next time!", message.client.user.displayAvatarURL());
-            player.user.send(skipEm);
+            player.user.send({embeds: [skipEm]});
             players.set(key, player);
             uno.set(id, { players: players, card: top, cards: await uno.get(id).cards });
             skip = false;
@@ -273,17 +274,16 @@ class UnoCommand implements SlashCommand {
             .setColor(c)
             .setTitle(`It's your turn now!`)
             .setDescription(`The current card is ${toString(top)}\nYour cards:\n\n${player.card.map(x => toString(x)).join("\n")}\n\n📥 Place\n📤 Draw\n⏹️ Stop\nIf you draw, you will draw **${drawCard > 0 ? drawCard + " cards" : "1 card"}**.`)
-            .attachFiles([{ attachment: await canvasImg(assets, player.card), name: "yourCard.png" }])
             .setImage("attachment://yourCard.png")
             .setTimestamp()
             .setFooter("Please decide in 30 seconds.", message.client.user.displayAvatarURL());
-          let mssg = await player.user.send(em);
+          let mssg = await player.user.send({embeds: [em], files: [{ attachment: await canvasImg(assets, player.card), name: "yourCard.png" }]});
           await mssg.react("📥");
           await mssg.react("📤");
           await mssg.react("⏹️");
           var collected: any;
           try {
-            collected = await mssg.awaitReactions((r, u) => ["📥", "📤", "⏹️"].includes(r.emoji.name) && u.id === player.user.id, { time: 30 * 1000, max: 1 });
+            collected = await mssg.awaitReactions({ filter: (r, u) => ["📥", "📤", "⏹️"].includes(r.emoji.name) && u.id === player.user.id, time: 30 * 1000, max: 1 });
           } catch (err) { }
           var newCard = NorthClient.storage.card.random(drawCard > 0 ? drawCard : 1);
           var card = !newCard.length ? [toString(newCard)] : newCard.map(x => toString(x));
@@ -300,12 +300,11 @@ class UnoCommand implements SlashCommand {
               .setColor(c)
               .setTitle(`Your turn ended!`)
               .setDescription(`30 seconds have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
-              .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
               .setImage("attachment://newCard.png")
               .setTimestamp()
               .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
             await mssg.delete();
-            mssg.channel.send(em);
+            await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }]});
             player.card = player.card.concat(newCard);
             players.set(key, player);
             uno.set(id, { players: players, card: top, cards: uno.get(id).cards });
@@ -321,12 +320,11 @@ class UnoCommand implements SlashCommand {
                 .setColor(c)
                 .setTitle(`Your turn ended!`)
                 .setDescription(`You don't have any card to place so you are forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
-                .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                 .setImage("attachment://newCard.png")
                 .setTimestamp()
                 .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
               await mssg.delete();
-              mssg.channel.send(em);
+              await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }]});
               player.card = player.card.concat(newCard);
               players.set(key, player);
               uno.set(id, { players: players, card: top, cards: await uno.get(id).cards });
@@ -344,26 +342,24 @@ class UnoCommand implements SlashCommand {
               .setColor(c)
               .setTitle(`Action: Placing`)
               .setDescription(`Cards you can place:\n\n${placeCard.join("\n")}\nType the ID after the card to place.`)
-              .attachFiles([{ attachment: await canvasImg(assets, placeable), name: "place.png" }])
               .setImage("attachment://place.png")
               .setTimestamp()
               .setFooter(`Please decide in 30 seconds.`, message.client.user.displayAvatarURL());
             await mssg.delete();
-            mssg = await mssg.channel.send(em);
+            mssg = await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, placeable), name: "place.png" }]});
             try {
-              collected = await mssg.channel.awaitMessages(x => x.author.id === player.user.id, { max: 1, time: 30 * 1000 });
+              collected = await mssg.channel.awaitMessages({ filter: x => x.author.id === player.user.id, max: 1, time: 30 * 1000 });
             } catch (err) { }
             if (!collected || !collected.first() || !collected.first().content) {
               em = new Discord.MessageEmbed()
                 .setColor(c)
                 .setTitle(`Your turn ended!`)
                 .setDescription(`30 seconds have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
-                .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                 .setImage("attachment://newCard.png")
                 .setTimestamp()
                 .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
               await mssg.delete();
-              mssg.channel.send(em);
+              await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }]});
               player.card = player.card.concat(newCard);
               players.set(key, player);
               uno.set(id, { players: players, card: top, cards: await uno.get(id).cards });
@@ -393,15 +389,14 @@ class UnoCommand implements SlashCommand {
                 .setColor(c)
                 .setTitle(`Your turn ended!`)
                 .setDescription(`You cannot place that card so you drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
-                .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                 .setImage("attachment://newCard.png")
                 .setTimestamp()
                 .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
               await mssg.delete();
-              mssg.channel.send(em);
+              await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }]});
               player.card = player.card.concat(newCard);
               players.set(key, player);
-              uno.set(id, { players: players, card: top, cards: await uno.get(id).cards });
+              uno.set(id, { players: players, card: top, cards: uno.get(id).cards });
               drawCard = 0;
               draw.setDescription(`${player.user.tag} drew ${card.length} card${card.length > 1 ? "s" : ""}!`)
               mesg.edit(draw);
@@ -411,25 +406,24 @@ class UnoCommand implements SlashCommand {
             if (placedCard.number === 13 || placedCard.number === 14) {
               em.setDescription("Please choose your color:").setFooter("Please decide in 30 seconds.");
               await mssg.delete();
-              mssg = await mssg.channel.send(em);
+              mssg = await mssg.channel.send({embeds: [em]});
               let colors = ["🟥", "🟨", "🟦", "🟩"];
               for (var rColor of colors) {
                 mssg.react(rColor);
               }
               try {
-                collected = await mssg.awaitReactions((r, u) => colors.includes(r.emoji.name) && u.id === player.user.id, { max: 1, time: 30 * 1000 });
+                collected = await mssg.awaitReactions({ filter: (r, u) => colors.includes(r.emoji.name) && u.id === player.user.id, max: 1, time: 30 * 1000 });
               } catch (err) { }
               if (!collected?.first()) {
                 em = new Discord.MessageEmbed()
                   .setColor(c)
                   .setTitle(`Your turn ended!`)
                   .setDescription(`30 seconds have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
-                  .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
                   .setImage("attachment://newCard.png")
                   .setTimestamp()
                   .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
                 await mssg.delete();
-                mssg.channel.send(em);
+                mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }]});
                 player.card = player.card.concat(newCard);
                 players.set(key, player);
                 uno.set(id, { players: players, card: top, cards: await uno.get(id).cards });
@@ -480,7 +474,7 @@ class UnoCommand implements SlashCommand {
                 .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
             }
             await mssg.delete();
-            mssg.channel.send(em);
+            await mssg.channel.send({embeds: [em]});
             uno.set(id, { players: players, card: placedCard, cards: data.cards + 1 });
             let placed = new Discord.MessageEmbed()
               .setColor(c)
@@ -550,12 +544,11 @@ class UnoCommand implements SlashCommand {
               .setColor(c)
               .setTitle(`Your turn ended!`)
               .setDescription(`You drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
-              .attachFiles([{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }])
               .setImage("attachment://newCard.png")
               .setTimestamp()
               .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
             await mssg.delete();
-            mssg.channel.send(em);
+            await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }]});
             player.card = player.card.concat(newCard);
             players.set(key, player);
             uno.set(id, { players: players, card: top, cards: uno.get(id).cards });

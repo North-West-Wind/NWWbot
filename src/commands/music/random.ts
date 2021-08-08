@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 
@@ -10,16 +10,16 @@ class RandomCommand implements SlashCommand {
     aliases = ["rnd"]
     category = 8
 
-    async execute(obj: { interaction: Interaction }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        await this.random(obj.interaction);
+    async execute(interaction: NorthInteraction) {
+        if (!interaction.guild) return await interaction.reply("This command only works on server.");
+        await this.random(interaction);
     }
 
     async run(message: NorthMessage) {
         await this.random(message);
     }
 
-    async random(message: Message | Interaction) {
+    async random(message: Message | NorthInteraction) {
         var serverQueue = getQueues().get(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         serverQueue.random = !serverQueue.random;
@@ -28,7 +28,7 @@ class RandomCommand implements SlashCommand {
             if (serverQueue.random) await msgOrRes(message, "The queue will be played randomly.");
             else await msgOrRes(message, "The queue will be played in order.");
         } catch (err) {
-            await await msgOrRes(message, "There was an error trying to update the status!");
+            await msgOrRes(message, "There was an error trying to update the status!");
         }
     }
 }

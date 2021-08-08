@@ -1,6 +1,6 @@
-import { Message } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { GuildMember, Message } from "discord.js";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { moveArray, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 import arrayMove from "array-move";
@@ -17,19 +17,18 @@ class MoveCommand implements SlashCommand {
             name: "target",
             description: "The soundtrack to be moved.",
             required: true,
-            type: 4
+            type: "INTEGER"
         },
         {
             name: "destination",
             description: "The new position of the soundtrack.",
             required: true,
-            type: 4
+            type: "INTEGER"
         }
     ]
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        await this.move(obj.interaction, obj.args[0].value, obj.args[1].value);
+    async execute(interaction: NorthInteraction) {
+        await this.move(interaction, interaction.options.getInteger("target"), interaction.options.getInteger("destination"));
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -40,14 +39,14 @@ class MoveCommand implements SlashCommand {
         await this.move(message, queueIndex, dest);
     }
 
-    async move(message: Message | Interaction, queueIndex: number, dest: number) {
+    async move(message: Message | NorthInteraction, queueIndex: number, dest: number) {
         var serverQueue = getQueues().get(message.guild.id);
-        if ((message.member.voice.channelID !== message.guild.me.voice.channelID) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to alter the queue when the bot is playing!");
+        if (((<GuildMember> message.member).voice.channelId !== message.guild.me.voice.channelId) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to alter the queue when the bot is playing!");
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (serverQueue.songs.length < 1) return await msgOrRes(message, "There is nothing in the queue.");
         var targetIndex = queueIndex - 1;
         var destIndex = dest - 1;
-        if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing) serverQueue.connection?.dispatcher?.destroy();
+        if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing) serverQueue.stop();
         if (targetIndex > serverQueue.songs.length - 1) return await msgOrRes(message, `You cannot move a soundtrack that doesn't exist.`);
         var title = serverQueue.songs[targetIndex].title;
         arrayMove.mutate(serverQueue.songs, targetIndex, destIndex);

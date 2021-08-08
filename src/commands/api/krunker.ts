@@ -1,7 +1,7 @@
-import { Interaction } from "slashcord/dist/Index";
+
 import * as Discord from "discord.js";
 import { color } from "../../function";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { run } from "../../helpers/puppeteer";
 import { Page } from "puppeteer-core";
 import { globalClient as client } from "../../common";
@@ -19,24 +19,24 @@ class KrunkerCommand implements SlashCommand {
 
     options = [
         {
-            type: 1,
+            type: "SUB_COMMAND",
             name: "server",
             description: "Show all available Krunker servers.",
             options: [
                 {
-                    type: 3,
+                    type: "STRING",
                     name: "search",
                     description: "The name of the server."
                 }
             ]
         },
         {
-            type: 1,
+            type: "SUB_COMMAND",
             name: "changelog",
             description: "Fetch the changelog of Krunker.",
             options: [
                 {
-                    type: 3,
+                    type: "STRING",
                     name: "version",
                     description: "The version of changelog to fetch."
                 }
@@ -44,13 +44,14 @@ class KrunkerCommand implements SlashCommand {
         }
     ];
 
-    async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
-        if (obj.args[0].name === "server") {
-            const msg = <Discord.Message> await obj.interaction.reply("Loading servers...", { fetchReply: true });
-            await this.server(msg, obj.args[0]?.options ? obj.args[0]?.options[0]?.value : null, obj.interaction.member?.user ?? await obj.client.users.fetch(obj.interaction.channelID));
-        } else if (obj.args[0].name === "changelog") {
-            const msg = <Discord.Message> await obj.interaction.reply("Loading changelogs...", { fetchReply: true });
-            await this.changelog(msg, obj.args[0]?.options ? obj.args[0]?.options[0]?.value : null, obj.interaction.member?.user ?? await obj.client.users.fetch(obj.interaction.channelID));
+    async execute(interaction: NorthInteraction) {
+        const sub = interaction.options.getSubcommand();
+        if (sub === "server") {
+            const msg = <Discord.Message> await interaction.reply({ content: "Loading servers...", fetchReply: true });
+            await this.server(msg, interaction.options.getString("search") || null, interaction.user);
+        } else if (sub === "changelog") {
+            const msg = <Discord.Message> await interaction.reply({ content: "Loading changelogs...",  fetchReply: true });
+            await this.changelog(msg, interaction.options.getString("version") || null, interaction.user);
         }
     }
 
@@ -128,7 +129,7 @@ class KrunkerCommand implements SlashCommand {
                     .setFooter(`There are ${customPage} pages for custom games.`, client.user.displayAvatarURL());
                 allEmbeds.push(em);
             }
-            await msg.edit({ content: "", embed: allEmbeds[0] });
+            await msg.edit({ content: "", embeds: [allEmbeds[0]] });
 
             var s = 0;
             await msg.react("🎲");
@@ -139,7 +140,8 @@ class KrunkerCommand implements SlashCommand {
             await msg.react("▶");
             await msg.react("⏭");
             await msg.react("⏹");
-            var collector = msg.createReactionCollector((reaction, user) => (["🎲", "🔗", "⏩", "◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author.id), {
+            var collector = msg.createReactionCollector({
+                filter: (reaction, user) => (["🎲", "🔗", "⏩", "◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author.id),
                 idle: 60000
             });
             const linkEmbed = new Discord.MessageEmbed()
@@ -165,8 +167,8 @@ class KrunkerCommand implements SlashCommand {
                         if (s > officialPage - 1) options = Array.from(new Set(custom.map(x => x[0].split(":")[0])));
                         else options = Array.from(new Set(official.map(x => x[0].split(":")[0])));
                         linkEmbed.setDescription(`Available regions:\n**${options.join("\n")}**\n\nPlease type the region in the channel.`);
-                        await msg.edit({ content: "", embed: linkEmbed });
-                        const collected = await msg.channel.awaitMessages(m => m.author.id === author.id, { max: 1, time: 30000 });
+                        await msg.edit({ content: "", embeds: [linkEmbed] });
+                        const collected = await msg.channel.awaitMessages({ filter: m => m.author.id === author.id,  max: 1, time: 30000 });
                         if (collected && collected.first()) await collected.first().delete();
                         if (collected.first().content && options.includes(collected.first().content.split(/ +/)[0].toUpperCase())) {
                             const region = options.find(x => x === collected.first().content.split(/ +/)[0].toUpperCase());
@@ -178,8 +180,8 @@ class KrunkerCommand implements SlashCommand {
                         await msg.edit(allEmbeds[s]);
                         break;
                     case "⏩":
-                        await msg.edit({ content: "", embed: pageWarp });
-                        const collected1 = await msg.channel.awaitMessages(m => m.author.id === author.id, { max: 1, time: 30000 });
+                        await msg.edit({ content: "", embeds: [pageWarp] });
+                        const collected1 = await msg.channel.awaitMessages({ filter: m => m.author.id === author.id,  max: 1, time: 30000 });
                         if (collected1 && collected1.first()) await collected1.first().delete();
                         if (collected1.first().content && !isNaN(parseInt(collected1.first().content))) s = (parseInt(collected1.first().content) - 1) % allEmbeds.length;
                         await msg.edit(allEmbeds[s]);
@@ -213,7 +215,7 @@ class KrunkerCommand implements SlashCommand {
                 if (s > officialPage - 1) random = (`https://krunker.io/?game=${custom[Math.floor(Math.random() * custom.length)][0]}`);
                 else random = (`https://krunker.io/?game=${official[Math.floor(Math.random() * official.length)][0]}`);
                 if (random.endsWith("undefined")) random = "";
-                setTimeout(() => msg.edit({ content: random.length > 0 ? `Here's a random server:\n${random}` : "No server was found!", embed: null }), 30000);
+                setTimeout(() => msg.edit({ content: random.length > 0 ? `Here's a random server:\n${random}` : "No server was found!", embeds: null }), 30000);
             });
         } catch (err) {
             NorthClient.storage.error(err);

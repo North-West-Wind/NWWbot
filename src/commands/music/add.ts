@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { validYTPlaylistURL, validYTURL, validSPURL, validSCURL, validGDFolderURL, validGDURL, validGDDLURL, validMSURL, validURL, msgOrRes, wait } from "../../function";
 import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search } from "../../helpers/addTrack";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
@@ -15,19 +15,18 @@ class AddCommand implements SlashCommand {
         name: "link",
         description: "The link of the soundtrack.",
         required: true,
-        type: 3
+        type: "STRING"
     }]
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-      if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        await this.add(obj.interaction, obj.args[0].value);
+    async execute(interaction: NorthInteraction) {
+        await this.add(interaction, interaction.options.getString("link"));
     }
 
     async run(message: NorthMessage, args: string[]) {
         await this.add(message, args.join(" "));
     }
 
-    async add(message: Message | Interaction, str: string) {
+    async add(message: Message | NorthInteraction, str: string) {
         var serverQueue = getQueues().get(message.guild.id);
         try {
             var songs = [];
@@ -37,7 +36,7 @@ class AddCommand implements SlashCommand {
             else if (validSPURL(str)) result = await addSPURL(message, str);
             else if (validSCURL(str)) result = await addSCURL(str);
             else if (validGDFolderURL(str)) {
-                const msg = message instanceof Message ? await message.channel.send("Processing track: (Initializing)") : <Message> await message.reply("Processing track: (Initializing)", { fetchReply: true });
+                const msg = message instanceof Message ? await message.channel.send("Processing track: (Initializing)") : <Message> await message.reply({ content: "Processing track: (Initializing)", fetchReply: true });
                 result = await addGDFolderURL(str, async(i, l) => await msg.edit(`Processing track: **${i}/${l}**`));
                 result.msg = msg;
             } else if (validGDURL(str) || validGDDLURL(str)) result = await addGDURL(str);
@@ -56,7 +55,7 @@ class AddCommand implements SlashCommand {
             if (result.msg) msg = await result.msg.edit({ content: "", embed: Embed });
             else msg = await msgOrRes(message, Embed);
             await wait(30000);
-            await msg.edit({ embed: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
+            await msg.edit({ embeds: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
         } catch(err) {
             await msgOrRes(message, "There was an error trying to add the soundtrack to the queue!");
             NorthClient.storage.error(err);

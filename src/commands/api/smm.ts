@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { readableDateTime, color, createEmbedScrolling } from "../../function";
 import smm from "smm-api";
 import * as Discord from "discord.js";
@@ -20,12 +20,12 @@ class SMMCommand implements SlashCommand {
         name: "keywords",
         description: "The course to search for.",
         required: true,
-        type: 3
+        type: "STRING"
     }];
 
-    async execute(obj: { interaction: Interaction, args: any }) {
-        await obj.interaction.thinking();
-        await createEmbedScrolling({ interaction: obj.interaction, useEdit: true }, await this.getCourseEmbed(obj.args[0].value));
+    async execute(interaction: NorthInteraction) {
+        await interaction.deferReply();
+        await createEmbedScrolling({ interaction: interaction, useEdit: true }, await this.getCourseEmbed(interaction.options.getString("keywords")));
     }
 
     async run(message: NorthMessage, args: string[]) {

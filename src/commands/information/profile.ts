@@ -1,6 +1,6 @@
 import moment from "moment";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { findMember, color, createEmbedScrolling, readableDateTime } from "../../function";
 import * as Discord from "discord.js";
 
@@ -14,13 +14,13 @@ class ProfileCommand implements SlashCommand {
         name: "user",
         description: "The user's information to find.",
         required: false,
-        type: 6
+        type: "USER"
     }];
 
-    async execute(obj: { interaction: Interaction, client: NorthClient, args: any[] }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        const member = obj.args && obj.args[0]?.value ? await obj.interaction.guild.members.fetch(obj.args[0].value) : obj.interaction.member;
-        await obj.interaction.reply(this.createProfileEmbed(member));
+    async execute(interaction: NorthInteraction) {
+        if (!interaction.guild) return await interaction.reply("This command only works on server.");
+        const member = <Discord.GuildMember> (interaction.options.getMember("user") || interaction.member);
+        await interaction.reply({embeds: [this.createProfileEmbed(member)]});
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -44,7 +44,7 @@ class ProfileCommand implements SlashCommand {
             }
             allEmbeds.push(activityEm);
         }
-        if (allEmbeds.length == 1) await message.channel.send(Embed);
+        if (allEmbeds.length == 1) await message.channel.send({embeds: [Embed]});
         else await createEmbedScrolling(message, allEmbeds);
     }
 

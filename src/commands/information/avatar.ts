@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, findUser } from "../../function";
 import * as Discord from "discord.js";
 
@@ -13,22 +13,18 @@ class AvatarCommand implements SlashCommand {
         name: "user",
         description: "Displays the avatar of this user.",
         required: false,
-        type: 6
+        type: "USER"
     }];
 
-    async execute(obj: { interaction: Interaction, client: NorthClient, args: any[] }) {
-        var user: Discord.User;
-        if (obj.args && obj.args[0]?.value) user = await obj.client.users.fetch(obj.args[0].value);
-        else if (obj.interaction.guild) user = obj.interaction.member.user;
-        else user = await obj.client.users.fetch(obj.interaction.channelID);
-        if (!user) return await obj.interaction.reply("Failed to find the user.");
+    async execute(interaction: NorthInteraction) {
+        var user = interaction.options.getUser("user") || interaction.user;
         const Embed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle(user.username + "'s avatar: ")
             .setImage(user.displayAvatarURL({ size: 4096 }))
             .setTimestamp()
-            .setFooter("Have a nice day! :)", obj.client.user.displayAvatarURL());
-        await obj.interaction.reply(Embed);
+            .setFooter("Have a nice day! :)", interaction.client.user.displayAvatarURL());
+        await interaction.reply({embeds: [Embed]});
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -42,7 +38,7 @@ class AvatarCommand implements SlashCommand {
             .setImage(user.displayAvatarURL({ size: 4096 }))
             .setTimestamp()
             .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-        await message.channel.send(Embed);
+        await message.channel.send({embeds: [Embed]});
     }
 }
 

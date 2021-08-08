@@ -1,62 +1,86 @@
-import { Permissions, TextChannel } from "discord.js";
-import { Command, NorthMessage } from "../classes/NorthClient";
+import { GuildMember, Message, Permissions, TextChannel } from "discord.js";
+import { Command, NorthInteraction, NorthMessage } from "../classes/NorthClient";
+import { genPermMsg, msgOrRes } from "../function";
 
-var timeout;
+var timeout: NodeJS.Timeout;
 
-export async function all(command: Command, message: NorthMessage, args: string[]) {
-    if (command.args && args.length < command.args) {
-        await message.channel.send(`The command \`${message.prefix}${command.name}\` requires ${command.args} arguments.\nHere's how you are supposed to use it: \`${message.prefix}${command.name}${command.usage ? ` ${command.usage}` : ""}\``);
-        return false;
+export async function all(command: Command, message: NorthMessage | NorthInteraction, args: string[] = []) {
+    if (message instanceof Message) {
+        if (command.args && args.length < command.args) {
+            await msgOrRes(message, `The command \`${message.prefix}${command.name}\` requires ${command.args} arguments.\nHere's how you are supposed to use it: \`${message.prefix}${command.name}${command.usage ? ` ${command.usage}` : ""}\``);
+            return false;
+        }
+        if (message.guild && !(<TextChannel>message.channel).permissionsFor(message.guild.me).has(BigInt(84992))) {
+            await message.author.send(`I need at least the permissions to \`${new Permissions(BigInt(84992)).toArray().join("`, `")}\` in order to run any command! Please tell your server administrator about that.`);
+            return false;
+        }
     }
-    if (command.category === 10 && message.author.id != process.env.DC) {
-        await message.channel.send("Please don't use Dev Commands.");
-        return false;
-    }
-    if (message.guild && !(<TextChannel>message.channel).permissionsFor(message.guild.me).has(84992)) {
-        await message.author.send(`I need at least the permissions to \`${new Permissions(84992).toArray().join("`, `")}\` in order to run any command! Please tell your server administrator about that.`);
-        return false;
+    if (command.permissions && message.guild) {
+        if (command.permissions.guild) {
+            if (command.permissions.guild.user && !(<GuildMember> message.member).permissions.has(BigInt(command.permissions.guild.user))) {
+                await msgOrRes(message, genPermMsg(command.permissions.guild.user, 0));
+                return false;
+            }
+            if (command.permissions.guild.me && !message.guild.me.permissions.has(BigInt(command.permissions.guild.me))) {
+                await msgOrRes(message, genPermMsg(command.permissions.guild.me, 1));
+                return false;
+            }
+        }
+        if (command.permissions.channel) {
+            if (command.permissions.channel.user && !(<TextChannel> message.channel).permissionsFor(<GuildMember> message.member).has(BigInt(command.permissions.channel.user))) {
+                await msgOrRes(message, genPermMsg(command.permissions.channel.user, 0));
+                return false;
+            }
+            if (command.permissions.channel.me && !(<TextChannel> message.channel).permissionsFor(message.guild.me).has(BigInt(command.permissions.channel.me))) {
+                await msgOrRes(message, genPermMsg(command.permissions.channel.me, 1));
+                return false;
+            }
+        }
     }
     if (message.client.id == 0) {
         if (timeout) {
             clearTimeout(timeout);
             timeout = undefined;
-        } else message.client.user.setPresence({ activity: { name: `${message.author.username}'s Commands`, type: "WATCHING" }, status: "online", afk: false });
+        } else message.client.user.setPresence({ activities: [{ name: `${(message instanceof Message ? message.author : message.user).username}'s Commands`, type: "WATCHING" }], status: "online", afk: false });
         timeout = setTimeout(() => {
-            message.client.user.setPresence({ activity: { name: "AFK", type: "PLAYING" }, status: "idle", afk: true });
+            message.client.user.setPresence({ activities: [{ name: "AFK", type: "PLAYING" }], status: "idle", afk: true });
             timeout = undefined;
         }, 10000);
     }
     return true;
 }
-export async function managements(_command: Command, message: NorthMessage) {
+export async function managements(_command: Command, message: NorthMessage | NorthInteraction) {
     if (!message.guild) {
-        await message.channel.send("You can only use management commands in server!");
+        await msgOrRes(message, "You can only use management commands in server!");
         return false;
     }
     return true;
 }
-export async function moderator(_command: Command, message: NorthMessage) {
+export async function moderator(_command: Command, message: NorthMessage | NorthInteraction) {
     if (!message.guild) {
-        await message.channel.send("You can only use moderator commands in server!");
+        await msgOrRes(message, "You can only use moderator commands in server!");
         return false;
     }
     return true;
 }
-export async function music(_command: Command, message: NorthMessage) {
+export async function music(_command: Command, message: NorthMessage | NorthInteraction) {
     if (!message.guild) {
-        await message.channel.send("You can only use music commands in server!");
+        await msgOrRes(message, "You can only use music commands in server!");
         return false;
     }
     return true;
 }
-export async function nsfw(_command: Command, message: NorthMessage) {
+export async function nsfw(_command: Command, message: NorthMessage | NorthInteraction) {
     if (message.guild && !(<TextChannel>message.channel).nsfw) {
-        await message.channel.send("Please use an NSFW channel to use this command!");
+        await msgOrRes(message, "Please use an NSFW channel to use this command!");
         return false;
     }
     return true;
 }
-export async function dev(_command: Command, message: NorthMessage) {
-    if (message.author.id != process.env.DC) return false;
+export async function dev(_command: Command, message: NorthMessage | NorthInteraction) {
+    if ((message instanceof Message ? message.author : message.user).id != process.env.DC) {
+        await msgOrRes(message, "Please don't use Dev Commands.");
+        return false;
+    }
     return true;
 }

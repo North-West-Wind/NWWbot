@@ -1,6 +1,6 @@
 import RedditAPI from "reddit-wrapper-v2";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { validImgurURL, color } from "../../function";
 import * as Discord from "discord.js";
 import { globalClient as client } from "../../common";
@@ -27,15 +27,14 @@ class RedditCommand implements SlashCommand {
         name: "subreddit",
         description: "The subreddits to find memes from.",
         required: false,
-        type: 3
+        type: "STRING"
     }];
 
-    async execute(obj: { client: NorthClient, interaction: Interaction, args: any }) {
-        await obj.interaction.thinking();
-        const args = obj.args?.map(x => <string>x?.value).filter(x => !!x) || [];
-        const em = await this.getPost(args);
-        if (!em) await obj.interaction.edit("Failed to fetch Reddit post!");
-        else await obj.interaction.edit(em);
+    async execute(interaction: NorthInteraction) {
+        await interaction.deferReply();
+        const em = await this.getPost(interaction.options.getString("subreddit").split(/ +/));
+        if (!em) await interaction.editReply("Failed to fetch Reddit post!");
+        else await interaction.editReply(em);
     }
 
     async run(message: NorthMessage, args: string[]) {

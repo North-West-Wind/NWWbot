@@ -1,5 +1,5 @@
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { Interaction } from "slashcord/dist/Index";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
 import cleverbot from "cleverbot-free";
 
 const log = new Map();
@@ -14,12 +14,12 @@ class ChatCommand implements SlashCommand {
         name: "message",
         description: "The message to tell the bot.",
         required: true,
-        type: 3
+        type: "STRING"
     }];
 
-    async execute(obj: { interaction: Interaction, client: NorthClient, args: any[] }) {
-        await obj.interaction.thinking();
-        const author = obj.interaction.member.user;
+    async execute(interaction: NorthInteraction) {
+        await interaction.deferReply();
+        const author = interaction.member.user;
         var past = log.get(author.id);
         if (!past || Date.now() - past.lastChat > 1800000) {
             log.set(author.id, {
@@ -28,11 +28,12 @@ class ChatCommand implements SlashCommand {
             });
             past = log.get(author.id);
         }
-        const response = await cleverbot(obj.args[0].value, past.messages);
-        past.messages.push(obj.args[0].value);
+        const msg = interaction.options.getString("message");
+        const response = await cleverbot(msg, past.messages);
+        past.messages.push(msg);
         past.messages.push(response);
         log.set(author.id, past);
-        await obj.interaction.edit(response);
+        await interaction.editReply(response);
     }
 
     async run(message: NorthMessage, args: string[]) {

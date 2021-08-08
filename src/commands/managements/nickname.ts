@@ -1,7 +1,7 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+
+import { GuildMember } from "discord.js";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { genPermMsg, findMember } from "../../function";
-import args from "../dev/args";
 
 class NicknameCommand implements SlashCommand {
   name = "nickname"
@@ -10,39 +10,34 @@ class NicknameCommand implements SlashCommand {
   aliases = ["nick"]
   category = 0
   args = 2
-  permissions = 134217728
+  permissions = { guild: { user: 134217728, me: 134217728 } }
   options = [
       {
           name: "user",
           description: "The user to change nickname.",
           required: true,
-          type: 6
+          type: "USER"
       },
       {
           name: "nickname",
           description: "The new nickname of the user.",
           required: true,
-          type: 3
+          type: "STRING"
       }
   ];
 
-  async execute(obj: { interaction: Interaction, args: any[] }) {
-    if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-    if (!obj.interaction.member.permissions.has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 0));
-    if(!obj.interaction.guild.me.permissions.has(this.permissions)) return await obj.interaction.reply(genPermMsg(this.permissions, 1));
-    const member = await obj.interaction.guild.members.fetch(obj.args[0].value);
+  async execute(interaction: NorthInteraction) {
+    const member = <GuildMember> interaction.options.getMember("user");
     try {
-      await member.setNickname(obj.args[1].value);
+      await member.setNickname(interaction.options.getString("nickname"));
     } catch(err) {
       NorthClient.storage.error(err);
-      return await obj.interaction.reply("Failed to set nickname!");
+      return await interaction.reply("Failed to set nickname!");
     }
-    await obj.interaction.reply(`Set **${member.user.tag}**'s nickname to **${obj.args[1].value}**`);
+    await interaction.reply(`Set **${member.user.tag}**'s nickname to **${interaction.options.getString("nickname")}**`);
   }
 
-  async run(message, args) {
-    if (!message.member.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 0));
-    if(!message.guild.me.permissions.has(this.permissions)) return await message.channel.send(genPermMsg(this.permissions, 1));
+  async run(message: NorthMessage, args: string[]) {
 		const member = await findMember(message, args[0]);
     if(!member) return;
     try {

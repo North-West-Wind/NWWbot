@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, SlashCommand } from "../../classes/NorthClient";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 import { msgOrRes } from "../../function";
 
@@ -10,16 +10,15 @@ class RepeatCommand implements SlashCommand {
     aliases = ["rep", "rp"]
     category = 8
 
-    async execute(obj: { interaction: Interaction }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        await this.repeat(obj.interaction);
+    async execute(interaction: NorthInteraction) {
+        await this.repeat(interaction);
     }
 
     async run(message) {
         await this.repeat(message);
     }
 
-    async repeat(message: Message | Interaction) {
+    async repeat(message: Message | NorthInteraction) {
         var serverQueue = getQueues().get(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         serverQueue.repeating = !serverQueue.repeating;

@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, createEmbedScrolling, getFetch } from "../../function";
 import * as Discord from "discord.js";
 import { globalClient as client } from "../../common";
@@ -17,15 +17,16 @@ class SpeedrunCommand implements SlashCommand {
         name: "game",
         description: "The game of the speedrun.",
         required: true,
-        type: 3
+        type: "STRING"
     }];
 
-    async execute(obj: { args: any[], interaction: Interaction, client: NorthClient }) {
-        await obj.interaction.thinking();
-        const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(obj.args[0].value)}`).then(res => res.json());
+    async execute(interaction: NorthInteraction) {
+        await interaction.deferReply();
+        const game = interaction.options.getString("game");
+        const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(game)}`).then(res => res.json());
         var data: any, msg: Discord.Message;
         if (!gameFetch) {
-            ({ data, msg } = await this.chooseGame(obj.interaction, obj.args[0].value));
+            ({ data, msg } = await this.chooseGame(interaction, game));
             if (!data) return;
         } else {
             var em = new Discord.MessageEmbed()
@@ -34,17 +35,17 @@ class SpeedrunCommand implements SlashCommand {
                 .setDescription("This will take a while.")
                 .setTimestamp()
                 .setFooter("Please be patient.", client.user.displayAvatarURL());
-            msg = <Discord.Message> await obj.interaction.reply(em, { fetchReply: true });
+            msg = <Discord.Message> await interaction.reply({ embeds: [em], fetchReply: true });
             data = gameFetch.data;
         }
         const allEmbeds = await this.getEmbedsByID(data);
         if (allEmbeds.length == 1) await msg.edit(allEmbeds[0]);
         else if (allEmbeds.length < 1) {
-            em.setTitle(data.names.international).setDescription("No record was found for this game!").setFooter("Have a nice day! :)", obj.client.user.displayAvatarURL());
-            await msg.edit(em);
+            em.setTitle(data.names.international).setDescription("No record was found for this game!").setFooter("Have a nice day! :)", interaction.client.user.displayAvatarURL());
+            await msg.edit({embeds: [em]});
         } else {
             await msg.delete();
-            await createEmbedScrolling({ interaction: obj.interaction, useEdit: true }, allEmbeds);
+            await createEmbedScrolling({ interaction: interaction, useEdit: true }, allEmbeds);
         }
     }
 
@@ -61,7 +62,7 @@ class SpeedrunCommand implements SlashCommand {
                 .setDescription("This will take a while.")
                 .setTimestamp()
                 .setFooter("Please be patient.", client.user.displayAvatarURL());
-            msg = await message.channel.send(em);
+            msg = await message.channel.send({embeds: [em]});
             data = gameFetch.data;
         }
         const allEmbeds = await this.getEmbedsByID(data);
@@ -75,9 +76,9 @@ class SpeedrunCommand implements SlashCommand {
         }
     }
 
-    async chooseGame(message: Discord.Message | Interaction, name: string) {
+    async chooseGame(message: Discord.Message | NorthInteraction, name: string) {
         const games = [];
-        const author = message instanceof Discord.Message ? message.author.id : (message.member?.id ?? message.channelID);
+        const author = message instanceof Discord.Message ? message.author.id : message.user;
         var result = await fetch(`https://www.speedrun.com/api/v1/games?name=${escape(name)}&_bulk=1`).then(res => res.json());
         for (var i = 0; i < (result.data.length > 10 ? 10 : result.data.length); i++) games.push(`${i + 1}. **${result.data[i].names.international}** : **${result.data[i].abbreviation}**`);
         const em = new Discord.MessageEmbed()
@@ -88,32 +89,29 @@ class SpeedrunCommand implements SlashCommand {
             .setFooter("Cannot find your game? Try to be more specified.", message.client.user.displayAvatarURL());
         if (result.data.length == 0) {
             if (message instanceof Discord.Message) await message.channel.send("No game was found!");
-            else await message.edit("No game was found!");
+            else await message.editReply("No game was found!");
             return { data: null, msg };
         }
         var msg: Discord.Message, index: number;
-        if (message instanceof Discord.Message) msg = await message.channel.send(em);
-        else {
-            await message.reply(em);
-            msg = await message.fetchReply();
-        }
+        if (message instanceof Discord.Message) msg = await message.channel.send({embeds: [em]});
+        else msg = <Discord.Message> await message.reply({ embeds: [em], fetchReply: true });
         if (result.data.length > 1) {
             var choices = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "⏹"];
             for (var i = 0; i < games.length; i++) await msg.react(choices[i]);
             await msg.react(choices[10]);
-            const collected = await msg.awaitReactions((reaction, user) => choices.includes(reaction.emoji.name) && user.id === author, { max: 1, time: 30000 });
+            const collected = await msg.awaitReactions({ filter: (reaction, user) => choices.includes(reaction.emoji.name) && user.id === author, max: 1, time: 30000 });
             await msg.reactions.removeAll().catch(NorthClient.storage.error);
             if (!collected) {
                 em.setTitle("Timed Out").setDescription("Please try again.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-                await msg.edit(em);
+                await msg.edit({embeds: [em]});
                 return { data: null, msg };
             }
             em.setTitle("Loading...").setDescription("This will take a while.").setTimestamp().setFooter("Please be patient.", message.client.user.displayAvatarURL());
-            await msg.edit(em);
+            await msg.edit({embeds: [em]});
             const reaction = collected.first();
             if (reaction.emoji.name === choices[10]) {
                 em.setTitle("Action Cancelled.").setDescription("").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-                await msg.edit(em);
+                await msg.edit({embeds: [em]});
                 return { data: null, msg };
             }
             index = choices.indexOf(reaction.emoji.name);

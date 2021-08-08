@@ -1,6 +1,6 @@
 import { PermissionResolvable, Role } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { color } from "../../function";
 
@@ -15,16 +15,16 @@ class RoleInfoCommand implements SlashCommand {
       name: "role",
       description: "The role's information to display.",
       required: true,
-      type: 8
+      type: "ROLE"
   }];
   
-  async execute(obj: { interaction: Interaction, client: NorthClient, args: any[] }) {
-    if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-    const role = await obj.interaction.guild.roles.fetch(obj.args[0].value);
-    await obj.interaction.reply(this.createRoleEmbed(role, obj.client));
+  async execute(interaction: NorthInteraction) {
+    if (!interaction.guild) return await interaction.reply("This command only works on server.");
+    const role = <Role> interaction.options.getRole("role");
+    await interaction.reply({embeds: [this.createRoleEmbed(role, interaction.client)]});
   }
 
-  async run(message, args) {
+  async run(message: NorthMessage, args: string[]) {
     var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID)) || args.length > 1) {
       var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === args.join(" ").toLowerCase());
@@ -34,7 +34,7 @@ class RoleInfoCommand implements SlashCommand {
       if (!role) return message.channel.send("No role was found!");
     }
     const Embed = this.createRoleEmbed(role, message.client);
-    message.channel.send(Embed);
+    message.channel.send({embeds: [Embed]});
   }
 
   createRoleEmbed(role: Role, client: NorthClient) {
@@ -61,7 +61,7 @@ class RoleInfoCommand implements SlashCommand {
     .addField("Name", role.name, true)
     .addField("Member Count", `Members: \`${memberCount}\`\nUsers: \`${userMemberCount.length}\`\nBots: \`${botMemberCount.length}\``, true)
     .addField("Hoist? (Separated)", role.hoist ? "Yes" : "No", true)
-    .addField("Position", role.position, true)
+    .addField("Position", role.position.toString(), true)
     .addField("Color", (!role.hexColor.startsWith("#") ? "#" : "") + role.hexColor.toUpperCase(), true)
     .addField("Permissions", "`" + (permissions.length > 0 ? permissions.join("`, `").replace(/_/g, " ") : "N/A") + "`")
     .setTimestamp()

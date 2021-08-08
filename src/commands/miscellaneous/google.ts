@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { color } from "../../function";
 import { globalClient as client } from "../../common";
@@ -15,19 +15,19 @@ class GoogleCommand implements SlashCommand {
       name: "query",
       description: "The keywords to search for.",
       required: true,
-      type: 3
+      type: "STRING"
   }]
   
-  async execute(obj: { interaction: Interaction, args: any[] }) {
-    await obj.interaction.thinking();
-    await obj.interaction.edit(await this.getSearchEmbed(obj.args[0].value));
+  async execute(interaction: NorthInteraction) {
+    await interaction.deferReply();
+    await interaction.editReply({embeds: [await this.getSearchEmbed(interaction.options.getString("query"))]});
   }
 
-  async run(message, args) {
-    await message.channel.send(await this.getSearchEmbed(args.join(" ")));
+  async run(message: NorthMessage, args: string[]) {
+    await message.channel.send({embeds: [await this.getSearchEmbed(args.join(" "))]});
   }
 
-  async getSearchEmbed(query) {
+  async getSearchEmbed(query: string) {
     const results = [];
     var links = await googleIt({ limit: 10, query });
     var num = 0;

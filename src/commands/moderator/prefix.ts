@@ -1,5 +1,6 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { GuildMember } from "discord.js";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { genPermMsg } from "../../function";
 
 class PrefixCommand implements SlashCommand {
@@ -8,33 +9,32 @@ class PrefixCommand implements SlashCommand {
     usage = "[prefix]"
     category = 1
     aliases = ["pre"]
-    permission = 32
     options = [{
         name: "prefix",
         description: "A new prefix.",
         required: false,
-        type: 3
+        type: "STRING"
     }]
 
-    async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        const guild = obj.interaction.guild;
-        const member = obj.interaction.member;
-        if (!obj.args[0]?.value) return await obj.interaction.reply(`The prefix of this server is \`${NorthClient.storage.guilds[guild.id].prefix || obj.client.prefix}\`. Use \`/prefix [prefix]\` to change the prefix.`);
-        if (!member.hasPermission(this.permission)) return await obj.interaction.reply(genPermMsg(this.permission, 0));
-        NorthClient.storage.guilds[guild.id].prefix = obj.args[0].value;
+    async execute(interaction: NorthInteraction) {
+        if (!interaction.guild) return await interaction.reply("This command only works on server.");
+        const guild = interaction.guild;
+        const member = <GuildMember> interaction.member;
+        if (!interaction.options.getString("prefix")) return await interaction.reply(`The prefix of this server is \`${NorthClient.storage.guilds[guild.id].prefix || interaction.client.prefix}\`. Use \`/prefix [prefix]\` to change the prefix.`);
+        if (!member.permissions.has(BigInt(32))) return await interaction.reply(genPermMsg(32, 0));
+        NorthClient.storage.guilds[guild.id].prefix = interaction.options.getString("prefix");
         try {
-            await obj.client.pool.query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[guild.id].prefix === obj.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[guild.id].prefix}'`} WHERE id = '${guild.id}'`);
-            await obj.interaction.reply(`The prefix of this server has been changed to \`${NorthClient.storage.guilds[guild.id].prefix}\`.`);
+            await interaction.client.pool.query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[guild.id].prefix === interaction.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[guild.id].prefix}'`} WHERE id = '${guild.id}'`);
+            await interaction.reply(`The prefix of this server has been changed to \`${NorthClient.storage.guilds[guild.id].prefix}\`.`);
         } catch (err) {
             NorthClient.storage.error(err);
-            await obj.interaction.reply("there was an error trying to save the changes! The change of the prefix will be temporary!");
+            await interaction.reply("there was an error trying to save the changes! The change of the prefix will be temporary!");
         }
     }
 
     async run(message: NorthMessage, args: string[]) {
         if (!args[0]) return await message.channel.send(`The prefix of this server is \`${message.prefix}\`. Use \`${message.prefix}prefix [prefix]\` to change the prefix.`);
-        if (!message.member.hasPermission(this.permission)) return await message.channel.send(genPermMsg(this.permission, 0));
+        if (!message.member.permissions.has(BigInt(32))) return await message.channel.send(genPermMsg(32, 0));
         NorthClient.storage.guilds[message.guild.id].prefix = args.join(" ");
         await message.channel.send(`The prefix of this server has been changed to \`${NorthClient.storage.guilds[message.guild.id].prefix}\`.`);
         try {

@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { findUser, wait } from "../../function";
 
@@ -13,16 +13,16 @@ class RickrollCommand implements SlashCommand {
         name: "user",
         description: "The user to rickroll.",
         required: false,
-        type: 6
+        type: "USER"
     }];
     
-    async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
-        if (!obj.args[0]?.value) return await obj.interaction.reply("https://inviterick.com/rick.gif");
-        var user = await obj.client.users.fetch(obj.args[0].value);
-        if (user.id === obj.client.user.id || user.id == process.env.DC) user = obj.interaction.member?.user ?? await obj.client.users.fetch(obj.interaction.channelID);
-        await obj.interaction.reply(`Hey! <@${user.id}>`);
+    async execute(interaction: NorthInteraction) {
+        var user = interaction.options.getUser("user");
+        if (!user) return await interaction.reply("https://inviterick.com/rick.gif");
+        if (user.id === interaction.client.user.id || user.id == process.env.DC) user = interaction.user;
+        await interaction.reply(`Hey! <@${user.id}>`);
         await wait(5000);
-        await obj.interaction.followUp.send("https://inviterick.com/rick.gif");
+        await interaction.followUp("https://inviterick.com/rick.gif");
     }
 
     async run(message, args) {

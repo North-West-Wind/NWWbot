@@ -1,9 +1,8 @@
-import { Interaction } from "slashcord/dist/Index";
 import { color, createEmbedScrolling } from "../../function.js";
 import * as Discord from "discord.js";
 import cheerio from "cheerio";
 import { getFetch } from "../../function.js";
-import { SlashCommand, NorthMessage } from "../../classes/NorthClient.js";
+import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
 import { globalClient as client } from "../../common";
 const fetch = getFetch();
 
@@ -102,12 +101,12 @@ class KnowYourMemeCommand implements SlashCommand {
     name: "keywords",
     description: "The memes to search for.",
     required: true,
-    type: 3
+    type: "STRING"
   }];
-  async execute(obj: { interaction: Interaction, args: any[] }) {
-    await obj.interaction.thinking();
-    const allEmbeds = await this.getEmbeds(obj.args[0].value);
-    await createEmbedScrolling({ interaction: obj.interaction, useEdit: true }, allEmbeds);
+  async execute(interaction: NorthInteraction) {
+    await interaction.deferReply();
+    const allEmbeds = await this.getEmbeds(interaction.options.getString("keywords"));
+    await createEmbedScrolling({ interaction, useEdit: true }, allEmbeds);
   }
 
   async run(message: NorthMessage, args: string[]) {

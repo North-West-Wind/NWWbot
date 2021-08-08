@@ -1,12 +1,13 @@
-import { Message, TextChannel } from "discord.js";
+import { GuildMember, Message, Snowflake, TextChannel } from "discord.js";
 import moment from "moment";
-import { Interaction } from "slashcord/dist/Index";
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { setTimeout_, genPermMsg, findRole } from "../../function";
 import { globalClient as client } from "../../common";
 import { RowDataPacket } from "mysql2";
+import { Pool } from "mysql2/promise";
 
-export async function expire(message, length, id) {
+export async function expire(message: NorthMessage | NorthInteraction | { pool: Pool, client: NorthClient }, length: number, id: Snowflake) {
     setTimeout_(async () => {
         const con = await message.pool.getConnection();
         try {
@@ -15,7 +16,7 @@ export async function expire(message, length, id) {
             const date = Date.now();
             if (results[0].expiration - date <= 0) {
                 await con.query(`DELETE FROM rolemsg WHERE id = '${id}'`);
-                const channel = await message.client.channels.fetch(results[0].channel);
+                const channel = <TextChannel> await message.client.channels.fetch(results[0].channel);
                 const msg = await channel.messages.fetch(results[0].id);
                 msg.reactions.removeAll().catch(() => { });
             } else expire(message, results[0].expiration - date, id);
@@ -37,29 +38,30 @@ class RoleMessageCommand implements SlashCommand {
     aliases = ["role-msg", "rm"]
     category = 0
     args = 1
-    permissions = 10240
+    permissions = { guild: { user: 268435456, me: 268435456 } }
     options = [
         {
             name: "create",
             description: "Create a new role-message.",
-            type: 1
+            type: "SUB_COMMAND"
         },
         {
             name: "refresh",
             description: "Refresh an existing role-message.",
-            type: 1,
+            type: "SUB_COMMAND",
             options: [{
                 name: "message",
                 description: "The ID of the role-message.",
                 required: true,
-                type: 3
+                type: "STRING"
             }]
         }
     ];
 
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        if (obj.args[0].name === "create") return await this.create(obj.interaction);
-        if (obj.args[0].name === "refresh") return await this.refresh(obj.interaction, obj.args[0].options[0].value);
+    async execute(interaction: NorthInteraction) {
+        const sub = interaction.options.getSubcommand();
+        if (sub === "create") return await this.create(interaction);
+        if (sub === "refresh") return await this.refresh(interaction, interaction.options.getString("message"));
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -67,19 +69,17 @@ class RoleMessageCommand implements SlashCommand {
         if (args[0] === "refresh" || args[0] === "re") return await this.refresh(message, args[1]);
     }
 
-    async create(message: Message | Interaction) {
-        if (!message.guild.me.permissions.has(268435456)) return await message.channel.send(genPermMsg(268435456, 1));
-        if (!message.member.permissions.has(268435456)) return await message.channel.send(genPermMsg(268435456, 0));
+    async create(message: NorthMessage | NorthInteraction) {
         const author = message.member.user;
-        var msg = <Message> (message instanceof Message ? await message.channel.send("Please enter the message you want to send.") : await message.reply("Please enter the message you want to send.", { fetchReply: true }));
-        const collected = await message.channel.awaitMessages(x => x.author.id === author.id, { time: 120000, max: 1 });
+        var msg = <Message> (message instanceof Message ? await message.channel.send("Please enter the message you want to send.") : await message.reply({ content: "Please enter the message you want to send.", fetchReply: true }));
+        const collected = await message.channel.awaitMessages({ filter: x => x.author.id === author.id, time: 120000, max: 1 });
         if (!collected.first()) return await msg.edit("Did not receive any message in time! Action cancelled.");
         await collected.first().delete();
         const pendingMsg = collected.first().content;
         if (!pendingMsg) return await msg.edit("Did not receive any message! Action cancelled.");
         if (pendingMsg === "cancel") return await msg.edit("Action cancelled.");
         await msg.edit("Message received.\n\nNow, please tell me where you want the message to go to by mentioning the channel.");
-        const collected2 = await message.channel.awaitMessages(x => x.author.id === author.id, { time: 30000, max: 1 });
+        const collected2 = await message.channel.awaitMessages({ filter: x => x.author.id === author.id, time: 30000, max: 1 });
         if (!collected2.first()) return msg.edit("30 seconds have passed but you didn't mention any channel! Action cancelled.");
         await collected2.first().delete();
         if (!collected2.first().content) return await msg.edit("Did not receive any channel! Action cancelled.");
@@ -87,10 +87,10 @@ class RoleMessageCommand implements SlashCommand {
         const channelID = collected2.first().content.replace(/<#/g, "").replace(/>/g, "");
         const channel = <TextChannel> await client.channels.fetch(channelID);
         if (!channel) return msg.edit(channelID + " isn't a valid channel!");
-        if (!channel.permissionsFor(message.guild.me).has(this.permissions)) return await msg.edit(genPermMsg(this.permissions, 1));
-        if (!channel.permissionsFor(message.member).has(this.permissions)) return await msg.edit(genPermMsg(this.permissions, 0));
+        if (!channel.permissionsFor(message.guild.me).has(BigInt(10240))) return await msg.edit(genPermMsg(10240, 1));
+        if (!channel.permissionsFor(<GuildMember> message.member).has(BigInt(10240))) return await msg.edit(genPermMsg(10240, 0));
         await msg.edit(`Great! The channel will be <#${channel.id}>.\n\nAfter that, can you tell me what role you are giving the users? Please break a line for each role.`);
-        const collected3 = await message.channel.awaitMessages(x => x.author.id === author.id, { time: 60000, max: 1 });
+        const collected3 = await message.channel.awaitMessages({ filter: x => x.author.id === author.id, time: 60000, max: 1 });
         if (!collected3.first()) return await msg.edit("Did not receive any role in time! Action cancelled.");
         await collected3.first().delete();
         if (!collected3.first().content) return await msg.edit("Did not receive any role! Action cancelled.");
@@ -109,7 +109,7 @@ class RoleMessageCommand implements SlashCommand {
             roles.push(roless);
         }
         await msg.edit(`**${roles.length}** role${roles.length > 1 ? "s" : ""} received.\n\nAt last, you will need to provide the reactions/emojis you want for each role! Break a line for each of them.`);
-        const collected4 = await message.channel.awaitMessages(x => x.author.id === author.id, { time: 60000, max: 1 });
+        const collected4 = await message.channel.awaitMessages({ filter: x => x.author.id === author.id, time: 60000, max: 1 });
         if (!collected4.first()) return await msg.edit("Did not receive any emoji in time! Action cancelled.");
         if (!collected4.first().content) return await msg.edit("Did not receive any emoji! Action cancelled.");
         await collected4.first().delete();
@@ -149,7 +149,7 @@ class RoleMessageCommand implements SlashCommand {
         }
     }
 
-    async refresh(message: NorthMessage | Interaction, id: string) {
+    async refresh(message: NorthMessage | NorthInteraction, id: string) {
         const author = message.member.user;
         const con = await client.pool.getConnection();
         try {

@@ -1,7 +1,7 @@
-import { NorthClient, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, deepReaddir, wait } from "../../function";
 import * as Discord from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
+
 import { AkiCommand } from "../api/aki";
 import { globalClient as client } from "../../common";
 
@@ -21,7 +21,7 @@ class HelpCommand implements SlashCommand {
       {
         name: "all",
         description: "Display all the commands.",
-        type: 1
+        type: "SUB_COMMAND"
       }
     ];
     const commandFiles = deepReaddir("./out/commands").filter(file => file.endsWith(".js"));
@@ -30,42 +30,43 @@ class HelpCommand implements SlashCommand {
         name: "command",
         description: "The command to fetch.",
         required: true,
-        type: 3,
+        type: "STRING",
         choices: commandFiles.map(file => require(file)).filter(command => command.category === sCategories.indexOf(category)).map(x => ({ name: x.name, value: x.name }))
       };
       const option = {
         name: category.toLowerCase(),
         description: `${category} - Command Category`,
-        type: 1,
+        type: "SUB_COMMAND",
         options: [fetchOpt]
       };
       this.options.push(option);
     }
   }
 
-  async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
-    if (obj.args[0].name === "all" || !obj.args[0]?.options || !obj.args[0]?.options[0]?.value) {
-      await obj.interaction.reply(this.getAllCommands());
+  async execute(interaction: NorthInteraction) {
+    const sub = interaction.options.getSubcommand();
+    if (sub === "all") {
+      await interaction.reply({embeds: [this.getAllCommands()]});
       await wait(60000);
-      await obj.interaction.edit({
+      await interaction.editReply({
         content: "This is the **[manual](https://northwestwind.ml/manual.pdf)**, my friend.",
         embeds: null
       });
       return;
     }
 
-    const name = obj.args[0]?.options[0]?.value?.toLowerCase();
-    await obj.interaction.reply(this.getCommand(name, "/").join("\n"));
+    const name = interaction.options.getString("command").toLowerCase();
+    await interaction.reply(this.getCommand(name, "/").join("\n"));
   }
 
   async run(message: NorthMessage, args: string[]) {
     if (!args.length) {
-      const msg = await message.channel.send(this.getAllCommands());
-      setTimeout(async () => await msg.edit({ content: "This is the **manual**, my friend:\nhttps://northwestwind.ml/manual.pdf", embed: null }), 60000);
+      const msg = await message.channel.send({embeds: [this.getAllCommands()]});
+      setTimeout(async () => await msg.edit({ content: "This is the **manual**, my friend:\nhttps://northwestwind.ml/manual.pdf", embeds: null }), 60000);
       return;
     }
     const name = args[0].toLowerCase();
-    await message.channel.send(this.getCommand(name, message.prefix), { split: true });
+    await message.channel.send(this.getCommand(name, message.prefix).join("\n"));
   }
 
   getAllCommands() {

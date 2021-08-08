@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { Interaction } from "slashcord/dist/Index";
-import { SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, SlashCommand } from "../../classes/NorthClient";
 import { msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 
@@ -10,16 +10,15 @@ class LoopCommand implements SlashCommand {
     category = 8
     aliases = ["lp"]
 
-    async execute(obj: { interaction: Interaction }) {
-        if (!obj.interaction.guild) return await obj.interaction.reply("This command only works on server.");
-        await this.loop(obj.interaction);
+    async execute(interaction: NorthInteraction) {
+        await this.loop(interaction);
     }
 
     async run(message: Message) {
         await this.loop(message);
     }
 
-    async loop(message: Message | Interaction) {
+    async loop(message: Message | NorthInteraction) {
         var serverQueue = getQueues().get(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         serverQueue.looping = !serverQueue.looping;

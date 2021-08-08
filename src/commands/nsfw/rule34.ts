@@ -1,7 +1,7 @@
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { capitalize, color, xmlToJson, getFetch } from "../../function.js";
-import { Interaction } from "slashcord/dist/Index";
+
 import { globalClient as client } from "../../common";
 
 const fetch = getFetch();
@@ -17,16 +17,15 @@ class Rule34Command implements SlashCommand {
         name: "tags",
         description: "The tags of rule34 to search for.",
         required: true,
-        type: 3
+        type: "STRING"
     }];
-    async execute(obj: { interaction: Interaction, args: any[] }) {
-        if (obj.interaction.guild && !obj.interaction.channel.nsfw) return await obj.interaction.reply("Please use an NSFW channel to use this command!");
-        const args = obj.args[0].value.split(/ +/);
-        await obj.interaction.reply(await this.getPost(args.map(x => x.split("_").map(y => encodeURIComponent(capitalize(y))).join("_"))));
+    async execute(interaction: NorthInteraction) {
+        const args = interaction.options.getString("tags").split(/ +/);
+        await interaction.reply({embeds: [await this.getPost(args.map(x => x.split("_").map(y => encodeURIComponent(capitalize(y))).join("_")))]});
     }
 
     async run(message: NorthMessage, args: string[]) {
-        await message.channel.send(await this.getPost(args.map(x => x.split("_").map(y => encodeURIComponent(capitalize(y))).join("_"))));
+        await message.channel.send({embeds: [await this.getPost(args.map(x => x.split("_").map(y => encodeURIComponent(capitalize(y))).join("_")))]});
     }
 
     async getPost(tags: string[]) {

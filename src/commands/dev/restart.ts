@@ -1,5 +1,5 @@
-import { Interaction } from "slashcord/dist/Index";
-import { NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 
 class RestartCommand implements SlashCommand {
     name = "restart"
@@ -7,9 +7,9 @@ class RestartCommand implements SlashCommand {
     aliases = ["re"]
     category = 10
 
-    async execute(obj: { interaction: Interaction }) {
-        if (obj.interaction.member.id != process.env.DC) return await obj.interaction.reply("You can't use this!");
-        await obj.interaction.reply("Restarted.");
+    async execute(interaction: NorthInteraction) {
+        if (interaction.user.id != process.env.DC) return await interaction.reply("You can't use this!");
+        await interaction.reply("Restarted.");
         process.exit(0);
     }
 

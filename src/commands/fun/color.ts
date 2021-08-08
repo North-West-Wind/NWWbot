@@ -1,5 +1,5 @@
-import { NorthClient, SlashCommand } from "../../classes/NorthClient";
-import { Interaction } from "slashcord/dist/Index";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+
 import * as Discord from "discord.js";
 import { createCanvas } from "canvas";
 import { hexToRgb, decimalToRgb } from "../../function";
@@ -44,21 +44,21 @@ class ColorCommand implements SlashCommand {
         name: "color",
         description: "The color to display.",
         required: false,
-        type: 3
+        type: "STRING"
     }];
     
-    async execute(obj: { interaction: Interaction, args: any[], client: NorthClient }) {
-        const args = obj.args[0].value.split(/ +/);
+    async execute(interaction: NorthInteraction) {
+        const args = interaction.options.getString("color").split(/ +/);
         const { red, green, blue, random } = getColor(args);
         const em = new Discord.MessageEmbed()
         .setTitle(`Color: ${red} ${green} ${blue}`)
         .setColor([red, green, blue])
         .setDescription("← That is your color!\n(Sorry, slash commands currently doesn't allow sending attachments)")
-        .setFooter(random ? "Cannot parse your color... so here's a random color." : `This is the color you want me to show. Do you like it?`, obj.client.user.displayAvatarURL());
-        await obj.interaction.reply(em);
+        .setFooter(random ? "Cannot parse your color... so here's a random color." : `This is the color you want me to show. Do you like it?`, interaction.client.user.displayAvatarURL());
+        await interaction.reply({embeds: [em]});
     }
 
-    async run(message, args) {
+    async run(message: NorthMessage, args: string[]) {
         const { red, green, blue, random } = getColor(args);
         var canvas = createCanvas(1024, 1024);
         var ctx = canvas.getContext("2d");
@@ -67,10 +67,9 @@ class ColorCommand implements SlashCommand {
         const em = new Discord.MessageEmbed()
         .setTitle(`Color: ${red} ${green} ${blue}`)
         .setColor([red, green, blue])
-        .attachFiles([{ attachment: canvas.toBuffer(), name: `${red}_${green}_${blue}.png` }])
         .setImage(`attachment://${red}_${green}_${blue}.png`)
         .setFooter(random ? "Cannot parse your color... so here's a random color." : `This is the color you want me to show. Do you like it?`, message.client.user.displayAvatarURL());
-        await message.channel.send(em);
+        await message.channel.send({embeds: [em], files: [{ attachment: canvas.toBuffer(), name: `${red}_${green}_${blue}.png` }]});
     }
 }
 
