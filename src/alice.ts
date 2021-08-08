@@ -15,8 +15,6 @@ const client = new NorthClient({
       MessageManager: 50,
       PresenceManager: 0
   }),
-  messageCacheLifetime: 3600,
-  messageSweepInterval: 300,
   partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER', 'GUILD_MEMBER'],
   intents: [
       Intents.FLAGS.DIRECT_MESSAGES,

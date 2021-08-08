@@ -40,3 +40,6 @@ class DevSlashCommand implements SlashCommand {
         await msgOrRes(message, "Registered all Slash Commands.", true);
     }
 }
+
+const cmd = new DevSlashCommand();
+export default cmd;
