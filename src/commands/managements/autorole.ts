@@ -1,11 +1,11 @@
 
 import { Role } from "discord.js";
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { findMember, findMemberWithGuild, genPermMsg } from "../../function";
+import { findMember, findMemberWithGuild } from "../../function";
 
 class AutoRoleCommand implements SlashCommand {
   name = "autorole"
-  description = 'The command is very similar to the “?role” command, but it can assign a single role to multiple users at once.'
+  description = 'Assigns a single role to multiple users at once.'
   usage = "<role | role ID | role name> <user | user ID>"
   category = 0
   args = 2
