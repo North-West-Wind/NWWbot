@@ -5,7 +5,7 @@ import { findMember, findMemberWithGuild, genPermMsg } from "../../function";
 
 class AutoRoleCommand implements SlashCommand {
   name = "autorole"
-  description = 'This has nothing to do with the auto-role when a user joins the server. The command is very similar to the “?role” command, but it can assign a single role to multiple users at once.'
+  description = 'The command is very similar to the “?role” command, but it can assign a single role to multiple users at once.'
   usage = "<role | role ID | role name> <user | user ID>"
   category = 0
   args = 2
