@@ -14,7 +14,7 @@ import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, 
 import * as Stream from 'stream';
 import { globalClient as client } from "../../common.js";
 import { InputFileFormat } from "webmscore/schemas";
-import { AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, demuxProbe, DiscordGatewayAdapterCreator, getVoiceConnection, joinVoiceChannel } from "@discordjs/voice";
+import { AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, DiscordGatewayAdapterCreator, getVoiceConnection, joinVoiceChannel } from "@discordjs/voice";
 const fetch = getFetch();
 
 function createPlayer(guild: Discord.Guild) {
@@ -155,10 +155,12 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         else stream = ytdl(song.url, { highWaterMark: 1 << 25 });
         break;
     }
-    const command = new FfmpegCommand(stream);
-    const transform = new Stream.Transform();
-    command.seekInput(seek).output(transform);
-    serverQueue.player.play(await probeAndCreateResource(transform));
+    if (seek) {
+      const command = new FfmpegCommand(stream);
+      const transform = new Stream.Transform();
+      command.seekInput(seek).output(transform);
+      serverQueue.player.play(await probeAndCreateResource(transform));
+    } else serverQueue.player.play(await probeAndCreateResource(stream));
   } catch (err) {
     NorthClient.storage.error(err);
   }
