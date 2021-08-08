@@ -515,6 +515,7 @@ export class AliceHandler extends Handler {
         client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
     }
 
+    /*
     async preRead(client: NorthClient, con: Connection) {
         const storage = NorthClient.storage;
         client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => storage.guilds[g.id].invites = guildInvites).catch(() => { }));
@@ -645,6 +646,7 @@ export class AliceHandler extends Handler {
             }
         }, 30000);
     }
+    */
 
     async readGiveaways(client: NorthClient, con: Connection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' ORDER BY endAt ASC");
