@@ -39,7 +39,7 @@ class SpeedrunCommand implements SlashCommand {
             data = gameFetch.data;
         }
         const allEmbeds = await this.getEmbedsByID(data);
-        if (allEmbeds.length == 1) await msg.edit(allEmbeds[0]);
+        if (allEmbeds.length == 1) await msg.edit({ embeds: [allEmbeds[0] ]});
         else if (allEmbeds.length < 1) {
             em.setTitle(data.names.international).setDescription("No record was found for this game!").setFooter("Have a nice day! :)", interaction.client.user.displayAvatarURL());
             await msg.edit({embeds: [em]});

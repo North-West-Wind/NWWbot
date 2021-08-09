@@ -1,20 +1,10 @@
-import RedditAPI from "reddit-wrapper-v2";
-
+import RedditAPI, { API } from "reddit-wrapper-v2";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { validImgurURL, color } from "../../function";
 import * as Discord from "discord.js";
 import { globalClient as client } from "../../common";
 
-const redditConn = RedditAPI({
-    username: process.env.RUSER,
-    password: process.env.RPW,
-    app_id: process.env.APPID,
-    api_secret: process.env.APPSECRET,
-    user_agent: "Reddit-Watcher-V2",
-    retry_on_wait: true,
-    retry_on_server_error: 5,
-    retry_delay: 1
-});
+var redditConn: { api: API };
 const def = ["memes", "dankmemes", "meme"];
 
 class RedditCommand implements SlashCommand {
@@ -29,6 +19,19 @@ class RedditCommand implements SlashCommand {
         required: false,
         type: "STRING"
     }];
+
+    constructor() {
+        redditConn = RedditAPI({
+            username: process.env.RUSER,
+            password: process.env.RPW,
+            app_id: process.env.APPID,
+            api_secret: process.env.APPSECRET,
+            user_agent: "Reddit-Watcher-V2",
+            retry_on_wait: true,
+            retry_on_server_error: 5,
+            retry_delay: 1
+        });
+    }
 
     async execute(interaction: NorthInteraction) {
         await interaction.deferReply();

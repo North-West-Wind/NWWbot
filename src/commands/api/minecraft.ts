@@ -190,7 +190,7 @@ class MinecraftCommand implements SlashCommand {
                 }
             }
         }
-        const projects = <SimpleProject[]>await curseforge.searchProject({ category, gameVersion: version, sort: <keyof typeof SortTypes>sort, filter, pageSize: 100 });
+        const projects = <SimpleProject[]>await curseforge.searchProject({ category, gameVersion: version, sort: <keyof typeof SortTypes>sort, filter });
         const allEmbeds = [];
         var categories = CategoryList;
         for (let i = 0; i < Math.ceil(projects.length / 10); i++) {
