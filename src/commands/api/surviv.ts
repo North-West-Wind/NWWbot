@@ -1,6 +1,6 @@
 import { MessageEmbed } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, createEmbedScrolling, readableDateTime } from "../../function";
 import { globalClient as client } from "../../common";
 import { getHistory, getStats, Stats, StatsMode } from "survivio-api";

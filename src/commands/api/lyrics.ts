@@ -59,8 +59,9 @@ class LyricsCommand implements SlashCommand {
     }
 
     async createLyricsEmbeds(lyrics: string, title: string, author: string, icon: string) {
+        var splitChar = "\n\n";
         var lyricsArr = lyrics.split("\n\n");
-        if (lyricsArr.length === 1) lyricsArr = lyrics.split("\n");
+        if (lyricsArr.length === 1) lyricsArr = lyrics.split(splitChar = "\n");
         const allEmbeds = [];
         for (let i = 0; i < lyricsArr.length; i++) {
             var str = [];
@@ -90,8 +91,8 @@ class LyricsCommand implements SlashCommand {
                 continue;
             }
             async function recheck() {
-                var tempLength = str.join("\n\n").length;
-                if ((isNaN(tempLength) ? 0 : tempLength) + ("\n\n").length + (lyricsArr[i] ? lyricsArr[i].length : 2048) < 2048) {
+                var tempLength = str.join(splitChar).length;
+                if ((isNaN(tempLength) ? 0 : tempLength) + splitChar.length + (lyricsArr[i] ? lyricsArr[i].length : 2048) < 2048) {
                     str.push(lyricsArr[i]);
                     i++;
                     return await recheck();
@@ -105,7 +106,7 @@ class LyricsCommand implements SlashCommand {
                 .setColor(color())
                 .setTitle(title)
                 .setAuthor(author)
-                .setDescription(str.join("\n\n"))
+                .setDescription(str.join(splitChar))
                 .setTimestamp()
                 .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
             allEmbeds.push(em);

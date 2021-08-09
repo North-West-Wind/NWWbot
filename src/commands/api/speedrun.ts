@@ -94,7 +94,7 @@ class SpeedrunCommand implements SlashCommand {
         }
         var msg: Discord.Message, index: number;
         if (message instanceof Discord.Message) msg = await message.channel.send({embeds: [em]});
-        else msg = <Discord.Message> await message.reply({ embeds: [em], fetchReply: true });
+        else msg = <Discord.Message> await message.editReply({ embeds: [em] });
         if (result.data.length > 1) {
             var choices = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "⏹"];
             for (var i = 0; i < games.length; i++) await msg.react(choices[i]);

@@ -110,7 +110,7 @@ class GiveawayCommand implements SlashCommand {
   aliases = ["g"]
   subcommands = ["create", "end", "list"]
   subdesc = ["Create a giveaway on the server.", "End a giveaway on the server.", "List all the giveaways on the server."]
-  subusage = ["<subcommand> [channel] [duration] [winner count] [item]", "<subcommand> <ID>"]
+  subusage = ["<subcommand> <channel> <duration> <winner count> <item>", "<subcommand> <ID>"]
   category = 4
   options = [
       {

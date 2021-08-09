@@ -32,7 +32,7 @@ class RedditCommand implements SlashCommand {
 
     async execute(interaction: NorthInteraction) {
         await interaction.deferReply();
-        const em = await this.getPost(interaction.options.getString("subreddit").split(/ +/));
+        const em = await this.getPost(interaction.options.getString("subreddit")?.split(/ +/) || []);
         if (!em) await interaction.editReply("Failed to fetch Reddit post!");
         else await interaction.editReply(em);
     }

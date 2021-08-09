@@ -95,15 +95,15 @@ class MinecraftCommand implements SlashCommand {
     }
 
     async execute(interaction: NorthInteraction) {
+        await interaction.deferReply();
         const sub = interaction.options.getSubcommand();
         if (sub === this.subcommands[0]) {
             const str = interaction.options.getString("username");
             var r = await profile(str);
-            if (!r) return await interaction.reply("No player named **" + str + "** were found");
+            if (!r) return await interaction.editReply("No player named **" + str + "** were found");
             const em = this.getProfileEmbed(r);
-            await interaction.reply({ embeds: [em] });
+            await interaction.editReply({ embeds: [em] });
         } else if (sub === this.subcommands[1]) {
-            await interaction.reply("Retrieving server information...");
             const str = interaction.options.getString("ip");
             const url = `https://api.mcsrvstat.us/2/${str}`;
             const res = await fetch(url);
@@ -114,13 +114,13 @@ class MinecraftCommand implements SlashCommand {
         } else if (sub === this.subcommands[2]) {
             const str = interaction.options.getString("username");
             const res = await nameToUuid(str);
-            if (!res) await interaction.reply("No player named **" + str + "** were found");
-            else await interaction.reply({ embeds: [await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(str))] });
+            if (!res) await interaction.editReply("No player named **" + str + "** were found");
+            else await interaction.editReply({ embeds: [await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(str))] });
         } else if (sub === this.subcommands[3]) {
-            await interaction.reply("Fetching CurseForge projects...");
+            //await interaction.reply("Fetching CurseForge projects...");
             const cArgs = ["curseforge", interaction.options.getString("category"), interaction.options.getString("version"), interaction.options.getString("sort"), interaction.options.getString("keywords")];
             await this.cf(<Message> await interaction.fetchReply(), cArgs);
-            await interaction.deleteReply();
+            //await interaction.deleteReply();
         }
     }
 
