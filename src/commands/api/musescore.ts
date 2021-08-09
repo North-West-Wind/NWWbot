@@ -78,6 +78,7 @@ class MusescoreCommand implements SlashCommand {
     }];
 
     async execute(interaction: NorthInteraction) {
+        await interaction.deferReply();
         const score = interaction.options.getString("score");
         if (!validMSURL(score)) return await this.search(interaction, score);
         await this.metadata(interaction, score);
@@ -89,7 +90,7 @@ class MusescoreCommand implements SlashCommand {
     }
 
     async metadata(message: NorthMessage | NorthInteraction, url: string) {
-        var msg = <Discord.Message> await msgOrRes(message, "Loading score...");
+        var msg = await msgOrRes(message, "Loading score...", true);
         try {
             var data = await muse(url);
         } catch (err) {
@@ -112,7 +113,7 @@ class MusescoreCommand implements SlashCommand {
             .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ? (data.parts.join(", ").length > 1024 ? (data.parts.join(" ").slice(0, 1020) + "...") : data.parts.join(" ")) : "None")
             .setTimestamp()
             .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
-        msg = await msg.edit({ content: "", embeds: [em] });
+        msg = await msg.edit({ embeds: [em] });
         await msg.react("📥");
         const author = (message instanceof Discord.Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelId))).id;
         const collected = await msg.awaitReactions({ filter: (r, u) => r.emoji.name === "📥" && u.id === author,  max: 1, time: 30000 });
@@ -223,28 +224,28 @@ class MusescoreCommand implements SlashCommand {
         await msg.react("▶");
         await msg.react("⏭");
         await msg.react("⏹");
-        var collector = await msg.createReactionCollector({ filter, idle: 60000 });
+        var collector = msg.createReactionCollector({ filter, idle: 60000 });
 
         collector.on("collect", async function (reaction, user) {
             reaction.users.remove(user.id);
             switch (reaction.emoji.name) {
                 case "⏮":
                     s = 0;
-                    msg.edit(allEmbeds[s]);
+                    msg.edit({embeds: [allEmbeds[s]]});
                     break;
                 case "◀":
                     s -= 1;
                     if (s < 0) s = allEmbeds.length - 1;
-                    msg.edit(allEmbeds[s]);
+                    msg.edit({embeds: [allEmbeds[s]]});
                     break;
                 case "▶":
                     s += 1;
                     if (s > allEmbeds.length - 1) s = 0;
-                    msg.edit(allEmbeds[s]);
+                    msg.edit({embeds: [allEmbeds[s]]});
                     break;
                 case "⏭":
                     s = allEmbeds.length - 1;
-                    msg.edit(allEmbeds[s]);
+                    msg.edit({embeds: [allEmbeds[s]]});
                     break;
                 case "⏹":
                     collector.emit("end");

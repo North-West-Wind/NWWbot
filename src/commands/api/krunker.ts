@@ -129,7 +129,7 @@ class KrunkerCommand implements SlashCommand {
                     .setFooter(`There are ${customPage} pages for custom games.`, client.user.displayAvatarURL());
                 allEmbeds.push(em);
             }
-            await msg.edit({ content: "", embeds: [allEmbeds[0]] });
+            await msg.edit({ embeds: [allEmbeds[0]] });
 
             var s = 0;
             await msg.react("🎲");
@@ -167,7 +167,7 @@ class KrunkerCommand implements SlashCommand {
                         if (s > officialPage - 1) options = Array.from(new Set(custom.map(x => x[0].split(":")[0])));
                         else options = Array.from(new Set(official.map(x => x[0].split(":")[0])));
                         linkEmbed.setDescription(`Available regions:\n**${options.join("\n")}**\n\nPlease type the region in the channel.`);
-                        await msg.edit({ content: "", embeds: [linkEmbed] });
+                        await msg.edit({ embeds: [linkEmbed] });
                         const collected = await msg.channel.awaitMessages({ filter: m => m.author.id === author.id,  max: 1, time: 30000 });
                         if (collected && collected.first()) await collected.first().delete();
                         if (collected.first().content && options.includes(collected.first().content.split(/ +/)[0].toUpperCase())) {
@@ -177,32 +177,32 @@ class KrunkerCommand implements SlashCommand {
                             else games = official.filter(x => x[0].startsWith(region));
                             msg.channel.send(`https://krunker.io/?game=${games[Math.floor(Math.random() * games.length)][0]}`);
                         }
-                        await msg.edit(allEmbeds[s]);
+                        await msg.edit({embeds: [allEmbeds[s]]});
                         break;
                     case "⏩":
-                        await msg.edit({ content: "", embeds: [pageWarp] });
+                        await msg.edit({ embeds: [pageWarp] });
                         const collected1 = await msg.channel.awaitMessages({ filter: m => m.author.id === author.id,  max: 1, time: 30000 });
                         if (collected1 && collected1.first()) await collected1.first().delete();
                         if (collected1.first().content && !isNaN(parseInt(collected1.first().content))) s = (parseInt(collected1.first().content) - 1) % allEmbeds.length;
-                        await msg.edit(allEmbeds[s]);
+                        await msg.edit({embeds: [allEmbeds[s]]});
                         break;
                     case "⏮":
                         s = 0;
-                        msg.edit(allEmbeds[s]);
+                        await msg.edit({embeds: [allEmbeds[s]]});
                         break;
                     case "◀":
                         s -= 1;
                         if (s < 0) s = allEmbeds.length - 1;
-                        msg.edit(allEmbeds[s]);
+                        await msg.edit({embeds: [allEmbeds[s]]});
                         break;
                     case "▶":
                         s += 1;
                         if (s > allEmbeds.length - 1) s = 0;
-                        msg.edit(allEmbeds[s]);
+                        await msg.edit({embeds: [allEmbeds[s]]});
                         break;
                     case "⏭":
                         s = allEmbeds.length - 1;
-                        msg.edit(allEmbeds[s]);
+                        await msg.edit({embeds: [allEmbeds[s]]});
                         break;
                     case "⏹":
                         collector.emit("end");
@@ -241,7 +241,6 @@ class KrunkerCommand implements SlashCommand {
             msg.edit(`<@${author.id}>, there was an error trying to display the changelog!`);
         }
     }
-
 
     async getServers() {
         return await run(async (page: Page) => {
