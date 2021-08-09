@@ -5,6 +5,7 @@ import { Message, MessageEmbed } from "discord.js";
 import { curseforge, SimpleProject } from "aio-mc-api";
 import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
+import { e } from "mathjs";
 
 const fetch = getFetch();
 
@@ -116,11 +117,7 @@ class MinecraftCommand implements SlashCommand {
             const res = await nameToUuid(str);
             if (!res) await interaction.editReply("No player named **" + str + "** were found");
             else await interaction.editReply({ embeds: [await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(str))] });
-        } else if (sub === this.subcommands[3]) {
-            //await interaction.reply("Fetching CurseForge projects...");
-            await this.cf(<Message> await interaction.fetchReply(), interaction.options.getString("category"), interaction.options.getString("version"), interaction.options.getString("sort"), interaction.options.getString("keywords"));
-            //await interaction.deleteReply();
-        }
+        } else if (sub === this.subcommands[3]) await this.cf(interaction, interaction.options.getString("category"), interaction.options.getString("version"), interaction.options.getString("sort"), interaction.options.getString("keywords"));
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -148,7 +145,7 @@ class MinecraftCommand implements SlashCommand {
         } else if (args[0] === "curseforge" || args[0] === "cf") return await this.cf(message, args.shift(), args.shift(), args.shift(), args.join(" "));
     }
 
-    async cf(message: Message, category: string, version: string, sort: string, filter: string) {
+    async cf(message: Message | NorthInteraction, category: string, version: string, sort: string, filter: string) {
         const filters = [filter];
         if (!SortTypes[sort?.toUpperCase()]) filters.unshift(sort);
         if (!isValidMCVer(version)) filters.unshift(version);
@@ -173,7 +170,8 @@ class MinecraftCommand implements SlashCommand {
             em.setDescription(em.description + "React with ◀, ▶, ⏮, ⏭ to turn the page.\nReact with ⏹ to exit.");
             allEmbeds.push(em);
         }
-        await createEmbedScrolling(message, allEmbeds);
+        if (message instanceof Message) await createEmbedScrolling(message, allEmbeds);
+        else await createEmbedScrolling({ interaction: message, useEdit: true }, allEmbeds);
     }
 
     getProfileEmbed(r) {
