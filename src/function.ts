@@ -13,7 +13,6 @@ import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);
 import { Readable } from "stream";
-import { string } from "mathjs";
 const fetch = fetchBuilder(originalFetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 
 export function twoDigits(d) {
@@ -510,7 +509,7 @@ export async function msgOrRes(message: Discord.Message | NorthInteraction, str:
     if (message instanceof Discord.Message) func = message.channel.send;
     else if (useEdit) func = message.editReply;
     else func = message.reply;
-    if (str instanceof string) return <Discord.Message> await func({ content: str, fetchReply: true });
+    if (typeof str === "string") return <Discord.Message> await func({ content: str, fetchReply: true });
     else if (str instanceof Discord.MessageEmbed) return <Discord.Message> await func({ embeds: [str], fetchReply: true });
     else if (str instanceof Discord.MessageAttachment) return <Discord.Message> await func({ files: [str], fetchReply: true });
     return null;
