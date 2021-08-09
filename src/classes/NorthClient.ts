@@ -141,6 +141,20 @@ export class NorthInteraction extends CommandInteraction {
 }
 
 export class ServerQueue {
+    constructor(songs: SoundTrack[], loopStatus: boolean, repeatStatus: boolean) {
+        this.textChannel = null;
+        this.voiceChannel = null;
+        this.connection = null;
+        this.player = null;
+        this.songs = songs;
+        this.volume = 1;
+        this.playing = false;
+        this.paused = false;
+        this.looping = loopStatus;
+        this.repeating = repeatStatus;
+        this.random = false;
+    }
+
     textChannel: TextChannel;
     voiceChannel: VoiceChannel | StageChannel;
     connection: VoiceConnection;

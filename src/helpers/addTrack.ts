@@ -23,8 +23,7 @@ import { TrackInfo } from "soundcloud-downloader/src/info";
 const fetch = getFetch();
 const spotifyApi = new SpotifyWebApi({
     clientId: process.env.SPOTID,
-    clientSecret: process.env.SPOTSECRET,
-    redirectUri: "https://nwws.ml"
+    clientSecret: process.env.SPOTSECRET
 });
 
 export async function addAttachment(message: Message) {
@@ -41,7 +40,7 @@ export async function addAttachment(message: Message) {
             songs.push({
                 title: title,
                 url: file.url,
-                type: "CHANNEL",
+                type: 7,
                 time: duration,
                 volume: 1,
                 thumbnail: "https://pbs.twimg.com/profile_images/1155047958326517761/IUgssah__400x400.jpg",
@@ -173,7 +172,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                         songs.push({
                             title: track.track.name,
                             url: results[o].link,
-                            type: "SUB_COMMAND",
+                            type: 1,
                             spot: track.track.external_urls.spotify,
                             thumbnail: track.track.album.images[0]?.url,
                             time: songLength,
@@ -225,7 +224,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                         songs.push({
                             title: track.name,
                             url: results[o].link,
-                            type: "SUB_COMMAND",
+                            type: 1,
                             spot: track.external_urls.spotify,
                             thumbnail: highlight ? track.album.images[o]?.url : image,
                             time: songLength,
@@ -258,7 +257,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                         songs.push({
                             title: track.name,
                             url: resultss[o].link,
-                            type: "SUB_COMMAND",
+                            type: 1,
                             spot: track.external_urls.spotify,
                             thumbnail: track.album.images[o].url,
                             time: songLength,
@@ -284,7 +283,7 @@ export async function addSCURL(link: string) {
             const songLength = moment.duration(length, "seconds").format();
             songs.push({
                 title: track.title,
-                type: "STRING",
+                type: 3,
                 id: track.id,
                 time: songLength,
                 thumbnail: track.artwork_url,
@@ -298,7 +297,7 @@ export async function addSCURL(link: string) {
         const songLength = moment.duration(length, "seconds").format();
         songs.push({
             title: data.title,
-            type: "STRING",
+            type: 3,
             id: data.id,
             time: songLength,
             thumbnail: data.artwork_url,
@@ -352,7 +351,7 @@ export async function addGDURL(link: string) {
     var song = {
         title: title,
         url: dl,
-        type: "INTEGER",
+        type: 4,
         time: songLength,
         volume: 1,
         thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg",
@@ -381,7 +380,7 @@ export async function addGDFolderURL(link: string, cb: Function = async () => { 
                 songs.push({
                     title: title,
                     url: link,
-                    type: "INTEGER",
+                    type: 4,
                     volume: 1,
                     thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg",
                     isLive: false
@@ -404,7 +403,7 @@ export async function addMSURL(link: string) {
     var song = {
         title: data.title,
         url: link,
-        type: "BOOLEAN",
+        type: 5,
         time: songLength,
         volume: 1,
         thumbnail: "https://pbs.twimg.com/profile_images/1155047958326517761/IUgssah__400x400.jpg",
@@ -494,7 +493,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
     const scResults = (<TrackInfo[]> scSearched.collection).map(x => ({
         title: x.title,
         url: x.permalink_url,
-        type: "STRING",
+        type: 3,
         time: moment.duration(Math.floor(x.duration / 1000), "seconds").format(),
         thumbnail: x.artwork_url,
         volume: 1,

@@ -35,7 +35,7 @@ class SpeedrunCommand implements SlashCommand {
                 .setDescription("This will take a while.")
                 .setTimestamp()
                 .setFooter("Please be patient.", client.user.displayAvatarURL());
-            msg = <Discord.Message> await interaction.reply({ embeds: [em], fetchReply: true });
+            msg = <Discord.Message> await interaction.editReply({ embeds: [em] });
             data = gameFetch.data;
         }
         const allEmbeds = await this.getEmbedsByID(data);

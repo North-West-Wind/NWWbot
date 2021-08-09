@@ -105,11 +105,11 @@ class MinecraftCommand implements SlashCommand {
             await interaction.editReply({ embeds: [em] });
         } else if (sub === this.subcommands[1]) {
             const str = interaction.options.getString("ip");
-            const url = `https://api.mcsrvstat.us/2/${str}`;
+            const url = `https://api.mcsrvstat.us/2/${encodeURIComponent(str)}`;
             const res = await fetch(url);
             if (!res.ok) return await interaction.editReply("Received HTTP Status Code " + res.status);
             const body = await res.json();
-            if (body.online) return await interaction.editReply({ embeds: [this.getServerEmbed(body, str)[0]], content: "" });
+            if (body.online) return await interaction.editReply({ embeds: [this.getServerEmbed(body, str)[0]], content: null });
             else await interaction.editReply({ content: "The server - **" + str + "** - is offline/under maintenance." });
         } else if (sub === this.subcommands[2]) {
             const str = interaction.options.getString("username");
@@ -154,18 +154,18 @@ class MinecraftCommand implements SlashCommand {
         var version;
         var sort = "POPULARITY";
         var filter;
-        if (SectionTypes[args[1].toUpperCase()] || CategoryList[args[1].toUpperCase()]) {
+        if (args[1] && (SectionTypes[args[1].toUpperCase()] || CategoryList[args[1].toUpperCase()])) {
             category = SectionTypes[args[1].toUpperCase()] || CategoryList[args[1].toUpperCase()];
-            if (args[2].match(/^[\d+\.?]+$/)) {
+            if (args[2]?.match(/^[\d+\.?]+$/)) {
                 version = args[2];
-                if (SortTypes[args[3].toUpperCase()]) {
+                if (args[3] && SortTypes[args[3].toUpperCase()]) {
                     sort = args[3].toUpperCase();
                     if (args[4]) filter = args.slice(4).join(" ");
                 } else {
                     if (args[3]) filter = args.slice(3).join(" ");
                 }
             } else {
-                if (SortTypes[args[2].toUpperCase()]) {
+                if (args[2] && SortTypes[args[2].toUpperCase()]) {
                     sort = args[2].toUpperCase();
                     if (args[3]) filter = args.slice(3).join(" ");
                 } else {
@@ -173,16 +173,16 @@ class MinecraftCommand implements SlashCommand {
                 }
             }
         } else {
-            if (args[1].match(/^[\d+\.?]+$/)) {
+            if (args[1]?.match(/^[\d+\.?]+$/)) {
                 version = args[1];
-                if (SortTypes[args[2].toUpperCase()]) {
+                if (args[2] && SortTypes[args[2].toUpperCase()]) {
                     sort = args[2].toUpperCase();
                     if (args[3]) filter = args.slice(3).join(" ");
                 } else {
                     if (args[2]) filter = args.slice(2).join(" ");
                 }
             } else {
-                if (SortTypes[args[1].toUpperCase()]) {
+                if (args[1] && SortTypes[args[1].toUpperCase()]) {
                     sort = args[1].toUpperCase();
                     if (args[2]) filter = args.slice(2).join(" ");
                 } else {

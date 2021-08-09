@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
-import { NorthClient, ServerQueue } from "../classes/NorthClient";
+import { NorthClient, ServerQueue, SoundTrack } from "../classes/NorthClient";
 import { globalClient as client } from "../common";
 const queue = new Discord.Collection<Discord.Snowflake, ServerQueue>();
 
 export function getQueues() { return queue; }
-export function getQueue(id) {
+export function getQueue(id: Discord.Snowflake) {
     return queue.get(id);
 }
 export async function updateQueue(id: Discord.Snowflake, serverQueue: ServerQueue, update: boolean = true) {
@@ -17,31 +17,17 @@ export async function updateQueue(id: Discord.Snowflake, serverQueue: ServerQueu
         NorthClient.storage.error(err);
     }
 }
-export function stop(guild) {
+export function stop(guild: Discord.Guild) {
     const serverQueue = queue.get(guild.id);
     if (!serverQueue) return;
-    serverQueue.player.stop();
-    serverQueue.connection?.destroy();
+    serverQueue.destroy();
     serverQueue.playing = false;
     serverQueue.connection = null;
     serverQueue.voiceChannel = null;
     serverQueue.textChannel = null;
-    guild.me.voice?.channel?.leave();
 }
-export function setQueue(guild, songs, loopStatus, repeatStatus) {
-    const queueContruct = {
-        textChannel: null,
-        voiceChannel: null,
-        connection: null,
-        player: null,
-        songs: songs,
-        volume: 1,
-        playing: false,
-        paused: false,
-        looping: loopStatus,
-        repeating: repeatStatus,
-        random: false
-    } as ServerQueue;
+export function setQueue(guild: Discord.Snowflake, songs: SoundTrack[], loopStatus: boolean, repeatStatus: boolean) {
+    const queueContruct = new ServerQueue(songs, loopStatus, repeatStatus);
     queue.set(guild, queueContruct);
     return queueContruct;
 }
