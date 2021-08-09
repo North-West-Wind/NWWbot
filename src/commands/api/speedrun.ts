@@ -134,9 +134,14 @@ class SpeedrunCommand implements SlashCommand {
             for (const run of record.runs) {
                 if (run.run.system.platform) var platformFetch = await fetch(`https://www.speedrun.com/api/v1/platforms/${run.run.system.platform}`).then(res => res.json());
                 if (run.run.system.region) var regionFetch = await fetch(`https://www.speedrun.com/api/v1/regions/${run.run.system.region}`).then(res => res.json());
-                const platform = platformFetch && platformFetch.data ? platformFetch.data.name : "N/A";
-                const region = regionFetch && regionFetch.data ? regionFetch.data.name : "N/A"
-                if (run.run.players[0].rel === "guest") var player = run.run.players[0].name;
+                const platform = platformFetch?.data?.name || "N/A";
+                const region = regionFetch?.data?.name || "N/A";
+                var player;
+                if (run.run.players[0].rel === "guest") player = run.run.players[0].name;
+                else if (run.run.players[0].rel === "user") {
+                    const userFetch = await fetch(run.run.players[0].uri).then(res => res.json());
+                    player = userFetch.data.name.international;
+                }
                 var time = run.run.times.primary_t;
                 var date = run.run.date;
                 var place = run.place;

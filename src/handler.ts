@@ -52,7 +52,7 @@ export class Handler {
         } catch (err) {
             if (int.replied || int.deferred) await int.editReply(error);
             else await int.reply(error);
-            NorthClient.storage.error(command.name + ": " + error);
+            NorthClient.storage.error(command.name + ": " + err);
         }
     }
 
@@ -470,8 +470,8 @@ export class Handler {
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
-        } catch (error) {
-            storage.error(command.name + ": " + error);
+        } catch (err) {
+            storage.error(command.name + ": " + err);
             await msg.reply(error);
         }
     }

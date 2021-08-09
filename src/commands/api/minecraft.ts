@@ -159,8 +159,8 @@ class MinecraftCommand implements SlashCommand {
         for (let i = 0; i < Math.ceil(projects.length / 10); i++) {
             const em = new MessageEmbed()
                 .setColor(color())
-                .setTitle(`CurseForge Minecraft - ${getKeyByValue(Object.assign(categories, SectionTypes), category)}`)
-                .setDescription(`Sort by: **${getKeyByValue(SortTypes, sort)}**\nVersion: **${realver ? realver : "All"}**\nFilter: ${filter ? `**${filter}**` : "None"}\n\n`)
+                .setTitle(`CurseForge Minecraft - ${getKeyByValue(Object.assign(categories, SectionTypes), realcategory)}`)
+                .setDescription(`Sort by: **${getKeyByValue(SortTypes, realsort)}**\nVersion: **${realver ? realver : "All"}**\nFilter: ${filter ? `**${filter}**` : "None"}\n\n`)
                 .setTimestamp()
                 .setFooter(`Page ${i + 1}/${Math.ceil(projects.length / 10)}`, message.client.user.displayAvatarURL());
             for (let u = 0; u < Math.min(10, projects.length - 10 * i); u++) {

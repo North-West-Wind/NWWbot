@@ -21,12 +21,20 @@ class RedditCommand implements SlashCommand {
     }];
 
     constructor() {
+        console.log({
+            username: process.env.RUSER,
+            password: process.env.RPW,
+            app_id: process.env.APPID,
+            api_secret: process.env.APPSECRET,
+            retry_on_wait: true,
+            retry_on_server_error: 5,
+            retry_delay: 1
+        });
         redditConn = RedditAPI({
             username: process.env.RUSER,
             password: process.env.RPW,
             app_id: process.env.APPID,
             api_secret: process.env.APPSECRET,
-            user_agent: "Reddit-Watcher-V2",
             retry_on_wait: true,
             retry_on_server_error: 5,
             retry_delay: 1
