@@ -7,17 +7,8 @@ import RedditAPI from "reddit-wrapper-v2";
 import Gfycat from "gfycat-sdk";
 
 const fetch = getFetch();
-const gfycat = new Gfycat({ clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET });
-const redditConn = RedditAPI({
-    username: process.env.RUSER,
-    password: process.env.RPW,
-    app_id: process.env.APPID,
-    api_secret: process.env.APPSECRET,
-    user_agent: "Reddit-Watcher-V2",
-    retry_on_wait: true,
-    retry_on_server_error: 5,
-    retry_delay: 1
-});
+var gfycat;
+var redditConn;
 
 class PornCommand implements SlashCommand {
     name = "porn"
@@ -2327,6 +2318,21 @@ class PornCommand implements SlashCommand {
     async tags(message: NorthMessage | NorthInteraction, args: string[]) {
         if (["listofsubreddits", "los"].includes(args[1]?.toLowerCase())) return await msgOrRes(message, Object.keys(this.listofsubreddits).join(", "));
         else return await this.nsfw411(message, args);
+    }
+
+    init() {
+        redditConn = RedditAPI({
+            username: process.env.RUSER,
+            password: process.env.RPW,
+            app_id: process.env.APPID,
+            api_secret: process.env.APPSECRET,
+            user_agent: "Reddit-Watcher-V2",
+            retry_on_wait: true,
+            retry_on_server_error: 5,
+            retry_delay: 1
+        });
+
+        gfycat = new Gfycat({ clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET });
     }
 }
 

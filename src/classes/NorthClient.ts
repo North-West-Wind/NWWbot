@@ -33,6 +33,7 @@ export interface Command {
     permissions?: { guild?: { user?: number, me?: number }, channel?: { user?: number, me?: number } };
 
     run(message: NorthMessage, args: string[]): Promise<any> | any;
+    init?(): Promise<any> | any;
 }
 
 export interface SlashCommand extends Command {

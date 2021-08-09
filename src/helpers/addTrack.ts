@@ -21,10 +21,14 @@ import * as Discord from "discord.js";
 import { TrackInfo } from "soundcloud-downloader/src/info";
 
 const fetch = getFetch();
-const spotifyApi = new SpotifyWebApi({
-    clientId: process.env.SPOTID,
-    clientSecret: process.env.SPOTSECRET
-});
+var spotifyApi;
+
+export function init() {
+    spotifyApi = new SpotifyWebApi({
+        clientId: process.env.SPOTID,
+        clientSecret: process.env.SPOTSECRET
+    });
+}
 
 export async function addAttachment(message: Message) {
     const files = message.attachments;

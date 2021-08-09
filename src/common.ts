@@ -32,6 +32,7 @@ export default async(client: NorthClient) => {
     for (const file of commandFiles) {
         const command = <SlashCommand> (await import(file)).default;
         NorthClient.storage.commands.set(command.name, command);
+        if (command.init) command.init();
     }
     for (const file of itemFiles) {
         const item = <Item> (await import(file)).default;

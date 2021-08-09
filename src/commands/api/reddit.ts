@@ -5,6 +5,7 @@ import * as Discord from "discord.js";
 import { globalClient as client } from "../../common";
 
 var redditConn: { api: API };
+
 const def = ["memes", "dankmemes", "meme"];
 
 class RedditCommand implements SlashCommand {
@@ -19,27 +20,6 @@ class RedditCommand implements SlashCommand {
         required: false,
         type: "STRING"
     }];
-
-    constructor() {
-        console.log({
-            username: process.env.RUSER,
-            password: process.env.RPW,
-            app_id: process.env.APPID,
-            api_secret: process.env.APPSECRET,
-            retry_on_wait: true,
-            retry_on_server_error: 5,
-            retry_delay: 1
-        });
-        redditConn = RedditAPI({
-            username: process.env.RUSER,
-            password: process.env.RPW,
-            app_id: process.env.APPID,
-            api_secret: process.env.APPSECRET,
-            retry_on_wait: true,
-            retry_on_server_error: 5,
-            retry_delay: 1
-        });
-    }
 
     async execute(interaction: NorthInteraction) {
         await interaction.deferReply();
@@ -74,6 +54,18 @@ class RedditCommand implements SlashCommand {
             .setFooter(`${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`, client.user.displayAvatarURL())
             .setTimestamp();
         return em;
+    }
+
+    init() {
+        redditConn = RedditAPI({
+            username: process.env.RUSER,
+            password: process.env.RPW,
+            app_id: process.env.APPID,
+            api_secret: process.env.APPSECRET,
+            retry_on_wait: true,
+            retry_on_server_error: 5,
+            retry_delay: 1
+        });
     }
 };
 
