@@ -579,3 +579,15 @@ export async function getOwner() {
 	if (!globalClient.application?.owner) await globalClient.application?.fetch();
     return globalClient.application?.owner.id;
 }
+
+export function isValidMCVer(version: string) {
+    if (!version) return false;
+    const splitted = version.split(".");
+    if (splitted.length > 3) return false;
+    for (let ii = 0; ii < splitted.length; ii++) {
+        const subVer = splitted[ii];
+        if (!parseInt(subVer)) return false;
+        if (ii == 0 && parseInt(subVer) > 1) return false;
+    }
+    return true;
+}

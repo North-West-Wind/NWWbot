@@ -16,6 +16,8 @@ import * as filter from "./helpers/filter";
 import { sCategories } from "./commands/information/help";
 import common from "./common";
 
+const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
+
 export class Handler {
     static async setup(client: NorthClient, token: string) {
         await common(client);
@@ -44,8 +46,14 @@ export class Handler {
         if (!command) return;
         const int = <NorthInteraction> interaction;
         int.pool = int.client.pool;
-        const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
-        if (await filter.all(command, int) && (catFilter ? await catFilter(command, int) : true)) await command.execute(int);
+        try {
+            const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
+            if (await filter.all(command, int) && (catFilter ? await catFilter(command, int) : true)) await command.execute(int);
+        } catch (err) {
+            if (int.replied || int.deferred) await int.editReply(error);
+            else await int.reply(error);
+            NorthClient.storage.error(command.name + ": " + error);
+        }
     }
 
     async messageLevel(message: Message) {
@@ -464,7 +472,7 @@ export class Handler {
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
         } catch (error) {
             storage.error(command.name + ": " + error);
-            await msg.reply("there was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the support server (<https://discord.gg/n67DUfQ>) or GitHub (<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.");
+            await msg.reply(error);
         }
     }
 }

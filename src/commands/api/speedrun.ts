@@ -25,17 +25,17 @@ class SpeedrunCommand implements SlashCommand {
         const game = interaction.options.getString("game");
         const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(game)}`).then(res => res.json());
         var data: any, msg: Discord.Message;
+        const em = new Discord.MessageEmbed()
+            .setColor(color())
+            .setTitle("Loading...")
+            .setDescription("This will take a while.")
+            .setTimestamp()
+            .setFooter("Please be patient.", client.user.displayAvatarURL());
         if (!gameFetch) {
             ({ data, msg } = await this.chooseGame(interaction, game));
             if (!data) return;
         } else {
-            var em = new Discord.MessageEmbed()
-                .setColor(color())
-                .setTitle("Loading...")
-                .setDescription("This will take a while.")
-                .setTimestamp()
-                .setFooter("Please be patient.", client.user.displayAvatarURL());
-            msg = <Discord.Message> await interaction.editReply({ embeds: [em] });
+            <Discord.Message> await interaction.editReply({ embeds: [em] });
             data = gameFetch.data;
         }
         const allEmbeds = await this.getEmbedsByID(data);
@@ -43,15 +43,12 @@ class SpeedrunCommand implements SlashCommand {
         else if (allEmbeds.length < 1) {
             em.setTitle(data.names.international).setDescription("No record was found for this game!").setFooter("Have a nice day! :)", interaction.client.user.displayAvatarURL());
             await msg.edit({embeds: [em]});
-        } else {
-            await msg.delete();
-            await createEmbedScrolling({ interaction: interaction, useEdit: true }, allEmbeds);
-        }
+        } else await createEmbedScrolling({ interaction, useEdit: true }, allEmbeds);
     }
 
     async run(message: NorthMessage, args: string[]) {
         const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(args.join(" "))}`).then(res => res.json());
-        var data, msg;
+        var data, msg: Discord.Message;
         if (!gameFetch) {
             ({ data, msg } = await this.chooseGame(message, args.join(" ")));
             if (!data) return;
@@ -66,10 +63,10 @@ class SpeedrunCommand implements SlashCommand {
             data = gameFetch.data;
         }
         const allEmbeds = await this.getEmbedsByID(data);
-        if (allEmbeds.length == 1) await msg.edit(allEmbeds[0]);
+        if (allEmbeds.length == 1) await msg.edit({embeds: [allEmbeds[0]]});
         else if (allEmbeds.length < 1) {
             em.setTitle(data.names.international).setDescription("No record was found for this game!").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-            await msg.edit(em);
+            await msg.edit({embeds: [em]});
         } else {
             await msg.delete();
             await createEmbedScrolling(message, allEmbeds);

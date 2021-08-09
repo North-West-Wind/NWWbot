@@ -1,6 +1,6 @@
 import { CategoryList, SectionTypes, SortTypes } from "aio-mc-api/lib/typings/CurseForge/Constants";
 
-import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory, getFetch } from "../../function";
+import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory, getFetch, isValidMCVer } from "../../function";
 import { Message, MessageEmbed } from "discord.js";
 import { curseforge, SimpleProject } from "aio-mc-api";
 import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient";
@@ -118,8 +118,7 @@ class MinecraftCommand implements SlashCommand {
             else await interaction.editReply({ embeds: [await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(str))] });
         } else if (sub === this.subcommands[3]) {
             //await interaction.reply("Fetching CurseForge projects...");
-            const cArgs = ["curseforge", interaction.options.getString("category"), interaction.options.getString("version"), interaction.options.getString("sort"), interaction.options.getString("keywords")];
-            await this.cf(<Message> await interaction.fetchReply(), cArgs);
+            await this.cf(<Message> await interaction.fetchReply(), interaction.options.getString("category"), interaction.options.getString("version"), interaction.options.getString("sort"), interaction.options.getString("keywords"));
             //await interaction.deleteReply();
         }
     }
@@ -146,58 +145,25 @@ class MinecraftCommand implements SlashCommand {
             const res = await profile(args[1]);
             if (!res) return message.channel.send("No player named **" + args[1] + "** were found");
             await message.channel.send({ embeds:[await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(args[1]))] });
-        } else if (args[0] === "curseforge" || args[0] === "cf") return await this.cf(message, args);
+        } else if (args[0] === "curseforge" || args[0] === "cf") return await this.cf(message, args.shift(), args.shift(), args.shift(), args.join(" "));
     }
 
-    async cf(message: Message, args: string[]) {
-        var category = SectionTypes.MOD;
-        var version;
-        var sort = "POPULARITY";
-        var filter;
-        if (args[1] && (SectionTypes[args[1].toUpperCase()] || CategoryList[args[1].toUpperCase()])) {
-            category = SectionTypes[args[1].toUpperCase()] || CategoryList[args[1].toUpperCase()];
-            if (args[2]?.match(/^[\d+\.?]+$/)) {
-                version = args[2];
-                if (args[3] && SortTypes[args[3].toUpperCase()]) {
-                    sort = args[3].toUpperCase();
-                    if (args[4]) filter = args.slice(4).join(" ");
-                } else {
-                    if (args[3]) filter = args.slice(3).join(" ");
-                }
-            } else {
-                if (args[2] && SortTypes[args[2].toUpperCase()]) {
-                    sort = args[2].toUpperCase();
-                    if (args[3]) filter = args.slice(3).join(" ");
-                } else {
-                    if (args[2]) filter = args.slice(2).join(" ");
-                }
-            }
-        } else {
-            if (args[1]?.match(/^[\d+\.?]+$/)) {
-                version = args[1];
-                if (args[2] && SortTypes[args[2].toUpperCase()]) {
-                    sort = args[2].toUpperCase();
-                    if (args[3]) filter = args.slice(3).join(" ");
-                } else {
-                    if (args[2]) filter = args.slice(2).join(" ");
-                }
-            } else {
-                if (args[1] && SortTypes[args[1].toUpperCase()]) {
-                    sort = args[1].toUpperCase();
-                    if (args[2]) filter = args.slice(2).join(" ");
-                } else {
-                    if (args[1]) filter = args.slice(1).join(" ");
-                }
-            }
-        }
-        const projects = <SimpleProject[]>await curseforge.searchProject({ category, gameVersion: version, sort: <keyof typeof SortTypes>sort, filter });
+    async cf(message: Message, category: string, version: string, sort: string, filter: string) {
+        const filters = [filter];
+        if (!SortTypes[sort?.toUpperCase()]) filters.unshift(sort);
+        if (!isValidMCVer(version)) filters.unshift(version);
+        if (!SectionTypes[category?.toUpperCase()]) filters.unshift(category);
+        const realcategory = SectionTypes[category?.toUpperCase()] || SectionTypes.MOD;
+        const realsort = SortTypes[sort?.toUpperCase()] || "POPULARITY";
+        const realver = isValidMCVer(version) ? version : undefined;
+        const projects = <SimpleProject[]>await curseforge.searchProject({ category: realcategory, gameVersion: realver, sort: realsort, filter: filters.filter(x => x).join(" ") });
         const allEmbeds = [];
         var categories = CategoryList;
         for (let i = 0; i < Math.ceil(projects.length / 10); i++) {
             const em = new MessageEmbed()
                 .setColor(color())
                 .setTitle(`CurseForge Minecraft - ${getKeyByValue(Object.assign(categories, SectionTypes), category)}`)
-                .setDescription(`Sort by: **${getKeyByValue(SortTypes, sort)}**\nVersion: **${version ? version : "All"}**\nFilter: ${filter ? `**${filter}**` : "None"}\n\n`)
+                .setDescription(`Sort by: **${getKeyByValue(SortTypes, sort)}**\nVersion: **${realver ? realver : "All"}**\nFilter: ${filter ? `**${filter}**` : "None"}\n\n`)
                 .setTimestamp()
                 .setFooter(`Page ${i + 1}/${Math.ceil(projects.length / 10)}`, message.client.user.displayAvatarURL());
             for (let u = 0; u < Math.min(10, projects.length - 10 * i); u++) {

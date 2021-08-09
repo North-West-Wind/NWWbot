@@ -9,12 +9,12 @@ class RestartCommand implements SlashCommand {
 
     async execute(interaction: NorthInteraction) {
         await interaction.reply("Restarted.");
-        process.exit(0);
+        process.exit(-1);
     }
 
     async run(message: NorthMessage) {
         await message.channel.send("Restarted.");
-        process.exit(0);
+        process.exit(-1);
     }
 };
 
