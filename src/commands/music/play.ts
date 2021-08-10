@@ -19,6 +19,10 @@ const fetch = getFetch();
 
 function createPlayer(guild: Discord.Guild) {
   var serverQueue = getQueues().get(guild.id);
+  if (!serverQueue.player) {
+    serverQueue.player = createAudioPlayer();
+    updateQueue(guild.id, serverQueue, false);
+  }
   var track: SoundTrack;
   var needResource = true;
   return serverQueue.player.on(AudioPlayerStatus.Playing, async (_oldState, newState) => {
@@ -223,9 +227,9 @@ class PlayCommand implements SlashCommand {
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.playing = true;
       serverQueue.textChannel = <Discord.TextChannel>message.channel;
-      if (!serverQueue.player) serverQueue.player = createAudioPlayer();
+      if (!serverQueue.player) serverQueue.player = createPlayer(message.guild);
       await updateQueue(message.guild.id, serverQueue);
-      if (!serverQueue.random) play(message.guild, serverQueue.songs[0]);
+      if (!serverQueue.random) await play(message.guild, serverQueue.songs[0]);
       else {
         const int = Math.floor(Math.random() * serverQueue.songs.length);
         const pending = serverQueue.songs[int];
