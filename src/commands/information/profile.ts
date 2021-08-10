@@ -57,7 +57,7 @@ class ProfileCommand implements SlashCommand {
         const createdAt = user.createdAt;
         const joinedAt = member.joinedAt;
         const nick = member.displayName;
-        const status = member.presence.status;
+        const status = member.presence?.status || "unknown";
         const createdTime = readableDateTime(createdAt);
         const joinedTime = readableDateTime(joinedAt);
         const Embed = new Discord.MessageEmbed()

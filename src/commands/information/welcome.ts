@@ -20,8 +20,9 @@ class WelcomeCommand implements SlashCommand {
         if (!interaction.guild) return await interaction.reply("This command only works on server.");
         var member = <Discord.GuildMember> (interaction.options.getMember("user") || interaction.member);
         const { message, image, error } = await this.getWelcome(member, interaction.client);
-        await interaction.reply(message);
-        if (!error) await interaction.channel.send(image);
+        const obj = { content: message, files: null };
+        if (!error) obj.files = [image];
+        await interaction.reply(obj);
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -31,8 +32,9 @@ class WelcomeCommand implements SlashCommand {
             if (!member) member = message.member;
         }
         const { message: msg, image, error } = await this.getWelcome(member, message.client);
-        await message.channel.send(msg);
-        if (!error) await message.channel.send(image);
+        const obj = { content: msg, files: null };
+        if (!error) obj.files = [image];
+        await message.channel.send(obj);
     }
 
     async getWelcome(member: Discord.GuildMember, client: NorthClient) {

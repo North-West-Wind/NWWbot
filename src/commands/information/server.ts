@@ -18,19 +18,19 @@ class ServerCommand implements SlashCommand {
     await message.channel.send({embeds: [await this.createServerEmbed(message.guild)]});
   }
 
-  async createServerEmbed(guild) {
+  async createServerEmbed(guild: Discord.Guild) {
     const name = guild.name;
     const id = guild.id;
     const memberCount = guild.memberCount;
     const userMember = await guild.members.fetch();
-    const userMemberCount = [];
-    const botMemberCount = [];
+    var userMemberCount = 0;
+    var botMemberCount = 0;
     var onlineMembers = 0;
     var idleMembers = 0;
     var dndMembers = 0;
     for (const member of userMember.values()) {
-      if (member.user.bot === false) userMemberCount.push(member.id);
-      if (member.user.bot) botMemberCount.push(member.id);
+      if (!member.user.bot) userMemberCount += 1;
+      else if (member.user.bot) botMemberCount += 1;
       if (member.presence && member.presence.status === "online") onlineMembers += 1;
       else if (member.presence && member.presence.status === "idle") idleMembers += 1;
       else if (member.presence && member.presence.status === "dnd") dndMembers += 1;
@@ -42,9 +42,9 @@ class ServerCommand implements SlashCommand {
         roleIDs.push(role.id);
     }
     const createdAt = guild.createdAt
-    const owner = guild.owner.user.tag;
+    const owner = userMember.find(x => x.id === guild.ownerId).user.tag;
     const icon = guild.iconURL({ format: "png", dynamic: true });
-    const region = guild.region;
+    const region = guild.preferredLocale;
     const createdTime = readableDateTime(createdAt);
 
     const Embed = new Discord.MessageEmbed()
@@ -53,7 +53,7 @@ class ServerCommand implements SlashCommand {
       .setThumbnail(icon)
       .addField("ID", id, true)
       .addField("Member statuses", `Online: \`${onlineMembers}\`\nIdle: \`${idleMembers}\`\nDo not Disturb: \`${dndMembers}\``, true)
-      .addField("Member count", `Members: \`${memberCount}\`\nUsers: \`${userMemberCount.length}\`\nBots: \`${botMemberCount.length}\``, true)
+      .addField("Member count", `Members: \`${memberCount}\`\nUsers: \`${userMemberCount}\`\nBots: \`${botMemberCount}\``, true)
       .addField("Created", createdTime, true)
       .addField("Region", region.charAt(0).toUpperCase() + region.slice(1), true)
       .addField("Owner", owner, true)

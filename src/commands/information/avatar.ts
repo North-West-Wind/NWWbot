@@ -23,7 +23,7 @@ class AvatarCommand implements SlashCommand {
             .setTitle(user.username + "'s avatar: ")
             .setImage(user.displayAvatarURL({ size: 4096 }))
             .setTimestamp()
-            .setFooter("Have a nice day! :)", interaction.client.user.displayAvatarURL());
+            .setFooter("Have a nice day! :)", interaction.client.user.displayAvatarURL({ dynamic: true }));
         await interaction.reply({embeds: [Embed]});
     }
 
@@ -37,7 +37,7 @@ class AvatarCommand implements SlashCommand {
             .setTitle(user.username + "'s avatar: ")
             .setImage(user.displayAvatarURL({ size: 4096 }))
             .setTimestamp()
-            .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+            .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL({ dynamic: true }));
         await message.channel.send({embeds: [Embed]});
     }
 }
