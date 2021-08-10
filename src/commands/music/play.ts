@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { getFetch, validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, validYTPlaylistURL, validSCURL, validMSURL, isEquivalent, requestStream, moveArray, color, validGDDLURL, bufferToStream, msgOrRes } from "../../function.js";
+import { getFetch, validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, validYTPlaylistURL, validSCURL, validMSURL, isEquivalent, requestStream, moveArray, color, validGDDLURL, bufferToStream, msgOrRes, wait } from "../../function.js";
 import { getMP3 } from "../api/musescore.js";
 import scdl from "soundcloud-downloader";
 import * as mm from "music-metadata";
@@ -30,6 +30,7 @@ function createPlayer(guild: Discord.Guild) {
     if (needResource) {
       serverQueue.resource = newState.resource;
       needResource = !!serverQueue.resource;
+      NorthClient.storage.log("Playing and obtained audio resource!");
     }
     if (needSetVolume) {
       const volume = serverQueue.resource?.volume;
@@ -64,7 +65,8 @@ function createPlayer(guild: Discord.Guild) {
 
 async function probeAndCreateResource(readableStream: Stream.Readable) {
 	const { stream, type } = await demuxProbe(readableStream);
-	return createAudioResource(stream, { inputType: type });
+  NorthClient.storage.log("Got stream type!");
+	return createAudioResource(stream, { inputType: type, inlineVolume: true });
 }
 
 export function createEmbed(songs: SoundTrack[]) {
@@ -107,7 +109,11 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     if (!guild.me.voice.selfDeaf) await guild.me.voice.setDeaf(true);
   } catch (err) {
     serverQueue.destroy();
-    if (serverQueue.textChannel) return await serverQueue.textChannel.send("An error occured while trying to connect to the channel! Disconnecting the bot...").then(msg => setTimeout(msg.delete, 30000));
+    if (serverQueue.textChannel) {
+      const msg = await serverQueue.textChannel.send("An error occured while trying to connect to the channel! Disconnecting the bot...");
+      await wait(30000);
+      return await msg.delete();
+    }
   }
   if (serverQueue.connection) serverQueue.startTime = serverQueue.streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;
@@ -166,6 +172,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         else stream = ytdl(song.url, { highWaterMark: 1 << 25 });
         break;
     }
+    NorthClient.storage.log("Sending stream to audio player");
     if (seek) {
       const command = new FfmpegCommand(stream);
       const transform = new Stream.Transform();
@@ -183,7 +190,9 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
       .setDescription(`**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**${seek > 0 ? ` | Starts From: **${moment.duration(seek, "seconds").format()}**` : ""}`)
       .setTimestamp()
       .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
-    serverQueue.textChannel.send({embeds: [Embed]}).then(msg => setTimeout(msg.delete, 30000));
+    const msg = await serverQueue.textChannel.send({embeds: [Embed]});
+    await wait(30000);
+    await msg.delete();
   }
 }
 
