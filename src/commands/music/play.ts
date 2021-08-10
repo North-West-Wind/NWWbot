@@ -203,7 +203,7 @@ class PlayCommand implements SlashCommand {
     const voiceChannel = (<Discord.GuildMember> message.member).voice.channel;
     if (!voiceChannel) return await msgOrRes(message, "You need to be in a voice channel to play music!", true);
     if (!voiceChannel.permissionsFor(message.guild.me).has(BigInt(3145728))) return await msgOrRes(message, "I can't play in your voice channel!", true);
-    if (!str && message instanceof Discord.Message && message.attachments.size < 1) {
+    if (!str && ((message instanceof Discord.Message && message.attachments.size < 1) || message instanceof NorthInteraction)) {
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
       if (serverQueue.songs.length < 1) return await msgOrRes(message, "The queue is empty for this server! Please provide a link or keywords to get a music played!", true);
       if (serverQueue.playing || NorthClient.storage.migrating.find(x => x === message.guild.id)) return await music(message);
