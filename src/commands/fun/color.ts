@@ -50,18 +50,22 @@ class ColorCommand implements SlashCommand {
     async execute(interaction: NorthInteraction) {
         const args = interaction.options.getString("color").split(/ +/);
         const { red, green, blue, random } = getColor(args);
+        const canvas = createCanvas(1024, 1024);
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         const em = new Discord.MessageEmbed()
         .setTitle(`Color: ${red} ${green} ${blue}`)
         .setColor([red, green, blue])
-        .setDescription("← That is your color!\n(Sorry, slash commands currently doesn't allow sending attachments)")
+        .setImage(`attachment://${red}_${green}_${blue}.png`)
         .setFooter(random ? "Cannot parse your color... so here's a random color." : `This is the color you want me to show. Do you like it?`, interaction.client.user.displayAvatarURL());
-        await interaction.reply({embeds: [em]});
+        await interaction.reply({embeds: [em], files: [{ attachment: canvas.toBuffer(), name: `${red}_${green}_${blue}.png` }]});
     }
 
     async run(message: NorthMessage, args: string[]) {
         const { red, green, blue, random } = getColor(args);
-        var canvas = createCanvas(1024, 1024);
-        var ctx = canvas.getContext("2d");
+        const canvas = createCanvas(1024, 1024);
+        const ctx = canvas.getContext("2d");
         ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         const em = new Discord.MessageEmbed()

@@ -2,7 +2,7 @@
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { wait } from "../../function";
-const attachment = new Discord.MessageAttachment("https://cdn.discordapp.com/attachments/763034826931699730/871224206325596161/Sike.mp4", "sike.mp4");
+const attachment = new Discord.MessageAttachment("https://drive.google.com/uc?export=download&id=1FB3uTqJXt8r_WQrU8UU4_g1WbUm6S6xT", "sike.mp4");
 
 class SikeCommand implements SlashCommand {
     name = "sike"

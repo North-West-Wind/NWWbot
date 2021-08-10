@@ -1,4 +1,4 @@
-import { NorthInteraction, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 
 import { findUser } from "../../function";
 
@@ -28,10 +28,10 @@ class GreetCommand implements SlashCommand {
   async execute(interaction: NorthInteraction) {
     const chosen = GREETINGS[Math.floor(GREETINGS.length * Math.random())];
     const user = interaction.options.getUser("user");
-    interaction.reply(chosen.replace(/\<user\>/, `<@${user}>`));
+    interaction.reply(chosen.replace(/\<user\>/, `${user}`));
   }
 
-  async run(message, args) {
+  async run(message: NorthMessage, args: string[]) {
     var taggedUser = message.author;
     if (args[0]) taggedUser = await findUser(message, args[0]);
     if (!taggedUser) return;

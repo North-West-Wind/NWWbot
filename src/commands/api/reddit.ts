@@ -25,13 +25,13 @@ class RedditCommand implements SlashCommand {
         await interaction.deferReply();
         const em = await this.getPost(interaction.options.getString("subreddit")?.split(/ +/) || []);
         if (!em) await interaction.editReply("Failed to fetch Reddit post!");
-        else await interaction.editReply(em);
+        else await interaction.editReply({ embeds: [em] });
     }
 
     async run(message: NorthMessage, args: string[]) {
         const em = await this.getPost(args);
         if (!em) await message.channel.send("Failed to fetch Reddit post!");
-        else await message.channel.send(em);
+        else await message.channel.send({ embeds: [em] });
     }
 
     async getPost(custom: string[], retry: number = 0) {

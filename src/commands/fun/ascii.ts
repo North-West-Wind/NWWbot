@@ -1,4 +1,4 @@
-import { NorthInteraction, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 
 import anser from "anser";
 import figlet from "figlet";
@@ -28,21 +28,18 @@ class AsciiCommand implements SlashCommand {
     async execute(interaction: NorthInteraction) {
         const txt = interaction.options.getString("text");
         const text = figlet.textSync(txt);
-        if (text.length + 83 > 2000) await interaction.reply("The text is too long to send in Discord! Wait for the text file!");
-        else await interaction.reply("```" + text + "```");
         const attachment = new Discord.MessageAttachment(Buffer.from(text, 'utf8'), sanitize(`${txt}.txt`));
-        await interaction.followUp({files: [attachment]});
+        await interaction.reply({files: [attachment]});
     }
 
-    async run(message, args) {
+    async run(message: NorthMessage, args: string[]) {
         if (!args[0]) return await message.channel.send(`Please provide a subcommand!\nUsage: \`${message.prefix}${this.name} ${this.usage}\`\nAvailable Subcommands: \`${this.subcomamnds.join(", ")}\``);
         switch (args[0].toLowerCase()) {
             case "text":
                 if (!args[1]) return await message.channel.send("You didn't provide any text! If you want to convert an image, use the `image` subcommand.");
                 const text = figlet.textSync(args.slice(1).join(" "));
                 const attachment = new Discord.MessageAttachment(Buffer.from(text, 'utf8'), sanitize(`${args.slice(1).join(" ")}.txt`));
-                if (text.length + 83 > 2000) return await message.channel.send("The text is too long to send in Discord! Therefore, I've made it into a file!", attachment);
-                else await message.channel.send("```" + text + "```\nYour text might not show properly! Therefore, here is a text file for you!", attachment);
+                await message.channel.send({ files: [attachment] });
                 break;
             case "image":
                 if (message.attachments.size < 1) return await message.channel.send("You didn't provide any image! If you want to convert text, use the `text` subcommand.");
@@ -54,7 +51,6 @@ class AsciiCommand implements SlashCommand {
                         height: Math.round(attachment.height / 10)
                     }
                     const msg = await message.channel.send("Image received! Processing ASCII art... (Note: The quality of the generated art depends on the resolution of the image!)");
-                    msg.channel.startTyping();
                     try {
                         const asciis = await asciify(attachment.url, options);
                         const lines = asciis.split("\n");
@@ -88,14 +84,12 @@ class AsciiCommand implements SlashCommand {
                         const colorAtt = new Discord.MessageAttachment(Buffer.from(asciis, 'utf8'), sanitize(`${nameArr.join(" ")}_text.txt`));
                         const noColorAtt = new Discord.MessageAttachment(Buffer.from(anser.ansiToText(asciis), 'utf8'), sanitize(`${nameArr.join(" ")}_text_no_color.txt`));
                         await msg.delete().catch(() => { });
-                        await message.channel.send(newattachment);
-                        await message.channel.send(colorAtt);
-                        await message.channel.send(noColorAtt);
+                        await message.channel.send({files: [newattachment]});
+                        await message.channel.send({files: [colorAtt]});
+                        await message.channel.send({files: [noColorAtt]});
                     } catch (err) {
                         NorthClient.storage.error(err);
                         return await msg.edit(`<@${message.author.id}>, there was an error trying to convert the image into ASCII!`);
-                    } finally {
-                        msg.channel.stopTyping(true);
                     }
                 });
                 break;

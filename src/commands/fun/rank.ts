@@ -2,6 +2,7 @@
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { color } from "../../function";
+import { RowDataPacket } from "mysql2";
 
 class RankCommand implements SlashCommand {
   name = "rank"
@@ -10,22 +11,21 @@ class RankCommand implements SlashCommand {
   
   async execute(interaction: NorthInteraction) {
     if (!interaction.guild) return await interaction.reply("This command doesn't support DMs.");
-    const author = interaction.member.user;;
-    const [result] = await interaction.client.pool.query(`SELECT * FROM leveling WHERE guild = '${interaction.guild.id}' ORDER BY exp DESC`);
-    const rankEmbed = this.createEmbed(author, interaction.guild, interaction.client, result);
+    const [result] = <RowDataPacket[][]> await interaction.client.pool.query(`SELECT * FROM leveling WHERE guild = '${interaction.guild.id}' ORDER BY exp DESC`);
+    const rankEmbed = this.createEmbed(interaction.user, interaction.guild, interaction.client, result);
     if (!rankEmbed) return await interaction.reply("Failed to get your ranking!");
     await interaction.reply({embeds: [rankEmbed]});
   }
 
   async run(message: NorthMessage) {
     if (!message.guild) return await message.channel.send("This command doesn't support DMs.");
-    const [result] = await message.pool.query(`SELECT * FROM leveling WHERE guild = '${message.guild.id}' ORDER BY exp DESC`);
+    const [result] = <RowDataPacket[][]> await message.pool.query(`SELECT * FROM leveling WHERE guild = '${message.guild.id}' ORDER BY exp DESC`);
     const rankEmbed = this.createEmbed(message.author, message.guild, message.client, result);
     if (!rankEmbed) return await message.channel.send("Failed to get your ranking!");
     await message.channel.send({embeds: [rankEmbed]});
   }
 
-  createEmbed(author, guild, client, result) {
+  createEmbed(author: Discord.User, guild: Discord.Guild, client: NorthClient, result: any[]) {
     const user = result.find(x => x.user == author.id);
     if (!user) return null;
     var expBackup = parseInt(user.exp);

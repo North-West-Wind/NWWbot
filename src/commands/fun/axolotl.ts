@@ -1,4 +1,4 @@
-import { NorthClient, NorthInteraction, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { getFetch } from "../../function";
 import * as Discord from "discord.js";
 
@@ -49,15 +49,15 @@ class AxolotlCommand implements SlashCommand {
         const selected = links[Math.floor(Math.random() * links.length)];
         await interaction.reply(selected);
     }
-    async run(message) {
+    async run(message: NorthMessage) {
         const selected = links[Math.floor(Math.random() * links.length)];
         try {
             const res = await fetch(selected).then(res => res.body);
             const attachment = new Discord.MessageAttachment(res, `axolotl.${selected.split(".")[selected.split(".").length - 1]}`);
-            await message.channel.send(attachment);
+            await message.channel.send({files: [attachment]});
         } catch(err) {
             NorthClient.storage.error(err);
-            return await message.reply("there was an error fetching the axolotls!");
+            return await message.reply("There was an error fetching the axolotls!");
         }
     }
 }

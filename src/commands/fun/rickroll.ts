@@ -1,5 +1,5 @@
 
-import { NorthClient, NorthInteraction, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { findUser, getOwner, wait } from "../../function";
 
@@ -17,23 +17,24 @@ class RickrollCommand implements SlashCommand {
     }];
     
     async execute(interaction: NorthInteraction) {
+        const attachment = new Discord.MessageAttachment("https://inviterick.com/rick.gif", "rick.gif");
         var user = interaction.options.getUser("user");
-        if (!user) return await interaction.reply("https://inviterick.com/rick.gif");
+        if (!user) return await interaction.reply({files: [attachment]});
         if (user.id === interaction.client.user.id || user.id == await getOwner()) user = interaction.user;
         await interaction.reply(`Hey! <@${user.id}>`);
         await wait(5000);
-        await interaction.followUp("https://inviterick.com/rick.gif");
+        await interaction.followUp({files: [attachment]});
     }
 
-    async run(message, args) {
+    async run(message: NorthMessage, args: string[]) {
         const attachment = new Discord.MessageAttachment("https://inviterick.com/rick.gif", "rick.gif");
-        if (!args[0]) return await message.channel.send(attachment);
+        if (!args[0]) return await message.channel.send({files: [attachment]});
         var user = await findUser(message, args[0]);
         if (!user) return;
         if (user.id === message.client.user.id || user.id == await getOwner()) user = message.author;
         await message.channel.send(`Hey! <@${user.id}>`);
         await wait(5000);
-        await message.channel.send(attachment);
+        await message.channel.send({files: [attachment]});
     }
 }
 
