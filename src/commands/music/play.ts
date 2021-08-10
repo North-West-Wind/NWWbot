@@ -243,7 +243,7 @@ class PlayCommand implements SlashCommand {
       else if (validSPURL(str)) result = await addSPURL(message, str);
       else if (validSCURL(str)) result = await addSCURL(str);
       else if (validGDFolderURL(str)) {
-        const msg = await msgOrRes(message, "Processing track: (Initializing)");
+        const msg = await msgOrRes(message, "Processing track: (Initializing)", true);
         result = await addGDFolderURL(str, async (i, l) => await msg.edit(`Processing track: **${i}/${l}**`));
         await msg.delete();
       } else if (validGDURL(str) || validGDDLURL(str)) result = await addGDURL(str);
@@ -251,9 +251,9 @@ class PlayCommand implements SlashCommand {
       else if (validURL(str)) result = await addURL(str);
       else if (message instanceof Discord.Message && message.attachments.size > 0) result = await addAttachment(message);
       else result = await search(message, str);
-      if (result.error) return await msgOrRes(message, result.message || "Failed to add soundtracks");
+      if (result.error) return await msgOrRes(message, result.message || "Failed to add soundtracks", true);
       songs = result.songs;
-      if (!songs || songs.length < 1) return await msgOrRes(message, "There was an error trying to add the soundtrack!");
+      if (!songs || songs.length < 1) return await msgOrRes(message, "There was an error trying to add the soundtrack!", true);
       const Embed = createEmbed(songs);
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, songs, false, false);
       else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
@@ -280,7 +280,7 @@ class PlayCommand implements SlashCommand {
         }
       }
     } catch (err) {
-      await msgOrRes(message, "There was an error trying to connect to the voice channel!");
+      await msgOrRes(message, "There was an error trying to connect to the voice channel!", true);
       if (err.message) await message.channel.send(err.message);
       serverQueue.destroy();
       NorthClient.storage.error(err);
