@@ -24,13 +24,19 @@ function createPlayer(guild: Discord.Guild) {
     updateQueue(guild.id, serverQueue, false);
   }
   var track: SoundTrack;
-  var needResource = true;
+  var needResource = true, needSetVolume = true;
   return serverQueue.player.on(AudioPlayerStatus.Playing, async (_oldState, newState) => {
     track = serverQueue.songs[0];
     if (needResource) {
       serverQueue.resource = newState.resource;
-      serverQueue.resource.volume.setVolumeLogarithmic(track && track.volume ? serverQueue.volume * track.volume : serverQueue.volume);
-      needResource = false;
+      needResource = !!serverQueue.resource;
+    }
+    if (needSetVolume) {
+      const volume = serverQueue.resource?.volume;
+      if (volume) {
+        volume.setVolumeLogarithmic(track && track.volume ? serverQueue.volume * track.volume : serverQueue.volume);
+        needSetVolume = false;
+      }
     }
     serverQueue.streamTime = newState.playbackDuration;
     await updateQueue(guild.id, serverQueue, false);
@@ -40,6 +46,7 @@ function createPlayer(guild: Discord.Guild) {
     if (!serverQueue.repeating) serverQueue.songs.shift();
     await updateQueue(guild.id, serverQueue);
     needResource = true;
+    needSetVolume = true;
     if (!serverQueue.random) await play(guild, serverQueue.songs[0]);
     else {
       const int = Math.floor(Math.random() * serverQueue.songs.length);
