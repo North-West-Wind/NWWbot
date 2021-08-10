@@ -1,5 +1,5 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { findUser, getOwner, wait } from "../../function";
 
@@ -17,7 +17,7 @@ class RickrollCommand implements SlashCommand {
     }];
     
     async execute(interaction: NorthInteraction) {
-        const attachment = new Discord.MessageAttachment("https://inviterick.com/rick.gif", "rick.gif");
+        const attachment = new Discord.MessageAttachment("https://drive.google.com/uc?export=download&id=1kiVMwDCNN5kRN9BtMPfSYoU1QM0yRdS2", "rick.gif");
         var user = interaction.options.getUser("user");
         if (!user) return await interaction.reply({files: [attachment]});
         if (user.id === interaction.client.user.id || user.id == await getOwner()) user = interaction.user;
@@ -27,7 +27,7 @@ class RickrollCommand implements SlashCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        const attachment = new Discord.MessageAttachment("https://inviterick.com/rick.gif", "rick.gif");
+        const attachment = new Discord.MessageAttachment("https://drive.google.com/uc?export=download&id=1kiVMwDCNN5kRN9BtMPfSYoU1QM0yRdS2", "rick.gif");
         if (!args[0]) return await message.channel.send({files: [attachment]});
         var user = await findUser(message, args[0]);
         if (!user) return;

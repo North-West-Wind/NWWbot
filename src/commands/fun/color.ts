@@ -7,7 +7,8 @@ function isArgsRgb(args: string[], length: number) {
     for(let i = 0; i < length; i++) if(isNaN(parseInt(args[i])) || parseInt(args[i]) > 255 || parseInt(args[i]) < 0) return false;
     return true;
 }
-function getColor(args: string[]) {
+function getColor(args: string[]): { red?: number, green?: number, blue?: number, random: boolean } {
+    if (!args?.length) return { random: true };
     var red = Math.floor(Math.random() * 256);
     var green = Math.floor(Math.random() * 256);
     var blue = Math.floor(Math.random() * 256);
@@ -48,7 +49,7 @@ class ColorCommand implements SlashCommand {
     }];
     
     async execute(interaction: NorthInteraction) {
-        const args = interaction.options.getString("color").split(/ +/);
+        const args = interaction.options.getString("color")?.split(/ +/);
         const { red, green, blue, random } = getColor(args);
         const canvas = createCanvas(1024, 1024);
         const ctx = canvas.getContext("2d");
