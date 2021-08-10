@@ -21,9 +21,9 @@ class AvatarCommand implements SlashCommand {
         const Embed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle(user.username + "'s avatar: ")
-            .setImage(user.displayAvatarURL({ size: 4096 }))
+            .setImage(user.displayAvatarURL({ size: 4096, dynamic: true }))
             .setTimestamp()
-            .setFooter("Have a nice day! :)", interaction.client.user.displayAvatarURL({ dynamic: true }));
+            .setFooter("Have a nice day! :)", interaction.client.user.displayAvatarURL());
         await interaction.reply({embeds: [Embed]});
     }
 
@@ -35,9 +35,9 @@ class AvatarCommand implements SlashCommand {
         const Embed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle(user.username + "'s avatar: ")
-            .setImage(user.displayAvatarURL({ size: 4096 }))
+            .setImage(user.displayAvatarURL({ size: 4096, dynamic: true }))
             .setTimestamp()
-            .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL({ dynamic: true }));
+            .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
         await message.channel.send({embeds: [Embed]});
     }
 }

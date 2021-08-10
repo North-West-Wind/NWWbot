@@ -32,7 +32,7 @@ class WelcomeCommand implements SlashCommand {
             if (!member) member = message.member;
         }
         const { message: msg, image, error } = await this.getWelcome(member, message.client);
-        const obj = { content: msg, files: null };
+        const obj = { content: msg, files: undefined };
         if (!error) obj.files = [image];
         await message.channel.send(obj);
     }
