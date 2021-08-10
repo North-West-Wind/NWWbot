@@ -35,7 +35,7 @@ class InventoryCommand implements SlashCommand {
       .setDescription(IResult.map(x => `**${++i}.** ${x.name} - **${itemObject[x.id]}**`).join("\n"))
       .setTimestamp()
       .setFooter("Type the ID of the item you want to use or anything else to exit.", client.user.displayAvatarURL());
-    if (msg) msg = await msg.edit({ embeds: [em], content: "" });
+    if (msg) msg = await msg.edit({ embeds: [em], content: null });
     else msg = await msgOrRes(message, em);
     const collected = await message.channel.awaitMessages({
       filter: x => x.author.id === author.id,

@@ -84,6 +84,7 @@ class QueueCommand implements SlashCommand {
         if (sub === "delete") return await this.delete(interaction, interaction.options.getString("name"));
         if (sub === "list") return await this.list(interaction);
         if (sub === "sync") return await this.sync(interaction, serverQueue, interaction.options.getString("name"));
+        await this.viewQueue(interaction, serverQueue);
     }
     
     async run(message: NorthMessage, args: string[]) {
@@ -94,6 +95,7 @@ class QueueCommand implements SlashCommand {
         if (args[0] && (args[0].toLowerCase() === "delete" || args[0].toLowerCase() === "d")) return await this.delete(message, args.slice(1).join(" "));
         if (args[0] && (args[0].toLowerCase() === "list" || args[0].toLowerCase() === "li")) return await this.list(message);
         if (args[0] && (args[0].toLowerCase() === "sync" || args[0].toLowerCase() === "sy")) return await this.sync(message, serverQueue, args.slice(1).join(" "));
+        await this.viewQueue(message, serverQueue);
     }
 
     async viewQueue(message: Message | NorthInteraction, serverQueue: ServerQueue) {

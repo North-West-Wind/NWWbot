@@ -67,7 +67,7 @@ class MathGameCommand implements SlashCommand {
             .setDescription(`Game Mode: **${questions > 0 ? `Limited Question Mode (${questions} Questions)` : time > 0 ? `Timer Mode (${moment.duration(Math.round(time / 1000), "seconds").format()})` : "Endless Mode"}**\n**${players.length < 2 ? "Singleplayer" : "Multiplayer"} Game**\nReact with "👌🏻" when you are ready!`)
             .setTimestamp()
             .setFooter("I will wait for 60 seconds.", message.client.user.displayAvatarURL());
-        msg = await msg.edit({ content: "", embeds: [em] });
+        msg = await msg.edit({ content: null, embeds: [em] });
         await msg.react("👌🏻");
         collected = undefined;
         collected = await msg.awaitReactions({ filter: (reaction, user) => reaction.emoji.name === '👌🏻' && players.map(x => x.id).includes(user.id), time: 60000, maxUsers: players.length });
@@ -111,7 +111,7 @@ class MathGameCommand implements SlashCommand {
         .setDescription(`Here are the final scores after **${moment.duration(Math.round((Date.now() - now) / 1000), "seconds").format()}**!\n${players.map(x => `**${x.tag}** --- **${scores[x.id]}**\n`)}\nCongratulations to **${winner.name}** for winning this game with **${winner.score} points**!`)
         .setTimestamp()
         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-        await msg.edit({ content: "", embeds: [em] });
+        await msg.edit({ content: null, embeds: [em] });
         //console.mathgames.delete(now);
     }
 

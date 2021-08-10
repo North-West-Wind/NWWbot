@@ -21,7 +21,7 @@ import * as Discord from "discord.js";
 import { TrackInfo } from "soundcloud-downloader/src/info";
 
 const fetch = getFetch();
-var spotifyApi;
+var spotifyApi: SpotifyWebApi;
 
 export function init() {
     spotifyApi = new SpotifyWebApi({
@@ -75,7 +75,7 @@ export async function addAttachment(message: Message) {
     }
     return { error: false, songs, msg: null, message: null };
 }
-export async function addYTPlaylist(link) {
+export async function addYTPlaylist(link: string) {
     try {
         var playlistInfo = await ytpl(link, { limit: Infinity });
     } catch (err) {
@@ -155,7 +155,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                 }
             }
             await checkAll();
-            var mesg = await msgOrRes(message, `Processing track: **0/${tracks.length}**`);
+            var mesg = await msgOrRes(message, `Processing track: **0/${tracks.length}**`, true);
             for (const track of <SpotifyApi.PlaylistTrackObject[]> tracks) {
                 await mesg.edit(`Processing track: **${++counter}/${tracks.length}**`).catch(() => { });
                 var results = [];
@@ -207,7 +207,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                 const data = await spotifyApi.getTracks([musicID]);
                 tracks = data.body.tracks;
             }
-            var mesg = await msgOrRes(message, `Processing track: **0/${tracks.length}**`);
+            var mesg = await msgOrRes(message, `Processing track: **0/${tracks.length}**`, true);
             for (const track of <SpotifyApi.TrackObjectFull[]> tracks) {
                 await mesg.edit(`Processing track: **${++counter}/${tracks.length}**`).catch(() => { });
                 var results = [];
@@ -459,7 +459,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
           });
     } catch (err) {
         NorthClient.storage.error(err);
-        await msgOrRes(message, "There was an error trying to search the videos!");
+        await msgOrRes(message, "There was an error trying to search the videos!", true);
         return { error: true, msg: null, songs: [], message: err.message };
     }
     const ytResults = video.map(x => ({
@@ -491,7 +491,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
         num = 0;
     } catch (err) {
         NorthClient.storage.error(err);
-        await msgOrRes(message, "There was an error trying to search the videos!");
+        await msgOrRes(message, "There was an error trying to search the videos!", true);
         return { error: true, msg: null, songs: [], message: err.message };
     }
     const scResults = (<TrackInfo[]> scSearched.collection).map(x => ({
@@ -509,12 +509,12 @@ export async function search(message: Message | NorthInteraction, link: string) 
         allEmbeds.push(scEm);
     }
     if (allEmbeds.length < 1) {
-        await msgOrRes(message, "Cannot find any result with the given string.");
+        await msgOrRes(message, "Cannot find any result with the given string.", true);
         return { error: true, msg: null, songs: [], message: null };
     }
     var val = { error: true, songs: [], msg: null, message: null };
     var s = 0;
-    var msg = <Message> await msgOrRes(message, allEmbeds[0]);
+    var msg = <Message> await msgOrRes(message, allEmbeds[0], true);
     const filter = x => x.author.id === (message instanceof Message ? message.author : message.user).id;
     const collector = await msg.channel.createMessageCollector({ filter, idle: 60000 });
     collector.on("collect", async collected => {
@@ -524,12 +524,12 @@ export async function search(message: Message | NorthInteraction, link: string) 
                 case "youtube":
                 case "yt":
                     s = 0;
-                    await msg.edit(allEmbeds[s]);
+                    await msg.edit({embeds: [allEmbeds[s]]});
                     break;
                 case "soundcloud":
                 case "sc":
                     s = 1;
-                    await msg.edit(allEmbeds[s]);
+                    await msg.edit({embeds: [allEmbeds[s]]});
                     break;
                 default:
                     collector.emit("end");

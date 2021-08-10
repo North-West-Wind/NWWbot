@@ -11,14 +11,14 @@ export async function migrate(message: Message | NorthInteraction) {
     const member = <GuildMember> message.member;
     const exit = NorthClient.storage.guilds[message.guild.id].exit;
     const migrating = NorthClient.storage.migrating;
-    if (migrating.find(x => x === message.guild.id)) return await  msgOrRes(message, "I'm on my way!").then(msg => setTimeout(msg.delete, 10000));
-    if (!member.voice.channel) return await msgOrRes(message, "You are not in any voice channel!");
-    if (!message.guild.me.voice.channel) return await msgOrRes(message, "I am not in any voice channel!");
-    if (member.voice.channelId === message.guild.me.voice.channelId) return await msgOrRes(message, "I'm already in the same channel with you!");
+    if (migrating.find(x => x === message.guild.id)) return await  msgOrRes(message, "I'm on my way!" , true).then(msg => setTimeout(msg.delete, 10000));
+    if (!member.voice.channel) return await msgOrRes(message, "You are not in any voice channel!", true);
+    if (!message.guild.me.voice.channel) return await msgOrRes(message, "I am not in any voice channel!", true);
+    if (member.voice.channelId === message.guild.me.voice.channelId) return await msgOrRes(message, "I'm already in the same channel with you!", true);
     if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
-    if (serverQueue.songs.length < 1) return await msgOrRes(message, "There is nothing in the queue.");
-    if (!serverQueue.playing) return await msgOrRes(message, "I'm not playing anything.");
-    if (!member.voice.channel.permissionsFor(message.guild.me).has(BigInt(3145728))) return await msgOrRes(message, "I don't have the required permissions to play music here!");
+    if (serverQueue.songs.length < 1) return await msgOrRes(message, "There is nothing in the queue.", true);
+    if (!serverQueue.playing) return await msgOrRes(message, "I'm not playing anything.", true);
+    if (!member.voice.channel.permissionsFor(message.guild.me).has(BigInt(3145728))) return await msgOrRes(message, "I don't have the required permissions to play music here!", true);
     migrating.push(message.guild.id);
     if (exit) NorthClient.storage.guilds[message.guild.id].exit = false;
     const oldChannel = serverQueue.voiceChannel;
@@ -32,7 +32,7 @@ export async function migrate(message: Message | NorthInteraction) {
     serverQueue.voiceChannel = null;
     serverQueue.textChannel = null;
     const voiceChannel = (<GuildMember> message.member).voice.channel;
-    const msg = <Message>await msgOrRes(message, "Migrating in 3 seconds...");
+    const msg = <Message>await msgOrRes(message, "Migrating in 3 seconds...", true);
     setTimeout(async () => {
         if (!message.guild.me.voice.channel || message.guild.me.voice.channelId !== voiceChannel.id) serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: <DiscordGatewayAdapterCreator> <unknown> message.guild.voiceAdapterCreator });
         else serverQueue.connection = getVoiceConnection(message.guild.id);
@@ -59,6 +59,7 @@ class MigrateCommand implements SlashCommand {
     category = 8
 
     async execute(interaction: NorthInteraction) {
+        await interaction.deferReply();
         await migrate(interaction);
     }
 

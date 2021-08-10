@@ -190,7 +190,7 @@ class PlayCommand implements SlashCommand {
   }]
 
   async execute(interaction: NorthInteraction) {
-    if (!interaction.guild) return await interaction.reply("This command only works on server.");
+    await interaction.deferReply();
     await this.logic(interaction, interaction.options.getString("link"));
   }
 
@@ -201,11 +201,11 @@ class PlayCommand implements SlashCommand {
   async logic(message: Discord.Message | NorthInteraction, str: string) {
     var serverQueue = getQueues().get(message.guild.id);
     const voiceChannel = (<Discord.GuildMember> message.member).voice.channel;
-    if (!voiceChannel) return await msgOrRes(message, "You need to be in a voice channel to play music!");
-    if (!voiceChannel.permissionsFor(message.guild.me).has(BigInt(3145728))) return await msgOrRes(message, "I can't play in your voice channel!");
+    if (!voiceChannel) return await msgOrRes(message, "You need to be in a voice channel to play music!", true);
+    if (!voiceChannel.permissionsFor(message.guild.me).has(BigInt(3145728))) return await msgOrRes(message, "I can't play in your voice channel!", true);
     if (!str && message instanceof Discord.Message && message.attachments.size < 1) {
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
-      if (serverQueue.songs.length < 1) return await msgOrRes(message, "The queue is empty for this server! Please provide a link or keywords to get a music played!");
+      if (serverQueue.songs.length < 1) return await msgOrRes(message, "The queue is empty for this server! Please provide a link or keywords to get a music played!", true);
       if (serverQueue.playing || NorthClient.storage.migrating.find(x => x === message.guild.id)) return await music(message);
       try {
         if (message.guild.me.voice?.channelId === voiceChannel.id) serverQueue.connection = getVoiceConnection(message.guild.id);
@@ -215,7 +215,7 @@ class PlayCommand implements SlashCommand {
         }
         if (message.guild.me.voice && !message.guild.me.voice.selfDeaf) message.guild.me.voice.setDeaf(true);
       } catch (err) {
-        await msgOrRes(message, "There was an error trying to connect to the voice channel!");
+        await msgOrRes(message, "There was an error trying to connect to the voice channel!", true);
         if (err.message) await message.channel.send(err.message);
         NorthClient.storage.error(err);
         return serverQueue.destroy();
@@ -258,7 +258,7 @@ class PlayCommand implements SlashCommand {
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, songs, false, false);
       else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
       var msg: Discord.Message;
-      if (result.msg) await result.msg.edit({ content: "", embed: Embed });
+      if (result.msg) await result.msg.edit({ content: null, embeds: [Embed] });
       else await msgOrRes(message, Embed);
       setTimeout(async() => { try { await msg.edit({ embeds: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }) } catch (err) { } }, 30000);
       await updateQueue(message.guild.id, serverQueue);
