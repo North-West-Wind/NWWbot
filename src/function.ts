@@ -338,8 +338,8 @@ export async function createEmbedScrolling(message: Discord.Message | NorthInter
         if (id == 1) {
             await msg.edit({ content: "Loading simplier version...", embeds: null });
             await msg.edit("https://sky.shiiyu.moe/stats/" + additionalData.res[0].name);
-        } else if (id == 2) setTimeout(() => msg.edit({ embeds: null, content: `**[Lyrics of ${additionalData.title}**]` }), 10000);
-        else if (id == 3) setTimeout(() => msg.edit({ embeds: null, content: `**[Queue: ${additionalData.songArray.length} tracks in total]**` }), 60000);
+        } else if (id == 2) setTimeout(() => msg.edit({ embeds: [], content: `**[Lyrics of ${additionalData.title}**]` }), 10000);
+        else if (id == 3) setTimeout(() => msg.edit({ embeds: [], content: `**[Queue: ${additionalData.songArray.length} tracks in total]**` }), 60000);
     });
     return { msg: msg, collector: collector };
 }

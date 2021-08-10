@@ -213,7 +213,7 @@ class PlayCommand implements SlashCommand {
           serverQueue.destroy();
           serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: <DiscordGatewayAdapterCreator> <unknown> message.guild.voiceAdapterCreator });
         }
-        if (message.guild.me.voice && !message.guild.me.voice.selfDeaf) message.guild.me.voice.setDeaf(true);
+        if (message.guild.me.voice?.channelId && !message.guild.me.voice.selfDeaf) message.guild.me.voice.setDeaf(true);
       } catch (err) {
         await msgOrRes(message, "There was an error trying to connect to the voice channel!", true);
         if (err.message) await message.channel.send(err.message);
