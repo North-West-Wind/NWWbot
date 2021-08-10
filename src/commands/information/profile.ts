@@ -19,7 +19,7 @@ class ProfileCommand implements SlashCommand {
 
     async execute(interaction: NorthInteraction) {
         if (!interaction.guild) return await interaction.reply("This command only works on server.");
-        const member = <Discord.GuildMember> (interaction.options.getMember("user") || interaction.member);
+        const member = <Discord.GuildMember> interaction.options.getMember("user") || await (<Discord.GuildMember> interaction.member).fetch();
         await interaction.reply({embeds: [this.createProfileEmbed(member)]});
     }
 
@@ -27,6 +27,7 @@ class ProfileCommand implements SlashCommand {
         if (!message.guild) return await message.channel.send("This command only works on server.");
         var member = message.member;
         if (args[0]) member = await findMember(message, args[0]);
+        else await member.fetch();
         if (!member) return;
         const Embed = this.createProfileEmbed(member);
         if (!Embed) return await message.channel.send("Something went wrong while creating the embed!");
