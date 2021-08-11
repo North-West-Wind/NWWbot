@@ -50,8 +50,10 @@ export class Handler {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, int) && (catFilter ? await catFilter(command, int) : true)) await command.execute(int);
         } catch (err) {
-            if (int.replied || int.deferred) await int.editReply(error);
-            else await int.reply(error);
+            try {
+                if (int.replied || int.deferred) await int.editReply(error);
+                else await int.reply(error);
+            } catch (err) { }
             NorthClient.storage.error(command.name + ": " + err);
         }
     }
