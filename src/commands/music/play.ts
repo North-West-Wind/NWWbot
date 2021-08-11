@@ -14,7 +14,7 @@ import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, 
 import * as Stream from 'stream';
 import { globalClient as client } from "../../common.js";
 import { InputFileFormat } from "webmscore/schemas";
-import { AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, DiscordGatewayAdapterCreator, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior } from "@discordjs/voice";
+import { AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, DiscordGatewayAdapterCreator, entersState, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus } from "@discordjs/voice";
 const fetch = getFetch();
 
 function createPlayer(guild: Discord.Guild) {
@@ -286,8 +286,9 @@ class PlayCommand implements SlashCommand {
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: <DiscordGatewayAdapterCreator> <unknown> message.guild.voiceAdapterCreator });
       serverQueue.textChannel = <Discord.TextChannel>message.channel;
-      await message.guild.me.voice?.setDeaf(true);
+      await message.guild.me.voice?.setDeaf(false);
       serverQueue.connection.subscribe(serverQueue.player);
+      await entersState(serverQueue.connection, VoiceConnectionStatus.Ready, 20e3);
       await updateQueue(message.guild.id, serverQueue, false);
       if (!serverQueue.playing) {
         if (!serverQueue.random) await play(message.guild, serverQueue.songs[0]);
