@@ -247,6 +247,8 @@ class PlayCommand implements SlashCommand {
       serverQueue.playing = true;
       serverQueue.textChannel = <Discord.TextChannel>message.channel;
       if (!serverQueue.player) serverQueue.player = createPlayer(message.guild);
+      await entersState(serverQueue.connection, VoiceConnectionStatus.Ready, 30e3);
+      serverQueue.connection.subscribe(serverQueue.player);
       await updateQueue(message.guild.id, serverQueue);
       if (!serverQueue.random) await play(message.guild, serverQueue.songs[0]);
       else {
