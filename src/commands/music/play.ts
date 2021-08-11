@@ -206,7 +206,6 @@ class PlayCommand implements SlashCommand {
   async execute(interaction: NorthInteraction) {
     await interaction.deferReply();
     await this.logic(interaction, interaction.options.getString("link"));
-    await interaction.deleteReply();
   }
 
   async run(message: NorthMessage, args: string[]) {
@@ -276,7 +275,7 @@ class PlayCommand implements SlashCommand {
       else serverQueue.songs = ((!message.guild.me.voice.channel || !serverQueue.playing) ? songs : serverQueue.songs).concat((!message.guild.me.voice.channel || !serverQueue.playing) ? serverQueue.songs : songs);
       var msg: Discord.Message;
       if (result.msg) await result.msg.edit({ content: null, embeds: [Embed] });
-      else await msgOrRes(message, Embed);
+      else await msgOrRes(message, Embed, true);
       setTimeout(async() => { try { await msg.edit({ embeds: [], content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }) } catch (err) { } }, 30000);
       await updateQueue(message.guild.id, serverQueue);
       if (!serverQueue.player) serverQueue.player = createPlayer(message.guild);
