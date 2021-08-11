@@ -41,7 +41,6 @@ function createPlayer(guild: Discord.Guild) {
     serverQueue.streamTime = newState.playbackDuration;
     await updateQueue(guild.id, serverQueue, false);
   }).on(AudioPlayerStatus.Idle, async () => {
-    NorthClient.storage.log("Idled");
     serverQueue = getQueues().get(guild.id);
     if (serverQueue.looping) serverQueue.songs.push(track);
     if (!serverQueue.repeating) serverQueue.songs.shift();
@@ -57,7 +56,7 @@ function createPlayer(guild: Discord.Guild) {
       await play(guild, pending);
     }
   }).on("error", async error => {
-    NorthClient.storage.error(error);
+    NorthClient.storage.error(error.message);
     serverQueue.textChannel.send("There was an error trying to play the soundtrack!");
     serverQueue.destroy();
   });
@@ -252,6 +251,14 @@ class PlayCommand implements SlashCommand {
       await entersState(serverQueue.connection, VoiceConnectionStatus.Ready, 30e3);
       serverQueue.connection.subscribe(serverQueue.player);
       await updateQueue(message.guild.id, serverQueue);
+      if (!serverQueue.random) await play(message.guild, serverQueue.songs[0]);
+      else {
+        const int = Math.floor(Math.random() * serverQueue.songs.length);
+        const pending = serverQueue.songs[int];
+        serverQueue.songs = moveArray(serverQueue.songs, int);
+        await updateQueue(message.guild.id, serverQueue);
+        await play(message.guild, pending);
+      }
       return;
     }
     try {
