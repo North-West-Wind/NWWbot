@@ -64,6 +64,7 @@ function createPlayer(guild: Discord.Guild) {
 
 async function probeAndCreateResource(readableStream: Stream.Readable) {
 	const { stream, type } = await demuxProbe(readableStream);
+  NorthClient.storage.log("stream type " + type);
 	return createAudioResource(stream, { inputType: type, inlineVolume: true });
 }
 
@@ -159,19 +160,10 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         stream = j;
         break;
       default:
-        if (song?.isLive) {
-          const k = await addYTURL(song.url, song.type);
-          if (k.error) throw "Failed to find video";
-          if (!isEquivalent(k.songs[0], song)) {
-            song = k.songs[0];
-            serverQueue.songs[serverQueue.songs.indexOf(song)] = song;
-            await updateQueue(guild.id, serverQueue);
-          }
-        }
-        if (!song?.isLive && !song?.isPastLive) stream = <Stream.Readable> await requestYTDLStream(song.url, <downloadOptions> { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
-        else if (song.isPastLive) stream = <Stream.Readable> await requestYTDLStream(song.url, { highWaterMark: 1 << 25 });
-        else stream = ytdl(song.url, { highWaterMark: 1 << 25 });
+        if (!song?.isPastLive) stream = <Stream.Readable> await requestYTDLStream(song.url, <downloadOptions> { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
+        else stream = <Stream.Readable> await requestYTDLStream(song.url, { highWaterMark: 1 << 25 });
         if (!stream) throw new Error("Failed to get YouTube video stream.");
+        NorthClient.storage.log("Got ytdl stream")
         break;
     }
     if (seek) {
