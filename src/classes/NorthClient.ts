@@ -172,14 +172,18 @@ export class ServerQueue {
     streamTime?: number;
 
     destroy() {
-        this.player?.stop();
-        this.connection?.destroy();
+        try {
+            this.player?.stop();
+            this.connection?.destroy();
+        } catch (err) { }
         this.player = null;
         this.connection = null;
     }
 
     stop() {
-        this.player?.stop();
+        try {
+            this.player?.stop();
+        } catch (err) { }
         this.player = null;
     }
 }

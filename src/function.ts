@@ -606,7 +606,7 @@ export function mutate(array: any[], fromIndex: number, toIndex: number) {
 
 export function requestYTDLStream(url: string, opts: downloadOptions & { timeout?: number }) {
     const timeoutMS = opts.timeout || 120000;
-    const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${timeoutMS}ms`)), timeoutMS));
+    const timeout = new Promise((resolve) => setTimeout(() => resolve(null), timeoutMS));
     const getStream = new Promise((resolve, reject) => {
         const stream = ytdl(url, opts);
         stream.on("finish", () => resolve(stream)).on("error", err => reject(err));

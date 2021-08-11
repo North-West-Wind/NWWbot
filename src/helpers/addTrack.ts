@@ -83,7 +83,7 @@ export async function addYTPlaylist(link: string) {
         if (err.message === "This playlist is private.") msg = "The playlist is private!";
         return { error: true, message: msg, msg: null, songs: [] };
     }
-    const videos = playlistInfo.items;
+    const videos = playlistInfo.items.filter(x => x && !x.isLive);
     const songs = [];
     for (const video of videos) songs.push({
         title: video.title,
@@ -104,6 +104,7 @@ export async function addYTURL(link: string, type: number = 0) {
         return { error: true, message: "Failed to get video data!", msg: null, songs: [] };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
+    if (length == 0) return { error: true, message: "We don't support live streams!", msg: null, songs: [] };
     var songLength = length == 0 ? "∞" : moment.duration(length, "seconds").format();
     const thumbnails = songInfo.videoDetails.thumbnails;
     var thumbUrl = thumbnails[thumbnails.length - 1].url;
@@ -122,7 +123,6 @@ export async function addYTURL(link: string, type: number = 0) {
             time: songLength,
             thumbnail: thumbUrl,
             volume: 1,
-            isLive: length == 0,
             isPastLive: !!songInfo?.videoDetails?.isLiveContent
         }
     ];
