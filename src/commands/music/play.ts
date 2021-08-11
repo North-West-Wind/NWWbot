@@ -160,8 +160,8 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         stream = j;
         break;
       default:
-        if (!song?.isPastLive) stream = <Stream.Readable> await requestYTDLStream(song.url, <downloadOptions> { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
-        else stream = <Stream.Readable> await requestYTDLStream(song.url, { highWaterMark: 1 << 25 });
+        if (!song?.isPastLive) stream = ytdl(song.url, <downloadOptions> { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
+        else stream = ytdl(song.url, { highWaterMark: 1 << 25 });
         if (!stream) throw new Error("Failed to get YouTube video stream.");
         NorthClient.storage.log("Got ytdl stream")
         break;
