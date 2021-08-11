@@ -49,7 +49,7 @@ class MoveCommand implements SlashCommand {
         if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing) serverQueue.stop();
         if (targetIndex > serverQueue.songs.length - 1) return await msgOrRes(message, `You cannot move a soundtrack that doesn't exist.`);
         var title = serverQueue.songs[targetIndex].title;
-        arrayMove.mutate(serverQueue.songs, targetIndex, destIndex);
+        arrayMove.arrayMoveMutable(serverQueue.songs, targetIndex, destIndex);
         await updateQueue(message.guild.id, serverQueue);
         await msgOrRes(message, `**${title}** has been moved from **#${queueIndex}** to **#${dest}**.`);
         if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing) {
