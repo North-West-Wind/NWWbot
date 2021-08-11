@@ -220,9 +220,9 @@ class QueueCommand implements SlashCommand {
             else if (index == 0) {
                 const back = msg.reactions.cache.get(available[0]);
                 await back.remove().catch(NorthClient.storage.error);
-                await msg.edit(allEmbeds[0]);
+                await msg.edit({embeds: [allEmbeds[0]]});
             } else {
-                await msg.edit(allEmbeds[index - 1]);
+                await msg.edit({embeds: [allEmbeds[index - 1]]});
                 const back = msg.reactions.cache.get(available[0]);
                 if (!back) {
                     const stop = msg.reactions.cache.get(available[1]);
@@ -234,7 +234,7 @@ class QueueCommand implements SlashCommand {
         });
         collector.on("end", function () {
             msg.reactions.removeAll().catch(NorthClient.storage.error);
-            msg.edit(allEmbeds[0]);
+            msg.edit({embeds: [allEmbeds[0]]});
             setTimeout(() => msg.edit({ embeds: null, content: `**[Queues: ${results.length}/10 slots used]**` }), 60000);
         });
     }

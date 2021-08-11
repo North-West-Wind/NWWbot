@@ -30,7 +30,6 @@ function createPlayer(guild: Discord.Guild) {
     if (needResource) {
       serverQueue.resource = newState.resource;
       needResource = !!serverQueue.resource;
-      NorthClient.storage.log("Playing and obtained audio resource!");
     }
     if (needSetVolume) {
       const volume = serverQueue.resource?.volume;
@@ -138,7 +137,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         if (c.error) throw new Error(c.message);
         if (c.url.startsWith("https://www.youtube.com/embed/")) {
           const ytid = c.url.split("/").slice(-1)[0].split("?")[0];
-          stream = <Stream.Readable> await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 });
+          stream = <Stream.Readable> await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, <downloadOptions> { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 });
         } else stream = <Stream.Readable> (await requestStream(c.url)).data;
         break;
       case 7:
@@ -178,8 +177,9 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
       const command = new FfmpegCommand(stream);
       const transform = new Stream.Transform();
       command.seekInput(seek).output(transform);
-      serverQueue.player.play(await probeAndCreateResource(transform));
-    } else serverQueue.player.play(await probeAndCreateResource(stream));
+      serverQueue.player?.play(await probeAndCreateResource(transform));
+    } else serverQueue.player?.play(await probeAndCreateResource(stream));
+    if (!serverQueue.player) return;
     await entersState(serverQueue.player, AudioPlayerStatus.Playing, 5e3);
   } catch (err) {
     NorthClient.storage.error(err);
@@ -236,7 +236,7 @@ class PlayCommand implements SlashCommand {
           serverQueue.destroy();
           serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(voiceChannel) });
         }
-        if (message.guild.me.voice?.channelId && message.guild.me.voice.selfDeaf) message.guild.me.voice.setDeaf(false);
+        if (message.guild.me.voice?.channelId && !message.guild.me.voice.selfDeaf) message.guild.me.voice.setDeaf(true);
       } catch (err) {
         await msgOrRes(message, "There was an error trying to connect to the voice channel!", true);
         if (err.message) await message.channel.send(err.message);
@@ -289,9 +289,9 @@ class PlayCommand implements SlashCommand {
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(voiceChannel) });
       serverQueue.textChannel = <Discord.TextChannel>message.channel;
-      await message.guild.me.voice?.setDeaf(false);
+      await message.guild.me.voice?.setDeaf(true);
+      await entersState(serverQueue.connection, VoiceConnectionStatus.Ready, 30e3);
       serverQueue.connection.subscribe(serverQueue.player);
-      await entersState(serverQueue.connection, VoiceConnectionStatus.Ready, 20e3);
       await updateQueue(message.guild.id, serverQueue, false);
       if (!serverQueue.playing) {
         if (!serverQueue.random) await play(message.guild, serverQueue.songs[0]);
