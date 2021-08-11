@@ -1,9 +1,8 @@
 import { GuildMember, Message } from "discord.js";
 
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { moveArray, msgOrRes } from "../../function";
+import { moveArray, msgOrRes, mutate } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
-import arrayMove from "array-move";
 import { play } from "./play";
 
 class MoveCommand implements SlashCommand {
@@ -49,7 +48,7 @@ class MoveCommand implements SlashCommand {
         if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing) serverQueue.stop();
         if (targetIndex > serverQueue.songs.length - 1) return await msgOrRes(message, `You cannot move a soundtrack that doesn't exist.`);
         var title = serverQueue.songs[targetIndex].title;
-        arrayMove.arrayMoveMutable(serverQueue.songs, targetIndex, destIndex);
+        mutate(serverQueue.songs, targetIndex, destIndex);
         await updateQueue(message.guild.id, serverQueue);
         await msgOrRes(message, `**${title}** has been moved from **#${queueIndex}** to **#${dest}**.`);
         if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing) {
