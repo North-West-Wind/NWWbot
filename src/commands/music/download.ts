@@ -25,12 +25,12 @@ class DownloadCommand implements SlashCommand {
         var serverQueue = getQueues().get(interaction.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(interaction.guild.id, [], false, false);
         const keywords = interaction.options.getString("keywords");
+        await interaction.deferReply();
         if (keywords && isNaN(parseInt(keywords))) return await this.downloadFromArgs(interaction, serverQueue, keywords);
         if (serverQueue.songs.length < 1) return await interaction.reply("There is nothing in the queue.");
         var song = serverQueue.songs[0];
         const parsed = keywords ? parseInt(keywords) : -1;
         if (parsed <= serverQueue.songs.length && parsed > 0) song = serverQueue.songs[parsed - 1];
-        await interaction.deferReply();
         await this.download(interaction, serverQueue, song);
     }
     
@@ -54,14 +54,14 @@ class DownloadCommand implements SlashCommand {
                     song = result.songs[0];
                     serverQueue.songs[0] = song;
                     await updateQueue(message.guild.id, serverQueue);
-                    if (song?.isLive) return await msgOrRes(message, "Livestream downloading is not supported and recommended! Come back later when the livestream is over.");
+                    if (song?.isLive) return await msgOrRes(message, "Livestream downloading is not supported and recommended! Come back later when the livestream is over.", true);
                 }
             }
         } catch (err) {
             NorthClient.storage.error(err);
-            return await msgOrRes(message, `There was an error trying to download the soundtrack!`);
+            return await msgOrRes(message, `There was an error trying to download the soundtrack!`, true);
         }
-        const msg = <Discord.Message> await msgOrRes(message, `Downloading... (Soundtrack Type: **Type ${song.type}**)`);
+        const msg = <Discord.Message> await msgOrRes(message, `Downloading... (Soundtrack Type: **Type ${song.type}**)`, true);
         let stream;
         try {
             switch (song.type) {
@@ -88,10 +88,10 @@ class DownloadCommand implements SlashCommand {
             return await msg.edit(`There was an error trying to download the soundtrack!`);
         }
         try {
-            await msg.delete();
-            await message.channel.send("The file may not appear just yet. Please be patient!");
-            let attachment = new Discord.MessageAttachment(stream, sanitize(`${song.title}.mp3`));
-            await message.channel.send({files: [attachment]});
+            await msg.edit("The file may not appear just yet. Please be patient!");
+            const attachment = new Discord.MessageAttachment(stream, sanitize(`${song.title}.mp3`));
+            if (message instanceof Discord.Message) await message.channel.send({ files: [attachment] });
+            else await message.followUp({ files: [attachment] });
         } catch (err) {
             if (message instanceof Discord.Message) await message.channel.send(`There was an error trying to send the soundtrack! (${err.message})`);
             else await message.followUp(`There was an error trying to send the soundtrack! (${err.message})`);
