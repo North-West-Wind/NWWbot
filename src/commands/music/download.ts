@@ -82,7 +82,7 @@ class DownloadCommand implements SlashCommand {
                     stream = await requestYTDLStream(song.url, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 });
                     break;
             }
-            if (stream) throw new Error("Cannot receive stream");
+            if (!stream) throw new Error("Cannot receive stream");
         } catch (err) {
             NorthClient.storage.error(err);
             return await msg.edit(`There was an error trying to download the soundtrack!`);

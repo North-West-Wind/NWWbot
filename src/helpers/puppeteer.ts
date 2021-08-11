@@ -11,17 +11,21 @@ async function getBrowser() {
 }
 
 export async function run(cb: Function) {
-    if (timeout) {
-        clearTimeout(timeout);
-        timeout = undefined;
+    try {
+        if (timeout) {
+            clearTimeout(timeout);
+            timeout = undefined;
+        }
+        const b = await getBrowser();
+        const page = await b.newPage();
+        const result = await cb(page);
+        page?.close();
+        timeout = setTimeout(() => {
+            browser?.close();
+            browser = undefined;
+        }, 10000);
+        return result;
+    } catch (err) {
+        return err;
     }
-    const b = await getBrowser();
-    const page = await b.newPage();
-    const result = await cb(page);
-    page?.close();
-    timeout = setTimeout(() => {
-        browser?.close();
-        browser = undefined;
-    }, 10000);
-    return result;
 }
