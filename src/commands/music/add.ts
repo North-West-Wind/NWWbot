@@ -56,7 +56,7 @@ class AddCommand implements SlashCommand {
             if (result.msg) msg = await result.msg.edit({ content: null, embed: Embed });
             else msg = await msgOrRes(message, Embed, true);
             await wait(30000);
-            await msg.edit({ embeds: null, content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
+            await msg.edit({ embeds: [], content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
         } catch(err) {
             await msgOrRes(message, "There was an error trying to add the soundtrack to the queue!");
             NorthClient.storage.error(err);

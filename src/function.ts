@@ -337,7 +337,7 @@ export async function createEmbedScrolling(message: Discord.Message | NorthInter
     collector.on("end", async () => {
         msg.reactions.removeAll().catch(NorthClient.storage.error);
         if (id == 1) {
-            await msg.edit({ content: "Loading simplier version...", embeds: null });
+            await msg.edit({ content: "Loading simplier version...", embeds: [] });
             await msg.edit("https://sky.shiiyu.moe/stats/" + additionalData.res[0].name);
         } else if (id == 2) setTimeout(() => msg.edit({ embeds: [], content: `**[Lyrics of ${additionalData.title}**]` }), 10000);
         else if (id == 3) setTimeout(() => msg.edit({ embeds: [], content: `**[Queue: ${additionalData.songArray.length} tracks in total]**` }), 60000);
@@ -349,21 +349,21 @@ export async function commonCollectorListener(reaction, user, s, allEmbeds, msg,
     switch (reaction.emoji.name) {
         case "⏮":
             s = 0;
-            await msg.edit(allEmbeds[s]);
+            await msg.edit({ embeds: [allEmbeds[s]] });
             break;
         case "◀":
             s -= 1;
             if (s < 0) s = allEmbeds.length - 1;
-            await msg.edit(allEmbeds[s]);
+            await msg.edit({ embeds: [allEmbeds[s]] });
             break;
         case "▶":
             s += 1;
             if (s > allEmbeds.length - 1) s = 0;
-            await msg.edit(allEmbeds[s]);
+            await msg.edit({ embeds: [allEmbeds[s]] });
             break;
         case "⏭":
             s = allEmbeds.length - 1;
-            await msg.edit(allEmbeds[s]);
+            await msg.edit({ embeds: [allEmbeds[s]] });
             break;
         case "⏹":
             collector.emit("end");

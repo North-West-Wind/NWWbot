@@ -51,7 +51,7 @@ class SurvivCommand implements SlashCommand {
     async run(message: NorthMessage, args: string[]) {
         try {
             const allEmbeds = await this.getPlayerEmbed(args.join(" "));
-            if (allEmbeds.length == 1) await message.channel.send(allEmbeds[0]);
+            if (allEmbeds.length == 1) await message.channel.send({embeds: [allEmbeds[0]]});
             else await createEmbedScrolling(message, allEmbeds);
         } catch (err) {
             await message.channel.send("Cannot find that user!");

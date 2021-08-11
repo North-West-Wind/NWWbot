@@ -626,21 +626,21 @@ export class AliceHandler extends Handler {
                         switch (reaction.emoji.name) {
                             case "⏮":
                                 s = 0;
-                                msg.edit(allEmbeds[s]);
+                                msg.edit({ embeds: [allEmbeds[s]] });
                                 break;
                             case "◀":
                                 s -= 1;
                                 if (s < 0) s = allEmbeds.length - 1;
-                                msg.edit(allEmbeds[s]);
+                                msg.edit({ embeds: [allEmbeds[s]] });
                                 break;
                             case "▶":
                                 s += 1;
                                 if (s > allEmbeds.length - 1) s = 0;
-                                msg.edit(allEmbeds[s]);
+                                msg.edit({ embeds: [allEmbeds[s]] });
                                 break;
                             case "⏭":
                                 s = allEmbeds.length - 1;
-                                msg.edit(allEmbeds[s]);
+                                msg.edit({ embeds: [allEmbeds[s]] });
                                 break;
                             case "⏹":
                                 collector.emit("end");

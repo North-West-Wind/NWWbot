@@ -18,9 +18,9 @@ export async function run(cb: Function) {
     const b = await getBrowser();
     const page = await b.newPage();
     const result = await cb(page);
-    page.close();
+    page?.close();
     timeout = setTimeout(() => {
-        browser.close();
+        browser?.close();
         browser = undefined;
     }, 10000);
     return result;

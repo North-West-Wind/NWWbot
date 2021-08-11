@@ -54,7 +54,7 @@ class LyricsCommand implements SlashCommand {
         if (!author) author = "No Authors Found";
         if (!lyrics) lyrics = "No lyrics were found";
         const allEmbeds = await this.createLyricsEmbeds(lyrics, title, author, icon);
-        if (allEmbeds.length == 1) await message.channel.send(allEmbeds[0]);
+        if (allEmbeds.length == 1) await message.channel.send({embeds: [allEmbeds[0]]});
         else await createEmbedScrolling(message, allEmbeds, 2);
     }
 

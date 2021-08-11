@@ -205,7 +205,7 @@ class MusescoreCommand implements SlashCommand {
         const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author);
         var s = 0;
         await msg.delete();
-        msg = await message.channel.send(allEmbeds[0]);
+        msg = await message.channel.send({embeds: [allEmbeds[0]]});
         await msg.react("⏮");
         await msg.react("◀");
         await msg.react("▶");

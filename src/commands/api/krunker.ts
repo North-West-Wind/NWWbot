@@ -215,7 +215,7 @@ class KrunkerCommand implements SlashCommand {
                 if (s > officialPage - 1) random = (`https://krunker.io/?game=${custom[Math.floor(Math.random() * custom.length)][0]}`);
                 else random = (`https://krunker.io/?game=${official[Math.floor(Math.random() * official.length)][0]}`);
                 if (random.endsWith("undefined")) random = "";
-                setTimeout(() => msg.edit({ content: random.length > 0 ? `Here's a random server:\n${random}` : "No server was found!", embeds: null }), 30000);
+                setTimeout(() => msg.edit({ content: random.length > 0 ? `Here's a random server:\n${random}` : "No server was found!", embeds: [] }), 30000);
             });
         } catch (err) {
             NorthClient.storage.error(err);

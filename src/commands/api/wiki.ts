@@ -57,7 +57,7 @@ class WikiCommand implements SlashCommand {
 
         var msg: Discord.Message, author;
         if (message instanceof Discord.Message) {
-            msg = await message.channel.send(allEmbeds[0]);
+            msg = await message.channel.send({embeds: [allEmbeds[0]]});
             author = message.author.id;
         } else {
             msg = <Discord.Message> await message.editReply({embeds: [allEmbeds[0]]});
@@ -78,40 +78,40 @@ class WikiCommand implements SlashCommand {
             switch (reaction.emoji.name) {
                 case "⏮":
                     s = 0;
-                    msg.edit(allEmbeds[s]);
+                    msg.edit({ embeds: [allEmbeds[s]] });
                     break;
                 case "◀":
                     s -= 1;
                     if (s < 0) {
                         s = allEmbeds.length - 1;
                     }
-                    msg.edit(allEmbeds[s]);
+                    msg.edit({ embeds: [allEmbeds[s]] });
                     break;
                 case "▶":
                     s += 1;
                     if (s > allEmbeds.length - 1) {
                         s = 0;
                     }
-                    msg.edit(allEmbeds[s]);
+                    msg.edit({ embeds: [allEmbeds[s]] });
                     break;
                 case "⏭":
                     s = allEmbeds.length - 1;
-                    msg.edit(allEmbeds[s]);
+                    msg.edit({ embeds: [allEmbeds[s]] });
                     break;
                 case "⏹":
                     collector.emit("end");
                     break;
                 case "1️⃣":
                     s = 24;
-                    msg.edit(allEmbeds[s]);
+                    msg.edit({ embeds: [allEmbeds[s]] });
                     break;
                 case "2️⃣":
                     s = 49;
-                    msg.edit(allEmbeds[s]);
+                    msg.edit({ embeds: [allEmbeds[s]] });
                     break;
                 case "3️⃣":
                     s = 74;
-                    msg.edit(allEmbeds[s]);
+                    msg.edit({ embeds: [allEmbeds[s]] });
                     break;
             }
         });

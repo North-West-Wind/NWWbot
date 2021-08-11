@@ -50,7 +50,7 @@ class HelpCommand implements SlashCommand {
       await wait(60000);
       await interaction.editReply({
         content: "This is the **[manual](https://northwestwind.ml/manual.pdf)**, my friend.",
-        embeds: null
+        embeds: []
       });
       return;
     }
@@ -62,7 +62,7 @@ class HelpCommand implements SlashCommand {
   async run(message: NorthMessage, args: string[]) {
     if (!args.length) {
       const msg = await message.channel.send({embeds: [this.getAllCommands()]});
-      setTimeout(async () => await msg.edit({ content: "This is the **manual**, my friend:\nhttps://northwestwind.ml/manual.pdf", embeds: null }), 60000);
+      setTimeout(async () => await msg.edit({ content: "This is the **manual**, my friend:\nhttps://northwestwind.ml/manual.pdf", embeds: [] }), 60000);
       return;
     }
     const name = args[0].toLowerCase();
