@@ -11,6 +11,7 @@ class AddCommand implements SlashCommand {
     description = "Add soundtracks to the queue without playing it."
     usage = "[link | keywords]"
     category = 8
+    args = 1
     options = [{
         name: "link",
         description: "The link of the soundtrack.",
