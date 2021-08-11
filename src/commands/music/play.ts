@@ -138,7 +138,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         if (c.error) throw new Error(c.message);
         if (c.url.startsWith("https://www.youtube.com/embed/")) {
           const ytid = c.url.split("/").slice(-1)[0].split("?")[0];
-          stream = <Stream.Readable> await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, <downloadOptions> { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 });
+          stream = <Stream.Readable> ytdl(`https://www.youtube.com/watch?v=${ytid}`, <downloadOptions> { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 });
         } else stream = <Stream.Readable> (await requestStream(c.url)).data;
         break;
       case 7:

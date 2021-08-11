@@ -30,8 +30,8 @@ class DownloadCommand implements SlashCommand {
         var song = serverQueue.songs[0];
         const parsed = keywords ? parseInt(keywords) : -1;
         if (parsed <= serverQueue.songs.length && parsed > 0) song = serverQueue.songs[parsed - 1];
+        await interaction.deferReply();
         await this.download(interaction, serverQueue, song);
-        
     }
     
     async run(message: NorthMessage, args: string[]) {
@@ -106,15 +106,15 @@ class DownloadCommand implements SlashCommand {
             else if (validYTURL(link)) result = await addYTURL(link);
             else if (validSPURL(link)) result = await addSPURL(message, link);
             else if (validSCURL(link)) result = await addSCURL(link);
-            else if (validGDURL(link)) return await msgOrRes(message, "Wait, you should be able to access this file?");
+            else if (validGDURL(link)) return await msgOrRes(message, "Wait, you should be able to access this file?", true);
             else if (validMSURL(link)) result = await addMSURL(link);
-            else if (validURL(link)) return await msgOrRes(message, "Wait, you should be able to access this file?");
+            else if (validURL(link)) return await msgOrRes(message, "Wait, you should be able to access this file?", true);
             else result = await search(message, link);
             if (result.error) return;
             if (result.msg) result.msg.delete({ timeout: 10000 });
             for (const song of result.songs) await this.download(message, serverQueue, song);
         } catch (err) {
-            await msgOrRes(message, "There was an error trying to download the soundtack!");
+            await msgOrRes(message, "There was an error trying to download the soundtack!", true);
             NorthClient.storage.error(err);
         }
     }

@@ -58,19 +58,13 @@ export function encodeHtmlEntity(str) {
     return buf.join("");
 }
 
-export function shuffleArray(array, start = 0) {
+export function shuffleArray(array: any[], start: number = 0) {
     const temp = array.splice(0, start);
-    var i;
-    var j;
-    var x;
-    for (i = array.length - 1; i > 0; i--) {
-        j = Math.floor(Math.random() * (i + 1));
-        x = array[i];
-        array[i] = array[j];
-        array[j] = x;
+    for (let i = array.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
     }
-    array = temp.concat(array);
-    return array;
+    return temp.concat(array);
 }
 export function moveArray(array, index) {
     const a1 = array.splice(0, index);
@@ -287,13 +281,13 @@ export async function ID() {
 export async function createEmbedScrolling(message: Discord.Message | NorthInteraction | { interaction: NorthInteraction, useEdit: boolean }, allEmbeds: Discord.MessageEmbed[], id: number = 0, additionalData: any = undefined) {
     var author: Discord.Snowflake;
     if (message instanceof Discord.Message) author = message.author.id;
-    else if (message instanceof NorthInteraction) author = message.user.id;
+    else if (message instanceof Discord.Interaction) author = message.user.id;
     else author = message.interaction.user.id;
     const filter = (reaction: Discord.MessageReaction, user: Discord.User) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author);
     var s = 0;
     var msg: Discord.Message;
     if (message instanceof Discord.Message) msg = await message.channel.send({ embeds: [allEmbeds[0]]});
-    else if (message instanceof NorthInteraction) msg = <Discord.Message> <unknown>await message.reply({ embeds: [allEmbeds[0]] });
+    else if (message instanceof Discord.Interaction) msg = <Discord.Message> <unknown>await message.reply({ embeds: [allEmbeds[0]] });
     else {
         if (message.useEdit) msg = <Discord.Message> await message.interaction.editReply({ embeds: [allEmbeds[0]] });
         else msg = <Discord.Message> <unknown>await message.interaction.reply({ embeds: [allEmbeds[0]] });
@@ -505,15 +499,21 @@ export function commonRoleEmbed(client, word, past, name) {
         .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return [successEmbed, failEmbed];
 }
-export async function msgOrRes(message: Discord.Message | NorthInteraction, str: any, useEdit: boolean = false): Promise<Discord.Message> {
+export async function msgOrRes(message: Discord.Message | NorthInteraction, str: any, useEdit: boolean | string = false): Promise<Discord.Message> {
     if (message instanceof Discord.Message) {
         if (typeof str === "string") return await message.channel.send(str);
         else if (str instanceof Discord.MessageEmbed) return await message.channel.send({ embeds: [str] });
         else if (str instanceof Discord.MessageAttachment) return await message.channel.send({ files: [str] });
     } else if (useEdit) {
-        if (typeof str === "string") return <Discord.Message> await message.editReply({ content: str });
-        else if (str instanceof Discord.MessageEmbed) return <Discord.Message> await message.editReply({ embeds: [str] });
-        else if (str instanceof Discord.MessageAttachment) return <Discord.Message> await message.editReply({ files: [str] });
+        if (useEdit === "followUp") {
+            if (typeof str === "string") return <Discord.Message> await message.followUp({ content: str, fetchReply: true });
+            else if (str instanceof Discord.MessageEmbed) return <Discord.Message> await message.followUp({ embeds: [str], fetchReply: true });
+            else if (str instanceof Discord.MessageAttachment) return <Discord.Message> await message.followUp({ files: [str], fetchReply: true });
+        } else {
+            if (typeof str === "string") return <Discord.Message> await message.editReply({ content: str });
+            else if (str instanceof Discord.MessageEmbed) return <Discord.Message> await message.editReply({ embeds: [str] });
+            else if (str instanceof Discord.MessageAttachment) return <Discord.Message> await message.editReply({ files: [str] });
+        }
     } else {
         if (typeof str === "string") return <Discord.Message> await message.reply({ content: str, fetchReply: true });
         else if (str instanceof Discord.MessageEmbed) return <Discord.Message> await message.reply({ embeds: [str], fetchReply: true });

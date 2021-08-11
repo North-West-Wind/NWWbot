@@ -123,7 +123,7 @@ class QueueCommand implements SlashCommand {
             allEmbeds.push(queueEmbed);
         }
         if (allEmbeds.length == 1) await msgOrRes(message, allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embeds: [], content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
-        else await createEmbedScrolling(message, allEmbeds, 3, { songArray: songArray });
+        else await createEmbedScrolling(message, allEmbeds, 3, { songArray });
     }
 
     async save(message: Message | NorthInteraction, serverQueue: ServerQueue, name: string) {

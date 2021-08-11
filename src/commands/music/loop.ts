@@ -30,10 +30,10 @@ class LoopCommand implements SlashCommand {
         }
         try {
             await updateQueue(message.guild.id, serverQueue, true);
-            if (serverQueue.looping) await msgOrRes(message, "The queue is now being looped.", useEdit);
-            else await msgOrRes(message, "The queue is no longer being looped.", useEdit);
+            if (serverQueue.looping) await msgOrRes(message, "The queue is now being looped.", "followUp");
+            else await msgOrRes(message, "The queue is no longer being looped.", "followUp");
         } catch (err) {
-            await msgOrRes(message, "There was an error trying to update the status!", useEdit);
+            await msgOrRes(message, "There was an error trying to update the status!", "followUp");
         }
     }
 }
