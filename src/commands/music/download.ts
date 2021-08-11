@@ -3,19 +3,10 @@ import { NorthClient, NorthInteraction, NorthMessage, ServerQueue, SlashCommand,
 import * as Discord from "discord.js";
 import sanitize from "sanitize-filename";
 import scdl from "soundcloud-downloader";
-import ytdl, { downloadOptions } from "ytdl-core";
-import { isEquivalent, requestStream, validYTPlaylistURL, validYTURL, validSPURL, validSCURL, validGDURL, validMSURL, validURL, msgOrRes } from "../../function";
+import { isEquivalent, requestStream, validYTPlaylistURL, validYTURL, validSPURL, validSCURL, validGDURL, validMSURL, validURL, msgOrRes, requestYTDLStream } from "../../function";
 import { addYTURL, addYTPlaylist, addSPURL, addSCURL, addMSURL, search } from "../../helpers/addTrack";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 import { getMP3 } from "../api/musescore";
-const requestYTDLStream = (url: string, opts: downloadOptions & { timeout?: number }) => {
-    const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${opts.timeout || 30000}ms`)), opts.timeout || 30000));
-    const getStream = new Promise((resolve, reject) => {
-        const stream = ytdl(url, opts);
-        stream.on("finish", () => resolve(stream)).on("error", err => reject(err));
-    });
-    return Promise.race([timeout, getStream]);
-};
 
 class DownloadCommand implements SlashCommand {
     name = "download"

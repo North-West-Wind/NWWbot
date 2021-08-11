@@ -13,6 +13,7 @@ import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);
 import { Readable } from "stream";
+import ytdl, { downloadOptions } from "ytdl-core";
 const fetch = fetchBuilder(originalFetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 
 export function twoDigits(d) {
@@ -601,4 +602,14 @@ export function mutate(array: any[], fromIndex: number, toIndex: number) {
 		const [item] = array.splice(fromIndex, 1);
 		array.splice(endIndex, 0, item);
 	}
+}
+
+export function requestYTDLStream(url: string, opts: downloadOptions & { timeout?: number }) {
+    const timeoutMS = opts.timeout || 120000;
+    const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${timeoutMS}ms`)), timeoutMS));
+    const getStream = new Promise((resolve, reject) => {
+        const stream = ytdl(url, opts);
+        stream.on("finish", () => resolve(stream)).on("error", err => reject(err));
+    });
+    return Promise.race([timeout, getStream]);
 }

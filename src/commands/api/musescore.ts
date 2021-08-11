@@ -1,11 +1,10 @@
 import * as cheerio from 'cheerio';
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { validMSURL, requestStream, findValueByPrefix, streamToString, color, msgOrRes } from "../../function";
+import { validMSURL, requestStream, findValueByPrefix, streamToString, color, requestYTDLStream } from "../../function";
 import { run } from '../../helpers/puppeteer';
 import muse from "musescore-metadata";
 import * as Discord from "discord.js";
-import ytdl from "ytdl-core";
 import sanitize from "sanitize-filename";
 import rp from "request-promise-native";
 import PDFKit from "pdfkit";
@@ -26,16 +25,6 @@ function PNGtoPDF(doc: PDFKit.PDFDocument, url: string): Promise<void> {
             }
         });
     })
-};
-
-const requestYTDLStream = (url: string, opts) => {
-    const timeoutMS = opts.timeout && !isNaN(parseInt(opts.timeout)) ? parseInt(opts.timeout) : 30000;
-    const timeout = new Promise((_resolve, reject) => setTimeout(() => reject(new Error(`YTDL video download timeout after ${timeoutMS}ms`)), timeoutMS));
-    const getStream = new Promise((resolve, reject) => {
-        const stream = ytdl(url, opts);
-        stream.on("finish", () => resolve(stream)).on("error", err => reject(err));
-    });
-    return Promise.race([timeout, getStream]);
 };
 
 export async function getMP3(url: string): Promise<{ error: boolean, url: string, message: string, timeTaken: number }> {

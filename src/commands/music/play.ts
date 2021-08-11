@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { getFetch, validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, validYTPlaylistURL, validSCURL, validMSURL, isEquivalent, requestStream, moveArray, color, validGDDLURL, bufferToStream, msgOrRes, wait } from "../../function.js";
+import { getFetch, validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, validYTPlaylistURL, validSCURL, validMSURL, isEquivalent, requestStream, moveArray, color, validGDDLURL, bufferToStream, msgOrRes, wait, requestYTDLStream } from "../../function.js";
 import { getMP3 } from "../api/musescore.js";
 import scdl from "soundcloud-downloader";
 import * as mm from "music-metadata";
@@ -14,7 +14,7 @@ import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, 
 import * as Stream from 'stream';
 import { globalClient as client } from "../../common.js";
 import { InputFileFormat } from "webmscore/schemas";
-import { AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, DiscordGatewayAdapterCreator, entersState, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus } from "@discordjs/voice";
+import { AudioPlayerError, AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, DiscordGatewayAdapterCreator, entersState, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus } from "@discordjs/voice";
 const fetch = getFetch();
 
 function createPlayer(guild: Discord.Guild) {
@@ -65,7 +65,6 @@ function createPlayer(guild: Discord.Guild) {
 
 async function probeAndCreateResource(readableStream: Stream.Readable) {
 	const { stream, type } = await demuxProbe(readableStream);
-  NorthClient.storage.log("Got stream type! " + type);
 	return createAudioResource(stream, { inputType: type, inlineVolume: true });
 }
 
@@ -106,7 +105,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
   if (!serverQueue.connection) try {
     serverQueue.connection = joinVoiceChannel({ channelId: serverQueue.voiceChannel.id, guildId: guild.id, adapterCreator: createDiscordJSAdapter(serverQueue.voiceChannel) })
     serverQueue.connection.subscribe(serverQueue.player);
-    if (guild.me.voice.selfDeaf) await guild.me.voice.setDeaf(false);
+    if (!guild.me.voice.selfDeaf) await guild.me.voice.setDeaf(true);
   } catch (err) {
     serverQueue.destroy();
     if (serverQueue.textChannel) {
@@ -137,7 +136,10 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
       case 5:
         const c = await getMP3(song.url);
         if (c.error) throw new Error(c.message);
-        stream = <Stream.Readable> (await requestStream(c.url)).data;
+        if (c.url.startsWith("https://www.youtube.com/embed/")) {
+          const ytid = c.url.split("/").slice(-1)[0].split("?")[0];
+          stream = <Stream.Readable> await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 });
+        } else stream = <Stream.Readable> (await requestStream(c.url)).data;
         break;
       case 7:
         const h = await fetch(song.url);
@@ -167,12 +169,11 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
             await updateQueue(guild.id, serverQueue);
           }
         }
-        if (!song?.isLive && !song?.isPastLive) stream = ytdl(song.url, <downloadOptions> { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
-        else if (song.isPastLive) stream = ytdl(song.url, { highWaterMark: 1 << 25 });
+        if (!song?.isLive && !song?.isPastLive) stream = <Stream.Readable> await requestYTDLStream(song.url, <downloadOptions> { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
+        else if (song.isPastLive) stream = <Stream.Readable> await requestYTDLStream(song.url, { highWaterMark: 1 << 25 });
         else stream = ytdl(song.url, { highWaterMark: 1 << 25 });
         break;
     }
-    NorthClient.storage.log("Sending stream to audio player");
     if (seek) {
       const command = new FfmpegCommand(stream);
       const transform = new Stream.Transform();
@@ -182,6 +183,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     await entersState(serverQueue.player, AudioPlayerStatus.Playing, 5e3);
   } catch (err) {
     NorthClient.storage.error(err);
+    serverQueue.player?.emit("error", new AudioPlayerError(err instanceof Error ? err : new Error(err), serverQueue.resource));
   }
   if (serverQueue.textChannel) {
     const Embed = new Discord.MessageEmbed()
