@@ -249,6 +249,7 @@ class PlayCommand implements SlashCommand {
         await updateQueue(message.guild.id, serverQueue);
         await play(message.guild, pending);
       }
+      if (message instanceof Discord.Interaction) await message.deleteReply();
       return;
     }
     try {
