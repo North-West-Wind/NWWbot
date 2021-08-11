@@ -14,13 +14,13 @@ import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, 
 import * as Stream from 'stream';
 import { globalClient as client } from "../../common.js";
 import { InputFileFormat } from "webmscore/schemas";
-import { AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, DiscordGatewayAdapterCreator, getVoiceConnection, joinVoiceChannel } from "@discordjs/voice";
+import { AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, DiscordGatewayAdapterCreator, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior } from "@discordjs/voice";
 const fetch = getFetch();
 
 function createPlayer(guild: Discord.Guild) {
   var serverQueue = getQueues().get(guild.id);
   if (!serverQueue.player) {
-    serverQueue.player = createAudioPlayer();
+    serverQueue.player = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Pause } });
     updateQueue(guild.id, serverQueue, false);
   }
   var track: SoundTrack;
@@ -106,7 +106,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
   if (!serverQueue.connection) try {
     serverQueue.connection = joinVoiceChannel({ channelId: serverQueue.voiceChannel.id, guildId: guild.id, adapterCreator: <DiscordGatewayAdapterCreator> <unknown> guild.voiceAdapterCreator })
     serverQueue.connection.subscribe(serverQueue.player);
-    if (!guild.me.voice.selfDeaf) await guild.me.voice.setDeaf(true);
+    if (guild.me.voice.selfDeaf) await guild.me.voice.setDeaf(false);
   } catch (err) {
     serverQueue.destroy();
     if (serverQueue.textChannel) {
@@ -233,7 +233,7 @@ class PlayCommand implements SlashCommand {
           serverQueue.destroy();
           serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: <DiscordGatewayAdapterCreator> <unknown> message.guild.voiceAdapterCreator });
         }
-        if (message.guild.me.voice?.channelId && !message.guild.me.voice.selfDeaf) message.guild.me.voice.setDeaf(true);
+        if (message.guild.me.voice?.channelId && message.guild.me.voice.selfDeaf) message.guild.me.voice.setDeaf(false);
       } catch (err) {
         await msgOrRes(message, "There was an error trying to connect to the voice channel!", true);
         if (err.message) await message.channel.send(err.message);
