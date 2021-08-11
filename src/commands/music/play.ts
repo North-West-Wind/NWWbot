@@ -118,7 +118,6 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
   if (serverQueue.connection) serverQueue.startTime = serverQueue.streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;
   try {
-    NorthClient.storage.log("Gonna play track: " + song);
     var stream: Stream.Readable;
     switch (song.type) {
       case 2:
