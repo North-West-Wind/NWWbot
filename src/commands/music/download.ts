@@ -82,7 +82,7 @@ class DownloadCommand implements SlashCommand {
                     stream = await requestYTDLStream(song.url, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 });
                     break;
             }
-            if (stream.status && stream.status != 200) throw new Error("Received HTTP Status Code " + stream.status);
+            if (stream.status != 200) throw new Error("Received HTTP Status Code " + stream.status);
         } catch (err) {
             NorthClient.storage.error(err);
             return await msg.edit(`There was an error trying to download the soundtrack!`);
@@ -93,7 +93,8 @@ class DownloadCommand implements SlashCommand {
             let attachment = new Discord.MessageAttachment(stream, sanitize(`${song.title}.mp3`));
             await message.channel.send({files: [attachment]});
         } catch (err) {
-            await (message instanceof Discord.Message ? message.channel.send : message.followUp)(`There was an error trying to send the soundtrack! (${err.message})`);
+            if (message instanceof Discord.Message) await message.channel.send(`There was an error trying to send the soundtrack! (${err.message})`);
+            else await message.followUp(`There was an error trying to send the soundtrack! (${err.message})`);
             NorthClient.storage.error(err);
         }
     }
