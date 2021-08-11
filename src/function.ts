@@ -287,10 +287,10 @@ export async function createEmbedScrolling(message: Discord.Message | NorthInter
     var s = 0;
     var msg: Discord.Message;
     if (message instanceof Discord.Message) msg = await message.channel.send({ embeds: [allEmbeds[0]]});
-    else if (message instanceof Discord.Interaction) msg = <Discord.Message> <unknown>await message.reply({ embeds: [allEmbeds[0]] });
+    else if (message instanceof Discord.Interaction) msg = <Discord.Message> await message.reply({ embeds: [allEmbeds[0]], fetchReply: true });
     else {
         if (message.useEdit) msg = <Discord.Message> await message.interaction.editReply({ embeds: [allEmbeds[0]] });
-        else msg = <Discord.Message> <unknown>await message.interaction.reply({ embeds: [allEmbeds[0]] });
+        else msg = <Discord.Message> await message.interaction.reply({ embeds: [allEmbeds[0]], fetchReply: true });
     }
     await msg.react("⏮");
     await msg.react("◀");

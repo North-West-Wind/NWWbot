@@ -25,7 +25,7 @@ class SeekCommand implements SlashCommand {
         var serverQueue = getQueues().get(interaction.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(interaction.guild.id, [], false, false);
         var parsed = ms(interaction.options.getString("time")) || interaction.options.getString("time");
-        if (parsed.endsWith("%")) {
+        if (typeof parsed === "string" && parsed.endsWith("%")) {
             const percentage = Number(parsed.slice(0, -1));
             if (isNaN(percentage) || percentage > 100 || percentage < 0) return await interaction.reply("The given percentage is not valid!");
             parsed = ms(serverQueue.songs[0].time) * (percentage / 100);
@@ -53,8 +53,8 @@ class SeekCommand implements SlashCommand {
         if (!seek) return await msgOrRes(message, "The given time is not valid!");
         if (Math.round(seek / 1000) > Math.floor(ms(serverQueue.songs[0].time) / 1000)) return await msgOrRes(message, "The time specified should not be larger than the maximum length of the soudtrack!");
         serverQueue.stop();
-        await play(message.guild, serverQueue.songs[0], Math.round(seek / 1000));
         await msgOrRes(message, `Seeked to **${seek == 0 ? "0:00" : moment.duration(Math.round(seek / 1000), "seconds").format()}**`);
+        await play(message.guild, serverQueue.songs[0], Math.round(seek / 1000));
     }
 }
 

@@ -547,12 +547,12 @@ export async function search(message: Message | NorthInteraction, link: string) 
                 .setDescription(`**[${decodeHtmlEntity(results[s][o].title)}](${results[s][o].url})** : **${results[s][o].time}**`)
                 .setTimestamp()
                 .setFooter("Have a nice day :)", message.client.user.displayAvatarURL());
-            await msg.edit({embeds: [chosenEmbed]}).catch(() => { });
+            await msg.edit({embeds: [chosenEmbed]});
             val = { error: false, songs: [results[s][o]], msg, message: null };
             collector.emit("end");
         }
     });
-    return new Promise<{ error: boolean, songs: any[], msg: any, message: any }>(resolve => {
+    return new Promise<{ error: boolean, songs: any[], msg: Message, message: any }>(resolve => {
         collector.on("end", async () => {
             if (val.error) {
                 const cancelled = new Discord.MessageEmbed()

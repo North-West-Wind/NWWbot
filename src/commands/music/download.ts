@@ -111,7 +111,7 @@ class DownloadCommand implements SlashCommand {
             else if (validURL(link)) return await msgOrRes(message, "Wait, you should be able to access this file?", true);
             else result = await search(message, link);
             if (result.error) return;
-            if (result.msg) result.msg.delete({ timeout: 10000 });
+            if (result.msg) result.msg.edit({ content: "Getting your download ready...", embeds: [] });
             for (const song of result.songs) await this.download(message, serverQueue, song);
         } catch (err) {
             await msgOrRes(message, "There was an error trying to download the soundtack!", true);

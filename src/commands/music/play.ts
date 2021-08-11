@@ -8,7 +8,6 @@ import ytdl, { downloadOptions } from "ytdl-core";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand, SoundTrack } from "../../classes/NorthClient.js";
 import { getQueues, updateQueue, setQueue, createDiscordJSAdapter } from "../../helpers/music.js";
 import WebMscore from "webmscore";
-import { FfmpegCommand } from "fluent-ffmpeg";
 import moment from "moment";
 import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search } from "../../helpers/addTrack.js";
 import * as Stream from 'stream';
@@ -16,6 +15,7 @@ import { globalClient as client } from "../../common.js";
 import { InputFileFormat } from "webmscore/schemas";
 import { AudioPlayerError, AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, DiscordGatewayAdapterCreator, entersState, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus } from "@discordjs/voice";
 const fetch = getFetch();
+const ffmpeg = require('fluent-ffmpeg');
 
 function createPlayer(guild: Discord.Guild) {
   var serverQueue = getQueues().get(guild.id);
@@ -64,7 +64,6 @@ function createPlayer(guild: Discord.Guild) {
 
 async function probeAndCreateResource(readableStream: Stream.Readable) {
 	const { stream, type } = await demuxProbe(readableStream);
-  NorthClient.storage.log("stream type " + type);
 	return createAudioResource(stream, { inputType: type, inlineVolume: true });
 }
 
@@ -163,11 +162,10 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         if (!song?.isPastLive) stream = ytdl(song.url, <downloadOptions> { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
         else stream = ytdl(song.url, { highWaterMark: 1 << 25 });
         if (!stream) throw new Error("Failed to get YouTube video stream.");
-        NorthClient.storage.log("Got ytdl stream")
         break;
     }
     if (seek) {
-      const command = new FfmpegCommand(stream);
+      const command = ffmpeg(stream);
       const transform = new Stream.Transform();
       command.seekInput(seek).output(transform);
       serverQueue.player?.play(await probeAndCreateResource(transform));
@@ -219,7 +217,7 @@ class PlayCommand implements SlashCommand {
     const voiceChannel = <Discord.VoiceChannel> (<Discord.GuildMember> message.member).voice.channel;
     if (!voiceChannel) return await msgOrRes(message, "You need to be in a voice channel to play music!", true);
     if (!voiceChannel.permissionsFor(message.guild.me).has(BigInt(3145728))) return await msgOrRes(message, "I can't play in your voice channel!", true);
-    if (!str && ((message instanceof Discord.Message && message.attachments.size < 1) || message instanceof NorthInteraction)) {
+    if (!str && ((message instanceof Discord.Message && message.attachments.size < 1) || message instanceof Discord.Interaction)) {
       if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
       if (serverQueue.songs.length < 1) return await msgOrRes(message, "The queue is empty for this server! Please provide a link or keywords to get a music played!", true);
       if (serverQueue.playing || NorthClient.storage.migrating.find(x => x === message.guild.id)) return await music(message);
