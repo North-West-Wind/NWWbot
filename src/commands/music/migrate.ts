@@ -1,9 +1,9 @@
 import { DiscordGatewayAdapterCreator, getVoiceConnection, joinVoiceChannel } from "@discordjs/voice";
-import { GuildMember, Message, TextChannel } from "discord.js";
+import { GuildMember, Message, TextChannel, VoiceChannel } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { moveArray, msgOrRes } from "../../function";
-import { getQueues, setQueue, updateQueue } from "../../helpers/music";
+import { createDiscordJSAdapter, getQueues, setQueue, updateQueue } from "../../helpers/music";
 import { play } from "./play";
 
 export async function migrate(message: Message | NorthInteraction) {
@@ -31,10 +31,10 @@ export async function migrate(message: Message | NorthInteraction) {
     serverQueue.connection = null;
     serverQueue.voiceChannel = null;
     serverQueue.textChannel = null;
-    const voiceChannel = (<GuildMember> message.member).voice.channel;
+    const voiceChannel = <VoiceChannel> (<GuildMember> message.member).voice.channel;
     const msg = <Message>await msgOrRes(message, "Migrating in 3 seconds...", true);
     setTimeout(async () => {
-        if (!message.guild.me.voice.channel || message.guild.me.voice.channelId !== voiceChannel.id) serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: <DiscordGatewayAdapterCreator> <unknown> message.guild.voiceAdapterCreator });
+        if (!message.guild.me.voice.channel || message.guild.me.voice.channelId !== voiceChannel.id) serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(voiceChannel) });
         else serverQueue.connection = getVoiceConnection(message.guild.id);
         serverQueue.voiceChannel = voiceChannel;
         serverQueue.playing = true;

@@ -1,4 +1,6 @@
+import { DiscordGatewayAdapterCreator, DiscordGatewayAdapterLibraryMethods } from "@discordjs/voice";
 import * as Discord from "discord.js";
+import { GatewayVoiceServerUpdateDispatchData, GatewayVoiceStateUpdateDispatchData } from "discord-api-types/v9";
 import { NorthClient, ServerQueue, SoundTrack } from "../classes/NorthClient";
 import { globalClient as client } from "../common";
 const queue = new Discord.Collection<Discord.Snowflake, ServerQueue>();
@@ -33,4 +35,66 @@ export function setQueue(guild: Discord.Snowflake, songs: SoundTrack[], loopStat
 }
 export function checkQueue() {
     return queue.size > 0;
+}
+
+// Copied from discord.js example: https://github.com/discordjs/voice/tree/main/examples/basic
+
+const adapters = new Map<Discord.Snowflake, DiscordGatewayAdapterLibraryMethods>();
+const trackedClients = new Set<Discord.Client>();
+
+/**
+ * Tracks a Discord.js client, listening to VOICE_SERVER_UPDATE and VOICE_STATE_UPDATE events.
+ * @param client - The Discord.js Client to track
+ */
+function trackClient(client: Discord.Client) {
+	if (trackedClients.has(client)) return;
+	trackedClients.add(client);
+	client.ws.on(Discord.Constants.WSEvents.VOICE_SERVER_UPDATE, (payload: GatewayVoiceServerUpdateDispatchData) => {
+		adapters.get(payload.guild_id)?.onVoiceServerUpdate(payload);
+	});
+	client.ws.on(Discord.Constants.WSEvents.VOICE_STATE_UPDATE, (payload: GatewayVoiceStateUpdateDispatchData) => {
+		if (payload.guild_id && payload.session_id && payload.user_id === client.user?.id) {
+			adapters.get(payload.guild_id)?.onVoiceStateUpdate(payload);
+		}
+	});
+	client.on(Discord.Constants.Events.SHARD_DISCONNECT, (_, shardID) => {
+		const guilds = trackedShards.get(shardID);
+		if (guilds) {
+			for (const guildID of guilds.values()) {
+				adapters.get(guildID)?.destroy();
+			}
+		}
+		trackedShards.delete(shardID);
+	});
+}
+
+const trackedShards = new Map<number, Set<Discord.Snowflake>>();
+
+function trackGuild(guild: Discord.Guild) {
+	let guilds = trackedShards.get(guild.shardId);
+	if (!guilds) {
+		guilds = new Set();
+		trackedShards.set(guild.shardId, guilds);
+	}
+	guilds.add(guild.id);
+}
+
+export function createDiscordJSAdapter(channel: Discord.VoiceChannel): DiscordGatewayAdapterCreator {
+	return (methods) => {
+		adapters.set(channel.guild.id, methods);
+		trackClient(channel.client);
+		trackGuild(channel.guild);
+		return {
+			sendPayload(data) {
+				if (channel.guild.shard.status === Discord.Constants.Status.READY) {
+					channel.guild.shard.send(data);
+					return true;
+				}
+				return false;
+			},
+			destroy() {
+				return adapters.delete(channel.guild.id);
+			},
+		};
+	};
 }

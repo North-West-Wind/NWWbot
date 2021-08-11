@@ -1,9 +1,9 @@
 import { DiscordGatewayAdapterCreator, joinVoiceChannel } from "@discordjs/voice";
-import { GuildMember, Message } from "discord.js";
+import { GuildMember, Message, VoiceChannel } from "discord.js";
 
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { moveArray, msgOrRes } from "../../function";
-import { getQueues, setQueue, updateQueue } from "../../helpers/music";
+import { createDiscordJSAdapter, getQueues, setQueue, updateQueue } from "../../helpers/music";
 import { play } from "./play";
 
 class SkipCommand implements SlashCommand {
@@ -51,7 +51,7 @@ class SkipCommand implements SlashCommand {
         await updateQueue(message.guild.id, serverQueue);
         await msgOrRes(message, `Skipped **${Math.max(1, skip)}** track${skip > 1 ? "s" : ""}!`);
         if (member.voice.channel && serverQueue.playing) {
-            if (!serverQueue.connection) serverQueue.connection = joinVoiceChannel({ channelId: member.voice.channel.id, guildId: message.guild.id, adapterCreator: <DiscordGatewayAdapterCreator> <unknown> message.guild.voiceAdapterCreator });
+            if (!serverQueue.connection) serverQueue.connection = joinVoiceChannel({ channelId: member.voice.channel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(<VoiceChannel> member.voice.channel) });
             if (!serverQueue.random) await play(guild, serverQueue.songs[0]);
             else {
                 const int = Math.floor(Math.random() * serverQueue.songs.length);

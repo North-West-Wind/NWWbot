@@ -6,7 +6,7 @@ import * as mm from "music-metadata";
 import { migrate as music } from "./migrate.js";
 import ytdl, { downloadOptions } from "ytdl-core";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand, SoundTrack } from "../../classes/NorthClient.js";
-import { getQueues, updateQueue, setQueue } from "../../helpers/music.js";
+import { getQueues, updateQueue, setQueue, createDiscordJSAdapter } from "../../helpers/music.js";
 import WebMscore from "webmscore";
 import { FfmpegCommand } from "fluent-ffmpeg";
 import moment from "moment";
@@ -84,7 +84,7 @@ export function createEmbed(songs: SoundTrack[]) {
 export async function play(guild: Discord.Guild, song: SoundTrack, seek: number = 0) {
   const queue = getQueues();
   const serverQueue = queue.get(guild.id);
-  if (!serverQueue.voiceChannel && guild.me.voice?.channel) serverQueue.voiceChannel = guild.me.voice.channel;
+  if (!serverQueue.voiceChannel && guild.me.voice?.channel) serverQueue.voiceChannel = <Discord.VoiceChannel> guild.me.voice.channel;
   serverQueue.playing = true;
   if (!song && serverQueue.songs.length > 0) {
     const filtered = serverQueue.songs.filter(song => !!song);
@@ -104,7 +104,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     serverQueue.connection?.subscribe(serverQueue.player);
   }
   if (!serverQueue.connection) try {
-    serverQueue.connection = joinVoiceChannel({ channelId: serverQueue.voiceChannel.id, guildId: guild.id, adapterCreator: <DiscordGatewayAdapterCreator> <unknown> guild.voiceAdapterCreator })
+    serverQueue.connection = joinVoiceChannel({ channelId: serverQueue.voiceChannel.id, guildId: guild.id, adapterCreator: createDiscordJSAdapter(serverQueue.voiceChannel) })
     serverQueue.connection.subscribe(serverQueue.player);
     if (guild.me.voice.selfDeaf) await guild.me.voice.setDeaf(false);
   } catch (err) {
@@ -179,6 +179,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
       command.seekInput(seek).output(transform);
       serverQueue.player.play(await probeAndCreateResource(transform));
     } else serverQueue.player.play(await probeAndCreateResource(stream));
+    await entersState(serverQueue.player, AudioPlayerStatus.Playing, 5e3);
   } catch (err) {
     NorthClient.storage.error(err);
   }
@@ -220,7 +221,7 @@ class PlayCommand implements SlashCommand {
 
   async logic(message: Discord.Message | NorthInteraction, str: string) {
     var serverQueue = getQueues().get(message.guild.id);
-    const voiceChannel = (<Discord.GuildMember> message.member).voice.channel;
+    const voiceChannel = <Discord.VoiceChannel> (<Discord.GuildMember> message.member).voice.channel;
     if (!voiceChannel) return await msgOrRes(message, "You need to be in a voice channel to play music!", true);
     if (!voiceChannel.permissionsFor(message.guild.me).has(BigInt(3145728))) return await msgOrRes(message, "I can't play in your voice channel!", true);
     if (!str && ((message instanceof Discord.Message && message.attachments.size < 1) || message instanceof NorthInteraction)) {
@@ -231,7 +232,7 @@ class PlayCommand implements SlashCommand {
         if (message.guild.me.voice?.channelId === voiceChannel.id) serverQueue.connection = getVoiceConnection(message.guild.id);
         else {
           serverQueue.destroy();
-          serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: <DiscordGatewayAdapterCreator> <unknown> message.guild.voiceAdapterCreator });
+          serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(voiceChannel) });
         }
         if (message.guild.me.voice?.channelId && message.guild.me.voice.selfDeaf) message.guild.me.voice.setDeaf(false);
       } catch (err) {
@@ -284,7 +285,7 @@ class PlayCommand implements SlashCommand {
       await updateQueue(message.guild.id, serverQueue);
       if (!serverQueue.player) serverQueue.player = createPlayer(message.guild);
       serverQueue.voiceChannel = voiceChannel;
-      serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: <DiscordGatewayAdapterCreator> <unknown> message.guild.voiceAdapterCreator });
+      serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(voiceChannel) });
       serverQueue.textChannel = <Discord.TextChannel>message.channel;
       await message.guild.me.voice?.setDeaf(false);
       serverQueue.connection.subscribe(serverQueue.player);

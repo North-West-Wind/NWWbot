@@ -157,7 +157,7 @@ export class ServerQueue {
     }
 
     textChannel: TextChannel;
-    voiceChannel: VoiceChannel | StageChannel;
+    voiceChannel: VoiceChannel;
     connection: VoiceConnection;
     player: AudioPlayer;
     resource?: AudioResource;
