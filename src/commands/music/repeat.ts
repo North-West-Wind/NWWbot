@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 
-import { NorthInteraction, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 import { msgOrRes } from "../../function";
 
@@ -14,7 +14,7 @@ class RepeatCommand implements SlashCommand {
         await this.repeat(interaction);
     }
 
-    async run(message) {
+    async run(message: NorthMessage) {
         await this.repeat(message);
     }
 

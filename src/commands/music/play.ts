@@ -206,6 +206,7 @@ class PlayCommand implements SlashCommand {
   async execute(interaction: NorthInteraction) {
     await interaction.deferReply();
     await this.logic(interaction, interaction.options.getString("link"));
+    await interaction.deleteReply();
   }
 
   async run(message: NorthMessage, args: string[]) {

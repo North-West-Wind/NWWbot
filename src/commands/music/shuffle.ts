@@ -22,8 +22,8 @@ class ShuffleCommand implements SlashCommand {
         if (!Array.isArray(serverQueue?.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (!serverQueue || serverQueue.songs.length < 1) return await msgOrRes(message, "There is nothing in the queue.");
         if (((<GuildMember> message.member).voice.channelId !== message.guild.me.voice.channelId) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to shuffle the queue when the bot is playing!");
-        if (serverQueue.playing) shuffleArray(serverQueue.songs, 1);
-        else shuffleArray(serverQueue.songs, 0);
+        if (serverQueue.playing) serverQueue.songs = shuffleArray(serverQueue.songs, 1);
+        else serverQueue.songs = shuffleArray(serverQueue.songs, 0);
         await updateQueue(message.guild.id, serverQueue);
         await msgOrRes(message, "The queue has been shuffled.");
     }
