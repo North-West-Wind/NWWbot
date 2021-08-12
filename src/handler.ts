@@ -98,12 +98,12 @@ export class Handler {
                 await client.guilds.fetch(result.id);
             } catch (err) {
                 await con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
-                return storage.log("Removed left servers");
+                return console.log("Removed left servers");
             }
             if (result.queue || result.looping || result.repeating) {
                 var queue = [];
                 try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
-                catch (err) { storage.error(`Error parsing queue of ${result.id}`); }
+                catch (err) { console.error(`Error parsing queue of ${result.id}`); }
                 setQueue(result.id, queue, !!result.looping, !!result.repeating);
             }
             if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
@@ -126,13 +126,13 @@ export class Handler {
             storage.guilds[result.id].autoReply = result.auto_reply;
         });
         NorthClient.storage = storage;
-        storage.log(`[${client.id}] Set ${results.length} configurations`);
+        console.log(`[${client.id}] Set ${results.length} configurations`);
     }
 
     async readRoleMsg(client: NorthClient, con: PoolConnection) {
         const storage = NorthClient.storage;
         const [res] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434' ORDER BY expiration");
-        storage.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
+        console.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
         storage.rm = <RoleMessage[]>res;
         res.forEach(async result => expire({ pool: client.pool, client }, result.expiration - Date.now(), result.id));
         NorthClient.storage = storage;
@@ -178,7 +178,7 @@ export class Handler {
         const storage = NorthClient.storage;
         const pool = client.pool;
         const id = client.id;
-        storage.log(`[${id}] Ready!`);
+        console.log(`[${id}] Ready!`);
         this.setPresence(client);
         const con = await pool.getConnection();
         try {
@@ -189,7 +189,7 @@ export class Handler {
             await this.readGiveaways(client, con);
             await this.readPoll(client, con);
             await this.readNoLog(client, con);
-        } catch (err) { storage.error(err); };
+        } catch (err) { console.error(err); };
         con.release();
     }
 
@@ -229,7 +229,7 @@ export class Handler {
                 const welcomeMessage = replaceMsgContent(welcome.message, guild, client, member, "welcome");
                 await channel.send(welcomeMessage);
             } catch (err) {
-                storage.error(err);
+                console.error(err);
             }
             if (welcome.image) {
                 var img = new Image();
@@ -283,7 +283,7 @@ export class Handler {
                         await this.preWelcomeImage(channel);
                         await channel.send({ files: [attachment] });
                     } catch (err) {
-                        storage.error(err);
+                        console.error(err);
                     }
                 };
                 var url = welcome.image;
@@ -304,11 +304,11 @@ export class Handler {
                     try {
                         await member.roles.add(roleID);
                     } catch (err) {
-                        storage.error(err);
+                        console.error(err);
                     }
                 }
             }
-        } catch (err) { storage.error(err) };
+        } catch (err) { console.error(err) };
     }
 
     async guildMemberRemove(member: GuildMember | PartialGuildMember) {
@@ -326,7 +326,7 @@ export class Handler {
                 const fetchedLogs = await guild.fetchAuditLogs({ limit: 1, type: 'MEMBER_KICK' });
                 const kickLog = fetchedLogs.entries.first();
                 if (kickLog && (kickLog.target as any).id === member.user.id && kickLog.executor.id !== (kickLog.target as any).id) return;
-            } else storage.log("Can't view audit logs of " + guild.name);
+            } else console.log("Can't view audit logs of " + guild.name);
             const channel = <TextChannel>guild.channels.resolve(leave.channel);
             if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
             if (!leave.message) return;
@@ -334,10 +334,10 @@ export class Handler {
                 const leaveMessage = replaceMsgContent(leave.message, guild, client, member, "leave");
                 await channel.send(leaveMessage);
             } catch (err) {
-                storage.error(err);
+                console.error(err);
             }
 
-        } catch (err) { storage.error(err) };
+        } catch (err) { console.error(err) };
     }
 
     async guildCreate(guild: Guild) {
@@ -345,7 +345,7 @@ export class Handler {
         try {
             await fixGuildRecord(guild.id);
         } catch (err) {
-            storage.error(err);
+            console.error(err);
         }
         try { storage.guilds[guild.id].invites = await guild.invites.fetch(); } catch (err) { }
         NorthClient.storage = storage;
@@ -354,13 +354,13 @@ export class Handler {
     async guildDelete(guild: Guild) {
         const client = <NorthClient>guild.client;
         const storage = NorthClient.storage;
-        storage.log("Left a guild: " + guild.name);
+        console.log("Left a guild: " + guild.name);
         delete storage.guilds[guild.id];
         try {
             await client.pool.query("DELETE FROM servers WHERE id=" + guild.id);
-            storage.log("Deleted record for " + guild.name);
+            console.log("Deleted record for " + guild.name);
         } catch (err) {
-            storage.error(err);
+            console.error(err);
         }
         NorthClient.storage = storage;
     }
@@ -406,7 +406,7 @@ export class Handler {
             const member = await guild.members.fetch(user.id);
             if (index > -1) await member.roles.add(JSON.parse(roleMessage.roles)[index]);
         } catch (err) {
-            storage.error(err);
+            console.error(err);
         }
     }
 
@@ -424,7 +424,7 @@ export class Handler {
             const member = await guild.members.fetch(user.id);
             if (index > -1) await member.roles.remove(JSON.parse(roleMessage.roles)[index]);
         } catch (err) {
-            storage.error(err);
+            console.error(err);
         }
     }
 
@@ -459,7 +459,7 @@ export class Handler {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
         } catch (err) {
-            storage.error(command.name + ": " + err);
+            console.error(command.name + ": " + err);
             try {
                 await msg.reply(error);
             } catch (err) { }
@@ -486,7 +486,7 @@ export class AliceHandler extends Handler {
         if (result.queue || result.looping || result.repeating) {
             var queue = [];
             try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
-            catch (err) { storage.error(`Error parsing queue of ${result.id}`); }
+            catch (err) { console.error(`Error parsing queue of ${result.id}`); }
             setQueue(result.id, queue, !!result.looping, !!result.repeating);
         }
         if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
@@ -507,7 +507,7 @@ export class AliceHandler extends Handler {
             channel: result.boost_channel
         };
         NorthClient.storage = storage;
-        storage.log(`[${client.id}] Set ${results.length} configurations`);
+        console.log(`[${client.id}] Set ${results.length} configurations`);
     }
 
     async setPresence(client: NorthClient) {
@@ -518,7 +518,7 @@ export class AliceHandler extends Handler {
         const storage = NorthClient.storage;
         client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => storage.guilds[g.id].invites = guildInvites).catch(() => { }));
         const [res] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
-        storage.log(`[${client.id}] Found ${res.length} guild timers`);
+        console.log(`[${client.id}] Found ${res.length} guild timers`);
         res.forEach(async result => {
             let endAfter = result.endAt.getTime() - Date.now();
             let mc = await profile(result.mc);
@@ -539,9 +539,9 @@ export class AliceHandler extends Handler {
                         user.send(`Your rank **${rank}** in War of Underworld has expired.`);
                     } catch (err) { }
                     await conn.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
-                    storage.log("A guild timer expired.");
+                    console.log("A guild timer expired.");
                 } catch (err) {
-                    storage.error(err);
+                    console.error(err);
                 }
                 conn.release();
             }, endAfter);
@@ -640,7 +640,7 @@ export class AliceHandler extends Handler {
                     collector.on("end", () => msg.reactions.removeAll().catch(console.error));
                 }
             } catch (err) {
-                storage.error(err);
+                console.error(err);
             }
         }, 30000);
     }
@@ -792,7 +792,7 @@ export class CanaryHandler extends Handler {
             if (result.queue || result.looping || result.repeating) {
                 var queue = [];
                 try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
-                catch (err) { storage.error(`Error parsing queue of ${result.id}`); }
+                catch (err) { console.error(`Error parsing queue of ${result.id}`); }
                 setQueue(result.id, queue, !!result.looping, !!result.repeating);
             }
             if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
@@ -815,6 +815,6 @@ export class CanaryHandler extends Handler {
             };
         });
         NorthClient.storage = storage;
-        storage.log(`[${client.id}] Set ${results.length} configurations`);
+        console.log(`[${client.id}] Set ${results.length} configurations`);
     }
 }

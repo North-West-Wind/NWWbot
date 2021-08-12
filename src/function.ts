@@ -625,7 +625,7 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
         if (results[0].queue || results[0].looping || results[0].repeating) {
             var queue = [];
             try { if (results[0].queue) queue = JSON.parse(unescape(results[0].queue)); }
-            catch (err) { storage.error(`Error parsing queue of ${results[0].id}`); }
+            catch (err) { console.error(`Error parsing queue of ${results[0].id}`); }
             setQueue(results[0].id, queue, !!results[0].looping, !!results[0].repeating);
         }
         if (results[0].prefix) storage.guilds[results[0].id].prefix = results[0].prefix;
