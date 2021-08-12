@@ -51,8 +51,9 @@ class ConfigCommand implements SlashCommand {
         if (!config) await fixGuildRecord(guild.id);
       } else if (config.token && sub !== "new") return await author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
       NorthClient.storage.guilds[guild.id].token = generated;
+      await interaction.reply("See you in DM!");
       await client.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
-      return await interaction.reply("See you in DM!");
+      return;
     } catch (err) {
       console.error(err);
       return await interaction.reply("There was an error trying to update the token! This token will be temporary.");

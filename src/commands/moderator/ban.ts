@@ -42,7 +42,7 @@ class BanCommand implements SlashCommand {
         }
         const reason = interaction.options.getString("reason");
         if (reason) options.reason = reason;
-        const embeds = commonModerationEmbed(interaction.guild, interaction.member.user, member, "ban", "banned", options.reason);
+        const embeds = commonModerationEmbed(interaction.guild, interaction.user, member, "ban", "banned", options.reason);
         try {
             await member.ban(options);
         } catch (err) {

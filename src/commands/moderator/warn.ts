@@ -1,5 +1,6 @@
 
-import { GuildMember } from "discord.js";
+import { Guild, GuildMember } from "discord.js";
+import { Pool, RowDataPacket } from "mysql2/promise";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { genPermMsg, commonModerationEmbed, findMember } from "../../function";
 
@@ -30,12 +31,12 @@ class WarnCommand implements SlashCommand {
     const guild = interaction.guild;
     const member = <GuildMember> interaction.options.getMember("user");
     const reason = interaction.options.getString("reason");
-    const warnEmbeds = commonModerationEmbed(guild, author.user, member, "warn", "warned", reason);
+    const warnEmbeds = commonModerationEmbed(guild, interaction.user, member, "warn", "warned", reason);
     try {
       const amount = await this.warn(guild, member, interaction.client.pool, reason);
       member.user.send({embeds: [warnEmbeds[0]]}).catch(() => { });
       if (amount >= 3) {
-        const banEmbeds = commonModerationEmbed(guild, author.user, member, "ban", "banned", "Received 3 warnings.");
+        const banEmbeds = commonModerationEmbed(guild, interaction.user, member, "ban", "banned", "Received 3 warnings.");
         await member.ban({ reason: "Received 3 warnings." });
         member.user.send({embeds: [banEmbeds[0]]}).catch(() => { });
         await interaction.client.pool.query(`DELETE FROM warn WHERE guild = '${guild.id}' AND user = '${member.id}'`);
@@ -67,9 +68,10 @@ class WarnCommand implements SlashCommand {
     }
   }
 
-  async warn(guild, member, pool, reason) {
+  async warn(guild: Guild, member: GuildMember, pool: Pool, reason: string) {
+    const con = pool.getConnection();
     await pool.query(`INSERT INTO warn VALUES (NULL, '${guild.id}', '${member.id}', '${escape(reason)}')`);
-    const [results] = await pool.query(`SELECT * FROM warn WHERE guild = '${guild.id}' AND user = '${member.id}'`);
+    const [results] = <RowDataPacket[][]> await pool.query(`SELECT * FROM warn WHERE guild = '${guild.id}' AND user = '${member.id}'`);
     return results.length;
   }
 }

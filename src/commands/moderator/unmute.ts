@@ -26,11 +26,10 @@ class UnMuteCommand implements SlashCommand {
     ]
 
     async execute(interaction: NorthInteraction) {
-        const author = interaction.member;
         const guild = interaction.guild;
         const member = <GuildMember> interaction.options.getMember("user");
         const reason = interaction.options.getString("reason");
-        const embeds = commonModerationEmbed(guild, author.user, member, "unmute", "unmuted", reason);
+        const embeds = commonModerationEmbed(guild, interaction.user, member, "unmute", "unmuted", reason);
         try {
             if (reason) await member.voice.setMute(false, reason);
             else await member.voice.setMute(false);

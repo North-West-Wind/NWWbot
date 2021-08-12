@@ -28,11 +28,10 @@ class DeafenCommand implements SlashCommand {
   
   async execute(interaction: NorthInteraction) {
     const guild = interaction.guild;
-    const author = interaction.member;
     const member = <GuildMember> interaction.options.getMember("user");
     if (!member) return await interaction.reply("Cannot find the user.");
     const reason = interaction.options.getString("reason");
-    const embeds = commonModerationEmbed(guild, author, member, "deafen", "deafened", reason);
+    const embeds = commonModerationEmbed(guild, interaction.user, member, "deafen", "deafened", reason);
     try {
       if (reason) await member.voice.setDeaf(true, reason)
       else await member.voice.setDeaf(true);

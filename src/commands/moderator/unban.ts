@@ -26,11 +26,10 @@ class UnBanCommand implements SlashCommand {
     ]
 
     async execute(interaction: NorthInteraction) {
-        const author = interaction.member;
         const guild = interaction.guild;
         const member = <GuildMember> interaction.options.getMember("user");
         const reason = interaction.options.getString("reason");
-        const embeds = commonModerationEmbed(guild, author.user, member, "unban", "unbanned", reason);
+        const embeds = commonModerationEmbed(guild, interaction.user, member, "unban", "unbanned", reason);
         try {
             if (reason) await guild.members.unban(member, reason);
             else await guild.members.unban(member);

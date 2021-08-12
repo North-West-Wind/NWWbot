@@ -464,7 +464,7 @@ export function duration(seconds) {
 export function getKeyByValue(object, value) {
     return Object.keys(object).find(key => object[key] === value);
 }
-export function commonModerationEmbed(guild, author, member, word, past, reason) {
+export function commonModerationEmbed(guild: Discord.Guild, author: Discord.User, member: Discord.GuildMember, word: string, past: string, reason: string = undefined) {
     const color = () => Math.floor(Math.random() * 16777214) + 1;
     const capitalize = (s) => (typeof s !== 'string') ? '' : s.charAt(0).toUpperCase() + s.slice(1);
     const notiEmbed = new Discord.MessageEmbed()
@@ -477,11 +477,11 @@ export function commonModerationEmbed(guild, author, member, word, past, reason)
     const successfulEmbed = new Discord.MessageEmbed()
         .setColor(color())
         .setTitle(`User ${capitalize(past)}!`)
-        .setDescription(`${capitalize(past)} **${member.user?.tag || member.tag}** in server **${guild.name}**.`);
+        .setDescription(`${capitalize(past)} **${member.user?.tag || member.displayName}** in server **${guild.name}**.`);
     const failureEmbed = new Discord.MessageEmbed()
         .setColor(color())
         .setTitle(`Failed to ${word} the user!`)
-        .setDescription(`Couldn't ${word} **${member.user?.tag || member.tag}** in server **${guild.name}**.`);
+        .setDescription(`Couldn't ${word} **${member.user?.tag || member.displayName}** in server **${guild.name}**.`);
     return [notiEmbed, successfulEmbed, failureEmbed];
 }
 export function commonRoleEmbed(client, word, past, name) {

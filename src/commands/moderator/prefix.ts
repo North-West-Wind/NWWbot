@@ -23,12 +23,13 @@ class PrefixCommand implements SlashCommand {
         if (!interaction.options.getString("prefix")) return await interaction.reply(`The prefix of this server is \`${NorthClient.storage.guilds[guild.id].prefix || interaction.client.prefix}\`. Use \`/prefix [prefix]\` to change the prefix.`);
         if (!member.permissions.has(BigInt(32))) return await interaction.reply(genPermMsg(32, 0));
         NorthClient.storage.guilds[guild.id].prefix = interaction.options.getString("prefix");
+        await interaction.deferReply();
         try {
             await interaction.client.pool.query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[guild.id].prefix === interaction.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[guild.id].prefix}'`} WHERE id = '${guild.id}'`);
-            await interaction.reply(`The prefix of this server has been changed to \`${NorthClient.storage.guilds[guild.id].prefix}\`.`);
+            await interaction.editReply(`The prefix of this server has been changed to \`${NorthClient.storage.guilds[guild.id].prefix}\`.`);
         } catch (err) {
             console.error(err);
-            await interaction.reply("there was an error trying to save the changes! The change of the prefix will be temporary!");
+            await interaction.editReply("There was an error trying to save the changes! The change of the prefix will be temporary!");
         }
     }
 
@@ -42,7 +43,7 @@ class PrefixCommand implements SlashCommand {
             await message.channel.send("Changes have been saved properly!");
         } catch (err) {
             console.error(err);
-            await message.reply("there was an error trying to save the changes! The change of the prefix will be temporary!");
+            await message.reply("There was an error trying to save the changes! The change of the prefix will be temporary!");
         }
     }
 }

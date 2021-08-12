@@ -20,10 +20,9 @@ class UnWarnCommand implements SlashCommand {
 
     async execute(interaction: NorthInteraction) {
         if (!interaction.guild) return await interaction.reply("This command only works on server.");
-        const author = interaction.member;
         const guild = interaction.guild;
         const user = interaction.options.getUser("user");
-        const embeds = this.unwarnEmbeds(guild, author.user, user);
+        const embeds = this.unwarnEmbeds(guild, interaction.user, user);
         const [results] = <RowDataPacket[][]>await interaction.client.pool.query(`SELECT * FROM warn WHERE user = '${user.id}' AND guild = '${guild.id}'`);
         if (results.length == 0) return await interaction.reply("This user haven't been warned before.");
         else try {
@@ -52,7 +51,7 @@ class UnWarnCommand implements SlashCommand {
         con.release();
     }
 
-    unwarnEmbeds(guild, author, user) {
+    unwarnEmbeds(guild: Discord.Guild, author: Discord.User, user: Discord.User) {
         const warningEmbed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle(`Your warnings have been cleared`)
