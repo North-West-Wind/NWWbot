@@ -14,7 +14,7 @@ export async function endGiveaway(pool: Pool, result) {
   } catch (err) {
     if (channel || (msg && msg.deleted)) {
       await pool.query("DELETE FROM giveaways WHERE id = " + result.id);
-      return NorthClient.storage.log("Deleted a deleted giveaway record.");
+      return console.log("Deleted a deleted giveaway record.");
     }
   }
   const fetchUser = await client.users.fetch(result.author);
@@ -23,8 +23,8 @@ export async function endGiveaway(pool: Pool, result) {
   try {
     await peopleReacted.users.fetch();
   } catch (err) {
-    NorthClient.storage.error("Giveaway reaction fetching error");
-    return NorthClient.storage.error(err);
+    console.error("Giveaway reaction fetching error");
+    return console.error(err);
   }
   try {
     for (const user of peopleReacted.users.cache.values()) {
@@ -32,8 +32,8 @@ export async function endGiveaway(pool: Pool, result) {
       reacted.push(data);
     }
   } catch (err) {
-    NorthClient.storage.error("Giveaway array init error");
-    return NorthClient.storage.error(err);
+    console.error("Giveaway array init error");
+    return console.error(err);
   }
 
   const remove = reacted.indexOf(client.user.id);

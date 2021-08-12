@@ -122,8 +122,8 @@ class GuildCommand implements SlashCommand {
 			await msg.react("3️⃣");
 			await msg.react("4️⃣");
 
-			const collected = await msg.awaitReactions((r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.author.id, { max: 1, time: 120000 }).catch(NorthClient.storage.error);
-			await msg.reactions.removeAll().catch(NorthClient.storage.error);
+			const collected = await msg.awaitReactions((r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.author.id, { max: 1, time: 120000 }).catch(console.error);
+			await msg.reactions.removeAll().catch(console.error);
 			if (!collected || !collected.first()) return await message.channel.send("No operation chosen in 2 minutes. Please try again.");
 			const reaction = collected.first();
 			switch (reaction.emoji.name) {
@@ -145,7 +145,7 @@ class GuildCommand implements SlashCommand {
 					break;
 			}
 		} catch (err) {
-			NorthClient.storage.error(err);
+			console.error(err);
 			await message.reply("there was an error fetching the player!");
 		}
 	}
@@ -338,7 +338,7 @@ class GuildCommand implements SlashCommand {
 					await message.pool.query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + time))}')`);
 					message.channel.send("Timer recorded.");
 				} catch (err) {
-					NorthClient.storage.error(err);
+					console.error(err);
 					await message.reply("there was an error trying to insert the timer to the database!");
 				}
 				msg = await msg.edit(`Timer created with the title **${title}** and will last for **${readableDateTimeText(time)}**`);
@@ -352,7 +352,7 @@ class GuildCommand implements SlashCommand {
 						if (results.length == 0) throw new Error("Not found");
 						await con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
 					} catch (err) {
-						NorthClient.storage.error(err);
+						console.error(err);
 					}
 					con.release();
 					await asuna.send(title + " expired");
@@ -371,7 +371,7 @@ class GuildCommand implements SlashCommand {
 					await con.query(`DELETE FROM gtimer WHERE user = '${userd.id}'`);
 					await message.channel.send(`Deleted ${results.length} timers.`);
 				} catch (err) {
-					NorthClient.storage.error(err);
+					console.error(err);
 					await message.reply("there was an error trying to delete the timer!");
 				}
 				con.release();
@@ -425,7 +425,7 @@ class GuildCommand implements SlashCommand {
 						await createEmbedScrolling(message, allEmbeds);
 					}
 				} catch (err) {
-					NorthClient.storage.error(err);
+					console.error(err);
 					await message.reply("there was an error trying to fetch data from the database!");
 				}
 				break;

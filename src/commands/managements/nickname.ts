@@ -31,7 +31,7 @@ class NicknameCommand implements SlashCommand {
     try {
       await member.setNickname(interaction.options.getString("nickname"));
     } catch(err) {
-      NorthClient.storage.error(err);
+      console.error(err);
       return await interaction.reply("Failed to set nickname!");
     }
     await interaction.reply(`Set **${member.user.tag}**'s nickname to **${interaction.options.getString("nickname")}**`);
@@ -43,7 +43,7 @@ class NicknameCommand implements SlashCommand {
     try {
       await member.setNickname(args.slice(1).join(" "));
     } catch(err) {
-      NorthClient.storage.error(err);
+      console.error(err);
       return message.channel.send("Failed to set nickname!");
     }
     await message.channel.send(`Set **${member.user.tag}**'s nickname to **${args.slice(1).join(" ")}**`);

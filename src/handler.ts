@@ -7,7 +7,7 @@ import { RowDataPacket } from "mysql2";
 import { endGiveaway } from "./commands/miscellaneous/giveaway";
 import { endPoll } from "./commands/miscellaneous/poll";
 import { expire } from "./commands/managements/role-message";
-import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, wait, nameToUuid, color } from "./function";
+import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, wait, nameToUuid, color, fixGuildRecord } from "./function";
 import { setQueue, stop } from "./helpers/music";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction } from "./classes/NorthClient";
 import { Connection, PoolConnection } from "mysql2/promise";
@@ -38,13 +38,13 @@ export class Handler {
         client.on("messageDelete", message => this.messageDelete(message));
         client.on("messageCreate", message => this.message(message));
         client.on("interactionCreate", interaction => this.interactionCreate(interaction));
-    }   
+    }
 
     async interactionCreate(interaction: Interaction) {
         if (!interaction.isCommand()) return;
         const command = NorthClient.storage.commands.get(interaction.commandName);
         if (!command) return;
-        const int = <NorthInteraction> interaction;
+        const int = <NorthInteraction>interaction;
         int.pool = int.client.pool;
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
@@ -54,7 +54,7 @@ export class Handler {
                 if (int.replied || int.deferred) await int.editReply(error);
                 else await int.reply(error);
             } catch (err) { }
-            NorthClient.storage.error(command.name + ": " + err);
+            console.error(command.name + ": " + err);
         }
     }
 
@@ -77,14 +77,14 @@ export class Handler {
     }
 
     async readCurrency(_client: NorthClient, con: Connection) {
-        const [r] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM currency WHERE guild <> '622311594654695434'");
+        const [r] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM currency WHERE guild <> '622311594654695434'");
         for (const result of r) {
             try {
                 if (result.bank <= 0) continue;
                 const newBank = Math.round((Number(result.bank) * 1.02 + Number.EPSILON) * 100) / 100;
                 await con.query(`UPDATE currency SET bank = ${newBank} WHERE id = ${result.id}`);
             } catch (err) {
-                NorthClient.storage.error(err);
+                console.error(err);
             }
         }
     }
@@ -125,20 +125,22 @@ export class Handler {
             };
             storage.guilds[result.id].autoReply = result.auto_reply;
         });
+        NorthClient.storage = storage;
         storage.log(`[${client.id}] Set ${results.length} configurations`);
     }
 
     async readRoleMsg(client: NorthClient, con: PoolConnection) {
-        const storage = NorthClient.storage
+        const storage = NorthClient.storage;
         const [res] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434' ORDER BY expiration");
         storage.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
-        storage.rm = <RoleMessage[]> res;
+        storage.rm = <RoleMessage[]>res;
         res.forEach(async result => expire({ pool: client.pool, client }, result.expiration - Date.now(), result.id));
+        NorthClient.storage = storage;
     }
 
     async readGiveaways(client: NorthClient, con: PoolConnection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
-        NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
+        console.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
         results.forEach(async result => {
             var currentDate = Date.now();
             var millisec = result.endAt - currentDate;
@@ -148,7 +150,7 @@ export class Handler {
 
     async readPoll(client: NorthClient, con: PoolConnection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM poll WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
-        NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
+        console.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(result => {
             var currentDate = Date.now();
             var time = result.endAt - currentDate;
@@ -159,7 +161,7 @@ export class Handler {
                     if (msg.deleted) throw new Error("Deleted");
                 } catch (err) {
                     await client.pool.query("DELETE FROM poll WHERE id = " + result.id);
-                    return NorthClient.storage.log("Deleted an ended poll.");
+                    return console.log("Deleted an ended poll.");
                 }
                 await endPoll(client, con, result.id, msg, null, result.title, result.author, result.options, result.color);
             }, time);
@@ -215,86 +217,83 @@ export class Handler {
             } catch (err) { }
         }).catch(() => { });
         try {
-            const welcome = storage.guilds[guild.id]?.welcome;
-            if (!welcome?.channel) {
-                if (storage.guilds[guild.id]) return;
-                await pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '${escape("🎉")}')`);
-                storage.guilds[guild.id] = {};
-                storage.log("Inserted record for " + guild.name);
-            } else {
-                if (!welcome.channel) return;
-                const channel = <TextChannel>guild.channels.resolve(welcome.channel);
-                if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
-                if (welcome.message) try {
-                    const welcomeMessage = replaceMsgContent(welcome.message, guild, client, member, "welcome");
-                    await channel.send(welcomeMessage);
-                } catch (err) {
-                    storage.error(err);
-                }
-                if (welcome.image) {
-                    var img = new Image();
-                    img.onload = async () => {
-                        var height = img.height;
-                        var width = img.width;
-                        const canvas = createCanvas(width, height);
-                        const ctx = canvas.getContext("2d");
-                        const applyText = (canvas, text) => {
-                            const ctx = canvas.getContext("2d");
-                            let fontSize = canvas.width / 12;
-                            do {
-                                ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
-                            } while (ctx.measureText(text).width > canvas.width * 9 / 10);
-                            return ctx.font;
-                        };
-                        const welcomeText = (canvas, text) => {
-                            const ctx = canvas.getContext("2d");
-                            let fontSize = canvas.width / 24;
-                            do {
-                                ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
-                            } while (ctx.measureText(text).width > canvas.width * 3 / 4);
-                            return ctx.font;
-                        };
-                        const avatar = await loadImage(member.user.displayAvatarURL({ format: "png" }));
-                        ctx.drawImage(img, 0, 0, width, height);
-                        const txt = member.user.tag;
-                        ctx.font = applyText(canvas, txt);
-                        ctx.strokeStyle = "black";
-                        ctx.lineWidth = canvas.width / 102.4;
-                        ctx.strokeText(txt, canvas.width / 2 - ctx.measureText(txt).width / 2, (canvas.height * 3) / 4);
-                        ctx.fillStyle = "#ffffff";
-                        ctx.fillText(txt, canvas.width / 2 - ctx.measureText(txt).width / 2, (canvas.height * 3) / 4);
-                        const welcome = "Welcome to the server!";
-                        ctx.font = welcomeText(canvas, welcome);
-                        ctx.strokeStyle = "black";
-                        ctx.lineWidth = canvas.width / 204.8;
-                        ctx.strokeText(welcome, canvas.width / 2 - ctx.measureText(welcome).width / 2, (canvas.height * 6) / 7);
-                        ctx.fillStyle = "#ffffff";
-                        ctx.fillText(welcome, canvas.width / 2 - ctx.measureText(welcome).width / 2, (canvas.height * 6) / 7);
-                        ctx.beginPath();
-                        ctx.lineWidth = canvas.width / 51.2;
-                        ctx.arc(canvas.width / 2, canvas.height / 3, canvas.height / 5, 0, Math.PI * 2, true);
-                        ctx.closePath();
-                        ctx.strokeStyle = "#dfdfdf";
-                        ctx.stroke();
-                        ctx.clip();
-                        ctx.drawImage(avatar, canvas.width / 2 - canvas.height / 5, canvas.height / 3 - canvas.height / 5, canvas.height / 2.5, canvas.height / 2.5);
-                        var attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
-                        try {
-                            await this.preWelcomeImage(channel);
-                            await channel.send({ files: [attachment] });
-                        } catch (err) {
-                            storage.error(err);
-                        }
-                    };
-                    var url = welcome.image;
-                    try {
-                        let urls = JSON.parse(welcome.image);
-                        if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
-                    } catch (err) { }
-                    img.src = url;
-                }
+            if (!storage.guilds[guild.id]) {
+                await fixGuildRecord(guild.id);
+                return;
             }
-            if (welcome && welcome.autorole !== "[]") {
+            const welcome = storage.guilds[guild.id]?.welcome;
+            if (!welcome?.channel) return;
+            const channel = <TextChannel>guild.channels.resolve(welcome.channel);
+            if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
+            if (welcome.message) try {
+                const welcomeMessage = replaceMsgContent(welcome.message, guild, client, member, "welcome");
+                await channel.send(welcomeMessage);
+            } catch (err) {
+                storage.error(err);
+            }
+            if (welcome.image) {
+                var img = new Image();
+                img.onload = async () => {
+                    var height = img.height;
+                    var width = img.width;
+                    const canvas = createCanvas(width, height);
+                    const ctx = canvas.getContext("2d");
+                    const applyText = (canvas, text) => {
+                        const ctx = canvas.getContext("2d");
+                        let fontSize = canvas.width / 12;
+                        do {
+                            ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
+                        } while (ctx.measureText(text).width > canvas.width * 9 / 10);
+                        return ctx.font;
+                    };
+                    const welcomeText = (canvas, text) => {
+                        const ctx = canvas.getContext("2d");
+                        let fontSize = canvas.width / 24;
+                        do {
+                            ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
+                        } while (ctx.measureText(text).width > canvas.width * 3 / 4);
+                        return ctx.font;
+                    };
+                    const avatar = await loadImage(member.user.displayAvatarURL({ format: "png" }));
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const txt = member.user.tag;
+                    ctx.font = applyText(canvas, txt);
+                    ctx.strokeStyle = "black";
+                    ctx.lineWidth = canvas.width / 102.4;
+                    ctx.strokeText(txt, canvas.width / 2 - ctx.measureText(txt).width / 2, (canvas.height * 3) / 4);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillText(txt, canvas.width / 2 - ctx.measureText(txt).width / 2, (canvas.height * 3) / 4);
+                    const welcome = "Welcome to the server!";
+                    ctx.font = welcomeText(canvas, welcome);
+                    ctx.strokeStyle = "black";
+                    ctx.lineWidth = canvas.width / 204.8;
+                    ctx.strokeText(welcome, canvas.width / 2 - ctx.measureText(welcome).width / 2, (canvas.height * 6) / 7);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillText(welcome, canvas.width / 2 - ctx.measureText(welcome).width / 2, (canvas.height * 6) / 7);
+                    ctx.beginPath();
+                    ctx.lineWidth = canvas.width / 51.2;
+                    ctx.arc(canvas.width / 2, canvas.height / 3, canvas.height / 5, 0, Math.PI * 2, true);
+                    ctx.closePath();
+                    ctx.strokeStyle = "#dfdfdf";
+                    ctx.stroke();
+                    ctx.clip();
+                    ctx.drawImage(avatar, canvas.width / 2 - canvas.height / 5, canvas.height / 3 - canvas.height / 5, canvas.height / 2.5, canvas.height / 2.5);
+                    var attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
+                    try {
+                        await this.preWelcomeImage(channel);
+                        await channel.send({ files: [attachment] });
+                    } catch (err) {
+                        storage.error(err);
+                    }
+                };
+                var url = welcome.image;
+                try {
+                    let urls = JSON.parse(welcome.image);
+                    if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
+                } catch (err) { }
+                img.src = url;
+            }
+            if (welcome?.autorole !== "[]") {
                 const roleArray = JSON.parse(welcome.autorole);
                 for (var i = 0; i < roleArray.length; i++) {
                     const roleID = roleArray[i];
@@ -317,49 +316,39 @@ export class Handler {
         const guild = member.guild;
         const storage = NorthClient.storage;
         try {
-            const leave = storage.guilds[guild.id]?.leave;
-            if (!leave?.channel) {
-                if (storage.guilds[guild.id]) return;
-                await client.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '${escape("🎉")}')`);
-                storage.guilds[guild.id] = {};
-                storage.log("Inserted record for " + guild.name);
-            } else {
-                if (guild.me.permissions.has(BigInt(128))) {
-                    const fetchedLogs = await guild.fetchAuditLogs({ limit: 1, type: 'MEMBER_KICK' });
-                    const kickLog = fetchedLogs.entries.first();
-                    if (kickLog && (kickLog.target as any).id === member.user.id && kickLog.executor.id !== (kickLog.target as any).id) return;
-                } else storage.log("Can't view audit logs of " + guild.name);
-                const channel = <TextChannel>guild.channels.resolve(leave.channel);
-                if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
-                if (!leave.message) return;
-                try {
-                    const leaveMessage = replaceMsgContent(leave.message, guild, client, member, "leave");
-                    await channel.send(leaveMessage);
-                } catch (err) {
-                    storage.error(err);
-                }
+            if (!storage.guilds[guild.id]) {
+                await fixGuildRecord(guild.id);
+                return;
             }
+            const leave = storage.guilds[guild.id]?.leave;
+            if (!leave?.channel) return;
+            if (guild.me.permissions.has(BigInt(128))) {
+                const fetchedLogs = await guild.fetchAuditLogs({ limit: 1, type: 'MEMBER_KICK' });
+                const kickLog = fetchedLogs.entries.first();
+                if (kickLog && (kickLog.target as any).id === member.user.id && kickLog.executor.id !== (kickLog.target as any).id) return;
+            } else storage.log("Can't view audit logs of " + guild.name);
+            const channel = <TextChannel>guild.channels.resolve(leave.channel);
+            if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
+            if (!leave.message) return;
+            try {
+                const leaveMessage = replaceMsgContent(leave.message, guild, client, member, "leave");
+                await channel.send(leaveMessage);
+            } catch (err) {
+                storage.error(err);
+            }
+
         } catch (err) { storage.error(err) };
     }
 
     async guildCreate(guild: Guild) {
-        const client = <NorthClient>guild.client;
         const storage = NorthClient.storage;
-        storage.log("Joined a new guild: " + guild.name);
-        try { storage.guilds[guild.id].invites = await guild.invites.fetch(); } catch (err) { }
         try {
-            const con = await client.pool.getConnection();
-            const [result] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id = " + guild.id);
-            if (result.length > 0) storage.log("Found row inserted for this server before. Cancelling row insert...");
-            else {
-                await con.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '${escape("🎉")}')`);
-                storage.guilds[guild.id] = {};
-                storage.log("Inserted record for " + guild.name);
-            }
-            con.release();
+            await fixGuildRecord(guild.id);
         } catch (err) {
             storage.error(err);
         }
+        try { storage.guilds[guild.id].invites = await guild.invites.fetch(); } catch (err) { }
+        NorthClient.storage = storage;
     }
 
     async guildDelete(guild: Guild) {
@@ -373,25 +362,22 @@ export class Handler {
         } catch (err) {
             storage.error(err);
         }
+        NorthClient.storage = storage;
     }
 
     async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
         const guild = oldState.guild || newState.guild;
-        const client = <NorthClient>guild.client;
-        const storage = NorthClient.storage;
+        var storage = NorthClient.storage;
         const exit = storage.guilds[guild.id]?.exit;
         if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice?.channel)) return await stop(guild);
         if (!guild.me.voice?.channel || (newState.channelId !== guild.me.voice.channelId && oldState.channelId !== guild.me.voice.channelId)) return;
-        if (!storage.guilds[guild.id]) {
-            await client.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${guild.id}', '[]', '${escape("🎉")}')`);
-            storage.guilds[guild.id] = {};
-            storage.log("Inserted record for " + guild.name);
-        }
+        if (!storage.guilds[guild.id]) storage = await fixGuildRecord(guild.id);
         if (guild.me.voice.channel.members.size <= 1) {
             if (exit) return;
             storage.guilds[guild.id].exit = true;
             setTimeout(() => storage.guilds[guild.id]?.exit ? stop(guild) : 0, 30000);
         } else storage.guilds[guild.id].exit = false;
+        NorthClient.storage = storage;
     }
 
     async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
@@ -449,6 +435,7 @@ export class Handler {
         if (!roleMessage) return;
         storage.rm.splice(storage.rm.indexOf(roleMessage), 1);
         await client.pool.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`);
+        NorthClient.storage = storage;
     }
 
     async preMessage(_message: Message): Promise<any> {
@@ -460,8 +447,7 @@ export class Handler {
         const client = <NorthClient>message.client;
         const storage = NorthClient.storage;
         const msg = (<NorthMessage>message);
-        msg.prefix = client.prefix;
-        if (msg.guild && storage.guilds[msg.guild.id]?.prefix) msg.prefix = storage.guilds[msg.guild.id].prefix;
+        msg.prefix = storage.guilds[msg.guildId]?.prefix || client.prefix;
         this.messageLevel(msg);
         if (!msg.content.startsWith(msg.prefix)) return;
         const args = msg.content.slice(msg.prefix.length).split(/ +/);
@@ -474,7 +460,9 @@ export class Handler {
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
         } catch (err) {
             storage.error(command.name + ": " + err);
-            await msg.reply(error);
+            try {
+                await msg.reply(error);
+            } catch (err) { }
         }
     }
 }
@@ -518,6 +506,7 @@ export class AliceHandler extends Handler {
             message: result.boost_msg,
             channel: result.boost_channel
         };
+        NorthClient.storage = storage;
         storage.log(`[${client.id}] Set ${results.length} configurations`);
     }
 
@@ -525,7 +514,6 @@ export class AliceHandler extends Handler {
         client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
     }
 
-    /*
     async preRead(client: NorthClient, con: Connection) {
         const storage = NorthClient.storage;
         client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => storage.guilds[g.id].invites = guildInvites).catch(() => { }));
@@ -559,19 +547,19 @@ export class AliceHandler extends Handler {
             }, endAfter);
         });
         const [gtimers] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
-        storage.gtimers = gtimers;
+        NorthClient.storage.gtimers = gtimers;
         setInterval(async () => {
             try {
                 var timerChannel = <TextChannel>await client.channels.fetch(process.env.TIME_LIST_CHANNEL);
                 var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
             } catch (err) {
-                storage.error("Failed to fetch timer list message");
+                console.error("Failed to fetch timer list message");
                 return;
             }
             try {
                 let now = Date.now();
                 let tmp = [];
-                for (const result of storage.gtimers) {
+                for (const result of NorthClient.storage.gtimers) {
                     let mc = await profile(result.mc);
                     let username = "undefined";
                     if (mc) username = mc.name;
@@ -587,7 +575,7 @@ export class AliceHandler extends Handler {
                     tmp.push({ title: title, time: moment.duration(seconds) });
                 }
                 if (tmp.length <= 10) {
-                    timerMsg.reactions.removeAll().catch(storage.error);
+                    timerMsg.reactions.removeAll().catch(console.error);
                     let description = "";
                     let num = 0;
                     for (const result of tmp) description += `${++num}. ${result.title} : ${result.time}\n`;
@@ -597,7 +585,7 @@ export class AliceHandler extends Handler {
                         .setDescription(description)
                         .setTimestamp()
                         .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
-                    timerMsg.edit({ content: "", embeds: [em] });
+                    timerMsg.edit({ content: null, embeds: [em] });
                 } else {
                     const allEmbeds = [];
                     for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
@@ -615,7 +603,7 @@ export class AliceHandler extends Handler {
                         allEmbeds.push(em);
                     }
                     const filter = (reaction) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name);
-                    var msg = await timerMsg.edit({ content: "", embeds: [allEmbeds[0]] });
+                    var msg = await timerMsg.edit({ content: null, embeds: [allEmbeds[0]] });
                     var s = 0;
                     await msg.react("⏮");
                     await msg.react("◀");
@@ -649,18 +637,17 @@ export class AliceHandler extends Handler {
                                 break;
                         }
                     });
-                    collector.on("end", () => msg.reactions.removeAll().catch(storage.error));
+                    collector.on("end", () => msg.reactions.removeAll().catch(console.error));
                 }
             } catch (err) {
                 storage.error(err);
             }
         }, 30000);
     }
-    */
 
     async readGiveaways(client: NorthClient, con: Connection) {
-        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' ORDER BY endAt ASC");
-        NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
+        var [results] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' ORDER BY endAt ASC");
+        console.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
         results.forEach(async result => {
             var currentDate = Date.now();
             var millisec = result.endAt - currentDate;
@@ -669,8 +656,8 @@ export class AliceHandler extends Handler {
     }
 
     async readPoll(client: NorthClient, con: PoolConnection) {
-        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM poll WHERE guild = '622311594654695434' ORDER BY endAt ASC");
-        NorthClient.storage.log(`[${client.id}] ` + "Found " + results.length + " polls.");
+        const [results] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM poll WHERE guild = '622311594654695434' ORDER BY endAt ASC");
+        console.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(result => {
             var currentDate = Date.now();
             var time = result.endAt - currentDate;
@@ -696,14 +683,14 @@ export class AliceHandler extends Handler {
         if (message.channel.id == "647630951169523762") {
             if (!message.content.match(/^\w{3,16}$/)) return;
             const mcName = message.content;
-            NorthClient.storage.log("Received name: " + mcName);
+            console.log("Received name: " + mcName);
             const dcUserID = message.author.id;
             const msg = await message.channel.send("Processing...");
             const con = await client.pool.getConnection();
             try {
                 const mcUuid = await nameToUuid(mcName);
                 if (!mcUuid) return await msg.edit("Error finding that user!").then(msg => setTimeout(() => msg.delete(), 10000));
-                NorthClient.storage.log("Found UUID: " + mcUuid);
+                console.log("Found UUID: " + mcUuid);
                 var res;
                 try {
                     const f = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`);
@@ -718,16 +705,16 @@ export class AliceHandler extends Handler {
                 if (results.length == 0) {
                     await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
                     msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete(), 10000));
-                    NorthClient.storage.log("Inserted record for mc-name.");
+                    console.log("Inserted record for mc-name.");
                 } else {
                     await con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
                     msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete(), 10000));
-                    NorthClient.storage.log("Updated record for mc-name.");
+                    console.log("Updated record for mc-name.");
                 }
                 const mcLen = res.username.length + 1;
                 const bw = res.stats.BedWars;
                 const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;
-                NorthClient.storage.log(`Attempting to change nickname of ${message.author.tag} to ${firstHalf} ${res.username}`);
+                console.log(`Attempting to change nickname of ${message.author.tag} to ${firstHalf} ${res.username}`);
                 if (firstHalf.length + mcLen > 32) await message.member.setNickname(`${firstHalf} ${res.username.slice(0, 28 - firstHalf.length)}...`);
                 else await message.member.setNickname(`${firstHalf} ${res.username}`);
                 const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
@@ -777,7 +764,7 @@ export class AliceHandler extends Handler {
                 else if (res.rank === "MVP_PLUS") await roles.add("837271172319674378");
                 else if (res.rank === "MVP_PLUS_PLUS") await roles.add("837271171619356692");
             } catch (err) {
-                NorthClient.storage.error(err);
+                console.error(err);
                 await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => setTimeout(() => msg.delete(), 10000));
             }
             con.release();
@@ -799,7 +786,7 @@ export class CanaryHandler extends Handler {
 
     async readServers(client: NorthClient, con: Connection) {
         const storage = NorthClient.storage;
-        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
+        var [results] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
         results.forEach(async result => {
             storage.guilds[result.id] = {};
             if (result.queue || result.looping || result.repeating) {
@@ -827,6 +814,7 @@ export class CanaryHandler extends Handler {
                 channel: result.boost_channel
             };
         });
+        NorthClient.storage = storage;
         storage.log(`[${client.id}] Set ${results.length} configurations`);
     }
 }

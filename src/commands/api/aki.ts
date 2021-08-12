@@ -159,7 +159,7 @@ export class AkiCommand implements SlashCommand {
                 await re.remove();
               }
             } catch (error) {
-              NorthClient.storage.error("Failed to remove reactions.");
+              console.error("Failed to remove reactions.");
             }
             if (aki.currentStep >= 79) embed.setTitle("My Final Guess is... 🤔");
             else embed.setTitle("I'm thinking of... 🤔");

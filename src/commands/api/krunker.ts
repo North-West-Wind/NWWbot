@@ -210,7 +210,7 @@ class KrunkerCommand implements SlashCommand {
                 }
             });
             collector.on("end", async function () {
-                msg.reactions.removeAll().catch(NorthClient.storage.error);
+                msg.reactions.removeAll().catch(console.error);
                 var random = "";
                 if (s > officialPage - 1) random = (`https://krunker.io/?game=${custom[Math.floor(Math.random() * custom.length)][0]}`);
                 else random = (`https://krunker.io/?game=${official[Math.floor(Math.random() * official.length)][0]}`);
@@ -218,7 +218,7 @@ class KrunkerCommand implements SlashCommand {
                 setTimeout(() => msg.edit({ content: random.length > 0 ? `Here's a random server:\n${random}` : "No server was found!", embeds: [] }), 30000);
             });
         } catch (err) {
-            NorthClient.storage.error(err);
+            console.error(err);
             msg.edit(`<@${author.id}>, there was an error trying to show you the games!`);
         }
     }
@@ -237,7 +237,7 @@ class KrunkerCommand implements SlashCommand {
             }
             await msg.edit(`\`\`\`${Object.keys(changelog)[0]}\n${changelog[Object.keys(changelog)[0]].join("\n")}\`\`\``);
         } catch (err) {
-            NorthClient.storage.error(err);
+            console.error(err);
             msg.edit(`<@${author.id}>, there was an error trying to display the changelog!`);
         }
     }

@@ -2269,7 +2269,7 @@ class PornCommand implements SlashCommand {
                     var name = gif.gfyItem.gfyName;
                     link = `https://thumbs.gfycat.com/${name}-mobile.mp4`;
                 } catch (err) {
-                    NorthClient.storage.error(err);
+                    console.error(err);
                 }
             } else if (validRedGifURL(data.url)) {
                 const response = await fetch(data.url).then(res => res.text());

@@ -21,7 +21,7 @@ export async function expire(message: NorthMessage | NorthInteraction | { pool: 
                 msg.reactions.removeAll().catch(() => { });
             } else expire(message, results[0].expiration - date, id);
         } catch (err) {
-            NorthClient.storage.error(err);
+            console.error(err);
         }
         con.release();
     }, length);
@@ -144,7 +144,7 @@ class RoleMessageCommand implements SlashCommand {
             await message.channel.send("Successfully created record for message. The message will expire after 7 days.");
             expire(message, 7 * 24 * 3600 * 1000, mesg.id);
         } catch (err) {
-            NorthClient.storage.error(err);
+            console.error(err);
             await message.reply("there was an error trying to record the message!");
         }
     }
@@ -163,7 +163,7 @@ class RoleMessageCommand implements SlashCommand {
                 else await message.reply("The message has been refreshed. It will last for 7 more days.");
             }
         } catch (err) {
-            NorthClient.storage.error(err);
+            console.error(err);
             await message.reply("there was an error while refreshing the message!");
         }
         con.release();

@@ -67,7 +67,7 @@ class ShopCommand implements SlashCommand {
             const filter = (reaction, user) => ["1️⃣", "2️⃣"].includes(reaction.emoji.name) && user.id === author.id;
             const collected = await msg.awaitReactions(filter, { max: 1, idle: 60000, error: ["time"] });
             const reaction = collected.first();
-            msg.reactions.removeAll().catch(NorthClient.storage.error);
+            msg.reactions.removeAll().catch(console.error);
             if (!reaction) return await msg.edit(leave);
 
             async function shopMenu() {
@@ -143,7 +143,7 @@ class ShopCommand implements SlashCommand {
                         await wait(3000);
                         return await mainMenu(msg);
                     }
-                    msg.reactions.removeAll().catch(NorthClient.storage.error);
+                    msg.reactions.removeAll().catch(console.error);
 
                     if (reaction.emoji.name === "1️⃣") {
                         if (result[0].stock_limit == 0) {
@@ -235,7 +235,7 @@ class ShopCommand implements SlashCommand {
                                         if (message instanceof Discord.Message) await c.run(message, cArgs);
                                         else throw new Error("This is a little too hard for slash.");
                                     } catch (error) {
-                                        NorthClient.storage.error(error);
+                                        console.error(error);
                                         itemEmbed.setDescription(`Failed to use the item! Cancelling purchase...`)
                                             .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
                                         await msg.edit(itemEmbed);
@@ -264,7 +264,7 @@ class ShopCommand implements SlashCommand {
                                     }
                                 }
                             } catch (err) {
-                                NorthClient.storage.error(err);
+                                console.error(err);
                                 itemEmbed.setTitle("Failed to purchase!");
                             }
                             await msg.edit(itemEmbed);
@@ -357,7 +357,7 @@ class ShopCommand implements SlashCommand {
             if (message instanceof Discord.Message) await message.channel.send("Item added to database!");
             else await message.followUp("Item added to database!");
         } catch (err) {
-            NorthClient.storage.error(err);
+            console.error(err);
             if (message instanceof Discord.Message) await message.reply("there was an error trying to add the item to the database!");
             else await message.followUp("There was an error trying to add the item to the database!");
         }

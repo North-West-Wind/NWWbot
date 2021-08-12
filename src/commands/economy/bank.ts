@@ -61,7 +61,7 @@ class BankCommand implements SlashCommand {
       await msg.react("2️⃣");
       const filter = (reaction, user) => ["1️⃣", "2️⃣"].includes(reaction.emoji.name) && user.id === author.id;
       var collected = await msg.awaitReactions({ filter, max: 1, time: 30000 });
-      msg.reactions.removeAll().catch(NorthClient.storage.error);
+      msg.reactions.removeAll().catch(console.error);
       if (!collected || !collected.first()) return;
       const reaction = collected.first();
       if (reaction.emoji.name === "1️⃣") {
@@ -107,7 +107,7 @@ class BankCommand implements SlashCommand {
           await wait(3000);
           await MainPage();
         } catch (err) {
-          NorthClient.storage.error(err);
+          console.error(err);
           message.channel.send("There was an error trying to fetch data from the database!");
         }
       } else {
@@ -153,7 +153,7 @@ class BankCommand implements SlashCommand {
           await wait(3000);
           await MainPage();
         } catch (err) {
-          NorthClient.storage.error(err);
+          console.error(err);
           message.reply("there was an error trying to fetch data from the database!");
         }
       }

@@ -41,7 +41,7 @@ class RedditCommand implements SlashCommand {
         else subreddits = def;
         const chosen = subreddits[Math.floor(Math.random() * subreddits.length)];
 
-        const response = await redditConn.api.get(`/r/${chosen}/hot`, { limit: 100 }).catch(NorthClient.storage.error);
+        const response = await redditConn.api.get(`/r/${chosen}/hot`, { limit: 100 }).catch(console.error);
         if (!response[1]?.data?.children[0]?.data?.url) return await this.getPost(custom, ++retry);
         var data = response[1].data.children[Math.floor(Math.random() * response[1].data.children.length)].data;
         if (!data?.url || (!data.url.endsWith(".jpg") && !data.url.endsWith(".png") && !data.url.endsWith(".gif") && !validImgurURL(data.url))) return await this.getPost(custom, ++retry);

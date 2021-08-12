@@ -151,11 +151,11 @@ class MusescoreCommand implements SlashCommand {
                         await message.channel.send(`However, you may still be able to download it from this link:\n${mscz.url}`);
                     }
                 } catch (err) {
-                    NorthClient.storage.error(err);
+                    console.error(err);
                     await message.reply("there was an error trying to send the files!");
                 }
             } catch (err) {
-                NorthClient.storage.error(err);
+                console.error(err);
                 await message.channel.send("Failed to generate files!");
             }
         }
@@ -167,7 +167,7 @@ class MusescoreCommand implements SlashCommand {
             if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
             var body = response.body;
         } catch (err) {
-            NorthClient.storage.error(err);
+            console.error(err);
             return await message.reply("There was an error trying to search for scores!");
         }
         const author = (message instanceof Discord.Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelId))).id;

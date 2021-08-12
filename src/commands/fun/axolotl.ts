@@ -56,7 +56,7 @@ class AxolotlCommand implements SlashCommand {
             const attachment = new Discord.MessageAttachment(res, `axolotl.${selected.split(".")[selected.split(".").length - 1]}`);
             await message.channel.send({files: [attachment]});
         } catch(err) {
-            NorthClient.storage.error(err);
+            console.error(err);
             return await message.reply("There was an error fetching the axolotls!");
         }
     }

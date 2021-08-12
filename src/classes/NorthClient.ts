@@ -1,7 +1,6 @@
 import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
 import { Client, ClientOptions, Collection, CommandInteraction, Message, MessageEmbed, Snowflake, StageChannel, TextChannel, User, VoiceChannel } from "discord.js";
 import { Pool } from "mysql2/promise";
-import { getOwner } from "../function";
 
 export class NorthClient extends Client {
     constructor(options: ClientOptions) {
@@ -102,17 +101,6 @@ export class ClientStorage {
     migrating: any[] = [];
     gtimers: any[] = [];
     queries: LevelData[] = [];
-
-    log(str: any) {
-        console.log(str);
-        this.client.channels.fetch(this.client.log).then(async logChannel => logChannel ? await (logChannel as TextChannel).send(`\`${str}\``) : "").catch(console.error);
-    }
-
-    error(err: any) {
-        console.error(err);
-        this.client.channels.fetch(this.client.log).then(async logChannel => logChannel ? await (logChannel as TextChannel).send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``) : "").catch(console.error);
-        getOwner().then(id => this.client.users.fetch(id).then(async user => user ? await user.send(`\`ERROR!\`\n\`${(err.message ? err.message : err)}\``) : "")).catch(console.error);
-    }
 }
 
 export class LevelData {

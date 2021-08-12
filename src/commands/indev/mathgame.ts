@@ -30,7 +30,7 @@ class MathGameCommand implements SlashCommand {
         var collected;
         collected = await msg.channel.awaitMessages({ filter: x => x.author.id === message.author.id, time: 30000, max: 1 });
         if (!collected || !collected.first() || !collected.first().content) return msg.edit("You didn't answer me within 30 seconds! Please try again.");
-        await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
+        await collected.first().delete().catch(() => console.error("Cannot delete message"));
         var players = [message.author];
         var scores = {};
         scores[message.author.id] = 0;
@@ -49,7 +49,7 @@ class MathGameCommand implements SlashCommand {
                 msg = await msg.edit("Please enter the amount of questions.");
                 collected = await msg.channel.awaitMessages({ filter: x => x.author.id === message.author.id, time: 30000, max: 1 });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
-                await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
+                await collected.first().delete().catch(() => console.error("Cannot delete message"));
                 questions = parseInt(collected.first().content);
                 if(!questions || questions === 0 || isNaN(questions)) return msg.edit("That's not a valid number!");
                 break;
@@ -57,7 +57,7 @@ class MathGameCommand implements SlashCommand {
                 msg = await msg.edit("Please enter the time allowed.");
                 collected = await msg.channel.awaitMessages({ filter: x => x.author.id === message.author.id, time: 30000, max: 1 });
                 if(!collected || !collected.first() || !collected.first().content) return msg.edit("Timed out. Please try again.");
-                await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
+                await collected.first().delete().catch(() => console.error("Cannot delete message"));
                 time = ms(collected.first().content);
                 if(!time || time === 0) return msg.edit("That's not a valid number!");
         }
@@ -91,7 +91,7 @@ class MathGameCommand implements SlashCommand {
                     running = false;
                     break;
                 }
-                await collected.first().delete().catch(() => NorthClient.storage.error("Cannot delete message"));
+                await collected.first().delete().catch(() => console.error("Cannot delete message"));
                 if(parseInt(collected.first().content) === generated.answer) {
                     scores[collected.first().author.id] += 1;
                     correct = true;
@@ -189,7 +189,7 @@ class MathGameCommand implements SlashCommand {
         });
         return new Promise(resolve => {
             collector.on("end", function () {
-                msg.reactions.removeAll().catch(NorthClient.storage.error);
+                msg.reactions.removeAll().catch(console.error);
                 msg.delete();
                 resolve(chosen);
             });

@@ -100,7 +100,7 @@ export async function addYTURL(link: string, type: number = 0) {
     try {
         var songInfo = await ytdl.getInfo(link);
     } catch (err) {
-        NorthClient.storage.error(err);
+        console.error(err);
         return { error: true, message: "Failed to get video data!", msg: null, songs: [] };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
@@ -458,7 +458,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
             return yy;
           });
     } catch (err) {
-        NorthClient.storage.error(err);
+        console.error(err);
         await msgOrRes(message, "There was an error trying to search the videos!", true);
         return { error: true, msg: null, songs: [], message: err.message };
     }
@@ -490,7 +490,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
         });
         num = 0;
     } catch (err) {
-        NorthClient.storage.error(err);
+        console.error(err);
         await msgOrRes(message, "There was an error trying to search the videos!", true);
         return { error: true, msg: null, songs: [], message: err.message };
     }

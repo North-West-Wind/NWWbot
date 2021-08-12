@@ -1,6 +1,4 @@
-import { Guild } from "discord.js";
 import { RowDataPacket } from "mysql2";
-
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { genPermMsg, createEmbedScrolling, color } from "../../function";
@@ -56,7 +54,7 @@ class InvitesCommand implements SlashCommand {
           return await interaction.reply("We will message you whenever someone joins the server with your invites.");
         }
       } catch(err) {
-        NorthClient.storage.error(err);
+        console.error(err);
         return await interaction.reply("There was an error trying to remember your decision!");
       }
     }
@@ -86,14 +84,14 @@ class InvitesCommand implements SlashCommand {
           await message.channel.send("We will message you whenever someone joins the server with your invites.");
         }
       } catch(err) {
-        NorthClient.storage.error(err);
+        console.error(err);
         await message.reply("there was an error trying to remember your decision!");
       }
       con.release()
     } else await message.channel.send(`That is not a subcommand! Subcommands: **${this.subcommands.join(", ")}**`);
   }
 
-  async createInvitesEmbed(guild: Guild, client: NorthClient, oneOnly = false) {
+  async createInvitesEmbed(guild: Discord.Guild, client: NorthClient, oneOnly = false) {
     const members = Array.from((await guild.members.fetch()).values());
     const invitedStr = [];
     const guildInvites = await guild.invites.fetch();
@@ -131,8 +129,8 @@ class InvitesCommand implements SlashCommand {
     }
   }
 
-  async createMyInvitesEmbed(guild, author, client) {
-    let guildInvites = await guild.fetchInvites();
+  async createMyInvitesEmbed(guild: Discord.Guild, author: Discord.User, client: Discord.Client) {
+    let guildInvites = await guild.invites.fetch();
     const invites = guildInvites.filter(i => i.inviter.id === author.id && i.guild.id === guild.id);
     const reducer = (a, b) => a + b;
     var uses = invites.map(i => i.uses ? i.uses : 0).reduce(reducer);
@@ -140,8 +138,8 @@ class InvitesCommand implements SlashCommand {
       .setColor(color())
       .setTitle(`Number of users invited (${author.tag})`)
       .setDescription(`In server **${guild.name}**`)
-      .addField("Invited Users", uses, true)
-      .addField("Links Created", invites.size, true)
+      .addField("Invited Users", uses.toString(), true)
+      .addField("Links Created", invites.size.toString(), true)
       .setTimestamp()
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return em;

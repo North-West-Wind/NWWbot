@@ -594,7 +594,7 @@ class UnoCommand implements SlashCommand {
         mesg = await prepare(mesg, id);
         setTimeout(() => overTime = true, timeLimit);
         await handle(mesg, id);
-      } catch (err) { return NorthClient.storage.error(err) }
+      } catch (err) { return console.error(err) }
     }
   }
 };

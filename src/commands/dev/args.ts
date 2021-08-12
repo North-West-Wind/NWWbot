@@ -14,12 +14,12 @@ class ArgsCommand implements SlashCommand {
   }]
 
   async execute(interaction: NorthInteraction) {
-    NorthClient.storage.log(interaction.options.getString("arguments"));
+    console.log(interaction.options.getString("arguments"));
     await interaction.reply("Done");
   }
 
   async run(message: NorthMessage) {
-    NorthClient.storage.log(message.content);
+    console.log(message.content);
   }
 }
 

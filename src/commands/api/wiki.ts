@@ -45,7 +45,7 @@ class WikiCommand implements SlashCommand {
                     .setFooter("1️⃣, 2️⃣ and 3️⃣ are for navigating to 25th, 50th, 75th result.");
                 allEmbeds.push(em);
             } catch (err) {
-                NorthClient.storage.error(err);
+                console.error(err);
                 --num;
             }
         }
@@ -116,7 +116,7 @@ class WikiCommand implements SlashCommand {
             }
         });
         collector.on("end", function () {
-            msg.reactions.removeAll().catch(NorthClient.storage.error);
+            msg.reactions.removeAll().catch(console.error);
         });
     }
 }

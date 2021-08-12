@@ -58,7 +58,7 @@ class DownloadCommand implements SlashCommand {
                 }
             }
         } catch (err) {
-            NorthClient.storage.error(err);
+            console.error(err);
             return await msgOrRes(message, `There was an error trying to download the soundtrack!`, true);
         }
         const msg = <Discord.Message> await msgOrRes(message, `Downloading... (Soundtrack Type: **Type ${song.type}**)`, true);
@@ -84,7 +84,7 @@ class DownloadCommand implements SlashCommand {
             }
             if (!stream) throw new Error("Cannot receive stream");
         } catch (err) {
-            NorthClient.storage.error(err);
+            console.error(err);
             return await msg.edit(`There was an error trying to download the soundtrack!`);
         }
         try {
@@ -95,7 +95,7 @@ class DownloadCommand implements SlashCommand {
         } catch (err) {
             if (message instanceof Discord.Message) await message.channel.send(`There was an error trying to send the soundtrack! (${err.message})`);
             else await message.followUp(`There was an error trying to send the soundtrack! (${err.message})`);
-            NorthClient.storage.error(err);
+            console.error(err);
         }
     }
 
@@ -115,7 +115,7 @@ class DownloadCommand implements SlashCommand {
             for (const song of result.songs) await this.download(message, serverQueue, song);
         } catch (err) {
             await msgOrRes(message, "There was an error trying to download the soundtack!", true);
-            NorthClient.storage.error(err);
+            console.error(err);
         }
     }
 }

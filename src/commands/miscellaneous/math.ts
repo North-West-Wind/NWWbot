@@ -27,16 +27,16 @@ class MathCommand implements SlashCommand {
         let done = "Error!";
         switch(sub) {
             case "evaluate":
-                try { done = await math.evaluate(interaction.options.getString("expression")); } catch(err) {done = "Evaluation Error"; NorthClient.storage.error(err);}
+                try { done = await math.evaluate(interaction.options.getString("expression")); } catch(err) {done = "Evaluation Error"; console.error(err);}
                 break;
             case "derivative":
-                try { done = await math.derivative(interaction.options.getString("expression"), "x").compile().evaluate(); } catch(err) {done = "Differentiation Error"; NorthClient.storage.error(err);}
+                try { done = await math.derivative(interaction.options.getString("expression"), "x").compile().evaluate(); } catch(err) {done = "Differentiation Error"; console.error(err);}
                 break;
             case "rationalize":
-                try { done = math.rationalize(interaction.options.getString("expression")).toString(); } catch(err) {done = "Rationalization Error"; NorthClient.storage.error(err);}
+                try { done = math.rationalize(interaction.options.getString("expression")).toString(); } catch(err) {done = "Rationalization Error"; console.error(err);}
                 break;
             case "simplify":
-                try { done = math.simplify(interaction.options.getString("expression")).toString(); } catch(err) {done = "Simplification Error"; NorthClient.storage.error(err);}
+                try { done = math.simplify(interaction.options.getString("expression")).toString(); } catch(err) {done = "Simplification Error"; console.error(err);}
                 break;
         }
         return await interaction.reply(done);
@@ -47,19 +47,19 @@ class MathCommand implements SlashCommand {
         switch(args[0]) {
             case "evaluate":
             case "eval":
-                try { done = await math.evaluate(args.slice(1).join(" ")); } catch(err) {done = "Evaluation Error"; NorthClient.storage.error(err);}
+                try { done = await math.evaluate(args.slice(1).join(" ")); } catch(err) {done = "Evaluation Error"; console.error(err);}
                 break;
             case "derivative":
             case "ddx":
-                try { done = await math.derivative(args.slice(1).join(" "), "x").compile().evaluate(); } catch(err) {done = "Differentiation Error"; NorthClient.storage.error(err);}
+                try { done = await math.derivative(args.slice(1).join(" "), "x").compile().evaluate(); } catch(err) {done = "Differentiation Error"; console.error(err);}
                 break;
             case "rationalize":
             case "rat":
-                try { done = math.rationalize(args.slice(1).join(" ")).toString(); } catch(err) {done = "Rationalization Error"; NorthClient.storage.error(err);}
+                try { done = math.rationalize(args.slice(1).join(" ")).toString(); } catch(err) {done = "Rationalization Error"; console.error(err);}
                 break;
             case "simplify":
             case "sim":
-                try { done = math.simplify(args.slice(1).join(" ")).toString(); } catch(err) {done = "Simplification Error"; NorthClient.storage.error(err);}
+                try { done = math.simplify(args.slice(1).join(" ")).toString(); } catch(err) {done = "Simplification Error"; console.error(err);}
                 break;
             case "help":
                 return await this.help(message);

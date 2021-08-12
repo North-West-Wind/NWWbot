@@ -37,6 +37,7 @@ class DeleteCommand implements SlashCommand {
 
   async execute(interaction: NorthInteraction) {
     if (!interaction.guild) return await interaction.reply("This command only works on server.");
+    await interaction.deferReply();
     const author = <GuildMember> interaction.member;
     var amount = interaction.options.getInteger("amount");
     var channel = <TextChannel> (interaction.options.getChannel("channel") || interaction.channel);
@@ -56,15 +57,15 @@ class DeleteCommand implements SlashCommand {
       channel = await interaction.guild.channels.create(name, { type, topic, nsfw, parent, permissionOverwrites, position, rateLimitPerUser });
       
       await author.user.send("Deleted all message in the channel **" + channel.name + "** of the server **" + interaction.guild.name + "**.");
-      return await interaction.reply(`Deleted all messages in <#${channel.id}>.`);
+      return await interaction.editReply(`Deleted all messages in <#${channel.id}>.`);
     } else {
       try {
         await channel.bulkDelete(amount, true);
-        await interaction.reply(`Deleted ${amount} messages in <#${channel.id}>.`);
+        await interaction.editReply(`Deleted ${amount} messages in <#${channel.id}>.`);
         await wait(10000);
         await interaction.deleteReply();
       } catch (err) {
-        await interaction.reply("I can't delete them. Try a smaller amount.");
+        await interaction.editReply("I can't delete them. Try a smaller amount.");
       }
     }
   }
@@ -96,7 +97,7 @@ class DeleteCommand implements SlashCommand {
     } else {
       await message.delete();
       channel.bulkDelete(amount, true).catch(err => {
-        NorthClient.storage.error(err);
+        console.error(err);
         message.channel.send("I can't delete them. Try a smaller amount.");
       });
     }

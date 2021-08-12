@@ -16,11 +16,11 @@ class DebugCommand implements SlashCommand {
     }];
 
     async execute(interaction: NorthInteraction) {
-        NorthClient.storage.log(await (Object.getPrototypeOf(async function () { }).constructor("message", "args", "functions", "Discord", interaction.options.getString("function")))(interaction, functions, Discord));
+        console.log(await (Object.getPrototypeOf(async function () { }).constructor("message", "args", "functions", "Discord", interaction.options.getString("function")))(interaction, functions, Discord));
     }
 
     async run(message: NorthMessage, args: string[]) {
-        NorthClient.storage.log(await (Object.getPrototypeOf(async function () { }).constructor("message", "functions", "Discord", args.join(" ")))(message, functions, Discord));
+        console.log(await (Object.getPrototypeOf(async function () { }).constructor("message", "functions", "Discord", args.join(" ")))(message, functions, Discord));
     }
 }
 

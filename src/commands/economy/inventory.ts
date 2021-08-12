@@ -60,13 +60,13 @@ class InventoryCommand implements SlashCommand {
       max: 1,
       time: 30000
     })
-    msg.reactions.removeAll().catch(NorthClient.storage.error);
+    msg.reactions.removeAll().catch(console.error);
     if (!collected2.first()) return await msg.edit({embeds: [em.setColor(color()).setTitle(author.tag + "'s Inventory").setDescription(IResult.map(x => `**${++i}.** ${x.name} - **${itemObject[x.id]}**`).join("\n"))]});
     const r = collected2.first();
     if (r.emoji.name === "1️⃣") {
       if (!itemObject[wanted.id]) itemObject[wanted.id] = 0;
       if (itemObject[wanted.id] < 1) {
-        msg.reactions.removeAll().catch(NorthClient.storage.error);
+        msg.reactions.removeAll().catch(console.error);
         em.setDescription("You cannot use this item because you don't have any.").setFooter("You can't do this.", message.client.user.displayAvatarURL());
         return await msg.edit({embeds: [em]});
       }
@@ -133,7 +133,7 @@ class InventoryCommand implements SlashCommand {
                   else throw new Error("This is a little too hard for slash.");
                 }
             } catch (error) {
-              NorthClient.storage.error(error);
+              console.error(error);
               em.setDescription(`Failed to use the item! Please contact NorthWestWind#1885 to fix this! Preserving item...\nError: \`${error.message}\``)
                 .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
               await msg.edit({embeds: [em]});

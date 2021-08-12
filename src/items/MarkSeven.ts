@@ -58,7 +58,7 @@ export default class MarkSevenItem implements Item {
             }
         } catch (err) {
             em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
-            NorthClient.storage.error(err);
+            console.error(err);
         }
         await msg.edit({embeds: [em]});
         con.release();

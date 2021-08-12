@@ -51,7 +51,7 @@ class UnRoleCommand implements SlashCommand {
       const allMembers = await message.guild.members.fetch();
       for (const member of allMembers.values()) try {
         await member.roles.remove(role);
-        NorthClient.storage.log(`Removed role ${role.name} from member ${member.displayName}`);
+        console.log(`Removed role ${role.name} from member ${member.displayName}`);
         await wait(200);
       } catch (err) {
         await message.channel.send(`Failed to remove role **${role.name}** from **${member.user.tag}**. (Error: **${err.message}**)`);

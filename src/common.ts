@@ -43,7 +43,7 @@ export default async(client: NorthClient) => {
         if (["PROTOCOL_CONNECTION_LOST", "ECONNREFUSED", "ETIMEDOUT"].includes(err.code) || (err.message === "Pool is closed.")) try {
             await pool.end();
         } catch (err) {
-            NorthClient.storage.error(err);
+            console.error(err);
         } finally {
                 pool = mysql.createPool(mysql_config).promise();
                 client.setPool(pool);

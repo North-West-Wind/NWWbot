@@ -110,7 +110,7 @@ class PollCommand implements SlashCommand {
         for (var i = 0; i < optionArray.length; i++) await msg.react(emojis[i]);
         for (var i = 0; i < options.length; i++) options[i] = escape(options[i]);
         await message.pool.query(`INSERT INTO poll VALUES(${msg.id}, ${message.guild.id}, ${channel.id}, '["${options.join('", "')}"]', '${newDateSql}', ${message.author.id}, ${color}, '${escape(title)}')`);
-        NorthClient.storage.log(`Inserted poll record for ${title} in channel ${channel.name} of server ${message.guild.name}`);
+        console.log(`Inserted poll record for ${title} in channel ${channel.name} of server ${message.guild.name}`);
         setTimeout_(async () => {
             const con = await message.pool.getConnection();
             try {

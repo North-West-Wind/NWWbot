@@ -20,7 +20,7 @@ export default class EnergyDrinkItem implements Item {
             em.setTitle("You drank the Energy Drink!").setDescription("Now you work more efficiently for 24 hours!\nThe amount of money you gain will be doubled during this period!").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
         } catch (err) {
             em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
-            NorthClient.storage.error(err);
+            console.error(err);
         }
         con.release();
         await msg.edit({embeds: [em]});

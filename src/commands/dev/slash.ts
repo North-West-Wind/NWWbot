@@ -38,8 +38,8 @@ class DevSlashCommand implements SlashCommand {
                     options: command.options
                 });
             } catch (err) {
-                NorthClient.storage.log("Failed to create slash command " + command.name);
-                NorthClient.storage.error(err);
+                console.log("Failed to create slash command " + command.name);
+                console.error(err);
             }
         }
         await msgOrRes(message, "Registered all Slash Commands.", true);

@@ -56,7 +56,7 @@ function createPlayer(guild: Discord.Guild) {
       await play(guild, pending);
     }
   }).on("error", async error => {
-    NorthClient.storage.error(error.message);
+    console.error(error.message);
     serverQueue.textChannel.send("There was an error trying to play the soundtrack!");
     serverQueue.destroy();
   });
@@ -173,7 +173,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     if (!serverQueue.player) return;
     await entersState(serverQueue.player, AudioPlayerStatus.Playing, 5e3);
   } catch (err) {
-    NorthClient.storage.error(err);
+    console.error(err);
     serverQueue.player?.emit("error", new AudioPlayerError(err instanceof Error ? err : new Error(err), serverQueue.resource));
   }
   if (serverQueue.textChannel) {
@@ -231,7 +231,7 @@ class PlayCommand implements SlashCommand {
       } catch (err) {
         await msgOrRes(message, "There was an error trying to connect to the voice channel!", true);
         if (err.message) await message.channel.send(err.message);
-        NorthClient.storage.error(err);
+        console.error(err);
         return serverQueue.destroy();
       }
       serverQueue.voiceChannel = voiceChannel;
@@ -301,7 +301,7 @@ class PlayCommand implements SlashCommand {
       await msgOrRes(message, "There was an error trying to connect to the voice channel!", true);
       if (err.message) await message.channel.send(err.message);
       serverQueue.destroy();
-      NorthClient.storage.error(err);
+      console.error(err);
     }
   }
 }
