@@ -59,11 +59,10 @@ export class Handler {
     }
 
     async messageLevel(message: Message) {
-        const storage = NorthClient.storage;
         if (!message || !message.author || !message.author.id || !message.guild || message.author.bot) return;
         const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
         const sqlDate = jsDate2Mysql(new Date());
-        storage.queries.push(new LevelData(message.author.id, message.guild.id, exp, sqlDate));
+        NorthClient.storage.queries.push(new LevelData(message.author.id, message.guild.id, exp, sqlDate));
     }
 
     async preReady(client: NorthClient) {
@@ -90,10 +89,9 @@ export class Handler {
     }
 
     async readServers(client: NorthClient, con: Connection) {
-        const storage = NorthClient.storage;
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434'");
         results.forEach(async result => {
-            storage.guilds[result.id] = {};
+            NorthClient.storage.guilds[result.id] = {};
             try {
                 await client.guilds.fetch(result.id);
             } catch (err) {
@@ -106,36 +104,33 @@ export class Handler {
                 catch (err) { console.error(`Error parsing queue of ${result.id}`); }
                 setQueue(result.id, queue, !!result.looping, !!result.repeating);
             }
-            if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
-            storage.guilds[result.id].token = result.token;
-            storage.guilds[result.id].giveaway = unescape(result.giveaway);
-            storage.guilds[result.id].welcome = {
+            if (result.prefix) NorthClient.storage.guilds[result.id].prefix = result.prefix;
+            NorthClient.storage.guilds[result.id].token = result.token;
+            NorthClient.storage.guilds[result.id].giveaway = unescape(result.giveaway);
+            NorthClient.storage.guilds[result.id].welcome = {
                 message: result.welcome,
                 channel: result.wel_channel,
                 image: result.wel_img,
                 autorole: result.autorole
             };
-            storage.guilds[result.id].leave = {
+            NorthClient.storage.guilds[result.id].leave = {
                 message: result.leave_msg,
                 channel: result.leave_channel
             };
-            storage.guilds[result.id].boost = {
+            NorthClient.storage.guilds[result.id].boost = {
                 message: result.boost_msg,
                 channel: result.boost_channel
             };
-            storage.guilds[result.id].autoReply = result.auto_reply;
+            NorthClient.storage.guilds[result.id].autoReply = result.auto_reply;
         });
-        NorthClient.storage = storage;
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }
 
     async readRoleMsg(client: NorthClient, con: PoolConnection) {
-        const storage = NorthClient.storage;
         const [res] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434' ORDER BY expiration");
         console.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
-        storage.rm = <RoleMessage[]>res;
+        NorthClient.storage.rm = <RoleMessage[]>res;
         res.forEach(async result => expire({ pool: client.pool, client }, result.expiration - Date.now(), result.id));
-        NorthClient.storage = storage;
     }
 
     async readGiveaways(client: NorthClient, con: PoolConnection) {
@@ -175,7 +170,6 @@ export class Handler {
 
     async ready(client: NorthClient) {
         this.preReady(client);
-        const storage = NorthClient.storage;
         const pool = client.pool;
         const id = client.id;
         console.log(`[${id}] Ready!`);
@@ -197,13 +191,11 @@ export class Handler {
 
     async guildMemberAdd(member: GuildMember) {
         const client = (member.client as NorthClient);
-        const storage = NorthClient.storage;
         const guild = member.guild;
-        const pool = client.pool;
         if (member.user.bot) return;
         guild.invites.fetch().then(async guildInvites => {
-            const ei = storage.guilds[member.guild.id].invites;
-            storage.guilds[member.guild.id].invites = guildInvites;
+            const ei = NorthClient.storage.guilds[member.guild.id].invites;
+            NorthClient.storage.guilds[member.guild.id].invites = guildInvites;
             const invite = guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
             if (!invite) return;
             const inviter = await client.users.fetch(invite.inviter.id);
@@ -211,17 +203,17 @@ export class Handler {
             const allUserInvites = guildInvites.filter(i => i.inviter.id === inviter.id && i.guild.id === guild.id);
             const reducer = (a: number, b: number) => a + b;
             const uses = allUserInvites.map(i => i.uses ? i.uses : 0).reduce(reducer);
-            if (storage.noLog.find(x => x === inviter.id)) return;
+            if (NorthClient.storage.noLog.find(x => x === inviter.id)) return;
             try {
                 await inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${client.prefix}invites toggle\` to turn it off)`);
             } catch (err) { }
         }).catch(() => { });
         try {
-            if (!storage.guilds[guild.id]) {
+            if (!NorthClient.storage.guilds[guild.id]) {
                 await fixGuildRecord(guild.id);
                 return;
             }
-            const welcome = storage.guilds[guild.id]?.welcome;
+            const welcome = NorthClient.storage.guilds[guild.id]?.welcome;
             if (!welcome?.channel) return;
             const channel = <TextChannel>guild.channels.resolve(welcome.channel);
             if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
@@ -314,13 +306,12 @@ export class Handler {
     async guildMemberRemove(member: GuildMember | PartialGuildMember) {
         const client = (member.client as NorthClient);
         const guild = member.guild;
-        const storage = NorthClient.storage;
         try {
-            if (!storage.guilds[guild.id]) {
+            if (!NorthClient.storage.guilds[guild.id]) {
                 await fixGuildRecord(guild.id);
                 return;
             }
-            const leave = storage.guilds[guild.id]?.leave;
+            const leave = NorthClient.storage.guilds[guild.id]?.leave;
             if (!leave?.channel) return;
             if (guild.me.permissions.has(BigInt(128))) {
                 const fetchedLogs = await guild.fetchAuditLogs({ limit: 1, type: 'MEMBER_KICK' });
@@ -341,50 +332,43 @@ export class Handler {
     }
 
     async guildCreate(guild: Guild) {
-        const storage = NorthClient.storage;
         try {
             await fixGuildRecord(guild.id);
         } catch (err) {
             console.error(err);
         }
-        try { storage.guilds[guild.id].invites = await guild.invites.fetch(); } catch (err) { }
-        NorthClient.storage = storage;
+        try { NorthClient.storage.guilds[guild.id].invites = await guild.invites.fetch(); } catch (err) { }
     }
 
     async guildDelete(guild: Guild) {
         const client = <NorthClient>guild.client;
-        const storage = NorthClient.storage;
         console.log("Left a guild: " + guild.name);
-        delete storage.guilds[guild.id];
+        delete NorthClient.storage.guilds[guild.id];
         try {
             await client.pool.query("DELETE FROM servers WHERE id=" + guild.id);
             console.log("Deleted record for " + guild.name);
         } catch (err) {
             console.error(err);
         }
-        NorthClient.storage = storage;
     }
 
     async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
         const guild = oldState.guild || newState.guild;
-        var storage = NorthClient.storage;
-        const exit = storage.guilds[guild.id]?.exit;
+        const exit = NorthClient.storage.guilds[guild.id]?.exit;
         if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice?.channel)) return await stop(guild);
         if (!guild.me.voice?.channel || (newState.channelId !== guild.me.voice.channelId && oldState.channelId !== guild.me.voice.channelId)) return;
-        if (!storage.guilds[guild.id]) storage = await fixGuildRecord(guild.id);
+        if (!NorthClient.storage.guilds[guild.id]) await fixGuildRecord(guild.id);
         if (guild.me.voice.channel.members.size <= 1) {
             if (exit) return;
-            storage.guilds[guild.id].exit = true;
-            setTimeout(() => storage.guilds[guild.id]?.exit ? stop(guild) : 0, 30000);
-        } else storage.guilds[guild.id].exit = false;
-        NorthClient.storage = storage;
+            NorthClient.storage.guilds[guild.id].exit = true;
+            setTimeout(() => NorthClient.storage.guilds[guild.id]?.exit ? stop(guild) : 0, 30000);
+        } else NorthClient.storage.guilds[guild.id].exit = false;
     }
 
     async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
         const client = <NorthClient>(oldMember.client || newMember.client);
-        const storage = NorthClient.storage;
         if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
-        const boost = storage.guilds[newMember.guild.id]?.boost;
+        const boost = NorthClient.storage.guilds[newMember.guild.id]?.boost;
         if (!boost?.channel || !boost.message) return;
         try {
             const channel = <TextChannel>await client.channels.fetch(boost.channel);
@@ -393,8 +377,7 @@ export class Handler {
     }
 
     async messageReactionAdd(r: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
-        const storage = NorthClient.storage;
-        var roleMessage = storage.rm.find(x => x.id == r.message.id);
+        var roleMessage = NorthClient.storage.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
         const emojis = JSON.parse(roleMessage.emojis);
         var index = -1;
@@ -411,8 +394,7 @@ export class Handler {
     }
 
     async messageReactionRemove(r: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
-        const storage = NorthClient.storage;
-        var roleMessage = storage.rm.find(x => x.id == r.message.id);
+        var roleMessage = NorthClient.storage.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
         const emojis = JSON.parse(roleMessage.emojis);
         var index = -1;
@@ -430,12 +412,10 @@ export class Handler {
 
     async messageDelete(message: Message | PartialMessage) {
         const client = <NorthClient>message.client;
-        const storage = NorthClient.storage;
-        var roleMessage = storage.rm.find(x => x.id === message.id);
+        var roleMessage = NorthClient.storage.rm.find(x => x.id === message.id);
         if (!roleMessage) return;
-        storage.rm.splice(storage.rm.indexOf(roleMessage), 1);
+        NorthClient.storage.rm.splice(NorthClient.storage.rm.indexOf(roleMessage), 1);
         await client.pool.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`);
-        NorthClient.storage = storage;
     }
 
     async preMessage(_message: Message): Promise<any> {
@@ -445,14 +425,13 @@ export class Handler {
     async message(message: Message) {
         await this.preMessage(message);
         const client = <NorthClient>message.client;
-        const storage = NorthClient.storage;
         const msg = (<NorthMessage>message);
-        msg.prefix = storage.guilds[msg.guildId]?.prefix || client.prefix;
+        msg.prefix = NorthClient.storage.guilds[msg.guildId]?.prefix || client.prefix;
         this.messageLevel(msg);
         if (!msg.content.startsWith(msg.prefix)) return;
         const args = msg.content.slice(msg.prefix.length).split(/ +/);
         const commandName = args.shift().toLowerCase();
-        const command = storage.commands.get(commandName) || storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+        const command = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
         msg.pool = client.pool;
         try {
@@ -479,34 +458,32 @@ export class AliceHandler extends Handler {
     }
 
     async readServers(client: NorthClient, con: Connection) {
-        const storage = NorthClient.storage;
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id = '622311594654695434'");
         const result = results[0];
-        storage.guilds[result.id] = {};
+        NorthClient.storage.guilds[result.id] = {};
         if (result.queue || result.looping || result.repeating) {
             var queue = [];
             try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
             catch (err) { console.error(`Error parsing queue of ${result.id}`); }
             setQueue(result.id, queue, !!result.looping, !!result.repeating);
         }
-        if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
-        storage.guilds[result.id].token = result.token;
-        storage.guilds[result.id].giveaway = unescape(result.giveaway);
-        storage.guilds[result.id].welcome = {
+        if (result.prefix) NorthClient.storage.guilds[result.id].prefix = result.prefix;
+        NorthClient.storage.guilds[result.id].token = result.token;
+        NorthClient.storage.guilds[result.id].giveaway = unescape(result.giveaway);
+        NorthClient.storage.guilds[result.id].welcome = {
             message: result.welcome,
             channel: result.wel_channel,
             image: result.wel_img,
             autorole: result.autorole
         };
-        storage.guilds[result.id].leave = {
+        NorthClient.storage.guilds[result.id].leave = {
             message: result.leave_msg,
             channel: result.leave_channel
         };
-        storage.guilds[result.id].boost = {
+        NorthClient.storage.guilds[result.id].boost = {
             message: result.boost_msg,
             channel: result.boost_channel
         };
-        NorthClient.storage = storage;
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }
 
@@ -515,8 +492,7 @@ export class AliceHandler extends Handler {
     }
 
     async preRead(client: NorthClient, con: Connection) {
-        const storage = NorthClient.storage;
-        client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => storage.guilds[g.id].invites = guildInvites).catch(() => { }));
+        client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
         const [res] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
         console.log(`[${client.id}] Found ${res.length} guild timers`);
         res.forEach(async result => {
@@ -785,36 +761,34 @@ export class CanaryHandler extends Handler {
     }
 
     async readServers(client: NorthClient, con: Connection) {
-        const storage = NorthClient.storage;
         var [results] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
         results.forEach(async result => {
-            storage.guilds[result.id] = {};
+            NorthClient.storage.guilds[result.id] = {};
             if (result.queue || result.looping || result.repeating) {
                 var queue = [];
                 try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
                 catch (err) { console.error(`Error parsing queue of ${result.id}`); }
                 setQueue(result.id, queue, !!result.looping, !!result.repeating);
             }
-            if (result.prefix) storage.guilds[result.id].prefix = result.prefix;
-            else storage.guilds[result.id].prefix = client.prefix;
-            storage.guilds[result.id].token = result.token;
-            storage.guilds[result.id].giveaway = unescape(result.giveaway);
-            storage.guilds[result.id].welcome = {
+            if (result.prefix) NorthClient.storage.guilds[result.id].prefix = result.prefix;
+            else NorthClient.storage.guilds[result.id].prefix = client.prefix;
+            NorthClient.storage.guilds[result.id].token = result.token;
+            NorthClient.storage.guilds[result.id].giveaway = unescape(result.giveaway);
+            NorthClient.storage.guilds[result.id].welcome = {
                 message: result.welcome,
                 channel: result.wel_channel,
                 image: result.wel_img,
                 autorole: result.autorole
             };
-            storage.guilds[result.id].leave = {
+            NorthClient.storage.guilds[result.id].leave = {
                 message: result.leave_msg,
                 channel: result.leave_channel
             };
-            storage.guilds[result.id].boost = {
+            NorthClient.storage.guilds[result.id].boost = {
                 message: result.boost_msg,
                 channel: result.boost_channel
             };
         });
-        NorthClient.storage = storage;
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }
 }

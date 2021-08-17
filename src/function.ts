@@ -617,37 +617,34 @@ export function requestYTDLStream(url: string, opts: downloadOptions & { timeout
 }
 
 export async function fixGuildRecord(id: Discord.Snowflake) {
-    const storage = NorthClient.storage;
-    if (storage.guilds[id]) return;
+    if (NorthClient.storage.guilds[id]) return;
     const [results] = <RowDataPacket[][]> await globalClient.pool.query("SELECT id FROM servers WHERE id = " + id);
     if (results.length > 0) {
-        storage.guilds[results[0].id] = {};
+        NorthClient.storage.guilds[results[0].id] = {};
         if (results[0].queue || results[0].looping || results[0].repeating) {
             var queue = [];
             try { if (results[0].queue) queue = JSON.parse(unescape(results[0].queue)); }
             catch (err) { console.error(`Error parsing queue of ${results[0].id}`); }
             setQueue(results[0].id, queue, !!results[0].looping, !!results[0].repeating);
         }
-        if (results[0].prefix) storage.guilds[results[0].id].prefix = results[0].prefix;
-        else storage.guilds[results[0].id].prefix = globalClient.prefix;
-        storage.guilds[results[0].id].token = results[0].token;
-        storage.guilds[results[0].id].giveaway = unescape(results[0].giveaway);
-        storage.guilds[results[0].id].welcome = {
+        if (results[0].prefix) NorthClient.storage.guilds[results[0].id].prefix = results[0].prefix;
+        else NorthClient.storage.guilds[results[0].id].prefix = globalClient.prefix;
+        NorthClient.storage.guilds[results[0].id].token = results[0].token;
+        NorthClient.storage.guilds[results[0].id].giveaway = unescape(results[0].giveaway);
+        NorthClient.storage.guilds[results[0].id].welcome = {
             message: results[0].welcome,
             channel: results[0].wel_channel,
             image: results[0].wel_img,
             autorole: results[0].autorole
         };
-        storage.guilds[results[0].id].leave = {
+        NorthClient.storage.guilds[results[0].id].leave = {
             message: results[0].leave_msg,
             channel: results[0].leave_channel
         };
-        storage.guilds[results[0].id].boost = {
+        NorthClient.storage.guilds[results[0].id].boost = {
             message: results[0].boost_msg,
             channel: results[0].boost_channel
         };
-    } else storage.guilds[id] = {};
+    } else NorthClient.storage.guilds[id] = {};
     await globalClient.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${id}', '[]', '${escape("🎉")}')`);
-    NorthClient.storage = storage;
-    return storage;
 }

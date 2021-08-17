@@ -1,7 +1,7 @@
 import { DiscordGatewayAdapterCreator, DiscordGatewayAdapterLibraryMethods } from "@discordjs/voice";
 import * as Discord from "discord.js";
 import { GatewayVoiceServerUpdateDispatchData, GatewayVoiceStateUpdateDispatchData } from "discord-api-types/v9";
-import { NorthClient, ServerQueue, SoundTrack } from "../classes/NorthClient";
+import { ServerQueue, SoundTrack } from "../classes/NorthClient";
 import { globalClient as client } from "../common";
 const queue = new Discord.Collection<Discord.Snowflake, ServerQueue>();
 
