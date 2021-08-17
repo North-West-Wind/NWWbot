@@ -39,12 +39,12 @@ function createPlayer(guild: Discord.Guild) {
       }
     }
     serverQueue.streamTime = newState.playbackDuration;
-    await updateQueue(guild.id, serverQueue, false);
+    updateQueue(guild.id, serverQueue, false);
   }).on(AudioPlayerStatus.Idle, async () => {
     serverQueue = getQueues().get(guild.id);
     if (serverQueue.looping) serverQueue.songs.push(track);
     if (!serverQueue.repeating) serverQueue.songs.shift();
-    await updateQueue(guild.id, serverQueue);
+    updateQueue(guild.id, serverQueue);
     needResource = true;
     needSetVolume = true;
     if (!serverQueue.random) await play(guild, serverQueue.songs[0]);
@@ -52,7 +52,7 @@ function createPlayer(guild: Discord.Guild) {
       const int = Math.floor(Math.random() * serverQueue.songs.length);
       const pending = serverQueue.songs[int];
       serverQueue.songs = moveArray(serverQueue.songs, int);
-      await updateQueue(guild.id, serverQueue);
+      updateQueue(guild.id, serverQueue);
       await play(guild, pending);
     }
   }).on("error", async error => {
@@ -88,14 +88,14 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     const filtered = serverQueue.songs.filter(song => !!song);
     if (serverQueue.songs.length !== filtered.length) {
       serverQueue.songs = filtered;
-      await updateQueue(guild.id, serverQueue);
+      updateQueue(guild.id, serverQueue);
       if (serverQueue.songs[0]) song = serverQueue.songs[0];
     }
   }
   if (!song || !serverQueue.voiceChannel) {
     serverQueue.playing = false;
     if (guild.me.voice?.channel) serverQueue.connection.destroy();
-    return await updateQueue(guild.id, serverQueue);
+    return updateQueue(guild.id, serverQueue);
   }
   if (!serverQueue.player) {
     serverQueue.player = createPlayer(guild);
@@ -240,13 +240,13 @@ class PlayCommand implements SlashCommand {
       if (!serverQueue.player) serverQueue.player = createPlayer(message.guild);
       await entersState(serverQueue.connection, VoiceConnectionStatus.Ready, 30e3);
       serverQueue.connection.subscribe(serverQueue.player);
-      await updateQueue(message.guild.id, serverQueue);
+      updateQueue(message.guild.id, serverQueue);
       if (!serverQueue.random) await play(message.guild, serverQueue.songs[0]);
       else {
         const int = Math.floor(Math.random() * serverQueue.songs.length);
         const pending = serverQueue.songs[int];
         serverQueue.songs = moveArray(serverQueue.songs, int);
-        await updateQueue(message.guild.id, serverQueue);
+        updateQueue(message.guild.id, serverQueue);
         await play(message.guild, pending);
       }
       if (message instanceof Discord.Interaction) await message.deleteReply();
@@ -278,7 +278,7 @@ class PlayCommand implements SlashCommand {
       if (result.msg) await result.msg.edit({ content: null, embeds: [Embed] });
       else await msgOrRes(message, Embed, true);
       setTimeout(async() => { try { await msg.edit({ embeds: [], content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }) } catch (err) { } }, 30000);
-      await updateQueue(message.guild.id, serverQueue);
+      updateQueue(message.guild.id, serverQueue);
       if (!serverQueue.player) serverQueue.player = createPlayer(message.guild);
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(voiceChannel) });
@@ -286,14 +286,14 @@ class PlayCommand implements SlashCommand {
       await message.guild.me.voice?.setDeaf(true);
       await entersState(serverQueue.connection, VoiceConnectionStatus.Ready, 30e3);
       serverQueue.connection.subscribe(serverQueue.player);
-      await updateQueue(message.guild.id, serverQueue, false);
+      updateQueue(message.guild.id, serverQueue, false);
       if (!serverQueue.playing) {
         if (!serverQueue.random) await play(message.guild, serverQueue.songs[0]);
         else {
           const int = Math.floor(Math.random() * serverQueue.songs.length);
           const pending = serverQueue.songs[int];
           serverQueue.songs = moveArray(serverQueue.songs, int);
-          await updateQueue(message.guild.id, serverQueue);
+          updateQueue(message.guild.id, serverQueue);
           await play(message.guild, pending);
         }
       }

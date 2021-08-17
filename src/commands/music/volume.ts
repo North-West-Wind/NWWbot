@@ -57,7 +57,7 @@ class VolumeCommand implements SlashCommand {
             await msgOrRes(message, "Volume has been changed to **" + (serverQueue.volume * 100) + "%**.");
         }
         serverQueue.resource?.volume.setVolumeLogarithmic(serverQueue.songs[0]?.volume ? serverQueue.volume * serverQueue.songs[0].volume : serverQueue.volume);
-        await updateQueue(message.guild.id, serverQueue, false);
+        updateQueue(message.guild.id, serverQueue, false);
     }
 }
 

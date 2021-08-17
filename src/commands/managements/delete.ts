@@ -1,6 +1,6 @@
 import { GuildMember, TextChannel } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { genPermMsg, wait } from "../../function";
 
 class DeleteCommand implements SlashCommand {
@@ -40,7 +40,7 @@ class DeleteCommand implements SlashCommand {
     await interaction.deferReply();
     const author = <GuildMember> interaction.member;
     var amount = interaction.options.getInteger("amount");
-    var channel = <TextChannel> (interaction.options.getChannel("channel") || interaction.channel);
+    const channel = <TextChannel> (interaction.options.getChannel("channel") || interaction.channel);
     if (interaction.options.getBoolean("all")) {
       if (!author.permissions.has(BigInt(16))) return await interaction.reply(genPermMsg(16, 0));
       if (!interaction.guild.me.permissions.has(BigInt(16))) return await interaction.reply(genPermMsg(16, 1));
@@ -54,16 +54,14 @@ class DeleteCommand implements SlashCommand {
       const rateLimitPerUser = channel.rateLimitPerUser;
 
       await channel.delete();
-      channel = await interaction.guild.channels.create(name, { type, topic, nsfw, parent, permissionOverwrites, position, rateLimitPerUser });
+      await interaction.guild.channels.create(name, { type, topic, nsfw, parent, permissionOverwrites, position, rateLimitPerUser });
       
       await author.user.send("Deleted all message in the channel **" + channel.name + "** of the server **" + interaction.guild.name + "**.");
       return await interaction.editReply(`Deleted all messages in <#${channel.id}>.`);
     } else {
       try {
-        await channel.bulkDelete(amount, true);
-        await interaction.editReply(`Deleted ${amount} messages in <#${channel.id}>.`);
-        await wait(10000);
         await interaction.deleteReply();
+        await channel.bulkDelete(amount, true);
       } catch (err) {
         await interaction.editReply("I can't delete them. Try a smaller amount.");
       }
@@ -95,11 +93,12 @@ class DeleteCommand implements SlashCommand {
         } else await message.channel.send("The query provided is not a number!");
         return;
     } else {
-      await message.delete();
-      channel.bulkDelete(amount, true).catch(err => {
-        console.error(err);
-        message.channel.send("I can't delete them. Try a smaller amount.");
-      });
+      try {
+        await message.delete();
+        await channel.bulkDelete(amount, true);
+      } catch (err) {
+        await message.channel.send("I can't delete them. Try a smaller amount.");
+      }
     }
   }
 };

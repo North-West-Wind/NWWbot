@@ -52,7 +52,7 @@ class AddCommand implements SlashCommand {
             const Embed = createEmbed(songs);
             if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, songs, false, false);
             else serverQueue.songs = serverQueue.songs.concat(songs);
-            await updateQueue(message.guild.id, serverQueue);
+            updateQueue(message.guild.id, serverQueue);
             var msg: Message;
             if (result.msg) msg = await result.msg.edit({ content: null, embed: Embed });
             else msg = await msgOrRes(message, Embed, true);

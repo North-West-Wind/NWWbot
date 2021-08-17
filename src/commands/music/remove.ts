@@ -52,7 +52,7 @@ class RemoveCommand implements SlashCommand {
         const oldSong = serverQueue.songs[0];
         const title = song.title;
         const removed = serverQueue.songs.splice(deleteIndex, amount);
-        await updateQueue(message.guild.id, serverQueue);
+        updateQueue(message.guild.id, serverQueue);
         await msgOrRes(message, `${removed.length > 1 ? `**${removed.length} tracks** have` : `**${title}** has`} been removed from the queue.`);
         if (oldSong != serverQueue.songs[0] && serverQueue.playing) {
             serverQueue.stop();
@@ -61,7 +61,7 @@ class RemoveCommand implements SlashCommand {
                 const int = Math.floor(Math.random() * serverQueue.songs.length);
                 const pending = serverQueue.songs[int];
                 serverQueue.songs = moveArray(serverQueue.songs, int);
-                await updateQueue(message.guild.id, serverQueue);
+                updateQueue(message.guild.id, serverQueue);
                 await play(message.guild, pending);
             }
         }

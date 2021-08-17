@@ -53,7 +53,7 @@ class DownloadCommand implements SlashCommand {
                 if (!isEquivalent(result.songs[0], song)) {
                     song = result.songs[0];
                     serverQueue.songs[0] = song;
-                    await updateQueue(message.guild.id, serverQueue);
+                    updateQueue(message.guild.id, serverQueue);
                     if (song?.isLive) return await msgOrRes(message, "Livestream downloading is not supported and recommended! Come back later when the livestream is over.", true);
                 }
             }

@@ -48,7 +48,7 @@ class SkipCommand implements SlashCommand {
             if (serverQueue.looping) serverQueue.songs.push(serverQueue.songs[0]);
             serverQueue.songs.shift();
         }
-        await updateQueue(message.guild.id, serverQueue);
+        updateQueue(message.guild.id, serverQueue);
         await msgOrRes(message, `Skipped **${Math.max(1, skip)}** track${skip > 1 ? "s" : ""}!`);
         if (member.voice.channel && serverQueue.playing) {
             if (!serverQueue.connection) serverQueue.connection = joinVoiceChannel({ channelId: member.voice.channel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(<VoiceChannel> member.voice.channel) });
@@ -57,7 +57,7 @@ class SkipCommand implements SlashCommand {
                 const int = Math.floor(Math.random() * serverQueue.songs.length);
                 const pending = serverQueue.songs[int];
                 serverQueue.songs = moveArray(serverQueue.songs, int);
-                await updateQueue(message.guild.id, serverQueue);
+                updateQueue(message.guild.id, serverQueue);
                 await play(message.guild, pending);
             }
         }

@@ -48,7 +48,7 @@ class UnSkipCommand implements SlashCommand {
             var song = serverQueue.songs.pop();
             serverQueue.songs.unshift(song);
         }
-        await updateQueue(message.guild.id, serverQueue);
+        updateQueue(message.guild.id, serverQueue);
         await msgOrRes(message,`Unskipped **${Math.max(1, unskip)}** track${unskip > 1 ? "s" : ""}!`);
         if (member.voice.channel && serverQueue.playing) {
             if (!serverQueue.connection) serverQueue.connection = joinVoiceChannel({ channelId: member.voice.channel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(<VoiceChannel> member.voice.channel) });
@@ -57,7 +57,7 @@ class UnSkipCommand implements SlashCommand {
                 const int = Math.floor(Math.random() * serverQueue.songs.length);
                 const pending = serverQueue.songs[int];
                 serverQueue.songs = moveArray(serverQueue.songs, int);
-                await updateQueue(message.guild.id, serverQueue);
+                updateQueue(message.guild.id, serverQueue);
                 await play(message.guild, pending);
             }
         }

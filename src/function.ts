@@ -213,7 +213,7 @@ export function readableDateTime(date) {
         " UTC";
     return dateTime;
 }
-export function readableDateTimeText(time) {
+export function readableDateTimeText(time: number) {
     var sec = time / 1000;
     var dd = Math.floor(sec / 86400);
     var dh = Math.floor((sec % 86400) / 3600);

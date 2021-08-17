@@ -41,13 +41,13 @@ export async function migrate(message: Message | NorthInteraction) {
         serverQueue.textChannel = <TextChannel>message.channel;
         migrating.splice(migrating.indexOf(message.guild.id));
         await msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`).catch(() => { });
-        await updateQueue(message.guild.id, serverQueue, false);
+        updateQueue(message.guild.id, serverQueue, false);
         if (!serverQueue.random) await play(message.guild, serverQueue.songs[0], seek);
         else {
             const int = Math.floor(Math.random() * serverQueue.songs.length);
             const pending = serverQueue.songs[int];
             serverQueue.songs = moveArray(serverQueue.songs, int);
-            await updateQueue(message.guild.id, serverQueue);
+            updateQueue(message.guild.id, serverQueue);
             play(message.guild, pending);
         }
     }, 3000);

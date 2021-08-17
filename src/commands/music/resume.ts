@@ -25,7 +25,7 @@ class ResumeCommand implements SlashCommand {
         if (serverQueue.paused) {
             serverQueue.paused = false;
             serverQueue.player?.unpause();
-            await updateQueue(message.guild.id, serverQueue, false);
+            updateQueue(message.guild.id, serverQueue, false);
             return await msgOrRes(message, "The playback has been resumed.");
         } else {
             return await msgOrRes(message, "The playback is not stopped.");

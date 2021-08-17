@@ -28,7 +28,7 @@ class StopCommand implements SlashCommand {
         serverQueue.voiceChannel = null;
         serverQueue.textChannel = null;
         await msgOrRes(message, ":wave:");
-        await updateQueue(message.guild.id, serverQueue, false);
+        updateQueue(message.guild.id, serverQueue, false);
     }
 }
 

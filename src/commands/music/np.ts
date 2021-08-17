@@ -41,7 +41,7 @@ class NPCommand implements SlashCommand {
         const filtered = serverQueue.songs.filter(song => !!song);
         if (serverQueue.songs.length !== filtered.length) {
             serverQueue.songs = filtered;
-            await updateQueue(message.guild.id, serverQueue);
+            updateQueue(message.guild.id, serverQueue);
         }
         var position = 0;
         if (serverQueue.streamTime && serverQueue.startTime) position = (serverQueue.streamTime - serverQueue.startTime);

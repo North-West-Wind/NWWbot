@@ -4,6 +4,7 @@ import * as Discord from "discord.js";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 import { color, createEmbedScrolling, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, readableDateTimeText, setTimeout_ } from "../../function";
+import { RowDataPacket } from "mysql2";
 formatSetup(moment);
 
 const fetch = getFetch();
@@ -97,16 +98,16 @@ class GuildCommand implements SlashCommand {
 		}
 	}
 
-	async invite(message, args) {
+	async invite(message: NorthMessage, args: string[]) {
 		if (message.guild.id != "622311594654695434") return message.channel.send("Please use this command in the server War of Underworld. Thank you.");
-		const divine = message.guild.roles.fetch("640148120579211265");
+		const divine = await message.guild.roles.fetch("640148120579211265");
 		if (message.member.roles.highest.position < divine.position) return message.channel.send("You don't have the role to use this command!")
 		if (!args[1]) return message.channel.send("You didn't mention any user!");
 		const user = await findUser(message, args[1]);
 		if (!user) return;
 		try {
-			const [result] = await message.pool.query(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`);
-			const channel = await message.client.channels.fetch("723479832452661269");
+			const [result] = <RowDataPacket[][]> await message.pool.query(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`);
+			const channel = <Discord.TextChannel> await message.client.channels.fetch("723479832452661269");
 			var noname = false;
 			if (result.length < 1) noname = true;
 			const em = new Discord.MessageEmbed()
@@ -116,31 +117,31 @@ class GuildCommand implements SlashCommand {
 				.setTimestamp()
 				.setFooter("Please choose within 2 minutes.", message.client.user.displayAvatarURL());
 
-			const msg = await message.channel.send(em);
+			const msg = await message.channel.send({ embeds: [em] });
 			await msg.react("1️⃣");
 			await msg.react("2️⃣");
 			await msg.react("3️⃣");
 			await msg.react("4️⃣");
 
-			const collected = await msg.awaitReactions((r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.author.id, { max: 1, time: 120000 }).catch(console.error);
+			const collected = await msg.awaitReactions({ filter: (r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.author.id, max: 1, time: 120000 }).catch(console.error);
 			await msg.reactions.removeAll().catch(console.error);
 			if (!collected || !collected.first()) return await message.channel.send("No operation chosen in 2 minutes. Please try again.");
 			const reaction = collected.first();
 			switch (reaction.emoji.name) {
 				case "1️⃣":
-					await msg.edit({ content: "Request Accpected", embed: null });
+					await msg.edit({ content: "Request Accpected", embeds: [] });
 					channel.send(`✅ | <@${user.id}> Congratulations ! You have been invited to the guild. Please accept the invite in Hypixel in 5 minutes ! If you can't join our guild right now, you will need to find guild officers to invite you again later.` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
 					break;
 				case "2️⃣":
-					await msg.edit({ content: "Request Declined (Already in another guild)", embed: null });
+					await msg.edit({ content: "Request Declined (Already in another guild)", embeds: [] });
 					channel.send(`❌ | <@${user.id}> Sorry, you are not allow to join our guild because you are already in another guild. Please read the pinned message in <#724271012492869642>!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
 					break;
 				case "3️⃣":
-					await msg.edit({ content: "Request Declined (Already in guild)", embed: null });
+					await msg.edit({ content: "Request Declined (Already in guild)", embeds: [] });
 					channel.send(`❌ | <@${user.id}> Sorry, you are already in our guild. If you keep spamming requests, you will get banned!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
 					break;
 				case "4️⃣":
-					await msg.edit({ content: "Request Declined (Already in guild)", embed: null });
+					await msg.edit({ content: "Request Declined (Already in guild)", embeds: [] });
 					channel.send(`❌ | <@${user.id}> Sorry, you are banned from our guild. Good luck finding another one!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
 					break;
 			}
@@ -150,9 +151,9 @@ class GuildCommand implements SlashCommand {
 		}
 	}
 	
-	async splash(message) {
+	async splash(message: NorthMessage) {
 		let msg = await message.channel.send("Which channel do you want the message to be announced?");
-		let collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
+		let collected = await msg.channel.awaitMessages({ filter: x => x.author.id === message.author.id, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete();
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -165,13 +166,12 @@ class GuildCommand implements SlashCommand {
 			.first()
 			.content.replace(/<#/g, "")
 			.replace(/>/g, "");
-		let channel = await message.guild.channels.resolve(channelID);
-		if (!channel || channel === undefined || channel === null) {
-			return msg.edit(channelID + " isn't a valid channel!");
-		}
+		const channel = <Discord.TextChannel> await message.guild.channels.fetch(channelID);
+		if (!channel) return await msg.edit(channelID + " isn't a valid channel!");
 		await msg.edit(`The announcement will be made in <#${channelID}>. What is the location of the splash?`);
+		const filter = x => x.author.id === message.author.id;
 		collected = undefined;
-		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
+		collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete();
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -185,7 +185,7 @@ class GuildCommand implements SlashCommand {
 		await msg.edit(`Ok. The location will be **${location}**. Now, please enter the amount of potions and slots. [Format: <potions> <slots>]`);
 
 		collected = undefined;
-		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
+		collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete();
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -202,7 +202,7 @@ class GuildCommand implements SlashCommand {
 
 		await msg.edit(`Alright, there will be **${potions} potions** and **${slots} slots**. Which role should I mention?`);
 		collected = undefined;
-		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
+		collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete();
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -219,7 +219,7 @@ class GuildCommand implements SlashCommand {
 
 		await msg.edit("Add notes? [Yes/No]");
 		collected = undefined;
-		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
+		collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete();
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -232,7 +232,7 @@ class GuildCommand implements SlashCommand {
 		if (["yes", "y"].includes(collected.first().content.toLowerCase())) {
 			await msg.edit("Please enter your notes.");
 			collected = undefined;
-			collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
+			collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 			if (collected.first())
 				collected.first().delete();
 			if (!collected || !collected.first() || !collected.first().content) {
@@ -247,7 +247,7 @@ class GuildCommand implements SlashCommand {
 		let mc = "";
 		await msg.edit("Please tell me your Minecraft username.");
 		collected = undefined;
-		collected = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(err => collected = undefined);
+		collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete();
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -259,19 +259,19 @@ class GuildCommand implements SlashCommand {
 		}
 		mc = collected.first().content;
 
-		let em = new Discord.MessageEmbed()
+		const em = new Discord.MessageEmbed()
 			.setTitle("There is a splash!")
 			.setColor(color())
 			.setDescription(`\`${mc}\` is hosting a splash!\nDo \`/p join ${mc}\` in Hypixel or join the guild party to be part of it!\n\n**Location:** ${location}\n**Potions:** ${potions}\n**Slots:** ${slots}\n**Note: ** ${notes.length > 0 ? notes : "N/A"}`)
 			.setTimestamp()
 			.setFooter(`Hosted by ${mc}`, message.client.user.displayAvatarURL());
 
-		channel.send({ content: `<@&${role.id}>`, embed: em });
+		channel.send({ content: `<@&${role.id}>`, embeds: [em] });
 
 		await msg.edit("The message has been sent!");
 	}
 
-	async lottery(message) {
+	async lottery(message: NorthMessage) {
 		let items = {
 			"1": 65,
 			"2": 5,
@@ -309,8 +309,8 @@ class GuildCommand implements SlashCommand {
 		message.channel.send(prize);
 	}
 
-	async timer(message, args) {
-		if (!message.member.hasPermission(8) || !message.guild) return;
+	async timer(message: NorthMessage, args: string[]) {
+		if (!message.member.permissions.has(BigInt(8)) || !message.guild) return;
 		switch (args[1]) {
 			case "create":
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
@@ -320,12 +320,11 @@ class GuildCommand implements SlashCommand {
 				if (!user) return;
 				let title = `${user.tag} - ${args.slice(4).join(" ")} [${args[3]}] (Timer)`;
 				let msg = await message.channel.send("How long do you want the timer to last for? Please enter the duration (example: 10m23s)");
-				let time = await msg.channel.awaitMessages(x => x.author.id === message.author.id, { max: 1, time: 30000 }).catch(() => { });
+				let time = await msg.channel.awaitMessages({ filter: x => x.author.id === message.author.id, max: 1, time: 30000 });
 				if (!time || !time.first() || !time.first().content) return message.channel.send("Timed out. You didn't provide the duration in time!");
 				let duration = ms(time.first().content);
 				time.first().delete();
-				if (isNaN(duration)) return message.channel.send("The duration given is not valid!");
-				time = duration;
+				if (isNaN(duration)) return await message.channel.send("The duration given is not valid!");
 				let uuid = await nameToUuid(args[3]);
 				if (!uuid) return message.reply("there was an error trying to find the player in Minecraft!");
 				try {
@@ -333,22 +332,22 @@ class GuildCommand implements SlashCommand {
 						user: user.id,
 						dc_rank: escape(args.slice(4).join(" ")),
 						mc: uuid,
-						endAt: new Date(Date.now() + time)
+						endAt: new Date(Date.now() + duration)
 					});
-					await message.pool.query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + time))}')`);
+					await message.pool.query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + duration))}')`);
 					message.channel.send("Timer recorded.");
 				} catch (err) {
 					console.error(err);
 					await message.reply("there was an error trying to insert the timer to the database!");
 				}
-				msg = await msg.edit(`Timer created with the title **${title}** and will last for **${readableDateTimeText(time)}**`);
+				msg = await msg.edit(`Timer created with the title **${title}** and will last for **${readableDateTimeText(duration)}**`);
 				setTimeout_(async () => {
 					let asuna = await message.client.users.fetch("461516729047318529");
 					const con = await message.pool.getConnection();
 					try {
 						const index = NorthClient.storage.gtimers.indexOf(NorthClient.storage.gtimers.find(t => t.user == user.id));
 						if (index > -1) NorthClient.storage.gtimers.splice(index, 1);
-						var [results] = await con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
+						const [results] = <RowDataPacket[][]> await con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
 						if (results.length == 0) throw new Error("Not found");
 						await con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
 					} catch (err) {
@@ -356,7 +355,7 @@ class GuildCommand implements SlashCommand {
 					}
 					con.release();
 					await asuna.send(title + " expired");
-				}, time);
+				}, duration);
 				break;
 			case "delete":
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
@@ -366,7 +365,7 @@ class GuildCommand implements SlashCommand {
 				try {
 					const index = NorthClient.storage.gtimers.indexOf(NorthClient.storage.gtimers.find(t => t.user == user.id));
 					if (index > -1) NorthClient.storage.gtimers.splice(index, 1);
-					var [results] = await con.query(`SELECT * FROM gtimer WHERE user = '${userd.id}'`);
+					const [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM gtimer WHERE user = '${userd.id}'`);
 					if (results.length == 0) return message.channel.send("No timer was found.");
 					await con.query(`DELETE FROM gtimer WHERE user = '${userd.id}'`);
 					await message.channel.send(`Deleted ${results.length} timers.`);
@@ -405,7 +404,7 @@ class GuildCommand implements SlashCommand {
 							.setDescription(description)
 							.setTimestamp()
 							.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-						await message.channel.send(em);
+						await message.channel.send({ embeds: [em] });
 					} else {
 						const allEmbeds = [];
 						for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
@@ -434,7 +433,7 @@ class GuildCommand implements SlashCommand {
 		}
 	}
 
-	async calculate(message, args) {
+	async calculate(message: NorthMessage, args: string[]) {
 		if (!args[1]) return await message.channel.send("You didn't provide any username!");
 		const profiles = await fetch(`https://api.slothpixel.me/api/skyblock/profiles/${args[1]}?key=${process.env.API}`).then(res => res.json());
 		if (profiles.error || (Object.keys(profiles).length === 0 && profiles.constructor === Object)) return await message.channel.send(profiles.error);
@@ -517,7 +516,7 @@ class GuildCommand implements SlashCommand {
 		.addField("Final Kill/Death Ratio", fkdr, true)
 		.setTimestamp()
 		.setFooter("This command only took me 2 hours :D", message.client.user.displayAvatarURL());
-		await message.channel.send(result);
+		await message.channel.send({ embeds: [result] });
 	}
 }
 

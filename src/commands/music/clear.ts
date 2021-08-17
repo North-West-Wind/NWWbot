@@ -26,7 +26,7 @@ class ClearCommand implements SlashCommand {
         if (((<GuildMember> message.member).voice.channelId !== message.guild.me.voice.channelId) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to clear the queue when the bot is playing!");
         serverQueue?.player?.stop();
         serverQueue?.connection?.destroy();
-        await updateQueue(message.guild.id, null);
+        updateQueue(message.guild.id, null);
         await msgOrRes(message, "The queue has been cleared!");
     }
 }

@@ -25,7 +25,7 @@ class PauseCommand implements SlashCommand {
         if (!serverQueue.paused) {
             serverQueue.paused = true;
             serverQueue.player?.pause(true);
-            await updateQueue(message.guild.id, serverQueue);
+            updateQueue(message.guild.id, serverQueue);
             return await msgOrRes(message, "The playback has been stopped.");
         } else {
             return await msgOrRes(message, "The playback is already stopped.");

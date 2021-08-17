@@ -29,7 +29,7 @@ class RepeatCommand implements SlashCommand {
             useEdit = true;
         }
         try {
-            await updateQueue(message.guild.id, serverQueue);
+            updateQueue(message.guild.id, serverQueue);
             if (serverQueue.repeating) await msgOrRes(message, "The queue is now being repeated.", useEdit ? "followUp" : false);
             else await msgOrRes(message, "The queue is no longer being repeated.", useEdit ? "followUp" : false);
         } catch (err) {

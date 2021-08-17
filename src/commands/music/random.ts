@@ -24,7 +24,7 @@ class RandomCommand implements SlashCommand {
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         serverQueue.random = !serverQueue.random;
         try {
-            await updateQueue(message.guild.id, serverQueue);
+            updateQueue(message.guild.id, serverQueue);
             if (serverQueue.random) await msgOrRes(message, "The queue will be played randomly.");
             else await msgOrRes(message, "The queue will be played in order.");
         } catch (err) {

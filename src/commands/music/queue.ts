@@ -103,7 +103,7 @@ class QueueCommand implements SlashCommand {
         const filtered = serverQueue.songs.filter(song => !!song);
         if (serverQueue.songs.length !== filtered.length) {
             serverQueue.songs = filtered;
-            await updateQueue(message.guild.id, serverQueue);
+            updateQueue(message.guild.id, serverQueue);
         }
         var index = 0;
         function getIndex() {
@@ -150,14 +150,14 @@ class QueueCommand implements SlashCommand {
     async load(message: Message | NorthInteraction, serverQueue: ServerQueue, name: string) {
         const guild = message.guild;
         const pool = client.pool;
-        const author = message.member.user;
-        if (serverQueue && serverQueue.playing) return await msgOrRes(message, "Someone is listening to the music. Don't ruin their day.");
+        const author = message instanceof Message ? message.author : message.user;
+        if (serverQueue?.playing) return await msgOrRes(message, "Someone is listening to the music. Don't ruin their day.");
         if (!name) return await msgOrRes(message, "Please provide the name of the queue.");
         const [results] = <RowDataPacket[][]> await pool.query(`SELECT * FROM queue WHERE name = '${name}' AND user = '${author.id}'`);
         if (results.length == 0) return await msgOrRes(message, "No queue was found!");
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, [], false, false);
         else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-        await updateQueue(guild.id, serverQueue);
+        updateQueue(guild.id, serverQueue);
         return await msgOrRes(message, `The queue **${results[0].name}** has been loaded.`);
     }
 
@@ -256,7 +256,7 @@ class QueueCommand implements SlashCommand {
         if (results.length == 0) return await msgOrRes(message, "No queue was found!");
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(guild.id, JSON.parse(unescape(results[0].queue)), false, false);
         else serverQueue.songs = JSON.parse(unescape(results[0].queue));
-        await updateQueue(guild.id, serverQueue);
+        updateQueue(guild.id, serverQueue);
         return await msgOrRes(message, `The queue of this server has been synchronize to the queue of server **${g.name}**.`);
     }
 }
