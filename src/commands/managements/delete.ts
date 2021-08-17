@@ -63,7 +63,7 @@ class DeleteCommand implements SlashCommand {
         await interaction.deleteReply();
         await channel.bulkDelete(amount, true);
       } catch (err) {
-        await interaction.editReply("I can't delete them. Try a smaller amount.");
+        await interaction.followUp("I can't delete them. Try a smaller amount.");
       }
     }
   }
@@ -73,7 +73,7 @@ class DeleteCommand implements SlashCommand {
     if (!args[0]) return await message.channel.send("You didn't provide any amount!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
 
     var amount = parseInt(args[0]);
-    const channel = <TextChannel> (await message.guild.channels.fetch(args[1]?.replace(/<#/g, "").replace(/>/g, "")) || message.channel);
+    const channel = <TextChannel> (args[1] ? await message.guild.channels.fetch(args[1].replace(/<#/g, "").replace(/>/g, "")) : message.channel);
     if (isNaN(amount)) {
         if (args[2] == "all") {
           if (!message.member.permissions.has(BigInt(16))) return await message.channel.send(genPermMsg(16, 0));
