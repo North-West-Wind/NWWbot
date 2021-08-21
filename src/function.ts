@@ -645,6 +645,8 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
             message: results[0].boost_msg,
             channel: results[0].boost_channel
         };
-    } else NorthClient.storage.guilds[id] = {};
-    await globalClient.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${id}', '[]', '${escape("🎉")}')`);
+    } else {
+        NorthClient.storage.guilds[id] = {};
+        await globalClient.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${id}', '[]', '${escape("🎉")}')`);
+    }
 }

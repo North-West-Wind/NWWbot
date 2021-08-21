@@ -3,7 +3,7 @@ import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/Nort
 import { globalClient as client } from "../../common";
 import { color, ms, msgOrRes } from "../../function";
 import * as Discord from "discord.js";
-import * as neko from "akaneko";
+import * as akaneko from "akaneko";
 
 class HentaiCommand implements SlashCommand {
     name = "hentai"
@@ -118,9 +118,9 @@ class HentaiCommand implements SlashCommand {
         if (tag === "random") return await message.channel.send({embeds: [await this.random()]});
         await message.channel.send({embeds: [await this.tagged(tag)]});
     }
-    async tagged(tag) {
-        if (tag === "neko") var result = neko.lewdneko();
-        else if (neko.nsfw[tag]) var result = await neko.nsfw[tag]();
+    async tagged(tag: string) {
+        if (tag === "neko") var result = akaneko.lewdneko();
+        else if (akaneko.nsfw[tag]) var result = await akaneko.nsfw[tag]();
         else return await this.random();
         const embed = new Discord.MessageEmbed()
             .setTitle("Tag: " + tag)
@@ -133,8 +133,8 @@ class HentaiCommand implements SlashCommand {
     async random() {
         var index = Math.floor(Math.random() * this.tags.length);
         var tag = this.tags[index];
-        if (tag === "neko") var result = neko.lewdneko();
-        else var result = await neko.nsfw[tag]();
+        if (tag === "neko") var result = akaneko.lewdneko();
+        else var result = await akaneko.nsfw[tag]();
         const embed = new Discord.MessageEmbed()
             .setTitle("Tag: " + tag)
             .setColor(color())
