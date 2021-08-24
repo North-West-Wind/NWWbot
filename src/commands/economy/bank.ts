@@ -61,7 +61,7 @@ class BankCommand implements SlashCommand {
       await msg.react("2️⃣");
       const filter = (reaction, user) => ["1️⃣", "2️⃣"].includes(reaction.emoji.name) && user.id === author.id;
       var collected = await msg.awaitReactions({ filter, max: 1, time: 30000 });
-      msg.reactions.removeAll().catch(console.error);
+      msg.reactions.removeAll().catch(() => {});
       if (!collected || !collected.first()) return;
       const reaction = collected.first();
       if (reaction.emoji.name === "1️⃣") {

@@ -104,7 +104,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
   if (!serverQueue.connection) try {
     serverQueue.connection = joinVoiceChannel({ channelId: serverQueue.voiceChannel.id, guildId: guild.id, adapterCreator: createDiscordJSAdapter(serverQueue.voiceChannel) })
     serverQueue.connection.subscribe(serverQueue.player);
-    if (!guild.me.voice.selfDeaf) await guild.me.voice.setDeaf(true);
+    if (!guild.me.voice.selfDeaf) guild.me.voice.setDeaf(true).catch(() => {});
   } catch (err) {
     serverQueue.destroy();
     if (serverQueue.textChannel) {
@@ -227,7 +227,7 @@ class PlayCommand implements SlashCommand {
           serverQueue.destroy();
           serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(voiceChannel) });
         }
-        if (message.guild.me.voice?.channelId && !message.guild.me.voice.selfDeaf) message.guild.me.voice.setDeaf(true);
+        if (message.guild.me.voice?.channelId && !message.guild.me.voice.selfDeaf) message.guild.me.voice.setDeaf(true).catch(() => {});
       } catch (err) {
         await msgOrRes(message, "There was an error trying to connect to the voice channel!", true);
         if (err.message) await message.channel.send(err.message);
@@ -283,7 +283,7 @@ class PlayCommand implements SlashCommand {
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(voiceChannel) });
       serverQueue.textChannel = <Discord.TextChannel>message.channel;
-      await message.guild.me.voice?.setDeaf(true);
+      message.guild.me.voice?.setDeaf(true).catch(() => {});
       await entersState(serverQueue.connection, VoiceConnectionStatus.Ready, 30e3);
       serverQueue.connection.subscribe(serverQueue.player);
       updateQueue(message.guild.id, serverQueue, false);

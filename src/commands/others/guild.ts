@@ -125,7 +125,7 @@ class GuildCommand implements SlashCommand {
 			await msg.react("4️⃣");
 
 			const collected = await msg.awaitReactions({ filter: (r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.author.id, max: 1, time: 120000 }).catch(console.error);
-			await msg.reactions.removeAll().catch(console.error);
+			msg.reactions.removeAll().catch(() => {});
 			if (!collected || !collected.first()) return await message.channel.send("No operation chosen in 2 minutes. Please try again.");
 			const reaction = collected.first();
 			switch (reaction.emoji.name) {

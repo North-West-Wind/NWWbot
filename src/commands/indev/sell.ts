@@ -36,7 +36,7 @@ class SellCommand implements SlashCommand {
                 .setDescription("Timed out.")
                 .setFooter("Please try again.", message.client.user.displayAvatarURL());
             await msg.edit({embeds: [confirmationEmbed]});
-            return msg.reactions.removeAll().catch(console.error);
+            return msg.reactions.removeAll().catch(() => {});
         }
         var reaction = collected.first();
         if (reaction.emoji.name === "✅") {
@@ -55,7 +55,7 @@ class SellCommand implements SlashCommand {
                         .setDescription("Your item is now at the shop!")
                         .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
                     await msg.edit({embeds: [confirmationEmbed]});
-                    msg.reactions.removeAll().catch(console.error);
+                    msg.reactions.removeAll().catch(() => {});
                 }
             } catch (err) {
                 console.error(err);

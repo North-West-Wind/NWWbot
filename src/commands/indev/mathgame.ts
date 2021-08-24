@@ -73,7 +73,7 @@ class MathGameCommand implements SlashCommand {
         collected = await msg.awaitReactions({ filter: (reaction, user) => reaction.emoji.name === '👌🏻' && players.map(x => x.id).includes(user.id), time: 60000, maxUsers: players.length });
         if (!collected || !collected.first()) return await msg.edit({ content: "Seriously? No one reacted?", embeds: null });
         if (collected.first().count - 1 < players.length) return await msg.edit({ content: "Someone is not active!", embeds: null });
-        await msg.reactions.removeAll();
+        msg.reactions.removeAll().catch(() => {});
         let now = Date.now();
         //console.mathgames.set(now, players.map(x => x.id));
         var questionCount = 0;
@@ -189,7 +189,7 @@ class MathGameCommand implements SlashCommand {
         });
         return new Promise(resolve => {
             collector.on("end", function () {
-                msg.reactions.removeAll().catch(console.error);
+                msg.reactions.removeAll().catch(() => {});
                 msg.delete();
                 resolve(chosen);
             });

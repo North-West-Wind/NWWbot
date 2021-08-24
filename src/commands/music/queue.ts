@@ -233,7 +233,7 @@ class QueueCommand implements SlashCommand {
             }
         });
         collector.on("end", function () {
-            msg.reactions.removeAll().catch(console.error);
+            msg.reactions.removeAll().catch(() => {});
             msg.edit({embeds: [allEmbeds[0]]});
             setTimeout(() => msg.edit({ embeds: [], content: `**[Queues: ${results.length}/10 slots used]**` }), 60000);
         });

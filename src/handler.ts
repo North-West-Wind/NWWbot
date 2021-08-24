@@ -551,7 +551,7 @@ export class AliceHandler extends Handler {
                     tmp.push({ title: title, time: moment.duration(seconds).format() });
                 }
                 if (tmp.length <= 10) {
-                    timerMsg.reactions.removeAll().catch(console.error);
+                    timerMsg.reactions.removeAll().catch(() => {});
                     let description = "";
                     let num = 0;
                     for (const result of tmp) description += `${++num}. ${result.title} : ${result.time}\n`;
@@ -613,7 +613,7 @@ export class AliceHandler extends Handler {
                                 break;
                         }
                     });
-                    collector.on("end", () => msg.reactions.removeAll().catch(console.error));
+                    collector.on("end", () => msg.reactions.removeAll().catch(() => {}));
                 }
             } catch (err) {
                 console.error(err);

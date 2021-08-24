@@ -67,7 +67,7 @@ class ShopCommand implements SlashCommand {
             const filter = (reaction, user) => ["1️⃣", "2️⃣"].includes(reaction.emoji.name) && user.id === author.id;
             const collected = await msg.awaitReactions(filter, { max: 1, idle: 60000, error: ["time"] });
             const reaction = collected.first();
-            msg.reactions.removeAll().catch(console.error);
+            msg.reactions.removeAll().catch(() => {});
             if (!reaction) return await msg.edit(leave);
 
             async function shopMenu() {
@@ -143,7 +143,7 @@ class ShopCommand implements SlashCommand {
                         await wait(3000);
                         return await mainMenu(msg);
                     }
-                    msg.reactions.removeAll().catch(console.error);
+                    msg.reactions.removeAll().catch(() => {});
 
                     if (reaction.emoji.name === "1️⃣") {
                         if (result[0].stock_limit == 0) {

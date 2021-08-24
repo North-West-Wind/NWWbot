@@ -116,7 +116,7 @@ class WikiCommand implements SlashCommand {
             }
         });
         collector.on("end", function () {
-            msg.reactions.removeAll().catch(console.error);
+            msg.reactions.removeAll().catch(() => {});
         });
     }
 }

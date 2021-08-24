@@ -97,7 +97,7 @@ class SpeedrunCommand implements SlashCommand {
             for (var i = 0; i < games.length; i++) await msg.react(choices[i]);
             await msg.react(choices[10]);
             const collected = await msg.awaitReactions({ filter: (reaction, user) => choices.includes(reaction.emoji.name) && user.id === author, max: 1, time: 30000 });
-            await msg.reactions.removeAll().catch(console.error);
+            msg.reactions.removeAll().catch(() => {});
             if (!collected) {
                 em.setTitle("Timed Out").setDescription("Please try again.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
                 await msg.edit({embeds: [em]});

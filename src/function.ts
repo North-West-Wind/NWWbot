@@ -331,7 +331,7 @@ export async function createEmbedScrolling(message: Discord.Message | NorthInter
         }
     });
     collector.on("end", async () => {
-        msg.reactions.removeAll().catch(console.error);
+        msg.reactions.removeAll().catch(() => {});
         if (id == 1) {
             await msg.edit({ content: "Loading simplier version...", embeds: [] });
             await msg.edit("https://sky.shiiyu.moe/stats/" + additionalData.res[0].name);

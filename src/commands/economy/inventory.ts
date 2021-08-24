@@ -60,13 +60,13 @@ class InventoryCommand implements SlashCommand {
       max: 1,
       time: 30000
     })
-    msg.reactions.removeAll().catch(console.error);
+    msg.reactions.removeAll().catch(() => {});
     if (!collected2.first()) return await msg.edit({embeds: [em.setColor(color()).setTitle(author.tag + "'s Inventory").setDescription(IResult.map(x => `**${++i}.** ${x.name} - **${itemObject[x.id]}**`).join("\n"))]});
     const r = collected2.first();
     if (r.emoji.name === "1️⃣") {
       if (!itemObject[wanted.id]) itemObject[wanted.id] = 0;
       if (itemObject[wanted.id] < 1) {
-        msg.reactions.removeAll().catch(console.error);
+        msg.reactions.removeAll().catch(() => {});
         em.setDescription("You cannot use this item because you don't have any.").setFooter("You can't do this.", message.client.user.displayAvatarURL());
         return await msg.edit({embeds: [em]});
       }
