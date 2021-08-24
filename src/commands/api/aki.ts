@@ -1,8 +1,7 @@
 import { Message, MessageEmbed, MessageReaction, Snowflake, TextChannel } from "discord.js";
 import { Aki, region } from "aki-api";
-import { NorthClient, SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient";
-import { color, genPermMsg } from "../../function.js";
-import { guess } from "aki-api/typings/functions";
+import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient";
+import { color } from "../../function.js";
 
 export class AkiCommand implements SlashCommand {
   name = "aki";
@@ -145,7 +144,7 @@ export class AkiCommand implements SlashCommand {
           await aki.win();
           if (aki.answers && aki.answers.length) {
             found = true;
-            const guess = <guess> aki.answers[aki.guessCount - 1];
+            const guess = <any> <unknown> aki.answers[aki.guessCount - 1];
             const { name, absolute_picture_path: image } = guess;
             const description = guess.description || "";
             embed
