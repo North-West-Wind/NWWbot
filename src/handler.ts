@@ -9,7 +9,7 @@ import { endPoll } from "./commands/miscellaneous/poll";
 import { expire } from "./commands/managements/role-message";
 import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, wait, nameToUuid, color, fixGuildRecord } from "./function";
 import { setQueue, stop } from "./helpers/music";
-import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction } from "./classes/NorthClient";
+import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer } from "./classes/NorthClient";
 import { Connection, PoolConnection } from "mysql2/promise";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter";
@@ -522,21 +522,21 @@ export class AliceHandler extends Handler {
                 conn.release();
             }, endAfter);
         });
-        const [gtimers] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
-        NorthClient.storage.gtimers = gtimers;
+        const [gtimers] = <RowDataPacket[][]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
+        NorthClient.storage.gtimers = <GuildTimer[]> gtimers;
         setInterval(async () => {
             try {
-                var timerChannel = <TextChannel>await client.channels.fetch(process.env.TIME_LIST_CHANNEL);
-                var timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
             } catch (err) {
                 console.error("Failed to fetch timer list message");
                 return;
             }
             try {
-                let now = Date.now();
-                let tmp = [];
+                const timerChannel = <TextChannel>await client.channels.fetch(process.env.TIME_LIST_CHANNEL);
+                const timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
+                const now = Date.now();
+                const tmp = [];
                 for (const result of NorthClient.storage.gtimers) {
-                    let mc = await profile(result.mc);
+                    const mc = await profile(result.mc);
                     let username = "undefined";
                     if (mc) username = mc.name;
                     const str = result.user;

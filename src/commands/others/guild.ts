@@ -69,6 +69,7 @@ class GuildCommand implements SlashCommand {
 	subcommands = ["splash", "invite", "lottery", "timer", "calculate"]
 	subaliases = ["sp", "in", "lot", "tim", "calc"]
 	subdesc = ["Create a splash notification.", "Manage invites.", "Start a lottery.", "Manage timers.", "Calculate user points."]
+	subusage = [null, "<subcommand> <user>", null, "<subsubcommand> <user> <mc username> <ranks>"]
 	args = 1
 
 	async execute(interaction: NorthInteraction) {
@@ -313,43 +314,41 @@ class GuildCommand implements SlashCommand {
 		if (!message.member.permissions.has(BigInt(8)) || !message.guild) return;
 		switch (args[1]) {
 			case "create":
-				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
-				if (!args[3]) return message.channel.send("Please provide the user's Minecraft username!");
-				if (!args[4]) return message.channel.send("Please provide the rank of the user!");
-				let user = await findUser(message, args[2]);
+				if (!args[2]) return await message.channel.send("Please mention a user or provide the user's ID!");
+				if (!args[3]) return await message.channel.send("Please provide the user's Minecraft username!");
+				if (!args[4]) return await message.channel.send("Please provide the time limit!");
+				if (!args[5]) return await message.channel.send("Please provide the rank of the user!");
+				const user = await findUser(message, args[2]);
 				if (!user) return;
-				let title = `${user.tag} - ${args.slice(4).join(" ")} [${args[3]}] (Timer)`;
-				let msg = await message.channel.send("How long do you want the timer to last for? Please enter the duration (example: 10m23s)");
-				let time = await msg.channel.awaitMessages({ filter: x => x.author.id === message.author.id, max: 1, time: 30000 });
-				if (!time || !time.first() || !time.first().content) return message.channel.send("Timed out. You didn't provide the duration in time!");
-				let duration = ms(time.first().content);
-				time.first().delete();
+				const ranks = args.slice(5).join(" ");
+				const duration = ms(args[4]);
 				if (isNaN(duration)) return await message.channel.send("The duration given is not valid!");
-				let uuid = await nameToUuid(args[3]);
+				const title = `${user.tag} - ${ranks} [${args[3]}] (Timer)`;
+				const uuid = await nameToUuid(args[3]);
 				if (!uuid) return message.reply("there was an error trying to find the player in Minecraft!");
 				try {
 					NorthClient.storage.gtimers.push({
 						user: user.id,
-						dc_rank: escape(args.slice(4).join(" ")),
+						dc_rank: escape(ranks),
 						mc: uuid,
 						endAt: new Date(Date.now() + duration)
 					});
-					await message.pool.query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(args.slice(4).join(" "))}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + duration))}')`);
-					message.channel.send("Timer recorded.");
+					await message.pool.query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(ranks)}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + duration))}')`);
+					await message.channel.send("Timer recorded.");
 				} catch (err) {
 					console.error(err);
 					await message.reply("there was an error trying to insert the timer to the database!");
 				}
-				msg = await msg.edit(`Timer created with the title **${title}** and will last for **${readableDateTimeText(duration)}**`);
+				await message.channel.send(`Timer created with the title **${title}** and will last for **${readableDateTimeText(duration)}**`);
 				setTimeout_(async () => {
 					let asuna = await message.client.users.fetch("461516729047318529");
 					const con = await message.pool.getConnection();
 					try {
 						const index = NorthClient.storage.gtimers.indexOf(NorthClient.storage.gtimers.find(t => t.user == user.id));
 						if (index > -1) NorthClient.storage.gtimers.splice(index, 1);
-						const [results] = <RowDataPacket[][]> await con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
+						const [results] = <RowDataPacket[][]> await con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(ranks)}'`);
 						if (results.length == 0) throw new Error("Not found");
-						await con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(args.slice(4).join(" "))}'`);
+						await con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(ranks)}'`);
 					} catch (err) {
 						console.error(err);
 					}

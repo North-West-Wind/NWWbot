@@ -449,14 +449,17 @@ export function mergeObjArr(obj, keys) {
     for (const key of keys) if (obj[key]) arr.push(obj[key]);
     return [].concat.apply([], arr);
 }
-export async function profile(str) {
-    return await mojang.getUUID(str);
+export async function profile(str: string) {
+    if (str.match(/^\w{3,16}$/)) return await mojang.getUUID(str);
+    const history = (<{name: string, changedToAt: number}[]> <unknown> (await nameHistory(str))).sort((a, b) => (b.changedToAt || 0) - (a.changedToAt || 0));
+    return history[0].name;
 }
 export async function nameToUuid(str) {
     return (await profile(str)).id;
 }
-export async function nameHistory(str) {
-    return await (await profile(str)).getNameHistory();
+export async function nameHistory(str: string) {
+    if (str.match(/^\w{3,16}$/)) return await (await profile(str)).getNameHistory();
+    return await mojang.getNameHistory(str);
 }
 export function duration(seconds) {
     return moment.duration(seconds, "seconds").format();

@@ -99,7 +99,7 @@ export class ClientStorage {
     uno: Collection<number, UnoGame> = new Collection();
     mathgames: Collection<any, any> = new Collection();
     migrating: any[] = [];
-    gtimers: any[] = [];
+    gtimers: GuildTimer[] = [];
     queries: LevelData[] = [];
 }
 
@@ -192,4 +192,11 @@ export interface Item {
     name: string;
     id: string;
     run(message: NorthMessage | CommandInteraction, msg: Message, em: MessageEmbed, itemObject: any): Promise<any> | any;
+}
+
+export interface GuildTimer {
+    user: Snowflake;
+    dc_rank: string;
+    mc: string;
+    endAt: Date;
 }
