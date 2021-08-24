@@ -548,7 +548,7 @@ export class AliceHandler extends Handler {
                     let rank = unescape(result.dc_rank);
                     let title = `<@${dc}> - ${rank} [${username}]`;
                     let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                    tmp.push({ title: title, time: moment.duration(seconds) });
+                    tmp.push({ title: title, time: moment.duration(seconds).format() });
                 }
                 if (tmp.length <= 10) {
                     timerMsg.reactions.removeAll().catch(console.error);

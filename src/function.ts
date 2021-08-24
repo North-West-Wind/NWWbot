@@ -452,7 +452,7 @@ export function mergeObjArr(obj, keys) {
 export async function profile(str: string) {
     if (str.match(/^\w{3,16}$/)) return await mojang.getUUID(str);
     const history = (<{name: string, changedToAt: number}[]> <unknown> (await nameHistory(str))).sort((a, b) => (b.changedToAt || 0) - (a.changedToAt || 0));
-    return history[0].name;
+    return await mojang.getUUID(history[0].name);
 }
 export async function nameToUuid(str) {
     return (await profile(str)).id;
