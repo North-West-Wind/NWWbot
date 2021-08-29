@@ -335,8 +335,8 @@ export async function createEmbedScrolling(message: Discord.Message | NorthInter
         if (id == 1) {
             await msg.edit({ content: "Loading simplier version...", embeds: [] });
             await msg.edit("https://sky.shiiyu.moe/stats/" + additionalData.res[0].name);
-        } else if (id == 2) setTimeout(() => msg.edit({ embeds: [], content: `**[Lyrics of ${additionalData.title}**]` }), 10000);
-        else if (id == 3) setTimeout(() => msg.edit({ embeds: [], content: `**[Queue: ${additionalData.songArray.length} tracks in total]**` }), 60000);
+        } else if (id == 2) setTimeout(() => msg.edit({ embeds: [], content: `**[Lyrics of ${additionalData.title}**]` }).catch(() => {}), 10000);
+        else if (id == 3) setTimeout(() => msg.edit({ embeds: [], content: `**[Queue: ${additionalData.songArray.length} tracks in total]**` }).catch(() => {}), 60000);
     });
     return { msg: msg, collector: collector };
 }
@@ -652,9 +652,6 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
         try {
             await globalClient.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${id}', '[]', '${escape("🎉")}')`);
             NorthClient.storage.guilds[id] = {};
-        } catch (err) {
-            console.error(err);
-            console.log(results);
-        }
+        } catch (err) { }
     }
 }

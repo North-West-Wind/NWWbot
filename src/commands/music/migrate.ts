@@ -11,7 +11,7 @@ export async function migrate(message: Message | NorthInteraction) {
     const member = <GuildMember> message.member;
     const exit = NorthClient.storage.guilds[message.guild.id].exit;
     const migrating = NorthClient.storage.migrating;
-    if (migrating.find(x => x === message.guild.id)) return await  msgOrRes(message, "I'm on my way!" , true).then(msg => setTimeout(msg.delete, 10000));
+    if (migrating.find(x => x === message.guild.id)) return await  msgOrRes(message, "I'm on my way!" , true).then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
     if (!member.voice.channel) return await msgOrRes(message, "You are not in any voice channel!", true);
     if (!message.guild.me.voice.channel) return await msgOrRes(message, "I am not in any voice channel!", true);
     if (member.voice.channelId === message.guild.me.voice.channelId) return await msgOrRes(message, "I'm already in the same channel with you!", true);
@@ -33,16 +33,16 @@ export async function migrate(message: Message | NorthInteraction) {
     serverQueue.textChannel = null;
     const voiceChannel = <VoiceChannel> (<GuildMember> message.member).voice.channel;
     const msg = <Message>await msgOrRes(message, "Migrating in 3 seconds...", true);
-    setTimeout(async () => {
+    setTimeout(() => {
         if (!message.guild.me.voice.channel || message.guild.me.voice.channelId !== voiceChannel.id) serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(voiceChannel) });
         else serverQueue.connection = getVoiceConnection(message.guild.id);
         serverQueue.voiceChannel = voiceChannel;
         serverQueue.playing = true;
         serverQueue.textChannel = <TextChannel>message.channel;
         migrating.splice(migrating.indexOf(message.guild.id));
-        await msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`).catch(() => { });
+        msg.edit(`Moved from **${oldChannel.name}** to **${voiceChannel.name}**`).catch(() => { });
         updateQueue(message.guild.id, serverQueue, false);
-        if (!serverQueue.random) await play(message.guild, serverQueue.songs[0], seek);
+        if (!serverQueue.random) play(message.guild, serverQueue.songs[0], seek);
         else {
             const int = Math.floor(Math.random() * serverQueue.songs.length);
             const pending = serverQueue.songs[int];

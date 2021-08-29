@@ -82,7 +82,7 @@ export class AkiCommand implements SlashCommand {
   };
 
   async logic(message: Message | NorthInteraction, region: string) {
-    const aki = new Aki({ region: <region> region });
+    const aki = new Aki({ region: <region>region });
     await aki.start();
     let loop = 0;
     let found = false;
@@ -96,9 +96,9 @@ export class AkiCommand implements SlashCommand {
       .setTitle("Getting ready...")
       .setTimestamp()
       .setFooter("Please wait until all reactions appear.", message.client.user.displayAvatarURL());
-      var msg: Message;
+    var msg: Message;
     if (message instanceof Message) msg = await message.channel.send({ embeds: [embed] });
-    else msg = <Message> await message.editReply({ embeds: [embed] });
+    else msg = <Message>await message.editReply({ embeds: [embed] });
     for (const r of this.reactions) await msg.react(r);
     embed.setTitle("Question 1: " + aki.question)
       .setDescription(str)
@@ -107,82 +107,80 @@ export class AkiCommand implements SlashCommand {
     const filter = (reaction, user) => this.reactions.includes(reaction.emoji.name) && user.id === author && !user.bot;
     const collector = msg.createReactionCollector({ filter, idle: 6e4 });
     const collectorFunction = async (r: MessageReaction) => {
-      setTimeout(async () => {
-        const answerID = this.reactions.indexOf(r.emoji.name);
-        await r.users.remove(author);
-        if (answerID === 5 && aki.currentStep > 0) await aki.back();
-        else if (answerID === 6) {
-          embed.setTitle("Akinator was stopped");
-          embed.setDescription("Thanks for playing!");
-          embed.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-          await msg.edit({ embeds: [embed] });
-          return collector.emit("end", true);
-        } else if (answerID !== undefined) {
-          if (found) {
-            if (answerID === 0) {
-              embed.setFooter("I am right!", message.client.user.displayAvatarURL());
-              embed.setTitle("I got the correct answer!");
-              embed.setDescription("");
-              msg = await msg.edit({ content: `Looks like I got another one correct! This time after ${aki.currentStep} steps. Thanks for playing!`, embeds: [embed] });
-              return msg.reactions.removeAll().catch(() => { });
-            }
-            if (answerID === 1) {
-              embed
-                .setTitle("Akinator")
-                .setDescription("Resuming game...")
-                .setImage(undefined)
-                .setFooter("Please wait patiently", message.client.user.displayAvatarURL());
-              await msg.edit({ embeds: [embed] });
-              for (const r of this.reactions.slice(2)) await msg.react(r);
-            }
-            found = false;
+      const answerID = this.reactions.indexOf(r.emoji.name);
+      await r.users.remove(author);
+      if (answerID === 5 && aki.currentStep > 0) await aki.back();
+      else if (answerID === 6) {
+        embed.setTitle("Akinator was stopped");
+        embed.setDescription("Thanks for playing!");
+        embed.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+        await msg.edit({ embeds: [embed] });
+        return collector.emit("end", true);
+      } else if (answerID !== undefined) {
+        if (found) {
+          if (answerID === 0) {
+            embed.setFooter("I am right!", message.client.user.displayAvatarURL());
+            embed.setTitle("I got the correct answer!");
+            embed.setDescription("");
+            msg = await msg.edit({ content: `Looks like I got another one correct! This time after ${aki.currentStep} steps. Thanks for playing!`, embeds: [embed] });
+            return msg.reactions.removeAll().catch(() => { });
           }
-          await aki.step(<any> answerID);
-        }
-        if ((aki.progress >= 90 && loop > 3) || aki.currentStep >= 79) {
-          loop = 0;
-          await aki.win();
-          if (aki.answers && aki.answers.length) {
-            found = true;
-            const guess = <any> <unknown> aki.answers[aki.guessCount - 1];
-            const { name, absolute_picture_path: image } = guess;
-            const description = guess.description || "";
+          if (answerID === 1) {
             embed
               .setTitle("Akinator")
-              .setDescription("Loading result...")
+              .setDescription("Resuming game...")
+              .setImage(undefined)
               .setFooter("Please wait patiently", message.client.user.displayAvatarURL());
             await msg.edit({ embeds: [embed] });
-            try {
-              for (const r of this.reactions.slice(2)) {
-                const re = msg.reactions.cache.get(r);
-                await re.remove();
-              }
-            } catch (error) {
-              console.error("Failed to remove reactions.");
-            }
-            if (aki.currentStep >= 79) embed.setTitle("My Final Guess is... 🤔");
-            else embed.setTitle("I'm thinking of... 🤔");
-            embed.setDescription(`**${name}**\n**${description}**\n${this.reactions[0]} **Yes**\n${this.reactions[1]} **No**`);
-            embed.setFooter("Am I correct?", message.client.user.displayAvatarURL());
-            if (image) embed.setImage(image);
-            msg = await msg.edit({ embeds: [embed] });
-            if (aki.currentStep >= 79) {
-              embed.setDescription(`**${name}**\n**${description}**`);
-              embed.setFooter("Hope I am correct!", message.client.user.displayAvatarURL());
-              await msg.edit({ embeds: [embed] });
-              msg.reactions.removeAll().catch(() => { });
-            }
+            for (const r of this.reactions.slice(2)) await msg.react(r);
           }
-        } else {
-          loop++;
-          embed
-            .setTitle(`Question ${aki.currentStep + 1}: ${aki.question}`)
-            .setDescription(str)
-            .setImage(undefined)
-            .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL());
-          await msg.edit({ embeds: [embed] });
+          found = false;
         }
-      }, 1000);
+        await aki.step(<any>answerID);
+      }
+      if ((aki.progress >= 90 && loop > 3) || aki.currentStep >= 79) {
+        loop = 0;
+        await aki.win();
+        if (aki.answers && aki.answers.length) {
+          found = true;
+          const guess = <any><unknown>aki.answers[aki.guessCount - 1];
+          const { name, absolute_picture_path: image } = guess;
+          const description = guess.description || "";
+          embed
+            .setTitle("Akinator")
+            .setDescription("Loading result...")
+            .setFooter("Please wait patiently", message.client.user.displayAvatarURL());
+          await msg.edit({ embeds: [embed] });
+          try {
+            for (const r of this.reactions.slice(2)) {
+              const re = msg.reactions.cache.get(r);
+              await re.remove();
+            }
+          } catch (error) {
+            console.error("Failed to remove reactions.");
+          }
+          if (aki.currentStep >= 79) embed.setTitle("My Final Guess is... 🤔");
+          else embed.setTitle("I'm thinking of... 🤔");
+          embed.setDescription(`**${name}**\n**${description}**\n${this.reactions[0]} **Yes**\n${this.reactions[1]} **No**`);
+          embed.setFooter("Am I correct?", message.client.user.displayAvatarURL());
+          if (image) embed.setImage(image);
+          msg = await msg.edit({ embeds: [embed] });
+          if (aki.currentStep >= 79) {
+            embed.setDescription(`**${name}**\n**${description}**`);
+            embed.setFooter("Hope I am correct!", message.client.user.displayAvatarURL());
+            await msg.edit({ embeds: [embed] });
+            msg.reactions.removeAll().catch(() => { });
+          }
+        }
+      } else {
+        loop++;
+        embed
+          .setTitle(`Question ${aki.currentStep + 1}: ${aki.question}`)
+          .setDescription(str)
+          .setImage(undefined)
+          .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL());
+        await msg.edit({ embeds: [embed] });
+      }
     };
     collector.on("collect", collectorFunction);
     collector.on("end", async (isEnded) => {

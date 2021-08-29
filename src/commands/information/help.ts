@@ -62,7 +62,7 @@ class HelpCommand implements SlashCommand {
   async run(message: NorthMessage, args: string[]) {
     if (!args.length) {
       const msg = await message.channel.send({embeds: [this.getAllCommands()]});
-      setTimeout(async () => await msg.edit({ content: "This is the **manual**, my friend:\nhttps://northwestwind.ml/manual.pdf", embeds: [] }), 60000);
+      setTimeout(() => msg.edit({ content: "This is the **manual**, my friend:\nhttps://northwestwind.ml/manual.pdf", embeds: [] }).catch(() => { }), 60000);
       return;
     }
     const name = args[0].toLowerCase();

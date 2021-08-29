@@ -355,7 +355,7 @@ export class Handler {
     async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
         const guild = oldState.guild || newState.guild;
         const exit = NorthClient.storage.guilds[guild.id]?.exit;
-        if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice?.channel)) return await stop(guild);
+        if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice?.channel)) return stop(guild);
         if (!guild.me.voice?.channel || (newState.channelId !== guild.me.voice.channelId && oldState.channelId !== guild.me.voice.channelId)) return;
         if (!NorthClient.storage.guilds[guild.id]) await fixGuildRecord(guild.id);
         if (guild.me.voice.channel.members.size <= 1) {
@@ -665,26 +665,26 @@ export class AliceHandler extends Handler {
             const con = await client.pool.getConnection();
             try {
                 const mcUuid = await nameToUuid(mcName);
-                if (!mcUuid) return await msg.edit("Error finding that user!").then(msg => setTimeout(() => msg.delete(), 10000));
+                if (!mcUuid) return await msg.edit("Error finding that user!").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                 console.log("Found UUID: " + mcUuid);
                 var res;
                 try {
                     const f = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`);
-                    if (f.status == 404) return await msg.edit("This player doesn't exist!").then(msg => setTimeout(() => msg.delete(), 10000));
+                    if (f.status == 404) return await msg.edit("This player doesn't exist!").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                     res = await f.json();
                 } catch (err) {
-                    return await msg.edit("The Hypixel API is down.").then(msg => setTimeout(() => msg.delete(), 10000));
+                    return await msg.edit("The Hypixel API is down.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                 }
                 const hyDc = res.links.DISCORD;
-                if (hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => setTimeout(() => msg.delete(), 10000));
+                if (hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                 var [results] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                 if (results.length == 0) {
                     await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
-                    msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete(), 10000));
+                    msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                     console.log("Inserted record for mc-name.");
                 } else {
                     await con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
-                    msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete(), 10000));
+                    msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                     console.log("Updated record for mc-name.");
                 }
                 const mcLen = res.username.length + 1;
@@ -741,7 +741,7 @@ export class AliceHandler extends Handler {
                 else if (res.rank === "MVP_PLUS_PLUS") await roles.add("837271171619356692");
             } catch (err) {
                 console.error(err);
-                await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => setTimeout(() => msg.delete(), 10000));
+                await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
             }
             con.release();
             return;

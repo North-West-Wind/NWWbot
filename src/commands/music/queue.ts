@@ -122,7 +122,7 @@ class QueueCommand implements SlashCommand {
                 .setFooter(`Now playing: ${(serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing")}`, message.client.user.displayAvatarURL());
             allEmbeds.push(queueEmbed);
         }
-        if (allEmbeds.length == 1) await msgOrRes(message, allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embeds: [], content: `**[Queue: ${songArray.length} tracks in total]**` }), 60000));
+        if (allEmbeds.length == 1) await msgOrRes(message, allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embeds: [], content: `**[Queue: ${songArray.length} tracks in total]**` }).catch(() => {}), 60000));
         else await createEmbedScrolling(message, allEmbeds, 3, { songArray });
     }
 
@@ -235,7 +235,7 @@ class QueueCommand implements SlashCommand {
         collector.on("end", function () {
             msg.reactions.removeAll().catch(() => {});
             msg.edit({embeds: [allEmbeds[0]]});
-            setTimeout(() => msg.edit({ embeds: [], content: `**[Queues: ${results.length}/10 slots used]**` }), 60000);
+            setTimeout(() => msg.edit({ embeds: [], content: `**[Queues: ${results.length}/10 slots used]**` }).catch(() => {}), 60000);
         });
     }
 

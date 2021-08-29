@@ -186,7 +186,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                     }
                 }
             }
-            await mesg.edit("Track processing completed.").then(msg => setTimeout(msg.delete, 10000));
+            await mesg.edit("Track processing completed.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
             break;
         case "album":
             var image;
@@ -238,7 +238,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                     }
                 }
             }
-            await mesg.edit("Track processing completed.").then(msg => setTimeout(msg.delete, 10000));
+            await mesg.edit("Track processing completed.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
             break;
         case "track":
             tracks = (await spotifyApi.getTracks([musicID])).body.tracks;
@@ -560,7 +560,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
                     .setTitle("Action cancelled.")
                     .setTimestamp()
                     .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-                await msg.edit({embeds: [cancelled]}).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**" }), 30000));
+                await msg.edit({embeds: [cancelled]}).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**" }).catch(() => {}), 30000));
             }
             resolve(val);
         });
