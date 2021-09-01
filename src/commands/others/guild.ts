@@ -434,14 +434,14 @@ class GuildCommand implements SlashCommand {
 
 	async calculate(message: NorthMessage, args: string[]) {
 		if (!args[1]) return await message.channel.send("You didn't provide any username!");
-		const profiles = await fetch(`https://api.slothpixel.me/api/skyblock/profiles/${args[1]}?key=${process.env.API}`).then(res => res.json());
+		const profiles = <any> await fetch(`https://api.slothpixel.me/api/skyblock/profiles/${args[1]}?key=${process.env.API}`).then(res => res.json());
 		if (profiles.error || (Object.keys(profiles).length === 0 && profiles.constructor === Object)) return await message.channel.send(profiles.error);
 		const uuid = await nameToUuid(args[1]);
 		var maxSa = 0;
 		var maxSlayer = 0;
 		var maxCatacomb = 0;
 		for (const profile in profiles) {
-			const pApi = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${args[1]}/${profile}?key=${process.env.API}`).then(res => res.json());
+			const pApi = <any> await fetch(`https://api.slothpixel.me/api/skyblock/profile/${args[1]}/${profile}?key=${process.env.API}`).then(res => res.json());
 			var skills = pApi.members[uuid]?.skills;
 			if (!skills) skills = {};
 			var sum = 0;
@@ -468,8 +468,8 @@ class GuildCommand implements SlashCommand {
 				else break;
 			if (catacombLvl > maxCatacomb) maxCatacomb = catacombLvl;
 		}
-		const player = await fetch(`https://api.slothpixel.me/api/players/${args[1]}?key=${process.env.API}`).then(res => res.json());
-		const api = await fetch(`https://api.hypixel.net/player?name=${args[1]}&key=${process.env.API}`).then(res => res.json());
+		const player = <any> await fetch(`https://api.slothpixel.me/api/players/${args[1]}?key=${process.env.API}`).then(res => res.json());
+		const api = <any> await fetch(`https://api.hypixel.net/player?name=${args[1]}&key=${process.env.API}`).then(res => res.json());
 		var stars = api.player.achievements.bedwars_level;
 		var fkdr = player.stats.BedWars?.final_k_d;
 
