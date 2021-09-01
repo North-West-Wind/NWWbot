@@ -46,7 +46,7 @@
     "musescore-metadata": "^1.0.3",
     "music-metadata": "^7.11.0",
     "mysql2": "^2.2.5",
-    "node-fetch": "^3.0.0",
+    "node-fetch": "^2.6.1",
     "number-to-words": "^1.2.4",
     "oxford-dictionary": "^1.5.1",
     "pdfkit": "^0.12.1",
