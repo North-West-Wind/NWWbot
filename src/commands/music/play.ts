@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import { getFetch, validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, validYTPlaylistURL, validSCURL, validMSURL, isEquivalent, requestStream, moveArray, color, validGDDLURL, bufferToStream, msgOrRes, wait, requestYTDLStream } from "../../function.js";
 import { getMP3 } from "../api/musescore.js";
-import scdl from "soundcloud-downloader";
+import scdl from 'soundcloud-downloader/dist/index';
 import * as mm from "music-metadata";
 import { migrate as music } from "./migrate.js";
 import ytdl, { downloadOptions } from "ytdl-core";

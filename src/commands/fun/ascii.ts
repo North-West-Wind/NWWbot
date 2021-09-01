@@ -5,7 +5,6 @@ import figlet from "figlet";
 import sanitize from "sanitize-filename";
 import * as Discord from "discord.js";
 import { createCanvas } from "canvas";
-import { NorthClient } from "../../classes/NorthClient";
 import asciify from "asciify-image";
 import { isImageUrl } from "../../function";
 
@@ -45,14 +44,9 @@ class AsciiCommand implements SlashCommand {
                 if (message.attachments.size < 1) return await message.channel.send("You didn't provide any image! If you want to convert text, use the `text` subcommand.");
                 message.attachments.forEach(async attachment => {
                     if (!isImageUrl(attachment.url)) return await message.channel.send("The attachment is not an image!");
-                    const options = {
-                        fit: 'box',
-                        width: Math.round(attachment.width / (10 * 0.42)),
-                        height: Math.round(attachment.height / 10)
-                    }
                     const msg = await message.channel.send("Image received! Processing ASCII art... (Note: The quality of the generated art depends on the resolution of the image!)");
                     try {
-                        const asciis = await asciify(attachment.url, options);
+                        const asciis = <string> await asciify(attachment.url, { fit: "box", width: Math.round(attachment.width / (10 * 0.42)), height: Math.round(attachment.height / 10) });
                         const lines = asciis.split("\n");
                         const height = lines.length * 18;
                         const tempCanvas = createCanvas(420, 69);

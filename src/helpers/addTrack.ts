@@ -6,7 +6,7 @@ import { InputFileFormat } from "webmscore/schemas";
 formatSetup(moment);
 import * as mm from "music-metadata";
 import muse from "musescore-metadata";
-import scdl from "soundcloud-downloader";
+import scdl from 'soundcloud-downloader/dist/index';
 import ytdl from "ytdl-core";
 import ytpl from "ytpl";
 import ytsr, { Video } from "ytsr";
@@ -18,7 +18,7 @@ import SpotifyWebApi from "spotify-web-api-node";
 import rp from "request-promise-native";
 import * as cheerio from "cheerio";
 import * as Discord from "discord.js";
-import { TrackInfo } from "soundcloud-downloader/src/info";
+import { TrackInfo } from "soundcloud-downloader/dist/info";
 
 const fetch = getFetch();
 var spotifyApi: SpotifyWebApi;
