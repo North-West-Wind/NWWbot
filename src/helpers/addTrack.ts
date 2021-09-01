@@ -278,7 +278,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
 export async function addSCURL(link: string) {
     const res = await fetch(`https://api.soundcloud.com/resolve?url=${link}&client_id=${process.env.SCID}`);
     if (!res.ok) return { error: true, message: "A problem occured while fetching the track information! Status Code: " + res.status, msg: null, songs: [] };
-    const data = await res.json();
+    const data = <any> await res.json();
     if (data.kind == "user") return { error: true, message: "What do you think you can do with a user?", msg: null, songs: [] };
     const songs = [];
     if (data.kind == "playlist") {
@@ -451,12 +451,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
     const results = [];
     try {
         const searched = await ytsr(link, { limit: 20 });
-        var video = (<Video[]> searched.items).map(x => {
-            const yy = <any> x;
-            yy.thumbnail = x.bestThumbnail?.url;
-            yy.live = x.isLive;
-            return yy;
-          });
+        var video = <Video[]> searched.items.filter(x => x.type === "video" && !x.isUpcoming);
     } catch (err) {
         console.error(err);
         await msgOrRes(message, "There was an error trying to search the videos!", true);
@@ -466,10 +461,10 @@ export async function search(message: Message | NorthInteraction, link: string) 
         title: decodeHtmlEntity(x.title),
         url: x.url,
         type: 0,
-        time: !x.live ? x.duration : "∞",
-        thumbnail: x.thumbnail,
+        time: !x.isLive ? x.duration : "∞",
+        thumbnail: x.bestThumbnail?.url,
         volume: 1,
-        isLive: x.live
+        isLive: x.isLive
     })).filter(x => !!x.url);
     var num = 0;
     if (ytResults.length > 0) {

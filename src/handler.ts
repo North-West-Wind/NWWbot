@@ -358,7 +358,7 @@ export class Handler {
         if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice?.channel)) return stop(guild);
         if (!guild.me.voice?.channel || (newState.channelId !== guild.me.voice.channelId && oldState.channelId !== guild.me.voice.channelId)) return;
         if (!NorthClient.storage.guilds[guild.id]) await fixGuildRecord(guild.id);
-        if (guild.me.voice.channel.members.size <= 1) {
+        if (guild.me.voice.channel?.members.size <= 1) {
             if (exit) return;
             NorthClient.storage.guilds[guild.id].exit = true;
             setTimeout(() => NorthClient.storage.guilds[guild.id]?.exit ? stop(guild) : 0, 30000);
@@ -526,11 +526,6 @@ export class AliceHandler extends Handler {
         NorthClient.storage.gtimers = <GuildTimer[]> gtimers;
         setInterval(async () => {
             try {
-            } catch (err) {
-                console.error("Failed to fetch timer list message");
-                return;
-            }
-            try {
                 const timerChannel = <TextChannel>await client.channels.fetch(process.env.TIME_LIST_CHANNEL);
                 const timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
                 const now = Date.now();
@@ -588,29 +583,33 @@ export class AliceHandler extends Handler {
                     await msg.react("⏹");
                     const collector = msg.createReactionCollector({ filter, time: 30000 });
                     collector.on("collect", function (reaction, user) {
-                        reaction.users.remove(user.id);
-                        switch (reaction.emoji.name) {
-                            case "⏮":
-                                s = 0;
-                                msg.edit({ embeds: [allEmbeds[s]] });
-                                break;
-                            case "◀":
-                                s -= 1;
-                                if (s < 0) s = allEmbeds.length - 1;
-                                msg.edit({ embeds: [allEmbeds[s]] });
-                                break;
-                            case "▶":
-                                s += 1;
-                                if (s > allEmbeds.length - 1) s = 0;
-                                msg.edit({ embeds: [allEmbeds[s]] });
-                                break;
-                            case "⏭":
-                                s = allEmbeds.length - 1;
-                                msg.edit({ embeds: [allEmbeds[s]] });
-                                break;
-                            case "⏹":
-                                collector.emit("end");
-                                break;
+                        try {
+                            reaction.users.remove(user.id);
+                            switch (reaction.emoji.name) {
+                                case "⏮":
+                                    s = 0;
+                                    msg.edit({ embeds: [allEmbeds[s]] });
+                                    break;
+                                case "◀":
+                                    s -= 1;
+                                    if (s < 0) s = allEmbeds.length - 1;
+                                    msg.edit({ embeds: [allEmbeds[s]] });
+                                    break;
+                                case "▶":
+                                    s += 1;
+                                    if (s > allEmbeds.length - 1) s = 0;
+                                    msg.edit({ embeds: [allEmbeds[s]] });
+                                    break;
+                                case "⏭":
+                                    s = allEmbeds.length - 1;
+                                    msg.edit({ embeds: [allEmbeds[s]] });
+                                    break;
+                                case "⏹":
+                                    collector.emit("end");
+                                    break;
+                            }
+                        } catch (err) {
+                            console.error(err);
                         }
                     });
                     collector.on("end", () => msg.reactions.removeAll().catch(() => {}));
@@ -693,7 +692,7 @@ export class AliceHandler extends Handler {
                 console.log(`Attempting to change nickname of ${message.author.tag} to ${firstHalf} ${res.username}`);
                 if (firstHalf.length + mcLen > 32) await message.member.setNickname(`${firstHalf} ${res.username.slice(0, 28 - firstHalf.length)}...`);
                 else await message.member.setNickname(`${firstHalf} ${res.username}`);
-                const gInfo = await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+                const gInfo = <any> await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
                 const roles = message.member.roles;
                 if (gInfo.id === "5b25306a0cf212fe4c98d739") await roles.add("622319008758104064");
                 await roles.add("676754719120556042");

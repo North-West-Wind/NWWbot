@@ -42,7 +42,7 @@ setInterval(async () => {
       const member = await guild.members.fetch(result.dcid);
       if (!member) continue;
       const { name } = await profile(result.uuid);
-      const bw = (await fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => res.json())).stats.BedWars;
+      const bw = (<any> await fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => res.json())).stats.BedWars;
       const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;
       const newName = member.nickname.replace(/^\[\d+⭐\|[\d.]+\]/, firstHalf);
       if (newName.length > 32) await member.setNickname(`${newName.slice(0, 28 - firstHalf.length)}...`);
@@ -53,7 +53,7 @@ setInterval(async () => {
 
 setInterval(async () => {
   try {
-    const guildApi = await fetch(`https://api.slothpixel.me/api/guilds/id/5b25306a0cf212fe4c98d739?key=${process.env.API}`).then(res => res.json());
+    const guildApi = <any> await fetch(`https://api.slothpixel.me/api/guilds/id/5b25306a0cf212fe4c98d739?key=${process.env.API}`).then(res => res.json());
     const level = Math.round(guildApi.level);
     const members = guildApi.members;
     var top = { member: null, exp: 0 };

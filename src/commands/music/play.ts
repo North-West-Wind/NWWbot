@@ -57,7 +57,7 @@ function createPlayer(guild: Discord.Guild) {
     }
   }).on("error", async error => {
     console.error(error.message);
-    serverQueue.textChannel.send("There was an error trying to play the soundtrack!");
+    serverQueue?.textChannel?.send("There was an error trying to play the soundtrack!");
     serverQueue.destroy();
   });
 }
@@ -106,8 +106,8 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     serverQueue.connection.subscribe(serverQueue.player);
     if (!guild.me.voice.selfDeaf) guild.me.voice.setDeaf(true).catch(() => {});
   } catch (err) {
-    serverQueue.destroy();
-    if (serverQueue.textChannel) {
+    serverQueue?.destroy();
+    if (serverQueue?.textChannel) {
       const msg = await serverQueue.textChannel.send("An error occured while trying to connect to the channel! Disconnecting the bot...");
       await wait(30000);
       return await msg.delete();
