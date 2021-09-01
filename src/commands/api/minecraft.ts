@@ -109,7 +109,7 @@ class MinecraftCommand implements SlashCommand {
             const url = `https://api.mcsrvstat.us/2/${encodeURIComponent(str)}`;
             const res = await fetch(url);
             if (!res.ok) return await interaction.editReply("Received HTTP Status Code " + res.status);
-            const body = await res.json();
+            const body = <any> await res.json();
             if (body.online) return await interaction.editReply({ embeds: [this.getServerEmbed(body, str)[0]], content: null });
             else await interaction.editReply({ content: "The server - **" + str + "** - is offline/under maintenance." });
         } else if (sub === this.subcommands[2]) {
@@ -132,7 +132,7 @@ class MinecraftCommand implements SlashCommand {
             const url = `https://api.mcsrvstat.us/2/${args.slice(1).join(" ")}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error("Received HTTP Status Code " + res.status);
-            const body = await res.json();
+            const body = <any> await res.json();
             if (body.online) {
                 const allEmbeds = this.getServerEmbed(body, args.slice(1).join(" "));
                 if (allEmbeds.length < 2) await message.channel.send({ embeds: [allEmbeds[0]] });
