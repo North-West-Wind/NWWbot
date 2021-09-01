@@ -617,7 +617,7 @@ export class AliceHandler extends Handler {
             } catch (err: any) {
                 console.error(err);
             }
-        }, 30000);
+        }, 60000);
     }
 
     async readGiveaways(client: NorthClient, con: Connection) {
