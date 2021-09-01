@@ -20,7 +20,7 @@ export async function expire(message: NorthMessage | NorthInteraction | { pool: 
                 const msg = await channel.messages.fetch(results[0].id);
                 msg.reactions.removeAll().catch(() => { });
             } else expire(message, results[0].expiration - date, id);
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
         }
         con.release();
@@ -124,7 +124,7 @@ class RoleMessageCommand implements SlashCommand {
         });
         try {
             for (const emoji of emojis) await mesg.react(emoji);
-        } catch (err) {
+        } catch (err: any) {
             await mesg.delete();
             return await msg.edit("I cannot react with one of the reactions!");
         }
@@ -143,7 +143,7 @@ class RoleMessageCommand implements SlashCommand {
             await client.pool.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${author.id}', '${moment(expiration).format("YYYY-MM-DD HH:mm:ss")}', '${JSON.stringify(roles)}', '${JSON.stringify(emojis)}')`);
             await message.channel.send("Successfully created record for message. The message will expire after 7 days.");
             expire(message, 7 * 24 * 3600 * 1000, mesg.id);
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             await message.reply("there was an error trying to record the message!");
         }
@@ -162,7 +162,7 @@ class RoleMessageCommand implements SlashCommand {
                 if (message instanceof Message) await message.channel.send("The message has been refreshed. It will last for 7 more days.");
                 else await message.reply("The message has been refreshed. It will last for 7 more days.");
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             await message.reply("there was an error while refreshing the message!");
         }

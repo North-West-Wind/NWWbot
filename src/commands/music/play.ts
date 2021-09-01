@@ -105,7 +105,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     serverQueue.connection = joinVoiceChannel({ channelId: serverQueue.voiceChannel.id, guildId: guild.id, adapterCreator: createDiscordJSAdapter(serverQueue.voiceChannel) })
     serverQueue.connection.subscribe(serverQueue.player);
     if (!guild.me.voice.selfDeaf) guild.me.voice.setDeaf(true).catch(() => {});
-  } catch (err) {
+  } catch (err: any) {
     serverQueue?.destroy();
     if (serverQueue?.textChannel) {
       const msg = await serverQueue.textChannel.send("An error occured while trying to connect to the channel! Disconnecting the bot...");
@@ -172,7 +172,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     } else serverQueue.player?.play(await probeAndCreateResource(stream));
     if (!serverQueue.player) return;
     await entersState(serverQueue.player, AudioPlayerStatus.Playing, 5e3);
-  } catch (err) {
+  } catch (err: any) {
     console.error(err);
     serverQueue.player?.emit("error", new AudioPlayerError(err instanceof Error ? err : new Error(err), serverQueue.resource));
   }
@@ -228,7 +228,7 @@ class PlayCommand implements SlashCommand {
           serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(voiceChannel) });
         }
         if (message.guild.me.voice?.channelId && !message.guild.me.voice.selfDeaf) message.guild.me.voice.setDeaf(true).catch(() => {});
-      } catch (err) {
+      } catch (err: any) {
         await msgOrRes(message, "There was an error trying to connect to the voice channel!", true);
         if (err.message) await message.channel.send(err.message);
         console.error(err);
@@ -277,7 +277,7 @@ class PlayCommand implements SlashCommand {
       var msg: Discord.Message;
       if (result.msg) await result.msg.edit({ content: null, embeds: [Embed] });
       else await msgOrRes(message, Embed, true);
-      setTimeout(async() => { try { await msg.edit({ embeds: [], content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }) } catch (err) { } }, 30000);
+      setTimeout(async() => { try { await msg.edit({ embeds: [], content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0]?.title}]**` }) } catch (err: any) { } }, 30000);
       updateQueue(message.guild.id, serverQueue);
       if (!serverQueue.player) serverQueue.player = createPlayer(message.guild);
       serverQueue.voiceChannel = voiceChannel;
@@ -297,7 +297,7 @@ class PlayCommand implements SlashCommand {
           await play(message.guild, pending);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       await msgOrRes(message, "There was an error trying to connect to the voice channel!", true);
       if (err.message) await message.channel.send(err.message);
       serverQueue.destroy();

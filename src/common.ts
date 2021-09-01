@@ -42,7 +42,7 @@ export default async (client: NorthClient) => {
   pool.on("connection", con => con.on("error", async err => {
     if (["PROTOCOL_CONNECTION_LOST", "ECONNREFUSED", "ETIMEDOUT"].includes(err.code) || (err.message === "Pool is closed.")) try {
       await pool.end();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
     } finally {
         pool = mysql.createPool(mysql_config).promise();
@@ -65,10 +65,10 @@ export default async (client: NorthClient) => {
           const newExp = parseInt(results[0].exp) + query.exp;
           await con.query(`UPDATE leveling SET exp = ${newExp}, last = '${query.date}' WHERE user = '${query.author}' AND guild = '${query.guild}'`);
         }
-      } catch (err) { }
+      } catch (err: any) { }
       NorthClient.storage.queries = [];
       con.release();
-    } catch (err) { }
+    } catch (err: any) { }
   }, 60000);
 }
 

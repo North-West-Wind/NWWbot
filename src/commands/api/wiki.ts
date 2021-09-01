@@ -44,7 +44,7 @@ class WikiCommand implements SlashCommand {
                     .setURL(url)
                     .setFooter("1️⃣, 2️⃣ and 3️⃣ are for navigating to 25th, 50th, 75th result.");
                 allEmbeds.push(em);
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
                 --num;
             }

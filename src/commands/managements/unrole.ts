@@ -31,7 +31,7 @@ class UnRoleCommand implements SlashCommand {
     try {
       await member.roles.remove(role);
       return await interaction.reply(`Successfully removed **${member.user.tag}** from **${role.name}**.`);
-    } catch (err) {
+    } catch (err: any) {
       return await interaction.reply(`Failed to remove **${member.user.tag}** from **${role.name}**. (Error: **${err.message}**)`);
     }
   }
@@ -53,7 +53,7 @@ class UnRoleCommand implements SlashCommand {
         await member.roles.remove(role);
         console.log(`Removed role ${role.name} from member ${member.displayName}`);
         await wait(200);
-      } catch (err) {
+      } catch (err: any) {
         await message.channel.send(`Failed to remove role **${role.name}** from **${member.user.tag}**. (Error: **${err.message}**)`);
       }
       await message.channel.send(`Finished removing everyone's role **${role.name}**.`);
@@ -64,7 +64,7 @@ class UnRoleCommand implements SlashCommand {
       try {
         await member.roles.remove(role);
         await message.channel.send(`Successfully removed **${taggedUser.tag}** from **${role.name}**.`);
-      } catch (err) {
+      } catch (err: any) {
         await message.channel.send(`Failed to remove **${taggedUser.tag}** from **${role.name}**. (Error: **${err.message}**)`);
       }
     }

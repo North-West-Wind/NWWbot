@@ -87,7 +87,7 @@ class AsciiCommand implements SlashCommand {
                         await message.channel.send({files: [newattachment]});
                         await message.channel.send({files: [colorAtt]});
                         await message.channel.send({files: [noColorAtt]});
-                    } catch (err) {
+                    } catch (err: any) {
                         console.error(err);
                         return await msg.edit(`<@${message.author.id}>, there was an error trying to convert the image into ASCII!`);
                     }

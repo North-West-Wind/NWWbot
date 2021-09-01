@@ -37,7 +37,7 @@ class DevSlashCommand implements SlashCommand {
                     description: command.description,
                     options: command.options
                 });
-            } catch (err) {
+            } catch (err: any) {
                 console.log("Failed to create slash command " + command.name);
                 console.error(err);
             }

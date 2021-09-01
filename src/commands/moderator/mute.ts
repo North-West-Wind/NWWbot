@@ -35,7 +35,7 @@ class MuteCommand implements SlashCommand {
             else await member.voice.setMute(true);
             member.user.send({embeds: [embeds[0]]}).catch(() => { });
             return await interaction.reply({embeds: [embeds[1]]});
-          } catch (error) {
+          } catch (error: any) {
             return await interaction.reply({embeds: [embeds[2]]});
         }
     }
@@ -54,7 +54,7 @@ class MuteCommand implements SlashCommand {
             else await member.voice.setMute(true);
             member.user.send({embeds: [embeds[0]]}).catch(() => { });
             await message.channel.send({embeds: [embeds[1]]});
-          } catch (error) {
+          } catch (error: any) {
             await message.channel.send({embeds: [embeds[2]]});
         }
     }

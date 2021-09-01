@@ -25,7 +25,7 @@ async function findAllSearchResult(term) {
   let body;
   try {
     body = await makeRequest(getSearchURL(term));
-  } catch (e) {
+  } catch (e: any) {
     throw e;
   }
   if (body.includes("Sorry, but there were no results for")) throw new Error("No results found.");
@@ -78,13 +78,13 @@ function parseMemeBody(url, body) {
 
 async function doSearch(term) {
   let resultUrls;
-  try { resultUrls = await findAllSearchResult(term); } catch (e) { throw e; }
+  try { resultUrls = await findAllSearchResult(term); } catch (e: any) { throw e; }
   const memes = [];
   for (const result of resultUrls) {
     let body;
     try {
       body = await makeRequest(result);
-    } catch (e) { throw e; }
+    } catch (e: any) { throw e; }
     memes.push(parseMemeBody(result, body));
   }
   return memes;

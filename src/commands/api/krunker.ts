@@ -217,7 +217,7 @@ class KrunkerCommand implements SlashCommand {
                 if (random.endsWith("undefined")) random = "";
                 setTimeout(() => msg.edit({ content: random.length > 0 ? `Here's a random server:\n${random}` : "No server was found!", embeds: [] }).catch(() => {}), 30000);
             });
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             msg.edit(`<@${author.id}>, there was an error trying to show you the games!`);
         }
@@ -236,7 +236,7 @@ class KrunkerCommand implements SlashCommand {
                 changelog[key] = changelogs[key];
             }
             await msg.edit(`\`\`\`${Object.keys(changelog)[0]}\n${changelog[Object.keys(changelog)[0]].join("\n")}\`\`\``);
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             msg.edit(`<@${author.id}>, there was an error trying to display the changelog!`);
         }
@@ -246,13 +246,12 @@ class KrunkerCommand implements SlashCommand {
         return await run(async (page: Page) => {
             var result = { error: true, message: null };
             try {
-
                 await page.goto("https://matchmaker.krunker.io/game-list?hostname=krunker.io");
                 const element = await page.$("pre");
                 const servers = JSON.parse(await (await element.getProperty('textContent')).jsonValue());
                 servers.error = false;
                 result = servers;
-            } catch (err) {
+            } catch (err: any) {
                 result.message = err.message;
             } finally {
                 return result;
@@ -273,7 +272,7 @@ class KrunkerCommand implements SlashCommand {
                     if (morelines[0] === "") morelines.shift();
                     lines[morelines[0]] = morelines.slice(1);
                 }
-            } catch (err) {
+            } catch (err: any) {
                 result.message = err.message;
             } finally {
                 return result.error ? result : lines;

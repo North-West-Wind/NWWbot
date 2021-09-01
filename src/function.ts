@@ -80,7 +80,7 @@ export async function findUser(message: Discord.Message, str: string) {
     const userID = str.replace(/<@/g, "").replace(/!/g, "").replace(/>/g, "");
     try {
         return await message.client.users.fetch(userID);
-    } catch (err) {
+    } catch (err: any) {
         await message.channel.send("No user was found!");
     }
     return;
@@ -90,14 +90,14 @@ export async function findMemberWithGuild(guild: Discord.Guild, str: string): Pr
     const userID = str.replace(/<@/g, "").replace(/!/g, "").replace(/>/g, "");
     try {
         return await guild.members.fetch(userID);
-    } catch (err) {
+    } catch (err: any) {
         throw "No user was found!";
     }
 }
 export async function findMember(message: Discord.Message, str: string): Promise<Discord.GuildMember> {
     try {
         return await findMemberWithGuild(message.guild, str);
-    } catch (err) {
+    } catch (err: any) {
         await message.channel.send(err);
     }
 }
@@ -627,7 +627,7 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
         if (results[0].queue || results[0].looping || results[0].repeating) {
             var queue = [];
             try { if (results[0].queue) queue = JSON.parse(unescape(results[0].queue)); }
-            catch (err) { console.error(`Error parsing queue of ${results[0].id}`); }
+            catch (err: any) { console.error(`Error parsing queue of ${results[0].id}`); }
             setQueue(results[0].id, queue, !!results[0].looping, !!results[0].repeating);
         }
         if (results[0].prefix) NorthClient.storage.guilds[results[0].id].prefix = results[0].prefix;
@@ -652,6 +652,6 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
         try {
             await globalClient.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${id}', '[]', '${escape("🎉")}')`);
             NorthClient.storage.guilds[id] = {};
-        } catch (err) { }
+        } catch (err: any) { }
     }
 }

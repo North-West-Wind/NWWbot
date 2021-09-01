@@ -27,7 +27,7 @@ class PrefixCommand implements SlashCommand {
         try {
             await interaction.client.pool.query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[guild.id].prefix === interaction.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[guild.id].prefix}'`} WHERE id = '${guild.id}'`);
             await interaction.editReply(`The prefix of this server has been changed to \`${NorthClient.storage.guilds[guild.id].prefix}\`.`);
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             await interaction.editReply("There was an error trying to save the changes! The change of the prefix will be temporary!");
         }
@@ -41,7 +41,7 @@ class PrefixCommand implements SlashCommand {
         try {
             await message.pool.query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[message.guild.id].prefix === message.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[message.guild.id].prefix}'`} WHERE id = '${message.guild.id}'`);
             await message.channel.send("Changes have been saved properly!");
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             await message.reply("There was an error trying to save the changes! The change of the prefix will be temporary!");
         }

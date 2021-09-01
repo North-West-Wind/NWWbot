@@ -2268,7 +2268,7 @@ class PornCommand implements SlashCommand {
                     var gif = await gfycat.getGifDetails({ gfyId: data.url.split("/")[3] });
                     var name = gif.gfyItem.gfyName;
                     link = `https://thumbs.gfycat.com/${name}-mobile.mp4`;
-                } catch (err) {
+                } catch (err: any) {
                     console.error(err);
                 }
             } else if (validRedGifURL(data.url)) {
@@ -2292,7 +2292,7 @@ class PornCommand implements SlashCommand {
                 var video = new Discord.MessageAttachment(link, "video.mp4");
                 await msgOrRes(message, em);
                 await message.channel.send({files: [video]});
-            } catch (err) {
+            } catch (err: any) {
                 await message.channel.send(`Failed to send video (\`${err.message}\`)! Running again...`);
                 return await this.send(message, args, subs, tags, more);
             }

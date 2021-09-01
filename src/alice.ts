@@ -48,7 +48,7 @@ setInterval(async () => {
       if (newName.length > 32) await member.setNickname(`${newName.slice(0, 28 - firstHalf.length)}...`);
       else await member.setNickname(newName);
     }
-  } catch (err) { }
+  } catch (err: any) { }
 }, 3600000);
 
 setInterval(async () => {
@@ -67,5 +67,5 @@ setInterval(async () => {
     (<VoiceChannel> await client.channels.fetch("871765968190324796")).edit({ name: `Guild Members: ${members.length}` });
     (<VoiceChannel> await client.channels.fetch("871768634228355162")).edit({ name: `Guild Level: ${level}` });
     (<VoiceChannel> await client.channels.fetch("871768862629187606")).edit({ name: `Daily Guild Top: ${(await profile(top.member)).name}` });
-  } catch (err) { }
+  } catch (err: any) { }
 }, 60000);

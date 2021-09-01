@@ -132,7 +132,7 @@ class InventoryCommand implements SlashCommand {
                   if (message instanceof Discord.Message) await c.run(message, cArgs);
                   else throw new Error("This is a little too hard for slash.");
                 }
-            } catch (error) {
+            } catch (error: any) {
               console.error(error);
               em.setDescription(`Failed to use the item! Please contact NorthWestWind#1885 to fix this! Preserving item...\nError: \`${error.message}\``)
                 .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());

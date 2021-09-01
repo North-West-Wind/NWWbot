@@ -51,7 +51,7 @@ class WelcomeCommand implements SlashCommand {
             if (welcome.message) try {
                 const welcomeMessage = replaceMsgContent(welcome.message, guild, client, member, "welcome");
                 result.message = welcomeMessage;
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
             }
             if (welcome.image) {
@@ -103,7 +103,7 @@ class WelcomeCommand implements SlashCommand {
                     ctx.drawImage(avatar, canvas.width / 2 - canvas.height / 5, canvas.height / 3 - canvas.height / 5, canvas.height / 2.5, canvas.height / 2.5);
                     try {
                         result.image = new Discord.MessageAttachment(canvas.toBuffer(), "welcome-image.png");
-                    } catch (err) {
+                    } catch (err: any) {
                         console.error(err);
                     }
                 };
@@ -111,11 +111,11 @@ class WelcomeCommand implements SlashCommand {
                 try {
                     let urls = JSON.parse(welcome.img);
                     if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
-                } catch (err) { }
+                } catch (err: any) { }
                 img.src = url;
             }
             result.error = false;
-        } catch (err) { console.error(err); }
+        } catch (err: any) { console.error(err); }
         return result;
     }
 };

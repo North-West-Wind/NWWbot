@@ -37,7 +37,7 @@ export async function endPoll(client: NorthClient, con: PoolConnection, id: Disc
         msg.reactions.removeAll().catch(() => { });
         await con.query("DELETE FROM poll WHERE id = " + msg.id);
         if (message) await message.channel.send("Ended a poll!");
-    } catch (err) {
+    } catch (err: any) {
         if (shouldDel) {
             await con.query("DELETE FROM poll WHERE id = " + id);
             if (message) await message.channel.send("Ended a poll!");
@@ -115,7 +115,7 @@ class PollCommand implements SlashCommand {
             const con = await message.pool.getConnection();
             try {
                 await endPoll(message.client, con, msg.id, msg, null, title, message.author.id, allOptions, c);
-            } catch (err) { }
+            } catch (err: any) { }
             con.release();
         }, duration);
 
@@ -132,7 +132,7 @@ class PollCommand implements SlashCommand {
             const channel = <Discord.TextChannel> await message.client.channels.fetch(result[0].channel);
             const msg = await channel.messages.fetch(result[0].id);
             await endPoll(message.client, con, result[0].id, msg, message, result[0].title, result[0].author, result[0].options, result[0].color);
-        } catch (err) { }
+        } catch (err: any) { }
         con.release();
     }
 

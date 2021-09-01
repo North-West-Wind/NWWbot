@@ -134,7 +134,7 @@ class UnoCommand implements SlashCommand {
         .setFooter("Please decide in 30 seconds.", message.client.user.displayAvatarURL());
       try {
         var mesg = await member.user.send({embeds: [em]});
-      } catch (err) {
+      } catch (err: any) {
         message.channel.send(`Failed to send invitation to **${member.user.tag}**.`);
         responses += mentions.size;
         return;
@@ -284,7 +284,7 @@ class UnoCommand implements SlashCommand {
           var collected: any;
           try {
             collected = await mssg.awaitReactions({ filter: (r, u) => ["📥", "📤", "⏹️"].includes(r.emoji.name) && u.id === player.user.id, time: 30 * 1000, max: 1 });
-          } catch (err) { }
+          } catch (err: any) { }
           var newCard = NorthClient.storage.card.random(drawCard > 0 ? drawCard : 1);
           var card = !newCard.length ? [toString(newCard)] : newCard.map(x => toString(x));
           var draw = new Discord.MessageEmbed()
@@ -349,7 +349,7 @@ class UnoCommand implements SlashCommand {
             mssg = await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, placeable), name: "place.png" }]});
             try {
               collected = await mssg.channel.awaitMessages({ filter: x => x.author.id === player.user.id, max: 1, time: 30 * 1000 });
-            } catch (err) { }
+            } catch (err: any) { }
             if (!collected || !collected.first() || !collected.first().content) {
               em = new Discord.MessageEmbed()
                 .setColor(c)
@@ -413,7 +413,7 @@ class UnoCommand implements SlashCommand {
               }
               try {
                 collected = await mssg.awaitReactions({ filter: (r, u) => colors.includes(r.emoji.name) && u.id === player.user.id, max: 1, time: 30 * 1000 });
-              } catch (err) { }
+              } catch (err: any) { }
               if (!collected?.first()) {
                 em = new Discord.MessageEmbed()
                   .setColor(c)
@@ -594,7 +594,7 @@ class UnoCommand implements SlashCommand {
         mesg = await prepare(mesg, id);
         setTimeout(() => overTime = true, timeLimit);
         await handle(mesg, id);
-      } catch (err) { return console.error(err) }
+      } catch (err: any) { return console.error(err) }
     }
   }
 };

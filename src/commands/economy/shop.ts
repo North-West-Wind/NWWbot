@@ -234,7 +234,7 @@ class ShopCommand implements SlashCommand {
                                     try {
                                         if (message instanceof Discord.Message) await c.run(message, cArgs);
                                         else throw new Error("This is a little too hard for slash.");
-                                    } catch (error) {
+                                    } catch (error: any) {
                                         console.error(error);
                                         itemEmbed.setDescription(`Failed to use the item! Cancelling purchase...`)
                                             .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
@@ -263,7 +263,7 @@ class ShopCommand implements SlashCommand {
                                         await con.query(`UPDATE inventory SET items = '${escape(JSON.stringify(items))}' WHERE id = '${author.id}'`);
                                     }
                                 }
-                            } catch (err) {
+                            } catch (err: any) {
                                 console.error(err);
                                 itemEmbed.setTitle("Failed to purchase!");
                             }
@@ -356,7 +356,7 @@ class ShopCommand implements SlashCommand {
             await client.pool.query(`INSERT INTO shop VALUES('${await ID()}', '${message.guild.id}', '${name}', '${description}', ${buyPrice}, ${sellPrice}, ${limit}, ${stock}, ${mustUse ? 1 : 0}, '${command}', '${args}')`);
             if (message instanceof Discord.Message) await message.channel.send("Item added to database!");
             else await message.followUp("Item added to database!");
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             if (message instanceof Discord.Message) await message.reply("there was an error trying to add the item to the database!");
             else await message.followUp("There was an error trying to add the item to the database!");

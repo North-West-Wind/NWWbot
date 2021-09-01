@@ -249,7 +249,7 @@ class QueueCommand implements SlashCommand {
         if (!g) return await msgOrRes(message, "I cannot find that server! Maybe I am not in that server?");
         try {
             await g.members.fetch(author.id);
-        } catch (e) {
+        } catch (e: any) {
             return await msgOrRes(message, "You are not in that server!");
         }
         const [results] = <RowDataPacket[][]> await pool.query(`SELECT queue FROM servers WHERE id = '${g.id}'`);

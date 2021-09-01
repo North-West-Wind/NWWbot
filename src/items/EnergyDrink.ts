@@ -18,7 +18,7 @@ export default class EnergyDrinkItem implements Item {
             itemObject[this.id] -= 1;
             await con.query(`UPDATE inventory SET items = '${escape(JSON.stringify(itemObject))}' WHERE id = '${author}'`);
             em.setTitle("You drank the Energy Drink!").setDescription("Now you work more efficiently for 24 hours!\nThe amount of money you gain will be doubled during this period!").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-        } catch (err) {
+        } catch (err: any) {
             em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
             console.error(err);
         }

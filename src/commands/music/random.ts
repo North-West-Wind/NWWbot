@@ -27,7 +27,7 @@ class RandomCommand implements SlashCommand {
             updateQueue(message.guild.id, serverQueue);
             if (serverQueue.random) await msgOrRes(message, "The queue will be played randomly.");
             else await msgOrRes(message, "The queue will be played in order.");
-        } catch (err) {
+        } catch (err: any) {
             await msgOrRes(message, "There was an error trying to update the status!");
         }
     }

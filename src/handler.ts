@@ -49,11 +49,11 @@ export class Handler {
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, int) && (catFilter ? await catFilter(command, int) : true)) await command.execute(int);
-        } catch (err) {
+        } catch (err: any) {
             try {
                 if (int.replied || int.deferred) await int.editReply(error);
                 else await int.reply(error);
-            } catch (err) { }
+            } catch (err: any) { }
             console.error(command.name + ": " + err);
         }
     }
@@ -82,7 +82,7 @@ export class Handler {
                 if (result.bank <= 0) continue;
                 const newBank = Math.round((Number(result.bank) * 1.02 + Number.EPSILON) * 100) / 100;
                 await con.query(`UPDATE currency SET bank = ${newBank} WHERE id = ${result.id}`);
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
             }
         }
@@ -94,14 +94,14 @@ export class Handler {
             NorthClient.storage.guilds[result.id] = {};
             try {
                 await client.guilds.fetch(result.id);
-            } catch (err) {
+            } catch (err: any) {
                 await con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
                 return console.log("Removed left servers");
             }
             if (result.queue || result.looping || result.repeating) {
                 var queue = [];
                 try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
-                catch (err) { console.error(`Error parsing queue of ${result.id}`); }
+                catch (err: any) { console.error(`Error parsing queue of ${result.id}`); }
                 setQueue(result.id, queue, !!result.looping, !!result.repeating);
             }
             if (result.prefix) NorthClient.storage.guilds[result.id].prefix = result.prefix;
@@ -154,7 +154,7 @@ export class Handler {
                     var channel = <TextChannel>await client.channels.fetch(result.channel);
                     var msg = await channel.messages.fetch(result.id);
                     if (msg.deleted) throw new Error("Deleted");
-                } catch (err) {
+                } catch (err: any) {
                     await client.pool.query("DELETE FROM poll WHERE id = " + result.id);
                     return console.log("Deleted an ended poll.");
                 }
@@ -183,7 +183,7 @@ export class Handler {
             await this.readGiveaways(client, con);
             await this.readPoll(client, con);
             await this.readNoLog(client, con);
-        } catch (err) { console.error(err); };
+        } catch (err: any) { console.error(err); };
         con.release();
     }
 
@@ -206,7 +206,7 @@ export class Handler {
             if (NorthClient.storage.noLog.find(x => x === inviter.id)) return;
             try {
                 await inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${client.prefix}invites toggle\` to turn it off)`);
-            } catch (err) { }
+            } catch (err: any) { }
         }).catch(() => { });
         try {
             if (!NorthClient.storage.guilds[guild.id]) {
@@ -220,7 +220,7 @@ export class Handler {
             if (welcome.message) try {
                 const welcomeMessage = replaceMsgContent(welcome.message, guild, client, member, "welcome");
                 await channel.send(welcomeMessage);
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
             }
             if (welcome.image) {
@@ -274,7 +274,7 @@ export class Handler {
                     try {
                         await this.preWelcomeImage(channel);
                         await channel.send({ files: [attachment] });
-                    } catch (err) {
+                    } catch (err: any) {
                         console.error(err);
                     }
                 };
@@ -282,7 +282,7 @@ export class Handler {
                 try {
                     let urls = JSON.parse(welcome.image);
                     if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
-                } catch (err) { }
+                } catch (err: any) { }
                 img.src = url;
             }
             if (welcome?.autorole !== "[]") {
@@ -295,12 +295,12 @@ export class Handler {
                     if (!role) continue;
                     try {
                         await member.roles.add(roleID);
-                    } catch (err) {
+                    } catch (err: any) {
                         console.error(err);
                     }
                 }
             }
-        } catch (err) { console.error(err) };
+        } catch (err: any) { console.error(err) };
     }
 
     async guildMemberRemove(member: GuildMember | PartialGuildMember) {
@@ -324,20 +324,20 @@ export class Handler {
             try {
                 const leaveMessage = replaceMsgContent(leave.message, guild, client, member, "leave");
                 await channel.send(leaveMessage);
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
             }
 
-        } catch (err) { console.error(err) };
+        } catch (err: any) { console.error(err) };
     }
 
     async guildCreate(guild: Guild) {
         try {
             await fixGuildRecord(guild.id);
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
         }
-        try { NorthClient.storage.guilds[guild.id].invites = await guild.invites.fetch(); } catch (err) { }
+        try { NorthClient.storage.guilds[guild.id].invites = await guild.invites.fetch(); } catch (err: any) { }
     }
 
     async guildDelete(guild: Guild) {
@@ -347,7 +347,7 @@ export class Handler {
         try {
             await client.pool.query("DELETE FROM servers WHERE id=" + guild.id);
             console.log("Deleted record for " + guild.name);
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
         }
     }
@@ -373,7 +373,7 @@ export class Handler {
         try {
             const channel = <TextChannel>await client.channels.fetch(boost.channel);
             channel.send(boost.message.replace(/\{user\}/gi, `<@${newMember.id}>`));
-        } catch (err) { }
+        } catch (err: any) { }
     }
 
     async messageReactionAdd(r: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
@@ -388,7 +388,7 @@ export class Handler {
             const guild = await user.client.guilds.fetch(roleMessage.guild);
             const member = await guild.members.fetch(user.id);
             if (index > -1) await member.roles.add(JSON.parse(roleMessage.roles)[index]);
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
         }
     }
@@ -405,7 +405,7 @@ export class Handler {
             const guild = await r.message.client.guilds.fetch(roleMessage.guild);
             const member = await guild.members.fetch(user.id);
             if (index > -1) await member.roles.remove(JSON.parse(roleMessage.roles)[index]);
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
         }
     }
@@ -437,11 +437,11 @@ export class Handler {
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
-        } catch (err) {
+        } catch (err: any) {
             console.error(command.name + ": " + err);
             try {
                 await msg.reply(error);
-            } catch (err) { }
+            } catch (err: any) { }
         }
     }
 }
@@ -464,7 +464,7 @@ export class AliceHandler extends Handler {
         if (result.queue || result.looping || result.repeating) {
             var queue = [];
             try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
-            catch (err) { console.error(`Error parsing queue of ${result.id}`); }
+            catch (err: any) { console.error(`Error parsing queue of ${result.id}`); }
             setQueue(result.id, queue, !!result.looping, !!result.repeating);
         }
         if (result.prefix) NorthClient.storage.guilds[result.id].prefix = result.prefix;
@@ -513,10 +513,10 @@ export class AliceHandler extends Handler {
                         asuna.send(title + " expired");
                         var user = await client.users.fetch(result.user);
                         user.send(`Your rank **${rank}** in War of Underworld has expired.`);
-                    } catch (err) { }
+                    } catch (err: any) { }
                     await conn.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
                     console.log("A guild timer expired.");
-                } catch (err) {
+                } catch (err: any) {
                     console.error(err);
                 }
                 conn.release();
@@ -539,7 +539,7 @@ export class AliceHandler extends Handler {
                     try {
                         var user = await client.users.fetch(str);
                         dc = user.id;
-                    } catch (err) { }
+                    } catch (err: any) { }
                     let rank = unescape(result.dc_rank);
                     let title = `<@${dc}> - ${rank} [${username}]`;
                     let seconds = Math.round((result.endAt.getTime() - now) / 1000);
@@ -608,13 +608,13 @@ export class AliceHandler extends Handler {
                                     collector.emit("end");
                                     break;
                             }
-                        } catch (err) {
+                        } catch (err: any) {
                             console.error(err);
                         }
                     });
                     collector.on("end", () => msg.reactions.removeAll().catch(() => {}));
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
             }
         }, 30000);
@@ -641,7 +641,7 @@ export class AliceHandler extends Handler {
                     var channel = <TextChannel>await client.channels.fetch(result.channel);
                     var msg = await channel.messages.fetch(result.id);
                     if (msg.deleted) throw new Error("Deleted");
-                } catch (err) {
+                } catch (err: any) {
                     await client.pool.query("DELETE FROM poll WHERE id = " + result.id);
                 }
                 await endPoll(client, con, result.id, msg, null, result.title, result.author, result.options, result.color);
@@ -671,7 +671,7 @@ export class AliceHandler extends Handler {
                     const f = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`);
                     if (f.status == 404) return await msg.edit("This player doesn't exist!").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                     res = await f.json();
-                } catch (err) {
+                } catch (err: any) {
                     return await msg.edit("The Hypixel API is down.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                 }
                 const hyDc = res.links.DISCORD;
@@ -738,7 +738,7 @@ export class AliceHandler extends Handler {
                 else if (res.rank === "MVP") await roles.add("837271173027856404");
                 else if (res.rank === "MVP_PLUS") await roles.add("837271172319674378");
                 else if (res.rank === "MVP_PLUS_PLUS") await roles.add("837271171619356692");
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
                 await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
             }
@@ -766,7 +766,7 @@ export class CanaryHandler extends Handler {
             if (result.queue || result.looping || result.repeating) {
                 var queue = [];
                 try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
-                catch (err) { console.error(`Error parsing queue of ${result.id}`); }
+                catch (err: any) { console.error(`Error parsing queue of ${result.id}`); }
                 setQueue(result.id, queue, !!result.looping, !!result.repeating);
             }
             if (result.prefix) NorthClient.storage.guilds[result.id].prefix = result.prefix;

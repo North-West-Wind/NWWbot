@@ -54,7 +54,7 @@ class ConfigCommand implements SlashCommand {
       await interaction.reply("See you in DM!");
       await client.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
       return;
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       return await interaction.reply("There was an error trying to update the token! This token will be temporary.");
     }
@@ -72,7 +72,7 @@ class ConfigCommand implements SlashCommand {
       } else if (config.token && args[0] !== "new") return await message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
       NorthClient.storage.guilds[guild.id].token = generated;
       await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
-    } catch (err) {
+    } catch (err: any) {
       message.reply("there was an error trying to update the token! This token will be temporary.");
       console.error(err);
     }
@@ -174,7 +174,7 @@ class ConfigCommand implements SlashCommand {
           NorthClient.storage.guilds[message.guild.id] = config;
           await client.pool.query(`UPDATE servers SET welcome = '${contents}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Message/Set**\nMessage received! Returning to panel main page in 3 seconds...");
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
           panelEmbed.setDescription("**Welcome Message/Message/Set**\nFailed to update message! Returning to panel main page in 3 seconds...");
         }
@@ -191,7 +191,7 @@ class ConfigCommand implements SlashCommand {
           NorthClient.storage.guilds[message.guild.id] = config;
           await client.pool.query(`UPDATE servers SET welcome = NULL WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Message/Reset**\nWelcome Message was reset! Returning to panel main page in 3 seconds...");
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
           panelEmbed.setDescription("**Welcome Message/Message/Reset**\nFailed to reset message! Returning to panel main page in 3 seconds...");
         }
@@ -233,7 +233,7 @@ class ConfigCommand implements SlashCommand {
           NorthClient.storage.guilds[message.guild.id] = config;
           await client.pool.query(`UPDATE servers SET wel_channel = '${channelID}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Channel/Set**\nChannel received! Returning to panel main page in 3 seconds...");
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
           panelEmbed.setDescription("**Welcome Message/Channel/Set**\nFailed to update channel! Returning to panel main page in 3 seconds...");
         }
@@ -250,7 +250,7 @@ class ConfigCommand implements SlashCommand {
           NorthClient.storage.guilds[message.guild.id] = config;
           await client.pool.query(`UPDATE servers SET wel_channel = NULL WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Channel/Reset**\nWelcome Channel received! Returning to panel main page in 3 seconds...");
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
           panelEmbed.setDescription("**Welcome Message/Channel/Reset**\nFailed to reset channel! Returning to panel main page in 3 seconds...");
         }
@@ -294,7 +294,7 @@ class ConfigCommand implements SlashCommand {
             try {
               const old = JSON.parse(config.welcome.image);
               urls = old.concat(attachment);
-            } catch (err) {
+            } catch (err: any) {
               if (isImageUrl(config.welcome.image)) urls.push(config.welcome.image);
             }
           }
@@ -305,7 +305,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
           await message.reply("there was an error trying to update the configuration!");
         }
@@ -324,7 +324,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
       }
@@ -372,7 +372,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
           await message.reply("there was an error trying to update the configuration!");
         }
@@ -390,7 +390,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
           await message.reply("there was an error trying to update the configuration!");
         }
@@ -442,7 +442,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
           await message.reply("there was an error trying to update the configuration!");
         }
@@ -461,7 +461,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
           await message.reply("there was an error trying to update the configuration!");
         }
@@ -507,7 +507,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
       }
@@ -524,7 +524,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
       }
@@ -561,7 +561,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
       }
@@ -578,7 +578,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
       }
@@ -631,7 +631,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
       }
@@ -649,7 +649,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
       }
@@ -694,7 +694,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
       }
@@ -711,7 +711,7 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit(panelEmbed);
           setTimeout(() => start(msg), 3000);
-        } catch (err) {
+        } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
       }

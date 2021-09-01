@@ -29,7 +29,7 @@ class LyricsCommand implements SlashCommand {
         var icon;
         try {
             icon = await solenolyrics.requestIconFor(song);
-        } catch (err) { }
+        } catch (err: any) { }
 
         if (!author && !title) return await interaction.editReply("Cannot find the song! Try to be more specific?");
         if (!title) title = "Title Not Found";
@@ -47,7 +47,7 @@ class LyricsCommand implements SlashCommand {
         var icon;
         try {
             icon = await solenolyrics.requestIconFor(args.join(" "));
-        } catch (err) { }
+        } catch (err: any) { }
 
         if (!author && !title) return message.channel.send("Cannot find the song! Try to be more specific?");
         if (!title) title = "Title Not Found";

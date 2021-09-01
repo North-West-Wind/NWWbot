@@ -146,7 +146,7 @@ class GuildCommand implements SlashCommand {
 					channel.send(`❌ | <@${user.id}> Sorry, you are banned from our guild. Good luck finding another one!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
 					break;
 			}
-		} catch (err) {
+		} catch (err: any) {
 			console.error(err);
 			await message.reply("there was an error fetching the player!");
 		}
@@ -335,7 +335,7 @@ class GuildCommand implements SlashCommand {
 					});
 					await message.pool.query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(ranks)}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + duration))}')`);
 					await message.channel.send("Timer recorded.");
-				} catch (err) {
+				} catch (err: any) {
 					console.error(err);
 					await message.reply("there was an error trying to insert the timer to the database!");
 				}
@@ -349,7 +349,7 @@ class GuildCommand implements SlashCommand {
 						const [results] = <RowDataPacket[][]> await con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(ranks)}'`);
 						if (results.length == 0) throw new Error("Not found");
 						await con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(ranks)}'`);
-					} catch (err) {
+					} catch (err: any) {
 						console.error(err);
 					}
 					con.release();
@@ -368,7 +368,7 @@ class GuildCommand implements SlashCommand {
 					if (results.length == 0) return message.channel.send("No timer was found.");
 					await con.query(`DELETE FROM gtimer WHERE user = '${userd.id}'`);
 					await message.channel.send(`Deleted ${results.length} timers.`);
-				} catch (err) {
+				} catch (err: any) {
 					console.error(err);
 					await message.reply("there was an error trying to delete the timer!");
 				}
@@ -387,7 +387,7 @@ class GuildCommand implements SlashCommand {
 						try {
 							const user = await message.client.users.fetch(str);
 							dc = user.id;
-						} catch (err) { }
+						} catch (err: any) { }
 						let rank = unescape(result.dc_rank);
 						let title = `<@${dc}> - ${rank} [${username}]`;
 						let seconds = Math.round((result.endAt.getTime() - now) / 1000);
@@ -422,7 +422,7 @@ class GuildCommand implements SlashCommand {
 						}
 						await createEmbedScrolling(message, allEmbeds);
 					}
-				} catch (err) {
+				} catch (err: any) {
 					console.error(err);
 					await message.reply("there was an error trying to fetch data from the database!");
 				}

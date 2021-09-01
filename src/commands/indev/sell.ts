@@ -57,7 +57,7 @@ class SellCommand implements SlashCommand {
                     await msg.edit({embeds: [confirmationEmbed]});
                     msg.reactions.removeAll().catch(() => {});
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
                 await message.reply("there was an error trying to sell the item!");
             }

@@ -34,7 +34,7 @@ class AddRoleCommand implements SlashCommand {
             if (!color) await interaction.guild.roles.create({ name });
             else await interaction.guild.roles.create({ name, color: (<ColorResolvable> color) });
             await interaction.reply({embeds: [embeds[0]]});
-        } catch (err) {
+        } catch (err: any) {
             await interaction.reply({embeds: [embeds[1]]});
         }
     }
@@ -46,7 +46,7 @@ class AddRoleCommand implements SlashCommand {
             if (!args[1]) await message.guild.roles.create({ name: args[0] });
             else await message.guild.roles.create({ name: args[0], color: <ColorResolvable> args[1] });
             await message.channel.send({embeds: [embeds[0]]});
-        } catch (err) {
+        } catch (err: any) {
             await message.channel.send({embeds: [embeds[1]]});
         }
     }

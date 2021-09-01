@@ -31,7 +31,7 @@ class RoleCommand implements SlashCommand {
     try {
       await member.roles.add(role);
       return await interaction.reply(`Successfully added **${member.user.tag}** to role **${role.name}**.`);
-    } catch (err) {
+    } catch (err: any) {
       return await interaction.reply(`Failed to add **${member.user.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
     }
   }
@@ -54,7 +54,7 @@ class RoleCommand implements SlashCommand {
         await member.roles.add(role);
         console.log(`Added member ${member.displayName} to ${role.name}`);
         await wait(200);
-      } catch (err) {
+      } catch (err: any) {
         await message.channel.send(`Failed to add **${member.user.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
       }
       await message.channel.send(`Finished adding everyone to the role **${role.name}**.`);
@@ -65,7 +65,7 @@ class RoleCommand implements SlashCommand {
       try {
         await member.roles.add(role);
         await message.channel.send(`Successfully added **${taggedUser.tag}** to role **${role.name}**.`);
-      } catch (err) {
+      } catch (err: any) {
         await message.channel.send(`Failed to add **${taggedUser.tag}** to role **${role.name}**. (Error: **${err.message}**)`);
       }
     }

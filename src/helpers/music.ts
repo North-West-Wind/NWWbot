@@ -15,7 +15,7 @@ export async function updateQueue(id: Discord.Snowflake, serverQueue: ServerQueu
     if (!update) return;
     try {
         await client.pool.query(`UPDATE servers SET looping = ${serverQueue?.looping ? 1 : "NULL"}, repeating = ${serverQueue?.repeating ? 1 : "NULL"}, random = ${serverQueue?.random ? 1 : "NULL"}, queue = ${!serverQueue?.songs?.length || !Array.isArray(serverQueue.songs) ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${id}'`);
-    } catch (err) {
+    } catch (err: any) {
         console.error(err);
     }
 }

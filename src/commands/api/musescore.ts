@@ -20,7 +20,7 @@ function PNGtoPDF(doc: PDFKit.PDFDocument, url: string): Promise<void> {
             try {
                 doc.image(Buffer.concat(chunks), 0, 0, { width: doc.page.width, height: doc.page.height });
                 resolve();
-            } catch (err) {
+            } catch (err: any) {
                 reject(err);
             }
         });
@@ -43,7 +43,7 @@ export async function getMP3(url: string): Promise<{ error: boolean, url: string
             const mp3 = await page.waitForRequest(req => req.url().startsWith("https://s3.ultimate-guitar.com/") || req.url().startsWith("https://www.youtube.com/embed/"));
             result.url = mp3.url();
             result.error = false;
-        } catch (err) {
+        } catch (err: any) {
             result.message = err.message;
         } finally {
             result.timeTaken = Date.now() - start;
@@ -81,7 +81,7 @@ class MusescoreCommand implements SlashCommand {
     async metadata(message: NorthMessage | NorthInteraction, url: string, msg: Discord.Message) {
         try {
             var data = await muse(url);
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             return await msg.edit("There was an error trying to fetch data of the score!");
         }
@@ -123,7 +123,7 @@ class MusescoreCommand implements SlashCommand {
                         else if (res.statusCode && res.statusCode != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
                         else await message.channel.send({files:[att]});
                         await mesg.delete();
-                    } catch (err) {
+                    } catch (err: any) {
                         await mesg.edit(`Failed to generate MP3! \`${err.message}\``);
                     }
                     mesg = await message.channel.send("Generating PDF...");
@@ -133,7 +133,7 @@ class MusescoreCommand implements SlashCommand {
                         const att = new Discord.MessageAttachment(doc, sanitize(`${data.title}.pdf`));
                         await message.channel.send({files:[att]});
                         await mesg.delete();
-                    } catch (err) {
+                    } catch (err: any) {
                         await mesg.edit(`Failed to generate PDF! \`${err.message}\``);
                     }
                     mesg = await message.channel.send("Generating MSCZ...");
@@ -146,15 +146,15 @@ class MusescoreCommand implements SlashCommand {
                         const att = new Discord.MessageAttachment(res.data, sanitize(`${data.title}.mscz`));
                         await message.channel.send({files:[att]});
                         await mesg.delete();
-                    } catch (err) {
+                    } catch (err: any) {
                         await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``);
                         await message.channel.send(`However, you may still be able to download it from this link:\n${mscz.url}`);
                     }
-                } catch (err) {
+                } catch (err: any) {
                     console.error(err);
                     await message.reply("there was an error trying to send the files!");
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
                 await message.channel.send("Failed to generate files!");
             }
@@ -166,7 +166,7 @@ class MusescoreCommand implements SlashCommand {
             const response = await rp({ uri: `https://musescore.com/sheetmusic?text=${encodeURIComponent(args)}`, resolveWithFullResponse: true });
             if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
             var body = response.body;
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             return await message.reply("There was an error trying to search for scores!");
         }
@@ -263,7 +263,7 @@ class MusescoreCommand implements SlashCommand {
                 });
                 result.url = (await midi.json())?.info?.url;
                 result.error = false;
-            } catch (err) {
+            } catch (err: any) {
                 result.message = err.message;
             } finally {
                 result.timeTaken = Date.now() - start;
@@ -312,7 +312,7 @@ class MusescoreCommand implements SlashCommand {
                     try {
                         el = await page.waitForSelector(`img[src^="${svg}"]`, { timeout: 10000 });
                         pages.push(svg);
-                    } catch (err) {
+                    } catch (err: any) {
                         el = await page.waitForSelector(`img[src^="${png}"]`, { timeout: 10000 });
                         pages.push(png);
                     }
@@ -326,7 +326,7 @@ class MusescoreCommand implements SlashCommand {
                     }
                     result.pdf = pages;
                     result.error = false;
-                } catch (err) {
+                } catch (err: any) {
                     result.message = err.message;
                 } finally {
                     result.timeTaken = Date.now() - start;
@@ -344,12 +344,12 @@ class MusescoreCommand implements SlashCommand {
                 const ext = page.split("?")[0].split(".").slice(-1)[0];
                 if (ext === "svg") try {
                     SVGtoPDF(doc, await streamToString(await requestStream(page)), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
-                } catch (err) {
+                } catch (err: any) {
                     SVGtoPDF(doc, await fetch(page).then(res => res.text()), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
                 }
                 else await PNGtoPDF(doc, page);
                 if (i + 1 < data.pageCount) doc.addPage();
-            } catch (err) {
+            } catch (err: any) {
                 result.err = err.message;
                 hasPDF = false;
                 break;

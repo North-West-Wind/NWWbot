@@ -25,7 +25,7 @@ export async function run(cb: Function) {
             browser = undefined;
         }, 10000);
         return result;
-    } catch (err) {
+    } catch (err: any) {
         return err;
     }
 }

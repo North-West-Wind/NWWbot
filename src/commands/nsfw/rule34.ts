@@ -37,7 +37,7 @@ class Rule34Command implements SlashCommand {
                     const json = <any> (await post.text().then(str => xmlToJson(str)));
                     return json.posts.tag[Math.floor(Math.random() * json.posts.tag.length)].$;
                 }
-            } catch (err) {
+            } catch (err: any) {
                 return { error: `there was an error trying to find rule34 with ${tags.length > 1 ? "these tags" : "this tag"}!`, embed: null };
             }
         }

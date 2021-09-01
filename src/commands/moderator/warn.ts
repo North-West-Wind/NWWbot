@@ -42,7 +42,7 @@ class WarnCommand implements SlashCommand {
         await interaction.client.pool.query(`DELETE FROM warn WHERE guild = '${guild.id}' AND user = '${member.id}'`);
       }
       await interaction.reply({embeds: [warnEmbeds[1]]});
-    } catch (err) {
+    } catch (err: any) {
       await interaction.reply({embeds: [warnEmbeds[2]]});
     }
   }
@@ -63,7 +63,7 @@ class WarnCommand implements SlashCommand {
         await message.pool.query(`DELETE FROM warn WHERE guild = '${message.guild.id}' AND user = '${member.id}'`);
       }
       await message.channel.send({embeds: [warnEmbeds[1]]});
-    } catch (err) {
+    } catch (err: any) {
       await message.channel.send({embeds: [warnEmbeds[2]]});
     }
   }

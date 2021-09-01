@@ -45,7 +45,7 @@ class BanCommand implements SlashCommand {
         const embeds = commonModerationEmbed(interaction.guild, interaction.user, member, "ban", "banned", options.reason);
         try {
             await member.ban(options);
-        } catch (err) {
+        } catch (err: any) {
             return await interaction.reply({embeds: [embeds[2]]});
         }
         member.user.send({embeds: [embeds[0]]}).catch(() => {});
@@ -66,7 +66,7 @@ class BanCommand implements SlashCommand {
         const embeds = commonModerationEmbed(message.guild, message.author, member, "ban", "banned", reason);
         try {
             await member.ban(options);
-        } catch (err) {
+        } catch (err: any) {
             return await message.channel.send({embeds: [embeds[2]]});
         }
         member.user.send({embeds: [embeds[0]]}).catch(() => {});

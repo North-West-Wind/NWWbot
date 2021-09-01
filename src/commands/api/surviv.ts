@@ -43,7 +43,7 @@ class SurvivCommand implements SlashCommand {
             const allEmbeds = await this.getPlayerEmbed(interaction.options.getString("user"));
             if (allEmbeds.length == 1) await interaction.editReply({embeds: [allEmbeds[0]]});
             else await createEmbedScrolling({ interaction, useEdit: true }, allEmbeds);
-        } catch (err) {
+        } catch (err: any) {
             await interaction.editReply("Cannot find that user!");
         }
     }
@@ -53,7 +53,7 @@ class SurvivCommand implements SlashCommand {
             const allEmbeds = await this.getPlayerEmbed(args.join(" "));
             if (allEmbeds.length == 1) await message.channel.send({embeds: [allEmbeds[0]]});
             else await createEmbedScrolling(message, allEmbeds);
-        } catch (err) {
+        } catch (err: any) {
             await message.channel.send("Cannot find that user!");
         }
     }

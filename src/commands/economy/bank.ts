@@ -106,7 +106,7 @@ class BankCommand implements SlashCommand {
           await msg.edit({embeds: [depositedEmbed]});
           await wait(3000);
           await MainPage();
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
           message.channel.send("There was an error trying to fetch data from the database!");
         }
@@ -152,7 +152,7 @@ class BankCommand implements SlashCommand {
           await msg.edit({embeds: [withdrawedEmbed]});
           await wait(3000);
           await MainPage();
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
           message.reply("there was an error trying to fetch data from the database!");
         }

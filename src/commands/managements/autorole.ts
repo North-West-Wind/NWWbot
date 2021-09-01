@@ -35,7 +35,7 @@ class AutoRoleCommand implements SlashCommand {
       try {
         await user.roles.add(role);
         await interaction.channel.send("Successfully added **" + user.user.tag + "** to role **" + role.name + "**.")
-      } catch (err) {
+      } catch (err: any) {
         await interaction.channel.send("Failed adding **" + user.user.tag + "** to role **" + role.name + "**.")
       }
     });
@@ -54,7 +54,7 @@ class AutoRoleCommand implements SlashCommand {
       try {
         await user.roles.add(role);
         await message.channel.send("Successfully added **" + user.user.tag + "** to role **" + role.name + "**.")
-      } catch (err) {
+      } catch (err: any) {
         await message.channel.send("Failed adding **" + user.user.tag + "** to role **" + role.name + "**.")
       }
     });

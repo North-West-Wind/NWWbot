@@ -163,7 +163,7 @@ export class ServerQueue {
         try {
             this.player?.stop();
             this.connection?.destroy();
-        } catch (err) { }
+        } catch (err: any) { }
         this.player = null;
         this.connection = null;
     }
@@ -171,7 +171,7 @@ export class ServerQueue {
     stop() {
         try {
             this.player?.stop();
-        } catch (err) { }
+        } catch (err: any) { }
         this.player = null;
     }
 }

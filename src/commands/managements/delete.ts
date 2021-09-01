@@ -62,7 +62,7 @@ class DeleteCommand implements SlashCommand {
       try {
         await interaction.deleteReply();
         await channel.bulkDelete(amount, true);
-      } catch (err) {
+      } catch (err: any) {
         await interaction.followUp("I can't delete them. Try a smaller amount.");
       }
     }
@@ -96,7 +96,7 @@ class DeleteCommand implements SlashCommand {
       try {
         await message.delete();
         await channel.bulkDelete(amount, true);
-      } catch (err) {
+      } catch (err: any) {
         await message.channel.send("I can't delete them. Try a smaller amount.");
       }
     }

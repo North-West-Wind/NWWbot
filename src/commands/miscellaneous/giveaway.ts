@@ -11,7 +11,7 @@ export async function endGiveaway(pool: Pool, result) {
     var channel = <Discord.TextChannel> await client.channels.fetch(result.channel);
     var msg = await channel.messages.fetch(result.id);
     if (msg.deleted) throw new Error("Deleted");
-  } catch (err) {
+  } catch (err: any) {
     if (channel || (msg && msg.deleted)) {
       await pool.query("DELETE FROM giveaways WHERE id = " + result.id);
       return console.log("Deleted a deleted giveaway record.");
@@ -22,7 +22,7 @@ export async function endGiveaway(pool: Pool, result) {
   const peopleReacted = msg.reactions.cache.get(unescape(result.emoji));
   try {
     await peopleReacted.users.fetch();
-  } catch (err) {
+  } catch (err: any) {
     console.error("Giveaway reaction fetching error");
     return console.error(err);
   }
@@ -31,7 +31,7 @@ export async function endGiveaway(pool: Pool, result) {
       const data = user.id;
       reacted.push(data);
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error("Giveaway array init error");
     return console.error(err);
   }
@@ -45,7 +45,7 @@ export async function endGiveaway(pool: Pool, result) {
     const member = await guild.members.fetch(id);
     for (const role in weight) if (member.roles.cache.find(r => r.id == role)) for (let i = 1; i < weight[role]; i++) weighted.push(id);
     weighted.push(id);
-  } catch (err) { }
+  } catch (err: any) { }
 
   const Ended = new Discord.MessageEmbed()
     .setColor(parseInt(result.color))

@@ -56,7 +56,7 @@ export default class MarkSevenItem implements Item {
                     }
                 }
             }
-        } catch (err) {
+        } catch (err: any) {
             em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
             console.error(err);
         }

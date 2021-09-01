@@ -55,7 +55,7 @@ export async function addAttachment(message: Message) {
         const stream = <Stream.Readable>await fetch(file.url).then(res => res.body);
         try {
             var metadata = await mm.parseStream(stream, {}, { duration: true });
-        } catch (err) {
+        } catch (err: any) {
             return { error: true, message: "The audio format is not supported!", msg: null, songs: [] };
         }
         if (!metadata) {
@@ -78,7 +78,7 @@ export async function addAttachment(message: Message) {
 export async function addYTPlaylist(link: string) {
     try {
         var playlistInfo = await ytpl(link, { limit: Infinity });
-    } catch (err) {
+    } catch (err: any) {
         var msg = "There was an error trying to fetch your playlist!";
         if (err.message === "This playlist is private.") msg = "The playlist is private!";
         return { error: true, message: msg, msg: null, songs: [] };
@@ -99,7 +99,7 @@ export async function addYTPlaylist(link: string) {
 export async function addYTURL(link: string, type: number = 0) {
     try {
         var songInfo = await ytdl.getInfo(link);
-    } catch (err) {
+    } catch (err: any) {
         console.error(err);
         return { error: true, message: "Failed to get video data!", msg: null, songs: [] };
     }
@@ -162,7 +162,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                 try {
                     const searched = await ytsr(`${track.track.artists[0].name} - ${track.track.name}`, { limit: 20 });
                     results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
-                } catch (err) {
+                } catch (err: any) {
                     return { error: true, msg: null, songs: [], message: err.message };
                 }
                 var o = 0;
@@ -214,7 +214,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                 try {
                     const searched = await ytsr(`${track.artists[0].name} - ${track.name}`, { limit: 20 });
                     results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
-                } catch (err) {
+                } catch (err: any) {
                     return { error: true, msg: null, songs: [], message: err.message };
                 }
                 var o = 0;
@@ -247,7 +247,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                 try {
                     const searched = await ytsr(`${track.artists[0].name} - ${track.name}`, { limit: 20 });
                     resultss = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
-                } catch (err) {
+                } catch (err: any) {
                     return { error: true, msg: null, songs: [], message: err.message };
                 }
                 var o = 0;
@@ -346,7 +346,7 @@ export async function addGDURL(link: string) {
         const html = await rp({ uri: link });
         const $ = cheerio.load(html);
         title = metadata.common.title ? metadata.common.title : $("title").text().split(" - ").slice(0, -1).join(" - ").split(".").slice(0, -1).join(".");
-    } catch (err) {
+    } catch (err: any) {
         return { error: true, message: "An error occured while parsing the audio file into stream! Maybe it is not link to the file?", msg: null, songs: [] };
     }
     if (!metadata) return { error: true, message: "An error occured while parsing the audio file into stream! Maybe it is not link to the file?", msg: null, songs: [] };
@@ -389,9 +389,9 @@ export async function addGDFolderURL(link: string, cb: Function = async () => { 
                     thumbnail: "https://drive-thirdparty.googleusercontent.com/256/type/audio/mpeg",
                     isLive: false
                 });
-            } catch (err) { console.error(err); }
+            } catch (err: any) { console.error(err); }
         }
-    } catch (err) {
+    } catch (err: any) {
         return { error: true, message: "Cannot open your link!", msg: null, songs: [] };
     }
     return { error: false, songs: songs, msg: null, message: null };
@@ -400,7 +400,7 @@ export async function addGDFolderURL(link: string, cb: Function = async () => { 
 export async function addMSURL(link: string) {
     try {
         var data = await muse(link);
-    } catch (err) {
+    } catch (err: any) {
         return { error: true, message: "Failed to fetch metadata of the score!", msg: null, songs: [] };
     }
     var songLength = data.duration;
@@ -423,7 +423,7 @@ export async function addURL(link: string) {
         var stream = <Stream.Readable>await fetch(link).then(res => res.body);
         var metadata = await mm.parseStream(stream, {}, { duration: true });
         if (metadata.format.trackInfo && metadata.format.trackInfo[0]?.name) title = metadata.format.trackInfo[0].name;
-    } catch (err) {
+    } catch (err: any) {
         return { error: true, message: "The audio format is not supported!", msg: null, songs: [] };
     }
     if (!metadata || !stream) return { error: true, message: "There was an error while parsing the audio file into stream! Maybe it is not link to the file?", msg: null, songs: [] };
@@ -452,7 +452,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
     try {
         const searched = await ytsr(link, { limit: 20 });
         var video = <Video[]> searched.items.filter(x => x.type === "video" && !x.isUpcoming);
-    } catch (err) {
+    } catch (err: any) {
         console.error(err);
         await msgOrRes(message, "There was an error trying to search the videos!", true);
         return { error: true, msg: null, songs: [], message: err.message };
@@ -484,7 +484,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
             resourceType: "tracks"
         });
         num = 0;
-    } catch (err) {
+    } catch (err: any) {
         console.error(err);
         await msgOrRes(message, "There was an error trying to search the videos!", true);
         return { error: true, msg: null, songs: [], message: err.message };

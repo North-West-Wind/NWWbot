@@ -57,7 +57,7 @@ class DownloadCommand implements SlashCommand {
                     if (song?.isLive) return await msgOrRes(message, "Livestream downloading is not supported and recommended! Come back later when the livestream is over.", true);
                 }
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             return await msgOrRes(message, `There was an error trying to download the soundtrack!`, true);
         }
@@ -83,7 +83,7 @@ class DownloadCommand implements SlashCommand {
                     break;
             }
             if (!stream) throw new Error("Cannot receive stream");
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             return await msg.edit(`There was an error trying to download the soundtrack!`);
         }
@@ -92,7 +92,7 @@ class DownloadCommand implements SlashCommand {
             const attachment = new Discord.MessageAttachment(stream, sanitize(`${song.title}.mp3`));
             if (message instanceof Discord.Message) await message.channel.send({ files: [attachment] });
             else await message.followUp({ files: [attachment] });
-        } catch (err) {
+        } catch (err: any) {
             if (message instanceof Discord.Message) await message.channel.send(`There was an error trying to send the soundtrack! (${err.message})`);
             else await message.followUp(`There was an error trying to send the soundtrack! (${err.message})`);
             console.error(err);
@@ -113,7 +113,7 @@ class DownloadCommand implements SlashCommand {
             if (result.error) return;
             if (result.msg) result.msg.edit({ content: "Getting your download ready...", embeds: [] });
             for (const song of result.songs) await this.download(message, serverQueue, song);
-        } catch (err) {
+        } catch (err: any) {
             await msgOrRes(message, "There was an error trying to download the soundtack!", true);
             console.error(err);
         }

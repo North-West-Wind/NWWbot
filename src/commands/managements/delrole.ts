@@ -26,7 +26,7 @@ class DelRoleCommand implements SlashCommand {
         try {
             await role.delete();
             return await interaction.reply({embeds: [embeds[0]]});
-        } catch (err) {
+        } catch (err: any) {
             return await interaction.reply({embeds: [embeds[1]]});
         }
     }
@@ -46,7 +46,7 @@ class DelRoleCommand implements SlashCommand {
         try {
             await role.delete();
             return await message.channel.send({embeds: [embeds[0]]});
-        } catch (err) {
+        } catch (err: any) {
             return await message.channel.send({embeds: [embeds[1]]});
         }
     }
