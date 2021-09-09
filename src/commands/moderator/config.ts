@@ -43,12 +43,12 @@ class ConfigCommand implements SlashCommand {
     const guild = interaction.guild;
     const author = interaction.user;
     const client = interaction.client;
-    const config = NorthClient.storage.guilds[guild.id];
+    var config = NorthClient.storage.guilds[guild.id];
     const generated = await ID();
     try {
       if (sub === "new" || !config?.token) await author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
       if (!config?.token) {
-        if (!config) await fixGuildRecord(guild.id);
+        if (!config) config = await fixGuildRecord(guild.id);
       } else if (config.token && sub !== "new") return await author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
       NorthClient.storage.guilds[guild.id].token = generated;
       await interaction.reply("See you in DM!");
@@ -62,13 +62,13 @@ class ConfigCommand implements SlashCommand {
   
   async run(message: NorthMessage, args: string[]) {
     const guild = message.guild;
-    const config = NorthClient.storage.guilds[guild.id];
+    var config = NorthClient.storage.guilds[guild.id];
     if (args[0] === "panel") return await this.panel(message);
     const generated = await ID();
     try {
       if (args[0] === "new" || !config?.token) await message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
       if (!config?.token) {
-        if (!config) await fixGuildRecord(guild.id);
+        if (!config) config = await fixGuildRecord(guild.id);
       } else if (config.token && args[0] !== "new") return await message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
       NorthClient.storage.guilds[guild.id].token = generated;
       await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);

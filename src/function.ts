@@ -620,7 +620,7 @@ export function requestYTDLStream(url: string, opts: downloadOptions & { timeout
 }
 
 export async function fixGuildRecord(id: Discord.Snowflake) {
-    if (NorthClient.storage.guilds[id]) return;
+    if (NorthClient.storage.guilds[id]) return NorthClient.storage.guilds[id];
     const [results] = <RowDataPacket[][]> await globalClient.pool.query("SELECT id FROM servers WHERE id = " + id);
     if (results.length > 0) {
         NorthClient.storage.guilds[results[0].id] = {};
@@ -654,4 +654,5 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
             NorthClient.storage.guilds[id] = {};
         } catch (err: any) { }
     }
+    return NorthClient.storage.guilds[id];
 }
