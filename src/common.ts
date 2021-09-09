@@ -40,8 +40,6 @@ export default async (client: NorthClient) => {
     NorthClient.storage.items.set(item.id, item);
   }
 
-  init();
-
   var pool = mysql.createPool(mysql_config).promise();
   pool.on("connection", con => con.on("error", async err => {
     if (["PROTOCOL_CONNECTION_LOST", "ECONNREFUSED", "ETIMEDOUT"].includes(err.code) || (err.message === "Pool is closed.")) try {
