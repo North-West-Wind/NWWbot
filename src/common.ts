@@ -4,7 +4,6 @@ import { NorthClient, Card, SlashCommand, Item } from "./classes/NorthClient";
 import { twoDigits, deepReaddir } from "./function";
 import * as mysql from "mysql2";
 import { RowDataPacket } from "mysql2";
-import { init } from "./helpers/addTrack";
 var globalClient: NorthClient;
 
 export default async (client: NorthClient) => {
@@ -39,8 +38,6 @@ export default async (client: NorthClient) => {
     const item = <Item>(await import(file)).default;
     NorthClient.storage.items.set(item.id, item);
   }
-
-  init();
 
   var pool = mysql.createPool(mysql_config).promise();
   pool.on("connection", con => con.on("error", async err => {
