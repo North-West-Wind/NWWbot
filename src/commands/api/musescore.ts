@@ -364,13 +364,13 @@ class MusescoreCommand implements SlashCommand {
         const IPNS_RS_URL = `https://ipfs.io/api/v0/dag/resolve?arg=/ipns/${IPNS_KEY}`;
         const r = await fetch(IPNS_RS_URL);
         if (!r.ok) return { error: true, err: "Received HTTP Status Code: " + r.status };
-        const json = await r.json();
+        const json = <any> await r.json();
         const mainCid = json.Cid['/'];
 
         const url = `https://ipfs.infura.io:5001/api/v0/block/stat?arg=/ipfs/${mainCid}/${data.id % 20}/${data.id}.mscz`;
         const r0 = await fetch(url);
         if (!r0.ok) return { error: true, err: "Received HTTP Status Code: " + r.status };
-        const cidRes = await r0.json();
+        const cidRes = <any> await r0.json();
         const cid = cidRes.Key
         if (!cid) {
             const err = cidRes.Message
