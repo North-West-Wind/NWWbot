@@ -10,7 +10,7 @@ import scdl from 'soundcloud-downloader/dist/index';
 import ytdl from "ytdl-core";
 import ytpl from "ytpl";
 import ytsr, { Video } from "ytsr";
-import { NorthInteraction } from "../classes/NorthClient";
+import { NorthClient, NorthInteraction } from "../classes/NorthClient";
 import { getFetch, decodeHtmlEntity, isGoodMusicVideoContent, validGDDLURL, color, msgOrRes } from "../function";
 import * as Stream from 'stream';
 import SpotifyWebApi from "spotify-web-api-node";

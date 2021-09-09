@@ -15,7 +15,6 @@ import fetch from "node-fetch";
 import * as filter from "./helpers/filter";
 import { sCategories } from "./commands/information/help";
 import common from "./common";
-import { init } from "./helpers/addTrack";
 
 const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
 
@@ -175,7 +174,6 @@ export class Handler {
         const id = client.id;
         console.log(`[${id}] Ready!`);
         this.setPresence(client);
-        init();
         const con = await pool.getConnection();
         try {
             await this.preRead(client, con);
