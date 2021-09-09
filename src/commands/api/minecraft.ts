@@ -5,6 +5,7 @@ import { Message, MessageEmbed } from "discord.js";
 import { curseforge, SimpleProject } from "aio-mc-api";
 import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
+import { e } from "mathjs";
 
 const fetch = getFetch();
 
@@ -106,7 +107,7 @@ class MinecraftCommand implements SlashCommand {
         } else if (sub === this.subcommands[1]) {
             const str = interaction.options.getString("ip");
             const url = `https://api.mcsrvstat.us/2/${encodeURIComponent(str)}`;
-            const res = <any> await fetch(url);
+            const res = await fetch(url);
             if (!res.ok) return await interaction.editReply("Received HTTP Status Code " + res.status);
             const body = await res.json();
             if (body.online) return await interaction.editReply({ embeds: [this.getServerEmbed(body, str)[0]], content: null });
@@ -131,7 +132,7 @@ class MinecraftCommand implements SlashCommand {
             const url = `https://api.mcsrvstat.us/2/${args.slice(1).join(" ")}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error("Received HTTP Status Code " + res.status);
-            const body = <any> await res.json();
+            const body = await res.json();
             if (body.online) {
                 const allEmbeds = this.getServerEmbed(body, args.slice(1).join(" "));
                 if (allEmbeds.length < 2) await message.channel.send({ embeds: [allEmbeds[0]] });

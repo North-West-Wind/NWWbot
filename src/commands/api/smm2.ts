@@ -40,7 +40,7 @@ class SMM2Command implements SlashCommand {
     }
 
     async getCourseEmbed(keywords) {
-        const courses = <any> await fetch(`https://api.smmdb.net/courses2?limit=100&title=${encodeURIComponent(keywords)}`).then(res => res.json());
+        const courses = await fetch(`https://api.smmdb.net/courses2?limit=100&title=${encodeURIComponent(keywords)}`).then(res => res.json());
         const allEmbeds = [];
         for (const course of courses) {
             const uploader = course.uploader;
