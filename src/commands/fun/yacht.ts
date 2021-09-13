@@ -86,9 +86,10 @@ class YachtCommand implements SlashCommand {
                         case "one":
                         case "ones":
                             if (scores["1s"].used) break;
-                            const score = dice.filter(x => x.number === 1).map(x => x.number).reduce((a, c) => a + c);
+                            const a = dice.filter(x => x.number === 1);
+                            const aa = a.length < 1 ? 0 : a.map(x => x.number).reduce((a, c) => a + c);
                             scores["1s"].used = true;
-                            scores["1s"].score = score;
+                            scores["1s"].score = aa;
                             success = true;
                             break;
                         case "2s":
@@ -96,9 +97,10 @@ class YachtCommand implements SlashCommand {
                         case "two":
                         case "twos":
                             if (scores["2s"].used) break;
-                            const a = dice.filter(x => x.number === 2).map(x => x.number).reduce((a, c) => a + c);
+                            const b = dice.filter(x => x.number === 2);
+                            const bb = b.length < 1 ? 0 : b.map(x => x.number).reduce((a, c) => a + c);
                             scores["2s"].used = true;
-                            scores["2s"].score = a;
+                            scores["2s"].score = bb;
                             success = true;
                             break;
                         case "3s":
@@ -106,9 +108,10 @@ class YachtCommand implements SlashCommand {
                         case "three":
                         case "threes":
                             if (scores["3s"].used) break;
-                            const b = dice.filter(x => x.number === 3).map(x => x.number).reduce((a, c) => a + c);
+                            const c = dice.filter(x => x.number === 3);
+                            const cc = c.length < 1 ? 0 : c.map(x => x.number).reduce((a, c) => a + c);
                             scores["3s"].used = true;
-                            scores["3s"].score = b;
+                            scores["3s"].score = cc;
                             success = true;
                             break;
                         case "4s":
@@ -116,9 +119,10 @@ class YachtCommand implements SlashCommand {
                         case "four":
                         case "fours":
                             if (scores["4s"].used) break;
-                            const c = dice.filter(x => x.number === 4).map(x => x.number).reduce((a, c) => a + c);
+                            const d = dice.filter(x => x.number === 4);
+                            const dd = d.length < 1 ? 0 : d.map(x => x.number).reduce((a, c) => a + c);
                             scores["4s"].used = true;
-                            scores["4s"].score = c;
+                            scores["4s"].score = dd;
                             success = true;
                             break;
                         case "5s":
@@ -126,9 +130,10 @@ class YachtCommand implements SlashCommand {
                         case "five":
                         case "fives":
                             if (scores["5s"].used) break;
-                            const d = dice.filter(x => x.number === 5).map(x => x.number).reduce((a, c) => a + c);
+                            const e = dice.filter(x => x.number === 5);
+                            const ee = e.length < 1 ? 0 : e.map(x => x.number).reduce((a, c) => a + c);
                             scores["5s"].used = true;
-                            scores["5s"].score = d;
+                            scores["5s"].score = ee;
                             success = true;
                             break;
                         case "6s":
@@ -136,16 +141,17 @@ class YachtCommand implements SlashCommand {
                         case "six":
                         case "sixs":
                             if (scores["6s"].used) break;
-                            const e = dice.filter(x => x.number === 6).map(x => x.number).reduce((a, c) => a + c);
+                            const f = dice.filter(x => x.number === 6);
+                            const ff = f.length < 1 ? 0 : f.map(x => x.number).reduce((a, c) => a + c);
                             scores["6s"].used = true;
-                            scores["6s"].score = e;
+                            scores["6s"].score = ff;
                             success = true;
                             break;
                         case "bonus":
                             if (scores.bonus.used) break;
-                            const f = Object.values(scores).slice(0, 6).map(x => x.score).reduce((a, c) => a + c);
+                            const g = Object.values(scores).slice(0, 6).map(x => x.score).reduce((a, c) => a + c);
                             scores.bonus.used = true;
-                            scores.bonus.score = f > 63 ? 35 : 0;
+                            scores.bonus.score = g > 63 ? 35 : 0;
                             success = true;
                             break;
                         case "triple":
@@ -202,8 +208,8 @@ class YachtCommand implements SlashCommand {
                         case "5 straight":
                         case "5str":
                             if (scores["5str"].used) break;
-                            const g = Array.from(new Set(dice.map(x => x.number).sort()));
-                            if (sequceIsConsecutive(g)) scores["5str"].score = 40;
+                            const h = Array.from(new Set(dice.map(x => x.number).sort()));
+                            if (sequceIsConsecutive(h)) scores["5str"].score = 40;
                             scores["5str"].used = true;
                             success = true;
                             break;
