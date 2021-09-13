@@ -71,11 +71,9 @@ class YachtCommand implements SlashCommand {
                     break;
                 case "lock":
                     await mesg.delete();
-                    if (!args[0]) break;
                     for (let o = 0; o < args.length; o++) {
                         const index = parseInt(args[o]) - 1;
                         if (isNaN(index) || !(0 <= index && index <= 4)) continue;
-                        if (dice[index]) continue;
                         dice[index].locked = !dice[index].locked;
                     }
                     break;
