@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, ServerQueue, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, ServerQueue, SlashCommand, SoundTrack } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { color, createEmbedScrolling, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
@@ -180,13 +180,13 @@ class QueueCommand implements SlashCommand {
         var num = 0;
         const allEmbeds = [];
         for (const result of results) {
-            const queue = JSON.parse(unescape(result.queue));
+            const queue = <SoundTrack[]> JSON.parse(unescape(result.queue));
             queues.push(`${++num}. **${result.name}** : **${queue.length} tracks**`);
             var queueNum = 0;
             var pageArray = queue.map(song => {
-                var str;
-                if (song.type === 0 || song.type === 2 || song.type === 3 || !song.type) str = `**${++queueNum} - ** **[${song.title}](${song.url})** : **${song.time}**`;
-                else if (song.type === 1) str = `**${++queueNum} - ** **[${song.title}](${song.spot})** : **${song.time}**`;
+                var str: string;
+                if (song.type === 1) str = `**${++queueNum} - ** **[${song.title}](${song.spot})** : **${song.time}**`;
+                else str = `**${++queueNum} - ** **[${song.title}](${song.url})** : **${song.time}**`;
                 return str;
             }).slice(0, 10);
             const queueEmbed = new Discord.MessageEmbed()
