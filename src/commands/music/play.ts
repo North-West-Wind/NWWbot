@@ -137,7 +137,13 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         if (c.error) throw new Error(c.message);
         if (c.url.startsWith("https://www.youtube.com/embed/")) {
           const ytid = c.url.split("/").slice(-1)[0].split("?")[0];
-          stream = <Stream.Readable> ytdl(`https://www.youtube.com/watch?v=${ytid}`, <downloadOptions> { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 });
+          const options = <any> { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 };
+          if (process.env.COOKIE) {
+            options.requestOptions = {};
+            options.requestOptions.headers = { cookie: process.env.COOKIE };
+            if (process.env.YT_TOKEN) options.requestOptions.headers["x-youtube-identity-token"] = process.env.YT_TOKEN;
+          }
+          stream = <Stream.Readable> ytdl(`https://www.youtube.com/watch?v=${ytid}`, options);
         } else stream = <Stream.Readable> (await requestStream(c.url)).data;
         break;
       case 7:
@@ -159,8 +165,15 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         stream = j;
         break;
       default:
-        if (!song?.isPastLive) stream = ytdl(song.url, <downloadOptions> { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
-        else stream = ytdl(song.url, { highWaterMark: 1 << 25 });
+        const options = <any> {};
+        if (process.env.COOKIE) {
+          options.requestOptions = {};
+          options.requestOptions.headers = { cookie: process.env.COOKIE };
+          if (process.env.YT_TOKEN) options.requestOptions.headers["x-youtube-identity-token"] = process.env.YT_TOKEN;
+        }
+        if (!song?.isPastLive) Object.assign(options, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
+        else Object.assign(options, { highWaterMark: 1 << 25 });
+        stream = ytdl(song.url, options);
         if (!stream) throw new Error("Failed to get YouTube video stream.");
         break;
     }

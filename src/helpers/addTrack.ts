@@ -98,7 +98,13 @@ export async function addYTPlaylist(link: string) {
 }
 export async function addYTURL(link: string, type: number = 0) {
     try {
-        var songInfo = await ytdl.getInfo(link);
+        const options = <any> {};
+        if (process.env.COOKIE) {
+          options.requestOptions = {};
+          options.requestOptions.headers = { cookie: process.env.COOKIE };
+          if (process.env.YT_TOKEN) options.requestOptions.headers["x-youtube-identity-token"] = process.env.YT_TOKEN;
+        }
+        var songInfo = await ytdl.getInfo(link, options);
     } catch (err: any) {
         console.error(err);
         return { error: true, message: "Failed to get video data!", msg: null, songs: [] };
