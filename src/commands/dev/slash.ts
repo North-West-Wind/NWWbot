@@ -42,7 +42,7 @@ class DevSlashCommand implements SlashCommand {
                 console.error(err);
             }
         }
-        await msgOrRes(message, "Registered all Slash Commands.", true);
+        await msgOrRes(message, "Registered all Slash Commands.");
     }
 }
 

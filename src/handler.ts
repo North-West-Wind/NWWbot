@@ -6,7 +6,6 @@ formatSetup(moment);
 import { RowDataPacket } from "mysql2";
 import { endGiveaway } from "./commands/miscellaneous/giveaway";
 import { endPoll } from "./commands/miscellaneous/poll";
-import { expire } from "./commands/managements/role-message";
 import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, wait, nameToUuid, color, fixGuildRecord } from "./function";
 import { setQueue, stop } from "./helpers/music";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer } from "./classes/NorthClient";
@@ -128,10 +127,9 @@ export class Handler {
     }
 
     async readRoleMsg(client: NorthClient, con: PoolConnection) {
-        const [res] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434' ORDER BY expiration");
+        const [res] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434'");
         console.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
         NorthClient.storage.rm = <RoleMessage[]>res;
-        res.forEach(async result => expire({ pool: client.pool, client }, result.expiration - Date.now(), result.id));
     }
 
     async readGiveaways(client: NorthClient, con: PoolConnection) {

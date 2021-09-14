@@ -46,16 +46,16 @@ class AddCommand implements SlashCommand {
             else if (validURL(str)) result = await addURL(str);
             else if (message instanceof Message && message.attachments.size > 0) result = await addAttachment(message);
             else result = await search(message, str);
-            if (result.error) return await msgOrRes(message, result.message || "Failed to add soundtrack", true);
+            if (result.error) return await msgOrRes(message, result.message || "Failed to add soundtrack");
             songs = result.songs;
-            if (!songs || songs.length < 1) return await msgOrRes(message, "There was an error trying to add the soundtrack!", true);
+            if (!songs || songs.length < 1) return await msgOrRes(message, "There was an error trying to add the soundtrack!");
             const Embed = createEmbed(songs);
             if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, songs, false, false);
             else serverQueue.songs = serverQueue.songs.concat(songs);
             updateQueue(message.guild.id, serverQueue);
             var msg: Message;
             if (result.msg) msg = await result.msg.edit({ content: null, embed: Embed });
-            else msg = await msgOrRes(message, Embed, true);
+            else msg = await msgOrRes(message, Embed);
             await wait(30000);
             await msg.edit({ embeds: [], content: `**[Added Track: ${songs.length > 1 ? songs.length + " in total" : songs[0].title}]**` });
         } catch(err) {

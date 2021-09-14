@@ -155,7 +155,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                 }
             }
             await checkAll();
-            var mesg = await msgOrRes(message, `Processing track: **0/${tracks.length}**`, true);
+            var mesg = await msgOrRes(message, `Processing track: **0/${tracks.length}**`);
             for (const track of <SpotifyApi.PlaylistTrackObject[]> tracks) {
                 await mesg.edit(`Processing track: **${++counter}/${tracks.length}**`).catch(() => { });
                 var results = [];
@@ -207,7 +207,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                 const data = await spotifyApi.getTracks([musicID]);
                 tracks = data.body.tracks;
             }
-            var mesg = await msgOrRes(message, `Processing track: **0/${tracks.length}**`, true);
+            var mesg = await msgOrRes(message, `Processing track: **0/${tracks.length}**`);
             for (const track of <SpotifyApi.TrackObjectFull[]> tracks) {
                 await mesg.edit(`Processing track: **${++counter}/${tracks.length}**`).catch(() => { });
                 var results = [];
@@ -454,7 +454,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
         var video = <Video[]> searched.items.filter(x => x.type === "video" && !x.isUpcoming);
     } catch (err: any) {
         console.error(err);
-        await msgOrRes(message, "There was an error trying to search the videos!", true);
+        await msgOrRes(message, "There was an error trying to search the videos!");
         return { error: true, msg: null, songs: [], message: err.message };
     }
     const ytResults = video.map(x => ({
@@ -486,7 +486,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
         num = 0;
     } catch (err: any) {
         console.error(err);
-        await msgOrRes(message, "There was an error trying to search the videos!", true);
+        await msgOrRes(message, "There was an error trying to search the videos!");
         return { error: true, msg: null, songs: [], message: err.message };
     }
     const scResults = (<TrackInfo[]> scSearched.collection).map(x => ({
@@ -504,12 +504,12 @@ export async function search(message: Message | NorthInteraction, link: string) 
         allEmbeds.push(scEm);
     }
     if (allEmbeds.length < 1) {
-        await msgOrRes(message, "Cannot find any result with the given string.", true);
+        await msgOrRes(message, "Cannot find any result with the given string.");
         return { error: true, msg: null, songs: [], message: null };
     }
     var val = { error: true, songs: [], msg: null, message: null };
     var s = 0;
-    var msg = <Message> await msgOrRes(message, allEmbeds[0], true);
+    var msg = <Message> await msgOrRes(message, allEmbeds[0]);
     const filter = x => x.author.id === (message instanceof Message ? message.author : message.user).id;
     const collector = await msg.channel.createMessageCollector({ filter, idle: 60000 });
     collector.on("collect", async collected => {

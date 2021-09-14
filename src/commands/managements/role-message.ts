@@ -1,38 +1,16 @@
-import { GuildMember, Message, Snowflake, TextChannel } from "discord.js";
-import moment from "moment";
+import { GuildMember, Message, TextChannel } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { setTimeout_, genPermMsg, findRole } from "../../function";
+import { genPermMsg, findRole, msgOrRes } from "../../function";
 import { globalClient as client } from "../../common";
 import { RowDataPacket } from "mysql2";
-import { Pool } from "mysql2/promise";
-
-export async function expire(message: NorthMessage | NorthInteraction | { pool: Pool, client: NorthClient }, length: number, id: Snowflake) {
-    setTimeout_(async () => {
-        const con = await message.pool.getConnection();
-        try {
-            var [results] = await con.query(`SELECT expiration, channel FROM rolemsg WHERE id = '${id}'`);
-            if (!results[0]) throw new Error("No results");
-            const date = Date.now();
-            if (results[0].expiration - date <= 0) {
-                await con.query(`DELETE FROM rolemsg WHERE id = '${id}'`);
-                const channel = <TextChannel> await message.client.channels.fetch(results[0].channel);
-                const msg = await channel.messages.fetch(results[0].id);
-                msg.reactions.removeAll().catch(() => { });
-            } else expire(message, results[0].expiration - date, id);
-        } catch (err: any) {
-            console.error(err);
-        }
-        con.release();
-    }, length);
-}
 
 class RoleMessageCommand implements SlashCommand {
     name = "role-message"
-    description = "Manage messages for users to react and join a role."
+    description = "Manage messages for users to react and join a role. Deleting the message will cancel the role-message."
     usage = "<subcommand>"
-    subcommands = ["create", "refresh"]
-    subdesc = ["Create a role-message.", "Refresh an existing role-message."]
+    subcommands = ["create"]
+    subdesc = ["Create a role-message."]
     subusage = [null, "<subcommand> <ID>"]
     subaliases = ["cr", "re"]
     aliases = ["role-msg", "rm"]
@@ -44,32 +22,21 @@ class RoleMessageCommand implements SlashCommand {
             name: "create",
             description: "Create a new role-message.",
             type: "SUB_COMMAND"
-        },
-        {
-            name: "refresh",
-            description: "Refresh an existing role-message.",
-            type: "SUB_COMMAND",
-            options: [{
-                name: "message",
-                description: "The ID of the role-message.",
-                required: true,
-                type: "STRING"
-            }]
         }
     ];
 
     async execute(interaction: NorthInteraction) {
         const sub = interaction.options.getSubcommand();
         if (sub === "create") return await this.create(interaction);
-        if (sub === "refresh") return await this.refresh(interaction, interaction.options.getString("message"));
     }
 
     async run(message: NorthMessage, args: string[]) {
         if (args[0] === "create" || args[0] === "cr") return await this.create(message);
-        if (args[0] === "refresh" || args[0] === "re") return await this.refresh(message, args[1]);
     }
 
     async create(message: NorthMessage | NorthInteraction) {
+        const [results] = <RowDataPacket[][]> await message.pool.query(`SELECT guild FROM rolemsg WHERE guild = '${message.guildId}'`);
+        if (results.length > 5) return await msgOrRes(message, "You already have 5 role-messages! Try deleting some for this to work!");
         const author = message.member.user;
         var msg = <Message> (message instanceof Message ? await message.channel.send("Please enter the message you want to send.") : await message.reply({ content: "Please enter the message you want to send.", fetchReply: true }));
         const collected = await message.channel.awaitMessages({ filter: x => x.author.id === author.id, time: 120000, max: 1 });
@@ -140,33 +107,12 @@ class RoleMessageCommand implements SlashCommand {
             emojis: JSON.stringify(emojis)
         });
         try {
-            await client.pool.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${author.id}', '${moment(expiration).format("YYYY-MM-DD HH:mm:ss")}', '${JSON.stringify(roles)}', '${JSON.stringify(emojis)}')`);
-            await message.channel.send("Successfully created record for message. The message will expire after 7 days.");
-            expire(message, 7 * 24 * 3600 * 1000, mesg.id);
+            await client.pool.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${author.id}', '${JSON.stringify(roles)}', '${JSON.stringify(emojis)}')`);
+            await message.channel.send(`Successfully created record for message. Role-messages used on this server: **${results.length}/5**`);
         } catch (err: any) {
             console.error(err);
             await message.reply("there was an error trying to record the message!");
         }
-    }
-
-    async refresh(message: NorthMessage | NorthInteraction, id: string) {
-        const author = message.member.user;
-        const con = await client.pool.getConnection();
-        try {
-            var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM rolemsg WHERE id = '${id}' AND guild = '${message.guild.id}' AND author = '${author.id}'`);
-            if (results.length == 0) {
-                if (message instanceof Message) await message.channel.send("No message was found with that ID!");
-                else await message.reply("No message was found with that ID!");
-            } else {
-                await con.query(`UPDATE rolemsg SET expiration = '${moment(Date.now() + (7 * 24 * 3600 * 1000)).format("YYYY-MM-DD HH:mm:ss")}' WHERE id = '${results[0].id}'`);
-                if (message instanceof Message) await message.channel.send("The message has been refreshed. It will last for 7 more days.");
-                else await message.reply("The message has been refreshed. It will last for 7 more days.");
-            }
-        } catch (err: any) {
-            console.error(err);
-            await message.reply("there was an error while refreshing the message!");
-        }
-        con.release();
     }
 }
 

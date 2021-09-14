@@ -54,14 +54,14 @@ class DownloadCommand implements SlashCommand {
                     song = result.songs[0];
                     serverQueue.songs[0] = song;
                     updateQueue(message.guild.id, serverQueue);
-                    if (song?.isLive) return await msgOrRes(message, "Livestream downloading is not supported and recommended! Come back later when the livestream is over.", true);
+                    if (song?.isLive) return await msgOrRes(message, "Livestream downloading is not supported and recommended! Come back later when the livestream is over.");
                 }
             }
         } catch (err: any) {
             console.error(err);
-            return await msgOrRes(message, `There was an error trying to download the soundtrack!`, true);
+            return await msgOrRes(message, `There was an error trying to download the soundtrack!`);
         }
-        const msg = <Discord.Message> await msgOrRes(message, `Downloading... (Soundtrack Type: **Type ${song.type}**)`, true);
+        const msg = <Discord.Message> await msgOrRes(message, `Downloading... (Soundtrack Type: **Type ${song.type}**)`);
         let stream;
         try {
             switch (song.type) {
@@ -108,15 +108,15 @@ class DownloadCommand implements SlashCommand {
             else if (validYTURL(link)) result = await addYTURL(link);
             else if (validSPURL(link)) result = await addSPURL(message, link);
             else if (validSCURL(link)) result = await addSCURL(link);
-            else if (validGDURL(link)) return await msgOrRes(message, "Wait, you should be able to access this file?", true);
+            else if (validGDURL(link)) return await msgOrRes(message, "Wait, you should be able to access this file?");
             else if (validMSURL(link)) result = await addMSURL(link);
-            else if (validURL(link)) return await msgOrRes(message, "Wait, you should be able to access this file?", true);
+            else if (validURL(link)) return await msgOrRes(message, "Wait, you should be able to access this file?");
             else result = await search(message, link);
             if (result.error) return;
             if (result.msg) result.msg.edit({ content: "Getting your download ready...", embeds: [] });
             for (const song of result.songs) await this.download(message, serverQueue, song);
         } catch (err: any) {
-            await msgOrRes(message, "There was an error trying to download the soundtack!", true);
+            await msgOrRes(message, "There was an error trying to download the soundtack!");
             console.error(err);
         }
     }
