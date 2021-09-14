@@ -11,7 +11,6 @@ class AddCommand implements SlashCommand {
     description = "Add soundtracks to the queue without playing it."
     usage = "[link | keywords]"
     category = 8
-    args = 1
     options = [{
         name: "link",
         description: "The link of the soundtrack.",
@@ -32,7 +31,7 @@ class AddCommand implements SlashCommand {
         var serverQueue = getQueues().get(message.guild.id);
         try {
             var songs = [];
-            var result = { error: true, message: "Unknown Error", songs: [], msg: null };
+            var result = { error: true, message: "No link/keywords/attachments!", songs: [], msg: null };
             if (validYTPlaylistURL(str)) result = await addYTPlaylist(str);
             else if (validYTURL(str)) result = await addYTURL(str);
             else if (validSPURL(str)) result = await addSPURL(message, str);
