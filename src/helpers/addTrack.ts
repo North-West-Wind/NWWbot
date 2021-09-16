@@ -28,6 +28,12 @@ export function init() {
         clientId: process.env.SPOTID,
         clientSecret: process.env.SPOTSECRET
     });
+    async function fetchToken() {
+        const d = await spotifyApi.clientCredentialsGrant();
+        spotifyApi.setAccessToken(d.body.access_token);
+        setTimeout(fetchToken, d.body.expires_in * 1000);
+    }
+    fetchToken();
 }
 
 export async function addAttachment(message: Message) {
@@ -135,11 +141,6 @@ export async function addYTURL(link: string, type: number = 0) {
     return { error: false, songs: songs, msg: null, message: null };
 }
 export async function addSPURL(message: Message | NorthInteraction, link: string) {
-    const d = await spotifyApi.clientCredentialsGrant();
-    spotifyApi.setAccessToken(d.body.access_token);
-    spotifyApi.setRefreshToken(process.env.SPOTREFRESH);
-    const refreshed = await spotifyApi.refreshAccessToken();
-    spotifyApi.setAccessToken(refreshed.body.access_token);
     var url_array = link.replace("https://", "").split("/");
     var musicID = url_array[2].split("?")[0];
     var highlight = false;
