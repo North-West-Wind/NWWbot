@@ -1,4 +1,4 @@
-import { GuildMember, Message, TextChannel } from "discord.js";
+import { GuildMember, Message, MessageEmbed, Role, TextChannel } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { genPermMsg, findRole, msgOrRes } from "../../function";
@@ -63,9 +63,9 @@ class RoleMessageCommand implements SlashCommand {
         if (!collected3.first().content) return await msg.edit("Did not receive any role! Action cancelled.");
         if (collected3.first().content === "cancel") return msg.edit("Action cancelled.");
         if (collected3.first().content === "no") return msg.edit("Hey! That's rude!");
-        const roles = [];
+        const roles: Role[][] = [];
         for (const str of collected3.first().content.split("\n")) {
-            const roless = [];
+            const roless: Role[] = [];
             for (const stri of str.split(/ +/)) {
                 const role = await findRole(message, stri);
                 if (!role) return;
@@ -83,12 +83,18 @@ class RoleMessageCommand implements SlashCommand {
         if (collected4.first().content === "cancel") return await msg.edit("Action cancelled.");
         collected4.first().delete();
         var emojis = collected4.first().content.split("\n");
-        var mesg = await channel.send(pendingMsg);
-        emojis.map(emoji => {
+        emojis = emojis.map(emoji => {
             const id = emoji.match(/\d+/g);
             if (!Array.isArray(id)) return emoji;
             else return id[id.length - 1];
         });
+        const roleIndexes = new MessageEmbed()
+            .setTitle("Role Index")
+            .addField("Reaction", emojis.join("\n"), true)
+            .addField("Role(s)", roles.map(roless => roless.map(r => `<@&${r.id}>`)).join("\n"), true)
+            .setTimestamp()
+            .setFooter("React to claim your role.", message.client.user.displayAvatarURL());
+        var mesg = await channel.send({ content: pendingMsg, embeds: [roleIndexes] });
         try {
             for (const emoji of emojis) await mesg.react(emoji);
         } catch (err: any) {
