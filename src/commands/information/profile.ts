@@ -1,7 +1,5 @@
-import moment from "moment";
-
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { findMember, color, createEmbedScrolling, readableDateTime } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { findMember, color, readableDateTime } from "../../function";
 import * as Discord from "discord.js";
 
 class ProfileCommand implements SlashCommand {
@@ -20,7 +18,7 @@ class ProfileCommand implements SlashCommand {
     async execute(interaction: NorthInteraction) {
         if (!interaction.guild) return await interaction.reply("This command only works on server.");
         const member = <Discord.GuildMember> interaction.options.getMember("user") || await (<Discord.GuildMember> interaction.member).fetch();
-        await interaction.reply({embeds: [this.createProfileEmbed(member)]});
+        await interaction.reply({ embeds: [this.createProfileEmbed(member)] });
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -29,24 +27,7 @@ class ProfileCommand implements SlashCommand {
         if (args[0]) member = await findMember(message, args[0]);
         else await member.fetch();
         if (!member) return;
-        const Embed = this.createProfileEmbed(member);
-        if (!Embed) return await message.channel.send("Something went wrong while creating the embed!");
-        const allEmbeds = [Embed];
-        if (member.presence.activities.length > 0) {
-            const activityEm = new Discord.MessageEmbed()
-                .setTitle("Presence of " + member.displayName)
-                .setTimestamp()
-                .setColor(color())
-                .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-            for (const activity of member.presence.activities) {
-                const time = Date.now() - activity.createdTimestamp;
-                const sec = time / 1000;
-                activityEm.addField(activity.type.replace(/_/g, " "), `Name: **${activity.name}**\nDuration: ${moment.duration(sec, "seconds").format()}`);
-            }
-            allEmbeds.push(activityEm);
-        }
-        if (allEmbeds.length == 1) await message.channel.send({embeds: [Embed]});
-        else await createEmbedScrolling(message, allEmbeds);
+        await message.channel.send({ embeds: [this.createProfileEmbed(member)] });
     }
 
     createProfileEmbed(member: Discord.GuildMember) {
@@ -58,7 +39,7 @@ class ProfileCommand implements SlashCommand {
         const createdAt = user.createdAt;
         const joinedAt = member.joinedAt;
         const nick = member.displayName;
-        const status = member.presence?.status || "unknown";
+        const premium = member.premiumSince;
         const createdTime = readableDateTime(createdAt);
         const joinedTime = readableDateTime(joinedAt);
         const Embed = new Discord.MessageEmbed()
@@ -67,7 +48,7 @@ class ProfileCommand implements SlashCommand {
             .setThumbnail(user.displayAvatarURL())
             .addField("ID", id, true)
             .addField("Username", tag, true)
-            .addField("Status", status, true)
+            .addField("Premium", premium ? readableDateTime(premium) : "False", true)
             .addField("Nickname", nick, true)
             .addField("Created", createdTime, true)
             .addField("Joined", joinedTime, true)

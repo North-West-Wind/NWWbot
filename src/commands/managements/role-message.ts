@@ -66,7 +66,7 @@ class RoleMessageCommand implements SlashCommand {
         const roles: Snowflake[][] = [];
         for (const str of collected3.first().content.split("\n")) {
             const roless: Snowflake[] = [];
-            for (const stri of str.split(/ +/)) {
+            for (const stri of str.split(/ +/).filter(x => !!x)) {
                 const role = await findRole(message, stri);
                 if (!role) continue;
                 const highest = message.guild.me.roles.highest.position;

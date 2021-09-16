@@ -189,8 +189,8 @@ export function decimalToRgb(decimal) {
         b: decimal & 0xff,
     };
 }
-export function readableDate(date) { return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear}`; }
-export function readableDateTime(date) {
+export function readableDate(date: Date) { return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear}`; }
+export function readableDateTime(date: Date) {
     const day = date.getDate();
     const month = date.getMonth();
     const year = date.getFullYear();
