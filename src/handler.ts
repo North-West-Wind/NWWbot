@@ -556,7 +556,7 @@ export class AliceHandler extends Handler {
                         .setDescription(description)
                         .setTimestamp()
                         .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
-                    timerMsg.edit({ content: null, embeds: [em] });
+                    await timerMsg.edit({ content: null, embeds: [em] });
                 } else {
                     const allEmbeds = [];
                     for (let i = 0; i < Math.ceil(tmp.length / 10); i++) {
@@ -573,7 +573,7 @@ export class AliceHandler extends Handler {
                             .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
                         allEmbeds.push(em);
                     }
-                    const filter = (reaction) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name);
+                    const filter = (reaction: MessageReaction) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name);
                     var msg = await timerMsg.edit({ content: null, embeds: [allEmbeds[0]] });
                     var s = 0;
                     await msg.react("⏮");
