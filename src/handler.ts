@@ -522,7 +522,7 @@ export class AliceHandler extends Handler {
                 conn.release();
             }, endAfter);
         });
-        /*const [gtimers] = <RowDataPacket[][]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
+        const [gtimers] = <RowDataPacket[][]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
         NorthClient.storage.gtimers = <GuildTimer[]> gtimers;
         setInterval(async () => {
             try {
@@ -615,7 +615,7 @@ export class AliceHandler extends Handler {
                     collector.on("end", () => msg.reactions.removeAll().catch(() => {}));
                 }
             } catch (err: any) {}
-        }, 60000);*/
+        }, 60000);
     }
 
     async readGiveaways(client: NorthClient, con: Connection) {
