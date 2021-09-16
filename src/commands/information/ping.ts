@@ -13,10 +13,10 @@ class PingCommand implements SlashCommand {
   }
 
   async run(message: NorthMessage) {
-    const msgDate = new Date(message.createdTimestamp).getTime();
+    const msgDate = new Date(message.createdTimestamp);
     const msgTime = readableDateTime(msgDate)
 
-    const currentDate = Date.now();
+    const currentDate = new Date();
     const currentTime = readableDateTime(currentDate);
 
     const Embed = new Discord.MessageEmbed()
@@ -24,7 +24,7 @@ class PingCommand implements SlashCommand {
       .setTitle("Ping")
       .addField("Message sent", "`" + msgTime + "`")
       .addField("Message received", "`" + currentTime + "`")
-      .addField("Ping", "`" + (currentDate - msgDate) + "ms`")
+      .addField("Ping", "`" + (currentDate.getTime() - msgDate.getTime()) + "ms`")
       .setTimestamp()
       .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
     await message.channel.send({embeds: [Embed]});
