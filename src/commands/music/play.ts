@@ -94,7 +94,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
   }
   if (!song || !serverQueue.voiceChannel) {
     serverQueue.playing = false;
-    if (guild.me.voice?.channel) serverQueue.connection.destroy();
+    if (guild.me.voice?.channel) serverQueue.destroy();
     return updateQueue(guild.id, serverQueue);
   }
   if (!serverQueue.player) {
