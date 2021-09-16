@@ -388,9 +388,7 @@ export class Handler {
             const guild = await user.client.guilds.fetch(roleMessage.guild);
             const member = await guild.members.fetch(user.id);
             if (index > -1) await member.roles.add(JSON.parse(roleMessage.roles)[index]);
-        } catch (err: any) {
-            console.error(err);
-        }
+        } catch (err: any) {}
     }
 
     async messageReactionRemove(r: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
@@ -405,9 +403,7 @@ export class Handler {
             const guild = await r.message.client.guilds.fetch(roleMessage.guild);
             const member = await guild.members.fetch(user.id);
             if (index > -1) await member.roles.remove(JSON.parse(roleMessage.roles)[index]);
-        } catch (err: any) {
-            console.error(err);
-        }
+        } catch (err: any) {}
     }
 
     async messageDelete(message: Message | PartialMessage) {
