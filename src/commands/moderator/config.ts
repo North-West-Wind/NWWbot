@@ -353,7 +353,6 @@ class ConfigCommand implements SlashCommand {
         await msgCollected.first().delete();
         const collectedArgs = msgCollected.first().content ? msgCollected.first().content.split(/ +/) : ["this is not a number"];
         var roles = [];
-        msgCollected.first().delete();
 
         for (var i = 0; i < collectedArgs.length; i++) {
           if (isNaN(parseInt(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, "")))) {

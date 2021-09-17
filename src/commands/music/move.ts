@@ -43,15 +43,15 @@ class MoveCommand implements SlashCommand {
         if (((<GuildMember> message.member).voice.channelId !== message.guild.me.voice.channelId) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to alter the queue when the bot is playing!");
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (serverQueue.songs.length < 1) return await msgOrRes(message, "There is nothing in the queue.");
-        var targetIndex = queueIndex - 1;
-        var destIndex = dest - 1;
-        if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing) serverQueue.stop();
+        const targetIndex = queueIndex - 1;
+        const destIndex = dest - 1;
         if (targetIndex > serverQueue.songs.length - 1) return await msgOrRes(message, `You cannot move a soundtrack that doesn't exist.`);
-        var title = serverQueue.songs[targetIndex].title;
+        const title = serverQueue.songs[targetIndex].title;
         mutate(serverQueue.songs, targetIndex, destIndex);
         updateQueue(message.guild.id, serverQueue);
         await msgOrRes(message, `**${title}** has been moved from **#${queueIndex}** to **#${dest}**.`);
-        if ((targetIndex === 0 || destIndex === 0) && serverQueue.playing) {
+        if ((!targetIndex || !destIndex) && serverQueue.playing) {
+            serverQueue.stop();
             if (!serverQueue.random) await play(message.guild, serverQueue.songs[0]);
             else {
                 const int = Math.floor(Math.random() * serverQueue.songs.length);
