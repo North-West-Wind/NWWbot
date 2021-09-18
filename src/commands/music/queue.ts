@@ -206,7 +206,7 @@ class QueueCommand implements SlashCommand {
             .setTimestamp()
             .setFooter("React to the numbers to view your queue.", client.user.displayAvatarURL());
         allEmbeds.unshift(em);
-        var msg = await message.channel.send({embeds: [em]});
+        var msg = await msgOrRes(message, {embeds: [em]});
         for (let i = 0; i < Math.min(num, 10); i++) {
             await msg.react(emojis[i]);
             available.push(emojis[i]);
@@ -234,7 +234,7 @@ class QueueCommand implements SlashCommand {
         });
         collector.on("end", function () {
             msg.reactions.removeAll().catch(() => {});
-            msg.edit({embeds: [allEmbeds[0]]});
+            msg.edit({embeds: [allEmbeds[0]]}).catch(() => {});
             setTimeout(() => msg.edit({ embeds: [], content: `**[Queues: ${results.length}/10 slots used]**` }).catch(() => {}), 60000);
         });
     }
@@ -245,7 +245,7 @@ class QueueCommand implements SlashCommand {
         const author = message.member.user;
         if (serverQueue && serverQueue.playing) return await msgOrRes(message, "Someone is listening to the music. Don't ruin their day.");
         if (!name) return await msgOrRes(message, "Please provide the name or ID of the server.");
-        const g = await client.guilds.cache.find(x => x.name.toLowerCase() === name.toLowerCase() || x.id == name);
+        const g = client.guilds.cache.find(x => x.name.toLowerCase() === name.toLowerCase() || x.id == name);
         if (!g) return await msgOrRes(message, "I cannot find that server! Maybe I am not in that server?");
         try {
             await g.members.fetch(author.id);
