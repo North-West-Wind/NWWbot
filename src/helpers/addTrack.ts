@@ -262,7 +262,6 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
             for (const track of <SpotifyApi.TrackObjectFull[]> tracks) {
                 var resultss;
                 try {
-                    console.log(`${track.artists[0].name} - ${track.name}`)
                     const searched = await ytsr(`${track.artists[0].name} - ${track.name}`, { limit: 20 });
                     resultss = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
                     if (resultss.length < 1) {
