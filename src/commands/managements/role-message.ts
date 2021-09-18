@@ -82,11 +82,7 @@ class RoleMessageCommand implements SlashCommand {
         if (!collected4.first().content) return await msg.edit("Did not receive any emoji! Action cancelled.");
         if (collected4.first().content === "cancel") return await msg.edit("Action cancelled.");
         var emojis = collected4.first().content.split("\n");
-        emojis = emojis.map(emoji => {
-            const id = emoji.match(/<:\w+:\d+>/g);
-            if (!Array.isArray(id)) return emoji;
-            else return id[id.length - 1];
-        });
+        emojis = emojis.map(emoji => emoji.replace(/ +/g, ""));
         const roleIndexes = new MessageEmbed()
             .setTitle("Role Index")
             .addField("Reaction", emojis.join("\n"), true)
