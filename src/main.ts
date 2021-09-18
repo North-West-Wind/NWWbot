@@ -4,7 +4,7 @@ import { NorthClient, ClientStorage } from "./classes/NorthClient";
 import { Intents, Options } from "discord.js";
 dotenv.config();
 
-const prefix = "?";
+const { prefix0 } = require("../config.json");
 const client = new NorthClient({
     restRequestTimeout: 60000,
     makeCache: Options.cacheWithLimits({
@@ -25,6 +25,6 @@ const client = new NorthClient({
 client.log = "678847137391312917";
 NorthClient.storage = new ClientStorage(client);
 
-client.prefix = prefix;
+client.prefix = prefix0;
 client.id = 0;
 Handler.setup(client, process.env.TOKEN0);

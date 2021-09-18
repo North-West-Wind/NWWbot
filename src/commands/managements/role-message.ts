@@ -83,7 +83,7 @@ class RoleMessageCommand implements SlashCommand {
         if (collected4.first().content === "cancel") return await msg.edit("Action cancelled.");
         var emojis = collected4.first().content.split("\n");
         emojis = emojis.map(emoji => {
-            const id = emoji.match(/\d+/g);
+            const id = emoji.match(/<:\w+:\d+>/g);
             if (!Array.isArray(id)) return emoji;
             else return id[id.length - 1];
         });
@@ -108,11 +108,11 @@ class RoleMessageCommand implements SlashCommand {
             channel: channel.id,
             author: author.id,
             expiration: expiration,
-            roles: JSON.stringify(roles),
-            emojis: JSON.stringify(emojis)
+            roles: roles,
+            emojis: emojis
         });
         try {
-            await client.pool.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${author.id}', '${JSON.stringify(roles)}', '${JSON.stringify(emojis)}')`);
+            await client.pool.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${author.id}', '${escape(JSON.stringify(roles))}', '${escape(JSON.stringify(emojis))}')`);
             await message.channel.send(`Successfully created record for message. Role-messages used on this server: **${results.length}/5**`);
         } catch (err: any) {
             console.error(err);

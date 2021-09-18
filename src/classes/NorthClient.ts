@@ -1,5 +1,5 @@
 import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
-import { Client, ClientOptions, Collection, CommandInteraction, Message, MessageEmbed, Snowflake, StageChannel, TextChannel, User, VoiceChannel } from "discord.js";
+import { Client, ClientOptions, Collection, CommandInteraction, Message, MessageEmbed, Role, Snowflake, StageChannel, TextChannel, User, VoiceChannel } from "discord.js";
 import { Pool } from "mysql2/promise";
 
 export class NorthClient extends Client {
@@ -79,8 +79,8 @@ export interface RoleMessage {
     channel: Snowflake;
     author: Snowflake;
     expiration: number;
-    roles: string;
-    emojis: string;
+    roles: Snowflake[][];
+    emojis: string[];
 }
 
 export class ClientStorage {

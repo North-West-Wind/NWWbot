@@ -3,8 +3,7 @@ import * as fs from "fs";
 import { NorthClient, Card, SlashCommand, Item } from "./classes/NorthClient";
 import { twoDigits, deepReaddir } from "./function";
 import * as mysql from "mysql2";
-import { RowDataPacket } from "mysql2";
-import { init } from "./helpers/addTrack";
+const { version } = require("../package.json");
 var globalClient: NorthClient;
 
 export default async (client: NorthClient) => {
@@ -52,7 +51,7 @@ export default async (client: NorthClient) => {
       }
   }));
   client.setPool(pool);
-  client.setVersion("5.0.0");
+  client.setVersion(version);
   globalClient = client;
 
   setInterval(async () => {
@@ -60,7 +59,7 @@ export default async (client: NorthClient) => {
     try {
       const con = await client.pool.getConnection();
       for (const query of NorthClient.storage.queries) try {
-        const [results] = <RowDataPacket[][]>await con.query(`SELECT * FROM leveling WHERE user = '${query.author}' AND guild = '${query.guild}'`);
+        const [results] = <mysql.RowDataPacket[][]>await con.query(`SELECT * FROM leveling WHERE user = '${query.author}' AND guild = '${query.guild}'`);
         if (results.length < 1) await con.query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${query.author}', '${query.guild}', ${query.exp}, '${query.date}')`);
         else {
           if (Date.now() - results[0].last < 60000) return;

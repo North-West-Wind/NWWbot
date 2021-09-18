@@ -8,7 +8,7 @@ dotenv.config();
 
 const fetch = getFetch();
 
-const prefix = ">";
+const { prefix1 } = require("../config.json");
 const client = new NorthClient({
   restRequestTimeout: 60000,
   makeCache: Options.cacheWithLimits({
@@ -30,7 +30,7 @@ const client = new NorthClient({
 client.log = "678847114935271425";
 NorthClient.storage = new ClientStorage(client);
 
-client.prefix = prefix;
+client.prefix = prefix1;
 client.id = 1;
 AliceHandler.setup(client, process.env.TOKEN1);
 

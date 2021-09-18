@@ -4,6 +4,7 @@ import { NorthClient, ClientStorage } from "./classes/NorthClient";
 import { Options, Intents } from "discord.js";
 dotenv.config();
 
+const { prefixC } = require("../config.json");
 const client = new NorthClient({
     restRequestTimeout: 60000,
     makeCache: Options.cacheWithLimits({
@@ -25,6 +26,6 @@ const client = new NorthClient({
 client.log = "733912780679413886";
 NorthClient.storage = new ClientStorage(client);
 
-client.prefix = "%";
+client.prefix = prefixC;
 client.id = 0;
 CanaryHandler.setup(client, process.env.TOKEN_CANARY);

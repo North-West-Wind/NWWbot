@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
-import { getFetch, validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, validYTPlaylistURL, validSCURL, validMSURL, isEquivalent, requestStream, moveArray, color, validGDDLURL, bufferToStream, msgOrRes, wait, requestYTDLStream } from "../../function.js";
+import { getFetch, validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, validYTPlaylistURL, validSCURL, validMSURL, requestStream, moveArray, color, validGDDLURL, bufferToStream, msgOrRes, wait } from "../../function.js";
 import { getMP3 } from "../api/musescore.js";
 import scdl from 'soundcloud-downloader/dist/index';
 import * as mm from "music-metadata";
 import { migrate as music } from "./migrate.js";
-import ytdl, { downloadOptions } from "ytdl-core";
+import ytdl from "ytdl-core";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand, SoundTrack } from "../../classes/NorthClient.js";
 import { getQueues, updateQueue, setQueue, createDiscordJSAdapter } from "../../helpers/music.js";
 import WebMscore from "webmscore";
@@ -13,7 +13,7 @@ import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, 
 import * as Stream from 'stream';
 import { globalClient as client } from "../../common.js";
 import { InputFileFormat } from "webmscore/schemas";
-import { AudioPlayerError, AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, DiscordGatewayAdapterCreator, entersState, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus } from "@discordjs/voice";
+import { AudioPlayerError, AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, entersState, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus } from "@discordjs/voice";
 const fetch = getFetch();
 const ffmpeg = require('fluent-ffmpeg');
 
@@ -173,7 +173,6 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         }
         if (!song?.isPastLive) Object.assign(options, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
         else Object.assign(options, { highWaterMark: 1 << 25 });
-        console.log(song.url);
         stream = ytdl(song.url, options);
         if (!stream) throw new Error("Failed to get YouTube video stream.");
         break;

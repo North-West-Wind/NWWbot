@@ -127,9 +127,14 @@ export class Handler {
     }
 
     async readRoleMsg(client: NorthClient, con: PoolConnection) {
-        const [res] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434'");
+        const [res] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434'");
         console.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
-        NorthClient.storage.rm = <RoleMessage[]>res;
+        const rm = res.map(r => {
+            r.roles = JSON.parse(unescape(r.roles));
+            r.emojis = JSON.parse(unescape(r.emojis));
+            return r;
+        });
+        NorthClient.storage.rm = <RoleMessage[]>rm;
     }
 
     async readGiveaways(client: NorthClient, con: PoolConnection) {
@@ -379,7 +384,7 @@ export class Handler {
     async messageReactionAdd(r: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
         var roleMessage = NorthClient.storage.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
-        const emojis = JSON.parse(roleMessage.emojis);
+        const emojis = roleMessage.emojis;
         var index = -1;
         if (emojis.includes(r.emoji.id)) index = emojis.indexOf(r.emoji.id);
         else if (emojis.includes(r.emoji.name)) index = emojis.indexOf(r.emoji.name);
@@ -387,14 +392,14 @@ export class Handler {
         try {
             const guild = await user.client.guilds.fetch(roleMessage.guild);
             const member = await guild.members.fetch(user.id);
-            if (index > -1) await member.roles.add(JSON.parse(roleMessage.roles)[index]);
+            if (index > -1) await member.roles.add(roleMessage.roles[index]);
         } catch (err: any) {}
     }
 
     async messageReactionRemove(r: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
         var roleMessage = NorthClient.storage.rm.find(x => x.id == r.message.id);
         if (!roleMessage) return;
-        const emojis = JSON.parse(roleMessage.emojis);
+        const emojis = roleMessage.emojis;
         var index = -1;
         if (emojis.includes(r.emoji.id)) index = emojis.indexOf(r.emoji.id);
         else if (emojis.includes(r.emoji.name)) index = emojis.indexOf(r.emoji.name);
@@ -402,7 +407,7 @@ export class Handler {
         try {
             const guild = await r.message.client.guilds.fetch(roleMessage.guild);
             const member = await guild.members.fetch(user.id);
-            if (index > -1) await member.roles.remove(JSON.parse(roleMessage.roles)[index]);
+            if (index > -1) await member.roles.remove(roleMessage.roles[index]);
         } catch (err: any) {}
     }
 
@@ -418,11 +423,15 @@ export class Handler {
 
     }
 
+    messagePrefix(message: Message, client: NorthClient): string {
+        return NorthClient.storage.guilds[message.guildId]?.prefix || client.prefix;
+    }
+
     async message(message: Message) {
         await this.preMessage(message);
         const client = <NorthClient>message.client;
         const msg = (<NorthMessage>message);
-        msg.prefix = NorthClient.storage.guilds[msg.guildId]?.prefix || client.prefix;
+        msg.prefix = this.messagePrefix(msg, client);
         this.messageLevel(msg);
         if (!msg.content.startsWith(msg.prefix)) return;
         const args = msg.content.slice(msg.prefix.length).split(/ +/);
@@ -783,5 +792,9 @@ export class CanaryHandler extends Handler {
             };
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);
+    }
+
+    messagePrefix(_message: Message, _client: NorthClient): string {
+        return "%";
     }
 }
