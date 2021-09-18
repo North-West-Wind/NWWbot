@@ -249,6 +249,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
             break;
         case "track":
             tracks = (await spotifyApi.getTracks([musicID])).body.tracks;
+            console.log(tracks);
             for (const track of <SpotifyApi.TrackObjectFull[]> tracks) {
                 var resultss;
                 try {
