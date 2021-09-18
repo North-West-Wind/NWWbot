@@ -91,7 +91,10 @@ class RoleMessageCommand implements SlashCommand {
             .setFooter("React to claim your role.", message.client.user.displayAvatarURL());
         var mesg = await channel.send({ content: pendingMsg, embeds: [roleIndexes] });
         try {
-            for (const emoji of emojis) await mesg.react(emoji);
+            for (const emoji of emojis) {
+                console.log(emoji);
+                await mesg.react(emoji);
+            }
         } catch (err: any) {
             await mesg.delete();
             return await msg.edit("I cannot react with one of the reactions!");
