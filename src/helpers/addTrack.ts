@@ -9,7 +9,7 @@ import muse from "musescore-metadata";
 import scdl from 'soundcloud-downloader/dist/index';
 import ytdl from "ytdl-core";
 import ytpl from "ytpl";
-import ytsr, { Video } from "ytsr";
+import ytsr, { Item, Video } from "ytsr";
 import { NorthClient, NorthInteraction } from "../classes/NorthClient";
 import { getFetch, decodeHtmlEntity, isGoodMusicVideoContent, validGDDLURL, color, msgOrRes } from "../function";
 import * as Stream from 'stream';
@@ -169,6 +169,11 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                 try {
                     const searched = await ytsr(`${track.track.artists[0].name} - ${track.track.name}`, { limit: 20 });
                     results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
+                    if (results.length < 1) {
+                        const msg = await mesg.channel.send(`Cannot find video for ${track.track.name}`);
+                        setTimeout(async() => { try { await msg.delete() } catch (err) {}}, 10000);
+                        continue;
+                    }
                 } catch (err: any) {
                     return { error: true, msg: null, songs: [], message: err.message };
                 }
@@ -221,6 +226,11 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                 try {
                     const searched = await ytsr(`${track.artists[0].name} - ${track.name}`, { limit: 20 });
                     results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
+                    if (results.length < 1) {
+                        const msg = await mesg.channel.send(`Cannot find video for ${track.name}`);
+                        setTimeout(async() => { try { await msg.delete() } catch (err) {}}, 10000);
+                        continue;
+                    }
                 } catch (err: any) {
                     return { error: true, msg: null, songs: [], message: err.message };
                 }
@@ -255,6 +265,11 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                     console.log(`${track.artists[0].name} - ${track.name}`)
                     const searched = await ytsr(`${track.artists[0].name} - ${track.name}`, { limit: 20 });
                     resultss = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
+                    if (resultss.length < 1) {
+                        const msg = await mesg.channel.send(`Cannot find video for ${track.name}`);
+                        setTimeout(async() => { try { await msg.delete() } catch (err) {}}, 10000);
+                        continue;
+                    }
                 } catch (err: any) {
                     return { error: true, msg: null, songs: [], message: err.message };
                 }
