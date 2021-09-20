@@ -116,7 +116,6 @@ export async function addYTURL(link: string, type: number = 0) {
         return { error: true, message: "Failed to get video data!", msg: null, songs: [] };
     }
     var length = parseInt(songInfo.videoDetails.lengthSeconds);
-    if (length == 0) return { error: true, message: "We don't support live streams!", msg: null, songs: [] };
     var songLength = length == 0 ? "∞" : moment.duration(length, "seconds").format();
     const thumbnails = songInfo.videoDetails.thumbnails;
     var thumbUrl = thumbnails[thumbnails.length - 1].url;
