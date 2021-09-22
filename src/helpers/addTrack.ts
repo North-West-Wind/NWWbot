@@ -363,6 +363,7 @@ export async function addGDURL(link: string) {
     async function fetchGD() {
         console.log(dl);
         const html = await rp({ uri: dl, resolveWithFullResponse: true });
+        console.log(html);
         if (!html) return { error: true, message: `Did not get OK response`, msg: null, songs: [] };
         const matches = html.match(/<a id="uc-download-link" class="[\w\- ]+" href="(?<link>[\/\w&\?=]+)">.*<\/a>/);
         console.log(matches);
