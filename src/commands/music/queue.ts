@@ -206,7 +206,7 @@ class QueueCommand implements SlashCommand {
             .setTimestamp()
             .setFooter("React to the numbers to view your queue.", client.user.displayAvatarURL());
         allEmbeds.unshift(em);
-        var msg = await msgOrRes(message, {embeds: [em]});
+        var msg = await msgOrRes(message, em);
         for (let i = 0; i < Math.min(num, 10); i++) {
             await msg.react(emojis[i]);
             available.push(emojis[i]);

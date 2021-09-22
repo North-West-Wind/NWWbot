@@ -19,6 +19,7 @@ import rp from "request-promise-native";
 import * as cheerio from "cheerio";
 import * as Discord from "discord.js";
 import { TrackInfo } from "soundcloud-downloader/dist/info";
+import { Response } from "node-fetch";
 
 const fetch = getFetch();
 var spotifyApi: SpotifyWebApi;
@@ -340,8 +341,8 @@ export async function addGDURL(link: string) {
     if (!validGDDLURL(link)) {
         const formats = [/https:\/\/drive\.google\.com\/file\/d\/(?<id>.*?)\/(?:edit|view)(\?usp=sharing)?/, /https:\/\/drive\.google\.com\/open\?id=(?<id>.*?)$/];
         formats.forEach((regex) => {
-            const matches = link.match(regex)
-            if (matches && matches.groups && matches.groups.id) id = matches.groups.id
+            const matches = link.match(regex);
+            if (matches?.groups?.id) id = matches.groups.id;
         });
         if (!id) {
             if (alphanumeric.test(link)) id = link;
@@ -351,15 +352,24 @@ export async function addGDURL(link: string) {
     } else {
         dl = link;
         const matches = link.match(/^(https?)?:\/\/drive\.google\.com\/uc\?export=download&id=(?<id>.*?)$/);
-        if (matches && matches.groups && matches.groups.id) id = matches.groups.id;
-        if (!id) {
+        if (matches?.groups?.id) id = matches.groups.id;
+        else {
             id = link.split("=")[link.split("=").length - 1];
             if (alphanumeric.test(id)) link = `https://drive.google.com/file/d/${id}/view`;
             else return { error: true, message: `The link/keywords you provided is invalid!`, msg: null, songs: [] };
         }
     }
-    const f = await fetch(dl);
-    if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
+    var f: Response;
+    async function fetchGD() {
+        f = await fetch(dl);
+        if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
+        const matches = (await f.text()).match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">.*<\/a>/);
+        if (matches?.groups?.link) {
+            dl = matches.groups.link;
+            await fetchGD();
+        }
+    }
+    await fetchGD();
     const stream = <Stream.Readable>f.body;
     var title = "No Title";
     try {

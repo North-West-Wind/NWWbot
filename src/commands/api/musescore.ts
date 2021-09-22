@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { validMSURL, requestStream, findValueByPrefix, streamToString, color, requestYTDLStream } from "../../function";
 import { run } from '../../helpers/puppeteer';
 import muse from "musescore-metadata";
@@ -10,6 +10,7 @@ import rp from "request-promise-native";
 import PDFKit from "pdfkit";
 import fetch from "node-fetch";
 import { globalClient as client } from "../../common";
+import { Page } from 'puppeteer-core';
 const SVGtoPDF: any = require("svg-to-pdfkit");
 function PNGtoPDF(doc: PDFKit.PDFDocument, url: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
@@ -28,7 +29,7 @@ function PNGtoPDF(doc: PDFKit.PDFDocument, url: string): Promise<void> {
 };
 
 export async function getMP3(url: string): Promise<{ error: boolean, url: string, message: string, timeTaken: number }> {
-    return await run(async (page) => {
+    return await run(async (page: Page) => {
         var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
         const start = Date.now();
         try {
@@ -40,7 +41,7 @@ export async function getMP3(url: string): Promise<{ error: boolean, url: string
             });
             await page.goto(url, { waitUntil: "domcontentloaded" });
             await page.waitForSelector("button[title='Toggle Play']").then(el => el.click());
-            const mp3 = await page.waitForRequest(req => req.url().startsWith("https://s3.ultimate-guitar.com/") || req.url().startsWith("https://www.youtube.com/embed/"));
+            const mp3 = await page.waitForRequest(req => req.url()?.startsWith("https://s3.ultimate-guitar.com/") || req.url()?.startsWith("https://www.youtube.com/embed/"));
             result.url = mp3.url();
             result.error = false;
         } catch (err: any) {
@@ -245,7 +246,7 @@ class MusescoreCommand implements SlashCommand {
     }
 
     async getMIDI(url) {
-        return await run(async (page) => {
+        return await run(async (page: Page) => {
             var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
             const start = Date.now();
             try {

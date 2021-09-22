@@ -2,7 +2,6 @@ import * as Discord from "discord.js";
 import { getFetch, validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, validYTPlaylistURL, validSCURL, validMSURL, requestStream, moveArray, color, validGDDLURL, bufferToStream, msgOrRes, wait } from "../../function.js";
 import { getMP3 } from "../api/musescore.js";
 import scdl from 'soundcloud-downloader/dist/index';
-import * as mm from "music-metadata";
 import { migrate as music } from "./migrate.js";
 import ytdl from "ytdl-core";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand, SoundTrack } from "../../classes/NorthClient.js";
@@ -120,13 +119,15 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     switch (song.type) {
       case 2:
       case 4:
-        const a = <Stream.Readable>(await requestStream(song.url)).data;
+        var a: Stream.Readable;
         if (!song.time) {
-          const metadata = await mm.parseStream(a, {}, { duration: true });
-          const i = serverQueue.songs.indexOf(song);
-          song.time = moment.duration(metadata.format.duration, "seconds").format();
-          if (i != -1) serverQueue.songs[i] = song;
-        }
+          const { error, message, songs } = await addGDURL(song.url);
+          if (error) throw new Error(message);
+          song = songs[0];
+          a = <Stream.Readable>(await requestStream(song.url)).data;
+          serverQueue.songs[0] = song;
+          updateQueue(guild.id, serverQueue);
+        } else a = <Stream.Readable>(await requestStream(song.url)).data;
         stream = a;
         break;
       case 3:
@@ -177,13 +178,13 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         if (!stream) throw new Error("Failed to get YouTube video stream.");
         break;
     }
+    if (!serverQueue.player) return;
     if (seek) {
       const command = ffmpeg(stream);
       const transform = new Stream.Transform();
-      command.seekInput(seek).output(transform);
-      serverQueue.player?.play(await probeAndCreateResource(transform));
-    } else serverQueue.player?.play(await probeAndCreateResource(stream));
-    if (!serverQueue.player) return;
+      command.seekInput(seek).output(transform, { end: true });
+      serverQueue.player.play(await probeAndCreateResource(transform));
+    } else serverQueue.player.play(await probeAndCreateResource(stream));
     await entersState(serverQueue.player, AudioPlayerStatus.Playing, 5e3);
   } catch (err: any) {
     console.error(err);
