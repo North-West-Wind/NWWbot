@@ -371,7 +371,7 @@ export async function addGDURL(link: string) {
         }
     }
     const r = await fetchGD();
-    if (r.error) return r;
+    if (r?.error) return r;
     const stream = <Stream.Readable>f.body;
     var title = "No Title";
     try {
