@@ -11,7 +11,7 @@ import ytdl from "ytdl-core";
 import ytpl from "ytpl";
 import ytsr, { Item, Video } from "ytsr";
 import { NorthClient, NorthInteraction } from "../classes/NorthClient";
-import { getFetch, decodeHtmlEntity, isGoodMusicVideoContent, validGDDLURL, color, msgOrRes, requestStream } from "../function";
+import { getFetch, decodeHtmlEntity, isGoodMusicVideoContent, validGDDLURL, color, msgOrRes } from "../function";
 import * as Stream from 'stream';
 import SpotifyWebApi from "spotify-web-api-node";
 
@@ -359,22 +359,21 @@ export async function addGDURL(link: string) {
             else return { error: true, message: `The link/keywords you provided is invalid!`, msg: null, songs: [] };
         }
     }
-    var stream: Stream.Readable;
+    var f: Response;
     async function fetchGD() {
         console.log(dl);
-        const html = await rp({ uri: dl, resolveWithFullResponse: true });
-        console.log(html);
-        if (!html) return { error: true, message: `Did not get OK response`, msg: null, songs: [] };
-        const matches = html.match(/<a id="uc-download-link" class="[\w\- ]+" href="(?<link>[\/\w&\?=]+)">.*<\/a>/);
-        console.log(matches);
+        f = await fetch(dl);
+        if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
+        console.log(await f.text());
+        const matches = (await f.text()).match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">.*<\/a>/);
         if (matches?.groups?.link) {
             dl = "https://drive.google.com" + matches.groups.link;
             return await fetchGD();
         }
-        stream = <Stream.Readable> (await requestStream(dl)).data;
     }
     const r = await fetchGD();
     if (r?.error) return r;
+    const stream = <Stream.Readable>f.body;
     var title = "No Title";
     try {
         var metadata = await mm.parseStream(stream, {}, { duration: true });

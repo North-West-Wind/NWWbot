@@ -57,7 +57,7 @@ function createPlayer(guild: Discord.Guild) {
   }).on("error", async error => {
     console.error(error.message);
     serverQueue?.textChannel?.send("There was an error trying to play the soundtrack!");
-    serverQueue.destroy();
+    serverQueue?.destroy();
   });
 }
 
@@ -93,7 +93,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
   }
   if (!song || !serverQueue.voiceChannel) {
     serverQueue.playing = false;
-    if (guild.me.voice?.channel) serverQueue.destroy();
+    if (guild.me.voice?.channel) serverQueue?.destroy();
     return updateQueue(guild.id, serverQueue);
   }
   if (!serverQueue.player) {
@@ -238,7 +238,7 @@ class PlayCommand implements SlashCommand {
       try {
         if (message.guild.me.voice?.channelId === voiceChannel.id) serverQueue.connection = getVoiceConnection(message.guild.id);
         else {
-          serverQueue.destroy();
+          serverQueue?.destroy();
           serverQueue.connection = joinVoiceChannel({ channelId: voiceChannel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(voiceChannel) });
         }
         if (message.guild.me.voice?.channelId && !message.guild.me.voice.selfDeaf) message.guild.me.voice.setDeaf(true).catch(() => {});
@@ -246,7 +246,7 @@ class PlayCommand implements SlashCommand {
         await msgOrRes(message, "There was an error trying to connect to the voice channel!");
         if (err.message) await message.channel.send(err.message);
         console.error(err);
-        return serverQueue.destroy();
+        return serverQueue?.destroy();
       }
       serverQueue.voiceChannel = voiceChannel;
       serverQueue.playing = true;
@@ -314,7 +314,7 @@ class PlayCommand implements SlashCommand {
     } catch (err: any) {
       await msgOrRes(message, "There was an error trying to connect to the voice channel!");
       if (err.message) await message.channel.send(err.message);
-      serverQueue.destroy();
+      serverQueue?.destroy();
       console.error(err);
     }
   }
