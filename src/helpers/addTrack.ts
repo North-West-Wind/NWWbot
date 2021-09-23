@@ -105,11 +105,11 @@ export async function addYTPlaylist(link: string) {
 }
 export async function addYTURL(link: string, type: number = 0) {
     try {
-        const options = <any> {};
+        const options = <any>{};
         if (process.env.COOKIE) {
-          options.requestOptions = {};
-          options.requestOptions.headers = { cookie: process.env.COOKIE };
-          if (process.env.YT_TOKEN) options.requestOptions.headers["x-youtube-identity-token"] = process.env.YT_TOKEN;
+            options.requestOptions = {};
+            options.requestOptions.headers = { cookie: process.env.COOKIE };
+            if (process.env.YT_TOKEN) options.requestOptions.headers["x-youtube-identity-token"] = process.env.YT_TOKEN;
         }
         var songInfo = await ytdl.getInfo(link, options);
     } catch (err: any) {
@@ -163,7 +163,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
             }
             await checkAll();
             var mesg = await msgOrRes(message, `Processing track: **0/${tracks.length}**`);
-            for (const track of <SpotifyApi.PlaylistTrackObject[]> tracks) {
+            for (const track of <SpotifyApi.PlaylistTrackObject[]>tracks) {
                 await mesg.edit(`Processing track: **${++counter}/${tracks.length}**`).catch(() => { });
                 var results = [];
                 try {
@@ -171,7 +171,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                     results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
                     if (results.length < 1) {
                         const msg = await mesg.channel.send(`Cannot find video for ${track.track.name}`);
-                        setTimeout(async() => { try { await msg.delete() } catch (err) {}}, 10000);
+                        setTimeout(async () => { try { await msg.delete() } catch (err) { } }, 10000);
                         continue;
                     }
                 } catch (err: any) {
@@ -198,7 +198,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                     }
                 }
             }
-            await mesg.edit("Track processing completed.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
+            await mesg.edit("Track processing completed.").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
             break;
         case "album":
             var image;
@@ -220,7 +220,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                 tracks = data.body.tracks;
             }
             var mesg = await msgOrRes(message, `Processing track: **0/${tracks.length}**`);
-            for (const track of <SpotifyApi.TrackObjectFull[]> tracks) {
+            for (const track of <SpotifyApi.TrackObjectFull[]>tracks) {
                 await mesg.edit(`Processing track: **${++counter}/${tracks.length}**`).catch(() => { });
                 var results = [];
                 try {
@@ -228,7 +228,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                     results = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
                     if (results.length < 1) {
                         const msg = await mesg.channel.send(`Cannot find video for ${track.name}`);
-                        setTimeout(async() => { try { await msg.delete() } catch (err) {}}, 10000);
+                        setTimeout(async () => { try { await msg.delete() } catch (err) { } }, 10000);
                         continue;
                     }
                 } catch (err: any) {
@@ -255,18 +255,18 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
                     }
                 }
             }
-            await mesg.edit("Track processing completed.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
+            await mesg.edit("Track processing completed.").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
             break;
         case "track":
             tracks = (await spotifyApi.getTracks([musicID])).body.tracks;
-            for (const track of <SpotifyApi.TrackObjectFull[]> tracks) {
+            for (const track of <SpotifyApi.TrackObjectFull[]>tracks) {
                 var resultss;
                 try {
                     const searched = await ytsr(`${track.artists[0].name} - ${track.name}`, { limit: 20 });
                     resultss = searched.items.filter(x => x.type === "video" && x.duration.split(":").length < 3);
                     if (resultss.length < 1) {
                         const msg = await mesg.channel.send(`Cannot find video for ${track.name}`);
-                        setTimeout(async() => { try { await msg.delete() } catch (err) {}}, 10000);
+                        setTimeout(async () => { try { await msg.delete() } catch (err) { } }, 10000);
                         continue;
                     }
                 } catch (err: any) {
@@ -300,7 +300,7 @@ export async function addSPURL(message: Message | NorthInteraction, link: string
 export async function addSCURL(link: string) {
     const res = await fetch(`https://api.soundcloud.com/resolve?url=${link}&client_id=${process.env.SCID}`);
     if (!res.ok) return { error: true, message: "A problem occured while fetching the track information! Status Code: " + res.status, msg: null, songs: [] };
-    const data = <any> await res.json();
+    const data = <any>await res.json();
     if (data.kind == "user") return { error: true, message: "What do you think you can do with a user?", msg: null, songs: [] };
     const songs = [];
     if (data.kind == "playlist") {
@@ -360,22 +360,18 @@ export async function addGDURL(link: string) {
         }
     }
     var f: Response;
-    async function fetchGD() {
-        console.log(dl);
+    console.log(dl);
+    f = await fetch(dl);
+    if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
+    const text = decodeHtmlEntity(await f.text());
+    console.log(text);
+    const matches = text.match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">/);
+    console.log(matches);
+    if (matches?.groups?.link) {
+        dl = "https://drive.google.com" + matches.groups.link;
         f = await fetch(dl);
         if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
-        const text = await f.textConverted();
-        console.log(text);
-        const matches = text.match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">/);
-        console.log(matches);
-        if (matches?.groups?.link) {
-            dl = "https://drive.google.com" + matches.groups.link;
-            f = await fetch(dl);
-            return;
-        } else return await fetchGD();
     }
-    const r = await fetchGD();
-    if (r?.error) return r;
     const stream = <Stream.Readable>f.body;
     var title = "No Title";
     try {
@@ -488,7 +484,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
     const results = [];
     try {
         const searched = await ytsr(link, { limit: 20 });
-        var video = <Video[]> searched.items.filter(x => x.type === "video" && !x.isUpcoming);
+        var video = <Video[]>searched.items.filter(x => x.type === "video" && !x.isUpcoming);
     } catch (err: any) {
         console.error(err);
         await msgOrRes(message, "There was an error trying to search the videos!");
@@ -526,7 +522,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
         await msgOrRes(message, "There was an error trying to search the videos!");
         return { error: true, msg: null, songs: [], message: err.message };
     }
-    const scResults = (<TrackInfo[]> scSearched.collection).map(x => ({
+    const scResults = (<TrackInfo[]>scSearched.collection).map(x => ({
         title: x.title,
         url: x.permalink_url,
         type: 3,
@@ -546,7 +542,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
     }
     var val = { error: true, songs: [], msg: null, message: null };
     var s = 0;
-    var msg = <Message> await msgOrRes(message, allEmbeds[0]);
+    var msg = <Message>await msgOrRes(message, allEmbeds[0]);
     const filter = x => x.author.id === (message instanceof Message ? message.author : message.user).id;
     const collector = await msg.channel.createMessageCollector({ filter, idle: 60000 });
     collector.on("collect", async collected => {
@@ -556,12 +552,12 @@ export async function search(message: Message | NorthInteraction, link: string) 
                 case "youtube":
                 case "yt":
                     s = 0;
-                    await msg.edit({embeds: [allEmbeds[s]]});
+                    await msg.edit({ embeds: [allEmbeds[s]] });
                     break;
                 case "soundcloud":
                 case "sc":
                     s = 1;
-                    await msg.edit({embeds: [allEmbeds[s]]});
+                    await msg.edit({ embeds: [allEmbeds[s]] });
                     break;
                 default:
                     collector.emit("end");
@@ -579,7 +575,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
                 .setDescription(`**[${decodeHtmlEntity(results[s][o].title)}](${results[s][o].url})** : **${results[s][o].time}**`)
                 .setTimestamp()
                 .setFooter("Have a nice day :)", message.client.user.displayAvatarURL());
-            await msg.edit({embeds: [chosenEmbed]});
+            await msg.edit({ embeds: [chosenEmbed] });
             val = { error: false, songs: [results[s][o]], msg, message: null };
             collector.emit("end");
         }
@@ -592,7 +588,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
                     .setTitle("Action cancelled.")
                     .setTimestamp()
                     .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-                await msg.edit({embeds: [cancelled]}).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**" }).catch(() => {}), 30000));
+                await msg.edit({ embeds: [cancelled] }).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**" }).catch(() => { }), 30000));
             }
             resolve(val);
         });
