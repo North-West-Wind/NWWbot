@@ -366,7 +366,7 @@ export async function addGDURL(link: string) {
         if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
         const text = await f.text();
         console.log(text);
-        const matches = text.match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">.*<\/a>/);
+        const matches = text.match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">/);
         if (matches?.groups?.link) {
             dl = "https://drive.google.com" + matches.groups.link;
             return await fetchGD();
