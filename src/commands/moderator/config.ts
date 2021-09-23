@@ -92,7 +92,7 @@ class ConfigCommand implements SlashCommand {
     const loginToken = await message.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
     if (!loginToken.first() || !loginToken.first().content) return timedOut(mesg);
     const receivedToken = loginToken.first().content;
-    loginToken.first().delete();
+    loginToken.first().delete().catch(() => { });
     if (config.token !== receivedToken) {
       login.setDescription("Invalid token.").setFooter("Try again when you have the correct one for your server.", message.client.user.displayAvatarURL());
       return await mesg.edit({embeds: [login]});
@@ -168,7 +168,7 @@ class ConfigCommand implements SlashCommand {
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 120000, max: 1 })
         if (!msgCollected.first() || !msgCollected.first().content) return timedOut(msg);
         const contents = msgCollected.first().content.replace(/'/g, "\\'");
-        msgCollected.first().delete();
+        msgCollected.first().delete().catch(() => { });
         try {
           config.welcome.message = contents;
           NorthClient.storage.guilds[message.guild.id] = config;
@@ -220,7 +220,7 @@ class ConfigCommand implements SlashCommand {
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
         const channelID = msgCollected.first().content.replace(/<#/g, "").replace(/>/g, "");
-        msgCollected.first().delete();
+        msgCollected.first().delete().catch(() => { });
         const channel = msg.guild.channels.resolve(channelID);
         if (!channel) {
           panelEmbed.setDescription("**Welcome Message/Channel/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...")
@@ -277,7 +277,7 @@ class ConfigCommand implements SlashCommand {
         await msg.reactions.removeAll().catch(() => {});
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
-        await msgCollected.first().delete();
+        msgCollected.first().delete().catch(() => { });
         const attachment = [];
         if (msgCollected.first().content) attachment.concat(msgCollected.first().content.split(/\n+/).filter(att => isImageUrl(att)));
         if (msgCollected.first().attachments.size > 0) attachment.concat(msgCollected.first().attachments.map(att => att.url).filter(att => isImageUrl(att)));
@@ -350,7 +350,7 @@ class ConfigCommand implements SlashCommand {
 
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
-        await msgCollected.first().delete();
+        msgCollected.first().delete().catch(() => { });
         const collectedArgs = msgCollected.first().content ? msgCollected.first().content.split(/ +/) : ["this is not a number"];
         var roles = [];
 
@@ -431,7 +431,7 @@ class ConfigCommand implements SlashCommand {
         await msg.reactions.removeAll().catch(() => {});
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
-        await msgCollected.first().delete();
+        msgCollected.first().delete().catch(() => { });
         const contents = msgCollected.first().content ? `'${msgCollected.first().content.replace(/'/g, "\\'")}'` : "NULL";
         try {
           config.leave.message = contents;
@@ -489,7 +489,7 @@ class ConfigCommand implements SlashCommand {
         await msg.reactions.removeAll().catch(() => {});
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
-        await msgCollected.first().delete();
+        msgCollected.first().delete().catch(() => { });
         const channelID = msgCollected.first().content ? msgCollected.first().content.replace(/<#/g, "").replace(/>/g, "") : "";
         const channel = msg.guild.channels.resolve(channelID);
         if (!channel) {
@@ -550,7 +550,7 @@ class ConfigCommand implements SlashCommand {
         await msg.reactions.removeAll().catch(() => {});
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
-        await msgCollected.first().delete();
+        msgCollected.first().delete().catch(() => { });
         const newEmo = msgCollected.first().content ? msgCollected.first().content : "🎉";
         try {
           config.giveaway = newEmo;
@@ -620,7 +620,7 @@ class ConfigCommand implements SlashCommand {
         await msg.reactions.removeAll().catch(() => {});
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
-        await msgCollected.first().delete();
+        msgCollected.first().delete().catch(() => { });
         const contents = msgCollected.first().content ? `'${msgCollected.first().content.replace(/'/g, "\\'")}'` : "NULL";
         try {
           config.boost.message = contents;
@@ -675,7 +675,7 @@ class ConfigCommand implements SlashCommand {
         await msg.reactions.removeAll().catch(() => {});
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
-        await msgCollected.first().delete();
+        msgCollected.first().delete().catch(() => { });
 
         const channelID = msgCollected.first().content ? msgCollected.first().content.replace(/<#/g, "").replace(/>/g, "") : "";
         const channel = msg.guild.channels.resolve(channelID);

@@ -109,7 +109,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     if (serverQueue?.textChannel) {
       const msg = await serverQueue.textChannel.send("An error occured while trying to connect to the channel! Disconnecting the bot...");
       await wait(30000);
-      return await msg.delete();
+      return msg.delete().catch(() => { });
     }
   }
   if (serverQueue.connection) serverQueue.startTime = serverQueue.streamTime - seek * 1000;
@@ -178,13 +178,13 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         if (!stream) throw new Error("Failed to get YouTube video stream.");
         break;
     }
-    if (!serverQueue.player) return;
     if (seek) {
       const command = ffmpeg(stream);
       const transform = new Stream.Transform();
       command.seekInput(seek).output(transform, { end: true });
-      serverQueue.player.play(await probeAndCreateResource(transform));
-    } else serverQueue.player.play(await probeAndCreateResource(stream));
+      serverQueue.player?.play(await probeAndCreateResource(transform));
+    } else serverQueue.player?.play(await probeAndCreateResource(stream));
+    if (!serverQueue.player) return;
     await entersState(serverQueue.player, AudioPlayerStatus.Playing, 5e3);
   } catch (err: any) {
     console.error(err);
@@ -200,7 +200,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
       .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
     const msg = await serverQueue.textChannel.send({embeds: [Embed]});
     await wait(30000);
-    await msg.delete();
+    msg.delete().catch(() => { });
   }
 }
 

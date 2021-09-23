@@ -21,7 +21,7 @@ export default class MarkSevenItem implements Item {
                 const collected = await msg.channel.awaitMessages({ filter: x => x.author.id === author, max: 1, time: 60000 });
                 if (!collected.first()) em.setTitle("ERROR!").setDescription("You didn't type the numbers in time!").setFooter("Cancelled.", client.user.displayAvatarURL());
                 else {
-                    await collected.first().delete();
+                    collected.first().delete().catch(() => { });
                     const cArgs = collected.first().content.split(" ");
                     if (cArgs.length < 7) em.setTitle("ERROR!").setDescription("You only typed " + cArgs.length + (cArgs.length === 1 ? " word" : " words") + "!").setFooter("Cancelled.", message.client.user.displayAvatarURL());
                     else {

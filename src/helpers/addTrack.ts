@@ -364,7 +364,9 @@ export async function addGDURL(link: string) {
         console.log(dl);
         f = await fetch(dl);
         if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
-        const matches = (await f.text()).match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">.*<\/a>/);
+        const text = await f.text();
+        console.log(text);
+        const matches = text.match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">.*<\/a>/);
         if (matches?.groups?.link) {
             dl = "https://drive.google.com" + matches.groups.link;
             return await fetchGD();
@@ -582,7 +584,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
     });
     return new Promise<{ error: boolean, songs: any[], msg: Message, message: any }>(resolve => {
         collector.on("end", async () => {
-            if (val.error) {
+            if (val.error && !msg.deleted) {
                 const cancelled = new Discord.MessageEmbed()
                     .setColor(color())
                     .setTitle("Action cancelled.")

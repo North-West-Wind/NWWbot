@@ -190,7 +190,7 @@ class UnoCommand implements SlashCommand {
         .setDescription(`The card is ${toString(initial)}`)
         .setTimestamp()
         .setFooter(`Placed by ${message.client.user.tag}`, message.client.user.displayAvatarURL());
-      mesg.delete();
+      mesg.delete().catch(() => { });
       return await mesg.channel.send({ content: null, embed: em });
     }
 

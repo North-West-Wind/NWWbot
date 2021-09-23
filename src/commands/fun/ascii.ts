@@ -77,7 +77,7 @@ class AsciiCommand implements SlashCommand {
                         const newattachment = new Discord.MessageAttachment(canvas.toBuffer(), sanitize(`${nameArr.join(".")}.png`));
                         const colorAtt = new Discord.MessageAttachment(Buffer.from(asciis, 'utf8'), sanitize(`${nameArr.join(" ")}_text.txt`));
                         const noColorAtt = new Discord.MessageAttachment(Buffer.from(anser.ansiToText(asciis), 'utf8'), sanitize(`${nameArr.join(" ")}_text_no_color.txt`));
-                        await msg.delete().catch(() => { });
+                        msg.delete().catch(() => { });
                         await message.channel.send({files: [newattachment]});
                         await message.channel.send({files: [colorAtt]});
                         await message.channel.send({files: [noColorAtt]});

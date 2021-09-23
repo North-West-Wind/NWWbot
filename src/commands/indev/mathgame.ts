@@ -18,6 +18,7 @@ class MathGameCommand implements SlashCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
+        if (message.author.id != process.env.DC) return await message.channel.send("You cannot use this yet.");
         if (!message.guild) return await message.channel.send("This command doesn't support DMs.");
         /*
         if(args[0] && args[0].toLowerCase() === "clear" && message.author.id === process.env.DC) {

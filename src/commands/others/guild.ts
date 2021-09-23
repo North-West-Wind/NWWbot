@@ -156,7 +156,7 @@ class GuildCommand implements SlashCommand {
 		let msg = await message.channel.send("Which channel do you want the message to be announced?");
 		let collected = await msg.channel.awaitMessages({ filter: x => x.author.id === message.author.id, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
-			collected.first().delete();
+			collected.first().delete().catch(() => { });
 		if (!collected || !collected.first() || !collected.first().content) {
 			return msg.edit("Timed out. Please try again.");
 		}
@@ -174,7 +174,7 @@ class GuildCommand implements SlashCommand {
 		collected = undefined;
 		collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
-			collected.first().delete();
+			collected.first().delete().catch(() => { });
 		if (!collected || !collected.first() || !collected.first().content) {
 			return msg.edit("Timed out. Please try again.");
 		}
@@ -188,7 +188,7 @@ class GuildCommand implements SlashCommand {
 		collected = undefined;
 		collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
-			collected.first().delete();
+			collected.first().delete().catch(() => { });
 		if (!collected || !collected.first() || !collected.first().content) {
 			return msg.edit("Timed out. Please try again.");
 		}
@@ -205,7 +205,7 @@ class GuildCommand implements SlashCommand {
 		collected = undefined;
 		collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
-			collected.first().delete();
+			collected.first().delete().catch(() => { });
 		if (!collected || !collected.first() || !collected.first().content) {
 			return msg.edit("Timed out. Please try again.");
 		}
@@ -214,7 +214,7 @@ class GuildCommand implements SlashCommand {
 		}
 		var role = await findRole(message, collected.first().content);
 		if (!role) {
-			msg.delete();
+			msg.delete().catch(() => { });
 			return;
 		}
 
@@ -222,7 +222,7 @@ class GuildCommand implements SlashCommand {
 		collected = undefined;
 		collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
-			collected.first().delete();
+			collected.first().delete().catch(() => { });
 		if (!collected || !collected.first() || !collected.first().content) {
 			await msg.edit("Timed out. I will take it as a NO.");
 		}
@@ -235,7 +235,7 @@ class GuildCommand implements SlashCommand {
 			collected = undefined;
 			collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 			if (collected.first())
-				collected.first().delete();
+				collected.first().delete().catch(() => { });
 			if (!collected || !collected.first() || !collected.first().content) {
 				await msg.edit("Timed out. No notes will be added then.");
 			}
@@ -250,7 +250,7 @@ class GuildCommand implements SlashCommand {
 		collected = undefined;
 		collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
-			collected.first().delete();
+			collected.first().delete().catch(() => { });
 		if (!collected || !collected.first() || !collected.first().content) {
 			await msg.edit("Timed out. Please try again.");
 			return;

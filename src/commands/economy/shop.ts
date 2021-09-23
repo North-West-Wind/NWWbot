@@ -90,7 +90,7 @@ class ShopCommand implements SlashCommand {
                     await wait(3000);
                     return await mainMenu(msg);
                 }
-                collected.first().delete();
+                await collected.first().delete();
                 const index = parseInt(collected.first().content);
                 if (isNaN(index)) {
                     menu.setDescription("Invalid number. Returning to main menu in 3 seconds...")
