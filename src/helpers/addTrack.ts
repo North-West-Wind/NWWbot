@@ -360,18 +360,21 @@ export async function addGDURL(link: string) {
         }
     }
     var f: Response;
-    console.log(dl);
-    f = await fetch(dl);
-    if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
-    const text = decodeHtmlEntity(await f.text());
-    console.log(text);
-    const matches = text.match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">/);
-    console.log(matches);
-    if (matches?.groups?.link) {
-        dl = "https://drive.google.com" + matches.groups.link;
+    async function fetchGD() {
+        console.log(dl);
         f = await fetch(dl);
         if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
+        const text = decodeHtmlEntity(await f.text());
+        console.log(text);
+        const matches = text.match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">/);
+        console.log(matches);
+        if (matches?.groups?.link) {
+            dl = "https://drive.google.com" + matches.groups.link;
+            return await fetchGD();
+        }
     }
+    const r = await fetchGD();
+    if (r?.error) return r;
     const stream = <Stream.Readable>f.body;
     var title = "No Title";
     try {
