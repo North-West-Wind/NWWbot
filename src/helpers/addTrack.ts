@@ -364,14 +364,15 @@ export async function addGDURL(link: string) {
         console.log(dl);
         f = await fetch(dl);
         if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
-        const text = await f.text();
+        const text = await f.textConverted();
         console.log(text);
         const matches = text.match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">/);
         console.log(matches);
         if (matches?.groups?.link) {
             dl = "https://drive.google.com" + matches.groups.link;
-            return await fetchGD();
-        }
+            f = await fetch(dl);
+            return;
+        } else return await fetchGD();
     }
     const r = await fetchGD();
     if (r?.error) return r;
