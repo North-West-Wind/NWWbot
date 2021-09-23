@@ -359,8 +359,7 @@ export async function addGDURL(link: string) {
             else return { error: true, message: `The link/keywords you provided is invalid!`, msg: null, songs: [] };
         }
     }
-    var f: Response;
-    f = await fetch(dl);
+    var f = await fetch(dl);
     if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
     const matches = decodeHtmlEntity(await f.text()).match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">/);
     if (matches?.groups?.link) {
