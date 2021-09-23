@@ -368,12 +368,12 @@ export async function addGDURL(link: string) {
         f = await fetch(dl);
         if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
     }
-    console.log(dl);
     const stream = <Stream.Readable>f.body;
     var title = "No Title";
     try {
         var metadata = await mm.parseStream(stream, {}, { duration: true });
-        const html = await rp({ uri: link });
+        console.log(metadata);
+        const html = await fetch(link).then(res => res.text());
         const $ = cheerio.load(html);
         title = metadata.common.title ? metadata.common.title : $("title").text().split(" - ").slice(0, -1).join(" - ").split(".").slice(0, -1).join(".");
     } catch (err: any) {
