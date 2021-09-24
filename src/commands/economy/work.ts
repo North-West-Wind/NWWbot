@@ -2,7 +2,7 @@ import randomWords from "random-words";
 import * as Canvas from "canvas";
 import * as Discord from "discord.js";
 import { getRandomNumber, applyText, jsDate2Mysql } from "../../function.js";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 
 import { RowDataPacket } from "mysql2";
 
@@ -27,7 +27,7 @@ class WorkCommand implements SlashCommand {
     if (results[0].doubling && results[0].doubling - Date.now() > 0) doubling = true;
     gain *= rate * (doubling ? 2 : 1);
     var newCurrency = Math.round((Number(results[0].currency) + gain + Number.EPSILON) * 100) / 100;
-    await con.query(`UPDATE currency SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? `, doubling = NULL` : "")} WHERE user_id = '${interaction.user.id}' AND guild = '${interaction.guild.id}'`);
+    await con.query(`UPDATE currency SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE user_id = '${interaction.user.id}' AND guild = '${interaction.guild.id}'`);
     await interaction.channel.send(`<@${interaction.user.id}> worked and gained **$${Math.round((gain + Number.EPSILON) * 100) / 100}**${rate < 1 ? ` (and it's multiplied by **${rate}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
     con.release();
   }
@@ -46,7 +46,7 @@ class WorkCommand implements SlashCommand {
     if (results[0].doubling && results[0].doubling - Date.now() > 0) doubling = true;
     gain *= rate * (doubling ? 2 : 1);
     var newCurrency = Math.round((Number(results[0].currency) + gain + Number.EPSILON) * 100) / 100;
-    await con.query(`UPDATE currency SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? `, doubling = NULL` : "")} WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
+    await con.query(`UPDATE currency SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
     await message.channel.send(`<@${message.author.id}> worked and gained **$${Math.round((gain + Number.EPSILON) * 100) / 100}**${rate < 1 ? ` (and it's multiplied by **${rate}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
     con.release();
   }

@@ -75,7 +75,7 @@ class SpeedrunCommand implements SlashCommand {
 
     async chooseGame(message: Discord.Message | NorthInteraction, name: string) {
         const games = [];
-        const author = message instanceof Discord.Message ? message.author.id : message.user;
+        const author = message instanceof Discord.Message ? message.author.id : message.user.id;
         var result = await fetch(`https://www.speedrun.com/api/v1/games?name=${escape(name)}&_bulk=1`).then(res => res.json());
         for (var i = 0; i < (result.data.length > 10 ? 10 : result.data.length); i++) games.push(`${i + 1}. **${result.data[i].names.international}** : **${result.data[i].abbreviation}**`);
         const em = new Discord.MessageEmbed()
@@ -117,6 +117,7 @@ class SpeedrunCommand implements SlashCommand {
     }
 
     async getEmbedsByID(data) {
+        console.log(data);
         const allEmbeds = [];
         const results = await fetch(`https://www.speedrun.com/api/v1/games/${data.id}/records`).then(res => res.json());
         for (const record of results.data) {
