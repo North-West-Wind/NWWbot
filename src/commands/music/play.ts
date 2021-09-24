@@ -174,6 +174,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
         }
         if (!song?.isPastLive) Object.assign(options, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
         else Object.assign(options, { highWaterMark: 1 << 25 });
+        if (!song.url) throw new Error("This soundtrack is missing URL! Please remove and add this track again to make it function.");
         stream = ytdl(song.url, options);
         if (!stream) throw new Error("Failed to get YouTube video stream.");
         break;
