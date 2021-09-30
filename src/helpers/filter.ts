@@ -1,5 +1,5 @@
 import { GuildMember, Message, Permissions, TextChannel } from "discord.js";
-import { Command, NorthInteraction, NorthMessage } from "../classes/NorthClient";
+import { Command, NorthClient, NorthInteraction, NorthMessage } from "../classes/NorthClient";
 import { genPermMsg, getOwner, msgOrRes } from "../function";
 
 var timeout: NodeJS.Timeout;
@@ -71,9 +71,16 @@ export async function music(_command: Command, message: NorthMessage | NorthInte
     return true;
 }
 export async function nsfw(_command: Command, message: NorthMessage | NorthInteraction) {
-    if (message.guild && !(<TextChannel>message.channel).nsfw) {
-        await msgOrRes(message, "Please use an NSFW channel to use this command!");
-        return false;
+    if (message.guild) {
+        if (NorthClient.storage.guilds[message.guild.id].safe) {
+            const msg = await msgOrRes(message, "Safe mode is ON!");
+            setTimeout(async () => { try { await msg.delete(); } catch (err) {} }, 10000);
+            return false;
+        }
+        if (!(<TextChannel>message.channel).nsfw) {
+            await msgOrRes(message, "Please use an NSFW channel to use this command!");
+            return false;
+        }
     }
     return true;
 }

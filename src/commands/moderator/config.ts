@@ -9,7 +9,8 @@ import { isImageUrl } from "../../function";
 const panelEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⏹"],
   welcomeEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⬅", "⏹"],
   yesNo = ["1️⃣", "2️⃣", "⬅", "⏹"],
-  leaveEmoji = ["1️⃣", "2️⃣", "⬅", "⏹"];
+  leaveEmoji = ["1️⃣", "2️⃣", "⬅", "⏹"],
+  safeEmoji = ["1️⃣", "2️⃣", "⬅", "⏹"];
 
 class ConfigCommand implements SlashCommand {
   name = "config"
@@ -20,23 +21,23 @@ class ConfigCommand implements SlashCommand {
   category = 1
   permissions = { guild: { user: 32 }, channel: { me: 8192 } }
   options = [
-      {
-          name: "token",
-          description: "Retrieves the token of the server.",
-          type: "SUB_COMMAND"
-      },
-      {
-          name: "new",
-          description: "Generates a new token for the server.",
-          type: "SUB_COMMAND"
-      },
-      {
-          name: "panel",
-          description: "Configures the server settings.",
-          type: "SUB_COMMAND"
-      }
+    {
+      name: "token",
+      description: "Retrieves the token of the server.",
+      type: "SUB_COMMAND"
+    },
+    {
+      name: "new",
+      description: "Generates a new token for the server.",
+      type: "SUB_COMMAND"
+    },
+    {
+      name: "panel",
+      description: "Configures the server settings.",
+      type: "SUB_COMMAND"
+    }
   ]
-  
+
   async execute(interaction: NorthInteraction) {
     const sub = interaction.options.getSubcommand();
     if (sub === "panel") return await this.panel(interaction);
@@ -59,7 +60,7 @@ class ConfigCommand implements SlashCommand {
       return await interaction.reply("There was an error trying to update the token! This token will be temporary.");
     }
   }
-  
+
   async run(message: NorthMessage, args: string[]) {
     const guild = message.guild;
     var config = NorthClient.storage.guilds[guild.id];
@@ -88,14 +89,14 @@ class ConfigCommand implements SlashCommand {
       .setDescription("Please login with the token.")
       .setTimestamp()
       .setFooter("Please enter within 60 seconds.", message.client.user.displayAvatarURL());
-    var mesg = <Message> await msgOrRes(message, login);
+    var mesg = <Message>await msgOrRes(message, login);
     const loginToken = await message.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
     if (!loginToken.first() || !loginToken.first().content) return timedOut(mesg);
     const receivedToken = loginToken.first().content;
     loginToken.first().delete().catch(() => { });
     if (config.token !== receivedToken) {
       login.setDescription("Invalid token.").setFooter("Try again when you have the correct one for your server.", message.client.user.displayAvatarURL());
-      return await mesg.edit({embeds: [login]});
+      return await mesg.edit({ embeds: [login] });
     }
     const panelEmbed = new Discord.MessageEmbed()
       .setColor(color())
@@ -104,20 +105,20 @@ class ConfigCommand implements SlashCommand {
     function end(msg: Message) {
       panelEmbed.setDescription("Panel shutted down.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       msg.edit({ embeds: [panelEmbed] });
-      return msg.reactions.removeAll().catch(() => {});
+      return msg.reactions.removeAll().catch(() => { });
     }
 
     function timedOut(msg: Message) {
       panelEmbed.setDescription("Panel timed out.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
       msg.edit({ embeds: [panelEmbed] });
-      return msg.reactions.removeAll().catch(() => {});
+      return msg.reactions.removeAll().catch(() => { });
     }
 
     async function start(msg: Message) {
       panelEmbed.setDescription("Please choose an option to configure:\n\n1️⃣ Welcome Message\n2️⃣ Leave Message\n3️⃣ Boost Message\n4️⃣ Giveaway Emoji\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < panelEmoji.length; i++) await msg.react(panelEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       if (!collected.first()) return timedOut(msg);
@@ -135,7 +136,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("**Welcome Message**\nPlease choose an option to configure:\n\n1️⃣ Message\n2️⃣ Channel\n3️⃣ Image\n4️⃣ Autorole\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < welcomeEmoji.length; i++) await msg.react(welcomeEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       if (!collected.first()) return timedOut(msg);
@@ -154,7 +155,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("**Welcome Message/Message**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut(msg);
@@ -164,7 +165,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Welcome Message/Message/Set**\nPlease enter the Welcome Message in this channel.")
           .setFooter("Please enter within 2 minutes.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 120000, max: 1 })
         if (!msgCollected.first() || !msgCollected.first().content) return timedOut(msg);
         const contents = msgCollected.first().content.replace(/'/g, "\\'");
@@ -185,7 +186,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Welcome Message/Message/Reset**\nResetting...")
           .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         try {
           config.welcome.message = null;
           NorthClient.storage.guilds[message.guild.id] = config;
@@ -206,7 +207,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("**Welcome Message/Channel**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut(msg);
@@ -216,7 +217,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Welcome Message/Channel/Set**\nPlease mention the Welcome Channel in this channel.")
           .setFooter("Please enter within 60 seconds.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
         const channelID = msgCollected.first().content.replace(/<#/g, "").replace(/>/g, "");
@@ -244,7 +245,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Welcome Message/Channel/Reset**\nResetting...")
           .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         try {
           config.welcome.channel = null;
           NorthClient.storage.guilds[message.guild.id] = config;
@@ -264,7 +265,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("**Welcome Message/Image**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut(msg);
@@ -274,7 +275,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Welcome Message/Image/Set**\nPlease paste the Welcome Image or its link in this channel.")
           .setFooter("Please enter within 60 seconds.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
         msgCollected.first().delete().catch(() => { });
@@ -315,7 +316,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Welcome Message/Image/Reset**\nResetting...")
           .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         try {
           config.welcome.image = null;
           NorthClient.storage.guilds[message.guild.id] = config;
@@ -336,7 +337,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("**Welcome Message/Autorole**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut(msg);
@@ -346,7 +347,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Welcome Message/Autorole/Set**\nPlease mention the roles or its ID in this channel.")
           .setFooter("Please enter within 60 seconds.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
 
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
@@ -380,7 +381,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Welcome Message/Autorole/Reset**\nResetting...")
           .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         try {
           config.welcome.autorole = "[]";
           NorthClient.storage.guilds[message.guild.id] = config;
@@ -402,7 +403,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("**Leave Message**\nPlease choose an option to configure:\n\n1️⃣ Message\n2️⃣ Channel\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < leaveEmoji.length; i++) await msg.react(leaveEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut(msg);
@@ -418,7 +419,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("**Leave Message/Message**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut(msg);
@@ -428,7 +429,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Leave Message/Message/Set**\nPlease enter the Leave Message in this channel.")
           .setFooter("Please enter within 120 seconds.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
         msgCollected.first().delete().catch(() => { });
@@ -451,7 +452,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Leave Message/Message/Reset**\nResetting...")
           .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         try {
           config.leave.message = null;
           NorthClient.storage.guilds[message.guild.id] = config;
@@ -473,7 +474,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("**Leave Message/Channel**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
 
       for (var i = 0; i < yesNo.length; i++)  await msg.react(yesNo[i]);
 
@@ -486,7 +487,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Leave Message/Channel/Set**\nPlease mention the Leave Channel in this channel.")
           .setFooter("Please enter within 60 seconds.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
         msgCollected.first().delete().catch(() => { });
@@ -514,7 +515,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Leave Message/Channel/Reset**\nResetting...")
           .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         try {
           config.leave.channel = null;
           NorthClient.storage.guilds[message.guild.id] = config;
@@ -535,7 +536,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("**Giveaway Emoji**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
 
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
@@ -547,7 +548,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Giveaway Emoji/Set**\nPlease enter the Giveaway Emoji you preferred in this channel.")
           .setFooter("Please enter within 60 seconds.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
         msgCollected.first().delete().catch(() => { });
@@ -568,7 +569,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Giveaway Emoji/Reset**\nResetting...")
           .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         try {
           config.giveaway = "🎉";
           NorthClient.storage.guilds[message.guild.id] = config;
@@ -589,7 +590,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("**Boost Message**\nPlease choose an option to configure:\n\n1️⃣ Message\n2️⃣ Channel\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < leaveEmoji.length; i++) await msg.react(leaveEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut(msg);
@@ -606,7 +607,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("**Boost Message/Message**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       if (!collected.first()) return await timedOut(msg);
@@ -617,7 +618,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Boost Message/Message/Set**\nPlease enter the Boost Message in this channel.")
           .setFooter("Please enter within 120 seconds.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
         msgCollected.first().delete().catch(() => { });
@@ -639,7 +640,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Boost Message/Message/Reset**\nResetting...")
           .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         try {
           config.boost.message = null;
           NorthClient.storage.guilds[message.guild.id] = config;
@@ -660,7 +661,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("**Boost Message/Channel**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => {});
+      await msg.reactions.removeAll().catch(() => { });
 
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
@@ -672,7 +673,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription("**Boost Message/Channel/Set**\nPlease mention the Boost Channel in this channel.")
           .setFooter("Please enter within 60 seconds.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
         if (!msgCollected.first()) return await timedOut(msg);
         msgCollected.first().delete().catch(() => { });
@@ -696,12 +697,11 @@ class ConfigCommand implements SlashCommand {
         } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
-      }
-      if (receivedID == 1) {
+      } else if (receivedID == 1) {
         panelEmbed.setDescription("**Boost Message/Channel/Reset**\nResetting...")
           .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
         await msg.edit({ embeds: [panelEmbed] });
-        await msg.reactions.removeAll().catch(() => {});
+        await msg.reactions.removeAll().catch(() => { });
         try {
           config.boost.channel = null;
           NorthClient.storage.guilds[message.guild.id] = config;
@@ -713,9 +713,47 @@ class ConfigCommand implements SlashCommand {
         } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
-      }
-      if (receivedID == 2) return await boost(msg);
-      if (receivedID == 3) return await end(msg);
+      } else if (receivedID == 2) return await boost(msg);
+      else if (receivedID == 3) return await end(msg);
+    }
+
+    async function safe(msg: Message) {
+      panelEmbed.setDescription("**Safe Mode**\nPlease choose an option to configure:\n\n1️⃣ Enable\n2️⃣ Disable\n⬅ Back\n⏹ Quit")
+        .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
+      await msg.edit({ embeds: [panelEmbed] });
+      await msg.reactions.removeAll().catch(() => { });
+      for (var i = 0; i < safeEmoji.length; i++) await msg.react(safeEmoji[i]);
+      const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
+      if (!collected.first()) return timedOut(msg);
+
+      const reaction = collected.first();
+      let receivedID = safeEmoji.indexOf(reaction.emoji.name);
+      if (receivedID == 0) {
+        try {
+          config.safe = true;
+          NorthClient.storage.guilds[message.guild.id] = config;
+          await client.pool.query(`UPDATE servers SET safe = 1 WHERE id = '${message.guild.id}'`);
+          panelEmbed.setDescription("**Safe Mode/Enable**\nEnabled Safe Mode! Returning to panel main page in 3 seconds...")
+            .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
+          await msg.edit({ embeds: [panelEmbed] });
+          setTimeout(() => start(msg), 3000);
+        } catch (err: any) {
+          await message.reply("there was an error trying to update the configuration!");
+        }
+      } else if (receivedID == 1) {
+        try {
+          config.safe = false;
+          NorthClient.storage.guilds[message.guild.id] = config;
+          await client.pool.query(`UPDATE servers SET safe = 0 WHERE id = '${message.guild.id}'`);
+          panelEmbed.setDescription("**Safe Mode/Disable**\nDisabled Safe Mode! Returning to panel main page in 3 seconds...")
+            .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
+          await msg.edit({ embeds: [panelEmbed] });
+          setTimeout(() => start(msg), 3000);
+        } catch (err: any) {
+          await message.reply("there was an error trying to update the configuration!");
+        }
+      } else if (receivedID == 2) return await start(msg);
+      else if (receivedID == 3) return await end(msg);
     }
   }
 }

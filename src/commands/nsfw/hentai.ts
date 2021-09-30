@@ -3,7 +3,6 @@ import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/Nort
 import { globalClient as client } from "../../common";
 import { color, ms, msgOrRes } from "../../function";
 import * as Discord from "discord.js";
-// import * as akaneko from "akaneko";
 const akaneko = require("akaneko");
 
 class HentaiCommand implements SlashCommand {

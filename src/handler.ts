@@ -122,6 +122,7 @@ export class Handler {
                 channel: result.boost_channel
             };
             NorthClient.storage.guilds[result.id].autoReply = result.auto_reply;
+            NorthClient.storage.guilds[result.id].safe = !!result.safe;
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }
@@ -138,7 +139,7 @@ export class Handler {
     }
 
     async readGiveaways(client: NorthClient, con: PoolConnection) {
-        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
+        var [results] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
         console.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
         results.forEach(async result => {
             var currentDate = Date.now();

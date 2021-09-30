@@ -46,7 +46,7 @@ class HelpCommand implements SlashCommand {
   async execute(interaction: NorthInteraction) {
     const sub = interaction.options.getSubcommand();
     if (sub === "all") {
-      await interaction.reply({embeds: [this.getAllCommands()]});
+      await interaction.reply({embeds: [this.getAllCommands(interaction.guildId)]});
       await wait(60000);
       await interaction.editReply({
         content: "This is the **[manual](https://northwestwind.ml/manual.pdf)**, my friend.",
@@ -56,20 +56,21 @@ class HelpCommand implements SlashCommand {
     }
 
     const name = interaction.options.getString("command").toLowerCase();
-    await interaction.reply(this.getCommand(name, "/").join("\n"));
+    await interaction.reply(this.getCommand(name, "/", interaction.guildId).join("\n"));
   }
 
   async run(message: NorthMessage, args: string[]) {
     if (!args.length) {
-      const msg = await message.channel.send({embeds: [this.getAllCommands()]});
+      const msg = await message.channel.send({embeds: [this.getAllCommands(message.guildId)]});
       setTimeout(() => msg.edit({ content: "This is the **manual**, my friend:\nhttps://northwestwind.ml/manual.pdf", embeds: [] }).catch(() => { }), 60000);
       return;
     }
     const name = args[0].toLowerCase();
-    await message.channel.send(this.getCommand(name, message.prefix).join("\n"));
+    await message.channel.send(this.getCommand(name, message.prefix, message.guildId).join("\n"));
   }
 
-  getAllCommands() {
+  getAllCommands(guildID: Discord.Snowflake) {
+    const safe = NorthClient.storage.guilds[guildID].safe;
     const Embed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle("Command list is here!")
@@ -77,15 +78,18 @@ class HelpCommand implements SlashCommand {
       .setThumbnail(client.user.displayAvatarURL())
       .setTimestamp()
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
-    for (let i = 0; i < categories.length; i++) Embed.addField(`**${categories[i]}**`, Array.from(NorthClient.storage.commands.filter(x => x.category === i).keys()).join("\n"), true);
+    for (let i = 0; i < categories.length; i++) {
+      if (safe && categories[i] === "NSFW") continue;
+      Embed.addField(`**${categories[i]}**`, Array.from(NorthClient.storage.commands.filter(x => x.category === i).keys()).join("\n"), true);
+    }
     return Embed;
   }
 
-  getCommand(name, prefix) {
+  getCommand(name: string, prefix: string, guildID: Discord.Snowflake) {
     const data = [];
-    const { commands } = NorthClient.storage;
+    const { commands, guilds } = NorthClient.storage;
     const command = commands.get(name) || commands.find(c => c.aliases && c.aliases.includes(name));
-    if (!command) return ["That's not a valid command!"];
+    if (!command || (guilds[guildID].safe && command.category === 5)) return ["That's not a valid command!"];
     data.push(`**Name:** ${command.name}`);
 
     if (command.aliases) data.push(`**Aliases:** ${command.aliases.join(", ")}`);

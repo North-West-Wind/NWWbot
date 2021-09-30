@@ -84,11 +84,6 @@ export interface RoleMessage {
 }
 
 export class ClientStorage {
-    private client: NorthClient;
-    constructor(c: NorthClient) {
-        this.client = c;
-    }
-
     guilds: any = {};
     rm: RoleMessage[] = [];
     timers: Collection<Snowflake, NodeJS.Timeout> = new Collection();
