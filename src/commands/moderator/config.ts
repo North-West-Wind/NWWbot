@@ -82,7 +82,7 @@ class ConfigCommand implements SlashCommand {
   async panel(message: Message | NorthInteraction) {
     var config = NorthClient.storage.guilds[message.guild.id];
     const msgFilter = (x: Message) => x.author.id === (message instanceof Message ? message.author : message.user).id;
-    const filter = (reaction: MessageReaction, user: User) => welcomeEmoji.includes(reaction.emoji.name) && user.id === (message instanceof Message ? message.author : message.user).id && !user.bot;
+    const filter = (reaction: MessageReaction, user: User) => panelEmoji.includes(reaction.emoji.name) && user.id === (message instanceof Message ? message.author : message.user).id && !user.bot;
     const login = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(message.guild.name + "'s Configuration Panel")
