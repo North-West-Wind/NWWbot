@@ -24,7 +24,7 @@ const client = new NorthClient({
     ]
 });
 client.log = "733912780679413886";
-NorthClient.storage = new ClientStorage(client);
+NorthClient.storage = new ClientStorage();
 
 client.prefix = prefixC;
 client.id = 0;

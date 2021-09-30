@@ -23,7 +23,7 @@ const client = new NorthClient({
     ]
 });
 client.log = "678847137391312917";
-NorthClient.storage = new ClientStorage(client);
+NorthClient.storage = new ClientStorage();
 
 client.prefix = prefix0;
 client.id = 0;
