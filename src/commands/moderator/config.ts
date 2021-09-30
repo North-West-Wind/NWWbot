@@ -6,7 +6,7 @@ import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
 import { isImageUrl } from "../../function";
 
-const panelEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⏹"],
+const panelEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "⏹"],
   welcomeEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⬅", "⏹"],
   yesNo = ["1️⃣", "2️⃣", "⬅", "⏹"],
   leaveEmoji = ["1️⃣", "2️⃣", "⬅", "⏹"],
@@ -115,7 +115,7 @@ class ConfigCommand implements SlashCommand {
     }
 
     async function start(msg: Message) {
-      panelEmbed.setDescription("Please choose an option to configure:\n\n1️⃣ Welcome Message\n2️⃣ Leave Message\n3️⃣ Boost Message\n4️⃣ Giveaway Emoji\n⏹ Quit")
+      panelEmbed.setDescription("Please choose an option to configure:\n\n1️⃣ Welcome Message\n2️⃣ Leave Message\n3️⃣ Boost Message\n4️⃣ Giveaway Emoji\n5️⃣ Safe Mode\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
@@ -129,7 +129,8 @@ class ConfigCommand implements SlashCommand {
       if (receivedID == 1) return await leave(msg);
       if (receivedID == 2) return await boost(msg);
       if (receivedID == 3) return await giveaway(msg);
-      if (receivedID == 4) return await end(msg);
+      if (receivedID == 4) return await safe(msg);
+      if (receivedID == 5) return await end(msg);
     }
 
     async function welcome(msg: Message) {
