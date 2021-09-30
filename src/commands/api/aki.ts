@@ -1,4 +1,4 @@
-import { Message, MessageEmbed, MessageReaction, Snowflake, TextChannel } from "discord.js";
+import { Message, MessageEmbed, MessageReaction, Snowflake } from "discord.js";
 import { Aki, region } from "aki-api";
 import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient";
 import { color } from "../../function.js";
