@@ -8,7 +8,7 @@ import { endGiveaway } from "./commands/miscellaneous/giveaway";
 import { endPoll } from "./commands/miscellaneous/poll";
 import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, wait, nameToUuid, color, fixGuildRecord } from "./function";
 import { setQueue, stop } from "./helpers/music";
-import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer } from "./classes/NorthClient";
+import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient";
 import { Connection, PoolConnection } from "mysql2/promise";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter";
@@ -91,7 +91,6 @@ export class Handler {
     async readServers(client: NorthClient, con: Connection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434'");
         results.forEach(async result => {
-            NorthClient.storage.guilds[result.id] = {};
             try {
                 await client.guilds.fetch(result.id);
             } catch (err: any) {
@@ -104,25 +103,7 @@ export class Handler {
                 catch (err: any) { console.error(`Error parsing queue of ${result.id}`); }
                 setQueue(result.id, queue, !!result.looping, !!result.repeating);
             }
-            if (result.prefix) NorthClient.storage.guilds[result.id].prefix = result.prefix;
-            NorthClient.storage.guilds[result.id].token = result.token;
-            NorthClient.storage.guilds[result.id].giveaway = unescape(result.giveaway);
-            NorthClient.storage.guilds[result.id].welcome = {
-                message: result.welcome,
-                channel: result.wel_channel,
-                image: result.wel_img,
-                autorole: result.autorole
-            };
-            NorthClient.storage.guilds[result.id].leave = {
-                message: result.leave_msg,
-                channel: result.leave_channel
-            };
-            NorthClient.storage.guilds[result.id].boost = {
-                message: result.boost_msg,
-                channel: result.boost_channel
-            };
-            NorthClient.storage.guilds[result.id].autoReply = result.auto_reply;
-            NorthClient.storage.guilds[result.id].safe = !!result.safe;
+            NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }
@@ -284,15 +265,10 @@ export class Handler {
                         console.error(err);
                     }
                 };
-                var url = welcome.image;
-                try {
-                    let urls = JSON.parse(welcome.image);
-                    if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
-                } catch (err: any) { }
-                img.src = url;
+                img.src = welcome.image[Math.floor(Math.random() * welcome.image.length)];
             }
-            if (welcome?.autorole !== "[]") {
-                const roleArray = JSON.parse(welcome.autorole);
+            if (welcome?.autorole.length > 0) {
+                const roleArray = welcome.autorole;
                 for (var i = 0; i < roleArray.length; i++) {
                     const roleID = roleArray[i];
                     var role = undefined;
@@ -466,30 +442,13 @@ export class AliceHandler extends Handler {
     async readServers(client: NorthClient, con: Connection) {
         var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id = '622311594654695434'");
         const result = results[0];
-        NorthClient.storage.guilds[result.id] = {};
         if (result.queue || result.looping || result.repeating) {
             var queue = [];
             try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
             catch (err: any) { console.error(`Error parsing queue of ${result.id}`); }
             setQueue(result.id, queue, !!result.looping, !!result.repeating);
         }
-        if (result.prefix) NorthClient.storage.guilds[result.id].prefix = result.prefix;
-        NorthClient.storage.guilds[result.id].token = result.token;
-        NorthClient.storage.guilds[result.id].giveaway = unescape(result.giveaway);
-        NorthClient.storage.guilds[result.id].welcome = {
-            message: result.welcome,
-            channel: result.wel_channel,
-            image: result.wel_img,
-            autorole: result.autorole
-        };
-        NorthClient.storage.guilds[result.id].leave = {
-            message: result.leave_msg,
-            channel: result.leave_channel
-        };
-        NorthClient.storage.guilds[result.id].boost = {
-            message: result.boost_msg,
-            channel: result.boost_channel
-        };
+        NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }
 
@@ -766,31 +725,13 @@ export class CanaryHandler extends Handler {
     async readServers(client: NorthClient, con: Connection) {
         var [results] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
         results.forEach(async result => {
-            NorthClient.storage.guilds[result.id] = {};
             if (result.queue || result.looping || result.repeating) {
                 var queue = [];
                 try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
                 catch (err: any) { console.error(`Error parsing queue of ${result.id}`); }
                 setQueue(result.id, queue, !!result.looping, !!result.repeating);
             }
-            if (result.prefix) NorthClient.storage.guilds[result.id].prefix = result.prefix;
-            else NorthClient.storage.guilds[result.id].prefix = client.prefix;
-            NorthClient.storage.guilds[result.id].token = result.token;
-            NorthClient.storage.guilds[result.id].giveaway = unescape(result.giveaway);
-            NorthClient.storage.guilds[result.id].welcome = {
-                message: result.welcome,
-                channel: result.wel_channel,
-                image: result.wel_img,
-                autorole: result.autorole
-            };
-            NorthClient.storage.guilds[result.id].leave = {
-                message: result.leave_msg,
-                channel: result.leave_channel
-            };
-            NorthClient.storage.guilds[result.id].boost = {
-                message: result.boost_msg,
-                channel: result.boost_channel
-            };
+            NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }

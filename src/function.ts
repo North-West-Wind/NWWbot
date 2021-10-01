@@ -1,4 +1,4 @@
-import { NorthClient, NorthInteraction } from "./classes/NorthClient";
+import { GuildConfig, NorthClient, NorthInteraction } from "./classes/NorthClient";
 import crypto from "crypto";
 import { globalClient } from "./common";
 import * as Discord from "discord.js";
@@ -630,36 +630,17 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
     if (NorthClient.storage.guilds[id]) return NorthClient.storage.guilds[id];
     const [results] = <RowDataPacket[][]> await globalClient.pool.query("SELECT id FROM servers WHERE id = " + id);
     if (results.length > 0) {
-        NorthClient.storage.guilds[results[0].id] = {};
         if (results[0].queue || results[0].looping || results[0].repeating) {
             var queue = [];
             try { if (results[0].queue) queue = JSON.parse(unescape(results[0].queue)); }
             catch (err: any) { console.error(`Error parsing queue of ${results[0].id}`); }
             setQueue(results[0].id, queue, !!results[0].looping, !!results[0].repeating);
         }
-        if (results[0].prefix) NorthClient.storage.guilds[results[0].id].prefix = results[0].prefix;
-        NorthClient.storage.guilds[results[0].id].token = results[0].token;
-        NorthClient.storage.guilds[results[0].id].giveaway = unescape(results[0].giveaway);
-        NorthClient.storage.guilds[results[0].id].welcome = {
-            message: results[0].welcome,
-            channel: results[0].wel_channel,
-            image: results[0].wel_img,
-            autorole: results[0].autorole
-        };
-        NorthClient.storage.guilds[results[0].id].leave = {
-            message: results[0].leave_msg,
-            channel: results[0].leave_channel
-        };
-        NorthClient.storage.guilds[results[0].id].boost = {
-            message: results[0].boost_msg,
-            channel: results[0].boost_channel
-        };
-        NorthClient.storage.guilds[results[0].id].autoReply = results[0].auto_reply;
-        NorthClient.storage.guilds[results[0].id].safe = !!results[0].safe;
+        NorthClient.storage.guilds[results[0].id] = new GuildConfig(results[0]);
     } else {
         try {
             await globalClient.pool.query(`INSERT INTO servers (id, autorole, giveaway, safe) VALUES ('${id}', '[]', '${escape("🎉")}', 1)`);
-            NorthClient.storage.guilds[id] = {};
+            NorthClient.storage.guilds[id] = new GuildConfig();
         } catch (err: any) { }
     }
     return NorthClient.storage.guilds[id];

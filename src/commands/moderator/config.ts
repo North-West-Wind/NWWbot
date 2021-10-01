@@ -293,18 +293,10 @@ class ConfigCommand implements SlashCommand {
         }
         const con = await client.pool.getConnection();
         try {
-          var urls = attachment;
-          if (config.welcome.image) {
-            try {
-              const old = JSON.parse(config.welcome.image);
-              urls = old.concat(attachment);
-            } catch (err: any) {
-              if (isImageUrl(config.welcome.image)) urls.push(config.welcome.image);
-            }
-          }
-          config.welcome.image = urls;
+          if (config.welcome.image) attachment.concat(config.welcome.image);
+          config.welcome.image = attachment;
           NorthClient.storage.guilds[message.guild.id] = config;
-          con.query(`UPDATE servers SET wel_img = '${JSON.stringify(urls)}' WHERE id = '${message.guild.id}'`);
+          con.query(`UPDATE servers SET wel_img = '${JSON.stringify(attachment)}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Image/Set**\nImage received! Returning to panel main page in 3 seconds...")
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit({ embeds: [panelEmbed] });
@@ -368,7 +360,7 @@ class ConfigCommand implements SlashCommand {
           roles.push(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, ""));
         }
         try {
-          config.welcome.autorole = JSON.stringify(roles);
+          config.welcome.autorole = roles;
           NorthClient.storage.guilds[message.guild.id] = config;
           await client.pool.query(`UPDATE servers SET autorole = '${JSON.stringify(roles)}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Autorole/Set**\nRoles received! Returning to panel main page in 3 seconds...")
@@ -386,7 +378,7 @@ class ConfigCommand implements SlashCommand {
         await msg.edit({ embeds: [panelEmbed] });
         await msg.reactions.removeAll().catch(() => { });
         try {
-          config.welcome.autorole = "[]";
+          config.welcome.autorole = [];
           NorthClient.storage.guilds[message.guild.id] = config;
           await client.pool.query("UPDATE servers SET autorole = '[]' WHERE id = " + message.guild.id);
           panelEmbed.setDescription("**Welcome Message/Autorole/Reset**\nAutorole was reset! Returning to panel main page in 3 seconds...")

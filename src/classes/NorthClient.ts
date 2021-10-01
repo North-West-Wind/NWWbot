@@ -1,6 +1,6 @@
 import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
-import { Client, ClientOptions, Collection, CommandInteraction, Message, MessageEmbed, Role, Snowflake, StageChannel, TextChannel, User, VoiceChannel } from "discord.js";
-import { Pool } from "mysql2/promise";
+import { Client, ClientOptions, Collection, CommandInteraction, Invite, Message, MessageEmbed, Role, Snowflake, StageChannel, TextChannel, User, VoiceChannel } from "discord.js";
+import { Pool, RowDataPacket } from "mysql2/promise";
 
 export class NorthClient extends Client {
     constructor(options: ClientOptions) {
@@ -83,8 +83,58 @@ export interface RoleMessage {
     emojis: string[];
 }
 
+export interface InfoBase {
+    message?: string;
+    channel?: Snowflake;
+}
+
+export interface WelcomeInfo extends InfoBase {
+    image?: string[];
+    autorole: Snowflake[];
+}
+
+export interface GuildConfigs {
+    [key: Snowflake]: GuildConfig;
+}
+
+export class GuildConfig {
+    prefix?: string;
+    token?: string;
+    giveaway: string;
+    welcome: WelcomeInfo;
+    leave: InfoBase;
+    boost: InfoBase;
+    safe: boolean;
+    invites?: Collection<string, Invite>;
+    exit?: boolean;
+
+    constructor(data: RowDataPacket = (<RowDataPacket> {})) {
+        if (data) {
+            this.prefix = data.prefix;
+            this.token = data.token;
+            this.giveaway = data.giveaway || "🎉";
+            this.welcome = {
+                message: data.welcome,
+                channel: data.wel_channel,
+                image: JSON.parse(data.wel_img || "[]"),
+                autorole: JSON.parse(data.autorole || "[]")
+            };
+            this.leave = {
+                message: data.leave_msg,
+                channel: data.leave_channel
+            };
+            this.boost = {
+                message: data.boost_msg,
+                channel: data.boost_channel
+            };
+            if (data.safe === undefined) this.safe = true;
+            else this.safe = !!data.safe;
+        }
+    }
+}
+
 export class ClientStorage {
-    guilds: any = {};
+    guilds: GuildConfigs = {};
     rm: RoleMessage[] = [];
     timers: Collection<Snowflake, NodeJS.Timeout> = new Collection();
     noLog: Snowflake[] = [];
