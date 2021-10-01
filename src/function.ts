@@ -638,7 +638,6 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
             setQueue(results[0].id, queue, !!results[0].looping, !!results[0].repeating);
         }
         if (results[0].prefix) NorthClient.storage.guilds[results[0].id].prefix = results[0].prefix;
-        else NorthClient.storage.guilds[results[0].id].prefix = globalClient.prefix;
         NorthClient.storage.guilds[results[0].id].token = results[0].token;
         NorthClient.storage.guilds[results[0].id].giveaway = unescape(results[0].giveaway);
         NorthClient.storage.guilds[results[0].id].welcome = {
@@ -655,11 +654,13 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
             message: results[0].boost_msg,
             channel: results[0].boost_channel
         };
+        NorthClient.storage.guilds[results[0].id].autoReply = results[0].auto_reply;
+        NorthClient.storage.guilds[results[0].id].safe = !!results[0].safe;
     } else {
         try {
-            await globalClient.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${id}', '[]', '${escape("🎉")}')`);
+            await globalClient.pool.query(`INSERT INTO servers (id, autorole, giveaway, safe) VALUES ('${id}', '[]', '${escape("🎉")}', 1)`);
             NorthClient.storage.guilds[id] = {};
-        } catch (err: any) { console.error(err); }
+        } catch (err: any) { }
     }
     return NorthClient.storage.guilds[id];
 }
