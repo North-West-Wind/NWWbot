@@ -659,7 +659,7 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
         try {
             await globalClient.pool.query(`INSERT INTO servers (id, autorole, giveaway) VALUES ('${id}', '[]', '${escape("🎉")}')`);
             NorthClient.storage.guilds[id] = {};
-        } catch (err: any) { }
+        } catch (err: any) { console.error(err); }
     }
     return NorthClient.storage.guilds[id];
 }
