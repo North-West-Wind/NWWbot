@@ -8,16 +8,14 @@ var globalClient: NorthClient;
 
 export default async (client: NorthClient) => {
   const mysql_config = {
-    connectTimeout: 60 * 1000,
-    connectionLimit: 100,
+    connectTimeout: 30000,
+    connectionLimit: 10,
     host: process.env.DBHOST,
     user: process.env.DBUSER,
     password: process.env.DBPW,
     database: process.env.DBNAME,
     supportBigNumbers: true,
-    charset: "utf8mb4",
-    waitForConnections: true,
-    queueLimit: 0
+    charset: "utf8mb4"
   };
   const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
   for (const file of fontFiles) registerFont(`./fonts/${file}`, { family: "NotoSans", style: file.split(/[\-\.]/)[1].toLowerCase() });

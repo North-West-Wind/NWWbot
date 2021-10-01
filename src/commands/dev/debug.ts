@@ -1,5 +1,5 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as functions from "../../function";
 import * as Discord from "discord.js";
 
@@ -16,11 +16,11 @@ class DebugCommand implements SlashCommand {
     }];
 
     async execute(interaction: NorthInteraction) {
-        console.log(await (Object.getPrototypeOf(async function () { }).constructor("message", "args", "functions", "Discord", interaction.options.getString("function")))(interaction, functions, Discord));
+        console.log(await (Object.getPrototypeOf(async function () { }).constructor("message", "functions", "Discord", "storage", interaction.options.getString("function")))(interaction, functions, Discord, NorthClient.storage));
     }
 
     async run(message: NorthMessage, args: string[]) {
-        console.log(await (Object.getPrototypeOf(async function () { }).constructor("message", "functions", "Discord", args.join(" ")))(message, functions, Discord));
+        console.log(await (Object.getPrototypeOf(async function () { }).constructor("message", "functions", "Discord", "storage", args.join(" ")))(message, functions, Discord, NorthClient.storage));
     }
 }
 

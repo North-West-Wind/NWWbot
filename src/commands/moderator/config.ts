@@ -50,10 +50,11 @@ class ConfigCommand implements SlashCommand {
       if (sub === "new" || !config?.token) await author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
       if (!config?.token) {
         if (!config) config = await fixGuildRecord(guild.id);
-      } else if (config.token && sub !== "new") return await author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
-      NorthClient.storage.guilds[guild.id].token = generated;
+      } else if (sub !== "new") return await author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
+      config.token = generated;
+      NorthClient.storage.guilds[guild.id] = config;
       await interaction.reply("See you in DM!");
-      await client.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
+      await client.pool.query(`UPDATE servers SET token = '${config.token}' WHERE id = '${guild.id}'`);
       return;
     } catch (err: any) {
       console.error(err);
@@ -70,11 +71,12 @@ class ConfigCommand implements SlashCommand {
       if (args[0] === "new" || !config?.token) await message.author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
       if (!config?.token) {
         if (!config) config = await fixGuildRecord(guild.id);
-      } else if (config.token && args[0] !== "new") return await message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
-      NorthClient.storage.guilds[guild.id].token = generated;
-      await message.pool.query(`UPDATE servers SET token = '${generated}' WHERE id = '${guild.id}'`);
+      } else if (args[0] !== "new") return await message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
+      config.token = generated;
+      NorthClient.storage.guilds[guild.id] = config;
+      await message.pool.query(`UPDATE servers SET token = '${config.token}' WHERE id = '${guild.id}'`);
     } catch (err: any) {
-      message.reply("there was an error trying to update the token! This token will be temporary.");
+      message.reply("There was an error trying to update the token! This token will be temporary.");
       console.error(err);
     }
   }
