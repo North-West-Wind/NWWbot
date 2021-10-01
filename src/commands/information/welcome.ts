@@ -107,12 +107,7 @@ class WelcomeCommand implements SlashCommand {
                         console.error(err);
                     }
                 };
-                var url = welcome.image;
-                try {
-                    let urls = JSON.parse(welcome.img);
-                    if (Array.isArray(urls)) url = urls[Math.floor(Math.random() * urls.length)];
-                } catch (err: any) { }
-                img.src = url;
+                img.src = welcome.image[Math.floor(Math.random() * welcome.image.length)];
             }
             result.error = false;
         } catch (err: any) { console.error(err); }
