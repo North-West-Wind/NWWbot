@@ -33,7 +33,7 @@ class DevSlashCommand implements SlashCommand {
     
     async register(message: NorthMessage | NorthInteraction) {
         var counter = 0;
-        await msgOrRes(message, `Registered ${counter} Slash Commands.`);
+        const msg = await msgOrRes(message, `Registered ${counter} Slash Commands.`);
         const client = message.client;
         const registered = cachedSnowflakeCommand.size ? cachedSnowflakeCommand : (await client.application.commands.fetch()).mapValues(appcmd => appcmd.name);
         cachedSnowflakeCommand.clear();
@@ -48,14 +48,13 @@ class DevSlashCommand implements SlashCommand {
                 if (key = registered.findKey(appcmd => appcmd === command.name)) await client.application.commands.edit(key, options);
                 else key = (await client.application?.commands.create(options)).id;
                 cachedSnowflakeCommand.set(key, command.name);
-                if (message instanceof NorthMessage) await message.edit(`Registered ${++counter} Slash Commands.`);
-                else await msgOrRes(message, `Registered ${++counter} Slash Commands.`);
+                await msg.edit(`Registered ${++counter} Slash Commands.`);
             } catch (err: any) {
                 console.log("Failed to create slash command " + command.name);
                 console.error(err);
             }
         }
-        await msgOrRes(message, `Registered all Slash Commands. ${counter} in total.`);
+        await msg.edit(`Registered all Slash Commands. ${counter} in total.`);
     }
 }
 
