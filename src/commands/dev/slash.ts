@@ -30,10 +30,12 @@ class DevSlashCommand implements SlashCommand {
     async execute(interaction: NorthInteraction) {
         const sub = interaction.options.getSubcommand();
         if (sub === "register") return await this.register(interaction);
+        if (sub === "refresh") return await this.refresh(interaction);
     }
     
     async run(message: NorthMessage, args: string[]) {
         if (args[0] === "register") return await this.register(message);
+        if (args[0] === "refresh") return await this.refresh(message);
     }
     
     async register(message: NorthMessage | NorthInteraction) {

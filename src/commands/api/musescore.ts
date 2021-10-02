@@ -1,5 +1,4 @@
 import * as cheerio from 'cheerio';
-
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { validMSURL, requestStream, findValueByPrefix, streamToString, color, requestYTDLStream } from "../../function";
 import { run } from '../../helpers/puppeteer';
@@ -112,6 +111,7 @@ class MusescoreCommand implements SlashCommand {
                 try {
                     var mesg = await message.channel.send("Generating MP3...");
                     const mp3 = await getMP3(url);
+                    console.log(mp3);
                     try {
                         if (mp3.error) throw new Error(mp3.message);
                         var res;
@@ -274,7 +274,7 @@ class MusescoreCommand implements SlashCommand {
     }
 
     async getPDF(url, data) {
-        if (!data) data = muse(url);
+        if (!data) data = await muse(url);
         var result = { doc: null, hasPDF: false, err: null };
         var score = data.firstPage.replace(/png$/, "svg");
         var fetched = await fetch(score);
@@ -288,7 +288,7 @@ class MusescoreCommand implements SlashCommand {
         }
         var pdf = [score];
         if (data.pageCount > 1) {
-            const pdfapi = await run(async (page) => {
+            const pdfapi = await run(async (page: Page) => {
                 const result = { error: true, pdf: [], message: null, timeTaken: 0 };
                 const start = Date.now();
                 const pageCount = data.pageCount;
@@ -307,7 +307,7 @@ class MusescoreCommand implements SlashCommand {
                     });
                     await page.goto(url, { waitUntil: "domcontentloaded" });
                     const thumb = await page.waitForSelector("meta[property='og:image']");
-                    var png = (await (await thumb.getProperty("content")).jsonValue()).split("@")[0];
+                    var png = (<string> await (await thumb.getProperty("content")).jsonValue()).split("@")[0];
                     var svg = png.split(".").slice(0, -1).join(".") + ".svg";
                     var el;
                     try {
@@ -322,7 +322,7 @@ class MusescoreCommand implements SlashCommand {
                     var scrolled = 0;
                     while (pages.length < pageCount && scrolled <= pageCount) {
                         await page.mouse.wheel({ deltaY: height });
-                        await page.waitForRequest(req => req.url().match(pattern));
+                        await page.waitForRequest(req => !!req.url().match(pattern));
                         scrolled++;
                     }
                     result.pdf = pages;
