@@ -1,37 +1,22 @@
-import { GuildMember, Message, MessageEmbed, Role, Snowflake, TextChannel } from "discord.js";
+import { GuildMember, Message, MessageEmbed, Snowflake, TextChannel } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { genPermMsg, findRole, msgOrRes } from "../../function";
-import { globalClient as client } from "../../common";
 import { RowDataPacket } from "mysql2";
 
 class RoleMessageCommand implements SlashCommand {
     name = "role-message"
     description = "Manage messages for users to react and join a role. Deleting the message will cancel the role-message."
-    usage = "<subcommand>"
-    subcommands = ["create"]
-    subdesc = ["Create a role-message."]
-    subusage = [null, "<subcommand> <ID>"]
-    subaliases = ["cr", "re"]
     aliases = ["role-msg", "rm"]
     category = 0
-    args = 1
     permissions = { guild: { user: 268435456, me: 268435456 } }
-    options = [
-        {
-            name: "create",
-            description: "Create a new role-message.",
-            type: "SUB_COMMAND"
-        }
-    ];
 
     async execute(interaction: NorthInteraction) {
-        const sub = interaction.options.getSubcommand();
-        if (sub === "create") return await this.create(interaction);
+        await this.create(interaction);
     }
 
     async run(message: NorthMessage, args: string[]) {
-        if (args[0] === "create" || args[0] === "cr") return await this.create(message);
+        await this.create(message);
     }
 
     async create(message: NorthMessage | NorthInteraction) {
@@ -52,7 +37,7 @@ class RoleMessageCommand implements SlashCommand {
         if (!collected2.first().content) return await msg.edit("Did not receive any channel! Action cancelled.");
         if (collected2.first().content === "cancel") return await msg.edit("Action cancelled.");
         const channelID = collected2.first().content.replace(/<#/g, "").replace(/>/g, "");
-        const channel = <TextChannel> await client.channels.fetch(channelID);
+        const channel = <TextChannel> await message.client.channels.fetch(channelID);
         if (!channel) return msg.edit(channelID + " isn't a valid channel!");
         if (!channel.permissionsFor(message.guild.me).has(BigInt(10240))) return await msg.edit(genPermMsg(10240, 1));
         if (!channel.permissionsFor(<GuildMember> message.member).has(BigInt(10240))) return await msg.edit(genPermMsg(10240, 0));
@@ -82,6 +67,10 @@ class RoleMessageCommand implements SlashCommand {
         if (!collected4.first().content) return await msg.edit("Did not receive any emoji! Action cancelled.");
         if (collected4.first().content === "cancel") return await msg.edit("Action cancelled.");
         var emojis = collected4.first().content.split("\n");
+        await this.directCreate(message, pendingMsg, channel, author.id, roles, emojis, results.length);
+    }
+
+    async directCreate(message: NorthMessage | NorthInteraction, msg: string, channel: TextChannel, authorId: Snowflake, roles: Snowflake[][], emojis: string[], totalRm: number) {
         emojis = emojis.map(emoji => emoji.replace(/ +/g, ""));
         const roleIndexes = new MessageEmbed()
             .setTitle("Role Index")
@@ -89,12 +78,12 @@ class RoleMessageCommand implements SlashCommand {
             .addField("Role(s)", roles.map(roless => roless.map(r => `<@&${r}>`)).join("\n"), true)
             .setTimestamp()
             .setFooter("React to claim your role.", message.client.user.displayAvatarURL());
-        var mesg = await channel.send({ content: pendingMsg, embeds: [roleIndexes] });
+        var mesg = await channel.send({ content: msg, embeds: [roleIndexes] });
         try {
             for (const emoji of emojis) await mesg.react(emoji);
         } catch (err: any) {
             await mesg.delete();
-            return await msg.edit("I cannot react with one of the reactions!");
+            return await msgOrRes(message, "I cannot react with one of the reactions!");
         }
         const now = Date.now();
         const expiration = now + (7 * 24 * 3600 * 1000);
@@ -102,18 +91,19 @@ class RoleMessageCommand implements SlashCommand {
             id: mesg.id,
             guild: message.guild.id,
             channel: channel.id,
-            author: author.id,
+            author: authorId,
             expiration: expiration,
             roles: roles,
             emojis: emojis
         });
         try {
-            await client.pool.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${author.id}', '${escape(JSON.stringify(roles))}', '${escape(JSON.stringify(emojis))}')`);
-            await message.channel.send(`Successfully created record for message. Role-messages used on this server: **${results.length}/5**`);
+            await message.client.pool.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${authorId}', '${escape(JSON.stringify(roles))}', '${escape(JSON.stringify(emojis))}')`);
+            await message.channel.send(`Successfully created record for message. Role-messages used on this server: **${totalRm}/5**`);
         } catch (err: any) {
             console.error(err);
             await message.reply("there was an error trying to record the message!");
         }
+
     }
 }
 
