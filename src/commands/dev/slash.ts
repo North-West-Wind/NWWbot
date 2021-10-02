@@ -12,12 +12,17 @@ class DevSlashCommand implements SlashCommand {
     aliases = ["scm"];
     category = 10;
     args = 1;
-    subcommands = ["register"];
-    subdesc = ["Register all Slash Commands."];
+    subcommands = ["register", "refresh"];
+    subdesc = ["Register all Slash Commands.", "Refresh all Slash Commands."];
     options = [
         {
             name: "register",
             description: "Register all Slash Commands.",
+            type: "SUB_COMMAND"
+        },
+        {
+            name: "refresh",
+            description: "Refresh all Slash Commands.",
             type: "SUB_COMMAND"
         }
     ];
@@ -32,11 +37,8 @@ class DevSlashCommand implements SlashCommand {
     }
     
     async register(message: NorthMessage | NorthInteraction) {
-        var counter = 0;
-        const msg = await msgOrRes(message, `Registered ${counter} Slash Commands.`);
+        const msg = await msgOrRes(message, `Registering Slash Commands...`);
         const client = message.client;
-        const registered = cachedSnowflakeCommand.size ? cachedSnowflakeCommand : (await client.application.commands.fetch()).mapValues(appcmd => appcmd.name);
-        cachedSnowflakeCommand.clear();
         for (const command of NorthClient.storage.commands.values()) {
             try {
                 const options = {
@@ -44,17 +46,34 @@ class DevSlashCommand implements SlashCommand {
                     description: command.description,
                     options: command.options
                 };
-                var key: Snowflake;
-                if (key = registered.findKey(appcmd => appcmd === command.name)) await client.application.commands.edit(key, options);
-                else key = (await client.application?.commands.create(options)).id;
-                cachedSnowflakeCommand.set(key, command.name);
-                await msg.edit(`Registered ${++counter} Slash Commands.`);
+                await client.application?.commands.create(options);
             } catch (err: any) {
                 console.log("Failed to create slash command " + command.name);
                 console.error(err);
             }
         }
-        await msg.edit(`Registered all Slash Commands. ${counter} in total.`);
+        await msg.edit(`Registered all Slash Commands.`);
+    }
+
+    async refresh(message: NorthMessage | NorthInteraction) {
+        const msg = await msgOrRes(message, `Refreshing Slash Commands...`);
+        const client = message.client;
+        const commands = await client.application.commands.fetch();
+        for (const command of commands.values()) {
+            const cmd = NorthClient.storage.commands.get(command.name);
+            try {
+                const options = {
+                    name: cmd.name,
+                    description: cmd.description,
+                    options: cmd.options
+                };
+                await client.application?.commands.edit(command.id, options);
+            } catch (err: any) {
+                console.log("Failed to create slash command " + command.name);
+                console.error(err);
+            }
+        }
+        await msg.edit(`Refreshed all Slash Commands.`);
     }
 }
 
