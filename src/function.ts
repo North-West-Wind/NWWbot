@@ -5,7 +5,7 @@ import * as Discord from "discord.js";
 import originalFetch from "node-fetch";
 import fetchBuilder from "fetch-retry-ts";
 import { parseString } from "xml2js";
-import superms, { StringValue } from "ms";
+import superms from "ms";
 import { mojang } from "aio-mc-api";
 import * as fs from "fs";
 import * as path from "path";
@@ -233,14 +233,14 @@ export function readableDateTimeText(time: number) {
     return d + h + m + s + mi;
 }
 export function ms(val: string) {
-    if (typeof val === "string" && superms(<StringValue> val) === undefined) {
+    if (typeof val === "string" && superms(val) === undefined) {
         if (val.split(":").length > 1) {
             const nums = val.split(":").reverse();
             const units = ["s", "m", "h", "d"];
             const mses = [];
             for (const num of nums) {
                 const str = `${parseInt(num)}${units[nums.indexOf(num)]}`;
-                const parsed = superms(<StringValue> str);
+                const parsed = superms(str);
                 if (parsed === undefined) return undefined;
                 mses.push(parsed);
             }
@@ -252,15 +252,15 @@ export function ms(val: string) {
         for (let i = 0; i < val.length; i++) {
             let char = val.substr(i, 1);
             if (!/\d/.test(last) && /\d/.test(char) && i != 0) {
-                if (superms(<StringValue> temp) === undefined) return undefined;
-                mses.push(superms(<StringValue> temp));
+                if (superms(temp) === undefined) return undefined;
+                mses.push(superms(temp));
                 temp = "";
             }
             temp += char;
-            if (val[i + 1] === undefined) mses.push(superms(<StringValue> temp));
+            if (val[i + 1] === undefined) mses.push(superms(temp));
         }
         return mses.reduce((acc, c) => acc + c);
-    } else return superms(<StringValue> val);
+    } else return superms(val);
 }
 export function findValueByPrefix(object, prefix) {
     for (const property in object) if (object[property] && property.toString().startsWith(prefix)) return object[property];
