@@ -33,7 +33,7 @@ function createPlayer(guild: Discord.Guild) {
     if (needSetVolume) {
       const volume = serverQueue.resource?.volume;
       if (volume) {
-        volume.setVolumeLogarithmic(track && track.volume ? serverQueue.volume * track.volume : serverQueue.volume);
+        volume.setVolumeLogarithmic(track?.volume ? serverQueue.volume * track.volume : serverQueue.volume);
         needSetVolume = false;
       }
     }

@@ -8,6 +8,7 @@ import ms, { StringValue } from "ms";
 import { color, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 import { globalClient as client } from "../../common";
+import { AudioPlayerStatus } from "@discordjs/voice";
 
 const type = [
     "YouTube",
@@ -44,7 +45,7 @@ class NPCommand implements SlashCommand {
             updateQueue(message.guild.id, serverQueue);
         }
         var position = 0;
-        if (serverQueue.streamTime && serverQueue.startTime) position = (serverQueue.streamTime - serverQueue.startTime);
+        if (serverQueue.player.state.status == AudioPlayerStatus.Playing && serverQueue.startTime) position = (serverQueue.player.state.playbackDuration - serverQueue.startTime);
         var processBar = [];
         for (let i = 0; i < 20; i++) processBar.push("═");
         var progress = 0;
