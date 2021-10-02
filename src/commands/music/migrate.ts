@@ -24,7 +24,7 @@ export async function migrate(message: Message | NorthInteraction) {
     const oldChannel = serverQueue.voiceChannel;
     var seek = 0;
     if (serverQueue.connection) {
-        seek = Math.floor((serverQueue.streamTime - serverQueue.startTime) / 1000);
+        seek = Math.floor((serverQueue.getPlaybackDuration() - serverQueue.startTime) / 1000);
         serverQueue.destroy();
     }
     serverQueue.playing = false;

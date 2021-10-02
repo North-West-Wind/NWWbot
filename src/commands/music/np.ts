@@ -45,7 +45,8 @@ class NPCommand implements SlashCommand {
             updateQueue(message.guild.id, serverQueue);
         }
         var position = 0;
-        if (serverQueue.player.state.status == AudioPlayerStatus.Playing && serverQueue.startTime) position = (serverQueue.player.state.playbackDuration - serverQueue.startTime);
+        const streamTime = serverQueue.getPlaybackDuration();
+        if (streamTime && serverQueue.startTime) position = (streamTime - serverQueue.startTime);
         var processBar = [];
         for (let i = 0; i < 20; i++) processBar.push("═");
         var progress = 0;

@@ -37,7 +37,6 @@ function createPlayer(guild: Discord.Guild) {
         needSetVolume = false;
       }
     }
-    serverQueue.streamTime = newState.playbackDuration;
     updateQueue(guild.id, serverQueue, false);
   }).on(AudioPlayerStatus.Idle, async () => {
     serverQueue = getQueues().get(guild.id);
@@ -112,7 +111,8 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
       return msg.delete().catch(() => { });
     }
   }
-  if (serverQueue.connection) serverQueue.startTime = serverQueue.streamTime - seek * 1000;
+  const streamTime = serverQueue.getPlaybackDuration();
+  if (serverQueue.connection) serverQueue.startTime = streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;
   try {
     var stream: Stream.Readable;

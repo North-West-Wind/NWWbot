@@ -1,4 +1,4 @@
-import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
+import { AudioPlayer, AudioPlayerStatus, AudioResource, VoiceConnection } from "@discordjs/voice";
 import { Client, ClientOptions, Collection, CommandInteraction, Invite, Message, MessageEmbed, Role, Snowflake, StageChannel, TextChannel, User, VoiceChannel } from "discord.js";
 import { Pool, RowDataPacket } from "mysql2/promise";
 
@@ -202,7 +202,11 @@ export class ServerQueue {
     repeating: boolean;
     random: boolean;
     startTime?: number;
-    streamTime?: number;
+
+    getPlaybackDuration() {
+        if (this.player.state.status != AudioPlayerStatus.Playing) return 0;
+        return this.player.state.playbackDuration;
+    }
 
     destroy() {
         try {
