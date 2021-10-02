@@ -1,5 +1,5 @@
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { color, deepReaddir, wait } from "../../function";
+import { color, deepReaddir, fixGuildRecord, wait } from "../../function";
 import * as Discord from "discord.js";
 
 import { AkiCommand } from "../api/aki";
@@ -46,7 +46,7 @@ class HelpCommand implements SlashCommand {
   async execute(interaction: NorthInteraction) {
     const sub = interaction.options.getSubcommand();
     if (sub === "all") {
-      await interaction.reply({embeds: [this.getAllCommands(interaction.guildId)]});
+      await interaction.reply({embeds: [await this.getAllCommands(interaction.guildId)]});
       await wait(60000);
       await interaction.editReply({
         content: "This is the **[manual](https://northwestwind.ml/manual.pdf)**, my friend.",
@@ -61,7 +61,7 @@ class HelpCommand implements SlashCommand {
 
   async run(message: NorthMessage, args: string[]) {
     if (!args.length) {
-      const msg = await message.channel.send({embeds: [this.getAllCommands(message.guildId)]});
+      const msg = await message.channel.send({embeds: [await this.getAllCommands(message.guildId)]});
       setTimeout(() => msg.edit({ content: "This is the **manual**, my friend:\nhttps://northwestwind.ml/manual.pdf", embeds: [] }).catch(() => { }), 60000);
       return;
     }
@@ -69,8 +69,10 @@ class HelpCommand implements SlashCommand {
     await message.channel.send(this.getCommand(name, message.prefix, message.guildId).join("\n"));
   }
 
-  getAllCommands(guildID: Discord.Snowflake) {
-    const safe = NorthClient.storage.guilds[guildID].safe;
+  async getAllCommands(guildID: Discord.Snowflake) {
+    var config = NorthClient.storage.guilds[guildID];
+    if (!config) config = await fixGuildRecord(guildID);
+    const safe = config.safe;
     const Embed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle("Command list is here!")
