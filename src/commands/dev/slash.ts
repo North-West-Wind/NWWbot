@@ -48,7 +48,8 @@ class DevSlashCommand implements SlashCommand {
                 if (key = registered.findKey(appcmd => appcmd === command.name)) await client.application.commands.edit(key, options);
                 else key = (await client.application?.commands.create(options)).id;
                 cachedSnowflakeCommand.set(key, command.name);
-                await msgOrRes(message, `Registered ${++counter} Slash Commands.`);
+                if (message instanceof NorthMessage) await message.edit(`Registered ${++counter} Slash Commands.`);
+                else await msgOrRes(message, `Registered ${++counter} Slash Commands.`);
             } catch (err: any) {
                 console.log("Failed to create slash command " + command.name);
                 console.error(err);
