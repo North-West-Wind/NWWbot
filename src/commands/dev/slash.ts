@@ -3,8 +3,6 @@ import { Snowflake } from "discord-api-types";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { msgOrRes } from "../../function";
 
-const cachedSnowflakeCommand = new Collection<Snowflake, string>();
-
 class DevSlashCommand implements SlashCommand {
     name = "slash";
     description = "N0rthWestW1nd's Slash Command Manager.";
@@ -48,7 +46,7 @@ class DevSlashCommand implements SlashCommand {
                     description: command.description,
                     options: command.options
                 };
-                await client.application?.commands.create(options);
+                await client.application.commands.create(options);
             } catch (err: any) {
                 console.log("Failed to create slash command " + command.name);
                 console.error(err);
@@ -62,16 +60,20 @@ class DevSlashCommand implements SlashCommand {
         const client = message.client;
         const commands = await client.application.commands.fetch();
         for (const command of commands.values()) {
-            const cmd = NorthClient.storage.commands.get(command.name);
             try {
+                const cmd = NorthClient.storage.commands.get(command.name);
+                if (!cmd) {
+                    await client.application.commands.delete(command.id);
+                    continue;
+                }
                 const options = {
                     name: cmd.name,
                     description: cmd.description,
                     options: cmd.options
                 };
-                await client.application?.commands.edit(command.id, options);
+                await client.application.commands.edit(command.id, options);
             } catch (err: any) {
-                console.log("Failed to create slash command " + command.name);
+                console.log("Failed to refresh slash command " + command.name);
                 console.error(err);
             }
         }

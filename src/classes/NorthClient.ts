@@ -204,7 +204,7 @@ export class ServerQueue {
     startTime?: number;
 
     getPlaybackDuration() {
-        if (this.player.state.status != AudioPlayerStatus.Playing) return 0;
+        if (this.player?.state?.status != AudioPlayerStatus.Playing) return 0;
         return this.player.state.playbackDuration;
     }
 

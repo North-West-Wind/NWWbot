@@ -6,7 +6,7 @@ import { RowDataPacket } from "mysql2";
 
 class RoleMessageCommand implements SlashCommand {
     name = "role-message"
-    description = "Manage messages for users to react and join a role. Deleting the message will cancel the role-message."
+    description = "Creates messages for users to react and join roles. Delete the message to disable a message."
     aliases = ["role-msg", "rm"]
     category = 0
     permissions = { guild: { user: 268435456, me: 268435456 } }
@@ -15,7 +15,7 @@ class RoleMessageCommand implements SlashCommand {
         await this.create(interaction);
     }
 
-    async run(message: NorthMessage, args: string[]) {
+    async run(message: NorthMessage) {
         await this.create(message);
     }
 
