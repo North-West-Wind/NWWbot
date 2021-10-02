@@ -1,7 +1,7 @@
 
 import { GuildMember } from "discord.js";
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { genPermMsg, commonModerationEmbed, findMember } from "../../function";
+import { commonModerationEmbed, findMember } from "../../function";
 
 class KickCommand implements SlashCommand {
     name = "kick"

@@ -2,7 +2,7 @@ import { Message } from "discord.js";
 import { RowDataPacket } from "mysql2";
 import { Connection } from "mysql2/promise";
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
 import { color, msgOrRes, wait } from "../../function";

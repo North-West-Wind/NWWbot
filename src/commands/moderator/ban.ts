@@ -5,7 +5,7 @@ import { commonModerationEmbed, findMember } from "../../function";
 
 class BanCommand implements SlashCommand {
     name = "ban"
-    description = "Ban a member from the server."
+    description = "Bans a member from the server."
     args = 1
     usage = "<user | user ID> [days] [reason]"
     category = 1

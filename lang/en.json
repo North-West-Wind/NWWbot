@@ -1,0 +1,60 @@
+{
+    "common": {
+        "niceDay": "Have a nice day! :)"
+    },
+    "command": {
+        "aki": {
+            "yes": "Yes",
+            "no": "No",
+            "probably": "Probably",
+            "probablyNot": "Probably Not",
+            "dontKnow": "Don't Know",
+            "back": "Back",
+            "stop": "Stop",
+            "embed": {
+                "title": "Akinator",
+                "wait": "Please wait patiently",
+                "ready": {
+                    "title": "Getting ready...",
+                    "footer": "Please wait until all reactions appear."
+                },
+                "question": {
+                    "title": "Question %s: %s",
+                    "footer": "Please answer within 60 seconds."
+                },
+                "stop": {
+                    "title": "Akinator was stopped",
+                    "description": "Thanks for playing!"
+                },
+                "correct": {
+                    "title": "I got the correct answer!",
+                    "footer": "I am right!"
+                },
+                "resume": {
+                    "description": "Resuming game..."
+                },
+                "loading": {
+                    "description": "Loading result..."
+                },
+                "guess": {
+                    "final": "My Final Guess is... 🤔",
+                    "title": "I'm thinking of... 🤔",
+                    "footer": "Am I correct?",
+                    "finalFooter": "Hope I am correct!"
+                },
+                "timeout": {
+                    "title": "Akinator has timed out",
+                    "description": "Please start a new game.",
+                    "footer": "60 seconds have passed!"
+                },
+                "region": {
+                    "description": "Region list\n\n`%s`",
+                    "footer": "Use \"%s%s %s\" to start a game."
+                }
+            },
+            "message": {
+                "correct": "Looks like I got another one correct! This time after %s steps. Thanks for playing!"
+            }
+        }
+    }
+}

@@ -7,7 +7,7 @@ class DeleteCommand implements SlashCommand {
   name = "delete"
   description = "Delete a specific amount of message in a channel. Sadly, this command does not work for DMs."
   aliases = ["del"]
-  usage = "[channel] <amount | subcommand | start> [end]"
+  usage = "[channel] <amount | subcommand>"
   subcommands = ["all"]
   subdesc = ["Deletes everything in the channel."]
   subusage = ["[channel] <subcommand>"]
@@ -75,7 +75,7 @@ class DeleteCommand implements SlashCommand {
     var amount = parseInt(args[0]);
     const channel = <TextChannel> (args[1] ? await message.guild.channels.fetch(args[1].replace(/<#/g, "").replace(/>/g, "")) : message.channel);
     if (isNaN(amount)) {
-        if (args[2] == "all") {
+        if (args[0] == "all") {
           if (!message.member.permissions.has(BigInt(16))) return await message.channel.send(genPermMsg(16, 0));
           if (!message.guild.me.permissions.has(BigInt(16))) return await message.channel.send(genPermMsg(16, 1));
           const name = channel.name;

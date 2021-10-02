@@ -1,11 +1,11 @@
 
-import { ColorResolvable, GuildMember } from "discord.js";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { genPermMsg, commonRoleEmbed } from "../../function";
+import { ColorResolvable } from "discord.js";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { commonRoleEmbed } from "../../function";
 
 class AddRoleCommand implements SlashCommand {
     name = "addrole"
-    description = "Add a new role to the server. The “color” parameter is optional."
+    description = "Adds a new role to the server. The “color” parameter is optional."
     args = 1
     usage = "<role name> [color]"
     category = 0

@@ -5,7 +5,7 @@ import { wait, findMember } from "../../function";
 
 class RoleCommand implements SlashCommand {
   name = 'role'
-  description = 'Give a role to the mentioned user or the user ID in the message.'
+  description = 'Gives a role to a user.'
   usage = '<user | user ID> <role | role ID | role name>'
   category = 0
   args = 2

@@ -8,7 +8,7 @@ import { RowDataPacket } from "mysql2";
 
 class ShopCommand implements SlashCommand {
     name = "shop"
-    description = "Spend the money you gained from work on the server shop."
+    description = "Displays the server shop."
     usage = "[subcommand]"
     category = 2
     subcommands = ["add"]

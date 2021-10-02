@@ -1,11 +1,11 @@
 
 import { GuildMember, Role } from "discord.js";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { findMember, wait } from "../../function";
 
 class UnRoleCommand implements SlashCommand {
   name = 'unrole'
-  description = 'Remove a role from the mentioned user or the user ID in the message.'
+  description = 'Removes a role from a user.'
   args = 2
   usage = '<user | userID> <role | role ID | role name>'
   category = 0
