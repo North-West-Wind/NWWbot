@@ -732,6 +732,20 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit({ embeds: [panelEmbed] });
           setTimeout(() => start(msg), 3000);
+          for (const command of NorthClient.storage.commands.values()) {
+            if (command.category !== 5) continue;
+            try {
+              const options = {
+                name: command.name,
+                description: command.description,
+                options: command.options
+              };
+              await client.application.commands.create(options, message.guild.id);
+            } catch (err: any) {
+              console.log("Failed to create slash command " + command.name);
+              console.error(err);
+            }
+          }
         } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
@@ -744,6 +758,17 @@ class ConfigCommand implements SlashCommand {
             .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
           await msg.edit({ embeds: [panelEmbed] });
           setTimeout(() => start(msg), 3000);
+          const commands = await message.client.application.commands.fetch();
+          for (const command of commands.values()) {
+            if (command.guildId !== message.guildId) continue;
+            if (NorthClient.storage.commands.get(command.name)?.category !== 5) continue;
+            try {
+              await client.application.commands.delete(command.id, command.guildId);
+            } catch (err: any) {
+              console.log("Failed to delete slash command " + command.name);
+              console.error(err);
+            }
+          }
         } catch (err: any) {
           await message.reply("there was an error trying to update the configuration!");
         }
