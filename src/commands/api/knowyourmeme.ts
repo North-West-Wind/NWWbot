@@ -92,7 +92,7 @@ async function doSearch(term) {
 
 class KnowYourMemeCommand implements SlashCommand {
   name = "knowyourmeme";
-  description = "Display meme information from Know Your Meme.";
+  description = "Displays meme information from Know Your Meme.";
   usage = "<keywords>";
   args = 1;
   aliases = ["kym"];

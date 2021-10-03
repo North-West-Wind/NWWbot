@@ -8,7 +8,7 @@ class WelcomeCommand implements SlashCommand {
     name = "welcome"
     description = "Test the welcome message and image."
     category = 6
-    usage = "[user | user ID]"
+    usage = "[user]"
     options = [{
         name: "user",
         description: "The user for testing.",

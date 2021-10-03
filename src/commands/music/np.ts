@@ -22,7 +22,7 @@ const type = [
 
 class NPCommand implements SlashCommand {
     name = "np"
-    description = "Display the music being played."
+    description = "Displays information about the soundtrack being played."
     aliases = ["nowplaying"]
     category = 8
 

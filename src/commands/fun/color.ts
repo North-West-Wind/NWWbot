@@ -38,7 +38,7 @@ function getColor(args: string[]): { red?: number, green?: number, blue?: number
 
 class ColorCommand implements SlashCommand {
     name = "color"
-    description = "Display the color you entered, or a random color."
+    description = "Displays the color you entered, or a random color."
     usage = "[color]"
     category = 3
     options = [{

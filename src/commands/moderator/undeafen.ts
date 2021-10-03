@@ -8,7 +8,7 @@ class UnDeafenCommand implements SlashCommand {
     description = "Undeafen a member while the member is in a voice channel."
     args = 1
     aliases = ["undeaf"]
-    usage = "<user | user ID> [reason]"
+    usage = "<user> [reason]"
     category = 1
     permissions = { guild: { user: 8388608, me: 8388608 } }
     options = [

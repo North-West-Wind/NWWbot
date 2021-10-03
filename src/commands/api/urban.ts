@@ -8,7 +8,7 @@ const fetch = getFetch();
 
 class UrbanCommand implements SlashCommand {
     name = "urban"
-    description = "Search the Urban Dictionary on Discord."
+    description = "Searches the Urban Dictionary on Discord."
     usage = "<query>"
     category = 7
     args = 1

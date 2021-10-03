@@ -1,5 +1,5 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import {  NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
 import { readableDateTime, color, readableDateTimeText } from "../../function";

@@ -5,7 +5,7 @@ import { color, readableDateTime } from "../../function.js";
 
 class ServerCommand implements SlashCommand {
   name = 'server'
-  description = 'Display some server information.'
+  description = 'Displays some server information.'
   category = 6
 
   async execute(interaction: NorthInteraction) {

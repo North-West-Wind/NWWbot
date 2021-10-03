@@ -10,7 +10,7 @@ import { isImageUrl } from "../../function";
 
 class AsciiCommand implements SlashCommand {
     name = "ascii"
-    description = "Generate ASCII arts from text or image."
+    description = "Generates ASCII arts from text or image."
     usage = "<subcommand>"
     category = 3
     subcomamnds = ["text", "image"]

@@ -1,4 +1,4 @@
-import { DiscordGatewayAdapterCreator, getVoiceConnection, joinVoiceChannel } from "@discordjs/voice";
+import { getVoiceConnection, joinVoiceChannel } from "@discordjs/voice";
 import { GuildMember, Message, TextChannel, VoiceChannel } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
@@ -55,7 +55,7 @@ export async function migrate(message: Message | NorthInteraction) {
 
 class MigrateCommand implements SlashCommand {
     name = "migrate"
-    description = "Move the bot to the channel you are in. Use when changing voice channel."
+    description = "Moves the bot to the channel you are in. Use when changing voice channel."
     category = 8
 
     async execute(interaction: NorthInteraction) {

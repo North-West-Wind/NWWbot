@@ -7,7 +7,7 @@ class UnRoleCommand implements SlashCommand {
   name = 'unrole'
   description = 'Removes a role from a user.'
   args = 2
-  usage = '<user | userID> <role | role ID | role name>'
+  usage = '<user> <role>'
   category = 0
   permissions = { guild: { user: 268435456, me: 268435456 } }
   options = [

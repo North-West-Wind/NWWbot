@@ -1,7 +1,7 @@
 import { Message, MessageEmbed, MessageReaction, Snowflake } from "discord.js";
 import { Aki, region } from "aki-api";
 import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient";
-import { color, getText } from "../../function.js";
+import { color } from "../../function.js";
 
 export class AkiCommand implements SlashCommand {
   name = "aki";

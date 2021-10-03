@@ -5,7 +5,6 @@ import { Message, MessageEmbed } from "discord.js";
 import { curseforge, SimpleProject } from "aio-mc-api";
 import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
-import { e } from "mathjs";
 
 const fetch = getFetch();
 
@@ -13,11 +12,11 @@ class MinecraftCommand implements SlashCommand {
     name = "minecraft";
     description = "Connect to the Minecraft API and display information.";
     aliases = ["mc"];
-    usage = "[subcommand] <username | UUID | IP>";
+    usage = "<subcommand>";
     subcommands = ["profile", "server", "history", "curseforge"];
     subaliases = ["pro", "srv", "his", "cf"];
-    subdesc = ["Display the profile of a Minecraft player.", "Fetch information about a Minecraft server.", "Show the username history of a Minecraft player.", "Fetch projects from CurseForge Minecraft."];
-    subusage = [null, "<subcommand> <IP>", null, "<subcommand> [section | category] [version] [sort] [keywords]"];
+    subdesc = ["Displays the profile of a Minecraft player.", "Fetches information about a Minecraft server.", "Shows the username history of a Minecraft player.", "Fetches projects from CurseForge Minecraft."];
+    subusage = ["<subcommand> <player>", "<subcommand> <IP>", 0, "<subcommand> [category] [version] [sort] [keywords]"];
     category = 7;
     args = 1;
     options: any[];
@@ -32,7 +31,7 @@ class MinecraftCommand implements SlashCommand {
                 description: this.subdesc[0],
                 type: "SUB_COMMAND",
                 options: [{
-                    name: "username",
+                    name: "player",
                     description: "The username or UUID of the player.",
                     required: true,
                     type: "STRING"

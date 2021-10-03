@@ -7,7 +7,7 @@ class AnnounceCommand implements SlashCommand {
   name = 'announce'
   description = 'Lets the bot announce something for you in a specific channel.'
   aliases = ['ann']
-  usage = "<channel | channel ID> <announcement>"
+  usage = "<channel> <announcement>"
   args = 2
   category = 0
   options = [

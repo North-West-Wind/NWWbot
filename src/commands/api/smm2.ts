@@ -14,7 +14,7 @@ const styles = {
 
 class SMM2Command implements SlashCommand {
     name = "smm2"
-    description = "Search courses of Super Mario Maker from smmdb.net. API by Tarnadas."
+    description = "Searches courses of Super Mario Maker from smmdb.net. API by Tarnadas."
     aliases = ["supermariomaker2"]
     usage = "<keywords>"
     category = 7

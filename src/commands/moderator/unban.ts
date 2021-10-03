@@ -6,7 +6,7 @@ import { commonModerationEmbed, findMember } from "../../function";
 class UnBanCommand implements SlashCommand {
     name = "unban"
     description = "Unban a member of the server."
-    usage = "<user | user ID> [reason]"
+    usage = "<user> [reason]"
     args = 1
     category = 1
     permissions = { guild: { user: 4, me: 4 } }

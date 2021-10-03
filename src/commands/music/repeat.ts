@@ -6,7 +6,7 @@ import { msgOrRes } from "../../function";
 
 class RepeatCommand implements SlashCommand {
     name = "repeat"
-    description = "Toggle repeat of a soundtrack."
+    description = "Toggles repeat of a soundtrack."
     aliases = ["rep", "rp"]
     category = 8
 

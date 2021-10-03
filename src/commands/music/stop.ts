@@ -6,7 +6,7 @@ import { msgOrRes } from "../../function";
 
 class StopCommand implements SlashCommand {
     name = "stop"
-    description = "Stop the music and disconnect the bot from the voice channel."
+    description = "Stops the music and disconnect the bot from the voice channel."
     aliases = ["end", "disconnect", "dis"]
     category = 8
 

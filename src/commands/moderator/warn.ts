@@ -8,7 +8,7 @@ class WarnCommand implements SlashCommand {
   name = "warn"
   description = "Warn a member of the server. 3 warnings will lead to a ban."
   args = 1
-  usage = "<user | user ID> [reason]"
+  usage = "<user> [reason]"
   category = 1
   permissions = { guild: { user: 4, me: 4 } }
   options = [

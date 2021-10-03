@@ -1,12 +1,12 @@
 import wiki from "wikijs";
 import * as Discord from "discord.js";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 
 import { color } from "../../function";
 
 class WikiCommand implements SlashCommand {
     name = "wiki"
-    description = "Search Wikipedia for stuff."
+    description = "Searches Wikipedia for stuff."
     usage = "<query>"
     aliases = ["wikipedia"]
     args = 1

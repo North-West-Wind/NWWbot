@@ -23,7 +23,7 @@ class InvitesCommand implements SlashCommand {
       },
       {
           name: "toggle",
-          description: "Toggles whether or not the bot should DM you when a user uses your invite.",
+          description: "Toggles whether or not the bot should notify you when a user uses your invite.",
           type: "SUB_COMMAND"
       }
   ]

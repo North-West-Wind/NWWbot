@@ -6,7 +6,7 @@ import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 
 class ShuffleCommand implements SlashCommand {
     name = "shuffle"
-    description = "Shuffle the queue."
+    description = "Shuffles the queue."
     category = 8
 
     async execute(interaction: NorthInteraction) {

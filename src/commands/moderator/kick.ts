@@ -7,7 +7,7 @@ class KickCommand implements SlashCommand {
     name = "kick"
     description = "Kick a member from the server."
     args = 1
-    usage = "<user | user ID> [reason]"
+    usage = "<user> [reason]"
     category = 1
     permissions = { guild: { user: 2, me: 2 } }
     options = [

@@ -51,10 +51,33 @@ class PollCommand implements SlashCommand {
     usage = "<subcommand>"
     subcommands = ["create", "end", "list"]
     subaliases = ["cr", "en", "li"]
-    subdesc = ["Create a poll on the server.", "End a poll on the server.", "List all the polls on the server."]
+    subdesc = ["Creates a poll on the server.", "Ends a poll on the server.", "Lists all the polls on the server."]
     subusage = ["<channel> <duration> <title>", "<subcommand> <ID>"]
     category = 4
     args = 1
+    options = [
+      {
+        name: "create",
+        description: "Creates a poll on the server.",
+        type: "SUB_COMMAND",
+        options: [
+          { name: "channel", description: "The channel of the poll.", required: true, type: "CHANNEL" },
+          { name: "duration", description: "The duration of the poll.", required: true, type: "STRING" },
+          { name: "title", description: "The title of the poll.", required: true, type: "STRING" }
+        ]
+      },
+      {
+        name: "end",
+        description: "Ends a poll on the server.",
+        type: "SUB_COMMAND",
+        options: [{ name: "id", description: "The ID of the poll message.", required: true, type: "STRING" }]
+      },
+      {
+        name: "list",
+        description: "Lists all the polls on the server.",
+        type: "SUB_COMMAND"
+      }
+    ]
 
     async execute(interaction: NorthInteraction) {
         await interaction.reply("Not finished yet :/");

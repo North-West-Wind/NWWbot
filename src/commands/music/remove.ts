@@ -7,7 +7,7 @@ import { play } from "./play";
 
 class RemoveCommand implements SlashCommand {
     name = "remove"
-    description = "Remove soundtrack(s) from the queue."
+    description = "Removes soundtrack(s) from the queue."
     usage = "<index | starting index> [delete count]"
     category = 8
     args = 1

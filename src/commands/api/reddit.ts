@@ -1,5 +1,5 @@
 import RedditAPI, { API } from "reddit-wrapper-v2";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { validImgurURL, color } from "../../function";
 import * as Discord from "discord.js";
 import { globalClient as client } from "../../common";
@@ -10,7 +10,7 @@ const def = ["memes", "dankmemes", "meme"];
 
 class RedditCommand implements SlashCommand {
     name = "reddit"
-    description = "Fetch memes from Reddit."
+    description = "Fetches memes from Reddit."
     usage = "[subreddits]"
     aliases = ["meme"]
     category = 7

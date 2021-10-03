@@ -8,7 +8,7 @@ import { play } from "./play";
 
 class UnSkipCommand implements SlashCommand {
     name = "unskip"
-    description = "Go to the previous music in the queue."
+    description = "Goes to the previous soundtrack in the queue."
     usage = "[amount]"
     aliases = ["us"]
     category = 8

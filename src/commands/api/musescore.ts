@@ -54,7 +54,7 @@ export async function getMP3(url: string): Promise<{ error: boolean, url: string
 
 class MusescoreCommand implements SlashCommand {
     name = "musescore";
-    description = "Get information of a MuseScore link, or search the site, and download if requested.";
+    description = "Gets information of a MuseScore link, or searches the site, and downloads if requested.";
     usage = "<link | keywords>";
     category = 7;
     aliases = ["muse"];

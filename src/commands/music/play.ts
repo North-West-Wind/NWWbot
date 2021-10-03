@@ -207,13 +207,13 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
 
 class PlayCommand implements SlashCommand {
   name = "play"
-  description = "Play music with the link or keywords provided. Only support YouTube videos currently."
+  description = "Plays music with the link or keywords provided."
   aliases = ["p"]
-  usage = "[link | keywords | attachment]"
+  usage = "[link | keywords]"
   category = 8
   options = [{
     name: "link",
-    description: "The link of the soundtrack or keywords to search.",
+    description: "The link of the soundtrack or keywords to search for.",
     required: false,
     type: "STRING"
   }]

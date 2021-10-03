@@ -25,8 +25,8 @@ const createModeEmbed = (mode: StatsMode, stats: Stats) => {
 
 class SurvivCommand implements SlashCommand {
     name = "surviv"
-    description = "Display the user's stats from Surviv.io."
-    usage = "<username>"
+    description = "Displays the user's stats from Surviv.io."
+    usage = "<user>"
     args = 1
     aliases = ["survivio"]
     category = 7

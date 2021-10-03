@@ -7,7 +7,7 @@ import { play } from "./play";
 
 class MoveCommand implements SlashCommand {
     name = "move"
-    description = "Move a soundtrack to a specific position of the queue."
+    description = "Moves a soundtrack to a specific position of the queue."
     usage = "<target> <destination>"
     category = 8
     args = 2

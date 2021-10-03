@@ -6,7 +6,7 @@ import { findUser, getOwner, wait } from "../../function";
 class RickrollCommand implements SlashCommand {
     name = "rickroll"
     description = "It's rickroll. What's your question?"
-    usage = "[user | user ID]"
+    usage = "[user]"
     aliases = ["rr"]
     category = 3
     options = [{

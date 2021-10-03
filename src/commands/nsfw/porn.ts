@@ -12,8 +12,10 @@ var redditConn;
 
 class PornCommand implements SlashCommand {
     name = "porn"
-    description = "Returns real porn images from Reddit. Require NSFW channel."
-    usage = "[tag]"
+    description = "Returns real porn images from Reddit. Requires NSFW channel."
+    usage = "[tag | subcommand]"
+    subcommands = ["auto", "tags"]
+    subaliases = ["a", "t"]
     category = 5
     // Reference: http://www.reddit.com/r/NSFW411/wiki/index
     //age
@@ -434,7 +436,7 @@ class PornCommand implements SlashCommand {
         },
         {
             name: "auto",
-            description: "Automatically fetches Hentai.",
+            description: "Automatically fetches porn.",
             type: "SUB_COMMAND",
             options: [
                 {
@@ -498,8 +500,8 @@ class PornCommand implements SlashCommand {
     }
     
     async run(message: NorthMessage, args: string[]) {
-        if (args[0]?.toLowerCase() === "auto") return await this.auto(message, args);
-        if (args[0]?.toLowerCase() === "tags") return await this.tags(message, args);
+        if (["auto", "a"].includes(args[0]?.toLowerCase())) return await this.auto(message, args);
+        if (["tags", "t"].includes(args[0]?.toLowerCase())) return await this.tags(message, args);
         if (["listofsubreddits", "los"].includes(args[0]?.toLowerCase())) return await this.los(message, args);
         else return await this.nsfw411(message, args);
     }

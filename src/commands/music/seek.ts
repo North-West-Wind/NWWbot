@@ -10,7 +10,7 @@ import { play } from "./play";
 
 class SeekCommand implements SlashCommand {
     name = "seek"
-    description = "Skip to the time specified for the current playing soundtrack."
+    description = "Skips to the time specified for the current playing soundtrack."
     usage = "<time>"
     aliases = ["skipto"]
     category = 8

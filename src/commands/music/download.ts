@@ -10,7 +10,7 @@ import { getMP3 } from "../api/musescore";
 
 class DownloadCommand implements SlashCommand {
     name = "download"
-    description = "Download the soundtrack from the server queue or online."
+    description = "Downloads the soundtrack from the server queue or online."
     usage = "[index | link | keywords]"
     aliases = ["dl"]
     category = 8

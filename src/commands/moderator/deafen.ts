@@ -6,7 +6,7 @@ import { commonModerationEmbed, findMember } from "../../function";
 class DeafenCommand implements SlashCommand {
   name = "deafen"
   description = "Deafen a member while the member is in a voice channel."
-  usage = "<user | user ID> [reason]"
+  usage = "<user> [reason]"
   aliases = ["deaf"]
   category = 1
   args = 1

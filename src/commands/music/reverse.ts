@@ -7,7 +7,7 @@ import { play } from "./play";
 
 class ReverseCommand implements SlashCommand {
     name = "reverse"
-    description = "Reverse the order of the server queue."
+    description = "Reverses the order of the server queue."
     aliases = ["rev"]
     category = 8
 

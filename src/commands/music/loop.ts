@@ -6,7 +6,7 @@ import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 
 class LoopCommand implements SlashCommand {
     name = "loop"
-    description = "Toggle loop of the queue."
+    description = "Toggles loop of the queue."
     category = 8
     aliases = ["lp"]
 

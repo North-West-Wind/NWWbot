@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, ServerQueue, SlashCommand, SoundTrack } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, ServerQueue, SlashCommand, SoundTrack } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
 import { color, createEmbedScrolling, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
@@ -9,22 +9,22 @@ import { RowDataPacket } from "mysql2";
 
 class QueueCommand implements SlashCommand {
     name = "queue"
-    description = "Display the current song queue."
+    description = "Displays the current song queue."
     aliases = ["q"]
     subcommands = ["save", "load", "delete", "list", "sync"]
-    subdesc = ["Save the current queue to the database.", "Load a queue from the database.", "Delete a queue from the database.", "List all the queues of a user.", "Synchronize the queue with another server you are in."]
+    subdesc = ["Saves the current queue to the database.", "Loads a queue from the database.", "Deletes a queue from the database.", "Lists all the queues of a user.", "Synchronizes the queue with another server you are in."]
     subusage = ["<subcommand> <name>", 0, 0]
     subaliases = ["s", "l", "d", "li", "sy"]
     category = 8
     options = [
         {
             name: "current",
-            description: "Display the current soundtrack queue.",
+            description: "Displays the current soundtrack queue.",
             type: "SUB_COMMAND"
         },
         {
             name: "save",
-            description: "Save the current queue to the database.",
+            description: "Saves the current queue to the database.",
             type: "SUB_COMMAND",
             options: [{
                 name: "name",
@@ -35,7 +35,7 @@ class QueueCommand implements SlashCommand {
         },
         {
             name: "load",
-            description: "Load a queue from the database.",
+            description: "Loads a queue from the database.",
             type: "SUB_COMMAND",
             options: [{
                 name: "name",
@@ -46,7 +46,7 @@ class QueueCommand implements SlashCommand {
         },
         {
             name: "delete",
-            description: "Delete a queue from the database.",
+            description: "Deletes a queue from the database.",
             type: "SUB_COMMAND",
             options: [{
                 name: "name",
@@ -57,12 +57,12 @@ class QueueCommand implements SlashCommand {
         },
         {
             name: "list",
-            description: "List all the queue of a user.",
+            description: "Lists all the queues of a user.",
             type: "SUB_COMMAND"
         },
         {
             name: "sync",
-            description: "Synchronize the queue with another server you are in.",
+            description: "Synchronizes the queue with another server you are in.",
             type: "SUB_COMMAND",
             options: [{
                 name: "name",

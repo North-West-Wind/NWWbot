@@ -1,4 +1,4 @@
-import { DiscordGatewayAdapterCreator, joinVoiceChannel } from "@discordjs/voice";
+import { joinVoiceChannel } from "@discordjs/voice";
 import { GuildMember, Message, VoiceChannel } from "discord.js";
 
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
@@ -8,7 +8,7 @@ import { play } from "./play";
 
 class SkipCommand implements SlashCommand {
     name = "skip"
-    description = "Skip a music in the queue."
+    description = "Skips soundtrack(s) in the queue."
     usage = "[amount]"
     aliases = ["s"]
     category = 8

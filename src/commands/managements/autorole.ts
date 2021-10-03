@@ -6,7 +6,7 @@ import { findMember, findMemberWithGuild } from "../../function";
 class AutoRoleCommand implements SlashCommand {
   name = "autorole"
   description = 'Assigns a single role to multiple users at once.'
-  usage = "<role | role ID | role name> <user | user ID>"
+  usage = "<role> <user>"
   category = 0
   args = 2
   permissions = { guild: { user: 268435456, me: 268435456 } };

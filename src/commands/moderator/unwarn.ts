@@ -7,7 +7,7 @@ import { findUser, color } from "../../function";
 class UnWarnCommand implements SlashCommand {
     name = "unwarn"
     description = "Remove all warnings of a member of the server."
-    usage = "<user | user ID>"
+    usage = "<user>"
     category = 1
     args = 1
     permissions = { guild: { user: 4, me: 4 } }

@@ -1,4 +1,3 @@
-import { joinVoiceChannel } from "@discordjs/voice";
 import { GuildMember, Message } from "discord.js";
 
 import { NorthInteraction, SlashCommand } from "../../classes/NorthClient";
@@ -7,7 +6,7 @@ import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 
 class ClearCommand implements SlashCommand {
     name = "clear"
-    description = "Clear the queue and stop the playing soundtrack. Also resets the volume to 100%."
+    description = "Clears the queue and stop the playing soundtrack. Also resets the volume to 100%."
     category = 8
 
     async execute(interaction: NorthInteraction) {

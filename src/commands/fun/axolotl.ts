@@ -1,4 +1,4 @@
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { getFetch } from "../../function";
 import * as Discord from "discord.js";
 
@@ -41,7 +41,7 @@ const links = [
 
 class AxolotlCommand implements SlashCommand {
     name = "axolotl"
-    description = "Get a random Axolotl image."
+    description = "Retrieves a random Axolotl image."
     category = 3
     aliases = ["axol"]
     

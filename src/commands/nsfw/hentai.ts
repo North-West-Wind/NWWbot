@@ -7,13 +7,13 @@ const akaneko = require("akaneko");
 
 class HentaiCommand implements SlashCommand {
     name = "hentai"
-    description = "Return something very NSFW. Require NSFW channel."
+    description = "Returns something very NSFW. Requires NSFW channel."
     usage = "[tag | subcommand]"
     aliases = ["h"]
-    subcommands = ["auto"]
-    subaliases = ["a"]
+    subcommands = ["auto", "tags"]
+    subaliases = ["a", "t"]
     subdesc = ["Automate Hentai images."]
-    subusage = ["<subcommand> <amount> <interval> [reverse] [tags]"]
+    subusage = ["<subcommand> <amount> <interval> [reverse] [tags]", "<subcommand>"]
     tags = [
         "ass",
         "bdsm",
@@ -58,7 +58,7 @@ class HentaiCommand implements SlashCommand {
         },
         {
             name: "auto",
-            description: "Automatically fetches Hentai.",
+            description: "Sends Hentai automatically with a give interval.",
             type: "SUB_COMMAND",
             options: [
                 {
@@ -69,7 +69,7 @@ class HentaiCommand implements SlashCommand {
                 },
                 {
                     name: "interval",
-                    description: "The interval between each fetch.",
+                    description: "The interval between each fetch, with minimum 1 second and maximum 5 minutes",
                     required: true,
                     type: "STRING"
                 },
@@ -111,7 +111,10 @@ class HentaiCommand implements SlashCommand {
         var tag = "random";
         if (args.length >= 1) {
             if (args[0].toLowerCase() === "tags") return await message.channel.send({embeds: [await this.tagsList()]});
-            else if (["auto", "a"].includes(args[0].toLowerCase())) return await this.auto(message, args[1], args[2], args[3] === "true", args.slice(3));
+            else if (["auto", "a"].includes(args[0].toLowerCase())) {
+                const reverse = args[3] === "true";
+                return await this.auto(message, args[1], args[2], reverse, args.slice(reverse ? 3 : 2));
+            }
             const testTag = args[0];
             const i = this.tags.findIndex(t => testTag === t);
             if (i !== -1) tag = this.tags[i];

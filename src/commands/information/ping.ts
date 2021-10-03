@@ -5,7 +5,7 @@ import * as Discord from "discord.js";
 
 class PingCommand implements SlashCommand {
   name = "ping"
-  description = "Ping the bot and it will show you something interesting (not really)."
+  description = "Pings the bot and it will show you something interesting (not really)."
   category = 6
   
   async execute(interaction: NorthInteraction) {

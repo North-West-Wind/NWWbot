@@ -4,7 +4,7 @@ import { findUser, getOwner } from "../../function";
 
 class SpamCommand implements SlashCommand {
     name = "spam"
-    description = "Spam a user with the message provided."
+    description = "Spams a user with the message provided."
     aliases = ["sp"]
     args = 3
     usage = "<user | user ID> <amount> <message>"

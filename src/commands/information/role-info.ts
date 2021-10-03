@@ -6,9 +6,9 @@ import { color } from "../../function";
 
 class RoleInfoCommand implements SlashCommand {
   name = "role-info"
-  description = "Display information of a role."
+  description = "Displays information of a role."
   aliases = ["ri"]
-  usage = "<role | role ID | role name>"
+  usage = "<role>"
   category = 6
   args = 1
   options = [{

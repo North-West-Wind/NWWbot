@@ -6,7 +6,7 @@ import { msgOrRes } from "../../function";
 
 class PauseCommand implements SlashCommand {
     name = "pause"
-    description = "Pause the current music."
+    description = "Pauses the current music."
     category = 8
 
     async execute(interaction: NorthInteraction) {

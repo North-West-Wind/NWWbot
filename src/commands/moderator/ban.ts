@@ -7,7 +7,7 @@ class BanCommand implements SlashCommand {
     name = "ban"
     description = "Bans a member from the server."
     args = 1
-    usage = "<user | user ID> [days] [reason]"
+    usage = "<user> [days] [reason]"
     category = 1
     permissions = { guild: { user: 4, me: 4 } }
     options = [

@@ -6,7 +6,7 @@ import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 
 class VolumeCommand implements SlashCommand {
     name = "volume"
-    description = "Turn the volume of music up or down by percentage."
+    description = "Turns the volume of music up or down by percentage."
     usage = "[percentage]"
     aliases = ["vol"]
     category = 8

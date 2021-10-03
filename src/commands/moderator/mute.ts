@@ -7,7 +7,7 @@ class MuteCommand implements SlashCommand {
     name = "mute"
     description = "Mute a member while the member is in a voice channel."
     args = 1
-    usage = "<user | user ID> [reason]"
+    usage = "<user> [reason]"
     category = 1
     permissions = { guild: { user: 4194304, me: 4194304 } }
     options = [

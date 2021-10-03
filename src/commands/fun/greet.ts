@@ -15,7 +15,7 @@ const GREETINGS = [
 class GreetCommand implements SlashCommand {
   name = 'greet'
   description = 'Greet somebody.'
-  usage = "<user | user ID>"
+  usage = "<user>"
   category = 3
   args = 1
   options = [{

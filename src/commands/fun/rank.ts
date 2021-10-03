@@ -6,7 +6,7 @@ import { RowDataPacket } from "mysql2";
 
 class RankCommand implements SlashCommand {
   name = "rank"
-  description = "Display your rank in the server. Leveling system was inspired by MEE6."
+  description = "Displays your rank in the server. Leveling system was inspired by MEE6."
   category = 3
   
   async execute(interaction: NorthInteraction) {

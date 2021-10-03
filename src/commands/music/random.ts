@@ -6,7 +6,7 @@ import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 
 class RandomCommand implements SlashCommand {
     name = "random"
-    description = "Play the queue randomly."
+    description = "Plays the queue randomly."
     aliases = ["rnd"]
     category = 8
 

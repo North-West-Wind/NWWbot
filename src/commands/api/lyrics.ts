@@ -7,7 +7,7 @@ import { globalClient as client } from "../../common";
 
 class LyricsCommand implements SlashCommand {
     name = "lyrics";
-    description = "Display lyrics of songs if they are found.";
+    description = "Displays lyrics of songs if they are found.";
     usage = "<song>";
     category = 7;
     args = 1;

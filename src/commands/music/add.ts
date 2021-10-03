@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { validYTPlaylistURL, validYTURL, validSPURL, validSCURL, validGDFolderURL, validGDURL, validGDDLURL, validMSURL, validURL, msgOrRes, wait } from "../../function";
 import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search } from "../../helpers/addTrack";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
@@ -8,12 +8,12 @@ import { createEmbed } from "./play";
 
 class AddCommand implements SlashCommand {
     name = "add"
-    description = "Add soundtracks to the queue without playing it."
+    description = "Adds soundtracks to the queue without playing it."
     usage = "[link | keywords]"
     category = 8
     options = [{
         name: "link",
-        description: "The link of the soundtrack.",
+        description: "The link of the soundtrack or the keywords to search for.",
         required: true,
         type: "STRING"
     }]

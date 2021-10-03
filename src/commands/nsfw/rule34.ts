@@ -8,7 +8,7 @@ const fetch = getFetch();
 
 class Rule34Command implements SlashCommand {
     name = "rule34"
-    description = "Display Rule34 images. Add tags to filter. Require NSFW channel."
+    description = "Displays Rule34 images. Add tags to filter. Requires NSFW channel."
     aliases = ["r34"]
     usage = "<tags>"
     category = 5

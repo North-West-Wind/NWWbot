@@ -7,7 +7,7 @@ class AddRoleCommand implements SlashCommand {
     name = "addrole"
     description = "Adds a new role to the server. The “color” parameter is optional."
     args = 1
-    usage = "<role name> [color]"
+    usage = "<name> [color]"
     category = 0
     permissions = {
         guild: { user: 268435456, me: 268435456 }

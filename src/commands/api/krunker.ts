@@ -1,21 +1,21 @@
 
 import * as Discord from "discord.js";
 import { color } from "../../function";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { run } from "../../helpers/puppeteer";
 import { Page } from "puppeteer-core";
 import { globalClient as client } from "../../common";
 
 class KrunkerCommand implements SlashCommand {
     name = "krunker";
-    description = "Connect to the Krunker.io API and display stats.";
+    description = "Connects to the Krunker.io API and display stats.";
     aliases = ["kr"];
     usage = "<subcommand>";
     args = 1;
     category = 7;
     subcommands = ["stats", "server", "changelog"];
-    subdesc = ["Display the stats of a Krunker player.", "Show all available Krunker servers.", "Fetch the changelog of Krunker."];
-    subusage = ["<subcommand> <username>", "<subcommand> [search term]", "<subcommand> [version]"];
+    subdesc = ["Displays the stats of a Krunker player.", "Shows all available Krunker servers.", "Fetches the changelog of Krunker."];
+    subusage = ["<subcommand> <username>", "<subcommand> [search]", "<subcommand> [version]"];
 
     options = [
         {
@@ -26,7 +26,7 @@ class KrunkerCommand implements SlashCommand {
                 {
                     type: "STRING",
                     name: "search",
-                    description: "The name of the server."
+                    description: "The name of the game."
                 }
             ]
         },

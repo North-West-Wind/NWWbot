@@ -10,7 +10,7 @@ export const sCategories = ["Managements", "Moderator", "Economy", "Fun", "Misce
 
 class HelpCommand implements SlashCommand {
   name = "help"
-  description = "Send you a DM with an embed of “help” and this PDF file."
+  description = "Sends you a DM with an embed of all available commands and the user manual."
   usage = "[command]"
   cooldown = 5
   category = 6

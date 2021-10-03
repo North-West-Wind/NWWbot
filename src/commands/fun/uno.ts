@@ -34,7 +34,7 @@ class UnoCommand implements SlashCommand {
   name = "uno"
   description = "Play UNO with your friends!"
   category = 3
-  usage = "[users]"
+  usage = "[users] [time]"
   options = [
     {
       name: "users",

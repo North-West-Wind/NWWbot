@@ -4,9 +4,8 @@ import * as Discord from "discord.js";
 
 class ProfileCommand implements SlashCommand {
     name = "profile"
-    description =
-        "Display profile of yourself or the mentioned user on the server."
-    usage = "[user | user ID]"
+    description = "Displays profile of yourself or the mentioned user on the server."
+    usage = "[user]"
     category = 6
     options = [{
         name: "user",

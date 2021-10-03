@@ -6,7 +6,7 @@ import { getQueues, setQueue, updateQueue } from "../../helpers/music";
 
 class ResumeCommand implements SlashCommand {
     name = "resume"
-    description = "Resume the paused music."
+    description = "Resumes the paused music."
     category = 8
 
     async execute(interaction: NorthInteraction) {

@@ -1,5 +1,5 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { color, findUser } from "../../function";
 import * as Discord from "discord.js";
 
