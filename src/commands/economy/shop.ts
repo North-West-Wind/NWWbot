@@ -338,7 +338,7 @@ class ShopCommand implements SlashCommand {
         var stock = -1;
         if (!limits[1] || isNaN(parseInt(limits[1]))) await msg.edit("The stock limit entered is not valid. I'll take that as limitless.").then(() => wait(3000));
         else stock = parseInt(limits[1]);
-        await msg.edit(`All users will be able to purchase **${limit < 1 ? "limitlessly" : `${limit} ${name}${limit > 1 ? "s" : ""}`}** and there will be **${stock < 0 ? "infinite stocks" : `${stock} in stock`}**.\nTo finish up, please enter the arguments required ("nothing" for no arguments) and what to do when the user uses this item. (Use line break to separate them) (The code can be multi-line) (You may refer to https://northwestwind.ml/shop_help.php)`);
+        await msg.edit(`All users will be able to purchase **${limit < 1 ? "limitlessly" : `${limit} ${name}${limit > 1 ? "s" : ""}`}** and there will be **${stock < 0 ? "infinite stocks" : `${stock} in stock`}**.\nTo finish up, please enter the arguments required ("nothing" for no arguments) and what to do when the user uses this item. (Use line break to separate them) (The code can be multi-line)`);
         const collected3 = await message.channel.awaitMessages({ filter: x => x.author.id === author.id,  max: 1, time: 300000 });
         if (collected3.first()) await collected3.first().delete();
         if (!collected3.first()?.content) return await msg.edit("I cannot read the message!");

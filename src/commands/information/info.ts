@@ -23,7 +23,7 @@ class InfoCommand implements SlashCommand {
       .setTitle(client.user.tag)
       .setColor(color())
       .setThumbnail(client.user.displayAvatarURL())
-      .setDescription(`Made by NorthWestWind!\nVersion: **[${client.version}](https://northwestwind.ml/news)**\n\nRunning on **${client.guilds.cache.size} servers**\nLast restart: **${lastReady}**\nUptime: **${readableDateTimeText(client.uptime)}**`)
+      .setDescription(`Made by NorthWestWind!\nVersion: **[${client.version}](https://northwestwind.ml/n0rthwestw1nd)**\n\nRunning on **${client.guilds.cache.size} servers**\nLast restart: **${lastReady}**\nUptime: **${readableDateTimeText(client.uptime)}**`)
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
       return infoEmbed;
   }
