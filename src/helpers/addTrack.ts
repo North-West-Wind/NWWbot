@@ -9,8 +9,8 @@ import muse from "musescore-metadata";
 import scdl from 'soundcloud-downloader/dist/index';
 import ytdl from "ytdl-core";
 import ytpl from "ytpl";
-import ytsr, { Item, Video } from "ytsr";
-import { NorthClient, NorthInteraction } from "../classes/NorthClient";
+import ytsr, { Video } from "ytsr";
+import { NorthInteraction } from "../classes/NorthClient";
 import { getFetch, decodeHtmlEntity, isGoodMusicVideoContent, validGDDLURL, color, msgOrRes } from "../function";
 import * as Stream from 'stream';
 import SpotifyWebApi from "spotify-web-api-node";
@@ -19,7 +19,6 @@ import rp from "request-promise-native";
 import * as cheerio from "cheerio";
 import * as Discord from "discord.js";
 import { TrackInfo } from "soundcloud-downloader/dist/info";
-import { Response } from "node-fetch";
 
 const fetch = getFetch();
 var spotifyApi: SpotifyWebApi;
@@ -433,6 +432,7 @@ export async function addMSURL(link: string) {
         return { error: true, message: "Failed to fetch metadata of the score!", msg: null, songs: [] };
     }
     var songLength = data.duration;
+    if (moment.duration(songLength).asHours() > 1) return { error: true, songs: [], msg: null, message: "Please don't play music longer than an hour." }
     var song = {
         title: data.title,
         url: link,

@@ -50,7 +50,7 @@ class NPCommand implements SlashCommand {
         for (let i = 0; i < 20; i++) processBar.push("═");
         var progress = 0;
         const isLive = !!serverQueue?.songs[0]?.isLive;
-        const length = isLive ? 0 : (serverQueue.songs[0].time ? ms(serverQueue.songs[0].time) : 1);
+        const length = isLive ? 0 : (serverQueue.songs[0].time ? moment.duration(serverQueue.songs[0].time).asMilliseconds() : 1);
         if (isLive) {
             processBar.splice(19, 1, "■");
             var positionTime = "∞";
