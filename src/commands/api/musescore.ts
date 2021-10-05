@@ -111,7 +111,6 @@ class MusescoreCommand implements SlashCommand {
                 try {
                     var mesg = await message.channel.send("Generating MP3...");
                     const mp3 = await getMP3(url);
-                    console.log(mp3);
                     try {
                         if (mp3.error) throw new Error(mp3.message);
                         var res;
