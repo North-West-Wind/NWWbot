@@ -1,7 +1,7 @@
 
 import { GuildMember } from "discord.js";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { genPermMsg } from "../../function";
+import { fixGuildRecord, genPermMsg } from "../../function";
 
 class PrefixCommand implements SlashCommand {
     name = "prefix"
@@ -22,6 +22,7 @@ class PrefixCommand implements SlashCommand {
         const member = <GuildMember> interaction.member;
         if (!interaction.options.getString("prefix")) return await interaction.reply(`The prefix of this server is \`${NorthClient.storage.guilds[guild.id].prefix || interaction.client.prefix}\`. Use \`/prefix [prefix]\` to change the prefix.`);
         if (!member.permissions.has(BigInt(32))) return await interaction.reply(genPermMsg(32, 0));
+        if (!NorthClient.storage.guilds[guild.id]) await fixGuildRecord(guild.id);
         NorthClient.storage.guilds[guild.id].prefix = interaction.options.getString("prefix");
         await interaction.deferReply();
         try {
@@ -36,10 +37,11 @@ class PrefixCommand implements SlashCommand {
     async run(message: NorthMessage, args: string[]) {
         if (!args[0]) return await message.channel.send(`The prefix of this server is \`${message.prefix}\`. Use \`${message.prefix}prefix [prefix]\` to change the prefix.`);
         if (!message.member.permissions.has(BigInt(32))) return await message.channel.send(genPermMsg(32, 0));
-        NorthClient.storage.guilds[message.guild.id].prefix = args.join(" ");
-        await message.channel.send(`The prefix of this server has been changed to \`${NorthClient.storage.guilds[message.guild.id].prefix}\`.`);
+        if (!NorthClient.storage.guilds[message.guildId]) await fixGuildRecord(message.guildId);
+        NorthClient.storage.guilds[message.guildId].prefix = args.join(" ");
+        await message.channel.send(`The prefix of this server has been changed to \`${NorthClient.storage.guilds[message.guildId].prefix}\`.`);
         try {
-            await message.pool.query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[message.guild.id].prefix === message.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[message.guild.id].prefix}'`} WHERE id = '${message.guild.id}'`);
+            await message.pool.query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[message.guildId].prefix === message.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[message.guild.id].prefix}'`} WHERE id = '${message.guild.id}'`);
             await message.channel.send("Changes have been saved properly!");
         } catch (err: any) {
             console.error(err);
