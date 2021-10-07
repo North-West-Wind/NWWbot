@@ -48,8 +48,11 @@ class HelpCommand implements SlashCommand {
     if (sub === "all") {
       await interaction.reply({embeds: [await this.getAllCommands(interaction.guildId)]});
       await wait(60000);
+      var content;
+      if (this.isSafe(interaction.guildId)) content = "This is the **[manual](https://northwestwind.ml/n0rthwestw1nd/manual)**, my friend.";
+      else content = "This is the **[manual](https://northwestwind.ml/n0rthwestw1nd/manual/unsafe)**, my friend.";
       await interaction.editReply({
-        content: "This is the **[manual](https://northwestwind.ml/n0rthwestw1nd/manual.pdf)**, my friend.",
+        content,
         embeds: []
       });
       return;
@@ -62,7 +65,10 @@ class HelpCommand implements SlashCommand {
   async run(message: NorthMessage, args: string[]) {
     if (!args.length) {
       const msg = await message.channel.send({embeds: [await this.getAllCommands(message.guildId)]});
-      setTimeout(() => msg.edit({ content: "This is the **manual**, my friend:\nhttps://northwestwind.ml/n0rthwestw1nd/manual.pdf", embeds: [] }).catch(() => { }), 60000);
+      var content;
+      if (this.isSafe(message.guildId)) content = "This is the **[manual](https://northwestwind.ml/n0rthwestw1nd/manual)**, my friend.";
+      else content = "This is the **[manual](https://northwestwind.ml/n0rthwestw1nd/manual/unsafe)**, my friend.";
+      setTimeout(() => msg.edit({ content, embeds: [] }).catch(() => { }), 60000);
       return;
     }
     const name = args[0].toLowerCase();
@@ -73,10 +79,11 @@ class HelpCommand implements SlashCommand {
     var config = NorthClient.storage.guilds[guildID];
     if (!config) config = await fixGuildRecord(guildID);
     const safe = config.safe;
+    const end = safe ? "" : "/unsafe";
     const Embed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle("Command list is here!")
-      .setDescription(`[**Click this**](https://northwestwind.ml/n0rthwestw1nd/manual.pdf) for the user manual.\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`)
+      .setDescription(`[**Click this**](https://northwestwind.ml/n0rthwestw1nd/manual${end}) for the user manual.\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`)
       .setThumbnail(client.user.displayAvatarURL())
       .setTimestamp()
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
@@ -115,6 +122,11 @@ class HelpCommand implements SlashCommand {
     if (command instanceof AkiCommand) data.push(`**Regions:** ${command.regions.join(", ")}`)
     if (command.subcommands) data.push("\nIf you want to know how subcommands work, please refer to the manual.");
     return data;
+  }
+
+  isSafe(guildID: Discord.Snowflake) {
+    if (!NorthClient.storage.guilds[guildID]) return true;
+    return NorthClient.storage.guilds[guildID].safe;
   }
 };
 
