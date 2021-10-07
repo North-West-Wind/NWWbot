@@ -215,7 +215,7 @@ class QueueCommand implements SlashCommand {
         const collector = msg.createReactionCollector({ filter: (r, u) => available.includes(r.emoji.name) && u.id === author.id, idle: 30000 });
         collector.on("collect", async function (reaction, user) {
             var index = available.indexOf(reaction.emoji.name);
-            reaction.users.remove(user.id);
+            reaction.users.remove(user.id).catch(() => {});
             if (index < 0 || index > num + 2 || index == 1) return collector.emit("end");
             else if (index == 0) {
                 const back = msg.reactions.cache.get(available[0]);

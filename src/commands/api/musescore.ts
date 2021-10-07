@@ -214,7 +214,7 @@ class MusescoreCommand implements SlashCommand {
         var collector = msg.createReactionCollector({ filter, idle: 60000 });
 
         collector.on("collect", async function (reaction, user) {
-            reaction.users.remove(user.id);
+            reaction.users.remove(user.id).catch(() => {});
             switch (reaction.emoji.name) {
                 case "⏮":
                     s = 0;

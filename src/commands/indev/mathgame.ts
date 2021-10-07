@@ -155,7 +155,7 @@ class MathGameCommand implements SlashCommand {
         );
         let chosen = -1;
         collector.on("collect", function (reaction, user) {
-            reaction.users.remove(user.id);
+            reaction.users.remove(user.id).catch(() => {});
             switch (reaction.emoji.name) {
                 case "✅":
                     chosen = s;

@@ -74,7 +74,7 @@ class WikiCommand implements SlashCommand {
             idle: 60000
         });
         collector.on("collect", function (reaction, user) {
-            reaction.users.remove(user.id);
+            reaction.users.remove(user.id).catch(() => {});
             switch (reaction.emoji.name) {
                 case "⏮":
                     s = 0;

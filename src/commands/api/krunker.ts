@@ -156,7 +156,7 @@ class KrunkerCommand implements SlashCommand {
                 .setTimestamp()
                 .setFooter("Please decide within 30 seconds.", client.user.displayAvatarURL());
             collector.on("collect", async function (reaction, user) {
-                reaction.users.remove(user.id);
+                reaction.users.remove(user.id).catch(() => {});
                 switch (reaction.emoji.name) {
                     case "🎲":
                         if (s > officialPage - 1) msg.channel.send(`https://krunker.io/?game=${custom[Math.floor(Math.random() * custom.length)][0]}`);

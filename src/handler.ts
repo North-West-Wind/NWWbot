@@ -549,7 +549,7 @@ export class AliceHandler extends Handler {
                     const collector = msg.createReactionCollector({ filter, time: 30000 });
                     collector.on("collect", function (reaction, user) {
                         try {
-                            reaction.users.remove(user.id);
+                            reaction.users.remove(user.id).catch(() => {});
                             switch (reaction.emoji.name) {
                                 case "⏮":
                                     s = 0;

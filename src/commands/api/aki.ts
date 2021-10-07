@@ -108,7 +108,7 @@ export class AkiCommand implements SlashCommand {
     const collector = msg.createReactionCollector({ filter, idle: 6e4 });
     const collectorFunction = async (r: MessageReaction) => {
       const answerID = this.reactions.indexOf(r.emoji.name);
-      await r.users.remove(author);
+      await r.users.remove(author).catch(() => {});
       if (answerID === 5 && aki.currentStep > 0) await aki.back();
       else if (answerID === 6) {
         embed.setTitle("Akinator was stopped");
