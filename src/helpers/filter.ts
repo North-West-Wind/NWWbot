@@ -68,7 +68,9 @@ export async function music(_command: Command, message: NorthMessage | NorthInte
         await msgOrRes(message, "You can only use music commands in server!");
         return false;
     }
-    if (await message.guild.members.fetch("895321877109690419")) return false;
+    try {
+        if (await message.guild.members.fetch("895321877109690419")) return false;
+    } catch (err) {}
     return true;
 }
 export async function nsfw(_command: Command, message: NorthMessage | NorthInteraction) {
