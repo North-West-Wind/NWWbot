@@ -649,11 +649,11 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
 export function humanDurationToNum(duration: string) {
     const splitted = duration.split(".");
     const rest = splitted[0];
-    const splitted1 = rest.split(":");
+    const splitted1 = rest.split(":").reverse();
     var sec = 0;
-    for (let i = splitted1.length - 1; i > 0; i--) {
+    for (let i = 0; i < splitted1.length; i++) {
         let parsed;
-        if (isNaN(parsed = parseInt(splitted1[1]))) continue;
+        if (isNaN(parsed = parseInt(splitted1[i]))) continue;
         sec += parsed * Math.pow(60, i);
     }
     return sec;
