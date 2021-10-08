@@ -646,6 +646,19 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
     return NorthClient.storage.guilds[id];
 }
 
+export function humanDurationToNum(duration: string) {
+    const splitted = duration.split(".");
+    const rest = splitted[0];
+    const splitted1 = rest.split(":");
+    var sec = 0;
+    for (let i = splitted1.length - 1; i > 0; i--) {
+        let parsed;
+        if (isNaN(parsed = parseInt(splitted1[1]))) continue;
+        sec += parsed * Math.pow(60, i);
+    }
+    return sec;
+}
+
 export function getText(key: string, lang: string = "en") {
     if (!key) return "";
     const languageJson = require(`../lang/${lang}.json`);

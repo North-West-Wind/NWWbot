@@ -229,7 +229,7 @@ export class SoundTrack {
     title: string;
     url: string;
     type: number;
-    time: string;
+    time: number;
     volume: number;
     thumbnail: string;
     isLive: boolean;

@@ -1,19 +1,18 @@
 import * as Discord from "discord.js";
-import { getFetch, validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, validYTPlaylistURL, validSCURL, validMSURL, requestStream, moveArray, color, validGDDLURL, bufferToStream, msgOrRes, wait } from "../../function.js";
+import { validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, validYTPlaylistURL, validSCURL, validMSURL, requestStream, moveArray, color, validGDDLURL, bufferToStream, msgOrRes, wait } from "../../function.js";
 import { getMP3 } from "../api/musescore.js";
 import scdl from 'soundcloud-downloader/dist/index';
 import { migrate as music } from "./migrate.js";
 import ytdl from "ytdl-core";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand, SoundTrack } from "../../classes/NorthClient.js";
 import { getQueues, updateQueue, setQueue, createDiscordJSAdapter } from "../../helpers/music.js";
-import WebMscore from "webmscore";
-import moment from "moment";
+import * as moment from "moment";
+import formatSetup from "moment-duration-format";
+formatSetup(moment);
 import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search } from "../../helpers/addTrack.js";
 import * as Stream from 'stream';
 import { globalClient as client } from "../../common.js";
-import { InputFileFormat } from "webmscore/schemas";
 import { AudioPlayerError, AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, entersState, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus } from "@discordjs/voice";
-const fetch = getFetch();
 const ffmpeg = require('fluent-ffmpeg');
 
 function createPlayer(guild: Discord.Guild) {
@@ -66,11 +65,12 @@ async function probeAndCreateResource(readableStream: Stream.Readable) {
 }
 
 export function createEmbed(songs: SoundTrack[]) {
+  const songLength = songs[0].time == 0 ? "∞" : moment.duration(songs[0].time, "seconds").format();
   const Embed = new Discord.MessageEmbed()
     .setColor(color())
     .setTitle("New track added:")
     .setThumbnail(songs[0].thumbnail)
-    .setDescription(`**[${songs[0].title}](${songs[0].url})**\nLength: **${songs[0].time}**`)
+    .setDescription(`**[${songs[0].title}](${songs[0].url})**\nLength: **${songLength}**`)
     .setTimestamp()
     .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
   if (songs.length > 1) Embed.setDescription(`**${songs.length}** tracks were added.`).setThumbnail(undefined);
@@ -147,24 +147,6 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
           stream = <Stream.Readable> ytdl(`https://www.youtube.com/watch?v=${ytid}`, options);
         } else stream = <Stream.Readable> (await requestStream(c.url)).data;
         break;
-      case 7:
-        const h = await fetch(song.url);
-        if (!h.ok) throw new Error("Received HTTP Status Code: " + h.status);
-        console.log("Fetched Musescore file");
-        await WebMscore.ready;
-        console.log("WebMscore ready");
-        const i = await WebMscore.load(<InputFileFormat> song.url.split(".").slice(-1)[0], (await h.buffer()));
-        console.log("Loaded Musescore file");
-        const sf3 = await fetch("https://www.dropbox.com/s/2pphk3a9llfiree/MuseScore_General.sf3?dl=1").then(res => res.arrayBuffer());
-        console.log("Fetched Musescore SoundFont");
-        await i.setSoundFont(new Uint8Array(sf3));
-        console.log("Set SoundFont");
-        const j = bufferToStream(Buffer.from((await i.saveAudio("wav")).buffer));
-        console.log("Exported to WAV");
-        i.destroy();
-        console.log("Destroyed WebMscore");
-        stream = j;
-        break;
       default:
         const options = <any> {};
         if (process.env.COOKIE) {
@@ -196,7 +178,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
       .setColor(color())
       .setTitle("Now playing:")
       .setThumbnail(song.thumbnail)
-      .setDescription(`**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${song.time}**${seek > 0 ? ` | Starts From: **${moment.duration(seek, "seconds").format()}**` : ""}`)
+      .setDescription(`**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${!song.time ? "∞" : moment.duration(song.time, "seconds").format()}**${seek > 0 ? ` | Starts From: **${moment.duration(seek, "seconds").format()}**` : ""}`)
       .setTimestamp()
       .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
     const msg = await serverQueue.textChannel.send({embeds: [Embed]});
