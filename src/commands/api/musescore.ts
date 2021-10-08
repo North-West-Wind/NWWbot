@@ -148,7 +148,6 @@ class MusescoreCommand implements SlashCommand {
                         await mesg.delete();
                     } catch (err: any) {
                         await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``);
-                        await message.channel.send(`However, you may still be able to download it from this link:\n${mscz.url}`);
                     }
                 } catch (err: any) {
                     console.error(err);
