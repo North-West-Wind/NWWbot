@@ -120,7 +120,7 @@ class MusescoreCommand implements SlashCommand {
                         } else res = (await requestStream(mp3.url)).data;
                         const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mp3`));
                         if (!res) throw new Error("Failed to get Readable Stream");
-                        else if (res.statusCode && res.statusCode != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
+                        else if (res.statusCode != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
                         else await message.channel.send({files:[att]});
                         await mesg.delete();
                     } catch (err: any) {
@@ -137,12 +137,25 @@ class MusescoreCommand implements SlashCommand {
                         await mesg.edit(`Failed to generate PDF! \`${err.message}\``);
                     }
                     mesg = await message.channel.send("Generating MSCZ...");
+                    const midi = await this.getMIDI(url);
+                    try {
+                        if (midi.error) throw new Error(midi.err);
+                        const res = await requestStream(midi.url);
+                        if (!res) throw new Error("Failed to get Readable Stream");
+                        else if (res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
+                        const att = new Discord.MessageAttachment(doc, sanitize(`${data.title}.mid`));
+                        await message.channel.send({files:[att]});
+                        await mesg.delete();
+                    } catch (err: any) {
+                        await mesg.edit(`Failed to generate PDF! \`${err.message}\``);
+                    }
+                    mesg = await message.channel.send("Generating MSCZ...");
                     const mscz = await this.getMSCZ(data);
                     try {
                         if (mscz.error) throw new Error(mscz.err);
                         const res = await requestStream(mscz.url);
                         if (!res) throw new Error("Failed to get Readable Stream");
-                        else if (res.status && res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
+                        else if (res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
                         const att = new Discord.MessageAttachment(res.data, sanitize(`${data.title}.mscz`));
                         await message.channel.send({files:[att]});
                         await mesg.delete();
@@ -243,7 +256,7 @@ class MusescoreCommand implements SlashCommand {
         });
     }
 
-    async getMIDI(url) {
+    async getMIDI(url: string) {
         return await run(async (page: Page) => {
             var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
             const start = Date.now();
