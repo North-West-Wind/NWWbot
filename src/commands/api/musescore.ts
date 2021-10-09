@@ -270,7 +270,7 @@ class MusescoreCommand implements SlashCommand {
                     else req.continue();
                 });
                 await page.goto(url, { waitUntil: "domcontentloaded" });
-                await page.waitForSelector('button[title="Toggle Fullscreen"]').then(el => el?.parentElement?.parentElement?.$("button")?.click());
+                await page.waitForSelector('button[title="Toggle Fullscreen"]').then(el => el.evaluate(ele => ele.parentElement?.parentElement?.querySelector("button")?.click()));
                 const midi = await page.waitForResponse(res => {
                     const url = res.url();
                     return url.startsWith("https://musescore.com/api/jmuse") && url.includes("type=midi");
