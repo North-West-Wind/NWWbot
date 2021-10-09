@@ -149,10 +149,9 @@ class MusescoreCommand implements SlashCommand {
                         await mesg.delete();
                     } catch (err: any) {
                         await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``);
-                        mesg = await message.channel.send("Generating MIDI...");
+                        mesg = await message.channel.send("Fallback: Generating MIDI...");
                         const midi = await this.getMIDI(url);
                         try {
-                            console.log(midi);
                             if (midi.error) throw new Error(midi.err);
                             const res = await requestStream(midi.url);
                             if (!res) throw new Error("Failed to get Readable Stream");
@@ -162,6 +161,7 @@ class MusescoreCommand implements SlashCommand {
                             await mesg.delete();
                         } catch (err: any) {
                             await mesg.edit(`Failed to generate MIDI! \`${err.message}\``);
+                            console.error(err);
                         }
                     }
                 } catch (err: any) {
