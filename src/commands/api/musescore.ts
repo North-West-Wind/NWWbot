@@ -112,6 +112,7 @@ class MusescoreCommand implements SlashCommand {
                     var mesg = await message.channel.send("Generating MP3...");
                     const mp3 = await getMP3(url);
                     try {
+                        console.log(mp3);
                         if (mp3.error) throw new Error(mp3.message);
                         var res;
                         if (mp3.url.startsWith("https://www.youtube.com/embed/")) {
@@ -136,7 +137,7 @@ class MusescoreCommand implements SlashCommand {
                     } catch (err: any) {
                         await mesg.edit(`Failed to generate PDF! \`${err.message}\``);
                     }
-                    mesg = await message.channel.send("Generating MSCZ...");
+                    mesg = await message.channel.send("Generating MIDI...");
                     const midi = await this.getMIDI(url);
                     try {
                         if (midi.error) throw new Error(midi.err);
@@ -147,7 +148,7 @@ class MusescoreCommand implements SlashCommand {
                         await message.channel.send({files:[att]});
                         await mesg.delete();
                     } catch (err: any) {
-                        await mesg.edit(`Failed to generate PDF! \`${err.message}\``);
+                        await mesg.edit(`Failed to generate MIDI! \`${err.message}\``);
                     }
                     mesg = await message.channel.send("Generating MSCZ...");
                     const mscz = await this.getMSCZ(data);
