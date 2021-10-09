@@ -112,7 +112,6 @@ class MusescoreCommand implements SlashCommand {
                     var mesg = await message.channel.send("Generating MP3...");
                     const mp3 = await getMP3(url);
                     try {
-                        console.log(mp3);
                         if (mp3.error) throw new Error(mp3.message);
                         var res;
                         if (mp3.url.startsWith("https://www.youtube.com/embed/")) {
@@ -140,6 +139,7 @@ class MusescoreCommand implements SlashCommand {
                     mesg = await message.channel.send("Generating MSCZ...");
                     const mscz = await this.getMSCZ(data);
                     try {
+                        throw new Error("testing");
                         if (mscz.error) throw new Error(mscz.err);
                         const res = await requestStream(mscz.url);
                         if (!res) throw new Error("Failed to get Readable Stream");
