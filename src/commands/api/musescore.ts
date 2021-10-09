@@ -121,7 +121,7 @@ class MusescoreCommand implements SlashCommand {
                         } else res = (await requestStream(mp3.url)).data;
                         const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mp3`));
                         if (!res) throw new Error("Failed to get Readable Stream");
-                        else if (res.status != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
+                        else if (res.status && res.status != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
                         else await message.channel.send({files:[att]});
                         await mesg.delete();
                     } catch (err: any) {
@@ -144,7 +144,7 @@ class MusescoreCommand implements SlashCommand {
                         if (midi.error) throw new Error(midi.err);
                         const res = await requestStream(midi.url);
                         if (!res) throw new Error("Failed to get Readable Stream");
-                        else if (res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
+                        else if (res.status && res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
                         const att = new Discord.MessageAttachment(doc, sanitize(`${data.title}.mid`));
                         await message.channel.send({files:[att]});
                         await mesg.delete();
@@ -157,7 +157,7 @@ class MusescoreCommand implements SlashCommand {
                         if (mscz.error) throw new Error(mscz.err);
                         const res = await requestStream(mscz.url);
                         if (!res) throw new Error("Failed to get Readable Stream");
-                        else if (res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
+                        else if (res.status && res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
                         const att = new Discord.MessageAttachment(res.data, sanitize(`${data.title}.mscz`));
                         await message.channel.send({files:[att]});
                         await mesg.delete();
@@ -270,7 +270,7 @@ class MusescoreCommand implements SlashCommand {
                     else req.continue();
                 });
                 await page.goto(url, { waitUntil: "domcontentloaded" });
-                await page.waitForSelector("button[hasaccess]").then(el => el.click());
+                await page.waitForSelector('button[title="Toggle Fullscreen"]').then(el => el?.parentElement?.parentElement?.$("button")?.click());
                 const midi = await page.waitForResponse(res => {
                     const url = res.url();
                     return url.startsWith("https://musescore.com/api/jmuse") && url.includes("type=midi");
