@@ -137,20 +137,6 @@ class MusescoreCommand implements SlashCommand {
                     } catch (err: any) {
                         await mesg.edit(`Failed to generate PDF! \`${err.message}\``);
                     }
-                    mesg = await message.channel.send("Generating MIDI...");
-                    const midi = await this.getMIDI(url);
-                    try {
-                        console.log(midi);
-                        if (midi.error) throw new Error(midi.err);
-                        const res = await requestStream(midi.url);
-                        if (!res) throw new Error("Failed to get Readable Stream");
-                        else if (res.status && res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
-                        const att = new Discord.MessageAttachment(doc, sanitize(`${data.title}.mid`));
-                        await message.channel.send({files:[att]});
-                        await mesg.delete();
-                    } catch (err: any) {
-                        await mesg.edit(`Failed to generate MIDI! \`${err.message}\``);
-                    }
                     mesg = await message.channel.send("Generating MSCZ...");
                     const mscz = await this.getMSCZ(data);
                     try {
@@ -163,6 +149,20 @@ class MusescoreCommand implements SlashCommand {
                         await mesg.delete();
                     } catch (err: any) {
                         await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``);
+                        mesg = await message.channel.send("Generating MIDI...");
+                        const midi = await this.getMIDI(url);
+                        try {
+                            console.log(midi);
+                            if (midi.error) throw new Error(midi.err);
+                            const res = await requestStream(midi.url);
+                            if (!res) throw new Error("Failed to get Readable Stream");
+                            else if (res.status && res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
+                            const att = new Discord.MessageAttachment(doc, sanitize(`${data.title}.mid`));
+                            await message.channel.send({files:[att]});
+                            await mesg.delete();
+                        } catch (err: any) {
+                            await mesg.edit(`Failed to generate MIDI! \`${err.message}\``);
+                        }
                     }
                 } catch (err: any) {
                     console.error(err);
