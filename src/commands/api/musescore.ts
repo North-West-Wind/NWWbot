@@ -156,7 +156,7 @@ class MusescoreCommand implements SlashCommand {
                             const res = await requestStream(midi.url);
                             if (!res) throw new Error("Failed to get Readable Stream");
                             else if (res.status && res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
-                            const att = new Discord.MessageAttachment(doc, sanitize(`${data.title}.mid`));
+                            const att = new Discord.MessageAttachment(res.data, sanitize(`${data.title}.mid`));
                             await message.channel.send({files:[att]});
                             await mesg.delete();
                         } catch (err: any) {
