@@ -36,6 +36,7 @@ function createPlayer(guild: Discord.Guild) {
         needSetVolume = false;
       }
     }
+    if (serverQueue.errorCounter) serverQueue.errorCounter--;
     updateQueue(guild.id, serverQueue, false);
   }).on(AudioPlayerStatus.Idle, async () => {
     serverQueue = getQueues().get(guild.id);
@@ -54,8 +55,13 @@ function createPlayer(guild: Discord.Guild) {
     }
   }).on("error", async error => {
     console.error(error.message);
-    serverQueue?.textChannel?.send("There was an error trying to play the soundtrack!");
-    serverQueue?.destroy();
+    if (serverQueue) {
+      serverQueue.textChannel?.send("There was an error trying to play the soundtrack!");
+      if (!serverQueue.errorCounter) serverQueue.errorCounter = 1;
+      else serverQueue.errorCounter = 3;
+      if (serverQueue.errorCounter >= 3) serverQueue?.destroy();
+      else await play(guild, serverQueue.songs[0]);
+    }
   });
 }
 
