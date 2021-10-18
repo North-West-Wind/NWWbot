@@ -555,7 +555,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
                     .setTitle("Action cancelled.")
                     .setTimestamp()
                     .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-                await msg.edit({ embeds: [cancelled] }).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**" }).catch(() => { }), 30000));
+                msg.edit({ embeds: [cancelled] }).then(msg => setTimeout(() => msg.edit({ content: "**[Added Track: No track added]**" }).catch(() => { }), 30000));
             }
             resolve(val);
         });
