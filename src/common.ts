@@ -6,6 +6,8 @@ import * as mysql from "mysql2";
 const { version } = require("../package.json");
 var globalClient: NorthClient;
 
+process.on('unhandledRejection', (reason, promise) => console.error('Unhandled Rejection at:', promise, 'reason:', reason));
+
 export default async (client: NorthClient) => {
   const mysql_config = {
     connectTimeout: 30000,
