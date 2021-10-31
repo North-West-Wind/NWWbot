@@ -8,42 +8,42 @@ import { ServerQueue, SoundTrack } from "../classes/NorthClient";
 import { globalClient as client } from "../common";
 import { humanDurationToNum } from "../function";
 const queue = new Discord.Collection<Discord.Snowflake, ServerQueue>();
-const using = new Set<string>();
+const using: { [key: string]: number } = {};
 
 export function getQueues() { return queue; }
 export function getQueue(id: Discord.Snowflake) {
-    return queue.get(id);
+	return queue.get(id);
 }
 export async function updateQueue(id: Discord.Snowflake, serverQueue: ServerQueue, update: boolean = true) {
-    if (!serverQueue) queue.delete(id);
-    else queue.set(id, serverQueue);
-    if (!update) return;
-    try {
-        await client.pool.query(`UPDATE servers SET looping = ${serverQueue?.looping ? 1 : "NULL"}, repeating = ${serverQueue?.repeating ? 1 : "NULL"}, random = ${serverQueue?.random ? 1 : "NULL"}, queue = ${!serverQueue?.songs?.length || !Array.isArray(serverQueue.songs) ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${id}'`);
-    } catch (err: any) {
-        console.error(err);
-    }
+	if (!serverQueue) queue.delete(id);
+	else queue.set(id, serverQueue);
+	if (!update) return;
+	try {
+		await client.pool.query(`UPDATE servers SET looping = ${serverQueue?.looping ? 1 : "NULL"}, repeating = ${serverQueue?.repeating ? 1 : "NULL"}, random = ${serverQueue?.random ? 1 : "NULL"}, queue = ${!serverQueue?.songs?.length || !Array.isArray(serverQueue.songs) ? "NULL" : `'${escape(JSON.stringify(serverQueue.songs))}'`} WHERE id = '${id}'`);
+	} catch (err: any) {
+		console.error(err);
+	}
 }
 export function stop(guild: Discord.Guild) {
-    const serverQueue = queue.get(guild.id);
-    if (!serverQueue) return;
-    serverQueue.destroy();
-    serverQueue.playing = false;
-    serverQueue.connection = null;
-    serverQueue.voiceChannel = null;
-    serverQueue.textChannel = null;
+	const serverQueue = queue.get(guild.id);
+	if (!serverQueue) return;
+	serverQueue.destroy();
+	serverQueue.playing = false;
+	serverQueue.connection = null;
+	serverQueue.voiceChannel = null;
+	serverQueue.textChannel = null;
 }
 export function setQueue(guild: Discord.Snowflake, tracks: SoundTrack[], loopStatus: boolean, repeatStatus: boolean) {
 	tracks = tracks.filter(track => !!track).map(track => {
 		if (typeof track.time === "string") track.time = track.time === "∞" ? 0 : humanDurationToNum(track.time);
 		return track;
 	})
-    const queueContruct = new ServerQueue(tracks, loopStatus, repeatStatus);
-    queue.set(guild, queueContruct);
-    return queueContruct;
+	const queueContruct = new ServerQueue(tracks, loopStatus, repeatStatus);
+	queue.set(guild, queueContruct);
+	return queueContruct;
 }
 export function checkQueue() {
-    return queue.size > 0;
+	return queue.size > 0;
 }
 export function findCache(hashed: string) {
 	const filePath = path.join(__dirname, "cached", hashed);
@@ -56,18 +56,18 @@ export async function cacheTrack(hashed: string, stream: Stream.Readable) {
 	return fs.createReadStream(filePath);
 }
 export function isUsing(hashed: string) {
-	return using.has(hashed);
+	return !!using[hashed];
 }
 export function addUsing(hashed: string) {
-	if (hashed) using.add(hashed);
+	if (hashed) using[hashed]++;
 }
 export function removeUsing(hashed: string) {
-	if (!hashed) return;
-	using.delete(hashed);
-	setTimeout(() => {
-		const filePath = path.join(__dirname, "cached", hashed);
-		if (!isUsing(hashed) && fs.existsSync(filePath)) fs.unlinkSync(filePath);
-	}, 10000);
+	if (!hashed || !using[hashed]) return;
+	if (!(using[hashed] -= 1))
+		setTimeout(() => {
+			const filePath = path.join(__dirname, "cached", hashed);
+			if (!isUsing(hashed) && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+		}, 10000);
 }
 
 // Copied from discord.js example: https://github.com/discordjs/voice/tree/main/examples/basic

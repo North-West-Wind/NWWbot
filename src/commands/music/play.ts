@@ -62,6 +62,7 @@ function createPlayer(guild: Discord.Guild) {
   }).on("error", async error => {
     console.error(error.message);
     if (serverQueue) {
+      removeUsing(track.id);
       serverQueue.textChannel?.send("There was an error trying to play the soundtrack!");
       if (!serverQueue.errorCounter) serverQueue.errorCounter = 1;
       else serverQueue.errorCounter = 3;
