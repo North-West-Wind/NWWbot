@@ -7,6 +7,7 @@ const { version } = require("../package.json");
 var globalClient: NorthClient;
 
 process.on('unhandledRejection', (reason, promise) => console.error('Unhandled Rejection at:', promise, 'reason:', reason));
+process.on('exit', () => fs.rmSync("./cached", { recursive: true, force: true }));
 
 export default async (client: NorthClient) => {
   const mysql_config = {
@@ -39,6 +40,7 @@ export default async (client: NorthClient) => {
     const item = <Item>(await import(file)).default;
     NorthClient.storage.items.set(item.id, item);
   }
+  if (!fs.existsSync("./cached")) fs.mkdirSync("./cached");
 
   var pool = mysql.createPool(mysql_config).promise();
   pool.on("connection", con => con.on("error", async err => {
