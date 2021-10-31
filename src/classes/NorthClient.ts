@@ -227,6 +227,7 @@ export class ServerQueue {
 }
 
 export class SoundTrack {
+    id?: string;
     title: string;
     url: string;
     type: number;

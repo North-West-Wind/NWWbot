@@ -1,10 +1,14 @@
 import { DiscordGatewayAdapterCreator, DiscordGatewayAdapterLibraryMethods } from "@discordjs/voice";
 import * as Discord from "discord.js";
+import * as Stream from 'stream';
+import * as fs from "fs";
+import * as path from "path";
 import { GatewayVoiceServerUpdateDispatchData, GatewayVoiceStateUpdateDispatchData } from "discord-api-types/v9";
 import { ServerQueue, SoundTrack } from "../classes/NorthClient";
 import { globalClient as client } from "../common";
 import { humanDurationToNum } from "../function";
 const queue = new Discord.Collection<Discord.Snowflake, ServerQueue>();
+const using = new Set<string>();
 
 export function getQueues() { return queue; }
 export function getQueue(id: Discord.Snowflake) {
@@ -40,6 +44,30 @@ export function setQueue(guild: Discord.Snowflake, tracks: SoundTrack[], loopSta
 }
 export function checkQueue() {
     return queue.size > 0;
+}
+export function findCache(hashed: string) {
+	const filePath = path.join(__dirname, "cached", hashed);
+	if (!fs.existsSync(filePath)) return null;
+	return fs.createReadStream(filePath);
+}
+export async function cacheTrack(hashed: string, stream: Stream.Readable) {
+	const filePath = path.join(__dirname, "cached", hashed);
+	if (!fs.existsSync(filePath)) await new Promise((res) => stream.pipe(fs.createWriteStream(filePath)).on("close", res));
+	return fs.createReadStream(filePath);
+}
+export function isUsing(hashed: string) {
+	return using.has(hashed);
+}
+export function addUsing(hashed: string) {
+	if (hashed) using.add(hashed);
+}
+export function removeUsing(hashed: string) {
+	if (!hashed) return;
+	using.delete(hashed);
+	setTimeout(() => {
+		const filePath = path.join(__dirname, "cached", hashed);
+		if (!isUsing(hashed) && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+	}, 10000);
 }
 
 // Copied from discord.js example: https://github.com/discordjs/voice/tree/main/examples/basic
