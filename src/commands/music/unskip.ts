@@ -1,10 +1,9 @@
-import { DiscordGatewayAdapterCreator, joinVoiceChannel } from "@discordjs/voice";
+import { joinVoiceChannel } from "@discordjs/voice";
 import { GuildMember, Message, VoiceChannel } from "discord.js";
 
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { moveArray, msgOrRes } from "../../function";
-import { createDiscordJSAdapter, getQueues, setQueue, updateQueue } from "../../helpers/music";
-import { play } from "./play";
+import { msgOrRes } from "../../function";
+import { createDiscordJSAdapter, getQueues, setQueue } from "../../helpers/music";
 
 class UnSkipCommand implements SlashCommand {
     name = "unskip"
@@ -42,25 +41,15 @@ class UnSkipCommand implements SlashCommand {
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if ((member.voice.channelId !== guild.me.voice.channelId) && serverQueue.playing) return await msgOrRes(message,"You have to be in a voice channel to unskip the music when the bot is playing!");
         if (serverQueue.songs.length < 1) return await msgOrRes(message,"There is nothing in the queue!");
-        serverQueue.stop();
+        serverQueue.player?.stop();
         if (serverQueue.repeating) unskip = 0;
         for (var i = 0; i < unskip; i++) {
             var song = serverQueue.songs.pop();
             serverQueue.songs.unshift(song);
         }
-        updateQueue(message.guild.id, serverQueue);
+        serverQueue.isSkipping = true;
         await msgOrRes(message,`Unskipped **${Math.max(1, unskip)}** track${unskip > 1 ? "s" : ""}!`);
-        if (member.voice.channel && serverQueue.playing) {
-            if (!serverQueue.connection) serverQueue.connection = joinVoiceChannel({ channelId: member.voice.channel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(<VoiceChannel> member.voice.channel) });
-            if (!serverQueue.random) await play(guild, serverQueue.songs[0]);
-            else {
-                const int = Math.floor(Math.random() * serverQueue.songs.length);
-                const pending = serverQueue.songs[int];
-                serverQueue.songs = moveArray(serverQueue.songs, int);
-                updateQueue(message.guild.id, serverQueue);
-                await play(message.guild, pending);
-            }
-        }
+        if (member.voice.channel && serverQueue.playing && !serverQueue.connection) serverQueue.connection = joinVoiceChannel({ channelId: member.voice.channel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(<VoiceChannel> member.voice.channel) });
     }
 }
 
