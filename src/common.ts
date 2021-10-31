@@ -13,7 +13,6 @@ export default async (client: NorthClient) => {
   const mysql_config = {
     connectTimeout: 30000,
     connectionLimit: 10,
-    acquireTimeout: 30000,
     host: process.env.DBHOST,
     user: process.env.DBUSER,
     password: process.env.DBPW,
