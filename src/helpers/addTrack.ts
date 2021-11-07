@@ -510,7 +510,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
     var s = 0;
     var msg = <Message>await msgOrRes(message, allEmbeds[0]);
     const filter = x => x.author.id === (message instanceof Message ? message.author : message.user).id;
-    const collector = await msg.channel.createMessageCollector({ filter, idle: 60000 });
+    const collector = msg.channel.createMessageCollector({ filter, idle: 60000 });
     collector.on("collect", async collected => {
         collected.delete().catch(() => { });
         if (isNaN(parseInt(collected.content))) {

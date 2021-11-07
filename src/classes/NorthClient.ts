@@ -1,6 +1,7 @@
 import { AudioPlayer, AudioPlayerStatus, AudioResource, VoiceConnection } from "@discordjs/voice";
 import { Client, ClientOptions, Collection, CommandInteraction, Invite, Message, MessageEmbed, Role, Snowflake, StageChannel, TextChannel, User, VoiceChannel } from "discord.js";
 import { Pool, RowDataPacket } from "mysql2/promise";
+import { videoInfo } from "ytdl-core";
 import { removeUsing } from "../helpers/music";
 
 export class NorthClient extends Client {
