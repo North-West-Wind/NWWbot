@@ -185,17 +185,6 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
             throw new Error("This soundtrack is missing URL! It is being removed automatically.");
           }
           stream = ytdl(song.url, options);
-          const funcao: (...args: any[]) => void = <(...args: any[]) => void> stream.listeners('error')[2];
-          stream.removeListener('error', funcao);
-
-          stream.on('error', (err) => {
-            try {
-              throw new Error();
-            } catch {
-              stream.destroy();
-              console.log(err);
-            }
-          });
           if (!stream) throw new Error("Failed to get YouTube video stream.");
           cacheFound = true;
           break;
