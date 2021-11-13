@@ -16,7 +16,7 @@
   "author": "NorthWestWind",
   "license": "MIT",
   "dependencies": {
-    "@discordjs/opus": "^0.6.0",
+    "@discordjs/opus": "^0.7.0",
     "@discordjs/voice": "^0.7.2",
     "@justalk/pornhub-api": "^3.5.0",
     "aio-mc-api": "^1.2.3",

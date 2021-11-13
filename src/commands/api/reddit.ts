@@ -21,6 +21,18 @@ class RedditCommand implements SlashCommand {
         type: "STRING"
     }];
 
+    constructor() {
+        redditConn = RedditAPI({
+            username: process.env.RUSER,
+            password: process.env.RPW,
+            app_id: process.env.APPID,
+            api_secret: process.env.APPSECRET,
+            retry_on_wait: true,
+            retry_on_server_error: 5,
+            retry_delay: 1
+        });
+    }
+
     async execute(interaction: NorthInteraction) {
         await interaction.deferReply();
         const em = await this.getPost(interaction.options.getString("subreddit")?.split(/ +/) || []);
@@ -54,18 +66,6 @@ class RedditCommand implements SlashCommand {
             .setFooter(`${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`, client.user.displayAvatarURL())
             .setTimestamp();
         return em;
-    }
-
-    init() {
-        redditConn = RedditAPI({
-            username: process.env.RUSER,
-            password: process.env.RPW,
-            app_id: process.env.APPID,
-            api_secret: process.env.APPSECRET,
-            retry_on_wait: true,
-            retry_on_server_error: 5,
-            retry_delay: 1
-        });
     }
 };
 

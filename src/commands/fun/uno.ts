@@ -4,8 +4,6 @@ import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild, wa
 import { NorthClient } from "../../classes/NorthClient.js";
 import converter from "number-to-words";
 import { createCanvas, loadImage } from "canvas";
-import * as fs from "fs";
-
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);
@@ -29,6 +27,15 @@ async function canvasImg(assets, cards) {
   }
   return canvas.toBuffer();
 }
+
+const arr = require("../../../config.json").uno;
+for (let i = 0; i < arr.length - 1; i++) arr[i] = JSON.parse(arr[i]);
+const assets = arr.filter((x: any) => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map((x: any) => {
+  return {
+    id: x.name.slice(0, -4),
+    url: x.url
+  };
+});
 
 class UnoCommand implements SlashCommand {
   name = "uno"
@@ -161,8 +168,6 @@ class UnoCommand implements SlashCommand {
       }
       mesg.edit({embeds: [em]});
     });
-
-    let assets;
     var players = new Discord.Collection<Discord.Snowflake, Player>();
 
     async function prepare(mesg, id) {
@@ -579,15 +584,6 @@ class UnoCommand implements SlashCommand {
     if (responses !== accepted) return message.channel.send("The game cannot start as someone didn't accept the invitation!");
     else if (ingame) return message.channel.send("The game cannot start as somebody is in another game!");
     else {
-      var readFile = fs.readFileSync("./.glitch-assets", "utf8");
-      var arr = readFile.split("\n");
-      for (let i = 0; i < arr.length - 1; i++) arr[i] = JSON.parse(arr[i]);
-      assets = arr.filter((x: any) => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map((x: any) => {
-        return {
-          id: x.name.slice(0, -4),
-          url: x.url
-        };
-      });
       var mesg = await message.channel.send("The game will start soon!");
       var id = Date.now();
       try {

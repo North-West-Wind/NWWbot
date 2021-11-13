@@ -2,4 +2,3 @@ node_modules
 .env
 test
 out
-cached
