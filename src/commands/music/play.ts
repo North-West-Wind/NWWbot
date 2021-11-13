@@ -14,8 +14,8 @@ import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, 
 import * as Stream from 'stream';
 import { globalClient as client } from "../../common.js";
 import { AudioPlayerError, AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, entersState, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus } from "@discordjs/voice";
-import { FfmpegCommand } from "fluent-ffmpeg";
 import * as mm from "music-metadata";
+const ffmpeg = require("fluent-ffmpeg");
 
 function createPlayer(guild: Discord.Guild) {
   var serverQueue = getQueues().get(guild.id);
@@ -26,14 +26,16 @@ function createPlayer(guild: Discord.Guild) {
   var track: SoundTrack;
   var needResource = true, needSetVolume = true;
   async function next() {
+    var randomized = false;
     if (!serverQueue.isSkipping) {
       if (serverQueue.looping) serverQueue.songs.push(track);
       if (!serverQueue.repeating) serverQueue.songs.shift();
+      randomized = serverQueue.random;
     } else serverQueue.isSkipping = false;
     updateQueue(guild.id, serverQueue);
     needResource = true;
     needSetVolume = true;
-    if (!serverQueue.random) await play(guild, serverQueue.songs[0]);
+    if (!randomized) await play(guild, serverQueue.songs[0]);
     else {
       const int = Math.floor(Math.random() * serverQueue.songs.length);
       const pending = serverQueue.songs[int];
@@ -59,14 +61,14 @@ function createPlayer(guild: Discord.Guild) {
     if (serverQueue.errorCounter) serverQueue.errorCounter--;
     updateQueue(guild.id, serverQueue, false);
   }).on(AudioPlayerStatus.Idle, async () => {
-    removeUsing(track.id);
+    removeUsing(track?.id);
     serverQueue = getQueues().get(guild.id);
     await next();
   }).on("error", async error => {
     console.error(error.message);
     if (serverQueue) {
-      removeUsing(track.id);
-      serverQueue.textChannel?.send("There was an error trying to play the soundtrack!");
+      removeUsing(track?.id);
+      serverQueue.textChannel?.send("There was an error trying to play the soundtrack!").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
       if (!serverQueue.errorCounter) serverQueue.errorCounter = 1;
       else serverQueue.errorCounter = 3;
       if (serverQueue.errorCounter >= 3) serverQueue?.destroy();
@@ -93,7 +95,7 @@ export function createEmbed(songs: SoundTrack[]) {
   return Embed;
 }
 
-export async function play(guild: Discord.Guild, song: SoundTrack, seek: number = 0) {
+export async function play(guild: Discord.Guild, song: SoundTrack) {
   const queue = getQueues();
   const serverQueue = queue.get(guild.id);
   if (!serverQueue.voiceChannel && guild.me.voice?.channel) serverQueue.voiceChannel = <Discord.VoiceChannel>guild.me.voice.channel;
@@ -128,6 +130,8 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     }
   }
   const streamTime = serverQueue.getPlaybackDuration();
+  const seek = serverQueue.seek;
+  if (seek) serverQueue.seek = undefined;
   if (serverQueue.connection) serverQueue.startTime = streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;
   try {
@@ -186,7 +190,6 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
             throw new Error("This soundtrack is missing URL! It is being removed automatically.");
           }
           stream = ytdl(song.url, options);
-          cacheTrack(song.id, stream, true).catch(() => {});
           if (!stream) throw new Error("Failed to get YouTube video stream.");
           cacheFound = true;
           break;
@@ -194,9 +197,13 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     }
     if (!cacheFound) stream = await cacheTrack(song.id, stream);
     if (seek) {
-      const command = new FfmpegCommand(stream);
+      var format = "mp3";
+      try {
+        format = (await mm.parseStream(stream)).format.container;
+      } catch (err) {}
+      const command = ffmpeg(stream);
       const passthru = new Stream.PassThrough();
-      command.seekInput(seek).format((await mm.parseStream(stream)).format.container ?? "mp3").output(passthru, { end: true }).run();
+      command.seekInput(seek).format(format).output(passthru, { end: true }).run();
       serverQueue.player?.play(await probeAndCreateResource(passthru));
     } else serverQueue.player?.play(await probeAndCreateResource(stream));
     if (!serverQueue.player) return;
