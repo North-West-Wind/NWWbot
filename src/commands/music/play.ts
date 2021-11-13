@@ -14,7 +14,8 @@ import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, 
 import * as Stream from 'stream';
 import { globalClient as client } from "../../common.js";
 import { AudioPlayerError, AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, entersState, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus } from "@discordjs/voice";
-const ffmpeg = require('fluent-ffmpeg');
+import { FfmpegCommand } from "fluent-ffmpeg";
+import * as mm from "music-metadata";
 
 function createPlayer(guild: Discord.Guild) {
   var serverQueue = getQueues().get(guild.id);
@@ -185,6 +186,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
             throw new Error("This soundtrack is missing URL! It is being removed automatically.");
           }
           stream = ytdl(song.url, options);
+          cacheTrack(song.id, stream, true).catch(() => {});
           if (!stream) throw new Error("Failed to get YouTube video stream.");
           cacheFound = true;
           break;
@@ -192,10 +194,10 @@ export async function play(guild: Discord.Guild, song: SoundTrack, seek: number 
     }
     if (!cacheFound) stream = await cacheTrack(song.id, stream);
     if (seek) {
-      const command = ffmpeg(stream);
-      const transform = new Stream.Transform();
-      command.seekInput(seek).output(transform, { end: true });
-      serverQueue.player?.play(await probeAndCreateResource(transform));
+      const command = new FfmpegCommand(stream);
+      const passthru = new Stream.PassThrough();
+      command.seekInput(seek).format((await mm.parseStream(stream)).format.container ?? "mp3").output(passthru, { end: true }).run();
+      serverQueue.player?.play(await probeAndCreateResource(passthru));
     } else serverQueue.player?.play(await probeAndCreateResource(stream));
     if (!serverQueue.player) return;
     await entersState(serverQueue.player, AudioPlayerStatus.Playing, 5e3);
