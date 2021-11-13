@@ -197,13 +197,9 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
     }
     if (!cacheFound) stream = await cacheTrack(song.id, stream);
     if (seek) {
-      var format = "mp3";
-      try {
-        format = (await mm.parseStream(stream)).format.container;
-      } catch (err) {}
       const command = ffmpeg(stream);
       const passthru = new Stream.PassThrough();
-      command.seekInput(seek).format(format).output(passthru, { end: true }).run();
+      command.on("error", err => console.error(err.message)).seekInput(seek).format("wav").output(passthru, { end: true }).run();
       serverQueue.player?.play(await probeAndCreateResource(passthru));
     } else serverQueue.player?.play(await probeAndCreateResource(stream));
     if (!serverQueue.player) return;

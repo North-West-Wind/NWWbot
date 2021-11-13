@@ -222,14 +222,14 @@ class QueueCommand implements SlashCommand {
             if (index < 0 || index > num + 2 || index == 1) return collector.emit("end");
             else if (index == 0) {
                 const back = msg.reactions.cache.get(available[0]);
-                await back.remove().catch(console.error);
+                back.remove().catch(() => {});
                 await msg.edit({embeds: [allEmbeds[0]]});
             } else {
                 await msg.edit({embeds: [allEmbeds[index - 1]]});
                 const back = msg.reactions.cache.get(available[0]);
                 if (!back) {
                     const stop = msg.reactions.cache.get(available[1]);
-                    if (stop) await stop.remove().catch(console.error);
+                    if (stop) stop.remove().catch(() => {});
                     await msg.react(available[0]);
                     await msg.react(available[1]);
                 }
