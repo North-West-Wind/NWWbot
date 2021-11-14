@@ -325,7 +325,7 @@ export class Handler {
     async guildDelete(guild: Guild) {
         if (!guild?.id) return;
         const client = <NorthClient>guild.client;
-        console.log("Left a guild: " + guild.name);
+        console.log(`Left a guild: ${guild.name} | ID: ${guild.id}`);
         delete NorthClient.storage.guilds[guild.id];
         try {
             await client.pool.query("DELETE FROM servers WHERE id=" + guild.id);
