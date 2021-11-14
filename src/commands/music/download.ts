@@ -49,7 +49,7 @@ class DownloadCommand implements SlashCommand {
         try {
             if (song?.isLive) {
                 const result = await addYTURL(song.url, song.type);
-                if (result.error) throw "Failed to find video";
+                if (result.error) throw new Error("Failed to find video");
                 if (!isEquivalent(result.songs[0], song)) {
                     song = result.songs[0];
                     serverQueue.songs[0] = song;
