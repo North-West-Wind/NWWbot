@@ -28,9 +28,7 @@ async function canvasImg(assets, cards) {
   return canvas.toBuffer();
 }
 
-const arr = require("../../../config.json").uno;
-for (let i = 0; i < arr.length - 1; i++) arr[i] = JSON.parse(arr[i]);
-const assets = arr.filter((x: any) => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map((x: any) => {
+const assets = require("../../../config.json").uno.filter((x: any) => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map((x: any) => {
   return {
     id: x.name.slice(0, -4),
     url: x.url
