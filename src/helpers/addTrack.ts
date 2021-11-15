@@ -1,8 +1,6 @@
-import WebMscore from "webmscore";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 import { Message } from "discord.js";
-import { InputFileFormat } from "webmscore/schemas";
 formatSetup(moment);
 import * as mm from "music-metadata";
 import muse from "musescore-metadata";
@@ -337,12 +335,12 @@ export async function addGDURL(link: string) {
     }
     var f = await fetch(dl);
     if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
-    const matches = decodeHtmlEntity(await f.text()).match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">/);
+    /*const matches = decodeHtmlEntity(await f.text()).match(/<a id="uc-download-link" class="goog-inline-block jfk-button jfk-button-action" href="(?<link>[\/\w&\?=]+)">/);
     if (matches?.groups?.link) {
         dl = "https://drive.google.com" + matches.groups.link;
         f = await fetch(dl);
         if (!f.ok) return { error: true, message: `Received HTTP Status: ${f.status}`, msg: null, songs: [] };
-    }
+    }*/
     const stream = <Stream.Readable>f.body;
     var title = "No Title";
     try {
@@ -352,9 +350,9 @@ export async function addGDURL(link: string) {
         const $ = cheerio.load(html);
         title = metadata.common.title ? metadata.common.title : $("title").text().split(" - ").slice(0, -1).join(" - ").split(".").slice(0, -1).join(".");
     } catch (err: any) {
-        return { error: true, message: "An error occured while parsing the audio file into stream! Maybe it is not link to the file?", msg: null, songs: [] };
+        return { error: true, message: "An error occured while parsing the audio file into stream! Note that the file cannot be too large!", msg: null, songs: [] };
     }
-    if (!metadata) return { error: true, message: "An error occured while parsing the audio file into stream! Maybe it is not link to the file?", msg: null, songs: [] };
+    if (!metadata) return { error: true, message: "An error occured while parsing the audio file into stream! Note that the file cannot be too large!", msg: null, songs: [] };
     const length = Math.round(metadata.format.duration);
     const song = {
         title: title,

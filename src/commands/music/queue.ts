@@ -108,11 +108,7 @@ class QueueCommand implements SlashCommand {
             updateQueue(message.guild.id, serverQueue);
         }
         var index = 0;
-        function getIndex() {
-            if (index == 0 || !serverQueue.random) return ++index;
-            return "???";
-        }
-        const songArray = serverQueue.songs.map(song => `**${getIndex()} - ** **[${song.title}](${song.type === 1 ? song.spot : song.url})** : **${!song.time ? "∞" : moment.duration(song.time, "seconds").format()}**`);
+        const songArray = serverQueue.songs.map(song => `**${++index} - ** **[${song.title}](${song.type === 1 ? song.spot : song.url})** : **${!song.time ? "∞" : moment.duration(song.time, "seconds").format()}**`);
         const allEmbeds = [];
         for (let i = 0; i < Math.ceil(songArray.length / 10); i++) {
             const pageArray = songArray.slice(i * 10, i * 10 + 10);
@@ -121,7 +117,7 @@ class QueueCommand implements SlashCommand {
                 .setTitle(`Song queue for ${message.guild.name} [${i + 1}/${Math.ceil(songArray.length / 10)}]`)
                 .setDescription(`There are ${songArray.length} tracks in total.\n\n${pageArray.join("\n")}`)
                 .setTimestamp()
-                .setFooter(`Now playing: ${(serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing")}`, message.client.user.displayAvatarURL());
+                .setFooter(`Now playing: ${(serverQueue.songs[0] ? serverQueue.songs[0].title : "Nothing")} | LP: ${serverQueue.looping ? "Y" : "N"} | RP: ${serverQueue.repeating ? "Y" : "N"} | RD: ${serverQueue.random ? "Y" : "N"}`, message.client.user.displayAvatarURL());
             allEmbeds.push(queueEmbed);
         }
         if (allEmbeds.length == 1) await msgOrRes(message, allEmbeds[0]).then(msg => setTimeout(() => msg.edit({ embeds: [], content: `**[Queue: ${songArray.length} tracks in total]**` }).catch(() => {}), 60000));

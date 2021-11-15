@@ -103,7 +103,7 @@ class MusescoreCommand implements SlashCommand {
             .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
         msg = await msg.edit({ content: null, embeds: [em] });
         await msg.react("📥");
-        const author = (message instanceof Discord.Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelId))).id;
+        const author = (message instanceof Discord.Message ? message.author : (message.member?.user || await message.client.users.fetch(message.channelId))).id;
         const collected = await msg.awaitReactions({ filter: (r, u) => r.emoji.name === "📥" && u.id === author,  max: 1, time: 30000 });
         await msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
@@ -182,7 +182,7 @@ class MusescoreCommand implements SlashCommand {
             console.error(err);
             return await message.reply("There was an error trying to search for scores!");
         }
-        const author = (message instanceof Discord.Message ? message.author : (message.member?.user ?? await message.client.users.fetch(message.channelId))).id;
+        const author = (message instanceof Discord.Message ? message.author : (message.member?.user || await message.client.users.fetch(message.channelId))).id;
         var $ = cheerio.load(body);
         const stores = Array.from($('div[class^="js-"]'));
         const store = findValueByPrefix(stores.find((x: any) => x.attribs?.class?.match(/^js-\w+$/)), "data-");
