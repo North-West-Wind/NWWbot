@@ -323,7 +323,7 @@ export class Handler {
     }
 
     async guildDelete(guild: Guild) {
-        if (!guild?.id) return;
+        if (!guild?.id || !guild.name) return;
         const client = <NorthClient>guild.client;
         console.log(`Left a guild: ${guild.name} | ID: ${guild.id}`);
         delete NorthClient.storage.guilds[guild.id];
