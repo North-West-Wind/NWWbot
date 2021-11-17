@@ -676,3 +676,14 @@ export function getText(key: string, lang: string = "en") {
     if (!(typeof str === "string")) return "";
     return str;
 }
+
+export async function checkTradeW1nd(guild: Discord.Snowflake) {
+    const res = await fetch("http://localhost:3000/checkGuild/" + guild);
+    return res.ok && (await res.json()).isIn;
+}
+
+export async function getTradeW1ndStats() {
+    const res = await fetch("http://localhost:3000");
+    if (!res.ok) return null;
+    return <{ version: string, size: number, lastReady: number, uptime: number }> await res.json();
+}

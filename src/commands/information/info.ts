@@ -2,7 +2,7 @@
 import {  NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
-import { readableDateTime, color, readableDateTimeText } from "../../function";
+import { readableDateTime, color, readableDateTimeText, checkTradeW1nd, getTradeW1ndStats } from "../../function";
 
 class InfoCommand implements SlashCommand {
   name = "info"
@@ -10,20 +10,25 @@ class InfoCommand implements SlashCommand {
   category = 6
   
   async execute(interaction: NorthInteraction) {
-      await interaction.reply({embeds: [this.getInfo()]});
+      await interaction.reply({embeds: [await this.getInfo(interaction.guildId)]});
   }
 
   async run(message: NorthMessage) {
-    await message.channel.send({embeds: [this.getInfo()]});
+    await message.channel.send({embeds: [await this.getInfo(message.guildId)]});
   }
 
-  getInfo() {
+  async getInfo(guild: Discord.Snowflake) {
     var lastReady = readableDateTime(client.readyAt);
+    var desc = `Made by NorthWestWind!\nVersion: **[${client.version}](https://northwestwind.ml/n0rthwestw1nd)**\n\nRunning on **${client.guilds.cache.size} servers**\nLast restart: **${lastReady}**\nUptime: **${readableDateTimeText(client.uptime)}**`;
+    if (guild && await checkTradeW1nd(guild)) {
+      const stats = await getTradeW1ndStats();
+      desc += `\n\n*We also found **TradeW1nd**!*\nVersion: **[${stats.version}](https://top.gg/bot/895321877109690419)**\n\nRunning on **${stats.size} servers**\nLast restart: **${readableDateTime(new Date(stats.lastReady))}**\nUptime: **${readableDateTimeText(stats.uptime)}**`;
+    }
     const infoEmbed = new Discord.MessageEmbed()
       .setTitle(client.user.tag)
       .setColor(color())
       .setThumbnail(client.user.displayAvatarURL())
-      .setDescription(`Made by NorthWestWind!\nVersion: **[${client.version}](https://northwestwind.ml/n0rthwestw1nd)**\n\nRunning on **${client.guilds.cache.size} servers**\nLast restart: **${lastReady}**\nUptime: **${readableDateTimeText(client.uptime)}**`)
+      .setDescription(desc)
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
       return infoEmbed;
   }

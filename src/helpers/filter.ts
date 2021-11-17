@@ -1,7 +1,7 @@
 import { GuildMember, Message, Permissions, TextChannel } from "discord.js";
 import { Command, NorthClient, NorthInteraction, NorthMessage } from "../classes/NorthClient";
-import { genPermMsg, getOwner, msgOrRes } from "../function";
-
+import { checkTradeW1nd, genPermMsg, getFetch, getOwner, msgOrRes } from "../function";
+const fetch = getFetch();
 var timeout: NodeJS.Timeout;
 
 export async function all(command: Command, message: NorthMessage | NorthInteraction, args: string[] = []) {
@@ -69,7 +69,7 @@ export async function music(_command: Command, message: NorthMessage | NorthInte
         return false;
     }
     try {
-        if (await message.guild.members.fetch("895321877109690419")) return false;
+        if (await checkTradeW1nd(message.guild.id)) return false;
     } catch (err) {}
     return true;
 }
