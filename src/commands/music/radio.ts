@@ -8,6 +8,7 @@ class RadioCommand implements SlashCommand {
     subcommands = ["tune", "off", "add"];
     subdesc = ["Connects to one of the radio channels.", "Disconnects from a radio channel and the voice channel.", "Adds a soundtrack to the radio channel queue."]
     subusage = ["<subcommand> <channel>", null, "<subcommand> <track>"];
+    category = 8;
 
     async execute(interaction: CommandInteraction) {
         await interaction.reply("This feature requires [TradeW1nd](https://top.gg/bot/895321877109690419)!")
