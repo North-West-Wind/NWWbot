@@ -17,7 +17,7 @@
   "license": "MIT",
   "dependencies": {
     "@discordjs/opus": "^0.7.0",
-    "@discordjs/voice": "^0.7.2",
+    "@discordjs/voice": "^0.7.5",
     "@justalk/pornhub-api": "^3.5.0",
     "aio-mc-api": "^1.2.3",
     "akaneko": "^5.2.1",
@@ -28,7 +28,7 @@
     "cheerio": "^1.0.0-rc.10",
     "cleverbot-free": "^1.1.6",
     "deep-equal": "^2.0.5",
-    "discord.js": "^13.0.1",
+    "discord.js": "^13.3.1",
     "dotenv": "^10.0.0",
     "fetch-retry-ts": "^1.1.24",
     "ffmpeg-static": "^4.4.0",
