@@ -1,4 +1,4 @@
-import randomWords from "random-words";
+import randomWords from "@genzou/random-words";
 import * as Canvas from "canvas";
 import * as Discord from "discord.js";
 import { getRandomNumber, applyText, jsDate2Mysql } from "../../function.js";
