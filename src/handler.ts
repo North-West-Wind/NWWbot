@@ -76,7 +76,7 @@ export class Handler {
     }
 
     async readCurrency(_client: NorthClient, con: Connection) {
-        const [r] = <RowDataPacket[][]><unknown>await con.query("SELECT bank FROM users");
+        const [r] = <RowDataPacket[][]><unknown>await con.query("SELECT id, bank FROM users");
         for (const result of r) {
             try {
                 if (result.bank <= 0) continue;
