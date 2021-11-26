@@ -22,7 +22,7 @@ class InventoryCommand implements SlashCommand {
   async navigate(message: NorthMessage | NorthInteraction, msg: Discord.Message = undefined) {
     const author = message instanceof Discord.Message ? message.author : message.user;
     const con = await client.pool.getConnection();
-    var [result] = <RowDataPacket[][]> await con.query(`SELECT * FROM inventory WHERE id = '${author.id}'`);
+    var [result] = <RowDataPacket[][]> await con.query(`SELECT items FROM users WHERE id = '${author.id}'`);
     var [IResult] = <RowDataPacket[][]> await con.query(`SELECT * FROM shop WHERE guild = '${message.guild?.id}' OR guild = ''`);
     var itemObject = {};
     for (const item of IResult) itemObject[item.id] = 0;
@@ -144,7 +144,7 @@ class InventoryCommand implements SlashCommand {
           }
         if (run.length > 0) await message.channel.send(run);
         itemObject[wanted.id] -= 1;
-        await client.pool.query(`UPDATE inventory SET items = '${JSON.stringify(itemObject)}' WHERE id =  '${author.id}'`);
+        await client.pool.query(`UPDATE users SET items = '${JSON.stringify(itemObject)}' WHERE id =  '${author.id}'`);
         em.setTitle(`Used ${wanted.name}`)
           .setDescription("Returning to main menu in 3 seconds...")
           .setFooter("Please be patient.", message.client.user.displayAvatarURL());

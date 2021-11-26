@@ -14,7 +14,7 @@ class BankCommand implements SlashCommand {
   
   async execute(interaction: NorthInteraction) {
     const con = await interaction.client.pool.getConnection();
-    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM currency WHERE user_id = '${interaction.user.id}' AND guild = '${interaction.guild.id}'`);
+    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM users WHERE id = '${interaction.user.id}'`);
     if (results.length == 0) await interaction.reply("You don't have any bank account registered. Use `/work` to work and have an account registered!");
     else await this.useEmbeds(interaction, con, results[0]);
     con.release();
@@ -22,7 +22,7 @@ class BankCommand implements SlashCommand {
 
   async run(message: NorthMessage) {
     const con = await message.pool.getConnection();
-    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM currency WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
+    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM users WHERE id = '${message.author.id}'`);
     if (results.length == 0) await message.channel.send("You don't have any bank account registered. Use `" + message.prefix + "work` to work and have an account registered!");
     else await this.useEmbeds(message, con, results[0]);
     con.release();
@@ -45,7 +45,7 @@ class BankCommand implements SlashCommand {
     await msg.react("2️⃣");
     await MainPage();
     async function MainPage() {
-      var [newResults] = await con.query(`SELECT * FROM currency WHERE user_id = '${author.id}' AND guild = '${message.guild.id}'`);
+      var [newResults] = await con.query(`SELECT * FROM users WHERE id = '${author.id}'`);
       cash = newResults[0].currency;
       bank = newResults[0].bank;
       const embed = new Discord.MessageEmbed()
@@ -96,7 +96,7 @@ class BankCommand implements SlashCommand {
         const newCurrency = Number(newResults[0].currency) - deposits;
         const newBank = Number(newResults[0].bank) + deposits;
         try {
-          await con.query(`UPDATE currency SET currency = '${newCurrency}', bank = '${newBank}' WHERE user_id = '${author.id}' AND guild = '${message.guild.id}'`);
+          await con.query(`UPDATE users SET currency = '${newCurrency}', bank = '${newBank}' WHERE id = '${author.id}'`);
           const depositedEmbed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle("Deposition Successful")
@@ -142,7 +142,7 @@ class BankCommand implements SlashCommand {
         const newCurrency = Number(newResults[0].currency) + withdraws;
         const newBank = Number(newResults[0].bank) - withdraws;
         try {
-          await con.query(`UPDATE currency SET currency = '${newCurrency}', bank = '${newBank}' WHERE user_id = '${author.id}' AND guild = '${message.guild.id}'`);
+          await con.query(`UPDATE users SET currency = '${newCurrency}', bank = '${newBank}' WHERE id = '${author.id}'`);
           const withdrawedEmbed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle("Withdrawal Successful")

@@ -14,20 +14,20 @@ class WorkCommand implements SlashCommand {
   async execute(interaction: NorthInteraction) {
     const currentDateSql = jsDate2Mysql(new Date());
     const con = await interaction.client.pool.getConnection();
-    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM currency WHERE user_id = '${interaction.user.id}' AND guild = '${interaction.guild.id}'`);
-    if (results.length == 0) await con.query(`INSERT INTO currency VALUES(NULL, '${interaction.user.id}', ${gain}, 1, '${currentDateSql}', 0.00, NULL, '${interaction.guild.id}')`);
-    const lastDate = results[0].last_worked;
+    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM users WHERE id = '${interaction.user.id}'`);
+    if (results.length == 0) await con.query(`INSERT INTO users(id) VALUES('${interaction.user.id}')`);
+    const lastDate = results[0]?.last_worked || new Date(0);
     if (Date.now() - lastDate < 3600000) return await interaction.reply("You can only work once an hour!");
     await interaction.reply("Distributing work...");
-    const worked = results[0].worked;
+    const worked = results[0]?.worked || 0;
     var gain = Math.round((getRandomNumber(Math.pow(2, worked / 20), 1.2 * Math.pow(2, worked / 20)) + Number.EPSILON) * 100) / 100;
     await interaction.deleteReply();
     const rate = await this.work(interaction, worked);
     var doubling = false;
-    if (results[0].doubling && results[0].doubling - Date.now() > 0) doubling = true;
+    if (results[0]?.doubling && results[0].doubling - Date.now() > 0) doubling = true;
     gain *= rate * (doubling ? 2 : 1);
-    var newCurrency = Math.round((Number(results[0].currency) + gain + Number.EPSILON) * 100) / 100;
-    await con.query(`UPDATE currency SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE user_id = '${interaction.user.id}' AND guild = '${interaction.guild.id}'`);
+    var newCurrency = Math.round(((results[0]?.currency || 0) + gain + Number.EPSILON) * 100) / 100;
+    await con.query(`UPDATE users SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE id = '${interaction.user.id}'`);
     await interaction.channel.send(`<@${interaction.user.id}> worked and gained **$${Math.round((gain + Number.EPSILON) * 100) / 100}**${rate < 1 ? ` (and it's multiplied by **${rate}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
     con.release();
   }
@@ -35,18 +35,18 @@ class WorkCommand implements SlashCommand {
   async run(message: NorthMessage) {
     const currentDateSql = jsDate2Mysql(new Date());
     const con = await message.pool.getConnection();
-    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM currency WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
-    if (results.length == 0) await con.query(`INSERT INTO currency VALUES(NULL, '${message.author.id}', ${gain}, 1, '${currentDateSql}', 0.00, NULL, '${message.guild.id}')`);
-    const lastDate = results[0].last_worked;
+    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM users WHERE id = '${message.author.id}'`);
+    if (results.length == 0) await con.query(`INSERT INTO users(id) VALUES('${message.author.id}')`);
+    const lastDate = results[0]?.last_worked || new Date(0);
     if (Date.now() - lastDate < 3600000) return message.channel.send("You can only work once an hour!");
-    const worked = results[0].worked;
+    const worked = results[0]?.worked || 0;
     var gain = Math.round((getRandomNumber(Math.pow(2, worked / 20), 1.2 * Math.pow(2, worked / 20)) + Number.EPSILON) * 100) / 100;
     const rate = await this.work(message, worked);
     var doubling = false;
-    if (results[0].doubling && results[0].doubling - Date.now() > 0) doubling = true;
+    if (results[0]?.doubling && results[0].doubling - Date.now() > 0) doubling = true;
     gain *= rate * (doubling ? 2 : 1);
-    var newCurrency = Math.round((Number(results[0].currency) + gain + Number.EPSILON) * 100) / 100;
-    await con.query(`UPDATE currency SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE user_id = '${message.author.id}' AND guild = '${message.guild.id}'`);
+    var newCurrency = Math.round(((results[0]?.currency || 0) + gain + Number.EPSILON) * 100) / 100;
+    await con.query(`UPDATE users SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE id = '${message.author.id}'`);
     await message.channel.send(`<@${message.author.id}> worked and gained **$${Math.round((gain + Number.EPSILON) * 100) / 100}**${rate < 1 ? ` (and it's multiplied by **${rate}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
     con.release();
   }

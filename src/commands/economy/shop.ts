@@ -42,7 +42,7 @@ class ShopCommand implements SlashCommand {
         mainMenu();
         async function mainMenu(msg = undefined) {
             var mesg = msg;
-            var [results] = <RowDataPacket[][]> await pool.query(`SELECT * FROM currency WHERE user_id = '${author.id}' AND guild = '${message.guild.id}'`);
+            var [results] = <RowDataPacket[][]> await pool.query(`SELECT * FROM users WHERE id = '${author.id}'`);
             var cash = 0;
             if (results.length == 1) cash = results[0].currency;
             const shop = new Discord.MessageEmbed()
@@ -165,7 +165,7 @@ class ShopCommand implements SlashCommand {
                             itemEmbed.setTitle("You bought " + result[0].name + "!")
                                 .setDescription("Returning to main menu in 3 seconds...")
                                 .setFooter("Please be patient.", message.client.user.displayAvatarURL());
-                            const [IResult] = <RowDataPacket[][]> await pool.query(`SELECT * FROM inventory WHERE id = '${author.id}'`);
+                            const [IResult] = <RowDataPacket[][]> await pool.query(`SELECT items FROM users WHERE id = '${author.id}'`);
                             if (IResult.length == 1 && result[0].buy_limit > 0) {
                                 const items = JSON.parse(unescape(IResult[0].items));
                                 if (!items[result[0].id]) items[result[0].id] = 0;
@@ -249,18 +249,18 @@ class ShopCommand implements SlashCommand {
                             var paid = cash - result[0].buy_price;
                             const con = await pool.getConnection();
                             try {
-                                await con.query(`UPDATE currency SET currency = ${paid} WHERE user_id = '${author.id}' AND guild = '${message.guild.id}'`);
+                                await con.query(`UPDATE users SET currency = ${paid} WHERE id = '${author.id}'`);
                                 if (!result[0].must_use) {
                                     if (IResult.length === 0) {
                                         const items = {};
                                         items[result[0].id] = 0;
                                         items[result[0].id] += 1;
-                                        await con.query(`INSERT INTO inventory VALUES('${author.id}', '${escape(JSON.stringify(items))}')`);
+                                        await con.query(`INSERT INTO users(id, items) VALUES('${author.id}', '${escape(JSON.stringify(items))}')`);
                                     } else {
                                         const items = JSON.parse(unescape(IResult[0].items));
                                         if (!items[result[0].id]) items[result[0].id] = 0;
                                         items[result[0].id] += 1;
-                                        await con.query(`UPDATE inventory SET items = '${escape(JSON.stringify(items))}' WHERE id = '${author.id}'`);
+                                        await con.query(`UPDATE users SET items = '${escape(JSON.stringify(items))}' WHERE id = '${author.id}'`);
                                     }
                                 }
                             } catch (err: any) {

@@ -76,12 +76,12 @@ export class Handler {
     }
 
     async readCurrency(_client: NorthClient, con: Connection) {
-        const [r] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM currency WHERE guild <> '622311594654695434'");
+        const [r] = <RowDataPacket[][]><unknown>await con.query("SELECT bank FROM users");
         for (const result of r) {
             try {
                 if (result.bank <= 0) continue;
                 const newBank = Math.round((Number(result.bank) * 1.02 + Number.EPSILON) * 100) / 100;
-                await con.query(`UPDATE currency SET bank = ${newBank} WHERE id = ${result.id}`);
+                await con.query(`UPDATE users SET bank = ${newBank} WHERE id = ${result.id}`);
             } catch (err: any) {
                 console.error(err);
             }
@@ -150,7 +150,7 @@ export class Handler {
     }
 
     async readNoLog(_client: NorthClient, con: Connection) {
-        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM nolog");
+        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT id FROM users WHERE no_log = 1");
         NorthClient.storage.noLog = results.map(x => x.id);
     }
 

@@ -1,7 +1,7 @@
 import { RowDataPacket } from "mysql2";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
-import { genPermMsg, createEmbedScrolling, color } from "../../function";
+import { genPermMsg, createEmbedScrolling, color, msgOrRes } from "../../function";
 
 class InvitesCommand implements SlashCommand {
   name = "invites"
@@ -11,21 +11,21 @@ class InvitesCommand implements SlashCommand {
   aliases = ["inv"]
   category = 4
   options = [
-      {
-          name: "server",
-          description: "Displays server invites.",
-          type: "SUB_COMMAND"
-      },
-      {
-          name: "me",
-          description: "Displays invites of yours.",
-          type: "SUB_COMMAND"
-      },
-      {
-          name: "toggle",
-          description: "Toggles whether or not the bot should notify you when a user uses your invite.",
-          type: "SUB_COMMAND"
-      }
+    {
+      name: "server",
+      description: "Displays server invites.",
+      type: "SUB_COMMAND"
+    },
+    {
+      name: "me",
+      description: "Displays invites of yours.",
+      type: "SUB_COMMAND"
+    },
+    {
+      name: "toggle",
+      description: "Toggles whether or not the bot should notify you when a user uses your invite.",
+      type: "SUB_COMMAND"
+    }
   ]
 
   async execute(interaction: NorthInteraction) {
@@ -34,29 +34,15 @@ class InvitesCommand implements SlashCommand {
     if (sub === "server") {
       if (!interaction.guild.me.permissions.has(BigInt(32))) return await interaction.reply(genPermMsg(32, 1));
       const allEmbeds = await this.createInvitesEmbed(interaction.guild, interaction.client, true);
-      return await interaction.reply({embeds: [allEmbeds[0]]});
+      return await interaction.reply({ embeds: [allEmbeds[0]] });
     } else if (sub === "me") {
       const author = interaction.user;
       if (!interaction.guild.me.permissions.has(BigInt(32))) return interaction.reply(genPermMsg(32, 1));
       const em = await this.createMyInvitesEmbed(interaction.guild, author, interaction.client);
-      return await interaction.reply({embeds: [em]});
+      return await interaction.reply({ embeds: [em] });
     } else if (sub === "toggle") {
-        const author = interaction.user;
-      try {
-        const [result] = <RowDataPacket[][]> await interaction.client.pool.query(`SELECT * FROM nolog WHERE id = '${author.id}'`);
-        if (result.length < 1) {
-          await interaction.client.pool.query(`INSERT INTO nolog VALUES('${author.id}')`);
-          if (NorthClient.storage.noLog.indexOf(author.id) == -1) NorthClient.storage.noLog.push(author.id);
-          return await interaction.reply("You will no longer receive message from me when someone joins the server with your invites.");
-        } else {
-          interaction.client.pool.query(`DELETE FROM nolog WHERE id = '${author.id}'`);
-          if (NorthClient.storage.noLog.indexOf(author.id) != -1) NorthClient.storage.noLog.splice(NorthClient.storage.noLog.indexOf(author.id), 1);
-          return await interaction.reply("We will message you whenever someone joins the server with your invites.");
-        }
-      } catch(err) {
-        console.error(err);
-        return await interaction.reply("There was an error trying to remember your decision!");
-      }
+      await interaction.deferReply();
+      await this.toggle(interaction);
     }
   }
 
@@ -65,29 +51,13 @@ class InvitesCommand implements SlashCommand {
       if (!message.guild.me.permissions.has(BigInt(32))) return message.channel.send(genPermMsg(32, 1));
       const allEmbeds = await this.createInvitesEmbed(message.guild, message.client);
       if (allEmbeds.length > 1) await createEmbedScrolling(message, allEmbeds);
-      else await message.channel.send({embeds: [allEmbeds[0]]});
+      else await message.channel.send({ embeds: [allEmbeds[0]] });
     } else if (args[0].toLowerCase() === "me") {
       if (!message.guild.me.permissions.has(BigInt(32))) return message.channel.send(genPermMsg(32, 1));
       const em = await this.createMyInvitesEmbed(message.guild, message.author, message.client);
-      await message.channel.send({embeds: [em]});
+      await message.channel.send({ embeds: [em] });
     } else if (args[0].toLowerCase() === "toggle") {
-      const con = await message.pool.getConnection();
-      try {
-        var [result] = <RowDataPacket[][]> await con.query(`SELECT * FROM nolog WHERE id = '${message.author.id}'`);
-        if (result.length < 1) {
-          await con.query(`INSERT INTO nolog VALUES('${message.author.id}')`);
-          if (NorthClient.storage.noLog.indexOf(message.author.id) == -1) NorthClient.storage.noLog.push(message.author.id);
-          message.channel.send("You will no longer receive message from me when someone joins the server with your invites.");
-        } else {
-          con.query(`DELETE FROM nolog WHERE id = '${message.author.id}'`);
-          if (NorthClient.storage.noLog.indexOf(message.author.id) != -1) NorthClient.storage.noLog.splice(NorthClient.storage.noLog.indexOf(message.author.id), 1);
-          await message.channel.send("We will message you whenever someone joins the server with your invites.");
-        }
-      } catch(err) {
-        console.error(err);
-        await message.reply("there was an error trying to remember your decision!");
-      }
-      con.release()
+      await this.toggle(message);
     } else await message.channel.send(`That is not a subcommand! Subcommands: **${this.subcommands.join(", ")}**`);
   }
 
@@ -143,6 +113,34 @@ class InvitesCommand implements SlashCommand {
       .setTimestamp()
       .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
     return em;
+  }
+
+  async toggle(message: NorthMessage | NorthInteraction) {
+    const author = message instanceof Discord.Message ? message.author : message.user;
+    try {
+      const con = await message.client.pool.getConnection();
+      const [result] = <RowDataPacket[][]>await con.query(`SELECT no_log FROM users WHERE id = '${author.id}'`);
+      var nolog: boolean;
+      if (result.length < 1) {
+        await con.query(`INSERT INTO users VALUES('${author.id}', '{}')`);
+        nolog = false;
+      } else {
+        nolog = !!result[0].no_log;
+      }
+      if (nolog) {
+        await con.query(`UPDATE users SET no_log = 1 WHERE id = '${author.id}'`);
+        if (NorthClient.storage.noLog.indexOf(author.id) == -1) NorthClient.storage.noLog.push(author.id);
+        await msgOrRes(message, "You will no longer receive message from me when someone joins the server with your invites.");
+      } else {
+        await con.query(`UPDATE users SET no_log = 0 WHERE id = '${author.id}'`);
+        if (NorthClient.storage.noLog.indexOf(author.id) != -1) NorthClient.storage.noLog.splice(NorthClient.storage.noLog.indexOf(author.id), 1);
+        await msgOrRes(message, "We will message you whenever someone joins the server with your invites.");
+      }
+      con.release();
+    } catch (err) {
+      console.error(err);
+      await msgOrRes(message, "There was an error trying to remember your decision!");
+    }
   }
 };
 
