@@ -26,7 +26,7 @@ class WorkCommand implements SlashCommand {
     var doubling = false;
     if (results[0]?.doubling && results[0].doubling - Date.now() > 0) doubling = true;
     gain *= rate * (doubling ? 2 : 1);
-    var newCurrency = Math.round(((results[0]?.currency || 0) + gain + Number.EPSILON) * 100) / 100;
+    var newCurrency = Math.round(((Number(results[0]?.currency) || 0) + gain + Number.EPSILON) * 100) / 100;
     await con.query(`UPDATE users SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE id = '${interaction.user.id}'`);
     await interaction.channel.send(`<@${interaction.user.id}> worked and gained **$${Math.round((gain + Number.EPSILON) * 100) / 100}**${rate < 1 ? ` (and it's multiplied by **${rate}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
     con.release();
@@ -45,7 +45,7 @@ class WorkCommand implements SlashCommand {
     var doubling = false;
     if (results[0]?.doubling && results[0].doubling - Date.now() > 0) doubling = true;
     gain *= rate * (doubling ? 2 : 1);
-    var newCurrency = Math.round(((results[0]?.currency || 0) + gain + Number.EPSILON) * 100) / 100;
+    var newCurrency = Math.round(((Number(results[0]?.currency) || 0) + gain + Number.EPSILON) * 100) / 100;
     await con.query(`UPDATE users SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE id = '${message.author.id}'`);
     await message.channel.send(`<@${message.author.id}> worked and gained **$${Math.round((gain + Number.EPSILON) * 100) / 100}**${rate < 1 ? ` (and it's multiplied by **${rate}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
     con.release();
