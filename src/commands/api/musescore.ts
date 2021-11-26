@@ -69,8 +69,8 @@ class MusescoreCommand implements SlashCommand {
     async execute(interaction: NorthInteraction) {
         await interaction.deferReply();
         const score = interaction.options.getString("score");
-        if (!validMSURL(score)) return await this.search(interaction, score, <Discord.Message> await interaction.fetchReply());
-        await this.metadata(interaction, score, <Discord.Message> await interaction.fetchReply());
+        if (!validMSURL(score)) return await this.search(interaction, score, <Discord.Message>await interaction.fetchReply());
+        await this.metadata(interaction, score, <Discord.Message>await interaction.fetchReply());
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -90,7 +90,7 @@ class MusescoreCommand implements SlashCommand {
             .setTitle(data.title)
             .setURL(data.url)
             .setThumbnail(data.thumbnail)
-            .setDescription(`Description: **${data.description}**\n\nClick 📥 to download MP3 and PDF`)
+            .setDescription(`Description: **${data.description}**\n\nClick 📥 to download **MP3/PDF/MIDI**\nFor **other formats (MSCZ/MXL)**, please use [Xmader's Musescore Downloader](https://github.com/LibreScore/dl-musescore)`)
             .addField("ID", data.id.toString(), true)
             .addField("Author", data.user.name, true)
             .addField("Duration", data.duration, true)
@@ -104,7 +104,7 @@ class MusescoreCommand implements SlashCommand {
         msg = await msg.edit({ content: null, embeds: [em] });
         await msg.react("📥");
         const author = (message instanceof Discord.Message ? message.author : (message.member?.user || await message.client.users.fetch(message.channelId))).id;
-        const collected = await msg.awaitReactions({ filter: (r, u) => r.emoji.name === "📥" && u.id === author,  max: 1, time: 30000 });
+        const collected = await msg.awaitReactions({ filter: (r, u) => r.emoji.name === "📥" && u.id === author, max: 1, time: 30000 });
         await msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {
             try {
@@ -121,7 +121,7 @@ class MusescoreCommand implements SlashCommand {
                         const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mp3`));
                         if (!res) throw new Error("Failed to get Readable Stream");
                         else if (res.status && res.status != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
-                        else await message.channel.send({files:[att]});
+                        else await message.channel.send({ files: [att] });
                         await mesg.delete();
                     } catch (err: any) {
                         await mesg.edit(`Failed to generate MP3! \`${err.message}\``);
@@ -131,36 +131,23 @@ class MusescoreCommand implements SlashCommand {
                     try {
                         if (!hasPDF) throw new Error(err ? err : "No PDF available");
                         const att = new Discord.MessageAttachment(doc, sanitize(`${data.title}.pdf`));
-                        await message.channel.send({files:[att]});
+                        await message.channel.send({ files: [att] });
                         await mesg.delete();
                     } catch (err: any) {
                         await mesg.edit(`Failed to generate PDF! \`${err.message}\``);
                     }
-                    mesg = await message.channel.send("Generating MSCZ...");
-                    const mscz = await this.getMSCZ(data);
+                    mesg = await message.channel.send("Generating MIDI...");
+                    const midi = await this.getMIDI(url);
                     try {
-                        if (mscz.error) throw new Error(mscz.err);
-                        const res = await requestStream(mscz.url);
+                        if (midi.error) throw new Error(midi.err);
+                        const res = await requestStream(midi.url);
                         if (!res) throw new Error("Failed to get Readable Stream");
                         else if (res.status && res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
-                        const att = new Discord.MessageAttachment(res.data, sanitize(`${data.title}.mscz`));
-                        await message.channel.send({files:[att]});
+                        const att = new Discord.MessageAttachment(res.data, sanitize(`${data.title}.mid`));
+                        await message.channel.send({ files: [att] });
                         await mesg.delete();
                     } catch (err: any) {
-                        await mesg.edit(`Failed to generate MSCZ! \`${err.message}\``);
-                        mesg = await message.channel.send("Fallback: Generating MIDI...");
-                        const midi = await this.getMIDI(url);
-                        try {
-                            if (midi.error) throw new Error(midi.err);
-                            const res = await requestStream(midi.url);
-                            if (!res) throw new Error("Failed to get Readable Stream");
-                            else if (res.status && res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
-                            const att = new Discord.MessageAttachment(res.data, sanitize(`${data.title}.mid`));
-                            await message.channel.send({files:[att]});
-                            await mesg.delete();
-                        } catch (err: any) {
-                            await mesg.edit(`Failed to generate MIDI! \`${err.message}\``);
-                        }
+                        await mesg.edit(`Failed to generate MIDI! \`${err.message}\``);
                     }
                 } catch (err: any) {
                     console.error(err);
@@ -217,7 +204,7 @@ class MusescoreCommand implements SlashCommand {
         const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author);
         var s = 0;
         await msg.delete();
-        msg = await message.channel.send({embeds: [allEmbeds[0]]});
+        msg = await message.channel.send({ embeds: [allEmbeds[0]] });
         await msg.react("⏮");
         await msg.react("◀");
         await msg.react("▶");
@@ -226,25 +213,25 @@ class MusescoreCommand implements SlashCommand {
         var collector = msg.createReactionCollector({ filter, idle: 60000 });
 
         collector.on("collect", async function (reaction, user) {
-            reaction.users.remove(user.id).catch(() => {});
+            reaction.users.remove(user.id).catch(() => { });
             switch (reaction.emoji.name) {
                 case "⏮":
                     s = 0;
-                    msg.edit({embeds: [allEmbeds[s]]});
+                    msg.edit({ embeds: [allEmbeds[s]] });
                     break;
                 case "◀":
                     s -= 1;
                     if (s < 0) s = allEmbeds.length - 1;
-                    msg.edit({embeds: [allEmbeds[s]]});
+                    msg.edit({ embeds: [allEmbeds[s]] });
                     break;
                 case "▶":
                     s += 1;
                     if (s > allEmbeds.length - 1) s = 0;
-                    msg.edit({embeds: [allEmbeds[s]]});
+                    msg.edit({ embeds: [allEmbeds[s]] });
                     break;
                 case "⏭":
                     s = allEmbeds.length - 1;
-                    msg.edit({embeds: [allEmbeds[s]]});
+                    msg.edit({ embeds: [allEmbeds[s]] });
                     break;
                 case "⏹":
                     collector.emit("end");
@@ -318,7 +305,7 @@ class MusescoreCommand implements SlashCommand {
                     });
                     await page.goto(url, { waitUntil: "domcontentloaded" });
                     const thumb = await page.waitForSelector("meta[property='og:image']");
-                    var png = (<string> await (await thumb.getProperty("content")).jsonValue()).split("@")[0];
+                    var png = (<string>await (await thumb.getProperty("content")).jsonValue()).split("@")[0];
                     var svg = png.split(".").slice(0, -1).join(".") + ".svg";
                     var el;
                     try {
@@ -369,30 +356,6 @@ class MusescoreCommand implements SlashCommand {
         }
         doc.end();
         return { doc: doc, hasPDF: hasPDF, err: null };
-    }
-    async getMSCZ(data) {
-        // Thank you to Xmader/musescore-downloader!
-        const IPNS_KEY = 'QmSdXtvzC8v8iTTZuj5cVmiugnzbR1QATYRcGix4bBsioP';
-        const IPNS_RS_URL = `https://ipfs.io/api/v0/dag/resolve?arg=/ipns/${IPNS_KEY}`;
-        const r = await fetch(IPNS_RS_URL);
-        if (!r.ok) return { error: true, err: "Received HTTP Status Code: " + r.status };
-        const json = await r.json();
-        const mainCid = json.Cid['/'];
-
-        const url = `https://ipfs.infura.io:5001/api/v0/block/stat?arg=/ipfs/${mainCid}/${data.id % 20}/${data.id}.mscz`;
-        const r0 = await fetch(url);
-        if (!r0.ok && r0.status !== 500) return { error: true, err: "Received HTTP Status Code: " + r.status };
-        const cidRes = await r0.json();
-        const cid = cidRes.Key
-        if (!cid) {
-            const err = cidRes.Message
-            if (err.includes('no link named')) return { error: true, err: "Score not in dataset" };
-            else return { error: true, err: err };
-        }
-        const msczUrl = `https://ipfs.infura.io/ipfs/${cid}`;
-        const r1 = await fetch(msczUrl);
-        if (!r1.ok) return { error: true, err: "Received HTTP Status Code: " + r.status };
-        return { error: false, url: msczUrl };
     }
 }
 
