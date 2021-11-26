@@ -54,6 +54,7 @@ class SeekCommand implements SlashCommand {
         if (!seek) return await msgOrRes(message, "The given time is not valid!");
         if (seek > serverQueue.songs[0].time) return await msgOrRes(message, "The time specified should not be larger than the maximum length of the soundtrack!");
         serverQueue.isSkipping = true;
+        serverQueue.seek = seek;
         serverQueue.player?.stop();
         await msgOrRes(message, `Seeked to **${seek == 0 ? "0:00" : moment.duration(seek, "seconds").format()}**`);
         const member = <GuildMember> message.member;
