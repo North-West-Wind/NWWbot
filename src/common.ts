@@ -22,13 +22,11 @@ process.on('unhandledRejection', (reason: string) => {
 function reloadClient() {
   const options = globalClient.options;
   const token = globalClient.token;
-  const log = globalClient.log;
   const prefix = globalClient.prefix;
   const id = globalClient.id;
   globalClient.destroy();
 
   globalClient = new NorthClient(options);
-  globalClient.log = log;
   NorthClient.storage = new ClientStorage();
   
   globalClient.prefix = prefix;

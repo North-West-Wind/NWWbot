@@ -22,7 +22,6 @@ const client = new NorthClient({
         Intents.FLAGS.GUILD_VOICE_STATES
     ]
 });
-client.log = "678847137391312917";
 NorthClient.storage = new ClientStorage();
 
 client.prefix = prefix0;

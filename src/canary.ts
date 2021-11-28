@@ -23,7 +23,6 @@ const client = new NorthClient({
         Intents.FLAGS.GUILD_PRESENCES
     ]
 });
-client.log = "733912780679413886";
 NorthClient.storage = new ClientStorage();
 
 client.prefix = prefixC;
