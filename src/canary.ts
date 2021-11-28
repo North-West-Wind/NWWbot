@@ -27,5 +27,5 @@ client.log = "733912780679413886";
 NorthClient.storage = new ClientStorage();
 
 client.prefix = prefixC;
-client.id = 0;
+client.id = 2;
 CanaryHandler.setup(client, process.env.TOKEN_CANARY);

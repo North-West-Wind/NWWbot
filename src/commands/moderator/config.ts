@@ -1,7 +1,7 @@
-import { Message, MessageReaction, TextChannel, User } from "discord.js";
+import { Message, MessageReaction, User } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { msgOrRes, genPermMsg, ID, color, fixGuildRecord } from "../../function";
+import { msgOrRes, ID, color, fixGuildRecord } from "../../function";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
 import { isImageUrl } from "../../function";
@@ -123,39 +123,39 @@ class ConfigCommand implements SlashCommand {
       await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < panelEmoji.length; i++) await msg.react(panelEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return timedOut(msg);
-
       const reaction = collected.first();
-      let receivedID = panelEmoji.indexOf(reaction.emoji.name);
-      if (receivedID == 0) return await welcome(msg);
-      if (receivedID == 1) return await leave(msg);
-      if (receivedID == 2) return await boost(msg);
-      if (receivedID == 3) return await giveaway(msg);
-      if (receivedID == 4) return await safe(msg);
-      if (receivedID == 5) return await end(msg);
+      if (!reaction) return timedOut(msg);
+      switch(panelEmoji.indexOf(reaction.emoji.name)) {
+        case 0: return await welcome(msg);
+        case 1: return await leave(msg);
+        case 2: return await boost(msg);
+        case 3: return await giveaway(msg);
+        case 4: return await safe(msg);
+        default: return await end(msg);
+      }
     }
 
     async function welcome(msg: Message) {
-      panelEmbed.setDescription("**Welcome Message**\nPlease choose an option to configure:\n\n1️⃣ Message\n2️⃣ Channel\n3️⃣ Image\n4️⃣ Autorole\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Welcome Message**\nSends a message when someone joins the server.\nPlease choose an option to configure:\n\n1️⃣ Message\n2️⃣ Channel\n3️⃣ Image\n4️⃣ Autorole\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < welcomeEmoji.length; i++) await msg.react(welcomeEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return timedOut(msg);
-
       const reaction = collected.first();
-      let receivedID = welcomeEmoji.indexOf(reaction.emoji.name);
-      if (receivedID == 0) return await welcomeMsg(msg);
-      if (receivedID == 1) return await welcomeChannel(msg);
-      if (receivedID == 2) return await welcomeImage(msg);
-      if (receivedID == 3) return await welcomeAutorole(msg);
-      if (receivedID == 4) return await start(msg);
-      if (receivedID == 5) return await end(msg);
+      if (!reaction) return timedOut(msg);
+      switch(panelEmoji.indexOf(reaction.emoji.name)) {
+        case 0: return await welcomeMsg(msg);
+        case 1: return await welcomeChannel(msg);
+        case 2: return await welcomeImage(msg);
+        case 3: return await welcomeAutorole(msg);
+        case 4: return await start(msg);
+        default: return await end(msg);
+      }
     }
 
     async function welcomeMsg(msg: Message) {
-      panelEmbed.setDescription("**Welcome Message/Message**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Welcome Message/Message**\nWhat to send for the Welcome Message.\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
@@ -207,7 +207,7 @@ class ConfigCommand implements SlashCommand {
     }
 
     async function welcomeChannel(msg: Message) {
-      panelEmbed.setDescription("**Welcome Message/Channel**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Welcome Message/Channel**\nWhere to send the Welcome Message.\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
@@ -265,7 +265,7 @@ class ConfigCommand implements SlashCommand {
     }
 
     async function welcomeImage(msg: Message) {
-      panelEmbed.setDescription("**Welcome Message/Image**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Welcome Message/Image**\nIncludes image(s) for the Welcome Message.\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
@@ -329,7 +329,7 @@ class ConfigCommand implements SlashCommand {
     }
 
     async function welcomeAutorole(msg: Message) {
-      panelEmbed.setDescription("**Welcome Message/Autorole**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Welcome Message/Autorole**\nGives users roles when joined automatically.\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
@@ -395,23 +395,24 @@ class ConfigCommand implements SlashCommand {
     }
 
     async function leave(msg: Message) {
-      panelEmbed.setDescription("**Leave Message**\nPlease choose an option to configure:\n\n1️⃣ Message\n2️⃣ Channel\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Leave Message**\nSends a message when someone leaves the server.\nPlease choose an option to configure:\n\n1️⃣ Message\n2️⃣ Channel\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < leaveEmoji.length; i++) await msg.react(leaveEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return await timedOut(msg);
       const reaction = collected.first();
-      let receivedID = leaveEmoji.indexOf(reaction.emoji.name);
-      if (receivedID == 0) return await leaveMsg(msg);
-      if (receivedID == 1) return await leaveChannel(msg);
-      if (receivedID == 2) return await start(msg);
-      if (receivedID == 3) return await end(msg);
+      if (!reaction) return timedOut(msg);
+      switch(panelEmoji.indexOf(reaction.emoji.name)) {
+        case 0: return await leaveMsg(msg);
+        case 1: return await leaveChannel(msg);
+        case 2: return await start(msg);
+        default: return await end(msg);
+      }
     }
 
     async function leaveMsg(msg: Message) {
-      panelEmbed.setDescription("**Leave Message/Message**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Leave Message/Message**\nWhat to send for the Leave Message.\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
@@ -466,7 +467,7 @@ class ConfigCommand implements SlashCommand {
     }
 
     async function leaveChannel(msg: Message) {
-      panelEmbed.setDescription("**Leave Message/Channel**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Leave Message/Channel**\nWhere to send the Leave Message.\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
@@ -528,7 +529,7 @@ class ConfigCommand implements SlashCommand {
     }
 
     async function giveaway(msg: Message) {
-      panelEmbed.setDescription("**Giveaway Emoji**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Giveaway Emoji**\nChanges the emoji used for giveaways.\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
@@ -582,24 +583,24 @@ class ConfigCommand implements SlashCommand {
     }
 
     async function boost(msg: Message) {
-      panelEmbed.setDescription("**Boost Message**\nPlease choose an option to configure:\n\n1️⃣ Message\n2️⃣ Channel\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Boost Message**\nSends a message when someone boosts the server.\nPlease choose an option to configure:\n\n1️⃣ Message\n2️⃣ Channel\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < leaveEmoji.length; i++) await msg.react(leaveEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return await timedOut(msg);
-
       const reaction = collected.first();
-      let receivedID = leaveEmoji.indexOf(reaction.emoji.name);
-      if (receivedID == 0) return await boostMsg(msg);
-      if (receivedID == 1) return await boostChannel(msg);
-      if (receivedID == 2) return await start(msg);
-      if (receivedID == 3) return await end(msg);
+      if (!reaction) return timedOut(msg);
+      switch(panelEmoji.indexOf(reaction.emoji.name)) {
+        case 0: return await boostMsg(msg);
+        case 1: return await boostChannel(msg);
+        case 2: return await start(msg);
+        default: return await end(msg);
+      }
     }
 
     async function boostMsg(msg: Message) {
-      panelEmbed.setDescription("**Boost Message/Message**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Boost Message/Message**\nWhat to send for the Boost Message.\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
@@ -653,7 +654,7 @@ class ConfigCommand implements SlashCommand {
     }
 
     async function boostChannel(msg: Message) {
-      panelEmbed.setDescription("**Boost Message/Channel**\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Boost Message/Channel**\nWhere to send the Boost Message.\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
@@ -713,7 +714,7 @@ class ConfigCommand implements SlashCommand {
     }
 
     async function safe(msg: Message) {
-      panelEmbed.setDescription("**Safe Mode**\nPlease choose an option to configure:\n\n1️⃣ Enable\n2️⃣ Disable\n⬅ Back\n⏹ Quit")
+      panelEmbed.setDescription("**Safe Mode**\nToggles NSFW commands on this server.\nPlease choose an option to configure:\n\n1️⃣ Enable\n2️⃣ Disable\n⬅ Back\n⏹ Quit")
         .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
       await msg.edit({ embeds: [panelEmbed] });
       await msg.reactions.removeAll().catch(() => { });
@@ -775,6 +776,47 @@ class ConfigCommand implements SlashCommand {
       } else if (receivedID == 2) return await start(msg);
       else if (receivedID == 3) return await end(msg);
     }
+
+    /*
+    async function double(msg: Message) {
+      panelEmbed.setDescription("**Double Music**\nAllows N0rthWestW1nd to play music when TradeW1nd is also in the server.\nPlease choose an option to configure:\n\n1️⃣ Enable\n2️⃣ Disable\n⬅ Back\n⏹ Quit")
+        .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
+      await msg.edit({ embeds: [panelEmbed] });
+      await msg.reactions.removeAll().catch(() => { });
+      for (var i = 0; i < safeEmoji.length; i++) await msg.react(safeEmoji[i]);
+      const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
+      if (!collected.first()) return timedOut(msg);
+
+      const reaction = collected.first();
+      let receivedID = safeEmoji.indexOf(reaction.emoji.name);
+      if (receivedID == 0) {
+        try {
+          config.doubleMusic = true;
+          NorthClient.storage.guilds[message.guild.id] = config;
+          await client.pool.query(`UPDATE servers SET double_music = 1 WHERE id = '${message.guild.id}'`);
+          panelEmbed.setDescription("**Double Music/Enable**\nEnabled Double Music! Returning to panel main page in 3 seconds...")
+            .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
+          await msg.edit({ embeds: [panelEmbed] });
+          setTimeout(() => start(msg), 3000);
+        } catch (err: any) {
+          await message.reply("there was an error trying to update the configuration!");
+        }
+      } else if (receivedID == 1) {
+        try {
+          config.doubleMusic = false;
+          NorthClient.storage.guilds[message.guild.id] = config;
+          await client.pool.query(`UPDATE servers SET double_music = 0 WHERE id = '${message.guild.id}'`);
+          panelEmbed.setDescription("**Double Music/Disable**\nDisabled Double Music! Returning to panel main page in 3 seconds...")
+            .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
+          await msg.edit({ embeds: [panelEmbed] });
+          setTimeout(() => start(msg), 3000);
+        } catch (err: any) {
+          await message.reply("there was an error trying to update the configuration!");
+        }
+      } else if (receivedID == 2) return await start(msg);
+      else if (receivedID == 3) return await end(msg);
+    }
+    */
   }
 }
 

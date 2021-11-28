@@ -1,12 +1,45 @@
 import { registerFont } from "canvas";
 import * as fs from "fs";
-import { NorthClient, Card, SlashCommand, Item } from "./classes/NorthClient";
+import { NorthClient, Card, SlashCommand, Item, ClientStorage } from "./classes/NorthClient";
 import { twoDigits, deepReaddir } from "./function";
 import * as mysql from "mysql2";
+import { AliceHandler, CanaryHandler, Handler } from "./handler";
+import isOnline from "is-online";
 const { version } = require("../package.json");
 var globalClient: NorthClient;
 
-process.on('unhandledRejection', (reason, promise) => console.error('Unhandled Rejection at:', promise, 'reason:', reason));
+process.on('unhandledRejection', (reason: string) => {
+  console.error('Reason:', reason);
+  if (reason.includes("EAI_AGAIN")) {
+    async function check() {
+      if (await isOnline()) reloadClient();
+      else setTimeout(check, 30000);
+    }
+    check();
+  }
+});
+
+function reloadClient() {
+  const options = globalClient.options;
+  const token = globalClient.token;
+  const log = globalClient.log;
+  const prefix = globalClient.prefix;
+  const id = globalClient.id;
+  globalClient.destroy();
+
+  globalClient = new NorthClient(options);
+  globalClient.log = log;
+  NorthClient.storage = new ClientStorage();
+  
+  globalClient.prefix = prefix;
+  globalClient.id = id;
+
+  switch (id) {
+    case 0: return Handler.setup(globalClient, token);
+    case 1: return AliceHandler.setup(globalClient, token);
+    case 2: return CanaryHandler.setup(globalClient, token);
+  }
+}
 
 export default async (client: NorthClient) => {
   const mysql_config = {
