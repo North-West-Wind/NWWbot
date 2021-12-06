@@ -168,7 +168,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
               options.requestOptions.headers = { cookie: process.env.COOKIE };
               if (process.env.YT_TOKEN) options.requestOptions.headers["x-youtube-identity-token"] = process.env.YT_TOKEN;
             }
-            stream = <Stream.Readable>ytdl(`https://www.youtube.com/watch?v=${ytid}`, options);
+            stream = <Stream.Readable> await ytdl(`https://www.youtube.com/watch?v=${ytid}`, options);
             cacheFound = true;
           } else stream = <Stream.Readable>(await requestStream(c.url)).data;
           break;
@@ -189,7 +189,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
             }
             throw new Error("This soundtrack is missing URL! It is being removed automatically.");
           }
-          stream = ytdl(song.url, options);
+          stream = await ytdl(song.url, options);
           if (!stream) throw new Error("Failed to get YouTube video stream.");
           cacheFound = true;
           break;
