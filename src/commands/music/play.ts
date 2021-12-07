@@ -162,7 +162,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
           if (c.error) throw new Error(c.message);
           if (c.url.startsWith("https://www.youtube.com/embed/")) {
             const ytid = c.url.split("/").slice(-1)[0].split("?")[0];
-            const options = <any>{ highWaterMark: 1 << 26, filter: "audioonly", dlChunkSize: 0 };
+            const options = <any>{ highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 };
             if (process.env.COOKIE) {
               options.requestOptions = {};
               options.requestOptions.headers = { cookie: process.env.COOKIE };
@@ -179,8 +179,8 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
             options.requestOptions.headers = { cookie: process.env.COOKIE };
             if (process.env.YT_TOKEN) options.requestOptions.headers["x-youtube-identity-token"] = process.env.YT_TOKEN;
           }
-          if (!song?.isPastLive) Object.assign(options, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 26 });
-          else Object.assign(options, { highWaterMark: 1 << 26 });
+          if (!song?.isPastLive) Object.assign(options, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
+          else Object.assign(options, { highWaterMark: 1 << 25 });
           if (!song.url) {
             const index = serverQueue.songs.indexOf(song);
             if (index !== -1) {
@@ -198,7 +198,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
     if (!cacheFound) stream = await cacheTrack(song.id, stream);
     if (seek) {
       const command = ffmpeg(stream);
-      const passthru = new Stream.PassThrough();
+      const passthru = new Stream.PassThrough({ highWaterMark: 1 << 25 });
       command.on("error", err => console.error(err.message)).seekInput(seek).format("wav").output(passthru, { end: true }).run();
       serverQueue.player?.play(await probeAndCreateResource(passthru));
     } else serverQueue.player?.play(await probeAndCreateResource(stream));

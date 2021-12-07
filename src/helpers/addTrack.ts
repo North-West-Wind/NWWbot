@@ -54,7 +54,7 @@ export async function addAttachment(message: Message) {
             type: 2,
             time: length,
             volume: 1,
-            thumbnail: "https://www.flaticon.com/svg/static/icons/svg/2305/2305904.svg",
+            thumbnail: "https://cdn-icons.flaticon.com/png/512/2995/premium/2995101.png?token=exp=1638874239~hmac=59c250395c5782e66929185a28056457",
             isLive: false
         });
     }
@@ -432,7 +432,7 @@ export async function addURL(link: string) {
         type: 2,
         time: length,
         volume: 1,
-        thumbnail: "https://cdn-icons-png.flaticon.com/512/651/651758.png",
+        thumbnail: "https://cdn-icons.flaticon.com/png/512/2995/premium/2995101.png?token=exp=1638874239~hmac=59c250395c5782e66929185a28056457",
         isLive: false
     };
     return { error: false, songs: [song], msg: null, message: null };
