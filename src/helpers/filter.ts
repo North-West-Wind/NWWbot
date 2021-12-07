@@ -1,7 +1,6 @@
 import { GuildMember, Message, Permissions, TextChannel } from "discord.js";
 import { Command, NorthClient, NorthInteraction, NorthMessage } from "../classes/NorthClient";
-import { checkTradeW1nd, genPermMsg, getFetch, getOwner, msgOrRes } from "../function";
-const fetch = getFetch();
+import { checkTradeW1nd, genPermMsg, getOwner, msgOrRes } from "../function";
 var timeout: NodeJS.Timeout;
 
 export async function all(command: Command, message: NorthMessage | NorthInteraction, args: string[] = []) {
@@ -75,7 +74,8 @@ export async function music(_command: Command, message: NorthMessage | NorthInte
 }
 export async function nsfw(_command: Command, message: NorthMessage | NorthInteraction) {
     if (message.guild) {
-        if (NorthClient.storage.guilds[message.guild.id].safe) {
+        const config = NorthClient.storage.guilds[message.guild.id];
+        if (!config || config.safe) {
             const msg = await msgOrRes(message, "Safe mode is ON!");
             setTimeout(async () => { try { await msg.delete(); } catch (err) {} }, 10000);
             return false;
