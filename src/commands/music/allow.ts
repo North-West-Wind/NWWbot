@@ -2,7 +2,7 @@ import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/Nort
 
 class AllowCommand implements SlashCommand {
     name = "allow"
-    description = "Allows a user or role to alter the queue."
+    description = "Allows a user or role to alter the queue. (Requires TradeW1nd)"
     aliases = ["al"]
     usage = "<user | role>"
     category = 8;
