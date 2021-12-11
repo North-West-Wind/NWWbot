@@ -135,6 +135,14 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
   if (serverQueue.connection) serverQueue.startTime = streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;
   try {
+    if (!song.url) {
+      const index = serverQueue.songs.indexOf(song);
+      if (index !== -1) {
+        serverQueue.songs.splice(index, 1);
+        updateQueue(guild.id, serverQueue, false);
+      }
+      throw new Error("This soundtrack is missing URL! It is being removed automatically.");
+    }
     if (!song.id) song.id = crypto.createHash("md5").update(`${song.title};${song.url}`).digest("hex");
     var stream: Stream.Readable;
     var cacheFound = true;
@@ -181,14 +189,6 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
           }
           if (!song?.isPastLive) Object.assign(options, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
           else Object.assign(options, { highWaterMark: 1 << 25 });
-          if (!song.url) {
-            const index = serverQueue.songs.indexOf(song);
-            if (index !== -1) {
-              serverQueue.songs.splice(index, 1);
-              updateQueue(guild.id, serverQueue);
-            }
-            throw new Error("This soundtrack is missing URL! It is being removed automatically.");
-          }
           stream = await ytdl(song.url, options);
           if (!stream) throw new Error("Failed to get YouTube video stream.");
           cacheFound = true;
