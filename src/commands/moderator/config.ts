@@ -1,7 +1,7 @@
 import { Message, MessageReaction, User } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { msgOrRes, ID, color, fixGuildRecord } from "../../function";
+import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd } from "../../function";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
 import { isImageUrl } from "../../function";
@@ -82,7 +82,7 @@ class ConfigCommand implements SlashCommand {
   }
 
   async panel(message: Message | NorthInteraction) {
-    var config = NorthClient.storage.guilds[message.guild.id];
+    var config = NorthClient.storage.guilds[message.guildId];
     const msgFilter = (x: Message) => x.author.id === (message instanceof Message ? message.author : message.user).id;
     const filter = (reaction: MessageReaction, user: User) => panelEmoji.includes(reaction.emoji.name) && user.id === (message instanceof Message ? message.author : message.user).id && !user.bot;
     const login = new Discord.MessageEmbed()
@@ -93,7 +93,7 @@ class ConfigCommand implements SlashCommand {
       .setFooter("Please enter within 60 seconds.", message.client.user.displayAvatarURL());
     var mesg = <Message>await msgOrRes(message, login);
     const loginToken = await message.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
-    if (!loginToken.first() || !loginToken.first().content) return timedOut(mesg);
+    if (!loginToken.first() || !loginToken.first().content) return await end(mesg);
     const receivedToken = loginToken.first().content;
     loginToken.first().delete().catch(() => { });
     if (config.token !== receivedToken) {
@@ -104,16 +104,11 @@ class ConfigCommand implements SlashCommand {
       .setColor(color())
       .setTitle(message.guild.name + "'s Configuration Panel");
     await start(mesg);
-    function end(msg: Message) {
+    async function end(msg: Message) {
       panelEmbed.setDescription("Panel shutted down.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-      msg.edit({ embeds: [panelEmbed] });
-      return msg.reactions.removeAll().catch(() => { });
-    }
-
-    function timedOut(msg: Message) {
-      panelEmbed.setDescription("Panel timed out.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
-      msg.edit({ embeds: [panelEmbed] });
-      return msg.reactions.removeAll().catch(() => { });
+      await msg.edit({ embeds: [panelEmbed] });
+      msg.reactions.removeAll().catch(() => { });
+      if (await checkTradeW1nd(message.guildId)) await syncTradeW1nd(message.guildId);
     }
 
     async function start(msg: Message) {
@@ -124,7 +119,7 @@ class ConfigCommand implements SlashCommand {
       for (var i = 0; i < panelEmoji.length; i++) await msg.react(panelEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       const reaction = collected.first();
-      if (!reaction) return timedOut(msg);
+      if (!reaction) return await end(msg);
       switch(panelEmoji.indexOf(reaction.emoji.name)) {
         case 0: return await welcome(msg);
         case 1: return await leave(msg);
@@ -143,7 +138,7 @@ class ConfigCommand implements SlashCommand {
       for (var i = 0; i < welcomeEmoji.length; i++) await msg.react(welcomeEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       const reaction = collected.first();
-      if (!reaction) return timedOut(msg);
+      if (!reaction) return await end(msg);
       switch(panelEmoji.indexOf(reaction.emoji.name)) {
         case 0: return await welcomeMsg(msg);
         case 1: return await welcomeChannel(msg);
@@ -161,7 +156,7 @@ class ConfigCommand implements SlashCommand {
       await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return await timedOut(msg);
+      if (!collected.first()) return await end(msg);
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
       if (receivedID == 0) {
@@ -170,7 +165,7 @@ class ConfigCommand implements SlashCommand {
         await msg.edit({ embeds: [panelEmbed] });
         await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 120000, max: 1 })
-        if (!msgCollected.first() || !msgCollected.first().content) return timedOut(msg);
+        if (!msgCollected.first() || !msgCollected.first().content) return await end(msg);
         const contents = msgCollected.first().content.replace(/'/g, "\\'");
         msgCollected.first().delete().catch(() => { });
         try {
@@ -213,7 +208,7 @@ class ConfigCommand implements SlashCommand {
       await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return await timedOut(msg);
+      if (!collected.first()) return await end(msg);
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
       if (receivedID == 0) {
@@ -222,7 +217,7 @@ class ConfigCommand implements SlashCommand {
         await msg.edit({ embeds: [panelEmbed] });
         await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
-        if (!msgCollected.first()) return await timedOut(msg);
+        if (!msgCollected.first()) return await end(msg);
         const channelID = msgCollected.first().content.replace(/<#/g, "").replace(/>/g, "");
         msgCollected.first().delete().catch(() => { });
         const channel = msg.guild.channels.resolve(channelID);
@@ -271,7 +266,7 @@ class ConfigCommand implements SlashCommand {
       await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return await timedOut(msg);
+      if (!collected.first()) return await end(msg);
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
       if (receivedID == 0) {
@@ -280,7 +275,7 @@ class ConfigCommand implements SlashCommand {
         await msg.edit({ embeds: [panelEmbed] });
         await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
-        if (!msgCollected.first()) return await timedOut(msg);
+        if (!msgCollected.first()) return await end(msg);
         msgCollected.first().delete().catch(() => { });
         const attachment = [];
         if (msgCollected.first().content) attachment.concat(msgCollected.first().content.split(/\n+/).filter(att => isImageUrl(att)));
@@ -335,7 +330,7 @@ class ConfigCommand implements SlashCommand {
       await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return await timedOut(msg);
+      if (!collected.first()) return await end(msg);
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
       if (receivedID == 0) {
@@ -345,7 +340,7 @@ class ConfigCommand implements SlashCommand {
         await msg.reactions.removeAll().catch(() => { });
 
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
-        if (!msgCollected.first()) return await timedOut(msg);
+        if (!msgCollected.first()) return await end(msg);
         msgCollected.first().delete().catch(() => { });
         const collectedArgs = msgCollected.first().content ? msgCollected.first().content.split(/ +/) : ["this is not a number"];
         var roles = [];
@@ -402,7 +397,7 @@ class ConfigCommand implements SlashCommand {
       for (var i = 0; i < leaveEmoji.length; i++) await msg.react(leaveEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       const reaction = collected.first();
-      if (!reaction) return timedOut(msg);
+      if (!reaction) return await end(msg);
       switch(panelEmoji.indexOf(reaction.emoji.name)) {
         case 0: return await leaveMsg(msg);
         case 1: return await leaveChannel(msg);
@@ -418,7 +413,7 @@ class ConfigCommand implements SlashCommand {
       await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return await timedOut(msg);
+      if (!collected.first()) return await end(msg);
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
       if (receivedID == 0) {
@@ -427,7 +422,7 @@ class ConfigCommand implements SlashCommand {
         await msg.edit({ embeds: [panelEmbed] });
         await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
-        if (!msgCollected.first()) return await timedOut(msg);
+        if (!msgCollected.first()) return await end(msg);
         msgCollected.first().delete().catch(() => { });
         const contents = msgCollected.first().content ? `'${msgCollected.first().content.replace(/'/g, "\\'")}'` : "NULL";
         try {
@@ -475,7 +470,7 @@ class ConfigCommand implements SlashCommand {
       for (var i = 0; i < yesNo.length; i++)  await msg.react(yesNo[i]);
 
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return await timedOut(msg);
+      if (!collected.first()) return await end(msg);
 
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
@@ -485,7 +480,7 @@ class ConfigCommand implements SlashCommand {
         await msg.edit({ embeds: [panelEmbed] });
         await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
-        if (!msgCollected.first()) return await timedOut(msg);
+        if (!msgCollected.first()) return await end(msg);
         msgCollected.first().delete().catch(() => { });
         const channelID = msgCollected.first().content ? msgCollected.first().content.replace(/<#/g, "").replace(/>/g, "") : "";
         const channel = msg.guild.channels.resolve(channelID);
@@ -536,7 +531,7 @@ class ConfigCommand implements SlashCommand {
 
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return await timedOut(msg);
+      if (!collected.first()) return await end(msg);
 
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
@@ -546,7 +541,7 @@ class ConfigCommand implements SlashCommand {
         await msg.edit({ embeds: [panelEmbed] });
         await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
-        if (!msgCollected.first()) return await timedOut(msg);
+        if (!msgCollected.first()) return await end(msg);
         msgCollected.first().delete().catch(() => { });
         const newEmo = msgCollected.first().content ? msgCollected.first().content : "🎉";
         try {
@@ -590,7 +585,7 @@ class ConfigCommand implements SlashCommand {
       for (var i = 0; i < leaveEmoji.length; i++) await msg.react(leaveEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
       const reaction = collected.first();
-      if (!reaction) return timedOut(msg);
+      if (!reaction) return await end(msg);
       switch(panelEmoji.indexOf(reaction.emoji.name)) {
         case 0: return await boostMsg(msg);
         case 1: return await boostChannel(msg);
@@ -606,7 +601,7 @@ class ConfigCommand implements SlashCommand {
       await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return await timedOut(msg);
+      if (!collected.first()) return await end(msg);
 
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
@@ -616,7 +611,7 @@ class ConfigCommand implements SlashCommand {
         await msg.edit({ embeds: [panelEmbed] });
         await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
-        if (!msgCollected.first()) return await timedOut(msg);
+        if (!msgCollected.first()) return await end(msg);
         msgCollected.first().delete().catch(() => { });
         const contents = msgCollected.first().content ? `'${msgCollected.first().content.replace(/'/g, "\\'")}'` : "NULL";
         try {
@@ -661,7 +656,7 @@ class ConfigCommand implements SlashCommand {
 
       for (var i = 0; i < yesNo.length; i++) await msg.react(yesNo[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return await timedOut(msg);
+      if (!collected.first()) return await end(msg);
 
       const reaction = collected.first();
       let receivedID = yesNo.indexOf(reaction.emoji.name);
@@ -671,7 +666,7 @@ class ConfigCommand implements SlashCommand {
         await msg.edit({ embeds: [panelEmbed] });
         await msg.reactions.removeAll().catch(() => { });
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
-        if (!msgCollected.first()) return await timedOut(msg);
+        if (!msgCollected.first()) return await end(msg);
         msgCollected.first().delete().catch(() => { });
 
         const channelID = msgCollected.first().content ? msgCollected.first().content.replace(/<#/g, "").replace(/>/g, "") : "";
@@ -720,7 +715,7 @@ class ConfigCommand implements SlashCommand {
       await msg.reactions.removeAll().catch(() => { });
       for (var i = 0; i < safeEmoji.length; i++) await msg.react(safeEmoji[i]);
       const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return timedOut(msg);
+      if (!collected.first()) return await end(msg);
 
       const reaction = collected.first();
       let receivedID = safeEmoji.indexOf(reaction.emoji.name);
@@ -776,47 +771,6 @@ class ConfigCommand implements SlashCommand {
       } else if (receivedID == 2) return await start(msg);
       else if (receivedID == 3) return await end(msg);
     }
-
-    /*
-    async function double(msg: Message) {
-      panelEmbed.setDescription("**Double Music**\nAllows N0rthWestW1nd to play music when TradeW1nd is also in the server.\nPlease choose an option to configure:\n\n1️⃣ Enable\n2️⃣ Disable\n⬅ Back\n⏹ Quit")
-        .setFooter("Please choose within 60 seconds.", message.client.user.displayAvatarURL());
-      await msg.edit({ embeds: [panelEmbed] });
-      await msg.reactions.removeAll().catch(() => { });
-      for (var i = 0; i < safeEmoji.length; i++) await msg.react(safeEmoji[i]);
-      const collected = await msg.awaitReactions({ filter, idle: 6e4, max: 1 });
-      if (!collected.first()) return timedOut(msg);
-
-      const reaction = collected.first();
-      let receivedID = safeEmoji.indexOf(reaction.emoji.name);
-      if (receivedID == 0) {
-        try {
-          config.doubleMusic = true;
-          NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET double_music = 1 WHERE id = '${message.guild.id}'`);
-          panelEmbed.setDescription("**Double Music/Enable**\nEnabled Double Music! Returning to panel main page in 3 seconds...")
-            .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
-          await msg.edit({ embeds: [panelEmbed] });
-          setTimeout(() => start(msg), 3000);
-        } catch (err: any) {
-          await message.reply("there was an error trying to update the configuration!");
-        }
-      } else if (receivedID == 1) {
-        try {
-          config.doubleMusic = false;
-          NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET double_music = 0 WHERE id = '${message.guild.id}'`);
-          panelEmbed.setDescription("**Double Music/Disable**\nDisabled Double Music! Returning to panel main page in 3 seconds...")
-            .setFooter("Please wait patiently.", msg.client.user.displayAvatarURL());
-          await msg.edit({ embeds: [panelEmbed] });
-          setTimeout(() => start(msg), 3000);
-        } catch (err: any) {
-          await message.reply("there was an error trying to update the configuration!");
-        }
-      } else if (receivedID == 2) return await start(msg);
-      else if (receivedID == 3) return await end(msg);
-    }
-    */
   }
 }
 

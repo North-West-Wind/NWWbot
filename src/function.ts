@@ -686,3 +686,9 @@ export async function getTradeW1ndStats() {
     if (!res.ok) return null;
     return <{ version: string, size: number, lastReady: number, uptime: number }> await res.json();
 }
+
+export async function syncTradeW1nd(guild: Discord.Snowflake) {
+    const config = NorthClient.storage.guilds[guild];
+    if (!config) return;
+    await fetch(`http://localhost:3000/update/${guild}`, { method: "post", body: JSON.stringify(config), headers: { "Content-Type": "application/json" } });
+}

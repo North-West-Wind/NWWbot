@@ -1,7 +1,7 @@
 
 import { GuildMember } from "discord.js";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { fixGuildRecord, genPermMsg } from "../../function";
+import { checkTradeW1nd, fixGuildRecord, genPermMsg, syncTradeW1nd } from "../../function";
 
 class PrefixCommand implements SlashCommand {
     name = "prefix"
@@ -28,6 +28,12 @@ class PrefixCommand implements SlashCommand {
         try {
             await interaction.client.pool.query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[guild.id].prefix === interaction.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[guild.id].prefix}'`} WHERE id = '${guild.id}'`);
             await interaction.editReply(`The prefix of this server has been changed to \`${NorthClient.storage.guilds[guild.id].prefix}\`.`);
+            try {
+                if (await checkTradeW1nd(interaction.guildId)) {
+                    await syncTradeW1nd(interaction.guildId);
+                    await interaction.followUp("Synced changes to TradeW1nd!");
+                }
+            } catch (err) { }
         } catch (err: any) {
             console.error(err);
             await interaction.editReply("There was an error trying to save the changes! The change of the prefix will be temporary!");
@@ -43,6 +49,12 @@ class PrefixCommand implements SlashCommand {
         try {
             await message.pool.query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[message.guildId].prefix === message.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[message.guild.id].prefix}'`} WHERE id = '${message.guild.id}'`);
             await message.channel.send("Changes have been saved properly!");
+            try {
+                if (await checkTradeW1nd(message.guildId)) {
+                    await syncTradeW1nd(message.guildId);
+                    await message.channel.send("Synced changes to TradeW1nd!");
+                }
+            } catch (err) { }
         } catch (err: any) {
             console.error(err);
             await message.reply("There was an error trying to save the changes! The change of the prefix will be temporary!");
