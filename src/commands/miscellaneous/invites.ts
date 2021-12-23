@@ -122,7 +122,7 @@ class InvitesCommand implements SlashCommand {
       const [result] = <RowDataPacket[][]>await con.query(`SELECT no_log FROM users WHERE id = '${author.id}'`);
       var nolog: boolean;
       if (result.length < 1) {
-        await con.query(`INSERT INTO users VALUES('${author.id}', '{}')`);
+        await con.query(`INSERT INTO users(id, items) VALUES('${author.id}', '{}')`);
         nolog = false;
       } else {
         nolog = !!result[0].no_log;
