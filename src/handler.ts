@@ -139,7 +139,6 @@ export class Handler {
                 try {
                     var channel = <TextChannel>await client.channels.fetch(result.channel);
                     var msg = await channel.messages.fetch(result.id);
-                    if (msg.deleted) throw new Error("Deleted");
                 } catch (err: any) {
                     await client.pool.query("DELETE FROM poll WHERE id = " + result.id);
                     return console.log("Deleted an ended poll.");
@@ -604,7 +603,6 @@ export class AliceHandler extends Handler {
                 try {
                     var channel = <TextChannel>await client.channels.fetch(result.channel);
                     var msg = await channel.messages.fetch(result.id);
-                    if (msg.deleted) throw new Error("Deleted");
                 } catch (err: any) {
                     await client.pool.query("DELETE FROM poll WHERE id = " + result.id);
                 }

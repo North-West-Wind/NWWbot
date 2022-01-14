@@ -10,12 +10,8 @@ export async function endGiveaway(pool: Pool, result) {
   try {
     var channel = <Discord.TextChannel>await client.channels.fetch(result.channel);
     var msg = await channel.messages.fetch(result.id);
-    if (msg.deleted) throw new Error("Deleted");
   } catch (err: any) {
-    if (channel || (msg && msg.deleted)) {
-      await pool.query("DELETE FROM giveaways WHERE id = " + result.id);
-      return console.log("Deleted a deleted giveaway record.");
-    }
+    return await pool.query("DELETE FROM giveaways WHERE id = " + result.id);
   }
   const fetchUser = await client.users.fetch(result.author);
   const reacted = [];

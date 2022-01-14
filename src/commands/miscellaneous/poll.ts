@@ -9,7 +9,7 @@ const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣"
 export async function endPoll(client: NorthClient, con: PoolConnection, id: Discord.Snowflake, msg: Discord.Message, message: Discord.Message, title: string, authorID: Discord.Snowflake, options: any, color: Discord.ColorResolvable) {
     var shouldDel = true;
     try {
-        if (!msg || msg.deleted) throw new Error("Poll is deleted");
+        if (!msg) throw new Error("Poll is deleted");
         shouldDel = false;
         const author = await client.users.fetch(authorID);
         const allOptions = Array.isArray(options) ? options : JSON.parse(options);

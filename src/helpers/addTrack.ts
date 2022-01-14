@@ -546,7 +546,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
     });
     return new Promise<{ error: boolean, songs: any[], msg: Message, message: any }>(resolve => {
         collector.on("end", async () => {
-            if (val.error && !msg.deleted) {
+            if (val.error) {
                 const cancelled = new Discord.MessageEmbed()
                     .setColor(color())
                     .setTitle("Action cancelled.")
