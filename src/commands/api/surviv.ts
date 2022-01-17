@@ -19,7 +19,7 @@ const createModeEmbed = (mode: StatsMode, stats: Stats) => {
         .addField("Average Time Alive", mode.avgTimeAlive + " seconds", true)
         .addField("Average Damage", mode.avgDamage.toString(), true)
         .setTimestamp()
-        .setFooter("Made with Surviv.io API", client.user.displayAvatarURL());
+        .setFooter({ text: "Made with Surviv.io API", iconURL: client.user.displayAvatarURL() });
     return em;
 }
 
@@ -82,7 +82,7 @@ class SurvivCommand implements SlashCommand {
             .addField("Kill per Game", stats.kpg.toString(), true)
             .addField("Banned", stats.banned ? "Yes" : "No", true)
             .setTimestamp()
-            .setFooter("Made with Surviv.io API", client.user.displayAvatarURL());
+            .setFooter({ text: "Made with Surviv.io API", iconURL: client.user.displayAvatarURL() });
         allEmbeds.push(overall);
         for (const mode of stats.modes) allEmbeds.push(createModeEmbed(mode, stats));
         if (history[0]) {
@@ -100,7 +100,7 @@ class SurvivCommand implements SlashCommand {
                 .addField("Damage Dealt", history[0].damage_dealt.toString(), true)
                 .addField("Damage Taken", history[0].damage_taken.toString(), true)
                 .setTimestamp()
-                .setFooter("Made with Surviv.io API", client.user.displayAvatarURL());
+                .setFooter({ text: "Made with Surviv.io API", iconURL: client.user.displayAvatarURL() });
             allEmbeds.push(last);
         }
         return allEmbeds;

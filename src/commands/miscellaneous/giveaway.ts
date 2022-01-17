@@ -48,7 +48,7 @@ export async function endGiveaway(pool: Pool, result) {
     .setTitle(unescape(result.item))
     .setDescription("Giveaway ended")
     .setTimestamp()
-    .setFooter("Hosted by " + fetchUser.tag, fetchUser.displayAvatarURL());
+    .setFooter({ text: "Hosted by " + fetchUser.tag, iconURL: fetchUser.displayAvatarURL() });
   if (weighted.length === 0) {
     Ended.addField("Winner(s)", "None. Cuz no one reacted.")
     await msg.edit({ embeds: [Ended] });
@@ -87,7 +87,7 @@ async function setupGiveaway(message: NorthMessage | NorthInteraction, channel: 
     .setTitle(item)
     .setDescription(`React with ${giveawayEmo} to participate!\n**${winnerCount} winner${winnerCount > 1 ? "s" : ""}** will win\nThis giveaway will end at: \n**${readableTime}**${Object.keys(weight).length > 0 ? `\n\n**Weights:**\n${Object.keys(weight).map(x => `<@&${x}> **${weight[x]}**`).join("\n")}` : ""}`)
     .setTimestamp()
-    .setFooter("Hosted by " + author.tag, author.displayAvatarURL());
+    .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
   const giveawayMsg = giveawayEmo + "**GIVEAWAY**" + giveawayEmo;
   var msg = await channel.send({ content: giveawayMsg, embeds: [Embed] });
   await client.pool.query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${escape(item)}', '${winnerCount}', '${newDateSql}', '${escape(giveawayEmo)}', '${author.id}', '${color}', '${JSON.stringify(weight)}')`);
@@ -157,7 +157,7 @@ class GiveawayCommand implements SlashCommand {
         .setTitle("Giveaway list")
         .setDescription("**" + interaction.guild.name + "** - " + results.length + " giveaways")
         .setTimestamp()
-        .setFooter("Have a nice day! :)", interaction.client.user.displayAvatarURL());
+        .setFooter({ text: "Have a nice day! :)", iconURL: interaction.client.user.displayAvatarURL() });
       for (var i = 0; i < Math.min(25, results.length); i++) {
         const readableTime = readableDateTime(new Date(results[i].endAt));
         Embed.addField(readableTime, unescape(results[i].item));
@@ -209,7 +209,7 @@ class GiveawayCommand implements SlashCommand {
       .setTitle("Giveaway list")
       .setDescription("**" + guild.name + "** - " + results.length + " giveaways")
       .setTimestamp()
-      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+      .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
     for (var i = 0; i < Math.min(25, results.length); i++) {
       const readableTime = readableDateTime(new Date(results[i].endAt));
       Embed.addField(readableTime, unescape(results[i].item));

@@ -475,7 +475,7 @@ export function commonModerationEmbed(guild: Discord.Guild, author: Discord.User
         .setTitle(`You've been ${past}`)
         .setDescription(`In **${guild.name}**`)
         .setTimestamp()
-        .setFooter(`${capitalize(past)} by ${author.tag}`, author.displayAvatarURL());
+        .setFooter({ text: `${capitalize(past)} by ${author.tag}`, iconURL: author.displayAvatarURL() });
     if (reason) notiEmbed.addField("Reason", reason);
     const successfulEmbed = new Discord.MessageEmbed()
         .setColor(color())
@@ -495,13 +495,13 @@ export function commonRoleEmbed(client, word, past, name) {
         .setTitle(`Failed to ${word} role`)
         .setDescription(`Failed to ${word} the role **${name}**`)
         .setTimestamp()
-        .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+        .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
     const successEmbed = new Discord.MessageEmbed()
         .setColor(color())
         .setTitle(`Role ${past} Successfully`)
         .setDescription(`${capitalize(past)} a new role **${name}**`)
         .setTimestamp()
-        .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+        .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
     return [successEmbed, failEmbed];
 }
 export async function msgOrRes(message: Discord.Message | NorthInteraction, str: any): Promise<Discord.Message> {
@@ -527,7 +527,7 @@ export async function msgOrRes(message: Discord.Message | NorthInteraction, str:
     }
     return null;
 }
-export function deepReaddir(dir) {
+export function deepReaddir(dir: string) {
     var results = [];
     const list = fs.readdirSync(dir);
     var i = 0;

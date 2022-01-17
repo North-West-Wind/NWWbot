@@ -81,7 +81,7 @@ class InvitesCommand implements SlashCommand {
         .setTitle("Number of users invited")
         .setDescription(invitedStr.map(x => x.text).join("\n"))
         .setTimestamp()
-        .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+        .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
       return [em];
     } else {
       const pages = Math.ceil(invitedStr.length / 10);
@@ -92,7 +92,7 @@ class InvitesCommand implements SlashCommand {
           .setTitle(`Number of users invited (Page ${i + 1}/${pages})`)
           .setDescription(invitedStr.slice(i * 10, (i * 10) + 10).map(x => x.text).join("\n"))
           .setTimestamp()
-          .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+          .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
         allEmbeds.push(em);
       }
       return allEmbeds;
@@ -111,7 +111,7 @@ class InvitesCommand implements SlashCommand {
       .addField("Invited Users", uses.toString(), true)
       .addField("Links Created", invites.size.toString(), true)
       .setTimestamp()
-      .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+      .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
     return em;
   }
 

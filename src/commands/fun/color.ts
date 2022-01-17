@@ -59,7 +59,7 @@ class ColorCommand implements SlashCommand {
         .setTitle(`Color: ${red} ${green} ${blue}`)
         .setColor([red, green, blue])
         .setImage(`attachment://${red}_${green}_${blue}.png`)
-        .setFooter(random ? "Cannot parse your color... so here's a random color." : `This is the color you want me to show. Do you like it?`, interaction.client.user.displayAvatarURL());
+        .setFooter({ text: random ? "Cannot parse your color... so here's a random color." : `This is the color you want me to show. Do you like it?`, iconURL: interaction.client.user.displayAvatarURL() });
         await interaction.reply({embeds: [em], files: [{ attachment: canvas.toBuffer(), name: `${red}_${green}_${blue}.png` }]});
     }
 
@@ -73,7 +73,7 @@ class ColorCommand implements SlashCommand {
         .setTitle(`Color: ${red} ${green} ${blue}`)
         .setColor([red, green, blue])
         .setImage(`attachment://${red}_${green}_${blue}.png`)
-        .setFooter(random ? "Cannot parse your color... so here's a random color." : `This is the color you want me to show. Do you like it?`, message.client.user.displayAvatarURL());
+        .setFooter({ text: random ? "Cannot parse your color... so here's a random color." : `This is the color you want me to show. Do you like it?`, iconURL: message.client.user.displayAvatarURL() });
         await message.channel.send({embeds: [em], files: [{ attachment: canvas.toBuffer(), name: `${red}_${green}_${blue}.png` }]});
     }
 }

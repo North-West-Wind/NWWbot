@@ -85,7 +85,7 @@ class LyricsCommand implements SlashCommand {
                         .setAuthor(author)
                         .setDescription(str.join("\n"))
                         .setTimestamp()
-                        .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+                        .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
                     allEmbeds.push(em);
                 }
                 continue;
@@ -108,7 +108,7 @@ class LyricsCommand implements SlashCommand {
                 .setAuthor(author)
                 .setDescription(str.join(splitChar))
                 .setTimestamp()
-                .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+                .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
             allEmbeds.push(em);
         }
         return allEmbeds;

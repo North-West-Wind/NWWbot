@@ -50,14 +50,14 @@ class ShopCommand implements SlashCommand {
                 .setColor(c)
                 .setTitle("Welcome to the shop!")
                 .setDescription("Choose an action:\n\n1️⃣ Shop\n2️⃣ Leave")
-                .setFooter("You have $" + cash, author.displayAvatarURL());
+                .setFooter({ text: "You have $" + cash, iconURL: author.displayAvatarURL() });
 
             const leave = new Discord.MessageEmbed()
                 .setTimestamp()
                 .setColor(c)
                 .setTitle("You were told to leave.")
                 .setDescription("The staff waited too long and told you to leave.")
-                .setFooter("You have $" + cash, author.displayAvatarURL());
+                .setFooter({ text: "You have $" + cash, iconURL: author.displayAvatarURL() });
             if (!mesg) msg = await msgOrRes(message, shop);
             else msg = await mesg.edit(shop);
 
@@ -80,12 +80,12 @@ class ShopCommand implements SlashCommand {
                     .setTitle("Shop Menu")
                     .setDescription("Type the ID to buy or `0` to cancel.\n\n" + allItems.join("\n"))
                     .setTimestamp()
-                    .setFooter("You have $" + cash, author.displayAvatarURL());
+                    .setFooter({ text: "You have $" + cash, iconURL: author.displayAvatarURL() });
                 await msg.edit(menu);
                 var collected = await msg.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 30000 });
                 if (!collected.first()) {
                     menu.setDescription("30 seconds passed. Returning to main menu in 3 seconds...")
-                        .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                        .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
                     await msg.edit(menu);
                     await wait(3000);
                     return await mainMenu(msg);
@@ -94,14 +94,14 @@ class ShopCommand implements SlashCommand {
                 const index = parseInt(collected.first().content);
                 if (isNaN(index)) {
                     menu.setDescription("Invalid number. Returning to main menu in 3 seconds...")
-                        .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                        .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
                     await msg.edit(menu);
                     await wait(3000);
                     return await mainMenu(msg);
                 }
                 if (index === 0) {
                     menu.setDescription("Cancelled action. Returning to main menu in 3 seconds...")
-                        .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                        .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
                     await msg.edit(menu);
                     await wait(3000);
                     return await mainMenu(msg);
@@ -117,7 +117,7 @@ class ShopCommand implements SlashCommand {
                         .setColor(c)
                         .setTitle("No item found!")
                         .setDescription("Returning to main menu in 3 seconds...")
-                        .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                        .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
                     await msg.edit(itemEmbed);
                     await wait(3000);
                     return await mainMenu(msg);
@@ -127,7 +127,7 @@ class ShopCommand implements SlashCommand {
                         .setColor(c)
                         .setTitle(result[0].name)
                         .setDescription(`Buy Price: **$${result[0].buy_price}**\n${result[0].description}\nStock: **${result[0].stock_limit > -1 ? result[0].stock_limit : "∞"}**\n\n1️⃣ Buy\n2️⃣ Return`)
-                        .setFooter("Please answer within 30 seconds.", message.client.user.displayAvatarURL());
+                        .setFooter({ text: "Please answer within 30 seconds.", iconURL: message.client.user.displayAvatarURL() });
 
                     await msg.edit(itemEmbed);
                     await msg.react("1️⃣");
@@ -138,7 +138,7 @@ class ShopCommand implements SlashCommand {
                     if (!reaction) {
                         itemEmbed.setTitle("Please leave if you are not buying stuff!")
                             .setDescription("Returning to main menu in 3 seconds...")
-                            .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                            .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
                         await msg.edit(itemEmbed);
                         await wait(3000);
                         return await mainMenu(msg);
@@ -149,7 +149,7 @@ class ShopCommand implements SlashCommand {
                         if (result[0].stock_limit == 0) {
                             itemEmbed.setTitle(`${result[0].name} is out of stock!`)
                                 .setDescription("Returning to main menu in 3 seconds...")
-                                .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                                .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
                             await msg.edit(itemEmbed);
                             await wait(3000);
                             return await mainMenu(msg);
@@ -157,14 +157,14 @@ class ShopCommand implements SlashCommand {
                         if (Number(cash) < Number(result[0].buy_price)) {
                             itemEmbed.setTitle("You don't have enough money to buy " + result[0].name + "!")
                                 .setDescription("Returning to main menu in 3 seconds...")
-                                .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                                .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
                             await msg.edit(itemEmbed);
                             await wait(3000);
                             return await mainMenu(msg);
                         } else {
                             itemEmbed.setTitle("You bought " + result[0].name + "!")
                                 .setDescription("Returning to main menu in 3 seconds...")
-                                .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                                .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
                             const [IResult] = <RowDataPacket[][]> await pool.query(`SELECT items FROM users WHERE id = '${author.id}'`);
                             if (IResult.length == 1 && result[0].buy_limit > 0) {
                                 const items = JSON.parse(unescape(IResult[0].items));
@@ -173,7 +173,7 @@ class ShopCommand implements SlashCommand {
                                 if (items[result[0].id] > result[0].buy_limit) {
                                     itemEmbed.setTitle(`You can only get ${result[0].buy_limit} of this item!`)
                                         .setDescription("Returning to main menu in 3 seconds...")
-                                        .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+                                        .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
                                     await msg.edit(itemEmbed);
                                     await wait(3000);
                                     return await mainMenu(msg);
@@ -181,10 +181,10 @@ class ShopCommand implements SlashCommand {
                             }
                             if (result[0].must_use) {
                                 itemEmbed.setDescription("However, you must use this item immediately.")
-                                    .setFooter("Running in 3 seconds...", message.client.user.displayAvatarURL());
+                                    .setFooter({ text: "Running in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
                                 await msg.edit(itemEmbed);
                                 await wait(3000);
-                                itemEmbed.setFooter("Using item...", message.client.user.displayAvatarURL());
+                                itemEmbed.setFooter({ text: "Using item...", iconURL: message.client.user.displayAvatarURL() });
                                 const requiredArgs = result[0].args.split(/ +/).filter(s => s != "");;
                                 var args = [];
                                 if (requiredArgs.length > 0) {
@@ -194,7 +194,7 @@ class ShopCommand implements SlashCommand {
                                     if (collected.first()) await collected.first().delete();
                                     if (!collected.first()?.content) {
                                         itemEmbed.setDescription(`You didn't input the arguments in time! Cancelling purchase...`)
-                                            .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
+                                            .setFooter({ text: "Returning to main menu in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
                                         await msg.edit(itemEmbed);
                                         await wait(3000);
                                         return await mainMenu(msg);
@@ -202,7 +202,7 @@ class ShopCommand implements SlashCommand {
                                     args = collected.first().content.split(/ +/);
                                     if (args.length < requiredArgs.length) {
                                         itemEmbed.setDescription(`The input arguments are less than the required arguments! Cancelling purchase...`)
-                                            .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
+                                            .setFooter({ text: "Returning to main menu in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
                                         await msg.edit(itemEmbed);
                                         await wait(3000);
                                         return await mainMenu(msg);
@@ -226,7 +226,7 @@ class ShopCommand implements SlashCommand {
                                     const c = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
                                     if (!c) {
                                         itemEmbed.setDescription(`Failed to use the item! Cancelling purchase...`)
-                                            .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
+                                            .setFooter({ text: "Returning to main menu in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
                                         await msg.edit(itemEmbed);
                                         await wait(3000);
                                         return await mainMenu(msg);
@@ -237,7 +237,7 @@ class ShopCommand implements SlashCommand {
                                     } catch (error: any) {
                                         console.error(error);
                                         itemEmbed.setDescription(`Failed to use the item! Cancelling purchase...`)
-                                            .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
+                                            .setFooter({ text: "Returning to main menu in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
                                         await msg.edit(itemEmbed);
                                         await wait(3000);
                                         return await mainMenu(msg);
@@ -275,7 +275,7 @@ class ShopCommand implements SlashCommand {
                     } else if (reaction.emoji.name === "2️⃣") {
                         itemEmbed.setTitle("You want to look at the menu again.")
                             .setDescription("Returning to main menu in 3 seconds...")
-                            .setFooter("Please be patient.", client.user.displayAvatarURL());
+                            .setFooter({ text: "Please be patient.", iconURL: client.user.displayAvatarURL() });
                         await msg.edit(itemEmbed);
                         await wait(3000);
                         await mainMenu(msg);
@@ -288,7 +288,7 @@ class ShopCommand implements SlashCommand {
                 .setColor(c)
                 .setTitle("Goodbye!")
                 .setDescription("said the staff.")
-                .setFooter("You have $" + cash, author.displayAvatarURL());
+                .setFooter({ text: "You have $" + cash, iconURL: author.displayAvatarURL() });
             if (!reaction) {
                 msg.reactions.removeAll().catch(() => { });
                 return await msg.edit(leave);

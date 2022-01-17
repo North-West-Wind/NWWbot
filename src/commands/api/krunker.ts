@@ -114,7 +114,7 @@ class KrunkerCommand implements SlashCommand {
                     .setColor(officialColor)
                     .setDescription(str)
                     .setTimestamp()
-                    .setFooter(`There are ${officialPage} pages for official games.`, client.user.displayAvatarURL());
+                    .setFooter({ text: `There are ${officialPage} pages for official games.`, iconURL: client.user.displayAvatarURL() });
                 allEmbeds.push(em);
             }
             for (let i = 0; i < customPage; i++) {
@@ -126,7 +126,7 @@ class KrunkerCommand implements SlashCommand {
                     .setColor(customColor)
                     .setDescription(str)
                     .setTimestamp()
-                    .setFooter(`There are ${customPage} pages for custom games.`, client.user.displayAvatarURL());
+                    .setFooter({ text: `There are ${customPage} pages for custom games.`, iconURL: client.user.displayAvatarURL() });
                 allEmbeds.push(em);
             }
             await msg.edit({ embeds: [allEmbeds[0]] });
@@ -148,13 +148,13 @@ class KrunkerCommand implements SlashCommand {
                 .setColor(color())
                 .setTitle("Random Game Generator")
                 .setTimestamp()
-                .setFooter("Please decide within 30 seconds.", client.user.displayAvatarURL());
+                .setFooter({ text: "Please decide within 30 seconds.", iconURL: client.user.displayAvatarURL() });
             const pageWarp = new Discord.MessageEmbed()
                 .setColor(color())
                 .setTitle("Krunker Server Browser")
                 .setDescription("Enter the page number to warp to that page.")
                 .setTimestamp()
-                .setFooter("Please decide within 30 seconds.", client.user.displayAvatarURL());
+                .setFooter({ text: "Please decide within 30 seconds.", iconURL: client.user.displayAvatarURL() });
             collector.on("collect", async function (reaction, user) {
                 reaction.users.remove(user.id).catch(() => {});
                 switch (reaction.emoji.name) {

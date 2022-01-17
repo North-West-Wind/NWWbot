@@ -63,7 +63,7 @@ class RedditCommand implements SlashCommand {
             .setURL(`https://reddit.com${data.permalink}`)
             .setImage(data.url)
             .setColor(color())
-            .setFooter(`${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`, client.user.displayAvatarURL())
+            .setFooter({ text: `${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`, iconURL: client.user.displayAvatarURL() })
             .setTimestamp();
         return em;
     }

@@ -59,7 +59,7 @@ class ServerCommand implements SlashCommand {
       .addField("Owner", owner, true)
       .addField(`Roles [${roleIDs.length}]`, (`<@&${roleIDs.join("> <@&")}>`).length < 1024 ? (`<@&${roleIDs.join("> <@&")}>`) : "Too many roles...")
       .setTimestamp()
-      .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
+      .setFooter({ text: "Have a nice day! :)", iconURL: guild.client.user.displayAvatarURL() });
     return Embed;
   }
 };

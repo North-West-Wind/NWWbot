@@ -77,7 +77,7 @@ class RoleMessageCommand implements SlashCommand {
             .addField("Reaction", emojis.join("\n"), true)
             .addField("Role(s)", roles.map(roless => roless.map(r => `<@&${r}>`)).join("\n"), true)
             .setTimestamp()
-            .setFooter("React to claim your role.", message.client.user.displayAvatarURL());
+            .setFooter({ text: "React to claim your role.", iconURL: message.client.user.displayAvatarURL() });
         var mesg = await channel.send({ content: msg, embeds: [roleIndexes] });
         try {
             for (const emoji of emojis) await mesg.react(emoji);

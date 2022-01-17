@@ -46,7 +46,7 @@ class YachtCommand implements SlashCommand {
             .setColor(color())
             .setDescription(st + `\nCommands:\n**Roll** - Roll the dices (${3 - rolled} times left)\n**Lock <index>** - Lock the dices with indexes 1 to 6\n**Score <category>** Choose a category to place your score and move to the next turn\n**End** - End the game immediately`)
             .setTimestamp()
-            .setFooter("Please type in commands within 2 minutes.", message.client.user.displayAvatarURL());
+            .setFooter({ text: "Please type in commands within 2 minutes.", iconURL: message.client.user.displayAvatarURL() });
         var msg = <Discord.Message> await msgOrRes(message, em);
         const collector = (<TextChannel>message.channel).createMessageCollector({ filter: m => m.author.id === author.id, max: Infinity, idle: 120000 });
         collector.on("collect", async mesg => {
@@ -251,7 +251,7 @@ class YachtCommand implements SlashCommand {
             await end();
         });
         async function end() {
-            em.setTitle(`Yacht Dice Game (Ended)`).setDescription(`You scored **${Object.values(scores).map(x => x.score).reduce((a, c) => a + c)} points**\nThanks for playing!`).setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+            em.setTitle(`Yacht Dice Game (Ended)`).setDescription(`You scored **${Object.values(scores).map(x => x.score).reduce((a, c) => a + c)} points**\nThanks for playing!`).setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             msg.edit({embeds: [em]}).catch(() => message.channel.send({embeds: [em]}));
         }
     }

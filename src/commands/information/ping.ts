@@ -26,7 +26,7 @@ class PingCommand implements SlashCommand {
       .addField("Message received", "`" + currentTime + "`")
       .addField("Ping", "`" + (currentDate.getTime() - msgDate.getTime()) + "ms`")
       .setTimestamp()
-      .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+      .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
     await message.channel.send({embeds: [Embed]});
     await message.author.send("Pong! Don't question me. I'm online.")
   }

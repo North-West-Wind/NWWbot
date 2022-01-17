@@ -63,7 +63,7 @@ class RoleInfoCommand implements SlashCommand {
       .addField("Color", (!role.hexColor.startsWith("#") ? "#" : "") + role.hexColor.toUpperCase(), true)
       .addField("Permissions", "`" + (permissions.length > 0 ? permissions.join("`, `").replace(/_/g, " ") : "N/A") + "`")
       .setTimestamp()
-      .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+      .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
     return Embed;
   }
 }

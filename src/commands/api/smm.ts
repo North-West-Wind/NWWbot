@@ -67,7 +67,7 @@ class SMMCommand implements SlashCommand {
                         .addField("Maker", creator, true)
                         .addField("Uploader", uploader, true)
                         .setTimestamp()
-                        .setFooter("Have a nice day :)", client.user.displayAvatarURL());
+                        .setFooter({ text: "Have a nice day :)", iconURL: client.user.displayAvatarURL() });
                     allEmbeds.push(Embed);
                 }
                 resolve(allEmbeds);

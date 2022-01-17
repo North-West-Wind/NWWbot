@@ -29,7 +29,7 @@ class InfoCommand implements SlashCommand {
       .setColor(color())
       .setThumbnail(client.user.displayAvatarURL())
       .setDescription(desc)
-      .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+      .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
       return infoEmbed;
   }
 }

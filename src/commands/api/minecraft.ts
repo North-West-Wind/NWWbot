@@ -161,7 +161,7 @@ class MinecraftCommand implements SlashCommand {
                 .setTitle(`CurseForge Minecraft - ${getKeyByValue(Object.assign(categories, SectionTypes), realcategory)}`)
                 .setDescription(`Sort by: **${getKeyByValue(SortTypes, realsort)}**\nVersion: **${realver ? realver : "All"}**\nFilter: ${filter ? `**${filter}**` : "None"}\n\n`)
                 .setTimestamp()
-                .setFooter(`Page ${i + 1}/${Math.ceil(projects.length / 10)}`, message.client.user.displayAvatarURL());
+                .setFooter({ text: `Page ${i + 1}/${Math.ceil(projects.length / 10)}`, iconURL: message.client.user.displayAvatarURL() });
             for (let u = 0; u < Math.min(10, projects.length - 10 * i); u++) {
                 const project = projects[i * 10 + u];
                 em.setDescription(em.description + `**[${project.section.name}: ${project.name} - ${project.authors.map(a => a.name).join(", ")}](${project.url})**\n`);
@@ -182,7 +182,7 @@ class MinecraftCommand implements SlashCommand {
             .addField("Username", r.name, true)
             .setImage(skin)
             .setTimestamp()
-            .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+            .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
         return Embed;
     }
 
@@ -204,13 +204,13 @@ class MinecraftCommand implements SlashCommand {
             .addField("Hostname", "`" + hostname + "`", true)
             .addField("Description", "`" + spaceRemoved + "`")
             .setTimestamp()
-            .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+            .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
         const allEmbeds = [Embed];
         if (body.players?.list) for (let i = 0; i < Math.ceil(body.players.list.length / 10); i++) {
             const em = new MessageEmbed()
                 .setTitle("Online Players")
                 .setTimestamp()
-                .setFooter(`Page ${i + 1}/${Math.ceil(body.players.list.length / 10)}`, client.user.displayAvatarURL());
+                .setFooter({ text: `Page ${i + 1}/${Math.ceil(body.players.list.length / 10)}`, iconURL: client.user.displayAvatarURL() });
             const strs = [];
             for (let j = i * 10; j < body.players.list.length - i * 10; j++) strs.push(body.players.list[j]);
             em.setDescription(strs.join("\n"));
@@ -232,7 +232,7 @@ class MinecraftCommand implements SlashCommand {
             .setColor(color())
             .setTitle(history[0].name + "'s Username History")
             .setDescription(names.join("\n"))
-            .setFooter("Last changed on " + new Date(result[result.length - 1].changedToAt), client.user.displayAvatarURL());
+            .setFooter({ text: "Last changed on " + new Date(result[result.length - 1].changedToAt), iconURL: client.user.displayAvatarURL() });
         return Embed;
     }
 }

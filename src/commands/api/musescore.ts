@@ -100,7 +100,7 @@ class MusescoreCommand implements SlashCommand {
             .addField(`Tags [${data.tags.length}]`, data.tags.length > 0 ? (data.tags.join(", ").length > 1024 ? (data.tags.join(" ").slice(0, 1020) + "...") : data.tags.join(" ")) : "None")
             .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ? (data.parts.join(", ").length > 1024 ? (data.parts.join(" ").slice(0, 1020) + "...") : data.parts.join(" ")) : "None")
             .setTimestamp()
-            .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+            .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
         msg = await msg.edit({ content: null, embeds: [em] });
         await msg.react("📥");
         const author = (message instanceof Discord.Message ? message.author : (message.member?.user || await message.client.users.fetch(message.channelId))).id;
@@ -196,7 +196,7 @@ class MusescoreCommand implements SlashCommand {
                 .addField(`Tags [${data.tags.length}]`, data.tags.length > 0 ? data.tags.join(", ") : "None")
                 .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ? data.parts.join(", ") : "None")
                 .setTimestamp()
-                .setFooter(`Currently on page ${++num}/${scores.length}`, client.user.displayAvatarURL());
+                .setFooter({ text: `Currently on page ${++num}/${scores.length}`, iconURL: client.user.displayAvatarURL() });
             allEmbeds.push(em);
             importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl, title: data.title, id: data.id });
         }

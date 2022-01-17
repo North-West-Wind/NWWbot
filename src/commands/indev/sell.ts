@@ -24,7 +24,7 @@ class SellCommand implements SlashCommand {
             .setDescription("This will cost 5% of the price to put it at the shop! The item will be up for 7 days.\n\n✅ Confirm\n❌ Cancel")
             .addField("Price", price.toString())
             .addField("Item", args.slice(1).join(" "))
-            .setFooter("Please answer within 30 seconds.", message.client.user.displayAvatarURL());
+            .setFooter({ text: "Please answer within 30 seconds.", iconURL: message.client.user.displayAvatarURL() });
         var msg = await message.channel.send({embeds: [confirmationEmbed]});
         await msg.react("✅");
         await msg.react("❌");
@@ -34,7 +34,7 @@ class SellCommand implements SlashCommand {
             confirmationEmbed
                 .setTitle("Cancelled")
                 .setDescription("Timed out.")
-                .setFooter("Please try again.", message.client.user.displayAvatarURL());
+                .setFooter({ text: "Please try again.", iconURL: message.client.user.displayAvatarURL() });
             await msg.edit({embeds: [confirmationEmbed]});
             return msg.reactions.removeAll().catch(() => {});
         }
@@ -53,7 +53,7 @@ class SellCommand implements SlashCommand {
                     confirmationEmbed
                         .setTitle("Confirmed!")
                         .setDescription("Your item is now at the shop!")
-                        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+                        .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
                     await msg.edit({embeds: [confirmationEmbed]});
                     msg.reactions.removeAll().catch(() => {});
                 }
@@ -66,7 +66,7 @@ class SellCommand implements SlashCommand {
             confirmationEmbed
                 .setTitle("Cancelled")
                 .setDescription("Your choice is to cancel it.")
-                .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+                .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             await msg.edit({embeds: [confirmationEmbed]});
         }
     }

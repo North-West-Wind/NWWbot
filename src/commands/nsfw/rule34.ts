@@ -48,7 +48,7 @@ class Rule34Command implements SlashCommand {
             .setTitle("Searching tags: " + tags.join(", "))
             .setDescription("Tags: `" + post.tags.split(/ +/).join("`, `") + "`\nPlease be patient. Image will load soon...")
             .setTimestamp()
-            .setFooter("From rule34.paheal.net", client.user.displayAvatarURL())
+            .setFooter({ text: "From rule34.paheal.net", iconURL: client.user.displayAvatarURL() })
             .setImage(post.file_url);
         return Embed;
     }

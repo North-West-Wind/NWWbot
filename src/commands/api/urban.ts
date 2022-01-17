@@ -47,7 +47,7 @@ class UrbanCommand implements SlashCommand {
                 .addField("Definition", trim(answer.definition, 1024))
                 .addField("Example", trim(answer.example, 1024))
                 .setTimestamp()
-                .setFooter(`👍 ${answer.thumbs_up} | 👎 ${answer.thumbs_down}`, client.user.displayAvatarURL());
+                .setFooter({ text: `👍 ${answer.thumbs_up} | 👎 ${answer.thumbs_down}`, iconURL: client.user.displayAvatarURL() });
             allEmbeds.push(embed);
         }
         return allEmbeds;

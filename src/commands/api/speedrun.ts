@@ -30,7 +30,7 @@ class SpeedrunCommand implements SlashCommand {
             .setTitle("Loading...")
             .setDescription("This will take a while.")
             .setTimestamp()
-            .setFooter("Please be patient.", client.user.displayAvatarURL());
+            .setFooter({ text: "Please be patient.", iconURL: client.user.displayAvatarURL() });
         if (!gameFetch) {
             ({ data, msg } = await this.chooseGame(interaction, game));
             if (!data) return;
@@ -41,7 +41,7 @@ class SpeedrunCommand implements SlashCommand {
         const allEmbeds = await this.getEmbedsByID(data);
         if (allEmbeds.length == 1) await msg.edit({ embeds: [allEmbeds[0] ]});
         else if (allEmbeds.length < 1) {
-            em.setTitle(data.names.international).setDescription("No record was found for this game!").setFooter("Have a nice day! :)", interaction.client.user.displayAvatarURL());
+            em.setTitle(data.names.international).setDescription("No record was found for this game!").setFooter({ text: "Have a nice day! :)", iconURL: interaction.client.user.displayAvatarURL() });
             await msg.edit({embeds: [em]});
         } else await createEmbedScrolling({ interaction, useEdit: true }, allEmbeds);
     }
@@ -58,14 +58,14 @@ class SpeedrunCommand implements SlashCommand {
                 .setTitle("Loading...")
                 .setDescription("This will take a while.")
                 .setTimestamp()
-                .setFooter("Please be patient.", client.user.displayAvatarURL());
+                .setFooter({ text: "Please be patient.", iconURL: client.user.displayAvatarURL() });
             msg = await message.channel.send({embeds: [em]});
             data = gameFetch.data;
         }
         const allEmbeds = await this.getEmbedsByID(data);
         if (allEmbeds.length == 1) await msg.edit({embeds: [allEmbeds[0]]});
         else if (allEmbeds.length < 1) {
-            em.setTitle(data.names.international).setDescription("No record was found for this game!").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+            em.setTitle(data.names.international).setDescription("No record was found for this game!").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             await msg.edit({embeds: [em]});
         } else {
             await msg.delete();
@@ -83,7 +83,7 @@ class SpeedrunCommand implements SlashCommand {
             .setTitle("Which game are you looking for?")
             .setDescription(games.join("\n"))
             .setTimestamp()
-            .setFooter("Cannot find your game? Try to be more specified.", message.client.user.displayAvatarURL());
+            .setFooter({ text: "Cannot find your game? Try to be more specified.", iconURL: message.client.user.displayAvatarURL() });
         if (result.data.length == 0) {
             if (message instanceof Discord.Message) await message.channel.send("No game was found!");
             else await message.editReply("No game was found!");
@@ -99,15 +99,15 @@ class SpeedrunCommand implements SlashCommand {
             const collected = await msg.awaitReactions({ filter: (reaction, user) => choices.includes(reaction.emoji.name) && user.id === author, max: 1, time: 30000 });
             msg.reactions.removeAll().catch(() => {});
             if (!collected) {
-                em.setTitle("Timed Out").setDescription("Please try again.").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+                em.setTitle("Timed Out").setDescription("Please try again.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
                 await msg.edit({embeds: [em]});
                 return { data: null, msg };
             }
-            em.setTitle("Loading...").setDescription("This will take a while.").setTimestamp().setFooter("Please be patient.", message.client.user.displayAvatarURL());
+            em.setTitle("Loading...").setDescription("This will take a while.").setTimestamp().setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
             await msg.edit({embeds: [em]});
             const reaction = collected.first();
             if (reaction.emoji.name === choices[10]) {
-                em.setTitle("Action Cancelled.").setDescription("").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+                em.setTitle("Action Cancelled.").setDescription("").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
                 await msg.edit({embeds: [em]});
                 return { data: null, msg };
             }
@@ -131,7 +131,7 @@ class SpeedrunCommand implements SlashCommand {
                 .setDescription(`Category: **${category}**\nLevel: **${level}**`)
                 .setURL(record.weblink ? record.weblink : undefined)
                 .setTimestamp()
-                .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+                .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
             for (const run of record.runs) {
                 if (run.run.system.platform) var platformFetch = await fetch(`https://www.speedrun.com/api/v1/platforms/${run.run.system.platform}`).then(res => res.json());
                 if (run.run.system.region) var regionFetch = await fetch(`https://www.speedrun.com/api/v1/regions/${run.run.system.region}`).then(res => res.json());

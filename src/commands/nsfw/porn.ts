@@ -2258,7 +2258,7 @@ class PornCommand implements SlashCommand {
             .setURL(`https://reddit.com${data.permalink}`)
             .setImage(data.url)
             .setColor(color())
-            .setFooter(`${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`, message.client.user.displayAvatarURL())
+            .setFooter({ text: `${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`, iconURL: message.client.user.displayAvatarURL() })
             .setTimestamp();
         if (validNotImgurURL(data.url)) em.setImage(data.url.replace("imgur", "i.imgur") + ".jpg");
         var link;

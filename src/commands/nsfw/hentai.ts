@@ -131,7 +131,7 @@ class HentaiCommand implements SlashCommand {
             .setColor(color())
             .setImage(result)
             .setTimestamp()
-            .setFooter("Made with Akaneko", client.user.displayAvatarURL());
+            .setFooter({ text: "Made with Akaneko", iconURL: client.user.displayAvatarURL() });
         return embed;
     }
     async random() {
@@ -144,7 +144,7 @@ class HentaiCommand implements SlashCommand {
             .setColor(color())
             .setImage(result)
             .setTimestamp()
-            .setFooter("Made with Akaneko", client.user.displayAvatarURL());
+            .setFooter({ text: "Made with Akaneko", iconURL: client.user.displayAvatarURL() });
         return embed;
     }
     async tagsList() {
@@ -152,7 +152,7 @@ class HentaiCommand implements SlashCommand {
             .setTitle("Tag list")
             .setColor(color())
             .setDescription("**" + this.tags.join("**\n**") + "**")
-            .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+            .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
     }
     async auto(message: NorthMessage | NorthInteraction, amount = undefined, interval = undefined, reverse = false, tags = []) {
         if (!amount) return await msgOrRes(message, "You didn't provide the amount of messages to be sent!");

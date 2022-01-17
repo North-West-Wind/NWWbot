@@ -95,14 +95,14 @@ export class AkiCommand implements SlashCommand {
       .setColor(color())
       .setTitle("Getting ready...")
       .setTimestamp()
-      .setFooter("Please wait until all reactions appear.", message.client.user.displayAvatarURL());
+      .setFooter({ text: "Please wait until all reactions appear.", iconURL: message.client.user.displayAvatarURL() });
     var msg: Message;
     if (message instanceof Message) msg = await message.channel.send({ embeds: [embed] });
     else msg = <Message>await message.editReply({ embeds: [embed] });
     for (const r of this.reactions) await msg.react(r);
     embed.setTitle("Question 1: " + aki.question)
       .setDescription(str)
-      .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL());
+      .setFooter({ text: "Please answer within 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
     await msg.edit({ embeds: [embed] });
     const filter = (reaction, user) => this.reactions.includes(reaction.emoji.name) && user.id === author && !user.bot;
     const collector = msg.createReactionCollector({ filter, idle: 6e4 });
@@ -113,13 +113,13 @@ export class AkiCommand implements SlashCommand {
       else if (answerID === 6) {
         embed.setTitle("Akinator was stopped");
         embed.setDescription("Thanks for playing!");
-        embed.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+        embed.setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
         await msg.edit({ embeds: [embed] });
         return collector.emit("end", true);
       } else if (answerID !== undefined) {
         if (found) {
           if (answerID === 0) {
-            embed.setFooter("I am right!", message.client.user.displayAvatarURL());
+            embed.setFooter({ text: "I am right!", iconURL: message.client.user.displayAvatarURL() });
             embed.setTitle("I got the correct answer!");
             embed.setDescription("");
             msg = await msg.edit({ content: `Looks like I got another one correct! This time after ${aki.currentStep} steps. Thanks for playing!`, embeds: [embed] });
@@ -130,7 +130,7 @@ export class AkiCommand implements SlashCommand {
               .setTitle("Akinator")
               .setDescription("Resuming game...")
               .setImage(undefined)
-              .setFooter("Please wait patiently", message.client.user.displayAvatarURL());
+              .setFooter({ text: "Please wait patiently", iconURL: message.client.user.displayAvatarURL() });
             await msg.edit({ embeds: [embed] });
             for (const r of this.reactions.slice(2)) await msg.react(r);
           }
@@ -149,7 +149,7 @@ export class AkiCommand implements SlashCommand {
           embed
             .setTitle("Akinator")
             .setDescription("Loading result...")
-            .setFooter("Please wait patiently", message.client.user.displayAvatarURL());
+            .setFooter({ text: "Please wait patiently", iconURL: message.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [embed] });
           try {
             for (const r of this.reactions.slice(2)) {
@@ -162,12 +162,12 @@ export class AkiCommand implements SlashCommand {
           if (aki.currentStep >= 79) embed.setTitle("My Final Guess is... 🤔");
           else embed.setTitle("I'm thinking of... 🤔");
           embed.setDescription(`**${name}**\n**${description}**\n${this.reactions[0]} **Yes**\n${this.reactions[1]} **No**`);
-          embed.setFooter("Am I correct?", message.client.user.displayAvatarURL());
+          embed.setFooter({ text: "Am I correct?", iconURL: message.client.user.displayAvatarURL() });
           if (image) embed.setImage(image);
           msg = await msg.edit({ embeds: [embed] });
           if (aki.currentStep >= 79) {
             embed.setDescription(`**${name}**\n**${description}**`);
-            embed.setFooter("Hope I am correct!", message.client.user.displayAvatarURL());
+            embed.setFooter({ text: "Hope I am correct!", iconURL: message.client.user.displayAvatarURL() });
             await msg.edit({ embeds: [embed] });
             msg.reactions.removeAll().catch(() => { });
           }
@@ -178,7 +178,7 @@ export class AkiCommand implements SlashCommand {
           .setTitle(`Question ${aki.currentStep + 1}: ${aki.question}`)
           .setDescription(str)
           .setImage(undefined)
-          .setFooter("Please answer within 60 seconds.", message.client.user.displayAvatarURL());
+          .setFooter({ text: "Please answer within 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
         await msg.edit({ embeds: [embed] });
       }
     };
@@ -189,7 +189,7 @@ export class AkiCommand implements SlashCommand {
           .setTitle("Akinator has timed out")
           .setDescription("Please start a new game.")
           .setImage(undefined)
-          .setFooter("60 seconds have passed!", message.client.user.displayAvatarURL());
+          .setFooter({ text: "60 seconds have passed!", iconURL: message.client.user.displayAvatarURL() });
         await msg.edit({ embeds: [embed] });
         msg.reactions.removeAll().catch(() => { });
       }
@@ -201,7 +201,7 @@ export class AkiCommand implements SlashCommand {
       .setColor(color())
       .setTitle("Akinator")
       .setDescription("Region list\n\n`" + this.regions.join("`\n`") + "`")
-      .setFooter(`Use "${message.prefix}${this.name} ${this.usage}" to start a game.`, message.client.user.displayAvatarURL());
+      .setFooter({ text: `Use "${message.prefix}${this.name} ${this.usage}" to start a game.`, iconURL: message.client.user.displayAvatarURL() });
     await message.channel.send({ embeds: [regionEmbed] });
   }
 }

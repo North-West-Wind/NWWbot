@@ -88,7 +88,7 @@ class HelpCommand implements SlashCommand {
       .setDescription(`[**Click this**](https://northwestwind.ml/n0rthwestw1nd/manual${end}) for the user manual.\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`)
       .setThumbnail(client.user.displayAvatarURL())
       .setTimestamp()
-      .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+      .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
     for (let i = 0; i < categories.length; i++) {
       if (safe && categories[i] === "NSFW") continue;
       Embed.addField(`**${categories[i]}**`, Array.from(NorthClient.storage.commands.filter(x => x.category === i).keys()).join("\n"), true);

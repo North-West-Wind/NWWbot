@@ -29,7 +29,7 @@ export async function endPoll(client: NorthClient, con: PoolConnection, id: Disc
             .setTitle(unescape(title))
             .setDescription(`Poll ended. Here are the results:\n\n\n${end.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')}`)
             .setTimestamp()
-            .setFooter("Hosted by " + author.tag, author.displayAvatarURL());
+            .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
         msg.edit({ content: pollMsg, embeds: [Ended]});
         const link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
 
@@ -128,7 +128,7 @@ class PollCommand implements SlashCommand {
             .setTitle(title)
             .setDescription(`React with the numbers to vote!\nThis poll will end at:\n**${readableTime}**\n\n\n${optionArray.join("\n\n").replace(/#quot;/g, "'").replace(/#dquot;/g, '"')}`)
             .setTimestamp()
-            .setFooter("Hosted by " + message.author.tag, message.author.displayAvatarURL());
+            .setFooter({ text: "Hosted by " + message.author.tag, iconURL: message.author.displayAvatarURL() });
         var msg = await channel.send({ content: pollMsg, embeds: [Embed] });
         for (var i = 0; i < optionArray.length; i++) await msg.react(emojis[i]);
         for (var i = 0; i < options.length; i++) options[i] = escape(options[i]);
@@ -166,7 +166,7 @@ class PollCommand implements SlashCommand {
             .setTitle("Poll list")
             .setDescription("**" + message.guild.name + "** - " + results.length + " polls")
             .setTimestamp()
-            .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+            .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
         for (var i = 0; i < Math.min(25, results.length); i++) {
             const newDate = new Date(results[i].endAt);
             const readableTime = readableDateTime(newDate);

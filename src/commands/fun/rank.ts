@@ -52,7 +52,7 @@ class RankCommand implements SlashCommand {
       .setColor(color())
       .setTitle(`Rank of **${author.tag}** in **${guild.name}**`)
       .setDescription(`Rank: **${rank}**\nLevel: **${level}**\nOverall Progress: **${expBackup}** / **${costs.reduce((a, b) => a + b)}**\n\nProgress to Next Level: \n**${exp}** / **${cost}** - **${percentage}%**\n${level} **${dashes.join("")}** ${(level + 1)}`)
-      .setFooter("Every level requires 50 XP more to level up.", client.user.displayAvatarURL())
+      .setFooter({ text: "Every level requires 50 XP more to level up.", iconURL: client.user.displayAvatarURL() })
       .setTimestamp();
     return rankEmbed;
   }

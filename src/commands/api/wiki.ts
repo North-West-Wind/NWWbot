@@ -42,7 +42,7 @@ class WikiCommand implements SlashCommand {
                     .setDescription(summary.length > 2048 ? (summary.slice(0, 2045) + "...") : summary)
                     .setTimestamp()
                     .setURL(url)
-                    .setFooter("1️⃣, 2️⃣ and 3️⃣ are for navigating to 25th, 50th, 75th result.");
+                    .setFooter({ text: "1️⃣, 2️⃣ and 3️⃣ are for navigating to 25th, 50th, iconURL: 75th result." });
                 allEmbeds.push(em);
             } catch (err: any) {
                 console.error(err);

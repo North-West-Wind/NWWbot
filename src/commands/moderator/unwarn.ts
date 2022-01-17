@@ -57,7 +57,7 @@ class UnWarnCommand implements SlashCommand {
             .setTitle(`Your warnings have been cleared`)
             .setDescription(`In **${guild.name}**`)
             .setTimestamp()
-            .setFooter("Cleared by " + author.tag, author.displayAvatarURL());
+            .setFooter({ text: "Cleared by " + author.tag, iconURL: author.displayAvatarURL() });
         const warnSuccessfulEmbed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle("User Successfully Unwarned!")

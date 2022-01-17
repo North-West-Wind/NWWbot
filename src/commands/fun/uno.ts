@@ -136,7 +136,7 @@ class UnoCommand implements SlashCommand {
         .setTitle(`${author.tag} invited you to play UNO!`)
         .setDescription(`Server: **${message.guild.name}**\nChannel: **${(<Discord.TextChannel>message.channel).name}**\nAccept invitation?\n\n✅Accept\n❌Decline`)
         .setTimestamp()
-        .setFooter("Please decide in 30 seconds.", message.client.user.displayAvatarURL());
+        .setFooter({ text: "Please decide in 30 seconds.", iconURL: message.client.user.displayAvatarURL() });
       try {
         var mesg = await member.user.send({embeds: [em]});
       } catch (err: any) {
@@ -154,7 +154,7 @@ class UnoCommand implements SlashCommand {
         message.channel.send(`**${member.user.tag}** is not active now.`);
         return await mesg.edit({embeds: [em]});
       }
-      em.setFooter("Head to the channel now.", message.client.user.displayAvatarURL());
+      em.setFooter({ text: "Head to the channel now.", iconURL: message.client.user.displayAvatarURL() });
       var reaction = rCollected.first();
       if (reaction.emoji.name === "✅") {
         message.channel.send(`**${member.user.tag}** accepted the invitation!`);
@@ -180,7 +180,7 @@ class UnoCommand implements SlashCommand {
           .setImage("attachment://canvas.png")
           .setDescription(`Your cards:\n\n${player.card.map(x => toString(x)).join("\n")}`)
           .setTimestamp()
-          .setFooter("Game started.", message.client.user.displayAvatarURL());
+          .setFooter({ text: "Game started.", iconURL: message.client.user.displayAvatarURL() });
         player.user.send({embeds: [em], files: [{ attachment: await canvasImg(assets, player.card), name: "canvas.png" }] });
       }
       var initial = NorthClient.storage.card.filter(x => x.color < 4 && x.number < 10).random();
@@ -192,7 +192,7 @@ class UnoCommand implements SlashCommand {
         .setImage(assets.find(x => x.id === twoDigits(initial.color) + twoDigits(initial.number)).url)
         .setDescription(`The card is ${toString(initial)}`)
         .setTimestamp()
-        .setFooter(`Placed by ${message.client.user.tag}`, message.client.user.displayAvatarURL());
+        .setFooter({ text: `Placed by ${message.client.user.tag}`, iconURL: message.client.user.displayAvatarURL() });
       mesg.delete().catch(() => { });
       return await mesg.channel.send({ content: null, embed: em });
     }
@@ -240,7 +240,7 @@ class UnoCommand implements SlashCommand {
               .setThumbnail(player.user.displayAvatarURL())
               .setDescription(`Congratulations to **${lowestP.map(u => u.tag).join("**, **")}** winning with **${scores} scores**!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - id, "milliseconds").format()}.\nThanks for playing!`)
               .setTimestamp()
-              .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+              .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             lowestP.forEach(u => u.send("You won the game! Congratulations!"));
             await mesg.delete();
             await mesg.channel.send(win);
@@ -256,7 +256,7 @@ class UnoCommand implements SlashCommand {
               .setDescription("Someone placed a Skip card!")
               .setColor(c)
               .setTimestamp()
-              .setFooter("Better luck next time!", message.client.user.displayAvatarURL());
+              .setFooter({ text: "Better luck next time!", iconURL: message.client.user.displayAvatarURL() });
             player.user.send({embeds: [skipEm]});
             players.set(key, player);
             uno.set(id, { players: players, card: top, cards: await uno.get(id).cards });
@@ -279,7 +279,7 @@ class UnoCommand implements SlashCommand {
             .setDescription(`The current card is ${toString(top)}\nYour cards:\n\n${player.card.map(x => toString(x)).join("\n")}\n\n📥 Place\n📤 Draw\n⏹️ Stop\nIf you draw, you will draw **${drawCard > 0 ? drawCard + " cards" : "1 card"}**.`)
             .setImage("attachment://yourCard.png")
             .setTimestamp()
-            .setFooter("Please decide in 30 seconds.", message.client.user.displayAvatarURL());
+            .setFooter({ text: "Please decide in 30 seconds.", iconURL: message.client.user.displayAvatarURL() });
           let mssg = await player.user.send({embeds: [em], files: [{ attachment: await canvasImg(assets, player.card), name: "yourCard.png" }]});
           await mssg.react("📥");
           await mssg.react("📤");
@@ -297,7 +297,7 @@ class UnoCommand implements SlashCommand {
             .setDescription(`The top card is ${toString(top)}`)
             .setImage(assets.find(x => x.id === twoDigits(top.color) + twoDigits(top.number)).url)
             .setTimestamp()
-            .setFooter(`Placed by ${message.client.user.tag}`, message.client.user.displayAvatarURL());
+            .setFooter({ text: `Placed by ${message.client.user.tag}`, iconURL: message.client.user.displayAvatarURL() });
           if (!collected || !collected.first() || !collected.first().emoji) {
             em = new Discord.MessageEmbed()
               .setColor(c)
@@ -305,7 +305,7 @@ class UnoCommand implements SlashCommand {
               .setDescription(`30 seconds have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
               .setImage("attachment://newCard.png")
               .setTimestamp()
-              .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
+              .setFooter({ text: `Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, iconURL: message.client.user.displayAvatarURL() });
             await mssg.delete();
             await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }]});
             player.card = player.card.concat(newCard);
@@ -325,7 +325,7 @@ class UnoCommand implements SlashCommand {
                 .setDescription(`You don't have any card to place so you are forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                 .setImage("attachment://newCard.png")
                 .setTimestamp()
-                .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
+                .setFooter({ text: `Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, iconURL: message.client.user.displayAvatarURL() });
               await mssg.delete();
               await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }]});
               player.card = player.card.concat(newCard);
@@ -347,7 +347,7 @@ class UnoCommand implements SlashCommand {
               .setDescription(`Cards you can place:\n\n${placeCard.join("\n")}\nType the ID after the card to place.`)
               .setImage("attachment://place.png")
               .setTimestamp()
-              .setFooter(`Please decide in 30 seconds.`, message.client.user.displayAvatarURL());
+              .setFooter({ text: `Please decide in 30 seconds.`, iconURL: message.client.user.displayAvatarURL() });
             await mssg.delete();
             mssg = await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, placeable), name: "place.png" }]});
             try {
@@ -360,7 +360,7 @@ class UnoCommand implements SlashCommand {
                 .setDescription(`30 seconds have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                 .setImage("attachment://newCard.png")
                 .setTimestamp()
-                .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
+                .setFooter({ text: `Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, iconURL: message.client.user.displayAvatarURL() });
               await mssg.delete();
               await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }]});
               player.card = player.card.concat(newCard);
@@ -383,7 +383,7 @@ class UnoCommand implements SlashCommand {
                   .setThumbnail(player.user.displayAvatarURL())
                   .setDescription(`**${player.user.tag}** left the game!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - id, "milliseconds").format()}.\nThanks for playing!`)
                   .setTimestamp()
-                  .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+                  .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
                 mesg.edit(cancel);
                 uno.delete(id);
                 return;
@@ -394,7 +394,7 @@ class UnoCommand implements SlashCommand {
                 .setDescription(`You cannot place that card so you drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                 .setImage("attachment://newCard.png")
                 .setTimestamp()
-                .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
+                .setFooter({ text: `Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, iconURL: message.client.user.displayAvatarURL() });
               await mssg.delete();
               await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }]});
               player.card = player.card.concat(newCard);
@@ -424,7 +424,7 @@ class UnoCommand implements SlashCommand {
                   .setDescription(`30 seconds have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
                   .setImage("attachment://newCard.png")
                   .setTimestamp()
-                  .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
+                  .setFooter({ text: `Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, iconURL: message.client.user.displayAvatarURL() });
                 await mssg.delete();
                 mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }]});
                 player.card = player.card.concat(newCard);
@@ -465,7 +465,7 @@ class UnoCommand implements SlashCommand {
                 .setTitle(`Your turn ended!`)
                 .setDescription(`The color you chose: ${colorStr}`)
                 .setTimestamp()
-                .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
+                .setFooter({ text: `Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, iconURL: message.client.user.displayAvatarURL() });
             } else {
               player.card.splice(player.card.indexOf(placedCard), 1);
               players.set(key, player);
@@ -474,7 +474,7 @@ class UnoCommand implements SlashCommand {
                 .setTitle(`Your turn ended!`)
                 .setDescription(`You placed ${toString(placedCard)}!`)
                 .setTimestamp()
-                .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
+                .setFooter({ text: `Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, iconURL: message.client.user.displayAvatarURL() });
             }
             await mssg.delete();
             await mssg.channel.send({embeds: [em]});
@@ -486,7 +486,7 @@ class UnoCommand implements SlashCommand {
               .setDescription(`The top card is ${toString(placedCard)}`)
               .setImage(assets.find(x => x.id === twoDigits(placedCard.color) + twoDigits(placedCard.number)).url)
               .setTimestamp()
-              .setFooter(`Placed by ${player.user.tag}`, message.client.user.displayAvatarURL());
+              .setFooter({ text: `Placed by ${player.user.tag}`, iconURL: message.client.user.displayAvatarURL() });
             mesg.edit(placed);
             let reversing = false;
             switch (placedCard.number) {
@@ -520,7 +520,7 @@ class UnoCommand implements SlashCommand {
                 .setThumbnail(player.user.displayAvatarURL())
                 .setDescription(`Congratulations to **${player.user.tag}** winning with **${scores} scores**!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - id, "milliseconds").format()}.\nThanks for playing!`)
                 .setTimestamp()
-                .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+                .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
               await player.user.send("You won the game! Congratulations!");
               await mesg.delete();
               await mesg.channel.send(win);
@@ -549,7 +549,7 @@ class UnoCommand implements SlashCommand {
               .setDescription(`You drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
               .setImage("attachment://newCard.png")
               .setTimestamp()
-              .setFooter(`Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, message.client.user.displayAvatarURL());
+              .setFooter({ text: `Game started by ${author.tag} | Played in server ${message.guild.name} - channel ${(<Discord.TextChannel>message.channel).name}`, iconURL: message.client.user.displayAvatarURL() });
             await mssg.delete();
             await mssg.channel.send({embeds: [em], files: [{ attachment: await canvasImg(assets, newCard), name: "newCard.png" }]});
             player.card = player.card.concat(newCard);
@@ -568,7 +568,7 @@ class UnoCommand implements SlashCommand {
               .setThumbnail(player.user.displayAvatarURL())
               .setDescription(`**${player.user.tag}** left the game!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - id, "milliseconds").format()}.\nThanks for playing!`)
               .setTimestamp()
-              .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+              .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             mesg.edit(cancel);
             uno.delete(id);
             return;

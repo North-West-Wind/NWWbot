@@ -128,7 +128,7 @@ class KnowYourMemeCommand implements SlashCommand {
         .setURL(result.url)
         .setDescription(result.about.join("\n\n").length > 2048 ? result.about.join("\n\n").slice(0, 2045) + "..." : result.about.join("\n\n"))
         .setTimestamp()
-        .setFooter(`Page ${++num} out of ${results.length}`, client.user.displayAvatarURL());
+        .setFooter({ text: `Page ${++num} out of ${results.length}`, iconURL: client.user.displayAvatarURL() });
       if (result.origin.length > 0) em.addField("Origin", result.origin.join("\n\n").length > 1024 ? result.origin.join("\n\n").slice(0, 1021) + "..." : result.origin.join("\n\n"));
       if (result.spread.length > 0) em.addField("Spread", result.spread.join("\n\n").length > 1024 ? result.spread.join("\n\n").slice(0, 1021) + "..." : result.spread.join("\n\n"));
       if (result.reaction.length > 0) em.addField("Reaction", result.reaction.join("\n\n").length > 1024 ? result.reaction.join("\n\n").slice(0, 1021) + "..." : result.reaction.join("\n\n"));

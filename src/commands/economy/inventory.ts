@@ -34,7 +34,7 @@ class InventoryCommand implements SlashCommand {
       .setTitle(author.tag + "'s Inventory")
       .setDescription(IResult.map(x => `**${++i}.** ${x.name} - **${itemObject[x.id]}**`).join("\n"))
       .setTimestamp()
-      .setFooter("Type the ID of the item you want to use or anything else to exit.", client.user.displayAvatarURL());
+      .setFooter({ text: "Type the ID of the item you want to use or anything else to exit.", iconURL: client.user.displayAvatarURL() });
     if (msg) msg = await msg.edit({ embeds: [em], content: null });
     else msg = await msgOrRes(message, em);
     const collected = await message.channel.awaitMessages({
@@ -42,7 +42,7 @@ class InventoryCommand implements SlashCommand {
       max: 1,
       time: 30000
     });
-    em.setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+    em.setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
     if (!collected.first()) return await msg.edit({embeds: [em]});
     await collected.first().delete();
     const index = parseInt(collected.first().content);
@@ -51,7 +51,7 @@ class InventoryCommand implements SlashCommand {
     if (!wanted) return await msg.edit({embeds: [em]});
     em.setTitle(wanted.name)
       .setDescription(`${wanted.description}\nQuantity: **${itemObject[wanted.id]}**\n\n1️⃣ Use\n2️⃣ Return`)
-      .setFooter("Use item?", message.client.user.displayAvatarURL());
+      .setFooter({ text: "Use item?", iconURL: message.client.user.displayAvatarURL() });
     await msg.edit({embeds: [em]});
     await msg.react("1️⃣");
     await msg.react("2️⃣");
@@ -67,13 +67,13 @@ class InventoryCommand implements SlashCommand {
       if (!itemObject[wanted.id]) itemObject[wanted.id] = 0;
       if (itemObject[wanted.id] < 1) {
         msg.reactions.removeAll().catch(() => {});
-        em.setDescription("You cannot use this item because you don't have any.").setFooter("You can't do this.", message.client.user.displayAvatarURL());
+        em.setDescription("You cannot use this item because you don't have any.").setFooter({ text: "You can't do this.", iconURL: message.client.user.displayAvatarURL() });
         return await msg.edit({embeds: [em]});
       }
       if (itemObject[wanted.id].guild === "") {
         await NorthClient.storage.items.get(wanted.id).run(message, msg, em, itemObject);
       } else {
-        em.setFooter("Using item...", message.client.user.displayAvatarURL());
+        em.setFooter({ text: "Using item...", iconURL: message.client.user.displayAvatarURL() });
         const requiredArgs = wanted.args.split(/ +/).filter(s => s != "");
         var args = [];
         if (requiredArgs.length > 0) {
@@ -87,7 +87,7 @@ class InventoryCommand implements SlashCommand {
           if (collected.first()) await collected.first().delete();
           if (!collected.first()?.content) {
             em.setDescription(`You didn't input the arguments in time! Preserving item...`)
-              .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
+              .setFooter({ text: "Returning to main menu in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
               await msg.edit({embeds: [em]});
             await wait(3000);
             return await this.navigate(message, msg);
@@ -95,7 +95,7 @@ class InventoryCommand implements SlashCommand {
           args = collected.first().content.split(/ +/);
           if (args.length < requiredArgs.length) {
             em.setDescription(`The input arguments are less than the required arguments! Preserving item...`)
-              .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
+              .setFooter({ text: "Returning to main menu in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
               await msg.edit({embeds: [em]});
             await wait(3000);
             return await this.navigate(message, msg);
@@ -121,7 +121,7 @@ class InventoryCommand implements SlashCommand {
             const c = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
             if (!c) {
               em.setDescription(`Failed to use the item! Please ask your server managers to fix this! Preserving item...`)
-                .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
+                .setFooter({ text: "Returning to main menu in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
                 await msg.edit({embeds: [em]});
               await wait(3000);
               return await this.navigate(message, msg);
@@ -135,7 +135,7 @@ class InventoryCommand implements SlashCommand {
             } catch (error: any) {
               console.error(error);
               em.setDescription(`Failed to use the item! Please contact NorthWestWind#1885 to fix this! Preserving item...\nError: \`${error.message}\``)
-                .setFooter("Returning to main menu in 3 seconds...", message.client.user.displayAvatarURL());
+                .setFooter({ text: "Returning to main menu in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
               await msg.edit({embeds: [em]});
               await wait(3000);
               return await this.navigate(message, msg);
@@ -147,7 +147,7 @@ class InventoryCommand implements SlashCommand {
         await client.pool.query(`UPDATE users SET items = '${JSON.stringify(itemObject)}' WHERE id =  '${author.id}'`);
         em.setTitle(`Used ${wanted.name}`)
           .setDescription("Returning to main menu in 3 seconds...")
-          .setFooter("Please be patient.", message.client.user.displayAvatarURL());
+          .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
         await msg.edit({embeds: [em]});
         await wait(3000);
         return await this.navigate(message, msg);

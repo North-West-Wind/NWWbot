@@ -17,9 +17,9 @@ export default class EnergyDrinkItem implements Item {
             await con.query(`UPDATE users SET doubling = '${newDateSql}' WHERE id = '${author}'`);
             itemObject[this.id] -= 1;
             await con.query(`UPDATE users SET items = '${escape(JSON.stringify(itemObject))}' WHERE id = '${author}'`);
-            em.setTitle("You drank the Energy Drink!").setDescription("Now you work more efficiently for 24 hours!\nThe amount of money you gain will be doubled during this period!").setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+            em.setTitle("You drank the Energy Drink!").setDescription("Now you work more efficiently for 24 hours!\nThe amount of money you gain will be doubled during this period!").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
         } catch (err: any) {
-            em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter("Cancelled.", message.client.user.displayAvatarURL());
+            em.setTitle("ERROR!").setDescription("SQL Error! Contact NorthWestWind#1885 for help.").setFooter({ text: "Cancelled.", iconURL: message.client.user.displayAvatarURL() });
             console.error(err);
         }
         con.release();

@@ -116,7 +116,7 @@ class GuildCommand implements SlashCommand {
 				.setTitle("Please choose an operation:")
 				.setDescription("1️⃣: Accept\n2️⃣: Decline (Already in another guild)\n3️⃣: Decline (Already in guild)\n4️⃣: Decline (Banned)")
 				.setTimestamp()
-				.setFooter("Please choose within 2 minutes.", message.client.user.displayAvatarURL());
+				.setFooter({ text: "Please choose within 2 minutes.", iconURL: message.client.user.displayAvatarURL() });
 
 			const msg = await message.channel.send({ embeds: [em] });
 			await msg.react("1️⃣");
@@ -265,7 +265,7 @@ class GuildCommand implements SlashCommand {
 			.setColor(color())
 			.setDescription(`\`${mc}\` is hosting a splash!\nDo \`/p join ${mc}\` in Hypixel or join the guild party to be part of it!\n\n**Location:** ${location}\n**Potions:** ${potions}\n**Slots:** ${slots}\n**Note: ** ${notes.length > 0 ? notes : "N/A"}`)
 			.setTimestamp()
-			.setFooter(`Hosted by ${mc}`, message.client.user.displayAvatarURL());
+			.setFooter({ text: `Hosted by ${mc}`, iconURL: message.client.user.displayAvatarURL() });
 
 		channel.send({ content: `<@&${role.id}>`, embeds: [em] });
 
@@ -402,7 +402,7 @@ class GuildCommand implements SlashCommand {
 							.setTitle("Rank Expiration Timers")
 							.setDescription(description)
 							.setTimestamp()
-							.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+							.setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
 						await message.channel.send({ embeds: [em] });
 					} else {
 						const allEmbeds = [];
@@ -417,7 +417,7 @@ class GuildCommand implements SlashCommand {
 								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
 								.setDescription(desc)
 								.setTimestamp()
-								.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+								.setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
 							allEmbeds.push(em);
 						}
 						await createEmbedScrolling(message, allEmbeds);
@@ -514,7 +514,7 @@ class GuildCommand implements SlashCommand {
 		.addField("Bedwars Stars", stars, true)
 		.addField("Final Kill/Death Ratio", fkdr, true)
 		.setTimestamp()
-		.setFooter("This command only took me 2 hours :D", message.client.user.displayAvatarURL());
+		.setFooter({ text: "This command only took me 2 hours :D", iconURL: message.client.user.displayAvatarURL() });
 		await message.channel.send({ embeds: [result] });
 	}
 }

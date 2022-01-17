@@ -520,7 +520,7 @@ export class AliceHandler extends Handler {
                         .setTitle("Rank Expiration Timers")
                         .setDescription(description)
                         .setTimestamp()
-                        .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+                        .setFooter({ text: "This list updates every 30 seconds", iconURL: client.user.displayAvatarURL() });
                     await timerMsg.edit({ content: null, embeds: [em] });
                 } else {
                     const allEmbeds = [];
@@ -535,7 +535,7 @@ export class AliceHandler extends Handler {
                             .setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
                             .setDescription(desc)
                             .setTimestamp()
-                            .setFooter("This list updates every 30 seconds", client.user.displayAvatarURL());
+                            .setFooter({ text: "This list updates every 30 seconds", iconURL: client.user.displayAvatarURL() });
                         allEmbeds.push(em);
                     }
                     const filter = (reaction: MessageReaction) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name);

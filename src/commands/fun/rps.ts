@@ -18,7 +18,7 @@ class RPSCommand implements SlashCommand {
       .setTitle("Rock Paper Scissors")
       .setDescription("**React** when you are ready!\n\n🖐 **Paper**\n✌ **Scissors**\n👊 **Rock**")
       .setTimestamp()
-      .setFooter("I only have 30 seconds for you!", interaction.client.user.displayAvatarURL());
+      .setFooter({ text: "I only have 30 seconds for you!", iconURL: interaction.client.user.displayAvatarURL() });
     const msg = <Message> await interaction.reply({ embeds: [em], fetchReply: true });
     await this.finishOff(interaction, msg, em);
   }
@@ -29,7 +29,7 @@ class RPSCommand implements SlashCommand {
       .setTitle("Rock Paper Scissors")
       .setDescription("**React** when you are ready!\n\n🖐 **Paper**\n✌ **Scissors**\n👊 **Rock**")
       .setTimestamp()
-      .setFooter("I only have 30 seconds for you!", message.client.user.displayAvatarURL());
+      .setFooter({ text: "I only have 30 seconds for you!", iconURL: message.client.user.displayAvatarURL() });
     const msg = await message.channel.send({embeds: [em]});
     await this.finishOff(message, msg, em);
   }
@@ -39,7 +39,7 @@ class RPSCommand implements SlashCommand {
     const filter = (r, u) => options.includes(r.emoji.name) && u.id === (message instanceof Message ? message.author.id : message.user.id);
     var collected = await msg.awaitReactions({ filter, max: 1, time: 30000 });
     msg.reactions.removeAll().catch(() => {});
-    em.setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+    em.setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
     if(!collected || !collected.first()) {
       em.setDescription("You didn't react in time!");
       return msg.edit({embeds: [em]});

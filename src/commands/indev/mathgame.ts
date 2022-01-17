@@ -67,7 +67,7 @@ class MathGameCommand implements SlashCommand {
             .setTitle("Math Game Prototype")
             .setDescription(`Game Mode: **${questions > 0 ? `Limited Question Mode (${questions} Questions)` : time > 0 ? `Timer Mode (${moment.duration(Math.round(time / 1000), "seconds").format()})` : "Endless Mode"}**\n**${players.length < 2 ? "Singleplayer" : "Multiplayer"} Game**\nReact with "👌🏻" when you are ready!`)
             .setTimestamp()
-            .setFooter("I will wait for 60 seconds.", message.client.user.displayAvatarURL());
+            .setFooter({ text: "I will wait for 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
         msg = await msg.edit({ content: null, embeds: [em] });
         await msg.react("👌🏻");
         collected = undefined;
@@ -111,7 +111,7 @@ class MathGameCommand implements SlashCommand {
         em.setTitle("Game Over")
         .setDescription(`Here are the final scores after **${moment.duration(Math.round((Date.now() - now) / 1000), "seconds").format()}**!\n${players.map(x => `**${x.tag}** --- **${scores[x.id]}**\n`)}\nCongratulations to **${winner.name}** for winning this game with **${winner.score} points**!`)
         .setTimestamp()
-        .setFooter("Have a nice day! :)", message.client.user.displayAvatarURL());
+        .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
         await msg.edit({ content: null, embeds: [em] });
         //console.mathgames.delete(now);
     }

@@ -42,7 +42,7 @@ class GoogleCommand implements SlashCommand {
     .setTitle("Search results of " + query)
     .setDescription(results.join("\n"))
     .setTimestamp()
-    .setFooter("Have a nice day! :)", client.user.displayAvatarURL());
+    .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
     return Embed;
   }
 }

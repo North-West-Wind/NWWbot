@@ -209,19 +209,19 @@ class MathCommand implements SlashCommand {
         .setTitle("Math Operators/Functions/Constants List [Page 1/3]")
         .setDescription(strings.join("\n"))
         .setTimestamp()
-        .setFooter("Have a nice day! :D", message.client.user.displayAvatarURL());
+        .setFooter({ text: "Have a nice day! :D", iconURL: message.client.user.displayAvatarURL() });
         var em2 = new Discord.MessageEmbed()
         .setColor(color())
         .setTitle("Math Operators/Functions/Constants List [Page 2/3]")
         .setDescription(strings2.join("\n"))
         .setTimestamp()
-        .setFooter("Have a nice day! :D", message.client.user.displayAvatarURL());
+        .setFooter({ text: "Have a nice day! :D", iconURL: message.client.user.displayAvatarURL() });
         var em3 = new Discord.MessageEmbed()
         .setColor(color())
         .setTitle("Math Operators/Functions/Constants List [Page 3/3]")
         .setDescription(strings3.join("\n"))
         .setTimestamp()
-        .setFooter("Have a nice day! :D", message.client.user.displayAvatarURL());
+        .setFooter({ text: "Have a nice day! :D", iconURL: message.client.user.displayAvatarURL() });
         const allEmbeds = [em, em2, em3];
         await createEmbedScrolling(message, allEmbeds);
     }

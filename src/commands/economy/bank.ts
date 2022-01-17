@@ -39,7 +39,7 @@ class BankCommand implements SlashCommand {
       .addField("Bank", "$" + bank)
       .addField("Cash", "$" + cash)
       .setTimestamp()
-      .setFooter(`React to navigate.`, client.user.displayAvatarURL());
+      .setFooter({ text: `React to navigate.`, iconURL: client.user.displayAvatarURL() });
     var msg = await msgOrRes(message, Embed);
     await msg.react("1️⃣");
     await msg.react("2️⃣");
@@ -55,7 +55,7 @@ class BankCommand implements SlashCommand {
         .addField("Bank", "$" + bank)
         .addField("Cash", "$" + cash)
         .setTimestamp()
-        .setFooter(`Have a nice day! :)`, message.client.user.displayAvatarURL());
+        .setFooter({ text: `Have a nice day! :)`, iconURL: message.client.user.displayAvatarURL() });
       await msg.edit({embeds: [embed]});
       await msg.react("1️⃣");
       await msg.react("2️⃣");
@@ -70,7 +70,7 @@ class BankCommand implements SlashCommand {
           .setTitle("Deposit")
           .setDescription("Please enter the amount you want to deposit.\n(Can also enter `all`, `half` or `quarter`)")
           .setTimestamp()
-          .setFooter("Please enter within 60 seconds.", message.client.user.displayAvatarURL());
+          .setFooter({ text: "Please enter within 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
         await msg.edit({embeds: [depositEmbed]});
         async function depositNotValid() {
           const depositedEmbed = new Discord.MessageEmbed()
@@ -78,7 +78,7 @@ class BankCommand implements SlashCommand {
             .setTitle("Deposition Failed")
             .setDescription("That is not a valid amount!")
             .setTimestamp()
-            .setFooter("Returning to main page in 3 seconds...", message.client.user.displayAvatarURL());
+            .setFooter({ text: "Returning to main page in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
           await msg.edit({embeds: [depositedEmbed]});
           await wait(3000);
           await MainPage();
@@ -102,7 +102,7 @@ class BankCommand implements SlashCommand {
             .setTitle("Deposition Successful")
             .setDescription("Deposited **$" + deposits + "** into bank!")
             .setTimestamp()
-            .setFooter("Returning to main page in 3 seconds...", message.client.user.displayAvatarURL());
+            .setFooter({ text: "Returning to main page in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
           await msg.edit({embeds: [depositedEmbed]});
           await wait(3000);
           await MainPage();
@@ -116,7 +116,7 @@ class BankCommand implements SlashCommand {
           .setTitle("Withdrawal")
           .setDescription("Please enter the amount you want to withdraw.\n(Can also enter `all`, `half` or `quarter`)")
           .setTimestamp()
-          .setFooter("Please enter within 60 seconds.", message.client.user.displayAvatarURL());
+          .setFooter({ text: "Please enter within 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
         await msg.edit({embeds: [withdrawEmbed]});
         async function withdrawNotValid() {
           const withdrawedEmbed = new Discord.MessageEmbed()
@@ -124,7 +124,7 @@ class BankCommand implements SlashCommand {
           .setTitle("Withdrawal Failed")
           .setDescription("That is not a valid amount!")
           .setTimestamp()
-          .setFooter("Returning to main page in 3 seconds...", message.client.user.displayAvatarURL());
+          .setFooter({ text: "Returning to main page in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
           await msg.edit({embeds: [withdrawedEmbed]});
           await wait(3000);
           await MainPage();
@@ -148,7 +148,7 @@ class BankCommand implements SlashCommand {
             .setTitle("Withdrawal Successful")
             .setDescription("Withdrawed **$" + withdraws + "** from bank!")
             .setTimestamp()
-            .setFooter("Returning to main page in 3 seconds...", message.client.user.displayAvatarURL());
+            .setFooter({ text: "Returning to main page in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
           await msg.edit({embeds: [withdrawedEmbed]});
           await wait(3000);
           await MainPage();

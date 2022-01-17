@@ -53,7 +53,7 @@ class ProfileCommand implements SlashCommand {
             .addField("Joined", joinedTime, true)
             .setColor(color())
             .setTimestamp()
-            .setFooter("Have a nice day! :)", guild.client.user.displayAvatarURL());
+            .setFooter({ text: "Have a nice day! :)", iconURL: guild.client.user.displayAvatarURL() });
         return Embed;
     }
 }
