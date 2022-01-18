@@ -4,7 +4,7 @@ import { NorthClient, Card, SlashCommand, Item, ClientStorage } from "./classes/
 import { twoDigits, deepReaddir } from "./function";
 import * as mysql from "mysql2";
 import isOnline from "is-online";
-import * as winston from "winston";
+import SimpleNodeLogger from "simple-node-logger";
 import { AliceHandler, CanaryHandler, Handler } from "./handler";
 const { version } = require("../package.json");
 var globalClient: NorthClient;
@@ -41,20 +41,8 @@ function reloadClient() {
 }
 
 export default async (client: NorthClient) => {
-  const logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    defaultMeta: { service: 'user-service' },
-    transports: [
-      new winston.transports.File({ filename: `error_${client.id}.log`, level: 'error' }),
-      new winston.transports.File({ filename: `console_${client.id}.log` }),
-    ],
-  });
-  if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston.transports.Console({
-      format: winston.format.simple(),
-    }));
-  }
+  if (!fs.existsSync("log")) fs.mkdirSync("log");
+  SimpleNodeLogger.createSimpleFileLogger(`log/console_${client.id}.log`);
 
   const mysql_config = {
     connectTimeout: 30000,
