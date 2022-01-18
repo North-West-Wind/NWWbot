@@ -4,10 +4,11 @@ import { NorthClient, Card, SlashCommand, Item, ClientStorage } from "./classes/
 import { twoDigits, deepReaddir } from "./function";
 import * as mysql from "mysql2";
 import isOnline from "is-online";
-import SimpleNodeLogger from "simple-node-logger";
+import SimpleNodeLogger, { Logger } from "simple-node-logger";
 import { AliceHandler, CanaryHandler, Handler } from "./handler";
 const { version } = require("../package.json");
 var globalClient: NorthClient;
+var logger: Logger;
 
 process.on('unhandledRejection', (reason) => {
   console.error('Reason:', reason);
@@ -42,10 +43,21 @@ function reloadClient() {
 
 export default async (client: NorthClient) => {
   if (!fs.existsSync("log")) fs.mkdirSync("log");
-  SimpleNodeLogger.createSimpleLogger({
+  logger = SimpleNodeLogger.createSimpleLogger({
     logFilePath: `log/console_${client.id}.log`,
     timestampFormat:  'YYYY-MM-DD HH:mm:ss.SSS'
   });
+  logger.setLevel("all");
+  const _log = console.log;
+  const _error = console.error;
+  console.log = function (message: string, ...data: any[]) {
+    _log(message, ...data);
+    logger.info(message, ...data);
+  }
+  console.error = function (message: string, ...data: any[]) {
+    _error(message, ...data);
+    logger.error(message, ...data);
+  }
 
   const mysql_config = {
     connectTimeout: 30000,
