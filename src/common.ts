@@ -48,16 +48,8 @@ export default async (client: NorthClient) => {
     timestampFormat:  'YYYY-MM-DD HH:mm:ss.SSS'
   });
   logger.setLevel("all");
-  const _log = console.log;
-  const _error = console.error;
-  console.log = function (message: string, ...data: any[]) {
-    _log(message, ...data);
-    logger.info(message, ...data);
-  }
-  console.error = function (message: string, ...data: any[]) {
-    _error(message, ...data);
-    logger.error(message, ...data);
-  }
+  console.log = (message: string, ...data: any[]) => logger.info(message, ...data);
+  console.error = (message: string, ...data: any[]) => logger.error(message, ...data);
 
   const mysql_config = {
     connectTimeout: 30000,
