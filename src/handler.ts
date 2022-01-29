@@ -6,7 +6,7 @@ formatSetup(moment);
 import { RowDataPacket } from "mysql2";
 import { endGiveaway } from "./commands/miscellaneous/giveaway";
 import { endPoll } from "./commands/miscellaneous/poll";
-import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, wait, nameToUuid, color, fixGuildRecord } from "./function";
+import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord } from "./function";
 import { setQueue, stop } from "./helpers/music";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient";
 import { Connection, PoolConnection } from "mysql2/promise";
@@ -15,7 +15,6 @@ import * as filter from "./helpers/filter";
 import { sCategories } from "./commands/information/help";
 import common from "./common";
 import { init } from "./helpers/addTrack";
-import { updateGuildMemberMC } from "./alice";
 
 const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
 
