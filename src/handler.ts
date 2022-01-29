@@ -15,6 +15,7 @@ import * as filter from "./helpers/filter";
 import { sCategories } from "./commands/information/help";
 import common from "./common";
 import { init } from "./helpers/addTrack";
+import { updateGuildMemberMC } from "./alice";
 
 const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
 
@@ -633,10 +634,10 @@ export class AliceHandler extends Handler {
                     if (f.status == 404) return await msg.edit("This player doesn't exist!").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                     res = await f.json();
                 } catch (err: any) {
-                    return await msg.edit("The Hypixel API is down.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
+                    return await msg.edit("Failed to request Hypixel API!").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                 }
                 const hyDc = res.links.DISCORD;
-                if (hyDc !== message.author.tag) return await msg.edit("This Hypixel account is not linked to your Discord account!").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
+                if (hyDc !== message.author.tag) return await msg.edit("⚠️This Hypixel account is not linked to your Discord account!\nhttps://imgur.com/8ILZ3LX").then(msg => setTimeout(() => msg.delete().catch(() => {}), 60000));
                 const con = await client.pool.getConnection();
                 var [results] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                 if (results.length == 0) {
@@ -649,58 +650,7 @@ export class AliceHandler extends Handler {
                     console.log("Updated record for mc-name.");
                 }
                 con.release();
-                const mcLen = res.username.length + 1;
-                const bw = res.stats.BedWars;
-                const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;
-                console.log(`Attempting to change nickname of ${message.author.tag} to ${firstHalf} ${res.username}`);
-                if (firstHalf.length + mcLen > 32) await message.member.setNickname(`${firstHalf} ${res.username.slice(0, 28 - firstHalf.length)}...`);
-                else await message.member.setNickname(`${firstHalf} ${res.username}`);
-                const gInfo = <any> await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
-                const roles = message.member.roles;
-                if (gInfo.id === "5b25306a0cf212fe4c98d739") await roles.add("622319008758104064");
-                await roles.add("676754719120556042");
-                await roles.add("837345908697989171");
-                await roles.remove("837345919010603048");
-
-                if (bw.level < 100) await roles.add("851471525802803220");
-                else if (bw.level < 200) await roles.add("851469005168181320");
-                else if (bw.level < 300) await roles.add("851469138647842896");
-                else if (bw.level < 400) await roles.add("851469218310389770");
-                else if (bw.level < 500) await roles.add("851469264664789022");
-                else if (bw.level < 600) await roles.add("851469323444944907");
-                else if (bw.level < 700) await roles.add("851469358076788766");
-                else if (bw.level < 800) await roles.add("851469389806829596");
-                else if (bw.level < 900) await roles.add("851469422971584573");
-                else if (bw.level < 1000) await roles.add("851469455791489034");
-                else if (bw.level < 1100) await roles.add("851469501115793408");
-                else if (bw.level < 1200) await roles.add("851469537030307870");
-                else if (bw.level < 1300) await roles.add("851469565287858197");
-                else if (bw.level < 1400) await roles.add("851469604840013905");
-                else if (bw.level < 1500) await roles.add("851469652940161084");
-                else if (bw.level < 1600) await roles.add("851469683764887572");
-                else if (bw.level < 1700) await roles.add("851469718955229214");
-                else if (bw.level < 1800) await roles.add("851469754677985280");
-                else if (bw.level < 1900) await roles.add("851469812050690068");
-                else if (bw.level < 2000) await roles.add("851469858675097660");
-                else if (bw.level < 2100) await roles.add("851469898547068938");
-                else if (bw.level < 2200) await roles.add("851469933606862848");
-                else if (bw.level < 2300) await roles.add("851469969685479424");
-                else if (bw.level < 2400) await roles.add("851470006520905748");
-                else if (bw.level < 2500) await roles.add("851470041031245854");
-                else if (bw.level < 2600) await roles.add("851470070022406204");
-                else if (bw.level < 2700) await roles.add("851470099558039622");
-                else if (bw.level < 2800) await roles.add("851470140410822677");
-                else if (bw.level < 2900) await roles.add("851470173503881218");
-                else if (bw.level < 3000) await roles.add("851470230370910248");
-                else await roles.add("851471153188569098");
-
-                await roles.remove(["662895829815787530", "837271174827212850", "837271174073155594", "837271173027856404", "837271172319674378", "837271171619356692"]);
-                if (res.rank === "YOUTUBER") await roles.add("662895829815787530");
-                else if (res.rank === "VIP") await roles.add("837271174827212850");
-                else if (res.rank === "VIP_PLUS") await roles.add("837271174073155594");
-                else if (res.rank === "MVP") await roles.add("837271173027856404");
-                else if (res.rank === "MVP_PLUS") await roles.add("837271172319674378");
-                else if (res.rank === "MVP_PLUS_PLUS") await roles.add("837271171619356692");
+                await updateGuildMemberMC(message.member, mcUuid);
             } catch (err: any) {
                 console.error(err);
                 await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));

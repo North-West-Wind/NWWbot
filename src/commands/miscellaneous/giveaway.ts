@@ -90,7 +90,7 @@ async function setupGiveaway(message: NorthMessage | NorthInteraction, channel: 
     .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
   const giveawayMsg = giveawayEmo + "**GIVEAWAY**" + giveawayEmo;
   var msg = await channel.send({ content: giveawayMsg, embeds: [Embed] });
-  await client.pool.query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${escape(item)}', '${winnerCount}', '${newDateSql}', '${escape(giveawayEmo)}', '${author.id}', '${color}', '${JSON.stringify(weight)}')`);
+  await client.pool.query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${escape(item)}', '${winnerCount}', '${newDateSql}', '${escape(giveawayEmo)}', '${author.id}', '${c}', '${JSON.stringify(weight)}')`);
   await msg.react(giveawayEmo);
   setTimeout_(async () => {
     const [res] = <RowDataPacket[][]>await client.pool.query(`SELECT * FROM giveaways WHERE id = '${msg.id}'`);
