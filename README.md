@@ -25,7 +25,7 @@ There's a homepage for me somewhere in the Internet. If you want to visit it, ju
 Want to make requests on new commands? You can do that in my [server](https://discord.gg/n67DUfQ)! For bug reports, you can also do that in my [server](https://discord.gg/n67DUfQ)! North is planning to make another way for users to submit suggestions and issues without joining any Discord servers, so stay tuned!
 
 # Your Data
-Some might be concerned whether you are getting tracked while using me in your server. The answer is, I do store some of your data, but they are only messages/attachments provided in several commands, such as `play`, `add`, `config`, `prefix`, etc.
+Some might be concerned whether you are getting tracked while using me in your server. The answer is, I do store some of your data, but they are only messages/attachments provided in several commands, such as `play`, `add`, `config`, `prefix`, etc. Said data is only stored locally where I am running on (a.k.a. North's Raspberry Pi).
 
 If you don't trust me, take a look at my code. I'm an honest man.  
 If you still don't trust me, you can ask North to delete the data stored.
