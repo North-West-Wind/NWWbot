@@ -91,6 +91,9 @@ class PollCommand implements SlashCommand {
     }
 
     async create(message: NorthMessage, channelID: string, durationStr: string, title: string) {
+        if (!channelID) return await message.channel.send("Missing channel!");
+        if (!durationStr) return await message.channel.send("Missing duration!");
+        if (!title) return await message.channel.send("Missing title!");
         const filter = m => m.author.id === message.author.id;
         const channel = <Discord.TextChannel> await message.client.channels.fetch(channelID);
         if (!channel) return await msg.edit(channelID + " isn't a valid channel!");
