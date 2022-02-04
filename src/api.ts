@@ -34,4 +34,4 @@ app.get("/api/:query", async(req, res) => {
     res.json(results);
 });
 
-app.listen(4269);
+app.listen(4269, () => console.log("API Ready!"));
