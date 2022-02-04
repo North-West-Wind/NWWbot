@@ -1,9 +1,8 @@
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient"
 import * as Discord from "discord.js";
-import { color, wait, genPermMsg, ID, msgOrRes } from "../../function";
+import { color, wait, genPermMsg, ID, msgOrRes, query } from "../../function";
 import { globalClient as client } from "../../common";
-import { RowDataPacket } from "mysql2";
 
 
 class ShopCommand implements SlashCommand {
@@ -36,13 +35,12 @@ class ShopCommand implements SlashCommand {
     }
 
     async handleMenu(message: NorthMessage | NorthInteraction) {
-        const pool = client.pool;
         const c = color();
         const author = message instanceof Discord.Message ? message.author : message.user;
         mainMenu();
         async function mainMenu(msg = undefined) {
             var mesg = msg;
-            var [results] = <RowDataPacket[][]> await pool.query(`SELECT * FROM users WHERE id = '${author.id}'`);
+            var results = await query(`SELECT * FROM users WHERE id = '${author.id}'`);
             var cash = 0;
             if (results.length == 1) cash = results[0].currency;
             const shop = new Discord.MessageEmbed()
@@ -72,7 +70,7 @@ class ShopCommand implements SlashCommand {
 
             async function shopMenu() {
                 const allItems = [];
-                var [results] = <RowDataPacket[][]> await pool.query(`SELECT * FROM shop WHERE guild = '${message.guild.id}' OR guild = ''`);
+                var results = await query(`SELECT * FROM shop WHERE guild = '${message.guild.id}' OR guild = ''`);
                 for (let i = 0; i < results.length; i++) allItems.push(`**${i + 1}.** ${results[i].name} - **\$${results[i].buy_price}** : **${results[i].stock_limit > -1 ? results[i].stock_limit : "∞"}**`);
 
                 const menu = new Discord.MessageEmbed()
@@ -110,7 +108,7 @@ class ShopCommand implements SlashCommand {
             }
 
             async function viewItem(msg, id) {
-                var [result] = <RowDataPacket[][]> await pool.query("SELECT * FROM shop WHERE id = '" + id + "'");
+                var result = await query("SELECT * FROM shop WHERE id = '" + id + "'");
                 if (result.length == 0) {
                     var itemEmbed = new Discord.MessageEmbed()
                         .setTimestamp()
@@ -165,7 +163,7 @@ class ShopCommand implements SlashCommand {
                             itemEmbed.setTitle("You bought " + result[0].name + "!")
                                 .setDescription("Returning to main menu in 3 seconds...")
                                 .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
-                            const [IResult] = <RowDataPacket[][]> await pool.query(`SELECT items FROM users WHERE id = '${author.id}'`);
+                            const IResult = await query(`SELECT items FROM users WHERE id = '${author.id}'`);
                             if (IResult.length == 1 && result[0].buy_limit > 0) {
                                 const items = JSON.parse(unescape(IResult[0].items));
                                 if (!items[result[0].id]) items[result[0].id] = 0;
@@ -247,20 +245,19 @@ class ShopCommand implements SlashCommand {
                                 if (run.length > 0) await message.channel.send(run);
                             }
                             var paid = cash - result[0].buy_price;
-                            const con = await pool.getConnection();
                             try {
-                                await con.query(`UPDATE users SET currency = ${paid} WHERE id = '${author.id}'`);
+                                await query(`UPDATE users SET currency = ${paid} WHERE id = '${author.id}'`);
                                 if (!result[0].must_use) {
                                     if (IResult.length === 0) {
                                         const items = {};
                                         items[result[0].id] = 0;
                                         items[result[0].id] += 1;
-                                        await con.query(`INSERT INTO users(id, items) VALUES('${author.id}', '${escape(JSON.stringify(items))}')`);
+                                        await query(`INSERT INTO users(id, items) VALUES('${author.id}', '${escape(JSON.stringify(items))}')`);
                                     } else {
                                         const items = JSON.parse(unescape(IResult[0].items));
                                         if (!items[result[0].id]) items[result[0].id] = 0;
                                         items[result[0].id] += 1;
-                                        await con.query(`UPDATE users SET items = '${escape(JSON.stringify(items))}' WHERE id = '${author.id}'`);
+                                        await query(`UPDATE users SET items = '${escape(JSON.stringify(items))}' WHERE id = '${author.id}'`);
                                     }
                                 }
                             } catch (err: any) {
@@ -270,7 +267,6 @@ class ShopCommand implements SlashCommand {
                             await msg.edit(itemEmbed);
                             await wait(3000);
                             await mainMenu(msg);
-                            con.release();
                         }
                     } else if (reaction.emoji.name === "2️⃣") {
                         itemEmbed.setTitle("You want to look at the menu again.")
@@ -353,7 +349,7 @@ class ShopCommand implements SlashCommand {
         const mustUse = !!parseInt(collected4.first().content);
         await msg.edit(`Added item **${name}** to the server shop for $${buyPrice}. Each user will be able to own ${limit < 1 ? "as many as they want" : `${limit} of them`}. Customers ${mustUse ? "must" : "will not have to"} use them upon purchase.`);
         try {
-            await client.pool.query(`INSERT INTO shop VALUES('${await ID()}', '${message.guild.id}', '${name}', '${description}', ${buyPrice}, ${sellPrice}, ${limit}, ${stock}, ${mustUse ? 1 : 0}, '${command}', '${args}')`);
+            await query(`INSERT INTO shop VALUES('${await ID()}', '${message.guild.id}', '${name}', '${description}', ${buyPrice}, ${sellPrice}, ${limit}, ${stock}, ${mustUse ? 1 : 0}, '${command}', '${args}')`);
             if (message instanceof Discord.Message) await message.channel.send("Item added to database!");
             else await message.followUp("Item added to database!");
         } catch (err: any) {

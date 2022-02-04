@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 import { AliceHandler } from "./handler";
 import { NorthClient, ClientStorage } from "./classes/NorthClient";
 import { RowDataPacket } from "mysql2";
-import { getFetch, profile, updateGuildMemberMC } from "./function";
+import { getFetch, profile, query, updateGuildMemberMC } from "./function";
 import { Intents, Options, VoiceChannel } from "discord.js";
 dotenv.config();
 
@@ -36,7 +36,7 @@ AliceHandler.setup(client, process.env.TOKEN1);
 setInterval(async () => {
   try {
     const guild = await client.guilds.fetch("622311594654695434");
-    const [results] = <RowDataPacket[][]> await client.pool.query(`SELECT uuid, dcid FROM dcmc`);
+    const results = await query(`SELECT uuid, dcid FROM dcmc`);
     for (const result of results) {
       const member = await guild.members.fetch(result.dcid);
       if (!member) continue;

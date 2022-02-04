@@ -1,8 +1,6 @@
-import { RowDataPacket } from "mysql2";
-
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
-import { findUser, color } from "../../function";
+import { findUser, color, query } from "../../function";
 
 class UnWarnCommand implements SlashCommand {
     name = "unwarn"
@@ -23,10 +21,10 @@ class UnWarnCommand implements SlashCommand {
         const guild = interaction.guild;
         const user = interaction.options.getUser("user");
         const embeds = this.unwarnEmbeds(guild, interaction.user, user);
-        const [results] = <RowDataPacket[][]>await interaction.client.pool.query(`SELECT * FROM warn WHERE user = '${user.id}' AND guild = '${guild.id}'`);
+        const results = await query(`SELECT * FROM warn WHERE user = '${user.id}' AND guild = '${guild.id}'`);
         if (results.length == 0) return await interaction.reply("This user haven't been warned before.");
         else try {
-            await interaction.client.pool.query(`DELETE FROM warn WHERE user = '${user.id}' AND guild = '${guild.id}'`);
+            await query(`DELETE FROM warn WHERE user = '${user.id}' AND guild = '${guild.id}'`);
             user.send({embeds: [embeds[0]]}).catch(() => { });
             return await interaction.reply({embeds: [embeds[1]]});
         } catch (error: any) {
@@ -37,18 +35,16 @@ class UnWarnCommand implements SlashCommand {
     async run(message: NorthMessage, args: string[]) {
         const user = await findUser(message, args[0]);
         if (!user) return;
-        const con = await message.pool.getConnection();
         const embeds = this.unwarnEmbeds(message.guild, message.author, user);
-        var [results] = <RowDataPacket[][]>await con.query(`SELECT * FROM warn WHERE user = '${user.id}' AND guild = '${message.guild.id}'`);
+        var results = await query(`SELECT * FROM warn WHERE user = '${user.id}' AND guild = '${message.guild.id}'`);
         if (results.length == 0) await message.channel.send("This user haven't been warned before.");
         else try {
-            await con.query(`DELETE FROM warn WHERE user = '${user.id}' AND guild = '${message.guild.id}'`);
+            await query(`DELETE FROM warn WHERE user = '${user.id}' AND guild = '${message.guild.id}'`);
             user.send({embeds: [embeds[0]]}).catch(() => { });
             await message.channel.send({embeds: [embeds[1]]});
         } catch (error: any) {
             await message.channel.send({embeds: [embeds[2]]});
         }
-        con.release();
     }
 
     unwarnEmbeds(guild: Discord.Guild, author: Discord.User, user: Discord.User) {

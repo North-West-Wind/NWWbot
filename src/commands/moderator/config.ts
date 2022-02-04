@@ -1,7 +1,7 @@
 import { Message, MessageReaction, User } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd } from "../../function";
+import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd, query } from "../../function";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
 import { isImageUrl } from "../../function";
@@ -54,7 +54,7 @@ class ConfigCommand implements SlashCommand {
       config.token = generated;
       NorthClient.storage.guilds[guild.id] = config;
       await interaction.reply("See you in DM!");
-      await client.pool.query(`UPDATE servers SET token = '${config.token}' WHERE id = '${guild.id}'`);
+      await query(`UPDATE servers SET token = '${config.token}' WHERE id = '${guild.id}'`);
       return;
     } catch (err: any) {
       console.error(err);
@@ -74,7 +74,7 @@ class ConfigCommand implements SlashCommand {
       } else if (args[0] !== "new") return await message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
       config.token = generated;
       NorthClient.storage.guilds[guild.id] = config;
-      await message.pool.query(`UPDATE servers SET token = '${config.token}' WHERE id = '${guild.id}'`);
+      await query(`UPDATE servers SET token = '${config.token}' WHERE id = '${guild.id}'`);
     } catch (err: any) {
       message.reply("There was an error trying to update the token! This token will be temporary.");
       console.error(err);
@@ -171,7 +171,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.welcome.message = contents;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET welcome = '${contents}' WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET welcome = '${contents}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Message/Set**\nMessage received! Returning to panel main page in 3 seconds...");
         } catch (err: any) {
           console.error(err);
@@ -188,7 +188,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.welcome.message = null;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET welcome = NULL WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET welcome = NULL WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Message/Reset**\nWelcome Message was reset! Returning to panel main page in 3 seconds...");
         } catch (err: any) {
           console.error(err);
@@ -230,7 +230,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.welcome.channel = channelID;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET wel_channel = '${channelID}' WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET wel_channel = '${channelID}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Channel/Set**\nChannel received! Returning to panel main page in 3 seconds...");
         } catch (err: any) {
           console.error(err);
@@ -247,7 +247,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.welcome.channel = null;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET wel_channel = NULL WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET wel_channel = NULL WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Channel/Reset**\nWelcome Channel received! Returning to panel main page in 3 seconds...");
         } catch (err: any) {
           console.error(err);
@@ -286,12 +286,11 @@ class ConfigCommand implements SlashCommand {
           await msg.edit({ embeds: [panelEmbed] });
           return setTimeout(() => start(msg), 3000);
         }
-        const con = await client.pool.getConnection();
         try {
           if (config.welcome.image) attachment.concat(config.welcome.image);
           config.welcome.image = attachment;
           NorthClient.storage.guilds[message.guild.id] = config;
-          con.query(`UPDATE servers SET wel_img = '${JSON.stringify(attachment)}' WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET wel_img = '${JSON.stringify(attachment)}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Image/Set**\nImage received! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -300,7 +299,6 @@ class ConfigCommand implements SlashCommand {
           console.error(err);
           await message.reply("there was an error trying to update the configuration!");
         }
-        con.release();
       }
       if (receivedID == 1) {
         panelEmbed.setDescription("**Welcome Message/Image/Reset**\nResetting...")
@@ -310,7 +308,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.welcome.image = null;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query("UPDATE servers SET wel_img = NULL WHERE id = " + message.guild.id);
+          await query("UPDATE servers SET wel_img = NULL WHERE id = " + message.guild.id);
           panelEmbed.setDescription("**Welcome Message/Image/Set**\nImage received! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -357,7 +355,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.welcome.autorole = roles;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET autorole = '${JSON.stringify(roles)}' WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET autorole = '${JSON.stringify(roles)}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Welcome Message/Autorole/Set**\nRoles received! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -375,7 +373,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.welcome.autorole = [];
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query("UPDATE servers SET autorole = '[]' WHERE id = " + message.guild.id);
+          await query("UPDATE servers SET autorole = '[]' WHERE id = " + message.guild.id);
           panelEmbed.setDescription("**Welcome Message/Autorole/Reset**\nAutorole was reset! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -428,7 +426,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.leave.message = contents;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET leave_msg = ${contents} WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET leave_msg = ${contents} WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Leave Message/Message/Set**\nMessage received! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -447,7 +445,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.leave.message = null;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query("UPDATE servers SET leave_msg = NULL WHERE id = " + message.guild.id);
+          await query("UPDATE servers SET leave_msg = NULL WHERE id = " + message.guild.id);
           panelEmbed.setDescription("**Leave Message/Message/Reset**\nLeave Message was reset! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -493,7 +491,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.leave.channel = channelID;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET leave_channel = '${channelID}' WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET leave_channel = '${channelID}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Leave Message/Channel/Set**\nChannel received! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -510,7 +508,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.leave.channel = null;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET leave_channel = NULL WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET leave_channel = NULL WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Leave Message/Channel/Reset**\nLeave Channel was reset! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -547,7 +545,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.giveaway = newEmo;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET giveaway = '${newEmo}' WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET giveaway = '${newEmo}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Giveaway Emoji/Set**\nEmoji received! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -564,7 +562,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.giveaway = "🎉";
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET giveaway = '🎉' WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET giveaway = '🎉' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Giveaway Emoji/Reset**\nGiveaway Emoji was reset! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -617,7 +615,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.boost.message = contents;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET boost_msg = ${contents} WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET boost_msg = ${contents} WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Boost Message/Message/Set**\nMessage received! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -635,7 +633,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.boost.message = null;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET boost_msg = NULL WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET boost_msg = NULL WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Boost Message/Message/Reset**\nLeave Message was reset! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -680,7 +678,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.boost.channel = channelID;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET boost_channel = '${channelID}' WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET boost_channel = '${channelID}' WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Boost Message/Channel/Set**\nChannel received! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -696,7 +694,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.boost.channel = null;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET boost_channel = NULL WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET boost_channel = NULL WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Boost Message/Channel/Reset**Boost Channel was reset! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -723,7 +721,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.safe = true;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET safe = 1 WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET safe = 1 WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Safe Mode/Enable**\nEnabled Safe Mode! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });
@@ -749,7 +747,7 @@ class ConfigCommand implements SlashCommand {
         try {
           config.safe = false;
           NorthClient.storage.guilds[message.guild.id] = config;
-          await client.pool.query(`UPDATE servers SET safe = 0 WHERE id = '${message.guild.id}'`);
+          await query(`UPDATE servers SET safe = 0 WHERE id = '${message.guild.id}'`);
           panelEmbed.setDescription("**Safe Mode/Disable**\nDisabled Safe Mode! Returning to panel main page in 3 seconds...")
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
           await msg.edit({ embeds: [panelEmbed] });

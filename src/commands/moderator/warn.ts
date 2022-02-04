@@ -1,8 +1,7 @@
 
 import { Guild, GuildMember } from "discord.js";
-import { Pool, RowDataPacket } from "mysql2/promise";
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { commonModerationEmbed, findMember } from "../../function";
+import { commonModerationEmbed, findMember, query } from "../../function";
 
 class WarnCommand implements SlashCommand {
   name = "warn"
@@ -27,19 +26,18 @@ class WarnCommand implements SlashCommand {
   ]
 
   async execute(interaction: NorthInteraction) {
-    const author = interaction.member;
     const guild = interaction.guild;
     const member = <GuildMember>interaction.options.getMember("user");
     const reason = interaction.options.getString("reason");
     const warnEmbeds = commonModerationEmbed(guild, interaction.user, member, "warn", "warned", reason);
     try {
-      const amount = await this.warn(guild, member, interaction.client.pool, reason);
+      const amount = await this.warn(guild, member, reason);
       member.user.send({ embeds: [warnEmbeds[0]] }).catch(() => { });
       if (amount >= 3) {
         const banEmbeds = commonModerationEmbed(guild, interaction.user, member, "ban", "banned", "Received 3 warnings.");
         await member.ban({ reason: "Received 3 warnings." });
         member.user.send({ embeds: [banEmbeds[0]] }).catch(() => { });
-        await interaction.client.pool.query(`DELETE FROM warn WHERE guild = '${guild.id}' AND user = '${member.id}'`);
+        await query(`DELETE FROM warn WHERE guild = '${guild.id}' AND user = '${member.id}'`);
       }
       await interaction.reply({ embeds: [warnEmbeds[1]] });
     } catch (err: any) {
@@ -54,13 +52,13 @@ class WarnCommand implements SlashCommand {
     if (args[1]) reason = args.slice(1).join(" ");
     const warnEmbeds = commonModerationEmbed(message.guild, message.author, member, "warn", "warned", reason);
     try {
-      const amount = await this.warn(message.guild, member, message.pool, reason);
+      const amount = await this.warn(message.guild, member, reason);
       member.user.send({ embeds: [warnEmbeds[0]] }).catch(() => { });
       if (amount >= 3) {
         const banEmbeds = commonModerationEmbed(message.guild, message.author, member, "ban", "banned", "Received 3 warnings.");
         await member.ban({ reason: "Received 3 warnings." });
         member.user.send({ embeds: [banEmbeds[0]] }).catch(() => { });
-        await message.pool.query(`DELETE FROM warn WHERE guild = '${message.guild.id}' AND user = '${member.id}'`);
+        await query(`DELETE FROM warn WHERE guild = '${message.guild.id}' AND user = '${member.id}'`);
       }
       await message.channel.send({ embeds: [warnEmbeds[1]] });
     } catch (err: any) {
@@ -68,10 +66,9 @@ class WarnCommand implements SlashCommand {
     }
   }
 
-  async warn(guild: Guild, member: GuildMember, pool: Pool, reason: string) {
-    const con = pool.getConnection();
-    await pool.query(`INSERT INTO warn VALUES (NULL, '${guild.id}', '${member.id}', '${escape(reason)}')`);
-    const [results] = <RowDataPacket[][]>await pool.query(`SELECT * FROM warn WHERE guild = '${guild.id}' AND user = '${member.id}'`);
+  async warn(guild: Guild, member: GuildMember, reason: string) {
+    await query(`INSERT INTO warn VALUES (NULL, '${guild.id}', '${member.id}', '${escape(reason)}')`);
+    const results = await query(`SELECT * FROM warn WHERE guild = '${guild.id}' AND user = '${member.id}'`);
     return results.length;
   }
 }

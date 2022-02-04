@@ -1,11 +1,8 @@
 import { Message } from "discord.js";
-import { RowDataPacket } from "mysql2";
-import { Connection } from "mysql2/promise";
-
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { globalClient as client } from "../../common";
 import * as Discord from "discord.js";
-import { color, msgOrRes, wait } from "../../function";
+import { color, msgOrRes, query, wait } from "../../function";
 
 class BankCommand implements SlashCommand {
   name = "bank"
@@ -13,22 +10,18 @@ class BankCommand implements SlashCommand {
   category = 2
   
   async execute(interaction: NorthInteraction) {
-    const con = await interaction.client.pool.getConnection();
-    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM users WHERE id = '${interaction.user.id}'`);
+    var results = await query(`SELECT * FROM users WHERE id = '${interaction.user.id}'`);
     if (results.length == 0) await interaction.reply("You don't have any bank account registered. Use `/work` to work and have an account registered!");
-    else await this.useEmbeds(interaction, con, results[0]);
-    con.release();
+    else await this.useEmbeds(interaction, results[0]);
   }
 
   async run(message: NorthMessage) {
-    const con = await message.pool.getConnection();
-    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM users WHERE id = '${message.author.id}'`);
+    var results = await query(`SELECT * FROM users WHERE id = '${message.author.id}'`);
     if (results.length == 0) await message.channel.send("You don't have any bank account registered. Use `" + message.prefix + "work` to work and have an account registered!");
-    else await this.useEmbeds(message, con, results[0]);
-    con.release();
+    else await this.useEmbeds(message, results[0]);
   }
 
-  async useEmbeds(message: NorthMessage | NorthInteraction, con: Connection, result: RowDataPacket) {
+  async useEmbeds(message: NorthMessage | NorthInteraction, result: any) {
     var cash = result.currency;
     var bank = result.bank;
     const author = message instanceof Message ? message.author : message.user;
@@ -45,7 +38,7 @@ class BankCommand implements SlashCommand {
     await msg.react("2️⃣");
     await MainPage();
     async function MainPage() {
-      var [newResults] = await con.query(`SELECT * FROM users WHERE id = '${author.id}'`);
+      var newResults = await query(`SELECT * FROM users WHERE id = '${author.id}'`);
       cash = newResults[0].currency;
       bank = newResults[0].bank;
       const embed = new Discord.MessageEmbed()
@@ -96,7 +89,7 @@ class BankCommand implements SlashCommand {
         const newCurrency = Number(newResults[0].currency) - deposits;
         const newBank = Number(newResults[0].bank) + deposits;
         try {
-          await con.query(`UPDATE users SET currency = '${newCurrency}', bank = '${newBank}' WHERE id = '${author.id}'`);
+          await query(`UPDATE users SET currency = '${newCurrency}', bank = '${newBank}' WHERE id = '${author.id}'`);
           const depositedEmbed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle("Deposition Successful")
@@ -142,7 +135,7 @@ class BankCommand implements SlashCommand {
         const newCurrency = Number(newResults[0].currency) + withdraws;
         const newBank = Number(newResults[0].bank) - withdraws;
         try {
-          await con.query(`UPDATE users SET currency = '${newCurrency}', bank = '${newBank}' WHERE id = '${author.id}'`);
+          await query(`UPDATE users SET currency = '${newCurrency}', bank = '${newBank}' WHERE id = '${author.id}'`);
           const withdrawedEmbed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle("Withdrawal Successful")

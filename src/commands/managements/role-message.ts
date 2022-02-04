@@ -1,8 +1,7 @@
 import { GuildMember, Message, MessageEmbed, Snowflake, TextChannel } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { genPermMsg, findRole, msgOrRes } from "../../function";
-import { RowDataPacket } from "mysql2";
+import { genPermMsg, findRole, msgOrRes, query } from "../../function";
 
 class RoleMessageCommand implements SlashCommand {
     name = "role-message"
@@ -20,7 +19,7 @@ class RoleMessageCommand implements SlashCommand {
     }
 
     async create(message: NorthMessage | NorthInteraction) {
-        const [results] = <RowDataPacket[][]> await message.pool.query(`SELECT guild FROM rolemsg WHERE guild = '${message.guildId}'`);
+        const results = await query(`SELECT guild FROM rolemsg WHERE guild = '${message.guildId}'`);
         if (results.length > 5) return await msgOrRes(message, "You already have 5 role-messages! Try deleting some for this to work!");
         const author = message.member.user;
         var msg = <Message> (message instanceof Message ? await message.channel.send("Please enter the message you want to send.") : await message.reply({ content: "Please enter the message you want to send.", fetchReply: true }));
@@ -97,7 +96,7 @@ class RoleMessageCommand implements SlashCommand {
             emojis: emojis
         });
         try {
-            await message.client.pool.query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${authorId}', '${escape(JSON.stringify(roles))}', '${escape(JSON.stringify(emojis))}')`);
+            await query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${authorId}', '${escape(JSON.stringify(roles))}', '${escape(JSON.stringify(emojis))}')`);
             await message.channel.send(`Successfully created record for message. Role-messages used on this server: **${totalRm}/5**`);
         } catch (err: any) {
             console.error(err);

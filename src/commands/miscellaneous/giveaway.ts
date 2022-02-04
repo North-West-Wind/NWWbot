@@ -1,17 +1,16 @@
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
-import { jsDate2Mysql, readableDateTime, setTimeout_, readableDateTimeText, genPermMsg, findRole, ms, color } from "../../function";
+import { jsDate2Mysql, readableDateTime, setTimeout_, readableDateTimeText, genPermMsg, findRole, ms, color, query } from "../../function";
 import { RowDataPacket } from "mysql2";
 import { globalClient as client } from "../../common";
-import { Pool } from "mysql2/promise";
 
-export async function endGiveaway(pool: Pool, result) {
+export async function endGiveaway(result: any) {
   try {
     var channel = <Discord.TextChannel>await client.channels.fetch(result.channel);
     var msg = await channel.messages.fetch(result.id);
   } catch (err: any) {
-    return await pool.query("DELETE FROM giveaways WHERE id = " + result.id);
+    return await query("DELETE FROM giveaways WHERE id = " + result.id);
   }
   const fetchUser = await client.users.fetch(result.author);
   const reacted = [];
@@ -53,7 +52,7 @@ export async function endGiveaway(pool: Pool, result) {
     Ended.addField("Winner(s)", "None. Cuz no one reacted.")
     await msg.edit({ embeds: [Ended] });
     msg.reactions.removeAll().catch(() => { });
-    await pool.query("DELETE FROM giveaways WHERE id = " + msg.id);
+    await query("DELETE FROM giveaways WHERE id = " + msg.id);
   } else {
     var index = Math.floor(Math.random() * weighted.length);
     const winners = [];
@@ -72,7 +71,7 @@ export async function endGiveaway(pool: Pool, result) {
     const link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
     await msg.channel.send(`Congratulation, ${winnerMessage}! You won **${unescape(result.item)}**!\n${link}`);
     msg.reactions.removeAll().catch(() => { });
-    await pool.query("DELETE FROM giveaways WHERE id = " + result.id);
+    await query("DELETE FROM giveaways WHERE id = " + result.id);
   }
 }
 async function setupGiveaway(message: NorthMessage | NorthInteraction, channel: Discord.TextChannel, time: number, item: string, winnerCount: number, weight = {}) {
@@ -90,11 +89,11 @@ async function setupGiveaway(message: NorthMessage | NorthInteraction, channel: 
     .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
   const giveawayMsg = giveawayEmo + "**GIVEAWAY**" + giveawayEmo;
   var msg = await channel.send({ content: giveawayMsg, embeds: [Embed] });
-  await client.pool.query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${escape(item)}', '${winnerCount}', '${newDateSql}', '${escape(giveawayEmo)}', '${author.id}', '${c}', '${JSON.stringify(weight)}')`);
+  await query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${escape(item)}', '${winnerCount}', '${newDateSql}', '${escape(giveawayEmo)}', '${author.id}', '${c}', '${JSON.stringify(weight)}')`);
   await msg.react(giveawayEmo);
   setTimeout_(async () => {
-    const [res] = <RowDataPacket[][]>await client.pool.query(`SELECT * FROM giveaways WHERE id = '${msg.id}'`);
-    if (res.length == 1) await endGiveaway(client.pool, res[0]);
+    const res = await query(`SELECT * FROM giveaways WHERE id = '${msg.id}'`);
+    if (res.length == 1) await endGiveaway(res[0]);
   }, time);
 }
 
@@ -145,13 +144,13 @@ class GiveawayCommand implements SlashCommand {
       return await interaction.reply(`Created new giveaway in channel <#${channel.id}> for**${readableDateTimeText(time)}** with the item **${item}** and **${winnerCount} winner${winnerCount > 1 ? "s" : ""}**.`)
     } else if (sub === "end") {
       const msgID = interaction.options.getString("id");
-      const [result] = <RowDataPacket[][]>await interaction.client.pool.query("SELECT * FROM giveaways WHERE id = '" + msgID + "'");
+      const result = await query("SELECT * FROM giveaways WHERE id = '" + msgID + "'");
       if (result.length != 1 || !result) return await interaction.reply("No giveaway was found!");
       if (result[0].author !== interaction.member.user.id) return await interaction.reply("You cannot end a giveaway that is not hosted by you!");
-      endGiveaway(interaction.client.pool, result[0]);
+      endGiveaway(result[0]);
       return await interaction.reply("The giveaway is being terminated...");
     } else if (sub === "list") {
-      const [results] = <RowDataPacket[][]>await interaction.client.pool.query(`SELECT * FROM giveaways WHERE guild = '${interaction.guild.id}'`)
+      const results = await query(`SELECT * FROM giveaways WHERE guild = '${interaction.guild.id}'`)
       const Embed = new Discord.MessageEmbed()
         .setColor(color())
         .setTitle("Giveaway list")
@@ -195,15 +194,15 @@ class GiveawayCommand implements SlashCommand {
   async end(message: NorthMessage, args: string[]) {
     if (!args[1]) return message.channel.send("You didn't provide any message ID!");
     const msgID = args[1];
-    const [result] = <RowDataPacket[][]>await message.pool.query("SELECT * FROM giveaways WHERE id = '" + msgID + "'");
+    const result = await query("SELECT * FROM giveaways WHERE id = '" + msgID + "'");
     if (result.length != 1 || !result) return message.channel.send("No giveaway was found!");
     if (result[0].author !== message.author.id) return message.channel.send("You cannot end a giveaway that is not hosted by you!");
-    await endGiveaway(message.pool, result[0]);
+    await endGiveaway(result[0]);
   }
 
   async list(message: NorthMessage) {
     const guild = message.guild;
-    var [results] = <RowDataPacket[][]>await message.pool.query(`SELECT * FROM giveaways WHERE guild = '${guild.id}'`)
+    var results = await query(`SELECT * FROM giveaways WHERE guild = '${guild.id}'`)
     const Embed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle("Giveaway list")

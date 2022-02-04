@@ -1,10 +1,8 @@
 import randomWords from "@genzou/random-words";
 import * as Canvas from "canvas";
 import * as Discord from "discord.js";
-import { getRandomNumber, applyText, jsDate2Mysql } from "../../function.js";
+import { getRandomNumber, applyText, jsDate2Mysql, query } from "../../function.js";
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-
-import { RowDataPacket } from "mysql2";
 
 class WorkCommand implements SlashCommand {
   name = "work"
@@ -13,9 +11,8 @@ class WorkCommand implements SlashCommand {
 
   async execute(interaction: NorthInteraction) {
     const currentDateSql = jsDate2Mysql(new Date());
-    const con = await interaction.client.pool.getConnection();
-    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM users WHERE id = '${interaction.user.id}'`);
-    if (results.length == 0) await con.query(`INSERT INTO users(id) VALUES('${interaction.user.id}')`);
+    var results = await query(`SELECT * FROM users WHERE id = '${interaction.user.id}'`);
+    if (results.length == 0) await query(`INSERT INTO users(id) VALUES('${interaction.user.id}')`);
     const lastDate = results[0]?.last_worked || new Date(0);
     if (Date.now() - lastDate < 3600000) return await interaction.reply("You can only work once an hour!");
     await interaction.reply("Distributing work...");
@@ -27,16 +24,14 @@ class WorkCommand implements SlashCommand {
     if (results[0]?.doubling && results[0].doubling - Date.now() > 0) doubling = true;
     gain *= rate * (doubling ? 2 : 1);
     var newCurrency = Math.round(((Number(results[0]?.currency) || 0) + gain + Number.EPSILON) * 100) / 100;
-    await con.query(`UPDATE users SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE id = '${interaction.user.id}'`);
+    await query(`UPDATE users SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE id = '${interaction.user.id}'`);
     await interaction.channel.send(`<@${interaction.user.id}> worked and gained **$${Math.round((gain + Number.EPSILON) * 100) / 100}**${rate < 1 ? ` (and it's multiplied by **${rate}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
-    con.release();
   }
 
   async run(message: NorthMessage) {
     const currentDateSql = jsDate2Mysql(new Date());
-    const con = await message.pool.getConnection();
-    var [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM users WHERE id = '${message.author.id}'`);
-    if (results.length == 0) await con.query(`INSERT INTO users(id) VALUES('${message.author.id}')`);
+    var results = await query(`SELECT * FROM users WHERE id = '${message.author.id}'`);
+    if (results.length == 0) await query(`INSERT INTO users(id) VALUES('${message.author.id}')`);
     const lastDate = results[0]?.last_worked || new Date(0);
     if (Date.now() - lastDate < 3600000) return message.channel.send("You can only work once an hour!");
     const worked = results[0]?.worked || 0;
@@ -46,9 +41,8 @@ class WorkCommand implements SlashCommand {
     if (results[0]?.doubling && results[0].doubling - Date.now() > 0) doubling = true;
     gain *= rate * (doubling ? 2 : 1);
     var newCurrency = Math.round(((Number(results[0]?.currency) || 0) + gain + Number.EPSILON) * 100) / 100;
-    await con.query(`UPDATE users SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE id = '${message.author.id}'`);
+    await query(`UPDATE users SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE id = '${message.author.id}'`);
     await message.channel.send(`<@${message.author.id}> worked and gained **$${Math.round((gain + Number.EPSILON) * 100) / 100}**${rate < 1 ? ` (and it's multiplied by **${rate}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
-    con.release();
   }
 
   async work(message: NorthMessage | NorthInteraction, worked: number) {

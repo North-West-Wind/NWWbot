@@ -1,7 +1,7 @@
 import { RowDataPacket } from "mysql2";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
-import { genPermMsg, createEmbedScrolling, color, msgOrRes } from "../../function";
+import { genPermMsg, createEmbedScrolling, color, msgOrRes, query } from "../../function";
 
 class InvitesCommand implements SlashCommand {
   name = "invites"
@@ -118,25 +118,23 @@ class InvitesCommand implements SlashCommand {
   async toggle(message: NorthMessage | NorthInteraction) {
     const author = message instanceof Discord.Message ? message.author : message.user;
     try {
-      const con = await message.client.pool.getConnection();
-      const [result] = <RowDataPacket[][]>await con.query(`SELECT no_log FROM users WHERE id = '${author.id}'`);
+      const result = await query(`SELECT no_log FROM users WHERE id = '${author.id}'`);
       var nolog: boolean;
       if (result.length < 1) {
-        await con.query(`INSERT INTO users(id, items) VALUES('${author.id}', '{}')`);
+        await query(`INSERT INTO users(id, items) VALUES('${author.id}', '{}')`);
         nolog = false;
       } else {
         nolog = !!result[0].no_log;
       }
       if (nolog) {
-        await con.query(`UPDATE users SET no_log = 1 WHERE id = '${author.id}'`);
+        await query(`UPDATE users SET no_log = 1 WHERE id = '${author.id}'`);
         if (NorthClient.storage.noLog.indexOf(author.id) == -1) NorthClient.storage.noLog.push(author.id);
         await msgOrRes(message, "You will no longer receive message from me when someone joins the server with your invites.");
       } else {
-        await con.query(`UPDATE users SET no_log = 0 WHERE id = '${author.id}'`);
+        await query(`UPDATE users SET no_log = 0 WHERE id = '${author.id}'`);
         if (NorthClient.storage.noLog.indexOf(author.id) != -1) NorthClient.storage.noLog.splice(NorthClient.storage.noLog.indexOf(author.id), 1);
         await msgOrRes(message, "We will message you whenever someone joins the server with your invites.");
       }
-      con.release();
     } catch (err) {
       console.error(err);
       await msgOrRes(message, "There was an error trying to remember your decision!");

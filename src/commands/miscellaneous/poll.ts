@@ -1,12 +1,12 @@
 import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
-import { color, jsDate2Mysql, ms, readableDateTime, readableDateTimeText, setTimeout_ } from "../../function";
+import { color, jsDate2Mysql, ms, query, readableDateTime, readableDateTimeText, setTimeout_ } from "../../function";
 import { RowDataPacket } from "mysql2";
 import { PoolConnection } from "mysql2/promise";
 
 const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
 
-export async function endPoll(client: NorthClient, con: PoolConnection, id: Discord.Snowflake, msg: Discord.Message, message: Discord.Message, title: string, authorID: Discord.Snowflake, options: any, color: Discord.ColorResolvable) {
+export async function endPoll(client: NorthClient, id: Discord.Snowflake, msg: Discord.Message, message: Discord.Message, title: string, authorID: Discord.Snowflake, options: any, color: Discord.ColorResolvable) {
     var shouldDel = true;
     try {
         if (!msg) throw new Error("Poll is deleted");
@@ -35,11 +35,11 @@ export async function endPoll(client: NorthClient, con: PoolConnection, id: Disc
 
         await msg.channel.send("A poll has ended!\n" + link);
         msg.reactions.removeAll().catch(() => { });
-        await con.query("DELETE FROM poll WHERE id = " + msg.id);
+        await query("DELETE FROM poll WHERE id = " + msg.id);
         if (message) await message.channel.send("Ended a poll!");
     } catch (err: any) {
         if (shouldDel) {
-            await con.query("DELETE FROM poll WHERE id = " + id);
+            await query("DELETE FROM poll WHERE id = " + id);
             if (message) await message.channel.send("Ended a poll!");
         } else if (message) await message.reply("there was an error trying to end the poll!");
     }
@@ -135,14 +135,12 @@ class PollCommand implements SlashCommand {
         var msg = await channel.send({ content: pollMsg, embeds: [Embed] });
         for (var i = 0; i < optionArray.length; i++) await msg.react(emojis[i]);
         for (var i = 0; i < options.length; i++) options[i] = escape(options[i]);
-        await message.pool.query(`INSERT INTO poll VALUES(${msg.id}, ${message.guild.id}, ${channel.id}, '["${options.join('", "')}"]', '${newDateSql}', ${message.author.id}, ${c}, '${escape(title)}')`);
+        await query(`INSERT INTO poll VALUES(${msg.id}, ${message.guild.id}, ${channel.id}, '["${options.join('", "')}"]', '${newDateSql}', ${message.author.id}, ${c}, '${escape(title)}')`);
         console.log(`Inserted poll record for ${title} in channel ${channel.name} of server ${message.guild.name}`);
         setTimeout_(async () => {
-            const con = await message.pool.getConnection();
             try {
-                await endPoll(message.client, con, msg.id, msg, null, title, message.author.id, allOptions, c);
+                await endPoll(message.client, msg.id, msg, null, title, message.author.id, allOptions, c);
             } catch (err: any) { }
-            con.release();
         }, duration);
 
     }
@@ -150,20 +148,18 @@ class PollCommand implements SlashCommand {
     async end(message: NorthMessage, args: string[]) {
         if (!args[1]) return message.channel.send("Please provide the ID of the message!");
         var msgID = args[1];
-        const con = await message.pool.getConnection();
-        var [result] = <RowDataPacket[][]> await con.query("SELECT * FROM poll WHERE id = '" + msgID + "'");
+        var result = await query("SELECT * FROM poll WHERE id = '" + msgID + "'");
         if (result.length == 0) return message.channel.send("No poll was found!");
         if (result[0].author !== message.author.id) return message.channel.send("You cannot end a poll that was not created by you!");
         try {
             const channel = <Discord.TextChannel> await message.client.channels.fetch(result[0].channel);
             const msg = await channel.messages.fetch(result[0].id);
-            await endPoll(message.client, con, result[0].id, msg, message, result[0].title, result[0].author, result[0].options, result[0].color);
+            await endPoll(message.client, result[0].id, msg, message, result[0].title, result[0].author, result[0].options, result[0].color);
         } catch (err: any) { }
-        con.release();
     }
 
     async list(message: NorthMessage) {
-        var [results] = <RowDataPacket[][]> await message.pool.query("SELECT * FROM poll WHERE guild = " + message.guild.id);
+        var results = await query("SELECT * FROM poll WHERE guild = " + message.guild.id);
         const Embed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle("Poll list")

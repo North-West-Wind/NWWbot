@@ -1,6 +1,6 @@
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import * as Discord from "discord.js";
-import { color, jsDate2Mysql } from "../../function";
+import { color, jsDate2Mysql, query } from "../../function";
 import { RowDataPacket } from "mysql2";
 
 
@@ -42,14 +42,13 @@ class SellCommand implements SlashCommand {
         if (reaction.emoji.name === "✅") {
             const currentDate = new Date();
             const newDateSql = jsDate2Mysql(new Date(currentDate.getTime() + 604800000));
-            const con = await message.pool.getConnection();
             try {
-                var [result] = <RowDataPacket[][]> await con.query(`SELECT users FROM currency WHERE id = '${message.author.id}'`);
+                var result = await query(`SELECT users FROM currency WHERE id = '${message.author.id}'`);
                 if (result.length == 0) await message.channel.send("You don't have any money!");
                 else if (result[0].currency < price * 0.05) await message.channel.send("You don't have enough money!");
                 else {
-                    await con.query(`INSERT INTO shop(item, price, endAt) VALUES('${args.slice(1).join(" ").replace(/"/g, '\\"').replace(/'/g, "\\'")}', ${price}, '${newDateSql}')`);
-                    await con.query(`UPDATE users SET currency = ${(result[0].currency - price * 0.05)} WHERE id = '${message.author.id}'`);
+                    await query(`INSERT INTO shop(item, price, endAt) VALUES('${args.slice(1).join(" ").replace(/"/g, '\\"').replace(/'/g, "\\'")}', ${price}, '${newDateSql}')`);
+                    await query(`UPDATE users SET currency = ${(result[0].currency - price * 0.05)} WHERE id = '${message.author.id}'`);
                     confirmationEmbed
                         .setTitle("Confirmed!")
                         .setDescription("Your item is now at the shop!")
@@ -61,7 +60,6 @@ class SellCommand implements SlashCommand {
                 console.error(err);
                 await message.reply("there was an error trying to sell the item!");
             }
-            con.release();
         } else {
             confirmationEmbed
                 .setTitle("Cancelled")

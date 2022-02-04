@@ -1,7 +1,7 @@
 
 import { GuildMember } from "discord.js";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { checkTradeW1nd, fixGuildRecord, genPermMsg, syncTradeW1nd } from "../../function";
+import { checkTradeW1nd, fixGuildRecord, genPermMsg, query, syncTradeW1nd } from "../../function";
 
 class PrefixCommand implements SlashCommand {
     name = "prefix"
@@ -26,7 +26,7 @@ class PrefixCommand implements SlashCommand {
         NorthClient.storage.guilds[guild.id].prefix = interaction.options.getString("prefix");
         await interaction.deferReply();
         try {
-            await interaction.client.pool.query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[guild.id].prefix === interaction.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[guild.id].prefix}'`} WHERE id = '${guild.id}'`);
+            await query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[guild.id].prefix === interaction.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[guild.id].prefix}'`} WHERE id = '${guild.id}'`);
             await interaction.editReply(`The prefix of this server has been changed to \`${NorthClient.storage.guilds[guild.id].prefix}\`.`);
             try {
                 if (await checkTradeW1nd(interaction.guildId)) {
@@ -47,7 +47,7 @@ class PrefixCommand implements SlashCommand {
         NorthClient.storage.guilds[message.guildId].prefix = args.join(" ");
         await message.channel.send(`The prefix of this server has been changed to \`${NorthClient.storage.guilds[message.guildId].prefix}\`.`);
         try {
-            await message.pool.query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[message.guildId].prefix === message.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[message.guild.id].prefix}'`} WHERE id = '${message.guild.id}'`);
+            await query(`UPDATE servers SET prefix = ${NorthClient.storage.guilds[message.guildId].prefix === message.client.prefix ? "NULL" : `'${NorthClient.storage.guilds[message.guild.id].prefix}'`} WHERE id = '${message.guild.id}'`);
             await message.channel.send("Changes have been saved properly!");
             try {
                 if (await checkTradeW1nd(message.guildId)) {

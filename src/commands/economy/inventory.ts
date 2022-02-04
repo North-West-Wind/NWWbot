@@ -1,5 +1,5 @@
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { color, msgOrRes, wait } from "../../function";
+import { color, msgOrRes, query, wait } from "../../function";
 import * as Discord from "discord.js";
 
 import { globalClient as client } from "../../common";
@@ -21,13 +21,11 @@ class InventoryCommand implements SlashCommand {
 
   async navigate(message: NorthMessage | NorthInteraction, msg: Discord.Message = undefined) {
     const author = message instanceof Discord.Message ? message.author : message.user;
-    const con = await client.pool.getConnection();
-    var [result] = <RowDataPacket[][]> await con.query(`SELECT items FROM users WHERE id = '${author.id}'`);
-    var [IResult] = <RowDataPacket[][]> await con.query(`SELECT * FROM shop WHERE guild = '${message.guild?.id}' OR guild = ''`);
+    var result = await query(`SELECT items FROM users WHERE id = '${author.id}'`);
+    var IResult = await query(`SELECT * FROM shop WHERE guild = '${message.guild?.id}' OR guild = ''`);
     var itemObject = {};
     for (const item of IResult) itemObject[item.id] = 0;
     if (result.length == 1) Object.assign(itemObject, JSON.parse(unescape(result[0].items)));
-    con.release();
     let i = 0;
     const em = new Discord.MessageEmbed()
       .setColor(color())
@@ -144,7 +142,7 @@ class InventoryCommand implements SlashCommand {
           }
         if (run.length > 0) await message.channel.send(run);
         itemObject[wanted.id] -= 1;
-        await client.pool.query(`UPDATE users SET items = '${JSON.stringify(itemObject)}' WHERE id =  '${author.id}'`);
+        await query(`UPDATE users SET items = '${JSON.stringify(itemObject)}' WHERE id =  '${author.id}'`);
         em.setTitle(`Used ${wanted.name}`)
           .setDescription("Returning to main menu in 3 seconds...")
           .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });

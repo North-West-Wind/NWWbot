@@ -10,11 +10,9 @@ export class NorthClient extends Client {
 
     id: number;
     prefix: string;
-    pool: Pool;
     version: string;
     static storage: ClientStorage;
 
-    setPool(pool: Pool) { this.pool = pool; }
     setVersion(version: string) { this.version = version; }
 }
 
@@ -163,13 +161,11 @@ export class LevelData {
 
 export class NorthMessage extends Message {
     prefix: string;
-    pool: Pool;
     client: NorthClient;
 }
 
 export class NorthInteraction extends CommandInteraction {
     readonly prefix: string = "/";
-    pool: Pool;
     client: NorthClient;
 }
 

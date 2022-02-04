@@ -7,6 +7,7 @@
     "start": "node --optimize_for_size --max_old_space_size=2048 --gc_interval=100 --trace-warnings out/main.js",
     "alice": "node --optimize_for_size --max_old_space_size=256 --gc_interval=100 --trace-warnings out/alice.js",
     "canary": "node --optimize_for_size --max_old_space_size=256 --gc_interval=100 --trace-warnings out/canary.js",
+    "api": "node --optimize_for_size --max_old_space_size=256 --gc_interval=100 --trace-warnings out/api.js",
     "tsc": "node fix.js && tsc"
   },
   "engines": {
@@ -30,6 +31,7 @@
     "deep-equal": "^2.0.5",
     "discord.js": "^13.6.0",
     "dotenv": "^14.3.2",
+    "express": "^4.17.2",
     "fetch-retry-ts": "^1.1.24",
     "ffmpeg-static": "^4.4.0",
     "figlet": "^1.5.0",
@@ -71,6 +73,7 @@
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.30",
+    "@types/express": "^4.17.13",
     "@types/figlet": "^1.5.4",
     "@types/fluent-ffmpeg": "^2.1.18",
     "@types/moment-duration-format": "^2.2.3",

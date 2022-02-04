@@ -1,8 +1,7 @@
 import { registerFont } from "canvas";
 import * as fs from "fs";
 import { NorthClient, Card, SlashCommand, Item, ClientStorage } from "./classes/NorthClient";
-import { twoDigits, deepReaddir } from "./function";
-import * as mysql from "mysql2";
+import { twoDigits, deepReaddir, query } from "./function";
 import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
 import { AliceHandler, CanaryHandler, Handler } from "./handler";
@@ -50,17 +49,6 @@ export default async (client: NorthClient) => {
   logger.setLevel("all");
   console.log = (message: string, ...data: any[]) => logger.info(message, ...data);
   console.error = (message: string, ...data: any[]) => logger.error(message, ...data);
-
-  const mysql_config = {
-    connectTimeout: 30000,
-    connectionLimit: 10,
-    host: process.env.DBHOST,
-    user: process.env.DBUSER,
-    password: process.env.DBPW,
-    database: process.env.DBNAME,
-    supportBigNumbers: true,
-    charset: "utf8mb4"
-  };
   const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
   for (const file of fontFiles) registerFont(`./fonts/${file}`, { family: "NotoSans", style: file.split(/[\-\.]/)[1].toLowerCase() });
   registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
@@ -80,37 +68,22 @@ export default async (client: NorthClient) => {
     NorthClient.storage.items.set(item.id, item);
   }
   if (!fs.existsSync(process.env.CACHE_DIR)) fs.mkdirSync(process.env.CACHE_DIR);
-
-  var pool = mysql.createPool(mysql_config).promise();
-  pool.on("connection", con => con.on("error", async err => {
-    if (["PROTOCOL_CONNECTION_LOST", "ECONNREFUSED", "ETIMEDOUT"].includes(err.code) || (err.message === "Pool is closed.")) try {
-      await pool.end();
-    } catch (err: any) {
-      console.error(err);
-    } finally {
-        pool = mysql.createPool(mysql_config).promise();
-        client.setPool(pool);
-      }
-  }));
-  client.setPool(pool);
   client.setVersion(version);
   globalClient = client;
 
   setInterval(async () => {
     if (NorthClient.storage.queries.length < 1) return;
     try {
-      const con = await client.pool.getConnection();
-      for (const query of NorthClient.storage.queries) try {
-        const [results] = <mysql.RowDataPacket[][]>await con.query(`SELECT * FROM leveling WHERE user = '${query.author}' AND guild = '${query.guild}'`);
-        if (results.length < 1) await con.query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${query.author}', '${query.guild}', ${query.exp}, '${query.date}')`);
+      for (const q of NorthClient.storage.queries) try {
+        const results = await query(`SELECT * FROM leveling WHERE user = '${q.author}' AND guild = '${q.guild}'`);
+        if (results.length < 1) await query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${q.author}', '${q.guild}', ${q.exp}, '${q.date}')`);
         else {
           if (Date.now() - results[0].last < 60000) return;
-          const newExp = parseInt(results[0].exp) + query.exp;
-          await con.query(`UPDATE leveling SET exp = ${newExp}, last = '${query.date}' WHERE user = '${query.author}' AND guild = '${query.guild}'`);
+          const newExp = parseInt(results[0].exp) + q.exp;
+          await query(`UPDATE leveling SET exp = ${newExp}, last = '${q.date}' WHERE user = '${q.author}' AND guild = '${q.guild}'`);
         }
       } catch (err: any) { }
       NorthClient.storage.queries = [];
-      con.release();
     } catch (err: any) { }
   }, 60000);
 }

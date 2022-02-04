@@ -3,7 +3,7 @@ import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../..
 import * as Discord from "discord.js";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
-import { color, createEmbedScrolling, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, readableDateTimeText, setTimeout_ } from "../../function";
+import { color, createEmbedScrolling, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, query, readableDateTimeText, setTimeout_ } from "../../function";
 import { RowDataPacket } from "mysql2";
 formatSetup(moment);
 
@@ -107,7 +107,7 @@ class GuildCommand implements SlashCommand {
 		const user = await findUser(message, args[1]);
 		if (!user) return;
 		try {
-			const [result] = <RowDataPacket[][]> await message.pool.query(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`);
+			const result = await query(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`);
 			const channel = <Discord.TextChannel> await message.client.channels.fetch("723479832452661269");
 			var noname = false;
 			if (result.length < 1) noname = true;
@@ -333,7 +333,7 @@ class GuildCommand implements SlashCommand {
 						mc: uuid,
 						endAt: new Date(Date.now() + duration)
 					});
-					await message.pool.query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(ranks)}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + duration))}')`);
+					await query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(ranks)}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + duration))}')`);
 					await message.channel.send("Timer recorded.");
 				} catch (err: any) {
 					console.error(err);
@@ -342,17 +342,15 @@ class GuildCommand implements SlashCommand {
 				await message.channel.send(`Timer created with the title **${title}** and will last for **${readableDateTimeText(duration)}**`);
 				setTimeout_(async () => {
 					let asuna = await message.client.users.fetch("461516729047318529");
-					const con = await message.pool.getConnection();
 					try {
 						const index = NorthClient.storage.gtimers.indexOf(NorthClient.storage.gtimers.find(t => t.user == user.id));
 						if (index > -1) NorthClient.storage.gtimers.splice(index, 1);
-						const [results] = <RowDataPacket[][]> await con.query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(ranks)}'`);
+						const results = await query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(ranks)}'`);
 						if (results.length == 0) throw new Error("Not found");
-						await con.query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(ranks)}'`);
+						await query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(ranks)}'`);
 					} catch (err: any) {
 						console.error(err);
 					}
-					con.release();
 					await asuna.send(title + " expired");
 				}, duration);
 				break;
@@ -360,19 +358,17 @@ class GuildCommand implements SlashCommand {
 				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
 				let userd = await findUser(message, args[2]);
 				if (!userd) return;
-				const con = await message.pool.getConnection();
 				try {
 					const index = NorthClient.storage.gtimers.indexOf(NorthClient.storage.gtimers.find(t => t.user == user.id));
 					if (index > -1) NorthClient.storage.gtimers.splice(index, 1);
-					const [results] = <RowDataPacket[][]> await con.query(`SELECT * FROM gtimer WHERE user = '${userd.id}'`);
+					const results = await query(`SELECT * FROM gtimer WHERE user = '${userd.id}'`);
 					if (results.length == 0) return message.channel.send("No timer was found.");
-					await con.query(`DELETE FROM gtimer WHERE user = '${userd.id}'`);
+					await query(`DELETE FROM gtimer WHERE user = '${userd.id}'`);
 					await message.channel.send(`Deleted ${results.length} timers.`);
 				} catch (err: any) {
 					console.error(err);
 					await message.reply("there was an error trying to delete the timer!");
 				}
-				con.release();
 				break;
 			case "list":
 				try {

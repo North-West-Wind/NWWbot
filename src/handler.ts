@@ -6,7 +6,7 @@ formatSetup(moment);
 import { RowDataPacket } from "mysql2";
 import { endGiveaway } from "./commands/miscellaneous/giveaway";
 import { endPoll } from "./commands/miscellaneous/poll";
-import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord } from "./function";
+import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query } from "./function";
 import { setQueue, stop } from "./helpers/music";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient";
 import { Connection, PoolConnection } from "mysql2/promise";
@@ -45,7 +45,6 @@ export class Handler {
         const command = NorthClient.storage.commands.get(interaction.commandName);
         if (!command) return;
         const int = <NorthInteraction>interaction;
-        int.pool = int.client.pool;
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, int) && (catFilter ? await catFilter(command, int) : true)) await command.execute(int);
@@ -69,32 +68,32 @@ export class Handler {
         client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
     }
 
-    async preRead(_client: NorthClient, _con: Connection) { }
+    async preRead(_client: NorthClient) { }
 
     async setPresence(client: NorthClient) {
         client.user.setPresence({ activities: [{ name: "AFK", type: "PLAYING" }], status: "idle", afk: true });
     }
 
-    async readCurrency(_client: NorthClient, con: Connection) {
-        const [r] = <RowDataPacket[][]><unknown>await con.query("SELECT id, bank FROM users");
+    async readCurrency(_client: NorthClient) {
+        const r = await query("SELECT id, bank FROM users");
         for (const result of r) {
             try {
                 if (result.bank <= 0) continue;
                 const newBank = Math.round((Number(result.bank) * 1.02 + Number.EPSILON) * 100) / 100;
-                await con.query(`UPDATE users SET bank = ${newBank} WHERE id = ${result.id}`);
+                await query(`UPDATE users SET bank = ${newBank} WHERE id = ${result.id}`);
             } catch (err: any) {
                 console.error(err);
             }
         }
     }
 
-    async readServers(client: NorthClient, con: Connection) {
-        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434'");
+    async readServers(client: NorthClient) {
+        var results = await query("SELECT * FROM servers WHERE id <> '622311594654695434'");
         results.forEach(async result => {
             try {
                 await client.guilds.fetch(result.id);
             } catch (err: any) {
-                await con.query(`DELETE FROM servers WHERE id = '${result.id}'`);
+                await query(`DELETE FROM servers WHERE id = '${result.id}'`);
                 return console.log("Removed left servers");
             }
             if (result.queue || result.looping || result.repeating) {
@@ -108,8 +107,8 @@ export class Handler {
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }
 
-    async readRoleMsg(client: NorthClient, con: PoolConnection) {
-        const [res] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434'");
+    async readRoleMsg(client: NorthClient) {
+        const res = await query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434'");
         console.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
         const rm = res.map(r => {
             r.roles = JSON.parse(unescape(r.roles));
@@ -119,18 +118,18 @@ export class Handler {
         NorthClient.storage.rm = <RoleMessage[]>rm;
     }
 
-    async readGiveaways(client: NorthClient, con: PoolConnection) {
-        var [results] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
+    async readGiveaways(client: NorthClient) {
+        var results = await query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
         console.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
         results.forEach(async result => {
             var currentDate = Date.now();
             var millisec = result.endAt - currentDate;
-            setTimeout_(async () => await endGiveaway(client.pool, result), millisec);
+            setTimeout_(async () => await endGiveaway(result), millisec);
         });
     }
 
-    async readPoll(client: NorthClient, con: PoolConnection) {
-        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM poll WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
+    async readPoll(client: NorthClient) {
+        var results = await query("SELECT * FROM poll WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
         console.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(result => {
             var currentDate = Date.now();
@@ -140,37 +139,34 @@ export class Handler {
                     var channel = <TextChannel>await client.channels.fetch(result.channel);
                     var msg = await channel.messages.fetch(result.id);
                 } catch (err: any) {
-                    await client.pool.query("DELETE FROM poll WHERE id = " + result.id);
+                    await query("DELETE FROM poll WHERE id = " + result.id);
                     return console.log("Deleted an ended poll.");
                 }
-                await endPoll(client, con, result.id, msg, null, result.title, result.author, result.options, result.color);
+                await endPoll(client, result.id, msg, null, result.title, result.author, result.options, result.color);
             }, time);
         });
     }
 
-    async readNoLog(_client: NorthClient, con: Connection) {
-        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT id FROM users WHERE no_log = 1");
+    async readNoLog(_client: NorthClient) {
+        var results = await query("SELECT id FROM users WHERE no_log = 1");
         NorthClient.storage.noLog = results.map(x => x.id);
     }
 
     async ready(client: NorthClient) {
         this.preReady(client);
-        const pool = client.pool;
         const id = client.id;
         console.log(`[${id}] Ready!`);
         this.setPresence(client);
-        const con = await pool.getConnection();
         try {
             init();
-            await this.preRead(client, con);
-            await this.readCurrency(client, con);
-            await this.readServers(client, con);
-            await this.readRoleMsg(client, con);
-            await this.readGiveaways(client, con);
-            await this.readPoll(client, con);
-            await this.readNoLog(client, con);
+            await this.preRead(client);
+            await this.readCurrency(client);
+            await this.readServers(client);
+            await this.readRoleMsg(client);
+            await this.readGiveaways(client);
+            await this.readPoll(client);
+            await this.readNoLog(client);
         } catch (err: any) { console.error(err); };
-        con.release();
     }
 
     async preWelcomeImage(_channel: TextChannel) { }
@@ -323,11 +319,10 @@ export class Handler {
 
     async guildDelete(guild: Guild) {
         if (!guild?.id || !guild.name) return;
-        const client = <NorthClient>guild.client;
         console.log(`Left a guild: ${guild.name} | ID: ${guild.id}`);
         delete NorthClient.storage.guilds[guild.id];
         try {
-            await client.pool.query("DELETE FROM servers WHERE id=" + guild.id);
+            await query("DELETE FROM servers WHERE id=" + guild.id);
             console.log("Deleted record for " + guild.name);
         } catch (err: any) {
             console.error(err);
@@ -389,11 +384,10 @@ export class Handler {
     }
 
     async messageDelete(message: Message | PartialMessage) {
-        const client = <NorthClient>message.client;
         var roleMessage = NorthClient.storage.rm.find(x => x.id === message.id);
         if (!roleMessage) return;
         NorthClient.storage.rm.splice(NorthClient.storage.rm.indexOf(roleMessage), 1);
-        await client.pool.query(`DELETE FROM rolemsg WHERE id = '${message.id}'`);
+        await query(`DELETE FROM rolemsg WHERE id = '${message.id}'`);
     }
 
     async preMessage(_message: Message): Promise<any> {
@@ -415,7 +409,6 @@ export class Handler {
         const commandName = args.shift().toLowerCase();
         const command = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
-        msg.pool = client.pool;
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
@@ -439,8 +432,8 @@ export class AliceHandler extends Handler {
         super(client);
     }
 
-    async readServers(client: NorthClient, con: Connection) {
-        var [results] = <[RowDataPacket[]]><unknown>await con.query("SELECT * FROM servers WHERE id = '622311594654695434'");
+    async readServers(client: NorthClient) {
+        var results = await query("SELECT * FROM servers WHERE id = '622311594654695434'");
         const result = results[0];
         if (result.queue || result.looping || result.repeating) {
             var queue = [];
@@ -456,9 +449,9 @@ export class AliceHandler extends Handler {
         client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
     }
 
-    async preRead(client: NorthClient, con: Connection) {
+    async preRead(client: NorthClient) {
         client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
-        const [res] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
+        const res = await query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
         console.log(`[${client.id}] Found ${res.length} guild timers`);
         res.forEach(async result => {
             let endAfter = result.endAt.getTime() - Date.now();
@@ -470,24 +463,22 @@ export class AliceHandler extends Handler {
             let title = `${dc} - ${rank} [${username}]`;
             setTimeout_(async () => {
                 let asuna = await client.users.fetch("461516729047318529");
-                const conn = await client.pool.getConnection();
                 try {
-                    const [results] = <[RowDataPacket[]]><unknown>await conn.query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
+                    const results = await query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
                     if (results.length == 0) return;
                     try {
                         asuna.send(title + " expired");
                         var user = await client.users.fetch(result.user);
                         user.send(`Your rank **${rank}** in War of Underworld has expired.`);
                     } catch (err: any) { }
-                    await conn.query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
+                    await query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
                     console.log("A guild timer expired.");
                 } catch (err: any) {
                     console.error(err);
                 }
-                conn.release();
             }, endAfter);
         });
-        const [gtimers] = <RowDataPacket[][]><unknown>await con.query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
+        const gtimers = await query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
         NorthClient.storage.gtimers = <GuildTimer[]> gtimers;
         setInterval(async () => {
             try {
@@ -583,18 +574,18 @@ export class AliceHandler extends Handler {
         }, 60000);
     }
 
-    async readGiveaways(client: NorthClient, con: Connection) {
-        var [results] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM giveaways WHERE guild = '622311594654695434' ORDER BY endAt ASC");
+    async readGiveaways(client: NorthClient) {
+        var results = await query("SELECT * FROM giveaways WHERE guild = '622311594654695434' ORDER BY endAt ASC");
         console.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
         results.forEach(async result => {
             var currentDate = Date.now();
             var millisec = result.endAt - currentDate;
-            setTimeout_(async () => await endGiveaway(client.pool, result), millisec);
+            setTimeout_(async () => await endGiveaway(result), millisec);
         });
     }
 
-    async readPoll(client: NorthClient, con: PoolConnection) {
-        const [results] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM poll WHERE guild = '622311594654695434' ORDER BY endAt ASC");
+    async readPoll(client: NorthClient) {
+        const results = await query("SELECT * FROM poll WHERE guild = '622311594654695434' ORDER BY endAt ASC");
         console.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(result => {
             var currentDate = Date.now();
@@ -604,9 +595,9 @@ export class AliceHandler extends Handler {
                     var channel = <TextChannel>await client.channels.fetch(result.channel);
                     var msg = await channel.messages.fetch(result.id);
                 } catch (err: any) {
-                    await client.pool.query("DELETE FROM poll WHERE id = " + result.id);
+                    await query("DELETE FROM poll WHERE id = " + result.id);
                 }
-                await endPoll(client, con, result.id, msg, null, result.title, result.author, result.options, result.color);
+                await endPoll(client, result.id, msg, null, result.title, result.author, result.options, result.color);
             }, time);
         });
     }
@@ -637,18 +628,16 @@ export class AliceHandler extends Handler {
                 }
                 const hyDc = res.links.DISCORD;
                 if (hyDc !== message.author.tag) return await msg.edit("⚠️This Hypixel account is not linked to your Discord account!\nhttps://imgur.com/8ILZ3LX").then(msg => setTimeout(() => msg.delete().catch(() => {}), 60000));
-                const con = await client.pool.getConnection();
-                var [results] = <[RowDataPacket[]]><unknown>await con.query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
+                var results = await query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                 if (results.length == 0) {
-                    await con.query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
+                    await query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
                     msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                     console.log("Inserted record for mc-name.");
                 } else {
-                    await con.query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
+                    await query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
                     msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                     console.log("Updated record for mc-name.");
                 }
-                con.release();
                 await updateGuildMemberMC(message.member, mcUuid);
             } catch (err: any) {
                 console.error(err);
@@ -670,8 +659,8 @@ export class CanaryHandler extends Handler {
         super(client);
     }
 
-    async readServers(client: NorthClient, con: Connection) {
-        var [results] = <RowDataPacket[][]><unknown>await con.query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
+    async readServers(client: NorthClient) {
+        var results = await query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
         results.forEach(async result => {
             if (result.queue || result.looping || result.repeating) {
                 var queue = [];
