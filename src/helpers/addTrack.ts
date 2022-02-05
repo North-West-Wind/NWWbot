@@ -8,15 +8,17 @@ import scdl from 'soundcloud-downloader/dist/index';
 import ytdl from "ytdl-core";
 import ytpl from "ytpl";
 import ytsr, { Video } from "ytsr";
-import { NorthInteraction } from "../classes/NorthClient";
-import { getFetch, decodeHtmlEntity, isGoodMusicVideoContent, validGDDLURL, color, msgOrRes, humanDurationToNum } from "../function";
+import { NorthInteraction, ServerQueue, SoundTrack } from "../classes/NorthClient";
+import { getFetch, decodeHtmlEntity, isGoodMusicVideoContent, validGDDLURL, color, msgOrRes, humanDurationToNum, requestStream } from "../function";
 import * as Stream from 'stream';
 import SpotifyWebApi from "spotify-web-api-node";
-
+import crypto from "crypto";
 import rp from "request-promise-native";
 import * as cheerio from "cheerio";
 import * as Discord from "discord.js";
 import { TrackInfo } from "soundcloud-downloader/dist/info";
+import { getMP3 } from "../commands/api/musescore";
+import { findCache, updateQueue, cacheTrack } from "./music";
 
 const fetch = getFetch();
 var spotifyApi: SpotifyWebApi;
@@ -557,4 +559,64 @@ export async function search(message: Message | NorthInteraction, link: string) 
             resolve(val);
         });
     });
+}
+
+export async function getStream(track: SoundTrack, data: { guild?: Discord.Guild, serverQueue?: ServerQueue }) {
+    if (!track.id) track.id = crypto.createHash("md5").update(`${track.title};${track.url}`).digest("hex");
+    var stream: Stream.Readable;
+    var cacheFound = true;
+    if (!(stream = findCache(track.id))) {
+        cacheFound = false;
+        switch (track.type) {
+            case 2:
+            case 4:
+                var a: Stream.Readable;
+                if (!track.time) {
+                    const { error, message, songs } = await addGDURL(track.url);
+                    if (error) throw new Error(message);
+                    track = songs[0];
+                    a = <Stream.Readable>(await requestStream(track.url)).data;
+                    data.serverQueue.songs[0] = track;
+                    updateQueue(data.guild.id, data.serverQueue);
+                } else a = <Stream.Readable>(await requestStream(track.url)).data;
+                stream = a;
+                break;
+            case 3:
+                stream = await scdl.download(track.url);
+                break;
+            case 5:
+                const c = await getMP3(track.url);
+                if (c.error) throw new Error(c.message);
+                if (c.url.startsWith("https://www.youtube.com/embed/")) {
+                    const ytid = c.url.split("/").slice(-1)[0].split("?")[0];
+                    const options = <any>{ highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 };
+                    if (process.env.COOKIE) {
+                        options.requestOptions = {};
+                        options.requestOptions.headers = { cookie: process.env.COOKIE };
+                        if (process.env.YT_TOKEN) options.requestOptions.headers["x-youtube-identity-token"] = process.env.YT_TOKEN;
+                    }
+                    stream = <Stream.Readable> await ytdl(`https://www.youtube.com/watch?v=${ytid}`, options);
+                    cacheFound = true;
+                } else stream = <Stream.Readable>(await requestStream(c.url)).data;
+                break;
+            default:
+                const options = <any>{};
+                if (process.env.COOKIE) {
+                    options.requestOptions = {};
+                    options.requestOptions.headers = { cookie: process.env.COOKIE };
+                    if (process.env.YT_TOKEN) options.requestOptions.headers["x-youtube-identity-token"] = process.env.YT_TOKEN;
+                }
+                if (!track?.isPastLive) Object.assign(options, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
+                else Object.assign(options, { highWaterMark: 1 << 25 });
+                stream = await ytdl(track.url, options);
+                if (!stream) throw new Error("Failed to get YouTube video stream.");
+                cacheFound = true;
+                break;
+        }
+    }
+    if (!cacheFound) stream = await cacheTrack(track.id, stream);
+    console.log(`Stream obtained. Details:`);
+    console.log(`Type: ${track.type}, Newly Cached: ${!cacheFound}`)
+    console.log(`Memory used: ${process.memoryUsage().heapUsed / 1024 / 1024}MB`);
+    return stream;
 }

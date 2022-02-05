@@ -1,20 +1,15 @@
 import * as Discord from "discord.js";
 import { validURL, validYTURL, validSPURL, validGDURL, validGDFolderURL, validYTPlaylistURL, validSCURL, validMSURL, requestStream, moveArray, color, validGDDLURL, msgOrRes, wait } from "../../function.js";
-import { getMP3 } from "../api/musescore.js";
-import scdl from 'soundcloud-downloader/dist/index';
-import * as crypto from "crypto";
 import { migrate as music } from "./migrate.js";
-import ytdl from "ytdl-core";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand, SoundTrack } from "../../classes/NorthClient.js";
 import { getQueues, updateQueue, setQueue, createDiscordJSAdapter, findCache, cacheTrack, addUsing, removeUsing } from "../../helpers/music.js";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);
-import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search } from "../../helpers/addTrack.js";
+import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search, getStream } from "../../helpers/addTrack.js";
 import * as Stream from 'stream';
 import { globalClient as client } from "../../common.js";
 import { AudioPlayerError, AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, entersState, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus } from "@discordjs/voice";
-import * as mm from "music-metadata";
 const ffmpeg = require("fluent-ffmpeg");
 
 function createPlayer(guild: Discord.Guild) {
@@ -63,6 +58,7 @@ function createPlayer(guild: Discord.Guild) {
   }).on(AudioPlayerStatus.Idle, async () => {
     removeUsing(track?.id);
     serverQueue = getQueues().get(guild.id);
+    console.log(`Finished a track. Currently playing on ${getQueues().filter(x => x.playing).size} servers. Memory usage: ${process.memoryUsage().heapUsed / 1024 / 1024}`);
     await next();
   }).on("error", async error => {
     console.error(error.message);
@@ -143,67 +139,15 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
       }
       throw new Error("This soundtrack is missing URL! It is being removed automatically.");
     }
-    if (!song.id) song.id = crypto.createHash("md5").update(`${song.title};${song.url}`).digest("hex");
-    var stream: Stream.Readable;
-    var cacheFound = true;
-    if (!(stream = findCache(song.id))) {
-      cacheFound = false;
-      switch (song.type) {
-        case 2:
-        case 4:
-          var a: Stream.Readable;
-          if (!song.time) {
-            const { error, message, songs } = await addGDURL(song.url);
-            if (error) throw new Error(message);
-            song = songs[0];
-            a = <Stream.Readable>(await requestStream(song.url)).data;
-            serverQueue.songs[0] = song;
-            updateQueue(guild.id, serverQueue);
-          } else a = <Stream.Readable>(await requestStream(song.url)).data;
-          stream = a;
-          break;
-        case 3:
-          stream = await scdl.download(song.url);
-          break;
-        case 5:
-          const c = await getMP3(song.url);
-          if (c.error) throw new Error(c.message);
-          if (c.url.startsWith("https://www.youtube.com/embed/")) {
-            const ytid = c.url.split("/").slice(-1)[0].split("?")[0];
-            const options = <any>{ highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 };
-            if (process.env.COOKIE) {
-              options.requestOptions = {};
-              options.requestOptions.headers = { cookie: process.env.COOKIE };
-              if (process.env.YT_TOKEN) options.requestOptions.headers["x-youtube-identity-token"] = process.env.YT_TOKEN;
-            }
-            stream = <Stream.Readable> await ytdl(`https://www.youtube.com/watch?v=${ytid}`, options);
-            cacheFound = true;
-          } else stream = <Stream.Readable>(await requestStream(c.url)).data;
-          break;
-        default:
-          const options = <any>{};
-          if (process.env.COOKIE) {
-            options.requestOptions = {};
-            options.requestOptions.headers = { cookie: process.env.COOKIE };
-            if (process.env.YT_TOKEN) options.requestOptions.headers["x-youtube-identity-token"] = process.env.YT_TOKEN;
-          }
-          if (!song?.isPastLive) Object.assign(options, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
-          else Object.assign(options, { highWaterMark: 1 << 25 });
-          stream = await ytdl(song.url, options);
-          if (!stream) throw new Error("Failed to get YouTube video stream.");
-          cacheFound = true;
-          break;
-      }
-    }
-    if (!cacheFound) stream = await cacheTrack(song.id, stream);
+    const stream = await getStream(song, { guild, serverQueue });
     if (seek) {
       const command = ffmpeg(stream);
       const passthru = new Stream.PassThrough({ highWaterMark: 1 << 25 });
       command.on("error", err => console.error(err.message)).seekInput(seek).format("wav").output(passthru, { end: true }).run();
-      serverQueue.player?.play(await probeAndCreateResource(passthru));
-    } else serverQueue.player?.play(await probeAndCreateResource(stream));
-    if (!serverQueue.player) return;
+      serverQueue.player.play(await probeAndCreateResource(passthru));
+    } else serverQueue.player.play(await probeAndCreateResource(stream));
     await entersState(serverQueue.player, AudioPlayerStatus.Playing, 5e3);
+    console.log(`Starting a track. Currently playing on ${getQueues().filter(x => x.playing).size} servers. Memory usage: ${process.memoryUsage().heapUsed / 1024 / 1024}`);
   } catch (err: any) {
     console.error(err);
     serverQueue.player?.emit("error", new AudioPlayerError(err instanceof Error ? err : new Error(err), serverQueue.resource));
