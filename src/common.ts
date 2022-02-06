@@ -75,7 +75,7 @@ export default async (client: NorthClient) => {
     if (NorthClient.storage.queries.length < 1) return;
     console.log(`Starting message level sync. Memory used: ${process.memoryUsage().heapUsed / 1024 / 1024}MB`);
     try {
-      const results = await query(`SELECT * FROM leveling WHERE user = '${q.author}' AND guild = '${q.guild}'`);
+      const results = await query(`SELECT * FROM leveling`);
       for (const q of NorthClient.storage.queries) try {
         const result = results.find(x => x.user == q.author && x.guild == q.guild);
         if (!result) await query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${q.author}', '${q.guild}', ${q.exp}, '${q.date}')`);
