@@ -73,18 +73,21 @@ export default async (client: NorthClient) => {
 
   setInterval(async () => {
     if (NorthClient.storage.queries.length < 1) return;
+    console.log(`Starting message level sync. Memory used: ${process.memoryUsage().heapUsed / 1024 / 1024}MB`);
     try {
+      const results = await query(`SELECT * FROM leveling WHERE user = '${q.author}' AND guild = '${q.guild}'`);
       for (const q of NorthClient.storage.queries) try {
-        const results = await query(`SELECT * FROM leveling WHERE user = '${q.author}' AND guild = '${q.guild}'`);
-        if (results.length < 1) await query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${q.author}', '${q.guild}', ${q.exp}, '${q.date}')`);
+        const result = results.find(x => x.user == q.author && x.guild == q.guild);
+        if (!result) await query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${q.author}', '${q.guild}', ${q.exp}, '${q.date}')`);
         else {
-          if (Date.now() - results[0].last < 60000) return;
-          const newExp = parseInt(results[0].exp) + q.exp;
+          if (Date.now() - result.last < 60000) continue;
+          const newExp = parseInt(result.exp) + q.exp;
           await query(`UPDATE leveling SET exp = ${newExp}, last = '${q.date}' WHERE user = '${q.author}' AND guild = '${q.guild}'`);
         }
       } catch (err: any) { }
       NorthClient.storage.queries = [];
     } catch (err: any) { }
+    console.log(`Message level sync ended. Memory used: ${process.memoryUsage().heapUsed / 1024 / 1024}MB`);
   }, 60000);
 }
 
