@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
-import { AliceHandler } from "./handler";
-import { NorthClient, ClientStorage } from "./classes/NorthClient";
-import { getFetch, profile, query, updateGuildMemberMC } from "./function";
+import { AliceHandler } from "./handler.js";
+import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
+import { getFetch, profile, query, updateGuildMemberMC } from "./function.js";
 import { Intents, Options, VoiceChannel } from "discord.js";
 dotenv.config();
 

@@ -6,7 +6,7 @@ import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 import { createDiscordJSAdapter, getQueues, setQueue } from "../../helpers/music";
 formatSetup(moment);
-import { play } from "./play";
+import { play } from "./play.js";
 import { joinVoiceChannel } from "@discordjs/voice";
 
 class SeekCommand implements SlashCommand {

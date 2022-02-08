@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
-import { Handler } from "./handler";
-import { NorthClient, ClientStorage } from "./classes/NorthClient";
+import { Handler } from "./handler.js";
+import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
 import { Intents, Options } from "discord.js";
 dotenv.config();
 

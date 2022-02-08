@@ -1,10 +1,10 @@
 import { registerFont } from "canvas";
 import * as fs from "fs";
-import { NorthClient, Card, SlashCommand, Item, ClientStorage } from "./classes/NorthClient";
-import { twoDigits, deepReaddir, query } from "./function";
+import { NorthClient, Card, SlashCommand, Item, ClientStorage } from "./classes/NorthClient.js";
+import { twoDigits, deepReaddir, query } from "./function.js";
 import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
-import { AliceHandler, CanaryHandler, Handler } from "./handler";
+import { AliceHandler, CanaryHandler, Handler } from "./handler.js";
 const { version } = require("../package.json");
 var globalClient: NorthClient;
 var logger: Logger;

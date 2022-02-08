@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
-import { CanaryHandler } from "./handler";
-import { NorthClient, ClientStorage } from "./classes/NorthClient";
+import { CanaryHandler } from "./handler.js";
+import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
 import { Options, Intents } from "discord.js";
 dotenv.config();
 

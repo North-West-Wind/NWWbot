@@ -18,7 +18,7 @@ import * as cheerio from "cheerio";
 import * as Discord from "discord.js";
 import { TrackInfo } from "soundcloud-downloader/dist/info";
 import { getMP3 } from "../commands/api/musescore";
-import { findCache, updateQueue, cacheTrack } from "./music";
+import { findCache, updateQueue, cacheTrack } from "./music.js";
 
 const fetch = getFetch();
 var spotifyApi: SpotifyWebApi;

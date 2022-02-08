@@ -4,7 +4,7 @@ import { GuildMember, Message, TextChannel, VoiceChannel } from "discord.js";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { moveArray, msgOrRes } from "../../function";
 import { createDiscordJSAdapter, getQueues, setQueue, updateQueue } from "../../helpers/music";
-import { play } from "./play";
+import { play } from "./play.js";
 
 export async function migrate(message: Message | NorthInteraction) {
     var serverQueue = getQueues().get(message.guild.id);

@@ -4,7 +4,7 @@ import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/Nort
 import { validYTPlaylistURL, validYTURL, validSPURL, validSCURL, validGDFolderURL, validGDURL, validGDDLURL, validMSURL, validURL, msgOrRes, wait } from "../../function";
 import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search } from "../../helpers/addTrack";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
-import { createEmbed } from "./play";
+import { createEmbed } from "./play.js";
 
 class AddCommand implements SlashCommand {
     name = "add"

@@ -3,7 +3,7 @@ import { GuildMember, Message } from "discord.js";
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { moveArray, msgOrRes, mutate } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
-import { play } from "./play";
+import { play } from "./play.js";
 
 class MoveCommand implements SlashCommand {
     name = "move"

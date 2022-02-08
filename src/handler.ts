@@ -4,17 +4,17 @@ import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);
 import { RowDataPacket } from "mysql2";
-import { endGiveaway } from "./commands/miscellaneous/giveaway";
-import { endPoll } from "./commands/miscellaneous/poll";
-import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query } from "./function";
-import { setQueue, stop } from "./helpers/music";
-import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient";
+import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
+import { endPoll } from "./commands/miscellaneous/poll.js";
+import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query } from "./function.js";
+import { setQueue, stop } from "./helpers/music.js";
+import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient.js";
 import { Connection, PoolConnection } from "mysql2/promise";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter";
-import { sCategories } from "./commands/information/help";
-import common from "./common";
-import { init } from "./helpers/addTrack";
+import { sCategories } from "./commands/information/help.js";
+import common from "./common.js";
+import { init } from "./helpers/addTrack.js";
 
 const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
 

@@ -3,7 +3,7 @@ import { GuildMember, Message } from "discord.js";
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
 import { moveArray, msgOrRes } from "../../function";
 import { getQueues, setQueue, updateQueue } from "../../helpers/music";
-import { play } from "./play";
+import { play } from "./play.js";
 
 class ReverseCommand implements SlashCommand {
     name = "reverse"
