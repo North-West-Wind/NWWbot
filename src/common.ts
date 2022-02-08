@@ -1,4 +1,4 @@
-import { registerFont } from "canvas";
+import canvas from "canvas";
 import * as fs from "fs";
 import { NorthClient, Card, SlashCommand, Item, ClientStorage } from "./classes/NorthClient.js";
 import { twoDigits, deepReaddir, query } from "./function.js";
@@ -50,8 +50,8 @@ export default async (client: NorthClient) => {
   console.log = (message: string, ...data: any[]) => logger.info(message, ...data);
   console.error = (message: string, ...data: any[]) => logger.error(message, ...data);
   const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
-  for (const file of fontFiles) registerFont(`./fonts/${file}`, { family: "NotoSans", style: file.split(/[\-\.]/)[1].toLowerCase() });
-  registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
+  for (const file of fontFiles) canvas.registerFont(`./fonts/${file}`, { family: "NotoSans", style: file.split(/[\-\.]/)[1].toLowerCase() });
+  canvas.registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
 
   for (let i = 0; i < 4; i++) for (let s = 0; s < 13; s++) NorthClient.storage.card.set(twoDigits(i) + twoDigits(s), new Card(i, s));
   NorthClient.storage.card.set("0413", new Card(4, 13));

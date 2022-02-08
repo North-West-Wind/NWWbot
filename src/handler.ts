@@ -1,4 +1,4 @@
-import { createCanvas, loadImage, Image } from "canvas";
+import cv from "canvas";
 import { Guild, GuildMember, Interaction, Message, MessageAttachment, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, TextChannel, User, VoiceState } from "discord.js";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
@@ -15,6 +15,7 @@ import * as filter from "./helpers/filter.js";
 import { sCategories } from "./commands/information/help.js";
 import common from "./common.js";
 import { init } from "./helpers/addTrack.js";
+const { createCanvas, loadImage, Image } = cv;
 
 const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
 

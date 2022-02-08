@@ -1,7 +1,7 @@
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { createCanvas, loadImage } from "canvas";
+import Canvas from "canvas";
 import { findMember, fixGuildRecord, replaceMsgContent } from "../../function.js";
 
 class WelcomeCommand implements SlashCommand {
@@ -59,7 +59,7 @@ class WelcomeCommand implements SlashCommand {
                 img.onload = async () => {
                     var height = img.height;
                     var width = img.width;
-                    const canvas = createCanvas(width, height);
+                    const canvas = Canvas.createCanvas(width, height);
                     const ctx = canvas.getContext("2d");
                     const applyText = (canvas, text) => {
                         const ctx = canvas.getContext("2d");
@@ -77,7 +77,7 @@ class WelcomeCommand implements SlashCommand {
                         } while (ctx.measureText(text).width > canvas.width * 3 / 4);
                         return ctx.font;
                     };
-                    const avatar = await loadImage(member.user.displayAvatarURL({ format: "png" }));
+                    const avatar = await Canvas.loadImage(member.user.displayAvatarURL({ format: "png" }));
                     ctx.drawImage(img, 0, 0, width, height);
                     const txt = member.user.tag;
                     ctx.font = applyText(canvas, txt);

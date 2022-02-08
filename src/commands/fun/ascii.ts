@@ -4,7 +4,7 @@ import anser from "anser";
 import figlet from "figlet";
 import sanitize from "sanitize-filename";
 import * as Discord from "discord.js";
-import { createCanvas } from "canvas";
+import Canvas from "canvas";
 import asciify from "asciify-image";
 import { isImageUrl } from "../../function.js";
 
@@ -49,12 +49,12 @@ class AsciiCommand implements SlashCommand {
                         const asciis = <string> await asciify(attachment.url, { fit: "box", width: Math.round(attachment.width / (10 * 0.42)), height: Math.round(attachment.height / 10) });
                         const lines = asciis.split("\n");
                         const height = lines.length * 18;
-                        const tempCanvas = createCanvas(420, 69);
+                        const tempCanvas = Canvas.createCanvas(420, 69);
                         const tempCtx = tempCanvas.getContext("2d");
                         tempCtx.font = "14px Courier New";
                         const width = tempCtx.measureText(anser.ansiToText(lines[0])).width;
 
-                        const canvas = createCanvas(width, height);
+                        const canvas = Canvas.createCanvas(width, height);
                         const ctx = canvas.getContext("2d");
                         ctx.font = "15px Courier New";
                         ctx.textBaseline = "top";

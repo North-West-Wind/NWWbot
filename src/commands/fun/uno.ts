@@ -3,7 +3,7 @@ import * as Discord from "discord.js";
 import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild, wait } from "../../function.js";
 import { NorthClient } from "../../classes/NorthClient.js";
 import converter from "number-to-words";
-import { createCanvas, loadImage } from "canvas";
+import Canvas from "canvas";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
 formatSetup(moment);
@@ -18,11 +18,11 @@ function toString(x) {
 }
 
 async function canvasImg(assets, cards) {
-  let canvas = createCanvas((cards.length < 5 ? 165 * cards.length : 825), Math.ceil(cards.length / 5) * 256);
+  let canvas = Canvas.createCanvas((cards.length < 5 ? 165 * cards.length : 825), Math.ceil(cards.length / 5) * 256);
   let ctx = canvas.getContext("2d");
   for (let i = 0; i < cards.length; i++) {
     let url = await assets.find(x => x.id === twoDigits(cards[i].color) + twoDigits(cards[i].number)).url;
-    let img = await loadImage(url);
+    let img = await Canvas.loadImage(url);
     ctx.drawImage(img, (i % 5) * 165, Math.floor(i / 5) * 256, 165, 256);
   }
   return canvas.toBuffer();

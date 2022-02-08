@@ -1,7 +1,7 @@
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 
 import * as Discord from "discord.js";
-import { createCanvas } from "canvas";
+import Canvas from "canvas";
 import { hexToRgb, decimalToRgb } from "../../function.js";
 function isArgsRgb(args: string[], length: number) {
     for(let i = 0; i < length; i++) if(isNaN(parseInt(args[i])) || parseInt(args[i]) > 255 || parseInt(args[i]) < 0) return false;
@@ -51,7 +51,7 @@ class ColorCommand implements SlashCommand {
     async execute(interaction: NorthInteraction) {
         const args = interaction.options.getString("color")?.split(/ +/);
         const { red, green, blue, random } = getColor(args);
-        const canvas = createCanvas(1024, 1024);
+        const canvas = Canvas.createCanvas(1024, 1024);
         const ctx = canvas.getContext("2d");
         ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -65,7 +65,7 @@ class ColorCommand implements SlashCommand {
 
     async run(message: NorthMessage, args: string[]) {
         const { red, green, blue, random } = getColor(args);
-        const canvas = createCanvas(1024, 1024);
+        const canvas = Canvas.createCanvas(1024, 1024);
         const ctx = canvas.getContext("2d");
         ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);

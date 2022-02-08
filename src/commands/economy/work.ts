@@ -1,5 +1,5 @@
 import randomWords from "@genzou/random-words";
-import * as Canvas from "canvas";
+import Canvas from "canvas";
 import * as Discord from "discord.js";
 import { getRandomNumber, applyText, jsDate2Mysql, query } from "../../function.js";
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
