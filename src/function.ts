@@ -6,7 +6,7 @@ import originalFetch from "node-fetch";
 import fetchBuilder from "fetch-retry-ts";
 import { parseString } from "xml2js";
 import superms from "ms";
-import { mojang } from "aio-mc-api";
+import mcapi from "aio-mc-api";
 import * as fs from "fs";
 import * as path from "path";
 import * as moment from "moment";
@@ -449,16 +449,16 @@ export function mergeObjArr(obj, keys) {
     return [].concat.apply([], arr);
 }
 export async function profile(str: string) {
-    if (str.match(/^\w{3,16}$/)) return await mojang.getUUID(str);
+    if (str.match(/^\w{3,16}$/)) return await mcapi.mojang.getUUID(str);
     const history = (<{name: string, changedToAt: number}[]> <unknown> (await nameHistory(str))).sort((a, b) => (b.changedToAt || 0) - (a.changedToAt || 0));
-    return await mojang.getUUID(history[0].name);
+    return await mcapi.mojang.getUUID(history[0].name);
 }
 export async function nameToUuid(str) {
     return (await profile(str)).id;
 }
 export async function nameHistory(str: string) {
     if (str.match(/^\w{3,16}$/)) return await (await profile(str)).getNameHistory();
-    return await mojang.getNameHistory(str);
+    return await mcapi.mojang.getNameHistory(str);
 }
 export function duration(seconds) {
     return moment.duration(seconds, "seconds").format();

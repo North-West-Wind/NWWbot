@@ -1,8 +1,8 @@
-import { CategoryList, SectionTypes, SortTypes } from "aio-mc-api/lib/typings/CurseForge/Constants";
+import { CategoryList, SectionTypes, SortTypes } from "aio-mc-api/lib/typings/CurseForge/Constants.js";
 
 import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory, getFetch, isValidMCVer } from "../../function.js";
 import { Message, MessageEmbed } from "discord.js";
-import { curseforge, SimpleProject } from "aio-mc-api";
+import mcapi from "aio-mc-api";
 import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
 import { globalClient as client } from "../../common.js";
 
@@ -152,7 +152,7 @@ class MinecraftCommand implements SlashCommand {
         const realcategory = SectionTypes[category?.toUpperCase()] || SectionTypes.MOD;
         const realsort = SortTypes[sort?.toUpperCase()] || "POPULARITY";
         const realver = isValidMCVer(version) ? version : undefined;
-        const projects = <SimpleProject[]>await curseforge.searchProject({ category: realcategory, gameVersion: realver, sort: realsort, filter: filters.filter(x => x).join(" ") });
+        const projects = <mcapi.SimpleProject[]>await mcapi.curseforge.searchProject({ category: realcategory, gameVersion: realver, sort: realsort, filter: filters.filter(x => x).join(" ") });
         const allEmbeds = [];
         var categories = CategoryList;
         for (let i = 0; i < Math.ceil(projects.length / 10); i++) {
