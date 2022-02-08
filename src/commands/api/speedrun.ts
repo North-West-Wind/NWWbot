@@ -23,7 +23,7 @@ class SpeedrunCommand implements SlashCommand {
     async execute(interaction: NorthInteraction) {
         await interaction.deferReply();
         const game = interaction.options.getString("game");
-        const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(game)}`).then(res => res.json());
+        const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(game)}`).then(res => <any> res.json());
         var data: any, msg: Discord.Message;
         const em = new Discord.MessageEmbed()
             .setColor(color())
@@ -47,7 +47,7 @@ class SpeedrunCommand implements SlashCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(args.join(" "))}`).then(res => res.json());
+        const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(args.join(" "))}`).then(res => <any> res.json());
         var data, msg: Discord.Message;
         if (!gameFetch) {
             ({ data, msg } = await this.chooseGame(message, args.join(" ")));
@@ -76,7 +76,7 @@ class SpeedrunCommand implements SlashCommand {
     async chooseGame(message: Discord.Message | NorthInteraction, name: string) {
         const games = [];
         const author = message instanceof Discord.Message ? message.author.id : message.user.id;
-        var result = await fetch(`https://www.speedrun.com/api/v1/games?name=${escape(name)}&_bulk=1`).then(res => res.json());
+        var result = await fetch(`https://www.speedrun.com/api/v1/games?name=${escape(name)}&_bulk=1`).then(res => <any> res.json());
         for (var i = 0; i < (result.data.length > 10 ? 10 : result.data.length); i++) games.push(`${i + 1}. **${result.data[i].names.international}** : **${result.data[i].abbreviation}**`);
         const em = new Discord.MessageEmbed()
             .setColor(color())
@@ -119,10 +119,10 @@ class SpeedrunCommand implements SlashCommand {
     async getEmbedsByID(data) {
         console.log(data);
         const allEmbeds = [];
-        const results = await fetch(`https://www.speedrun.com/api/v1/games/${data.id}/records`).then(res => res.json());
+        const results = await fetch(`https://www.speedrun.com/api/v1/games/${data.id}/records`).then(res => <any> res.json());
         for (const record of results.data) {
-            if (record.level) var levelFetch = await fetch(`https://www.speedrun.com/api/v1/levels/${record.level}`).then(res => res.json());
-            if (record.category) var categoryFetch = await fetch(`https://www.speedrun.com/api/v1/categories/${record.category}`).then(res => res.json());
+            if (record.level) var levelFetch = await fetch(`https://www.speedrun.com/api/v1/levels/${record.level}`).then(res => <any> res.json());
+            if (record.category) var categoryFetch = await fetch(`https://www.speedrun.com/api/v1/categories/${record.category}`).then(res => <any> res.json());
             const level = levelFetch && levelFetch.data ? levelFetch.data.name : "N/A";
             const category = categoryFetch && categoryFetch.data ? categoryFetch.data.name : "N/A";
             const embed = new Discord.MessageEmbed()
@@ -133,14 +133,14 @@ class SpeedrunCommand implements SlashCommand {
                 .setTimestamp()
                 .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
             for (const run of record.runs) {
-                if (run.run.system.platform) var platformFetch = await fetch(`https://www.speedrun.com/api/v1/platforms/${run.run.system.platform}`).then(res => res.json());
-                if (run.run.system.region) var regionFetch = await fetch(`https://www.speedrun.com/api/v1/regions/${run.run.system.region}`).then(res => res.json());
+                if (run.run.system.platform) var platformFetch = await fetch(`https://www.speedrun.com/api/v1/platforms/${run.run.system.platform}`).then(res => <any> res.json());
+                if (run.run.system.region) var regionFetch = await fetch(`https://www.speedrun.com/api/v1/regions/${run.run.system.region}`).then(res => <any> res.json());
                 const platform = platformFetch?.data?.name || "N/A";
                 const region = regionFetch?.data?.name || "N/A";
                 var player;
                 if (run.run.players[0].rel === "guest") player = run.run.players[0].name;
                 else if (run.run.players[0].rel === "user") {
-                    const userFetch = await fetch(run.run.players[0].uri).then(res => res.json());
+                    const userFetch = await fetch(run.run.players[0].uri).then(res => <any> res.json());
                     player = userFetch.data.name.international;
                 }
                 var time = run.run.times.primary_t;

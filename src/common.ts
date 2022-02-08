@@ -73,7 +73,6 @@ export default async (client: NorthClient) => {
 
   setInterval(async () => {
     if (NorthClient.storage.queries.length < 1) return;
-    console.log(`Starting message level sync. Memory used: ${process.memoryUsage().heapUsed / 1024 / 1024}MB`);
     try {
       const results = await query(`SELECT * FROM leveling`);
       for (const q of NorthClient.storage.queries) try {
@@ -87,7 +86,6 @@ export default async (client: NorthClient) => {
       } catch (err: any) { }
       NorthClient.storage.queries = [];
     } catch (err: any) { }
-    console.log(`Message level sync ended. Memory used: ${process.memoryUsage().heapUsed / 1024 / 1024}MB`);
   }, 60000);
 }
 

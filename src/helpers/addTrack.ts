@@ -595,7 +595,7 @@ export async function getStream(track: SoundTrack, data: { guild?: Discord.Guild
                         options.requestOptions.headers = { cookie: process.env.COOKIE };
                         if (process.env.YT_TOKEN) options.requestOptions.headers["x-youtube-identity-token"] = process.env.YT_TOKEN;
                     }
-                    stream = <Stream.Readable> await ytdl(`https://www.youtube.com/watch?v=${ytid}`, options);
+                    stream = <Stream.Readable> ytdl(`https://www.youtube.com/watch?v=${ytid}`, options);
                     cacheFound = true;
                 } else stream = <Stream.Readable>(await requestStream(c.url)).data;
                 break;
@@ -608,15 +608,12 @@ export async function getStream(track: SoundTrack, data: { guild?: Discord.Guild
                 }
                 if (!track?.isPastLive) Object.assign(options, { filter: "audioonly", dlChunkSize: 0, highWaterMark: 1 << 25 });
                 else Object.assign(options, { highWaterMark: 1 << 25 });
-                stream = await ytdl(track.url, options);
+                stream = ytdl(track.url, options);
                 if (!stream) throw new Error("Failed to get YouTube video stream.");
                 cacheFound = true;
                 break;
         }
     }
     if (!cacheFound) stream = await cacheTrack(track.id, stream);
-    console.log(`Stream obtained. Details:`);
-    console.log(`Type: ${track.type}, Newly Cached: ${!cacheFound}`)
-    console.log(`Memory used: ${process.memoryUsage().heapUsed / 1024 / 1024}MB`);
     return stream;
 }

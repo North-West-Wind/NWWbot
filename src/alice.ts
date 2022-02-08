@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
 import { AliceHandler } from "./handler";
 import { NorthClient, ClientStorage } from "./classes/NorthClient";
-import { RowDataPacket } from "mysql2";
 import { getFetch, profile, query, updateGuildMemberMC } from "./function";
 import { Intents, Options, VoiceChannel } from "discord.js";
 dotenv.config();

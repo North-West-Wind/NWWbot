@@ -34,7 +34,7 @@ class UrbanCommand implements SlashCommand {
     }
 
     async getDictEmbed(query: string) {
-        const { list } = await fetch(`https://api.urbandictionary.com/v0/define?term=${encodeURIComponent(query)}`).then(response => response.json());
+        const { list } = await fetch(`https://api.urbandictionary.com/v0/define?term=${encodeURIComponent(query)}`).then(response => <any> response.json());
         if (!list?.length) return null;
         const trim = (str, max) => str.length > max ? `${str.slice(0, max - 3)}...` : str;
         const allEmbeds = [];

@@ -58,7 +58,6 @@ function createPlayer(guild: Discord.Guild) {
   }).on(AudioPlayerStatus.Idle, async () => {
     removeUsing(track?.id);
     serverQueue = getQueues().get(guild.id);
-    console.log(`Finished a track. Currently playing on ${getQueues().filter(x => x.playing).size} servers. Memory usage: ${process.memoryUsage().heapUsed / 1024 / 1024}`);
     await next();
   }).on("error", async error => {
     console.error(error.message);
@@ -147,7 +146,6 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
       serverQueue.player.play(await probeAndCreateResource(passthru));
     } else serverQueue.player.play(await probeAndCreateResource(stream));
     await entersState(serverQueue.player, AudioPlayerStatus.Playing, 5e3);
-    console.log(`Starting a track. Currently playing on ${getQueues().filter(x => x.playing).size} servers. Memory usage: ${process.memoryUsage().heapUsed / 1024 / 1024}`);
   } catch (err: any) {
     console.error(err);
     serverQueue.player?.emit("error", new AudioPlayerError(err instanceof Error ? err : new Error(err), serverQueue.resource));

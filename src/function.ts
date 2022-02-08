@@ -14,7 +14,6 @@ import formatSetup from "moment-duration-format";
 formatSetup(moment);
 import { Readable } from "stream";
 import ytdl, { downloadOptions } from "ytdl-core";
-import { RowDataPacket } from "mysql2/promise";
 import { setQueue } from "./helpers/music";
 const fetch = fetchBuilder(originalFetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 
@@ -679,12 +678,12 @@ export function getText(key: string, lang: string = "en") {
 export async function query(query: string) {
     const res = await fetch("http://localhost:4269/api/" + encodeURIComponent(query) + "?token=" + process.env.DB_TOKEN);
     if (!res.ok) return null;
-    else return await res.json();
+    else return <any> await res.json();
 }
 
 export async function checkTradeW1nd(guild: Discord.Snowflake) {
     const res = await fetch("http://localhost:3000/checkGuild/" + guild);
-    return res.ok && (await res.json()).isIn;
+    return res.ok && (<any> await res.json()).isIn;
 }
 
 export async function getTradeW1ndStats() {
@@ -701,7 +700,7 @@ export async function syncTradeW1nd(guild: Discord.Snowflake) {
 
 export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: string) {
     const { name } = await profile(mcUuid);
-    const res = await fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => res.json());
+    const res = await fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => <any> res.json());
     const mcLen = res.username.length + 1;
     const bw = res.stats.BedWars;
     const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;

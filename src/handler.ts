@@ -410,10 +410,8 @@ export class Handler {
         const command = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
         try {
-            console.log(`Running/Filtering ${command.name}. Memory used: ${process.memoryUsage().heapUsed / 1024 / 1024}MB`);
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
-            console.log(`Finished running ${command.name}. Memory used: ${process.memoryUsage().heapUsed / 1024 / 1024}MB`);
         } catch (err: any) {
             console.error(command.name + ": " + err);
             try {
