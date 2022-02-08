@@ -57,8 +57,8 @@ export default async (client: NorthClient) => {
   NorthClient.storage.card.set("0413", new Card(4, 13));
   NorthClient.storage.card.set("0414", new Card(4, 14));
 
-  const commandFiles = deepReaddir("./out/commands").filter(file => file.endsWith(".js"));
-  const itemFiles = deepReaddir("./out/items").filter(file => file.endsWith(".js"));
+  const commandFiles = deepReaddir("./out/src/commands").filter(file => file.endsWith(".js"));
+  const itemFiles = deepReaddir("./out/src/items").filter(file => file.endsWith(".js"));
   for (const file of commandFiles) {
     const command = <SlashCommand>(await import(file)).default;
     NorthClient.storage.commands.set(command.name, command);
