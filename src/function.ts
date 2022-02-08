@@ -9,9 +9,7 @@ import superms from "ms";
 import mcapi from "aio-mc-api";
 import * as fs from "fs";
 import * as path from "path";
-import * as moment from "moment";
-import formatSetup from "moment-duration-format";
-formatSetup(moment);
+import moment from "moment";
 import { Readable } from "stream";
 import ytdl, { downloadOptions } from "ytdl-core";
 import { setQueue } from "./helpers/music.js";
@@ -460,8 +458,13 @@ export async function nameHistory(str: string) {
     if (str.match(/^\w{3,16}$/)) return await (await profile(str)).getNameHistory();
     return await mcapi.mojang.getNameHistory(str);
 }
-export function duration(seconds) {
-    return moment.duration(seconds, "seconds").format();
+export function duration(seconds: number, type: moment.unitOfTime.DurationConstructor = "seconds") {
+    const duration = moment.duration(seconds, type);
+    const str = [];
+    if (duration.hours()) str.push(twoDigits(duration.hours()) + ":");
+    str.push(twoDigits(duration.minutes()) + ":");
+    str.push(twoDigits(duration.seconds()));
+    return str.join("");
 }
 export function getKeyByValue(object, value) {
     return Object.keys(object).find(key => object[key] === value);

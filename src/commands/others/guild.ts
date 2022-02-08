@@ -1,11 +1,7 @@
 
 import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import * as moment from "moment";
-import formatSetup from "moment-duration-format";
-import { color, createEmbedScrolling, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, query, readableDateTimeText, setTimeout_ } from "../../function.js";
-import { RowDataPacket } from "mysql2";
-formatSetup(moment);
+import { color, createEmbedScrolling, duration, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, query, readableDateTimeText, setTimeout_ } from "../../function.js";
 
 const fetch = getFetch();
 const catabombLevels = [
@@ -387,7 +383,7 @@ class GuildCommand implements SlashCommand {
 						let rank = unescape(result.dc_rank);
 						let title = `<@${dc}> - ${rank} [${username}]`;
 						let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-						tmp.push({ title: title, time: moment.duration(seconds, "seconds").format() });
+						tmp.push({ title: title, time: duration(seconds, "seconds") });
 					}
 					if (tmp.length <= 10) {
 						let description = "";

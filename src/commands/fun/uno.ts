@@ -1,13 +1,10 @@
 import { NorthInteraction, NorthMessage, Player, SlashCommand, UnoGame } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild, wait } from "../../function.js";
+import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild, wait, duration } from "../../function.js";
 import { NorthClient } from "../../classes/NorthClient.js";
 import converter from "number-to-words";
 import Canvas from "canvas";
-import * as moment from "moment";
-import formatSetup from "moment-duration-format";
 import config from "../../../config.json";
-formatSetup(moment);
 
 const COLOR = ["Yellow", "Blue", "Green", "Red", "Special"];
 const NUMBER = ["Reverse", "Skip", "Draw 2", "Draw 4", "Change Color"];
@@ -239,7 +236,7 @@ class UnoCommand implements SlashCommand {
               .setColor(c)
               .setTitle(`The time limit has been reached!`)
               .setThumbnail(player.user.displayAvatarURL())
-              .setDescription(`Congratulations to **${lowestP.map(u => u.tag).join("**, **")}** winning with **${scores} scores**!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - id, "milliseconds").format()}.\nThanks for playing!`)
+              .setDescription(`Congratulations to **${lowestP.map(u => u.tag).join("**, **")}** winning with **${scores} scores**!\nThe game ended after **${data.cards} cards**, ${duration(Date.now() - id, "milliseconds")}.\nThanks for playing!`)
               .setTimestamp()
               .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             lowestP.forEach(u => u.send("You won the game! Congratulations!"));
@@ -382,7 +379,7 @@ class UnoCommand implements SlashCommand {
                   .setColor(c)
                   .setTitle(`${player.user.tag} doesn't want to play with you anymore!`)
                   .setThumbnail(player.user.displayAvatarURL())
-                  .setDescription(`**${player.user.tag}** left the game!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - id, "milliseconds").format()}.\nThanks for playing!`)
+                  .setDescription(`**${player.user.tag}** left the game!\nThe game ended after **${data.cards} cards**, ${duration(Date.now() - id, "milliseconds")}.\nThanks for playing!`)
                   .setTimestamp()
                   .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
                 mesg.edit(cancel);
@@ -519,7 +516,7 @@ class UnoCommand implements SlashCommand {
                 .setColor(c)
                 .setTitle(`${player.user.tag} won!`)
                 .setThumbnail(player.user.displayAvatarURL())
-                .setDescription(`Congratulations to **${player.user.tag}** winning with **${scores} scores**!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - id, "milliseconds").format()}.\nThanks for playing!`)
+                .setDescription(`Congratulations to **${player.user.tag}** winning with **${scores} scores**!\nThe game ended after **${data.cards} cards**, ${duration(Date.now() - id, "milliseconds")}.\nThanks for playing!`)
                 .setTimestamp()
                 .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
               await player.user.send("You won the game! Congratulations!");
@@ -567,7 +564,7 @@ class UnoCommand implements SlashCommand {
               .setColor(c)
               .setTitle(`${player.user.tag} doesn't want to play with you anymore!`)
               .setThumbnail(player.user.displayAvatarURL())
-              .setDescription(`**${player.user.tag}** left the game!\nThe game ended after **${data.cards} cards**, ${moment.duration(Date.now() - id, "milliseconds").format()}.\nThanks for playing!`)
+              .setDescription(`**${player.user.tag}** left the game!\nThe game ended after **${data.cards} cards**, ${duration(Date.now() - id, "milliseconds")}.\nThanks for playing!`)
               .setTimestamp()
               .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             mesg.edit(cancel);

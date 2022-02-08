@@ -1,7 +1,4 @@
-import * as moment from "moment";
-import formatSetup from "moment-duration-format";
 import { Message } from "discord.js";
-formatSetup(moment);
 import * as mm from "music-metadata";
 import muse from "musescore-metadata";
 import scdl from 'soundcloud-downloader/dist/index.js';
@@ -9,7 +6,7 @@ import ytdl from "ytdl-core";
 import ytpl from "ytpl";
 import ytsr, { Video } from "ytsr";
 import { NorthInteraction, ServerQueue, SoundTrack } from "../classes/NorthClient.js";
-import { getFetch, decodeHtmlEntity, isGoodMusicVideoContent, validGDDLURL, color, msgOrRes, humanDurationToNum, requestStream } from "../function.js";
+import { duration, getFetch, decodeHtmlEntity, isGoodMusicVideoContent, validGDDLURL, color, msgOrRes, humanDurationToNum, requestStream } from "../function.js";
 import * as Stream from 'stream';
 import SpotifyWebApi from "spotify-web-api-node";
 import crypto from "crypto";
@@ -467,7 +464,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
     var num = 0;
     if (ytResults.length > 0) {
         results.push(ytResults);
-        Embed.setDescription("Type **soundcloud** / **sc** to show the search results from SoundCloud.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + ytResults.map(x => `${++num} - **[${x.title}](${x.url})** : **${!x.time ? "∞" : moment.duration(x.time, "seconds").format()}**`).slice(0, 10).join("\n"));
+        Embed.setDescription("Type **soundcloud** / **sc** to show the search results from SoundCloud.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + ytResults.map(x => `${++num} - **[${x.title}](${x.url})** : **${!x.time ? "∞" : duration(x.time, "seconds")}**`).slice(0, 10).join("\n"));
         allEmbeds.push(Embed);
     }
     const scEm = new Discord.MessageEmbed()
@@ -498,7 +495,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
     })).filter(x => !!x.url);
     if (scResults.length > 0) {
         results.push(scResults);
-        scEm.setDescription("Type **youtube** / **yt** to show the search results from Youtube.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + scResults.map(x => `${++num} - **[${x.title}](${x.url})** : **${!x.time ? "∞" : moment.duration(x.time, "seconds").format()}**`).slice(0, 10).join("\n"));
+        scEm.setDescription("Type **youtube** / **yt** to show the search results from Youtube.\nType the index of the soundtrack to select, or type anything else to cancel.\n\n" + scResults.map(x => `${++num} - **[${x.title}](${x.url})** : **${!x.time ? "∞" : duration(x.time, "seconds")}**`).slice(0, 10).join("\n"));
         allEmbeds.push(scEm);
     }
     if (allEmbeds.length < 1) {
@@ -533,7 +530,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
                 collector.emit("end");
                 return;
             }
-            const length = !results[s][o].time ? "∞" : moment.duration(results[s][o].time, "seconds").format()
+            const length = !results[s][o].time ? "∞" : duration(results[s][o].time, "seconds");
             const chosenEmbed = new Discord.MessageEmbed()
                 .setColor(color())
                 .setTitle("Music chosen:")

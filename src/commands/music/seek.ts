@@ -1,12 +1,7 @@
 import { GuildMember, Message, VoiceChannel } from "discord.js";
-
 import { NorthInteraction, NorthMessage, ServerQueue, SlashCommand } from "../../classes/NorthClient.js";
-import { ms, msgOrRes } from "../../function.js";
-import * as moment from "moment";
-import formatSetup from "moment-duration-format";
+import { duration, ms, msgOrRes } from "../../function.js";
 import { createDiscordJSAdapter, getQueues, setQueue } from "../../helpers/music.js";
-formatSetup(moment);
-import { play } from "./play.js";
 import { joinVoiceChannel } from "@discordjs/voice";
 
 class SeekCommand implements SlashCommand {
@@ -56,7 +51,7 @@ class SeekCommand implements SlashCommand {
         serverQueue.isSkipping = true;
         serverQueue.seek = seek;
         serverQueue.player?.stop();
-        await msgOrRes(message, `Seeked to **${seek == 0 ? "0:00" : moment.duration(seek, "seconds").format()}**`);
+        await msgOrRes(message, `Seeked to **${seek == 0 ? "0:00" : duration(seek, "seconds")}**`);
         const member = <GuildMember> message.member;
         if (member.voice.channel && serverQueue.playing && !serverQueue.connection) serverQueue.connection = joinVoiceChannel({ channelId: member.voice.channel.id, guildId: message.guild.id, adapterCreator: createDiscordJSAdapter(<VoiceChannel> member.voice.channel) });
     }

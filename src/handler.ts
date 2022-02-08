@@ -1,15 +1,10 @@
 import cv from "canvas";
 import { Guild, GuildMember, Interaction, Message, MessageAttachment, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, TextChannel, User, VoiceState } from "discord.js";
-import * as moment from "moment";
-import formatSetup from "moment-duration-format";
-formatSetup(moment);
-import { RowDataPacket } from "mysql2";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll } from "./commands/miscellaneous/poll.js";
-import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query } from "./function.js";
+import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration } from "./function.js";
 import { setQueue, stop } from "./helpers/music.js";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient.js";
-import { Connection, PoolConnection } from "mysql2/promise";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter.js";
 import { sCategories } from "./commands/information/help.js";
@@ -500,7 +495,7 @@ export class AliceHandler extends Handler {
                     let rank = unescape(result.dc_rank);
                     let title = `<@${dc}> - ${rank} [${username}]`;
                     let seconds = Math.round((result.endAt.getTime() - now) / 1000);
-                    tmp.push({ title: title, time: moment.duration(seconds).format() });
+                    tmp.push({ title: title, time: duration(seconds) });
                 }
                 if (tmp.length <= 10) {
                     timerMsg.reactions.removeAll().catch(() => {});

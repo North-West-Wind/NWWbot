@@ -1,12 +1,8 @@
-import { TextChannel, User } from "discord.js";
-
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { User } from "discord.js";
+import {  NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, ms } from "../../function.js";
+import { color, duration, ms } from "../../function.js";
 import * as math from "mathjs";
-import * as moment from "moment";
-import formatSetup from "moment-duration-format";
-formatSetup(moment);
 class MathGameCommand implements SlashCommand {
     name = "mathgame"
     description = "Math Game prototype."
@@ -65,7 +61,7 @@ class MathGameCommand implements SlashCommand {
         var em = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle("Math Game Prototype")
-            .setDescription(`Game Mode: **${questions > 0 ? `Limited Question Mode (${questions} Questions)` : time > 0 ? `Timer Mode (${moment.duration(Math.round(time / 1000), "seconds").format()})` : "Endless Mode"}**\n**${players.length < 2 ? "Singleplayer" : "Multiplayer"} Game**\nReact with "👌🏻" when you are ready!`)
+            .setDescription(`Game Mode: **${questions > 0 ? `Limited Question Mode (${questions} Questions)` : time > 0 ? `Timer Mode (${duration(Math.round(time / 1000), "seconds")})` : "Endless Mode"}**\n**${players.length < 2 ? "Singleplayer" : "Multiplayer"} Game**\nReact with "👌🏻" when you are ready!`)
             .setTimestamp()
             .setFooter({ text: "I will wait for 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
         msg = await msg.edit({ content: null, embeds: [em] });
@@ -109,7 +105,7 @@ class MathGameCommand implements SlashCommand {
             else if(scores[user.id] === winner.score) { winner.name += ` ${user.tag}`; winner.score = scores[user.id]; }
         }
         em.setTitle("Game Over")
-        .setDescription(`Here are the final scores after **${moment.duration(Math.round((Date.now() - now) / 1000), "seconds").format()}**!\n${players.map(x => `**${x.tag}** --- **${scores[x.id]}**\n`)}\nCongratulations to **${winner.name}** for winning this game with **${winner.score} points**!`)
+        .setDescription(`Here are the final scores after **${duration(Math.round((Date.now() - now) / 1000), "seconds")}**!\n${players.map(x => `**${x.tag}** --- **${scores[x.id]}**\n`)}\nCongratulations to **${winner.name}** for winning this game with **${winner.score} points**!`)
         .setTimestamp()
         .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
         await msg.edit({ content: null, embeds: [em] });

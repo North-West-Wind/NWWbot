@@ -44,7 +44,6 @@
     "mathjs": "^10.1.0",
     "mojang-api": "^0.0.2",
     "moment": "^2.29.1",
-    "moment-duration-format": "^2.3.2",
     "ms": "^2.1.3",
     "musescore-metadata": "^1.0.3",
     "music-metadata": "^7.11.7",
