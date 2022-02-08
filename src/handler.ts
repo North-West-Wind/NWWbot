@@ -11,7 +11,7 @@ import { setQueue, stop } from "./helpers/music.js";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient.js";
 import { Connection, PoolConnection } from "mysql2/promise";
 import fetch from "node-fetch";
-import * as filter from "./helpers/filter";
+import * as filter from "./helpers/filter.js";
 import { sCategories } from "./commands/information/help.js";
 import common from "./common.js";
 import { init } from "./helpers/addTrack.js";
