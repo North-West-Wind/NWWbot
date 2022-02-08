@@ -1,5 +1,5 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient"
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js"
 import * as Discord from "discord.js";
 import { color, wait, genPermMsg, ID, msgOrRes, query } from "../../function.js";
 import { globalClient as client } from "../../common.js";
