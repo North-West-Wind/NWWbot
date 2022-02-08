@@ -2,8 +2,7 @@ import { GuildConfig, NorthClient, NorthInteraction } from "./classes/NorthClien
 import crypto from "crypto";
 import { globalClient } from "./common.js";
 import * as Discord from "discord.js";
-import originalFetch from "node-fetch";
-import fetchBuilder from "fetch-retry-ts";
+import fetch from "node-fetch";
 import { parseString } from "xml2js";
 import superms from "ms";
 import mcapi from "aio-mc-api";
@@ -13,7 +12,6 @@ import moment from "moment";
 import { Readable } from "stream";
 import ytdl, { downloadOptions } from "ytdl-core";
 import { setQueue } from "./helpers/music.js";
-const fetch = fetchBuilder(originalFetch, { retries: 5, retryDelay: attempt => Math.pow(2, attempt) * 1000 });
 
 export function twoDigits(d) {
     if (0 <= d && d < 10) return "0" + d.toString();
