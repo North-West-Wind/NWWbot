@@ -2,7 +2,8 @@
   "name": "nwwbot",
   "version": "5.0.3",
   "description": "NorthWestWind's bot!",
-  "main": "out/main.js",
+  "type": "module",
+  "exports": "out/main.js",
   "scripts": {
     "start": "node --optimize_for_size --max_old_space_size=2048 --gc_interval=100 --trace-warnings out/main.js",
     "alice": "node --optimize_for_size --max_old_space_size=256 --gc_interval=100 --trace-warnings out/alice.js",
