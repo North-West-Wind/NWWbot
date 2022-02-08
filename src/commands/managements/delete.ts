@@ -1,7 +1,7 @@
 import { GuildMember, TextChannel } from "discord.js";
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { genPermMsg, wait } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { genPermMsg, wait } from "../../function.js";
 
 class DeleteCommand implements SlashCommand {
   name = "delete"

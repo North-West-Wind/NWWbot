@@ -1,7 +1,7 @@
 import { RowDataPacket } from "mysql2";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { genPermMsg, createEmbedScrolling, color, msgOrRes, query } from "../../function";
+import { genPermMsg, createEmbedScrolling, color, msgOrRes, query } from "../../function.js";
 
 class InvitesCommand implements SlashCommand {
   name = "invites"

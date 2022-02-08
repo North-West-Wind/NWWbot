@@ -1,8 +1,8 @@
 import { TextChannel, User } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, ms } from "../../function";
+import { color, ms } from "../../function.js";
 import * as math from "mathjs";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";

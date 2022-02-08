@@ -1,8 +1,8 @@
 import wiki from "wikijs";
 import * as Discord from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 
-import { color } from "../../function";
+import { color } from "../../function.js";
 
 class WikiCommand implements SlashCommand {
     name = "wiki"

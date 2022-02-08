@@ -1,9 +1,9 @@
 
-import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient";
+import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
-import { color, createEmbedScrolling, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, query, readableDateTimeText, setTimeout_ } from "../../function";
+import { color, createEmbedScrolling, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, query, readableDateTimeText, setTimeout_ } from "../../function.js";
 import { RowDataPacket } from "mysql2";
 formatSetup(moment);
 

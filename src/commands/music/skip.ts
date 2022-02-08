@@ -1,9 +1,9 @@
 import { joinVoiceChannel } from "@discordjs/voice";
 import { GuildMember, Message, VoiceChannel } from "discord.js";
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { msgOrRes } from "../../function";
-import { createDiscordJSAdapter, getQueues, setQueue, updateQueue } from "../../helpers/music";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { msgOrRes } from "../../function.js";
+import { createDiscordJSAdapter, getQueues, setQueue, updateQueue } from "../../helpers/music.js";
 
 class SkipCommand implements SlashCommand {
     name = "skip"

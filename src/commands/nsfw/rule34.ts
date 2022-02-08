@@ -1,8 +1,8 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { capitalize, color, xmlToJson, getFetch } from "../../function.js";
 
-import { globalClient as client } from "../../common";
+import { globalClient as client } from "../../common.js";
 
 const fetch = getFetch();
 

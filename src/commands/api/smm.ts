@@ -1,9 +1,9 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { readableDateTime, color, createEmbedScrolling } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { readableDateTime, color, createEmbedScrolling } from "../../function.js";
 import smm from "smm-api";
 import * as Discord from "discord.js";
-import { globalClient as client } from "../../common";
+import { globalClient as client } from "../../common.js";
 
 const themes = ["Ground", "Underground", "Castle", "Airship", "Underwater", "Ghost House"];
 const difficulties = ["Easy", "Normal", "Expert", "Super Expert"];

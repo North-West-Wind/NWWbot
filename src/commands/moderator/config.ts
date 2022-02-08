@@ -1,10 +1,10 @@
 import { Message, MessageReaction, User } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd, query } from "../../function";
-import { globalClient as client } from "../../common";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd, query } from "../../function.js";
+import { globalClient as client } from "../../common.js";
 import * as Discord from "discord.js";
-import { isImageUrl } from "../../function";
+import { isImageUrl } from "../../function.js";
 
 const panelEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "⏹"],
   welcomeEmoji = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "⬅", "⏹"],

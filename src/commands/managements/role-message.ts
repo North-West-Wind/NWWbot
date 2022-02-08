@@ -1,7 +1,7 @@
 import { GuildMember, Message, MessageEmbed, Snowflake, TextChannel } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { genPermMsg, findRole, msgOrRes, query } from "../../function";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { genPermMsg, findRole, msgOrRes, query } from "../../function.js";
 
 class RoleMessageCommand implements SlashCommand {
     name = "role-message"

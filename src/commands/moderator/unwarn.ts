@@ -1,6 +1,6 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { findUser, color, query } from "../../function";
+import { findUser, color, query } from "../../function.js";
 
 class UnWarnCommand implements SlashCommand {
     name = "unwarn"

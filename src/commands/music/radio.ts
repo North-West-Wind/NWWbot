@@ -1,5 +1,5 @@
 import { CommandInteraction, Message } from "discord.js";
-import { SlashCommand } from "../../classes/NorthClient";
+import { SlashCommand } from "../../classes/NorthClient.js";
 
 class RadioCommand implements SlashCommand {
     name = "radio";

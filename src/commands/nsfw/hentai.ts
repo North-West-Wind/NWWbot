@@ -1,7 +1,7 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { globalClient as client } from "../../common";
-import { color, ms, msgOrRes } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { globalClient as client } from "../../common.js";
+import { color, ms, msgOrRes } from "../../function.js";
 import * as Discord from "discord.js";
 const akaneko = require("akaneko");
 

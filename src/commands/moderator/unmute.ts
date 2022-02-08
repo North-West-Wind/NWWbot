@@ -1,7 +1,7 @@
 
 import { GuildMember } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { commonModerationEmbed, findMember } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { commonModerationEmbed, findMember } from "../../function.js";
 
 class UnMuteCommand implements SlashCommand {
     name = "unmute"

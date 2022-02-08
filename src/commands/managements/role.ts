@@ -1,7 +1,7 @@
 
 import { GuildMember, Role } from "discord.js";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { wait, findMember } from "../../function";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { wait, findMember } from "../../function.js";
 
 class RoleCommand implements SlashCommand {
   name = 'role'

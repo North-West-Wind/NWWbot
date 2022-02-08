@@ -1,6 +1,6 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { color, findUser } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { color, findUser } from "../../function.js";
 import * as Discord from "discord.js";
 
 class AvatarCommand implements SlashCommand {

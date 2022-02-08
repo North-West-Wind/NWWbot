@@ -1,6 +1,6 @@
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { sCategories } from "../information/help.js";
-import { msgOrRes } from "../../function";
+import { msgOrRes } from "../../function.js";
 
 class ReloadCommand implements SlashCommand {
     name = "reload";

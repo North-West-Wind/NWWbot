@@ -1,8 +1,8 @@
 import { Message } from "discord.js";
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { getQueues, setQueue, updateQueue } from "../../helpers/music";
-import { msgOrRes } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { getQueues, setQueue, updateQueue } from "../../helpers/music.js";
+import { msgOrRes } from "../../function.js";
 
 class RepeatCommand implements SlashCommand {
     name = "repeat"

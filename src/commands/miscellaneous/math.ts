@@ -1,8 +1,8 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as math from "mathjs";
 import * as Discord from "discord.js";
-import { color, createEmbedScrolling } from "../../function";
+import { color, createEmbedScrolling } from "../../function.js";
 
 class MathCommand implements SlashCommand {
     name = "math"

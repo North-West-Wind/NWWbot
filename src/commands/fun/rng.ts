@@ -1,6 +1,6 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { getRandomNumber } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { getRandomNumber } from "../../function.js";
 
 class RNGCommand implements SlashCommand {
     name = "rng"

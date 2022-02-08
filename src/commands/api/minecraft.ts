@@ -1,10 +1,10 @@
 import { CategoryList, SectionTypes, SortTypes } from "aio-mc-api/lib/typings/CurseForge/Constants";
 
-import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory, getFetch, isValidMCVer } from "../../function";
+import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory, getFetch, isValidMCVer } from "../../function.js";
 import { Message, MessageEmbed } from "discord.js";
 import { curseforge, SimpleProject } from "aio-mc-api";
-import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient";
-import { globalClient as client } from "../../common";
+import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
+import { globalClient as client } from "../../common.js";
 
 const fetch = getFetch();
 

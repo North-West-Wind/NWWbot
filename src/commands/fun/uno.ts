@@ -1,6 +1,6 @@
-import { NorthInteraction, NorthMessage, Player, SlashCommand, UnoGame } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, Player, SlashCommand, UnoGame } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild, wait } from "../../function";
+import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild, wait } from "../../function.js";
 import { NorthClient } from "../../classes/NorthClient.js";
 import converter from "number-to-words";
 import { createCanvas, loadImage } from "canvas";

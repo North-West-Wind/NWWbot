@@ -1,10 +1,10 @@
 
 import * as Discord from "discord.js";
-import { color } from "../../function";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { run } from "../../helpers/puppeteer";
+import { color } from "../../function.js";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { run } from "../../helpers/puppeteer.js";
 import { Page } from "puppeteer-core";
-import { globalClient as client } from "../../common";
+import { globalClient as client } from "../../common.js";
 
 class KrunkerCommand implements SlashCommand {
     name = "krunker";

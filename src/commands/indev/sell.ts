@@ -1,6 +1,6 @@
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, jsDate2Mysql, query } from "../../function";
+import { color, jsDate2Mysql, query } from "../../function.js";
 import { RowDataPacket } from "mysql2";
 
 

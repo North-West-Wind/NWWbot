@@ -1,8 +1,8 @@
 import { Message } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { globalClient as client } from "../../common";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { globalClient as client } from "../../common.js";
 import * as Discord from "discord.js";
-import { color, msgOrRes, query, wait } from "../../function";
+import { color, msgOrRes, query, wait } from "../../function.js";
 
 class BankCommand implements SlashCommand {
   name = "bank"

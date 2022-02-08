@@ -1,8 +1,8 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 
 import * as Discord from "discord.js";
 import { createCanvas } from "canvas";
-import { hexToRgb, decimalToRgb } from "../../function";
+import { hexToRgb, decimalToRgb } from "../../function.js";
 function isArgsRgb(args: string[], length: number) {
     for(let i = 0; i < length; i++) if(isNaN(parseInt(args[i])) || parseInt(args[i]) > 255 || parseInt(args[i]) < 0) return false;
     return true;

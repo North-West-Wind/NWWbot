@@ -1,4 +1,4 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 
 import anser from "anser";
 import figlet from "figlet";
@@ -6,7 +6,7 @@ import sanitize from "sanitize-filename";
 import * as Discord from "discord.js";
 import { createCanvas } from "canvas";
 import asciify from "asciify-image";
-import { isImageUrl } from "../../function";
+import { isImageUrl } from "../../function.js";
 
 class AsciiCommand implements SlashCommand {
     name = "ascii"

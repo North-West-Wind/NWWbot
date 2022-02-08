@@ -1,7 +1,7 @@
 import { GuildMember, TextChannel } from "discord.js";
 
-import { NorthInteraction, SlashCommand } from "../../classes/NorthClient";
-import { genPermMsg } from "../../function";
+import { NorthInteraction, SlashCommand } from "../../classes/NorthClient.js";
+import { genPermMsg } from "../../function.js";
 
 class AnnounceCommand implements SlashCommand {
   name = 'announce'

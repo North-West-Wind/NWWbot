@@ -1,8 +1,8 @@
 import { TextChannel } from "discord.js";
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, msgOrRes } from "../../function";
+import { color, msgOrRes } from "../../function.js";
 
 class YachtCommand implements SlashCommand {
     name = "yacht"

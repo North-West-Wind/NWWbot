@@ -1,5 +1,5 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 
 class DisguiseCommand implements SlashCommand {
     name = "disguise"

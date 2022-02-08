@@ -1,7 +1,7 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, query } from "../../function";
+import { color, query } from "../../function.js";
 import { RowDataPacket } from "mysql2";
 
 class RankCommand implements SlashCommand {

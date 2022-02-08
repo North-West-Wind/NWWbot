@@ -1,8 +1,8 @@
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { color, msgOrRes, query, wait } from "../../function";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { color, msgOrRes, query, wait } from "../../function.js";
 import * as Discord from "discord.js";
 
-import { globalClient as client } from "../../common";
+import { globalClient as client } from "../../common.js";
 import { RowDataPacket } from "mysql2";
 
 class InventoryCommand implements SlashCommand {

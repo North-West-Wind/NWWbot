@@ -1,9 +1,8 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { jsDate2Mysql, readableDateTime, setTimeout_, readableDateTimeText, genPermMsg, findRole, ms, color, query } from "../../function";
-import { RowDataPacket } from "mysql2";
-import { globalClient as client } from "../../common";
+import { jsDate2Mysql, readableDateTime, setTimeout_, readableDateTimeText, genPermMsg, findRole, ms, color, query } from "../../function.js";
+import { globalClient as client } from "../../common.js";
 
 export async function endGiveaway(result: any) {
   try {

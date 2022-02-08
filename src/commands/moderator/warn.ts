@@ -1,7 +1,7 @@
 
 import { Guild, GuildMember } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { commonModerationEmbed, findMember, query } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { commonModerationEmbed, findMember, query } from "../../function.js";
 
 class WarnCommand implements SlashCommand {
   name = "warn"

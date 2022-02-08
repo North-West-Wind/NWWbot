@@ -1,9 +1,9 @@
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { color, deepReaddir, fixGuildRecord, wait } from "../../function";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { color, deepReaddir, fixGuildRecord, wait } from "../../function.js";
 import * as Discord from "discord.js";
 
 import { AkiCommand } from "../api/aki.js";
-import { globalClient as client } from "../../common";
+import { globalClient as client } from "../../common.js";
 
 const categories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Music", "Under Development", "Dev Command"];
 export const sCategories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Music", "InDev", "Dev"];

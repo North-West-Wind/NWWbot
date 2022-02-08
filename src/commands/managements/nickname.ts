@@ -1,7 +1,7 @@
 
 import { GuildMember } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { findMember } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { findMember } from "../../function.js";
 
 class NicknameCommand implements SlashCommand {
   name = "nickname"

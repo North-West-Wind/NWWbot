@@ -1,8 +1,8 @@
 import { Message } from "discord.js";
 
-import { NorthInteraction, SlashCommand } from "../../classes/NorthClient";
-import { msgOrRes } from "../../function";
-import { getQueues, setQueue, updateQueue } from "../../helpers/music";
+import { NorthInteraction, SlashCommand } from "../../classes/NorthClient.js";
+import { msgOrRes } from "../../function.js";
+import { getQueues, setQueue, updateQueue } from "../../helpers/music.js";
 
 class LoopCommand implements SlashCommand {
     name = "loop"

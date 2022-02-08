@@ -1,9 +1,9 @@
 import { getVoiceConnection, joinVoiceChannel } from "@discordjs/voice";
 import { GuildMember, Message, TextChannel, VoiceChannel } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { moveArray, msgOrRes } from "../../function";
-import { createDiscordJSAdapter, getQueues, setQueue, updateQueue } from "../../helpers/music";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { moveArray, msgOrRes } from "../../function.js";
+import { createDiscordJSAdapter, getQueues, setQueue, updateQueue } from "../../helpers/music.js";
 import { play } from "./play.js";
 
 export async function migrate(message: Message | NorthInteraction) {

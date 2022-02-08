@@ -3,7 +3,7 @@ import * as Discord from "discord.js";
 import cheerio from "cheerio";
 import { getFetch } from "../../function.js";
 import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
-import { globalClient as client } from "../../common";
+import { globalClient as client } from "../../common.js";
 const fetch = getFetch();
 
 const config = {

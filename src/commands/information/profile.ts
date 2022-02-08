@@ -1,5 +1,5 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { findMember, color, readableDateTime } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { findMember, color, readableDateTime } from "../../function.js";
 import * as Discord from "discord.js";
 
 class ProfileCommand implements SlashCommand {

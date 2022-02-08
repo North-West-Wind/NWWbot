@@ -1,8 +1,8 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color } from "../../function";
-import { globalClient as client } from "../../common";
+import { color } from "../../function.js";
+import { globalClient as client } from "../../common.js";
 const googleIt: any = require("google-it");
 
 class GoogleCommand implements SlashCommand {

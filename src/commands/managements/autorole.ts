@@ -1,7 +1,7 @@
 
 import { Role } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { findMember, findMemberWithGuild } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { findMember, findMemberWithGuild } from "../../function.js";
 
 class AutoRoleCommand implements SlashCommand {
   name = "autorole"

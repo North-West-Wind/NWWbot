@@ -1,7 +1,7 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { wait } from "../../function";
+import { wait } from "../../function.js";
 
 class SikeCommand implements SlashCommand {
     name = "sike"

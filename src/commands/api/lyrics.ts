@@ -1,9 +1,9 @@
 
 import * as solenolyrics from "solenolyrics";
 import * as Discord from "discord.js";
-import { createEmbedScrolling, color } from "../../function";
-import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient";
-import { globalClient as client } from "../../common";
+import { createEmbedScrolling, color } from "../../function.js";
+import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
+import { globalClient as client } from "../../common.js";
 
 class LyricsCommand implements SlashCommand {
     name = "lyrics";

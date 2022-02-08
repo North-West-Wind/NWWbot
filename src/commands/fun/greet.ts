@@ -1,6 +1,6 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 
-import { findUser } from "../../function";
+import { findUser } from "../../function.js";
 
 const GREETINGS = [
   "Hello there, <user>!",

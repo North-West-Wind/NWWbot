@@ -1,7 +1,7 @@
 
 import { Role } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { commonRoleEmbed } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { commonRoleEmbed } from "../../function.js";
 
 class DelRoleCommand implements SlashCommand {
     name = "delrole"

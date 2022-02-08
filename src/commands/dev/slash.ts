@@ -1,7 +1,7 @@
 import Collection from "@discordjs/collection";
 import { Snowflake } from "discord-api-types";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { msgOrRes } from "../../function";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { msgOrRes } from "../../function.js";
 
 class DevSlashCommand implements SlashCommand {
     name = "slash";

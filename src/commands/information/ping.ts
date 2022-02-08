@@ -1,6 +1,6 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { readableDateTime, color } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { readableDateTime, color } from "../../function.js";
 import * as Discord from "discord.js";
 
 class PingCommand implements SlashCommand {

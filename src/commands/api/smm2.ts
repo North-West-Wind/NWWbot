@@ -1,6 +1,6 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { color, createEmbedScrolling, getFetch, readableDateTime } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { color, createEmbedScrolling, getFetch, readableDateTime } from "../../function.js";
 import * as Discord from "discord.js";
 
 const fetch = getFetch();

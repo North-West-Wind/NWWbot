@@ -1,8 +1,8 @@
 import { GuildMember, Message } from "discord.js";
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { moveArray, msgOrRes, mutate } from "../../function";
-import { getQueues, setQueue, updateQueue } from "../../helpers/music";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { moveArray, msgOrRes, mutate } from "../../function.js";
+import { getQueues, setQueue, updateQueue } from "../../helpers/music.js";
 import { play } from "./play.js";
 
 class MoveCommand implements SlashCommand {

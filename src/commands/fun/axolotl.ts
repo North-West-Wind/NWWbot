@@ -1,5 +1,5 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { getFetch } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { getFetch } from "../../function.js";
 import * as Discord from "discord.js";
 
 

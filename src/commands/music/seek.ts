@@ -1,10 +1,10 @@
 import { GuildMember, Message, VoiceChannel } from "discord.js";
 
-import { NorthInteraction, NorthMessage, ServerQueue, SlashCommand } from "../../classes/NorthClient";
-import { ms, msgOrRes } from "../../function";
+import { NorthInteraction, NorthMessage, ServerQueue, SlashCommand } from "../../classes/NorthClient.js";
+import { ms, msgOrRes } from "../../function.js";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
-import { createDiscordJSAdapter, getQueues, setQueue } from "../../helpers/music";
+import { createDiscordJSAdapter, getQueues, setQueue } from "../../helpers/music.js";
 formatSetup(moment);
 import { play } from "./play.js";
 import { joinVoiceChannel } from "@discordjs/voice";

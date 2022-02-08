@@ -1,6 +1,6 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { findUser, getOwner } from "../../function";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { findUser, getOwner } from "../../function.js";
 
 class SpamCommand implements SlashCommand {
     name = "spam"
