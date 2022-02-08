@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { validMSURL, requestStream, findValueByPrefix, streamToString, color, requestYTDLStream } from "../../function.js";
-import { run } from '../../helpers/puppeteer';
+import { run } from "../../helpers/puppeteer.js";
 import muse from "musescore-metadata";
 import * as Discord from "discord.js";
 import sanitize from "sanitize-filename";
