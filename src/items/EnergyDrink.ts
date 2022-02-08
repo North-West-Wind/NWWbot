@@ -1,7 +1,7 @@
 import { Message, MessageEmbed } from "discord.js";
 
-import { Item, NorthInteraction, NorthMessage } from "../classes/NorthClient";
-import { jsDate2Mysql, query } from "../function";
+import { Item, NorthInteraction, NorthMessage } from "../classes/NorthClient.js";
+import { jsDate2Mysql, query } from "../function.js";
 
 export default class EnergyDrinkItem implements Item {
     id = "481b8f8aec3b604db23f205b4ce2f52b447ffe5ab911e3f1"

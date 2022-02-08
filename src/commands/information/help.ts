@@ -2,7 +2,7 @@ import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../..
 import { color, deepReaddir, fixGuildRecord, wait } from "../../function";
 import * as Discord from "discord.js";
 
-import { AkiCommand } from "../api/aki";
+import { AkiCommand } from "../api/aki.js";
 import { globalClient as client } from "../../common";
 
 const categories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Music", "Under Development", "Dev Command"];

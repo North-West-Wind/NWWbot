@@ -1,6 +1,6 @@
 import { GuildMember, Message, Permissions, TextChannel } from "discord.js";
-import { Command, NorthClient, NorthInteraction, NorthMessage } from "../classes/NorthClient";
-import { checkTradeW1nd, genPermMsg, getOwner, msgOrRes } from "../function";
+import { Command, NorthClient, NorthInteraction, NorthMessage } from "../classes/NorthClient.js";
+import { checkTradeW1nd, genPermMsg, getOwner, msgOrRes } from "../function.js";
 var timeout: NodeJS.Timeout;
 
 export async function all(command: Command, message: NorthMessage | NorthInteraction, args: string[] = []) {
