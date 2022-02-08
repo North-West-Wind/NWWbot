@@ -5,7 +5,7 @@ import { twoDigits, deepReaddir, query } from "./function.js";
 import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
 import { AliceHandler, CanaryHandler, Handler } from "./handler.js";
-import package from "../package.json";
+import pkg from "../package.json";
 var globalClient: NorthClient;
 var logger: Logger;
 
@@ -68,7 +68,7 @@ export default async (client: NorthClient) => {
     NorthClient.storage.items.set(item.id, item);
   }
   if (!fs.existsSync(process.env.CACHE_DIR)) fs.mkdirSync(process.env.CACHE_DIR);
-  client.setVersion(package.version);
+  client.setVersion(pkg.version);
   globalClient = client;
 
   setInterval(async () => {
