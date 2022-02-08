@@ -3,7 +3,7 @@ import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/Nort
 import * as Discord from "discord.js";
 import { color } from "../../function.js";
 import { globalClient as client } from "../../common.js";
-const googleIt: any = require("google-it");
+import googleIt from "google-it";
 
 class GoogleCommand implements SlashCommand {
   name = "google"

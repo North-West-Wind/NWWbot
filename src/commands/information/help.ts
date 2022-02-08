@@ -31,7 +31,7 @@ class HelpCommand implements SlashCommand {
         description: "The command to fetch.",
         required: true,
         type: "STRING",
-        choices: commandFiles.map(file => require(file)).filter(command => command.category === sCategories.indexOf(category)).map(x => ({ name: x.name, value: x.name }))
+        choices: commandFiles.map(async file => (await import(file)).default).filter(command => command.category === sCategories.indexOf(category)).map(x => ({ name: x.name, value: x.name }))
       };
       const option = {
         name: category.toLowerCase(),

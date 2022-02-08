@@ -2,9 +2,9 @@ import * as dotenv from "dotenv";
 import { CanaryHandler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
 import { Options, Intents } from "discord.js";
+import config from "../config.json";
 dotenv.config();
 
-const { prefixC } = require("../config.json");
 const client = new NorthClient({
     restRequestTimeout: 60000,
     makeCache: Options.cacheWithLimits({
@@ -25,6 +25,6 @@ const client = new NorthClient({
 });
 NorthClient.storage = new ClientStorage();
 
-client.prefix = prefixC;
+client.prefix = config.prefixC;
 client.id = 2;
 CanaryHandler.setup(client, process.env.TOKEN_CANARY);

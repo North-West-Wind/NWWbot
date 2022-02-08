@@ -3,7 +3,7 @@ import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/Nort
 import { globalClient as client } from "../../common.js";
 import { color, ms, msgOrRes } from "../../function.js";
 import * as Discord from "discord.js";
-const akaneko = require("akaneko");
+import * as akaneko from "akaneko";
 
 class HentaiCommand implements SlashCommand {
     name = "hentai"
@@ -123,7 +123,7 @@ class HentaiCommand implements SlashCommand {
         await message.channel.send({embeds: [await this.tagged(tag)]});
     }
     async tagged(tag: string) {
-        if (tag === "neko") var result = akaneko.lewdneko();
+        if (tag === "neko") var result = akaneko.lewdNeko();
         else if (akaneko.nsfw[tag]) var result = await akaneko.nsfw[tag]();
         else return await this.random();
         const embed = new Discord.MessageEmbed()

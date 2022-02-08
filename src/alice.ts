@@ -3,11 +3,11 @@ import { AliceHandler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
 import { getFetch, profile, query, updateGuildMemberMC } from "./function.js";
 import { Intents, Options, VoiceChannel } from "discord.js";
+import config from "../config.json";
 dotenv.config();
 
 const fetch = getFetch();
 
-const { prefix1 } = require("../config.json");
 const client = new NorthClient({
   restRequestTimeout: 60000,
   makeCache: Options.cacheWithLimits({
@@ -28,7 +28,7 @@ const client = new NorthClient({
 });
 NorthClient.storage = new ClientStorage();
 
-client.prefix = prefix1;
+client.prefix = config.prefix1;
 client.id = 1;
 AliceHandler.setup(client, process.env.TOKEN1);
 

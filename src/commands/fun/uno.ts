@@ -6,6 +6,7 @@ import converter from "number-to-words";
 import Canvas from "canvas";
 import * as moment from "moment";
 import formatSetup from "moment-duration-format";
+import config from "../../../config.json";
 formatSetup(moment);
 
 const COLOR = ["Yellow", "Blue", "Green", "Red", "Special"];
@@ -28,7 +29,7 @@ async function canvasImg(assets, cards) {
   return canvas.toBuffer();
 }
 
-const assets = require("../../../config.json").uno.filter((x: any) => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map((x: any) => {
+const assets = config.uno.filter((x: any) => !x.deleted && x.type === "image/png" && x.imageWidth === 165 && x.imageHeight === 256).map((x: any) => {
   return {
     id: x.name.slice(0, -4),
     url: x.url

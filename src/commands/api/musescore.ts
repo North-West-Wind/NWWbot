@@ -10,7 +10,7 @@ import PDFKit from "pdfkit";
 import fetch from "node-fetch";
 import { globalClient as client } from "../../common.js";
 import { Page } from 'puppeteer-core';
-const SVGtoPDF: any = require("svg-to-pdfkit");
+import SVGtoPDF from "svg-to-pdfkit";
 function PNGtoPDF(doc: PDFKit.PDFDocument, url: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
         const res = <any>await fetch(url).then(res => res.body);
