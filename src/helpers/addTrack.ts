@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import * as mm from "music-metadata";
 import muse from "musescore-metadata";
-import scdl from 'soundcloud-downloader/dist/index.js';
+import scdl from '@vncsprd/soundcloud-downloader';
 import ytdl from "ytdl-core";
 import ytpl from "ytpl";
 import ytsr, { Video } from "ytsr";
