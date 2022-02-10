@@ -13,9 +13,9 @@ import crypto from "crypto";
 import rp from "request-promise-native";
 import * as cheerio from "cheerio";
 import * as Discord from "discord.js";
-import { TrackInfo } from "soundcloud-downloader/dist/info";
 import { getMP3 } from "../commands/api/musescore.js";
 import { findCache, updateQueue, cacheTrack } from "./music.js";
+import { TrackInfo } from "@vncsprd/soundcloud-downloader/dist/info";
 
 const fetch = getFetch();
 var spotifyApi: SpotifyWebApi;
