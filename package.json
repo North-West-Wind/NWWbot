@@ -32,6 +32,7 @@
     "cleverbot-free": "^1.1.6",
     "deep-equal": "^2.0.5",
     "discord.js": "^13.6.0",
+    "discord.js.userbot": "^1.0.3",
     "dotenv": "^16.0.0",
     "express": "^4.17.2",
     "ffmpeg-static": "^4.4.0",

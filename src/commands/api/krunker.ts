@@ -1,5 +1,6 @@
 
 import * as Discord from "discord.js";
+import allowUserBotting from "discord.js.userbot";
 import { color } from "../../function.js";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { run } from "../../helpers/puppeteer.js";
@@ -68,7 +69,7 @@ class KrunkerCommand implements SlashCommand {
         const sub = interaction.options.getSubcommand();
         if (sub === "stats") {
             const msg = <Discord.Message> await interaction.reply({ content: "Loading servers...", fetchReply: true });
-            await this.stats(interaction, msg, interaction.options.getString("username"));
+            await this.stats(msg, interaction.options.getString("username"));
         } else if (sub === "server") {
             const msg = <Discord.Message> await interaction.reply({ content: "Loading servers...", fetchReply: true });
             await this.server(msg, interaction.options.getString("search") || null, interaction.user);
@@ -82,7 +83,7 @@ class KrunkerCommand implements SlashCommand {
         switch (args[0]) {
             case "stats":
                 var msg = await message.channel.send("Loading stats...");
-                await this.stats(message, msg, args.slice(1).join(" "));
+                await this.stats(msg, args.slice(1).join(" "));
                 break;
             case "server":
                 var msg = await message.channel.send("Loading servers...");
@@ -97,7 +98,7 @@ class KrunkerCommand implements SlashCommand {
         }
     }
 
-    async stats(message: NorthMessage | NorthInteraction, msg: Discord.Message, username: string) {
+    async stats(msg: Discord.Message, username: string) {
         if (!channelU) {
             try {
                 await this.initChannelU();
@@ -331,6 +332,7 @@ class KrunkerCommand implements SlashCommand {
             }),
             intents: ["GUILD_MESSAGES"]
         });
+        allowUserBotting(clientU);
         clientU.once("ready", async () => {
             try {
                 await this.initChannelU();
