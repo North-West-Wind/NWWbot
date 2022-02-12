@@ -76,6 +76,7 @@ export default async (client: NorthClient) => {
     const memUse = process.memoryUsage();
     if (memUse.heapUsed > memUse.heapTotal * 0.8) {
       console.debug("80% heap used!");
+      console.debug("Last run command: ", Handler.lastRunCommand);
       console.debug("Playing queues: ", getQueues().filter(x => x.playing).size);
     }
 
