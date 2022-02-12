@@ -48,6 +48,7 @@ export default async (client: NorthClient) => {
     timestampFormat:  'YYYY-MM-DD HH:mm:ss.SSS'
   });
   logger.setLevel("all");
+  console.debug = (message: string, ...data: any[]) => logger.debug(message, ...data);
   console.log = (message: string, ...data: any[]) => logger.info(message, ...data);
   console.error = (message: string, ...data: any[]) => logger.error(message, ...data);
   const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
@@ -75,7 +76,7 @@ export default async (client: NorthClient) => {
   setInterval(async () => {
     const memUse = process.memoryUsage();
     if (memUse.heapUsed > memUse.heapTotal * 0.8) {
-      console.debug("80% heap used!");
+      console.debug("80% heap used! ", Math.round(memUse.heapUsed / 1024 / 1024), "MB/", Math.round(memUse.heapTotal / 1024 / 1024), "MB");
       console.debug("Last run command: ", Handler.lastRunCommand);
       console.debug("Playing queues: ", getQueues().filter(x => x.playing).size);
     }
