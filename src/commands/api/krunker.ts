@@ -1,6 +1,6 @@
-
+/// <reference path="../../node.d.ts"/>
 import * as Discord from "discord.js";
-import allowUserBotting from "discord.js.userbot";
+import { allowUserBotting } from "discord.js.userbot";
 import { color } from "../../function.js";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { run } from "../../helpers/puppeteer.js";
