@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import * as mm from "music-metadata";
 import muse from "musescore-metadata";
-import scdl from '@vncsprd/soundcloud-downloader/dist/index.js';
+import { SCDL } from '@vncsprd/soundcloud-downloader';
 import ytdl from "ytdl-core";
 import ytpl from "ytpl";
 import ytsr, { Video } from "ytsr";
@@ -19,6 +19,11 @@ import { TrackInfo } from "@vncsprd/soundcloud-downloader/dist/info.js";
 
 const fetch = getFetch();
 var spotifyApi: SpotifyWebApi;
+const scdl = new SCDL();
+
+export function getSCDL() {
+    return scdl;
+}
 
 export function init() {
     spotifyApi = new SpotifyWebApi({
@@ -484,7 +489,7 @@ export async function search(message: Message | NorthInteraction, link: string) 
         await msgOrRes(message, "There was an error trying to search the videos!");
         return { error: true, msg: null, songs: [], message: err.message };
     }
-    const scResults = (<TrackInfo[]>scSearched.collection).map(x => ({
+    const scResults = (<TrackInfo[]> scSearched.collection).map(x => ({
         title: x.title,
         url: x.permalink_url,
         type: 3,
