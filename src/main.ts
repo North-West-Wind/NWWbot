@@ -1,9 +1,7 @@
-import * as dotenv from "dotenv";
 import { Handler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
 import { Intents, Options } from "discord.js";
 import config from "../config.json";
-dotenv.config();
 
 const client = new NorthClient({
     restRequestTimeout: 60000,

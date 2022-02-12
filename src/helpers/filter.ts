@@ -67,9 +67,6 @@ export async function music(_command: Command, message: NorthMessage | NorthInte
         await msgOrRes(message, "You can only use music commands in server!");
         return false;
     }
-    try {
-        if (await checkTradeW1nd(message.guild.id)) return false;
-    } catch (err) {}
     return true;
 }
 export async function nsfw(_command: Command, message: NorthMessage | NorthInteraction) {

@@ -20,10 +20,6 @@ class InfoCommand implements SlashCommand {
   async getInfo(guild: Discord.Snowflake) {
     var lastReady = readableDateTime(client.readyAt);
     var desc = `Made by NorthWestWind!\nVersion: **[${client.version}](https://northwestwind.ml/n0rthwestw1nd)**\n\nRunning on **${client.guilds.cache.size} servers**\nLast restart: **${lastReady}**\nUptime: **${readableDateTimeText(client.uptime)}**`;
-    if (guild && await checkTradeW1nd(guild)) {
-      const stats = await getTradeW1ndStats();
-      desc += `\n\n*We also found **TradeW1nd**!*\nVersion: **[${stats.version}](https://top.gg/bot/895321877109690419)**\n\nRunning on **${stats.size} servers**\nLast restart: **${readableDateTime(new Date(stats.lastReady))}**\nUptime: **${readableDateTimeText(stats.uptime)}**`;
-    }
     const infoEmbed = new Discord.MessageEmbed()
       .setTitle(client.user.tag)
       .setColor(color())
