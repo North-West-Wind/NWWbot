@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import * as mm from "music-metadata";
 import muse from "musescore-metadata";
-import scdl from '@vncsprd/soundcloud-downloader';
+import scdl from '@vncsprd/soundcloud-downloader/dist/index.js';
 import ytdl from "ytdl-core";
 import ytpl from "ytpl";
 import ytsr, { Video } from "ytsr";
@@ -15,7 +15,7 @@ import * as cheerio from "cheerio";
 import * as Discord from "discord.js";
 import { getMP3 } from "../commands/api/musescore.js";
 import { findCache, updateQueue, cacheTrack } from "./music.js";
-import { TrackInfo } from "@vncsprd/soundcloud-downloader/dist/info";
+import { TrackInfo } from "@vncsprd/soundcloud-downloader/dist/info.js";
 
 const fetch = getFetch();
 var spotifyApi: SpotifyWebApi;

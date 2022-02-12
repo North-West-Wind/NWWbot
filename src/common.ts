@@ -6,6 +6,7 @@ import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
 import { AliceHandler, CanaryHandler, Handler } from "./handler.js";
 import pkg from "../package.json";
+import { getQueues } from "./helpers/music.js";
 var globalClient: NorthClient;
 var logger: Logger;
 
@@ -72,6 +73,12 @@ export default async (client: NorthClient) => {
   globalClient = client;
 
   setInterval(async () => {
+    const memUse = process.memoryUsage();
+    if (memUse.heapUsed > memUse.heapTotal * 0.8) {
+      console.debug("80% heap used!");
+      console.debug("Playing queues: ", getQueues().filter(x => x.playing).size);
+    }
+
     if (NorthClient.storage.queries.length < 1) return;
     try {
       const results = await query(`SELECT * FROM leveling`);

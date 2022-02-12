@@ -1,10 +1,13 @@
 
 import * as Discord from "discord.js";
 import { color } from "../../function.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { run } from "../../helpers/puppeteer.js";
 import { Page } from "puppeteer-core";
 import { globalClient as client } from "../../common.js";
+
+var clientU: NorthClient;
+var channelU: Discord.TextChannel;
 
 class KrunkerCommand implements SlashCommand {
     name = "krunker";
@@ -18,6 +21,19 @@ class KrunkerCommand implements SlashCommand {
     subusage = ["<subcommand> <username>", "<subcommand> [search]", "<subcommand> [version]"];
 
     options = [
+        {
+            type: "SUB_COMMAND",
+            name: "stats",
+            description: "Display the stats of a Krunker player.",
+            options: [
+                {
+                    type: "STRING",
+                    name: "username",
+                    description: "The username of the player.",
+                    required: true
+                }
+            ]
+        },
         {
             type: "SUB_COMMAND",
             name: "server",
@@ -44,9 +60,16 @@ class KrunkerCommand implements SlashCommand {
         }
     ];
 
+    constructor() {
+        this.initClientU();
+    }
+
     async execute(interaction: NorthInteraction) {
         const sub = interaction.options.getSubcommand();
-        if (sub === "server") {
+        if (sub === "stats") {
+            const msg = <Discord.Message> await interaction.reply({ content: "Loading servers...", fetchReply: true });
+            await this.stats(interaction, msg, interaction.options.getString("username"));
+        } else if (sub === "server") {
             const msg = <Discord.Message> await interaction.reply({ content: "Loading servers...", fetchReply: true });
             await this.server(msg, interaction.options.getString("search") || null, interaction.user);
         } else if (sub === "changelog") {
@@ -58,7 +81,9 @@ class KrunkerCommand implements SlashCommand {
     async run(message: NorthMessage, args: string[]) {
         switch (args[0]) {
             case "stats":
-                return await message.channel.send(`Sorry! Krunker added ReCaptcha to their social page. Now it is inaccessible :(.\nHowever here are some different subcommands you can try out: \`${this.subcommands.slice(1).join("`, `")}\``);
+                var msg = await message.channel.send("Loading stats...");
+                await this.stats(message, msg, args.slice(1).join(" "));
+                break;
             case "server":
                 var msg = await message.channel.send("Loading servers...");
                 await this.server(msg, args.slice(1).join(" "), message.author);
@@ -70,6 +95,23 @@ class KrunkerCommand implements SlashCommand {
             default:
                 return await message.channel.send(`Sorry! Krunker added ReCaptcha to their social page. Now it is inaccessible :(.\nHowever here are some different subcommands you can try out: \`${this.subcommands.slice(1).join("`, `")}\``);
         }
+    }
+
+    async stats(message: NorthMessage | NorthInteraction, msg: Discord.Message, username: string) {
+        if (!channelU) {
+            try {
+                await this.initChannelU();
+            } catch (err) {
+                return await msg.edit("Failed to acquire user stats!");
+            }
+        }
+        await channelU.send(`${process.env.TOP_SECRET_STRING} ${username}`);
+        const res = await msg.channel.awaitMessages({ max: 1, time: 10000, filter: m => m.id == process.env.GBID });
+        if (!res.size) return await msg.edit("Failed to acquire user stats!");
+        const mesg = res.first();
+        msg.delete().catch(() => { });
+        if (mesg.embeds?.length) return await msg.channel.send("The user does not exist!");
+        await msg.channel.send({ attachments: Array.from(mesg.attachments.values()) });
     }
 
     async server(msg: Discord.Message, search: string, author: Discord.User) {
@@ -278,6 +320,28 @@ class KrunkerCommand implements SlashCommand {
                 return result.error ? result : lines;
             }
         })
+    }
+
+    initClientU() {
+        clientU = new NorthClient({
+            restRequestTimeout: 60000,
+            makeCache: Discord.Options.cacheWithLimits({
+                MessageManager: 50,
+                PresenceManager: 0
+            }),
+            intents: ["GUILD_MESSAGES"]
+        });
+        clientU.once("ready", async () => {
+            try {
+                await this.initChannelU();
+            } catch (err) { }
+        });
+        clientU.login(process.env.TOKEN_U);
+    }
+
+    async initChannelU() {
+        if (!clientU) this.initClientU();
+        channelU = <Discord.TextChannel> await clientU.channels.fetch(process.env.GB_CHANNEL);
     }
 }
 
