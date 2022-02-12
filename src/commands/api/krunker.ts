@@ -99,11 +99,12 @@ class KrunkerCommand implements SlashCommand {
     async stats(msg: Discord.Message, username: string) {
         await clientU.send(process.env.CHANNEL_U, { content: `${process.env.TOP_SECRET_STRING} ${username}` });
         const res = await (<Discord.TextChannel> await msg.client.channels.fetch(process.env.CHANNEL_U)).awaitMessages({ max: 1, time: 10000, filter: m => m.author.id == process.env.GBID });
-        if (!res.size) return await msg.edit("Failed to acquire user stats!");
+        if (!res.first()) return await msg.edit("Failed to acquire user stats!");
         const mesg = res.first();
         msg.delete().catch(() => { });
         if (mesg.embeds?.length) return await msg.channel.send("The user does not exist!");
-        await msg.channel.send({ attachments: Array.from(mesg.attachments.values()) });
+        if (!mesg.attachments?.size) return await msg.channel.send("Failed to acquire user stats!");
+        await msg.channel.send({ attachments: [new Discord.MessageAttachment(mesg.attachments.first().url, `stats-${username}.png`)] });
     }
 
     async server(msg: Discord.Message, search: string, author: Discord.User) {
