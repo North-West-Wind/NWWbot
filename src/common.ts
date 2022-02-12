@@ -75,8 +75,8 @@ export default async (client: NorthClient) => {
 
   setInterval(async () => {
     const memUse = process.memoryUsage();
-    if (memUse.heapUsed > memUse.heapTotal * 0.8) {
-      console.debug("80% heap used! ", Math.round(memUse.heapUsed / 1024 / 1024), "MB/", Math.round(memUse.heapTotal / 1024 / 1024), "MB");
+    if (memUse.heapUsed > memUse.rss * 0.8) {
+      console.debug("80% heap used! ", Math.round(memUse.heapUsed / 1024 / 1024), "MB/", Math.round(memUse.rss / 1024 / 1024), "MB");
       console.debug("Last run command: ", Handler.lastRunCommand);
       console.debug("Playing queues: ", getQueues().filter(x => x.playing).size);
     }
