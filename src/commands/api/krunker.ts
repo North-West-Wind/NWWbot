@@ -92,6 +92,7 @@ class KrunkerCommand implements SlashCommand {
                 await this.changelog(msg, args.slice(1).join(" "), message.author);
                 break;
             default:
+                var msg = await message.channel.send("Loading stats...");
                 await this.stats(msg, args.join(" "));
         }
     }
@@ -104,7 +105,7 @@ class KrunkerCommand implements SlashCommand {
         msg.delete().catch(() => { });
         if (mesg.embeds?.length) return await msg.channel.send("The user does not exist!");
         if (!mesg.attachments?.size) return await msg.channel.send("Failed to acquire user stats!");
-        await msg.channel.send({ attachments: [new Discord.MessageAttachment(mesg.attachments.first().url, `stats-${username}.png`)] });
+        await msg.channel.send({ files: [...mesg.attachments.values()] });
     }
 
     async server(msg: Discord.Message, search: string, author: Discord.User) {
