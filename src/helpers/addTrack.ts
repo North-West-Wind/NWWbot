@@ -26,16 +26,18 @@ export function getSCDL() {
 }
 
 export function init() {
-    spotifyApi = new SpotifyWebApi({
-        clientId: process.env.SPOTID,
-        clientSecret: process.env.SPOTSECRET
-    });
-    async function fetchToken() {
+    if (["SPOTID", "SPOTSECRET"].every(x => !!process.env[x])) {
+		spotifyApi = new SpotifyWebApi({
+        	clientId: process.env.SPOTID,
+        	clientSecret: process.env.SPOTSECRET
+    	});
+    	async function fetchToken() {
         const d = await spotifyApi.clientCredentialsGrant();
-        spotifyApi.setAccessToken(d.body.access_token);
-        setTimeout(fetchToken, d.body.expires_in * 1000);
-    }
-    fetchToken();
+        	spotifyApi.setAccessToken(d.body.access_token);
+        	setTimeout(fetchToken, d.body.expires_in * 1000);
+    	}
+    	fetchToken();
+	}
 }
 
 export async function addAttachment(message: Message) {
@@ -122,6 +124,7 @@ export async function addYTURL(link: string, type: number = 0) {
     return { error: false, songs: songs, msg: null, message: null };
 }
 export async function addSPURL(message: Message | NorthInteraction, link: string) {
+		if (!spotifyApi) return { error: true, msg: null, songs: [], message: "Did not initialize Spotify API" };
     var url_array = link.replace("https://", "").split("/");
     var musicID = url_array[2].split("?")[0];
     var highlight = false;

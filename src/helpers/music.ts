@@ -44,12 +44,14 @@ export function checkQueue() {
 	return queue.size > 0;
 }
 export function findCache(hashed: string) {
-	const filePath = `${process.env.CACHE_DIR}/${hashed}`;
+	const cacheDir = process.env.CACHE_DIR || "./.bot-track-cache";
+	const filePath = `${cacheDir}/${hashed}`;
 	if (!fs.existsSync(filePath)) return null;
 	return fs.createReadStream(filePath, { highWaterMark: 1 << 25 });
 }
 export async function cacheTrack(hashed: string, stream: Stream.Readable, noReturn: boolean = false) {
-	const filePath = `${process.env.CACHE_DIR}/${hashed}`;
+	const cacheDir = process.env.CACHE_DIR || "./.bot-track-cache";
+	const filePath = `${cacheDir}/${hashed}`;
 	if (!fs.existsSync(filePath)) await new Promise((res) => stream.pipe(fs.createWriteStream(filePath)).on("close", res));
 	if (!noReturn) return fs.createReadStream(filePath, { highWaterMark: 1 << 25 });
 }

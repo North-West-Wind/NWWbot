@@ -481,6 +481,7 @@ class PornCommand implements SlashCommand {
     ];
     
     async execute(interaction: NorthInteraction) {
+				if (!redditConn || !gfycat) return;
         await interaction.reply("Finding porn...");
         var nArgs = [];
         const sub = interaction.options.getSubcommand();
@@ -500,6 +501,7 @@ class PornCommand implements SlashCommand {
     }
     
     async run(message: NorthMessage, args: string[]) {
+				if (!redditConn || !gfycat) return;
         if (["auto", "a"].includes(args[0]?.toLowerCase())) return await this.auto(message, args);
         if (["tags", "t"].includes(args[0]?.toLowerCase())) return await this.tags(message, args);
         if (["listofsubreddits", "los"].includes(args[0]?.toLowerCase())) return await this.los(message, args);
@@ -2323,7 +2325,7 @@ class PornCommand implements SlashCommand {
     }
 
     init() {
-        redditConn = RedditAPI({
+        if (["APPID", "APPSECRET", "RPW", "RUSER"].every(x => !!process.env[x])) redditConn = RedditAPI({
             username: process.env.RUSER,
             password: process.env.RPW,
             app_id: process.env.APPID,
@@ -2334,7 +2336,7 @@ class PornCommand implements SlashCommand {
             retry_delay: 1
         });
 
-        gfycat = new Gfycat({ clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET });
+        if (["GFYID", "GFYSECRET"].every(x => !!process.env[x])) gfycat = new Gfycat({ clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET });
     }
 }
 

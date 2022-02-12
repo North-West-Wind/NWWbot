@@ -22,7 +22,7 @@ class RedditCommand implements SlashCommand {
     }];
 
     constructor() {
-        redditConn = RedditAPI({
+        if (["APPID", "APPSECRET", "RPW", "RUSER"].every(x => !!process.env[x])) redditConn = RedditAPI({
             username: process.env.RUSER,
             password: process.env.RPW,
             app_id: process.env.APPID,
@@ -34,6 +34,7 @@ class RedditCommand implements SlashCommand {
     }
 
     async execute(interaction: NorthInteraction) {
+				if (!redditConn) return;
         await interaction.deferReply();
         const em = await this.getPost(interaction.options.getString("subreddit")?.split(/ +/) || []);
         if (!em) await interaction.editReply("Failed to fetch Reddit post!");
@@ -41,6 +42,7 @@ class RedditCommand implements SlashCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
+			if (!redditConn) return;
         const em = await this.getPost(args);
         if (!em) await message.channel.send("Failed to fetch Reddit post!");
         else await message.channel.send({ embeds: [em] });
