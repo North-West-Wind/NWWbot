@@ -30,5 +30,16 @@ Some might be concerned whether you are getting tracked while using me in your s
 If you don't trust me, take a look at my code. I'm an honest man.  
 If you still don't trust me, you can ask North to delete the data stored.
 
+# Forking & Running
+Some might want to make a copy of me and run it themselves. If you are the chosen one, please take a look at this guide before proceeding!
+
+First, no matter if you are going to run it on [ReplIt](https://replit.com) or anywhere else, please still use the [`replit`](https://github.com/North-West-Wind/NWWbot/tree/replit) branch. It makes things much easier.
+
+One of the biggest part of me is the SQL database. It stores a lot of data inside. Because of that, you will really need a database.  
+If you already own an SQL database or plan to set up an SQL database, please import the [`template.sql`](https://github.com/North-West-Wind/NWWbot/blob/replit/template.sql) file to it. It will create the necessary database structure for you!  
+If you don't have a database and don't have any plans to get one, I would recommend using [remotemysql](https://remotemysql.com). Then, you will need to do the same thing as the above line.
+
+The next thing is to fill in the environment variables.
+
 # License
 MIT
