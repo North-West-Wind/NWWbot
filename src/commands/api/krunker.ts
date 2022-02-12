@@ -1,14 +1,12 @@
-
 import * as Discord from "discord.js";
-import allowUserBotting from "discord.js.userbot";
+import * as DCBots from "discord-user-bots";
 import { color } from "../../function.js";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { run } from "../../helpers/puppeteer.js";
 import { Page } from "puppeteer-core";
 import { globalClient as client } from "../../common.js";
 
-var clientU: NorthClient;
-var channelU: Discord.TextChannel;
+var clientU: DCBots.Client;
 
 class KrunkerCommand implements SlashCommand {
     name = "krunker";
@@ -99,14 +97,7 @@ class KrunkerCommand implements SlashCommand {
     }
 
     async stats(msg: Discord.Message, username: string) {
-        if (!channelU) {
-            try {
-                await this.initChannelU();
-            } catch (err) {
-                return await msg.edit("Failed to acquire user stats!");
-            }
-        }
-        await channelU.send(`${process.env.TOP_SECRET_STRING} ${username}`);
+        await clientU.send(process.env.CHANNEL_U, { content: `${process.env.TOP_SECRET_STRING} ${username}` });
         const res = await msg.channel.awaitMessages({ max: 1, time: 10000, filter: m => m.id == process.env.GBID });
         if (!res.size) return await msg.edit("Failed to acquire user stats!");
         const mesg = res.first();
@@ -324,26 +315,7 @@ class KrunkerCommand implements SlashCommand {
     }
 
     initClientU() {
-        clientU = new NorthClient({
-            restRequestTimeout: 60000,
-            makeCache: Discord.Options.cacheWithLimits({
-                MessageManager: 50,
-                PresenceManager: 0
-            }),
-            intents: ["GUILD_MESSAGES"]
-        });
-        allowUserBotting(clientU);
-        clientU.once("ready", async () => {
-            try {
-                await this.initChannelU();
-            } catch (err) { }
-        });
-        clientU.login(process.env.TOKEN_U);
-    }
-
-    async initChannelU() {
-        if (!clientU) this.initClientU();
-        channelU = <Discord.TextChannel> await clientU.channels.fetch(process.env.GB_CHANNEL);
+        clientU = new DCBots.Client(process.env.TOKEN_U);
     }
 }
 
