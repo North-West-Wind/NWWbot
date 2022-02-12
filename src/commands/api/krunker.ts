@@ -92,13 +92,13 @@ class KrunkerCommand implements SlashCommand {
                 await this.changelog(msg, args.slice(1).join(" "), message.author);
                 break;
             default:
-                return await message.channel.send(`Sorry! Krunker added ReCaptcha to their social page. Now it is inaccessible :(.\nHowever here are some different subcommands you can try out: \`${this.subcommands.slice(1).join("`, `")}\``);
+                await this.stats(msg, args.join(" "));
         }
     }
 
     async stats(msg: Discord.Message, username: string) {
         await clientU.send(process.env.CHANNEL_U, { content: `${process.env.TOP_SECRET_STRING} ${username}` });
-        const res = await (<Discord.TextChannel> await msg.client.channels.fetch(process.env.CHANNEL_U)).awaitMessages({ max: 1, time: 10000, filter: m => m.id == process.env.GBID });
+        const res = await (<Discord.TextChannel> await msg.client.channels.fetch(process.env.CHANNEL_U)).awaitMessages({ max: 1, time: 10000, filter: m => m.author.id == process.env.GBID });
         if (!res.size) return await msg.edit("Failed to acquire user stats!");
         const mesg = res.first();
         msg.delete().catch(() => { });
