@@ -60,7 +60,7 @@ class KrunkerCommand implements SlashCommand {
     ];
 
     constructor() {
-        this.initClientU();
+        if (client.id == 0) this.initClientU();
     }
 
     async execute(interaction: NorthInteraction) {

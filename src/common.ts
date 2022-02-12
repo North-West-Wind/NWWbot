@@ -51,6 +51,8 @@ export default async (client: NorthClient) => {
   console.debug = (message: string, ...data: any[]) => logger.debug(message, ...data);
   console.log = (message: string, ...data: any[]) => logger.info(message, ...data);
   console.error = (message: string, ...data: any[]) => logger.error(message, ...data);
+  client.setVersion(pkg.version);
+  globalClient = client;
   const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
   for (const file of fontFiles) canvas.registerFont(`./fonts/${file}`, { family: "NotoSans", style: file.split(/[\-\.]/)[1].toLowerCase() });
   canvas.registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
@@ -70,8 +72,6 @@ export default async (client: NorthClient) => {
     NorthClient.storage.items.set(item.id, item);
   }
   if (!fs.existsSync(process.env.CACHE_DIR)) fs.mkdirSync(process.env.CACHE_DIR);
-  client.setVersion(pkg.version);
-  globalClient = client;
 
   setInterval(async () => {
     const memUse = process.memoryUsage();
