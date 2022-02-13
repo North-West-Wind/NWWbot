@@ -4,7 +4,7 @@ import { NorthClient, Card, SlashCommand, Item, ClientStorage } from "./classes/
 import { twoDigits, deepReaddir, query } from "./function.js";
 import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
-import { AliceHandler, CanaryHandler, Handler } from "./handler.js";
+import { Handler } from "./handler.js";
 import pkg from "../package.json";
 import { getQueues } from "./helpers/music.js";
 var globalClient: NorthClient;
@@ -34,11 +34,7 @@ function reloadClient() {
   globalClient.prefix = prefix;
   globalClient.id = id;
 
-  switch (id) {
-    case 0: return Handler.setup(globalClient, token);
-    case 1: return AliceHandler.setup(globalClient, token);
-    case 2: return CanaryHandler.setup(globalClient, token);
-  }
+  return Handler.setup(globalClient, token);
 }
 
 export default async (client: NorthClient) => {
