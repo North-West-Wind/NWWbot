@@ -2,7 +2,7 @@ import cv from "canvas";
 import { Guild, GuildMember, Interaction, Message, MessageAttachment, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, TextChannel, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll } from "./commands/miscellaneous/poll.js";
-import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration } from "./function.js";
+import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, nameToUuid, color, fixGuildRecord, query, duration } from "./function.js";
 import { setQueue, stop } from "./helpers/music.js";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient.js";
 import fetch from "node-fetch";
