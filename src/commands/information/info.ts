@@ -2,7 +2,7 @@
 import {  NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { globalClient as client } from "../../common.js";
 import * as Discord from "discord.js";
-import { readableDateTime, color, readableDateTimeText, checkTradeW1nd, getTradeW1ndStats } from "../../function.js";
+import { readableDateTime, color, readableDateTimeText } from "../../function.js";
 
 class InfoCommand implements SlashCommand {
   name = "info"

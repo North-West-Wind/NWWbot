@@ -1,7 +1,7 @@
 import { Message, MessageReaction, User } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd, query } from "../../function.js";
+import { msgOrRes, ID, color, fixGuildRecord, query } from "../../function.js";
 import { globalClient as client } from "../../common.js";
 import * as Discord from "discord.js";
 import { isImageUrl } from "../../function.js";
@@ -108,7 +108,6 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("Panel shutted down.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
       await msg.edit({ embeds: [panelEmbed] });
       msg.reactions.removeAll().catch(() => { });
-      if (await checkTradeW1nd(message.guildId)) await syncTradeW1nd(message.guildId);
     }
 
     async function start(msg: Message) {
