@@ -123,6 +123,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
   }
   const streamTime = serverQueue.getPlaybackDuration();
   const seek = serverQueue.seek;
+  console.log("Seek: ", seek)
   if (seek) serverQueue.seek = undefined;
   if (serverQueue.connection) serverQueue.startTime = streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;
@@ -133,7 +134,7 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
         serverQueue.songs.splice(index, 1);
         updateQueue(guild.id, serverQueue, false);
       }
-      throw new Error("This soundtrack is missing URL! It is being removed automatically.");
+      return console.error("This soundtrack is missing URL! It is being removed automatically.");
     }
     const stream = await getStream(song, { guild, serverQueue });
     if (seek) {
@@ -147,18 +148,6 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
     console.error(err);
     serverQueue.player?.emit("error", new AudioPlayerError(err instanceof Error ? err : new Error(err), serverQueue.resource));
   }
-  // if (serverQueue.textChannel) {
-  //   const Embed = new Discord.MessageEmbed()
-  //     .setColor(color())
-  //     .setTitle("Now playing:")
-  //     .setThumbnail(song.thumbnail)
-  //     .setDescription(`**[${song.title}](${song.type === 1 ? song.spot : song.url})**\nLength: **${!song.time ? "∞" : moment.duration(song.time, "seconds").format()}**${seek > 0 ? ` | Starts From: **${moment.duration(seek, "seconds").format()}**` : ""}`)
-  //     .setTimestamp()
-  //     .setFooter({ text: "Have a nice day! :)", iconURL: guild.client.user.displayAvatarURL() });
-  //   const msg = await serverQueue.textChannel.send({ embeds: [Embed] });
-  //   await wait(30000);
-  //   msg.delete().catch(() => { });
-  // }
 }
 
 class PlayCommand implements SlashCommand {
