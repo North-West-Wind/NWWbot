@@ -115,9 +115,9 @@ class ConfigCommand implements SlashCommand {
       const row2 = new Discord.MessageActionRow()
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row1, row2] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "welcome": return await welcome(msg);
         case "leave": return await leave(msg);
@@ -226,6 +226,12 @@ class ConfigCommand implements SlashCommand {
       return await start(msg);
     }
 
+    async function getButtonInteraction(msg: Discord.Message) {
+      var interaction: Discord.MessageComponentInteraction;
+      try { interaction = await msg.awaitMessageComponent({ filter, time: 6e4 }); } catch (err) { interaction = null; }
+      return interaction;
+    }
+
     async function welcome(msg: Discord.Message) {
       panelEmbed.setDescription("**Welcome**\nSends a message when someone joins the server.\nPlease choose an option to configure by clicking a button.")
         .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
@@ -238,9 +244,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row1, row2] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "message": return await welcomeMsg(msg);
         case "channel": return await welcomeChannel(msg);
@@ -260,9 +266,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "set": return await set(msg, "Welcome/Message", ["welcome", "message"], "Welcome Message", "wel_msg", 600000, "message");
         case "reset": return await reset(msg, "Welcome/Message", ["welcome", "message"], "Welcome Message", "wel_msg");
@@ -280,9 +286,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "set": return await set(msg, "Welcome/Channel", ["welcome", "channel"], "Welcome Channel", "wel_channel", 60000, "channel");
         case "reset": return await reset(msg, "Welcome/Channel", ["welcome", "channel"], "Welcome Channel", "wel_channel");
@@ -300,9 +306,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "set": return set(msg, "Welcome/Image", ["welcome", "image"], "Welcome Image", "wel_img", 60000, "image");
         case "unset": return reset(msg, "Welcome/Image", ["welcome", "image"], "Welcome Image", "wel_img");
@@ -320,9 +326,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "set": return set(msg, "Welcome/Auto-Role", ["welcome", "autorole"], "Auto-Role", "autorole", 60000, "roles");
         case "unset": return reset(msg, "Welcome/Image", ["welcome", "autorole"], "Auto-Role", "autorole");
@@ -341,9 +347,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row1, row2] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "message": return await leaveMsg(msg);
         case "channel": return await leaveChannel(msg);
@@ -361,9 +367,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "set": return await set(msg, "Leave/Message", ["leave", "message"], "Leave Message", "leave_msg", 600000, "message");
         case "reset": return await reset(msg, "Leave/Message", ["leave", "message"], "Leave Message", "leave_msg");
@@ -381,9 +387,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "set": return await set(msg, "Leave/Channel", ["leave", "channel"], "Leave Channel", "leave_channel", 60000, "channel");
         case "reset": return await reset(msg, "Leave/Channel", ["leave", "channel"], "Leave Channel", "leave_channel");
@@ -402,9 +408,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row1, row2] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "message": return await boostMsg(msg);
         case "channel": return await boostChannel(msg);
@@ -422,9 +428,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "set": return await set(msg, "Boost/Message", ["boost", "message"], "Boost Message", "boost_msg", 600000, "message");
         case "reset": return await reset(msg, "Boost/Message", ["boost", "message"], "Boost Message", "boost_msg");
@@ -442,9 +448,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "set": return await set(msg, "Boost/Channel", ["boost", "channel"], "Boost Channel", "boost_channel", 60000, "channel");
         case "reset": return await reset(msg, "Boost/Channel", ["boost", "channel"], "Boost Channel", "boost_channel");
@@ -462,9 +468,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "set": return await set(msg, "Giveaway Emoji", ["giveaway"], "Giveaway Emoji", "giveaway", 60000, "reaction");
         case "reset": return await reset(msg, "Giveaway Emoji", ["giveaway"], "Giveaway Emoji", "giveaway", "🎉");
@@ -482,9 +488,9 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await msg.awaitMessageComponent({ filter, time: 6e4 });
+      const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
-      await msg.edit({ components: [] });
+      await interaction.update({ components: [] });
       switch (interaction.customId) {
         case "set":
           try {
