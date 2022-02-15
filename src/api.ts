@@ -22,7 +22,6 @@ var conTimeout: NodeJS.Timeout;
 
 const client = new DCBots.Client(process.env.TOKEN_U);
 client.on.message_create = async(message: any) => {
-    console.log(message);
     if (message.author.id != process.env.GBID) return;
     const msg = (await client.fetch_messages(2, process.env.CHANNEL_U))[1];
     console.log(msg);
@@ -34,10 +33,13 @@ client.on.message_create = async(message: any) => {
         case "g.pf":
             if (message.embeds.length || !message.attachments[0]?.url) profiles[name] = { found: false };
             else profiles[name] = { found: true, url: message.attachments[0].url };
+            console.log(profiles[name]);
+            setTimeout(() => delete profiles[name], 10000);
             break;
         case "g.clan":
             if (message.embeds.length || !message.attachments[0]?.url) clans[name] = { found: false };
             else clans[name] = { found: true, url: message.attachments[0].url };
+            setTimeout(() => delete clans[name], 10000);
             break;
     }
 }
@@ -65,10 +67,7 @@ app.get("/api/krunker/profile/:username", async(req, res) => {
     function check() {
         setTimeout(() => {
             if (!profiles[req.params.username]) check();
-            else {
-                res.json(profiles[req.params.username]);
-                delete profiles[req.params.username];
-            }
+            else res.json(profiles[req.params.username]);
         }, 200);
     }
     check();
@@ -79,10 +78,7 @@ app.get("/api/krunker/clan/:name", async (req, res) => {
     function check() {
         setTimeout(() => {
             if (!clans[req.params.name]) check();
-            else {
-                res.json(clans[req.params.name]);
-                delete clans[req.params.name];
-            }
+            else res.json(clans[req.params.name]);
         }, 200);
     }
     check();
