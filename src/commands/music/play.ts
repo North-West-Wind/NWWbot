@@ -123,7 +123,6 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
   }
   const streamTime = serverQueue.getPlaybackDuration();
   const seek = serverQueue.seek;
-  console.log("Seek: ", seek)
   if (seek) serverQueue.seek = undefined;
   if (serverQueue.connection) serverQueue.startTime = streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;

@@ -4,6 +4,7 @@ import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/Nort
 import { run } from "../../helpers/puppeteer.js";
 import { Page } from "puppeteer-core";
 import { globalClient as client } from "../../common.js";
+const AbortController = globalThis.AbortController;
 
 class KrunkerCommand implements SlashCommand {
     name = "krunker";
@@ -91,19 +92,39 @@ class KrunkerCommand implements SlashCommand {
     }
 
     async stats(message: Discord.Message | Discord.CommandInteraction, username: string) {
-        const res = await getFetch()("http://localhost:4269/api/krunker/profile/" + username);
-        if (!res.ok) return await msgOrRes(message, "Failed to acquire user stats!");
-        const json = <any> await res.json();
-        if (!json.found) return await msgOrRes(message, "The user does not exist!");
-        await msgOrRes(message, { files: [new Discord.MessageAttachment(json.url)] });
+        const controller = new AbortController();
+        const timeout = setTimeout(() => {
+            controller.abort();
+        }, 1000);
+        try {
+            const res = await getFetch()("http://localhost:4269/api/krunker/profile/" + username, { signal: controller.signal });
+            if (!res.ok) throw new Error();
+            const json = <any> await res.json();
+            if (!json.found) return await msgOrRes(message, "The user does not exist!");
+            await msgOrRes(message, { files: [new Discord.MessageAttachment(json.url)] });
+        } catch (err) {
+            await msgOrRes(message, "Failed to acquire user stats!");
+        } finally {
+            clearTimeout(timeout);
+        }
     }
 
     async clan(message: Discord.Message | Discord.CommandInteraction, name: string) {
-        const res = await getFetch()("http://localhost:4269/api/krunker/clan/" + name);
-        if (!res.ok) return await msgOrRes(message, "Failed to acquire clan stats!");
-        const json = <any> await res.json();
-        if (!json.found) return await msgOrRes(message, "The clan does not exist!");
-        await msgOrRes(message, { files: [new Discord.MessageAttachment(json.url)] });
+        const controller = new AbortController();
+        const timeout = setTimeout(() => {
+            controller.abort();
+        }, 1000);
+        try {
+            const res = await getFetch()("http://localhost:4269/api/krunker/clan/" + name, { signal: controller.signal });
+            if (!res.ok) throw new Error();
+            const json = <any> await res.json();
+            if (!json.found) return await msgOrRes(message, "The clan does not exist!");
+            await msgOrRes(message, { files: [new Discord.MessageAttachment(json.url)] });
+        } catch (err) {
+            await msgOrRes(message, "Failed to acquire clan stats!");
+        } finally {
+            clearTimeout(timeout);
+        }
     }
 
     async server(message: Discord.Message | Discord.CommandInteraction, search: string, author: Discord.User) {
