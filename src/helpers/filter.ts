@@ -1,6 +1,6 @@
 import { GuildMember, Message, Permissions, TextChannel } from "discord.js";
 import { Command, NorthClient, NorthInteraction, NorthMessage } from "../classes/NorthClient.js";
-import { checkTradeW1nd, genPermMsg, getOwner, msgOrRes } from "../function.js";
+import { checkTradeW1nd, genPermMsg, getOwner, msgOrRes, tradeW1ndAct } from "../function.js";
 var timeout: NodeJS.Timeout;
 
 export async function all(command: Command, message: NorthMessage | NorthInteraction, args: string[] = []) {
@@ -62,13 +62,20 @@ export async function moderator(_command: Command, message: NorthMessage | North
     }
     return true;
 }
-export async function music(_command: Command, message: NorthMessage | NorthInteraction) {
+export async function music(command: Command, message: NorthMessage | NorthInteraction) {
     if (!message.guild) {
         await msgOrRes(message, "You can only use music commands in server!");
         return false;
     }
     try {
-        if (await checkTradeW1nd(message.guild.id)) return false;
+        if (await checkTradeW1nd(message.guild.id)) {
+            if (message instanceof NorthInteraction) {
+                const cmd = [command.name];
+                for (const option of message.options.data) cmd.push(option.value.toString());
+                await tradeW1ndAct(message, message.user.id, cmd.join(" "));
+            }
+            return false;
+        }
     } catch (err) {}
     return true;
 }

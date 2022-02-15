@@ -3,6 +3,7 @@ import express from "express";
 import * as mysql from "mysql2";
 import { PoolConnection } from "mysql2/promise";
 import * as DCBots from "discord-user-bots";
+import { wait } from "./function.js";
 
 dotenv.config();
 
@@ -30,12 +31,15 @@ client.on.message_create = async(message: any) => {
         case "g.pf":
             if (message.embeds.length || !message.attachments[0]?.url) profiles[name] = { found: false };
             else profiles[name] = { found: true, url: message.attachments[0].url };
-            setTimeout(() => delete profiles[name], 10000);
+            await wait(10000);
+            delete profiles[name];
             break;
         case "g.clan":
-            if (message.embeds.length || !message.attachments[0]?.url) clans[name] = { found: false };
-            else clans[name] = { found: true, url: message.attachments[0].url };
-            setTimeout(() => delete clans[name], 10000);
+            message = (await client.fetch_messages(1, process.env.CHANNEL_U))[0];
+            if (message.embeds.length || !message.content) clans[name] = { found: false };
+            else clans[name] = { found: true, url: message.content };
+            await wait(10000);
+            delete clans[name];
             break;
     }
 }
@@ -60,24 +64,22 @@ app.get("/api/:query", async(req, res) => {
 
 app.get("/api/krunker/profile/:username", async(req, res) => {
     await client.send(process.env.CHANNEL_U, { content: `g.pf ${req.params.username}` });
-    function check() {
-        setTimeout(() => {
-            if (!profiles[req.params.username]) check();
-            else res.json(profiles[req.params.username]);
-        }, 100);
+    async function check() {
+        await wait(100);
+        if (!profiles[req.params.username]) await check();
+        else res.json(profiles[req.params.username]);
     }
-    check();
+    await check();
 });
 
 app.get("/api/krunker/clan/:name", async (req, res) => {
     await client.send(process.env.CHANNEL_U, { content: `g.clan ${req.params.name}` });
-    function check() {
-        setTimeout(() => {
-            if (!clans[req.params.name]) check();
-            else res.json(clans[req.params.name]);
-        }, 100);
+    async function check() {
+        await wait(100);
+        if (!clans[req.params.name]) await check();
+        else res.json(clans[req.params.name]);
     }
-    check();
+    await check();
 });
 
 app.listen(4269, () => console.log("API Ready!"));

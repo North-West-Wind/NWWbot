@@ -706,6 +706,21 @@ export async function syncTradeW1nd(guild: Discord.Snowflake) {
     await fetch(`http://localhost:3000/update/${guild}`, { method: "post", body: JSON.stringify(config), headers: { "Content-Type": "application/json" } });
 }
 
+export async function tradeW1ndAct(interaction: Discord.CommandInteraction, author: Discord.Snowflake, command: string) {
+    const channel = interaction.channel;
+    await interaction.deferReply();
+    var res = await fetch("http://localhost:3000/checkChannel/" + channel.id);
+    if (!res.ok) return await interaction.editReply("I've found TradeW1nd on this server, but I cannot talk to him! Try again later.");
+    if (!(<any> await res.json()).canUse) return await interaction.editReply("I've found TradeW1nd on this server, but he cannot talk in this channel! Find an admin to help him!");
+    // Best act of the century
+    res = await fetch("http://localhost:3000/act", { method: "post", body: JSON.stringify({ channel: channel.id, botId: interaction.client.user.id }), headers: { "Content-Type": "application/json" } });
+    if (!res.ok) return await interaction.editReply("TradeW1nd seems to be having some trouble. Try again later.");
+    const { id } = await interaction.editReply("hey <@895321877109690419>");
+    await channel.awaitMessages({ filter: m => m.author.id == "895321877109690419", max: 1 });
+    await interaction.followUp(`pls help run this command from <@${author}>`);
+    await fetch("http://localhost:3000/run", { method: "post", body: JSON.stringify({ channel: channel.id, command, author, msgId: id }), headers: { "Content-Type": "application/json" } });
+}
+
 export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: string) {
     const { name } = await profile(mcUuid);
     const res = await fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => <any> res.json());
