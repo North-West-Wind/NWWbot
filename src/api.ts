@@ -35,7 +35,6 @@ client.on.message_create = async(message: any) => {
             delete profiles[name];
             break;
         case "g.clan":
-            message = (await client.fetch_messages(1, process.env.CHANNEL_U))[0];
             if (message.embeds.length || !message.content) clans[name] = { found: false };
             else clans[name] = { found: true, url: message.content };
             await wait(10000);
