@@ -23,7 +23,7 @@ var conTimeout: NodeJS.Timeout;
 const client = new DCBots.Client(process.env.TOKEN_U);
 client.on.message_create = async(message: any) => {
     console.log(message);
-    if (message.author.id != "717416553099952219") return;
+    if (message.author.id != process.env.GBID) return;
     const msg = (await client.fetch_messages(2, process.env.CHANNEL_U))[1];
     console.log(msg);
     if (msg.author.id != client.user.id) return;
