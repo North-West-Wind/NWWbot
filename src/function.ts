@@ -504,13 +504,21 @@ export function commonRoleEmbed(client, word, past, name) {
         .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
     return [successEmbed, failEmbed];
 }
-export async function msgOrRes(message: Discord.Message | Discord.CommandInteraction, str: string | { content?: string, embeds?: Discord.MessageEmbed[], files?: Discord.MessageAttachment[], components?: Discord.MessageActionRow[] }, reply: boolean = false): Promise<Discord.Message> {
-    if (message instanceof Discord.Message) return await (reply ? message.reply : message.channel.send)(str);
-    else {
+export async function msgOrRes(message: Discord.Message | Discord.CommandInteraction, str: string | Discord.MessageEmbed | Discord.MessageAttachment | { content?: string, embeds?: Discord.MessageEmbed[], files?: Discord.MessageAttachment[], components?: Discord.MessageActionRow[] }, reply: boolean = false): Promise<Discord.Message> {
+    if (message instanceof Discord.Message) {
+        if (str instanceof Discord.MessageEmbed) return await (reply ? message.reply : message.channel.send)({ embeds: [str] });
+        else if (str instanceof Discord.MessageAttachment) return await (reply ? message.reply : message.channel.send)({ files: [str] });
+        else return await (reply ? message.reply : message.channel.send)(str);
+    } else {
         const useEdit = message.deferred, useFollowUp = message.replied;
-        if (useEdit) return <Discord.Message> await message.editReply(str);
-        else {
+        if (useEdit) {
+            if (str instanceof Discord.MessageEmbed) return <Discord.Message> await message.editReply({ embeds: [str] });
+            else if (str instanceof Discord.MessageAttachment) return <Discord.Message> await message.editReply({ files: [str] });
+            else return <Discord.Message> await message.editReply(str);
+        } else {
             if (typeof str === "string") return <Discord.Message> await (useFollowUp ? message.followUp :message.reply)({ content: str, fetchReply: true });
+            else if (str instanceof Discord.MessageEmbed) return <Discord.Message> await (useFollowUp ? message.followUp :message.reply)({ embeds: [str], fetchReply: true });
+            else if (str instanceof Discord.MessageAttachment) return <Discord.Message> await (useFollowUp ? message.followUp :message.reply)({ files: [str], fetchReply: true });
             else return <Discord.Message> await (useFollowUp ? message.followUp :message.reply)({ fetchReply: true, ...str });
         }
     }
