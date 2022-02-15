@@ -95,7 +95,7 @@ class KrunkerCommand implements SlashCommand {
         const controller = new AbortController();
         const timeout = setTimeout(() => {
             controller.abort();
-        }, 1000);
+        }, 10000);
         try {
             const res = await getFetch()("http://localhost:4269/api/krunker/profile/" + username, { signal: controller.signal });
             if (!res.ok) throw new Error();
@@ -113,7 +113,7 @@ class KrunkerCommand implements SlashCommand {
         const controller = new AbortController();
         const timeout = setTimeout(() => {
             controller.abort();
-        }, 3000);
+        }, 10000);
         try {
             const res = await getFetch()("http://localhost:4269/api/krunker/clan/" + name, { signal: controller.signal });
             if (!res.ok) throw new Error();

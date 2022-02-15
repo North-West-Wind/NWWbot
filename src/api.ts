@@ -24,16 +24,12 @@ const client = new DCBots.Client(process.env.TOKEN_U);
 client.on.message_create = async(message: any) => {
     if (message.author.id != process.env.GBID) return;
     const msg = (await client.fetch_messages(2, process.env.CHANNEL_U))[1];
-    console.log(msg);
     if (msg.author.id != client.user.id) return;
     const [ command, name ] = msg.content.split(" ");
-    console.log(command);
-    console.log(name);
     switch (<string> command) {
         case "g.pf":
             if (message.embeds.length || !message.attachments[0]?.url) profiles[name] = { found: false };
             else profiles[name] = { found: true, url: message.attachments[0].url };
-            console.log(profiles[name]);
             setTimeout(() => delete profiles[name], 10000);
             break;
         case "g.clan":
@@ -68,7 +64,7 @@ app.get("/api/krunker/profile/:username", async(req, res) => {
         setTimeout(() => {
             if (!profiles[req.params.username]) check();
             else res.json(profiles[req.params.username]);
-        }, 200);
+        }, 100);
     }
     check();
 });
@@ -79,7 +75,7 @@ app.get("/api/krunker/clan/:name", async (req, res) => {
         setTimeout(() => {
             if (!clans[req.params.name]) check();
             else res.json(clans[req.params.name]);
-        }, 200);
+        }, 100);
     }
     check();
 });
