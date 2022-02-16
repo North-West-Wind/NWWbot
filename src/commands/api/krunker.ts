@@ -1,10 +1,30 @@
 import * as Discord from "discord.js";
+import * as DCBots from "discord-user-bots";
 import { color, getFetch, msgOrRes, wait } from "../../function.js";
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { run } from "../../helpers/puppeteer.js";
 import { Page } from "puppeteer-core";
 import { globalClient as client } from "../../common.js";
-const AbortController = globalThis.AbortController;
+
+const profiles = {};
+const clans = {};
+const clientU = new DCBots.Client(process.env.TOKEN_U);
+clientU.on.message_create = async (message: any) => {
+    if (message.author.id != process.env.GBID) return;
+    const msg = (await clientU.fetch_messages(2, process.env.CHANNEL_U))[1];
+    if (msg.author.id != clientU.user.id) return;
+    const [command, name] = msg.content.split(" ");
+    switch (<string>command) {
+        case "g.pf":
+            if (message.embeds.length || !message.attachments[0]?.url) profiles[name] = { found: false };
+            else profiles[name] = { found: true, url: message.attachments[0].url };
+            break;
+        case "g.clan":
+            if (message.embeds.length || !message.content) clans[name] = { found: false };
+            else clans[name] = { found: true, url: message.content };
+            break;
+    }
+}
 
 class KrunkerCommand implements SlashCommand {
     name = "krunker";
@@ -92,39 +112,39 @@ class KrunkerCommand implements SlashCommand {
     }
 
     async stats(message: Discord.Message | Discord.CommandInteraction, username: string) {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => {
-            controller.abort();
-        }, 10000);
-        try {
-            const res = await getFetch()("http://localhost:4269/api/krunker/profile/" + username, { signal: controller.signal });
-            if (!res.ok) throw new Error();
-            const json = <any> await res.json();
-            if (!json.found) return await msgOrRes(message, "The user does not exist!");
-            await msgOrRes(message, { files: [new Discord.MessageAttachment(json.url)] });
-        } catch (err) {
-            await msgOrRes(message, "Failed to acquire user stats!");
-        } finally {
-            clearTimeout(timeout);
+        await clientU.send(process.env.CHANNEL_U, { content: `g.pf ${username}` });
+        var timeout = 0;
+        async function check() {
+            await wait(100);
+            timeout += 100;
+            if (timeout >= 10000) await msgOrRes(message, "Failed to acquire user stats!")
+            else if (!profiles[username]) await check();
+            else {
+                const json = profiles[username];
+                if (!json.found) return await msgOrRes(message, "The user does not exist!");
+                else await msgOrRes(message, { files: [new Discord.MessageAttachment(json.url)] });
+                delete profiles[username];
+            }
         }
+        await check();
     }
 
     async clan(message: Discord.Message | Discord.CommandInteraction, name: string) {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => {
-            controller.abort();
-        }, 10000);
-        try {
-            const res = await getFetch()("http://localhost:4269/api/krunker/clan/" + name, { signal: controller.signal });
-            if (!res.ok) throw new Error();
-            const json = <any> await res.json();
-            if (!json.found) return await msgOrRes(message, "The clan does not exist!");
-            await msgOrRes(message, { files: [new Discord.MessageAttachment(json.url)] });
-        } catch (err) {
-            await msgOrRes(message, "Failed to acquire clan stats!");
-        } finally {
-            clearTimeout(timeout);
+        await clientU.send(process.env.CHANNEL_U, { content: `g.clan ${name}` });
+        var timeout = 0;
+        async function check() {
+            await wait(100);
+            timeout += 100;
+            if (timeout >= 10000) await msgOrRes(message, "Failed to acquire clan stats!")
+            else if (!clans[name]) await check();
+            else {
+                const json = clans[name];
+                if (!json.found) return await msgOrRes(message, "The clan does not exist!");
+                else await msgOrRes(message, { files: [new Discord.MessageAttachment(json.url)] });
+                delete clans[name];
+            }
         }
+        await check();
     }
 
     async server(message: Discord.Message | Discord.CommandInteraction, search: string, author: Discord.User) {
