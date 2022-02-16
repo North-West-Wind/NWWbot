@@ -62,7 +62,7 @@ export async function moderator(_command: Command, message: NorthMessage | North
     }
     return true;
 }
-export async function music(_command: Command, message: NorthMessage | NorthInteraction) {
+export async function music(command: Command, message: NorthMessage | NorthInteraction) {
     if (!message.guild) {
         await msgOrRes(message, "You can only use music commands in server!");
         return false;
