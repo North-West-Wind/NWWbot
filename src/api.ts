@@ -31,14 +31,10 @@ client.on.message_create = async(message: any) => {
         case "g.pf":
             if (message.embeds.length || !message.attachments[0]?.url) profiles[name] = { found: false };
             else profiles[name] = { found: true, url: message.attachments[0].url };
-            await wait(10000);
-            delete profiles[name];
             break;
         case "g.clan":
             if (message.embeds.length || !message.content) clans[name] = { found: false };
             else clans[name] = { found: true, url: message.content };
-            await wait(10000);
-            delete clans[name];
             break;
     }
 }
@@ -63,20 +59,34 @@ app.get("/api/:query", async(req, res) => {
 
 app.get("/api/krunker/profile/:username", async(req, res) => {
     await client.send(process.env.CHANNEL_U, { content: `g.pf ${req.params.username}` });
+    var timeout = 0;
     async function check() {
         await wait(100);
-        if (!profiles[req.params.username]) await check();
-        else res.json(profiles[req.params.username]);
+        timeout += 100;
+        if (timeout >= 10000) res.sendStatus(404);
+        else if (!profiles[req.params.username]) await check();
+        else {
+            res.json(profiles[req.params.username]);
+            console.log(`Returned profile ${req.params.username} in time`);
+            delete profiles[req.params.username];
+        }
     }
     await check();
 });
 
 app.get("/api/krunker/clan/:name", async (req, res) => {
     await client.send(process.env.CHANNEL_U, { content: `g.clan ${req.params.name}` });
+    var timeout = 0;
     async function check() {
         await wait(100);
-        if (!clans[req.params.name]) await check();
-        else res.json(clans[req.params.name]);
+        timeout += 100;
+        if (timeout >= 10000) res.sendStatus(404);
+        else if (!clans[req.params.name]) await check();
+        else {
+            res.json(clans[req.params.name]);
+            console.log(`Returned clan ${req.params.name} in time`);
+            delete clans[req.params.name];
+        }
     }
     await check();
 });
