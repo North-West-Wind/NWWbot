@@ -70,6 +70,10 @@ export class UnoGame {
     cards: number;
 }
 
+export interface Poll {
+    votes: Snowflake[][];
+}
+
 export interface RoleMessage {
     id: Snowflake;
     guild: Snowflake;
@@ -132,6 +136,7 @@ export class GuildConfig {
 
 export class ClientStorage {
     guilds: GuildConfigs = {};
+    polls: Collection<Snowflake, Poll> = new Collection();
     rm: RoleMessage[] = [];
     timers: Collection<Snowflake, NodeJS.Timeout> = new Collection();
     noLog: Snowflake[] = [];
@@ -142,7 +147,8 @@ export class ClientStorage {
     mathgames: Collection<any, any> = new Collection();
     migrating: any[] = [];
     gtimers: GuildTimer[] = [];
-    queries: LevelData[] = [];
+    pendingLvlData: LevelData[] = [];
+    pendingPollVote: PollVote[] = [];
 }
 
 export class LevelData {
@@ -157,6 +163,14 @@ export class LevelData {
     guild: Snowflake;
     exp: number;
     date: string;
+}
+
+export class PollVote {
+    constructor(m: Snowflake) {
+        this.message = m;
+    }
+
+    message: Snowflake;
 }
 
 export class NorthMessage extends Message {

@@ -81,20 +81,31 @@ export default async (client: NorthClient) => {
       console.debug("Playing queues: ", getQueues().filter(x => x.playing).size);
     }
 
-    if (NorthClient.storage.queries.length < 1) return;
-    try {
-      const results = await query(`SELECT * FROM leveling`);
-      for (const q of NorthClient.storage.queries) try {
-        const result = results.find(x => x.user == q.author && x.guild == q.guild);
-        if (!result) await query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${q.author}', '${q.guild}', ${q.exp}, '${q.date}')`);
-        else {
-          if (Date.now() - result.last < 60000) continue;
-          const newExp = parseInt(result.exp) + q.exp;
-          await query(`UPDATE leveling SET exp = ${newExp}, last = '${q.date}' WHERE user = '${q.author}' AND guild = '${q.guild}'`);
-        }
+    if (NorthClient.storage.pendingLvlData.length) {
+      try {
+        const results = await query(`SELECT * FROM leveling`);
+        for (const q of NorthClient.storage.pendingLvlData) try {
+          const result = results.find(x => x.user == q.author && x.guild == q.guild);
+          if (!result) await query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${q.author}', '${q.guild}', ${q.exp}, '${q.date}')`);
+          else {
+            if (Date.now() - result.last < 60000) continue;
+            const newExp = parseInt(result.exp) + q.exp;
+            await query(`UPDATE leveling SET exp = ${newExp}, last = '${q.date}' WHERE user = '${q.author}' AND guild = '${q.guild}'`);
+          }
+        } catch (err: any) { }
       } catch (err: any) { }
-      NorthClient.storage.queries = [];
-    } catch (err: any) { }
+      NorthClient.storage.pendingLvlData = [];
+    }
+    if (NorthClient.storage.pendingPollVote.length) {
+      try {
+        const [results] = await query(`SELECT id FROM polls`);
+        const arr = NorthClient.storage.pendingPollVote.filter(poll => results.some(x => x.id == poll.message) && NorthClient.storage.polls.has(poll.message));
+        for (const q of arr) try {
+          await query(`UPDATE polls SET votes = "${escape(JSON.stringify(NorthClient.storage.polls.get(q.message).votes))}"`);
+        } catch (err: any) { }
+      } catch (err: any) { }
+      NorthClient.storage.pendingPollVote = [];
+    }
   }, 60000);
 }
 

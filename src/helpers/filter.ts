@@ -50,21 +50,21 @@ export async function all(command: Command, message: NorthMessage | NorthInterac
 }
 export async function managements(_command: Command, message: NorthMessage | NorthInteraction) {
     if (!message.guild) {
-        await msgOrRes(message, "You can only use management commands in server!");
+        await msgOrRes(message, "You can only use management commands on a server!");
         return false;
     }
     return true;
 }
 export async function moderator(_command: Command, message: NorthMessage | NorthInteraction) {
     if (!message.guild) {
-        await msgOrRes(message, "You can only use moderator commands in server!");
+        await msgOrRes(message, "You can only use moderator commands on a server!");
         return false;
     }
     return true;
 }
 export async function music(command: Command, message: NorthMessage | NorthInteraction) {
     if (!message.guild) {
-        await msgOrRes(message, "You can only use music commands in server!");
+        await msgOrRes(message, "You can only use music commands on a server!");
         return false;
     }
     try {

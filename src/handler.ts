@@ -1,5 +1,5 @@
 import cv from "canvas";
-import { Guild, GuildMember, Interaction, Message, MessageAttachment, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, TextChannel, User, VoiceState } from "discord.js";
+import { CommandInteraction, Guild, GuildMember, Interaction, Message, MessageAttachment, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, TextChannel, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll } from "./commands/miscellaneous/poll.js";
 import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration } from "./function.js";
@@ -10,8 +10,9 @@ import * as filter from "./helpers/filter.js";
 import { sCategories } from "./commands/information/help.js";
 import common from "./common.js";
 import { init } from "./helpers/addTrack.js";
+import cfg from "../config.json";
 const { createCanvas, loadImage, Image } = cv;
-
+const emojis = cfg.poll;
 const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
 
 export class Handler {
@@ -39,7 +40,10 @@ export class Handler {
     }
 
     async interactionCreate(interaction: Interaction) {
-        if (!interaction.isCommand()) return;
+        if (interaction.isCommand()) return await this.commandInteraction(interaction);
+    }
+
+    async commandInteraction(interaction: CommandInteraction) {
         const command = NorthClient.storage.commands.get(interaction.commandName);
         if (!command) return;
         const int = <NorthInteraction>interaction;
@@ -59,7 +63,7 @@ export class Handler {
         if (!message || !message.author || !message.author.id || !message.guild || message.author.bot) return;
         const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
         const sqlDate = jsDate2Mysql(new Date());
-        NorthClient.storage.queries.push(new LevelData(message.author.id, message.guild.id, exp, sqlDate));
+        NorthClient.storage.pendingLvlData.push(new LevelData(message.author.id, message.guild.id, exp, sqlDate));
     }
 
     async preReady(client: NorthClient) {
@@ -127,21 +131,32 @@ export class Handler {
     }
 
     async readPoll(client: NorthClient) {
-        var results = await query("SELECT * FROM poll WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
+        var results = await query("SELECT * FROM polls WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
         console.log(`[${client.id}] ` + "Found " + results.length + " polls.");
-        results.forEach(result => {
+        results.forEach(async (result: any) => {
             var currentDate = Date.now();
             var time = result.endAt - currentDate;
-            setTimeout_(async () => {
-                try {
-                    var channel = <TextChannel>await client.channels.fetch(result.channel);
-                    var msg = await channel.messages.fetch(result.id);
-                } catch (err: any) {
-                    await query("DELETE FROM poll WHERE id = " + result.id);
-                    return console.log("Deleted an ended poll.");
-                }
-                await endPoll(client, result.id, msg, null, result.title, result.author, result.options, result.color);
-            }, time);
+            try {
+                const channel = <TextChannel>await client.channels.fetch(result.channel);
+                const msg = await channel.messages.fetch(result.id);
+                const collector = msg.createReactionCollector({ time, filter: (_reaction, user) => !user.bot });
+                NorthClient.storage.polls.set(msg.id, JSON.parse(unescape(result.votes)));
+                collector.on("collect", async (reaction, user) => {
+                    const index = emojis.indexOf(reaction.emoji.name);
+                    if (index < 0) return;
+                    const poll = NorthClient.storage.polls.get(msg.id);
+                    if (poll.votes[index].includes(user.id)) return;
+                    poll.votes[index].push(user.id);
+                    reaction.users.remove(user.id).catch(() => {});
+                    NorthClient.storage.polls.set(msg.id, poll);
+                });
+                collector.on("end", async () => {
+                    await endPoll(client, await channel.messages.fetch(msg.id));
+                });
+            } catch (err) {
+                await query("DELETE FROM polls WHERE id = " + result.id);
+                return console.log("Deleted an ended poll.");
+            }
         });
     }
 
@@ -585,7 +600,7 @@ export class AliceHandler extends Handler {
     }
 
     async readPoll(client: NorthClient) {
-        const results = await query("SELECT * FROM poll WHERE guild = '622311594654695434' ORDER BY endAt ASC");
+        const results = await query("SELECT * FROM polls WHERE guild = '622311594654695434' ORDER BY endAt ASC");
         console.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(result => {
             var currentDate = Date.now();
@@ -595,9 +610,9 @@ export class AliceHandler extends Handler {
                     var channel = <TextChannel>await client.channels.fetch(result.channel);
                     var msg = await channel.messages.fetch(result.id);
                 } catch (err: any) {
-                    await query("DELETE FROM poll WHERE id = " + result.id);
+                    await query("DELETE FROM polls WHERE id = " + result.id);
                 }
-                await endPoll(client, result.id, msg, null, result.title, result.author, result.options, result.color);
+                await endPoll(client, msg);
             }, time);
         });
     }
