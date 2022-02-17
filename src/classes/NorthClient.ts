@@ -99,7 +99,7 @@ export interface Applications {
     admins: Snowflake[];
     channel: Snowflake;
     duration: number;
-    applications: Set<{ id: Snowflake, approve: Set<Snowflake>, deny: Set<Snowflake> }>;
+    applications: Set<{ id: Snowflake, role: Snowflake, author: Snowflake, approve: Set<Snowflake>, decline: Set<Snowflake> }>;
 }
 
 export interface GuildConfigs {

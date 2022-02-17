@@ -1,5 +1,5 @@
 import cv from "canvas";
-import { CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageAttachment, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, TextChannel, User, VoiceState } from "discord.js";
+import { CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageAttachment, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Snowflake, TextChannel, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll } from "./commands/miscellaneous/poll.js";
 import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration } from "./function.js";
@@ -11,6 +11,7 @@ import { sCategories } from "./commands/information/help.js";
 import common from "./common.js";
 import { init } from "./helpers/addTrack.js";
 import cfg from "../config.json";
+import { endApplication } from "./commands/managements/apply.js";
 const { createCanvas, loadImage, Image } = cv;
 const emojis = cfg.poll;
 const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
@@ -67,11 +68,27 @@ export class Handler {
         if (!application || !(<GuildMemberRoleManager> interaction.member.roles).cache.some(r => settings.admins.includes(r.id))) return;
         settings.applications.delete(application);
         if (interaction.customId === "approve") {
-            application.deny.delete(interaction.user.id);
+            application.decline.delete(interaction.user.id);
             application.approve.add(interaction.user.id);
-        } else if (interaction.customId === "deny") {
+        } else if (interaction.customId === "decline") {
             application.approve.delete(interaction.user.id);
-            application.deny.add(interaction.user.id);
+            application.decline.add(interaction.user.id);
+        }
+        const embed = interaction.message.embeds[0];
+        const split = embed.description.split("\n");
+        split[split.length - 2] = `Approved: ${application.approve.size}`;
+        split[split.length - 1] = `Declined: ${application.decline.size}`;
+        embed.description = split.join("\n");
+        await interaction.update({ embeds: [embed] });
+        const allMembers = new Set<Snowflake>();
+        for (const roleId of settings.admins) {
+            const role = await interaction.guild.roles.fetch(roleId);
+            for (const member of role.members.keys()) allMembers.add(member);
+        }
+        settings.applications.add(application);
+        NorthClient.storage.guilds[interaction.guildId].applications = settings;
+        if (allMembers.size >= application.approve.size + application.decline.size) {
+            await endApplication(interaction.client, interaction.message.id, interaction.guildId);
         }
     }
 

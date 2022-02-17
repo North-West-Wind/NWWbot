@@ -1,6 +1,33 @@
-import { Message, MessageActionRow, MessageButton, MessageComponentInteraction, MessageEmbed, TextChannel } from "discord.js";
+import { Client, Message, MessageActionRow, MessageButton, MessageComponentInteraction, MessageEmbed, Snowflake, TextChannel } from "discord.js";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { query } from "../../function.js";
+import { query, setTimeout_ } from "../../function.js";
+
+export async function endApplication(client: Client, id: Snowflake, guildId: Snowflake) {
+    try {
+        const guild = await client.guilds.fetch(guildId);
+        const settings = NorthClient.storage.guilds[guild.id].applications;
+        const application = Array.from(settings.applications).find(x => x.id === id);
+        if (!application) return;
+        const member = await guild.members.fetch(application.author);
+        const role = await guild.roles.fetch(application.role);
+        if (application.approve.size > application.decline.size) {
+            await member.user.send(`Congratulations! Your application of role **${role.name}** on server **${guild.name}** was **APPROVED**!`);
+            try {
+                await member.roles.add(role);
+            } catch (err) {
+                await member.user.send(`However, I am having problem trying to add you to the role. Capture this message and send it to admins! (${id})`);
+            }
+        } else await member.user.send(`Sorry! Your application of role **${role.name}** on server **${guild.name}** was **DECLINED**! You may apply again and try to give a better reason.`);
+        NorthClient.storage.guilds[guild.id].applications.applications.delete(application);
+        try {
+            const channel = <TextChannel> await guild.channels.fetch(settings.channel);
+            const msg = await channel.messages.fetch(id);
+            await msg?.edit({ components: [] });
+        } catch (err) { }
+    } catch (err) {
+        console.error(err);
+    }
+}
 
 class ApplyCommand implements SlashCommand {
     name = "apply";
@@ -10,7 +37,7 @@ class ApplyCommand implements SlashCommand {
 
     async execute(interaction: NorthInteraction) {
         const applications = NorthClient.storage.guilds[interaction.guildId]?.applications;
-        if (!applications || !applications.roles || !applications.admins || !applications.channel) return await interaction.reply("The server did not have the application system set up!");
+        if (!applications || !applications.roles || !applications.admins || !applications.channel) return await interaction.reply("The server does not have the application system set up!");
         try { await interaction.guild.channels.fetch(applications.channel); } catch (err) {
             return await interaction.reply("Cannot find the application channel. Maybe it is deleted. Tell an admin and try again later.");
         }
@@ -27,7 +54,7 @@ class ApplyCommand implements SlashCommand {
 
     async run(message: NorthMessage) {
         const applications = NorthClient.storage.guilds[message.guildId]?.applications;
-        if (!applications || !applications.roles || !applications.admins || !applications.channel) return await message.channel.send("The server did not have the application system set up!");
+        if (!applications || !applications.roles || !applications.admins || !applications.channel) return await message.channel.send("The server does not have the application system set up!");
         try { await message.guild.channels.fetch(applications.channel); } catch (err) {
             return await message.channel.send("Cannot find the application channel. Maybe it is deleted. Tell an admin and try again later.");
         }
@@ -77,7 +104,7 @@ class ApplyCommand implements SlashCommand {
             return await interaction.update({ embeds: [embed], components: [] });
         }
         const role = await message.guild.roles.fetch(interaction.customId);
-        embed.setTitle(`Applying for role ${role.name}`).setDescription("Please enter description about why you should get this role.\nThe description you entered will be viewed by administrators or moderators").setFooter({ text: "You have 10 minutes.", iconURL: message.client.user.displayAvatarURL() });
+        embed.setTitle(`Applying for role ${role.name}`).setDescription("Please enter the reason of why you should get this role.\nThe reason you entered will be viewed by administrators or moderators").setFooter({ text: "You have 10 minutes.", iconURL: message.client.user.displayAvatarURL() });
         await interaction.update({ embeds: [embed], components: [] });
         try {
             const author = message instanceof Message ? message.author : message.user;
@@ -85,14 +112,16 @@ class ApplyCommand implements SlashCommand {
             if (!collected.first()?.content) throw new Error();
             const em = new MessageEmbed()
                 .setTitle("Role Application")
-                .setDescription(`**Applicant:** <@${author.id}> | ${author.tag}\n**Applying:** <@&${role.id}> | ${role.name}\n**Reason:**\n${collected.first().content}\n\nPlease make your vote by clicking the buttons.\nApproved: 0\nDenied: 0`)
+                .setDescription(`**Applicant:** <@${author.id}> | ${author.tag}\n**Applying:** <@&${role.id}> | ${role.name}\n**Reason:**\n${collected.first().content}\n\nPlease make your vote by clicking the buttons.\nApproved: 0\nDeclined: 0`)
                 .setTimestamp()
                 .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             const row = new MessageActionRow()
                 .addComponents(new MessageButton({ label: "Approve", customId: "approve", style: "SUCCESS", emoji: "⭕" }))
-                .addComponents(new MessageButton({ label: "Deny", customId: "deny", style: "DANGER", emoji: "❌" }));
-            const { id } = await (<TextChannel> await message.guild.channels.fetch(NorthClient.storage.guilds[message.guildId].applications.channel)).send({ embeds: [em], components: [row] });
-            NorthClient.storage.guilds[message.guildId].applications.applications.add({ id, approve: new Set(), deny: new Set() });
+                .addComponents(new MessageButton({ label: "Decline", customId: "decline", style: "DANGER", emoji: "❌" }));
+            const settings = NorthClient.storage.guilds[message.guildId].applications;
+            const { id } = await (<TextChannel> await message.guild.channels.fetch(settings.channel)).send({ embeds: [em], components: [row] });
+            NorthClient.storage.guilds[message.guildId].applications.applications.add({ id, role: role.id, author: author.id, approve: new Set(), decline: new Set() });
+            if (settings.duration) setTimeout_(() => endApplication(message.client, id, message.guildId), settings.duration);
             // We don't care if it syncs to DB or not. It is gonna get batch processed anyway.
             query(`UPDATE servers SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[message.guildId].applications.applications]))}' WHERE id = '${message.guildId}'`).catch(() => { });
             embed.setTitle("Application Complete").setDescription("Your application has been submitted and will be viewed by administrators or moderators. You will be notify when it is approved or denied.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
