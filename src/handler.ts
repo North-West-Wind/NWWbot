@@ -1,5 +1,5 @@
 import cv from "canvas";
-import { CommandInteraction, Guild, GuildMember, Interaction, Message, MessageAttachment, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, TextChannel, User, VoiceState } from "discord.js";
+import { CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageAttachment, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, TextChannel, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll } from "./commands/miscellaneous/poll.js";
 import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration } from "./function.js";
@@ -41,6 +41,7 @@ export class Handler {
 
     async interactionCreate(interaction: Interaction) {
         if (interaction.isCommand()) return await this.commandInteraction(interaction);
+        if (interaction.isMessageComponent()) return await this.messageComponentInteraction(interaction);
     }
 
     async commandInteraction(interaction: CommandInteraction) {
@@ -59,10 +60,26 @@ export class Handler {
         }
     }
 
+    async messageComponentInteraction(interaction: MessageComponentInteraction) {
+        const settings = NorthClient.storage.guilds[interaction.guildId].applications;
+        if (!settings) return;
+        const application = Array.from(settings.applications).find(app => app.id === interaction.message.id);
+        if (!application || !(<GuildMemberRoleManager> interaction.member.roles).cache.some(r => settings.admins.includes(r.id))) return;
+        settings.applications.delete(application);
+        if (interaction.customId === "approve") {
+            application.deny.delete(interaction.user.id);
+            application.approve.add(interaction.user.id);
+        } else if (interaction.customId === "deny") {
+            application.approve.delete(interaction.user.id);
+            application.deny.add(interaction.user.id);
+        }
+    }
+
     async messageLevel(message: Message) {
         if (!message || !message.author || !message.author.id || !message.guild || message.author.bot) return;
         const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
-        const sqlDate = jsDate2Mysql(new Date());
+        const date = new Date();
+        const sqlDate = jsDate2Mysql(date.getTime() + date.getTimezoneOffset() * 60000);
         NorthClient.storage.pendingLvlData.push(new LevelData(message.author.id, message.guild.id, exp, sqlDate));
     }
 

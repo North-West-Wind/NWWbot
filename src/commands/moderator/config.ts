@@ -129,7 +129,7 @@ class ConfigCommand implements SlashCommand {
       }
     }
 
-    async function set(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, time: number, type: "message" | "channel" | "image" | "roles" | "reaction" | "duration") {
+    async function set(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, time: number, type: "message" | "channel" | "image" | "roles" | "reaction" | "duration", extraData: any = {}) {
       panelEmbed.setDescription(`**${path}/Set**\nPlease enter the ${thing} in this channel.`)
         .setFooter({ text: `You will have ${duration(time, "milliseconds")}`, iconURL: msg.client.user.displayAvatarURL() });
       await msg.edit({ embeds: [panelEmbed] });
@@ -164,6 +164,9 @@ class ConfigCommand implements SlashCommand {
               }
               content.push(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, ""));
             }
+            if (extraData.max && content.length > extraData.max) 
+              panelEmbed.setDescription(`**${path}/Set**\nThere can only be at most ${extraData.max} roles! Returning to panel main page in 3 seconds...`)
+                .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
             break;
           case "reaction":
             content = msgCollected.first().content;
@@ -600,7 +603,7 @@ class ConfigCommand implements SlashCommand {
       if (!interaction) return await end(msg);
       await interaction.update({ components: [] });
       switch (interaction.customId) {
-        case "set": return await set(msg, "Applications/Applicable Roles", ["applications", "roles"], "Applicable Roles", "app_roles", 60000, "roles");
+        case "set": return await set(msg, "Applications/Applicable Roles", ["applications", "roles"], "Applicable Roles", "app_roles", 60000, "roles", { max: 20 });
         case "reset": return await reset(msg, "Applications/Applicable Roles", ["applications", "roles"], "Applicable Roles", "app_roles");
         case "back": return await application(msg);
         default: return await end(msg);

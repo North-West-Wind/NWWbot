@@ -136,7 +136,8 @@ export function elegantUnpair(z) {
     const sqrtz = Math.floor(Math.sqrt(z)), sqz = sqrtz * sqrtz;
     return z - sqz >= sqrtz ? [sqrtz, z - sqz - sqrtz] : [z - sqz, sqrtz];
 }
-export function jsDate2Mysql(newDate) {
+export function jsDate2Mysql(newDate: Date | number) {
+    if (typeof newDate === "number") newDate = new Date(newDate);
     function twoDigits(d) {
         if (0 <= d && d < 10) return "0" + d.toString();
         if (-10 < d && d < 0) return "-0" + (-1 * d).toString();

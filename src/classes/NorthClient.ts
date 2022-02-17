@@ -99,6 +99,7 @@ export interface Applications {
     admins: Snowflake[];
     channel: Snowflake;
     duration: number;
+    applications: Set<{ id: Snowflake, approve: Set<Snowflake>, deny: Set<Snowflake> }>;
 }
 
 export interface GuildConfigs {
@@ -142,7 +143,8 @@ export class GuildConfig {
                 roles: data.app_roles,
                 admins: data.admin_roles,
                 channel: data.app_channel,
-                duration: data.vote_duration
+                duration: data.vote_duration,
+                applications: new Set(JSON.parse(unescape(data.applications)))
             };
         }
     }

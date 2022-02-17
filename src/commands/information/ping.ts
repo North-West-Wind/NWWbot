@@ -16,7 +16,8 @@ class PingCommand implements SlashCommand {
     const msgDate = new Date(message.createdTimestamp);
     const msgTime = readableDateTime(msgDate)
 
-    const currentDate = new Date();
+    var currentDate = new Date();
+    currentDate = new Date(currentDate.getTime() + currentDate.getTimezoneOffset() * 60000)
     const currentTime = readableDateTime(currentDate);
 
     const Embed = new Discord.MessageEmbed()

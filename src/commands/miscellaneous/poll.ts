@@ -1,6 +1,6 @@
 import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, jsDate2Mysql, ms, msgOrRes, query, readableDateTime, readableDateTimeText, setTimeout_ } from "../../function.js";
+import { color, jsDate2Mysql, ms, msgOrRes, query, readableDateTime, readableDateTimeText } from "../../function.js";
 import cfg from "../../../config.json";
 const emojis = cfg.poll;
 
@@ -8,8 +8,11 @@ export async function endPoll(client: NorthClient, msg: Discord.Message, message
     var shouldDel = true;
     try {
         if (!msg) throw new Error("Poll is deleted");
-        const [[result]] = await query(`SELECT * FROM polls WHERE id = '${msg.id}'`);
-        const votes = NorthClient.storage.polls.get(msg.id)?.votes || <Discord.Snowflake[][]> JSON.parse(unescape(result.votes));
+        var votes = NorthClient.storage.polls.get(msg.id)?.votes;
+        var toFetch = "author, options, color, title";
+        if (!votes?.length) toFetch += ", votes";
+        const [[result]] = await query(`SELECT ${toFetch} FROM polls WHERE id = '${msg.id}'`);
+        if (result.votes) votes = JSON.parse(unescape(result.votes));
         shouldDel = false;
         const author = await client.users.fetch(result.author);
         const allOptions = JSON.parse(unescape(result.options));
@@ -23,7 +26,7 @@ export async function endPoll(client: NorthClient, msg: Discord.Message, message
         const Ended = new Discord.MessageEmbed()
             .setColor(result.color)
             .setTitle(unescape(result.title))
-            .setDescription(`Poll ended. Here are the results:\n\n\n${end.join("\n")}`)
+            .setDescription(`Poll ended. Here are the results:\n\n${end.join("\n")}`)
             .setTimestamp()
             .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
         msg.edit({ content: pollMsg, embeds: [Ended] });
@@ -104,7 +107,7 @@ class PollCommand implements SlashCommand {
         if (!channel) return await msgOrRes(message, channelID + " isn't a valid channel!");
         const duration = ms(durationStr);
         if (isNaN(duration)) return await msgOrRes(message, "**" + durationStr + "** is not a valid duration!");
-        var msg = await msgOrRes(message, `Alright! The poll will last for**${readableDateTimeText(duration)}**. \nLast but not least, please enter the options. Please break a line for each options!`);
+        const msg = await msgOrRes(message, `Alright! The poll will last for**${readableDateTimeText(duration)}**. \nLast but not least, please enter the options. Please break a line for each options!`);
         const optionString = await message.channel.awaitMessages({ filter, time: 60000, max: 1 });
         if (!optionString.first()) return await msg.edit("Time's up. Cancelled action.");
         await optionString.first().delete();
@@ -126,7 +129,7 @@ class PollCommand implements SlashCommand {
         }
 
         const currentDate = new Date();
-        const newDate = new Date(currentDate.getTime() + duration);
+        const newDate = new Date(currentDate.getTime() + currentDate.getTimezoneOffset() * 60000 + duration);
         const newDateSql = jsDate2Mysql(newDate);
         const readableTime = readableDateTime(newDate);
         const pollMsg = "⬆**Poll**⬇";
@@ -134,18 +137,27 @@ class PollCommand implements SlashCommand {
         const Embed = new Discord.MessageEmbed()
             .setColor(c)
             .setTitle(title)
-            .setDescription(`React with the numbers to vote!\nThis poll will end at:\n**${readableTime}**\n\n\n${optionArray.join("\n")}`)
+            .setDescription(`React with the numbers to vote!\nThis poll will end at:\n**${readableTime}**\n\n${optionArray.join("\n")}`)
             .setTimestamp()
             .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
-        var msg = await channel.send({ content: pollMsg, embeds: [Embed] });
-        for (var i = 0; i < optionArray.length; i++) await msg.react(emojis[i]);
-        await query(`INSERT INTO polls VALUES(${msg.id}, ${message.guild.id}, ${channel.id}, '${escape(JSON.stringify(options))}', '${newDateSql}', ${author.id}, ${c}, '${escape(title)}', '${escape("[]")}')`);
-        setTimeout_(async () => {
-            try {
-                await endPoll(message.client, msg);
-            } catch (err: any) { }
-        }, duration);
-
+        const mesg = await channel.send({ content: pollMsg, embeds: [Embed] });
+        for (var i = 0; i < optionArray.length; i++) await mesg.react(emojis[i]);
+        const collector = mesg.createReactionCollector({ time: duration, filter: (_reaction, user) => !user.bot });
+        NorthClient.storage.polls.set(mesg.id, { votes: Array(optionArray.length).fill([]) });
+        collector.on("collect", async (reaction, user) => {
+            const index = emojis.indexOf(reaction.emoji.name);
+            if (index < 0) return;
+            const poll = NorthClient.storage.polls.get(mesg.id);
+            const uIndex = poll.votes[index].indexOf(user.id);
+            if (uIndex < 0) poll.votes[index].push(user.id);
+            else poll.votes[index].splice(uIndex, 1);
+            reaction.users.remove(user.id).catch(() => {});
+            NorthClient.storage.polls.set(mesg.id, poll);
+        });
+        collector.on("end", async () => {
+            await endPoll(message.client, await channel.messages.fetch(mesg.id));
+        });
+        await query(`INSERT INTO polls VALUES(${mesg.id}, ${message.guild.id}, ${channel.id}, '${escape(JSON.stringify(options))}', '${newDateSql}', ${author.id}, ${c}, '${escape(title)}', '${escape("[]")}')`);
     }
 
     async end(message: NorthMessage | NorthInteraction, msgID: string) {
