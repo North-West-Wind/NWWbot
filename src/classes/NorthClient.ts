@@ -94,6 +94,13 @@ export interface WelcomeInfo extends InfoBase {
     autorole: Snowflake[];
 }
 
+export interface Applications {
+    roles: Snowflake[];
+    admins: Snowflake[];
+    channel: Snowflake;
+    duration: number;
+}
+
 export interface GuildConfigs {
     [key: Snowflake]: GuildConfig;
 }
@@ -106,6 +113,7 @@ export class GuildConfig {
     leave: InfoBase;
     boost: InfoBase;
     safe: boolean;
+    applications: Applications;
     invites?: Collection<string, Invite>;
     exit?: boolean;
 
@@ -130,6 +138,12 @@ export class GuildConfig {
             };
             if (data.safe === undefined) this.safe = true;
             else this.safe = !!data.safe;
+            this.applications = {
+                roles: data.app_roles,
+                admins: data.admin_roles,
+                channel: data.app_channel,
+                duration: data.vote_duration
+            };
         }
     }
 }

@@ -145,8 +145,9 @@ export class Handler {
                     const index = emojis.indexOf(reaction.emoji.name);
                     if (index < 0) return;
                     const poll = NorthClient.storage.polls.get(msg.id);
-                    if (poll.votes[index].includes(user.id)) return;
-                    poll.votes[index].push(user.id);
+                    const uIndex = poll.votes[index].indexOf(user.id);
+                    if (uIndex < 0) poll.votes[index].push(user.id);
+                    else poll.votes[index].splice(uIndex, 1);
                     reaction.users.remove(user.id).catch(() => {});
                     NorthClient.storage.polls.set(msg.id, poll);
                 });

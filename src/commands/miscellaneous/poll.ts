@@ -9,18 +9,14 @@ export async function endPoll(client: NorthClient, msg: Discord.Message, message
     try {
         if (!msg) throw new Error("Poll is deleted");
         const [[result]] = await query(`SELECT * FROM polls WHERE id = '${msg.id}'`);
-        const votes = NorthClient.storage.polls.get(msg.id)?.votes || JSON.parse(unescape(result.votes));
+        const votes = NorthClient.storage.polls.get(msg.id)?.votes || <Discord.Snowflake[][]> JSON.parse(unescape(result.votes));
         shouldDel = false;
         const author = await client.users.fetch(result.author);
         const allOptions = JSON.parse(unescape(result.options));
         const end = [];
         for (let i = 0; i < allOptions.length; i++) {
             const option = allOptions[i];
-            const emoji = emojis[i];
-            const reaction = msg.reactions.cache.get(emoji);
-            var count = 0;
-            if (reaction?.count) count = reaction.count - 1;
-            const mesg = `**${count}** - ${option}`;
+            const mesg = `**${votes[i].length}** - ${option}`;
             end.push(mesg);
         }
         const pollMsg = "⬆**Poll**⬇";
@@ -108,7 +104,7 @@ class PollCommand implements SlashCommand {
         if (!channel) return await msgOrRes(message, channelID + " isn't a valid channel!");
         const duration = ms(durationStr);
         if (isNaN(duration)) return await msgOrRes(message, "**" + durationStr + "** is not a valid duration!");
-        var msg = await msgOrRes(message, `Alright! The poll will last for**${readableDateTimeText(duration)}**. \n\n\`Last but not least, please enter the options. Please break a line for each options!\``);
+        var msg = await msgOrRes(message, `Alright! The poll will last for**${readableDateTimeText(duration)}**. \nLast but not least, please enter the options. Please break a line for each options!`);
         const optionString = await message.channel.awaitMessages({ filter, time: 60000, max: 1 });
         if (!optionString.first()) return await msg.edit("Time's up. Cancelled action.");
         await optionString.first().delete();
