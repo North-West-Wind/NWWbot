@@ -1,5 +1,5 @@
 
-import * as solenolyrics from "solenolyrics";
+import solenolyrics from "solenolyrics";
 import * as Discord from "discord.js";
 import { createEmbedScrolling, color } from "../../function.js";
 import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
