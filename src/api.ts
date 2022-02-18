@@ -24,7 +24,7 @@ var conTimeout: NodeJS.Timeout;
 const client = new DCBots.Client(process.env.TOKEN_U);
 client.on.message_create = async(message: any) => {
     if (message.author.id != process.env.GBID) return;
-    console.log(`Received GameBot message. Embeds: ${message.embeds?.length}, Attachments: ${message.attachment[0]?.url}, Content: ${message.content}`)
+    console.log(`Received GameBot message. Embeds: ${message.embeds?.length}, Attachments: ${message.attachments[0]?.url}, Content: ${message.content}`)
     const msg = (await client.fetch_messages(2, process.env.CHANNEL_U))[1];
     if (msg.author.id != client.user.id) return;
     const [ command, name ] = msg.content.split(" ");
