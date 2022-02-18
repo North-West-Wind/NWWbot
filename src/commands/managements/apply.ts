@@ -54,7 +54,7 @@ class ApplyCommand implements SlashCommand {
 
     async run(message: NorthMessage) {
         const applications = NorthClient.storage.guilds[message.guildId]?.applications;
-        if (!applications || !applications.roles || !applications.admins || !applications.channel) return await message.channel.send("The server does not have the application system set up!");
+        if (!applications || !applications.roles?.length || !applications.admins?.length || !applications.channel) return await message.channel.send("The server does not have the application system set up!");
         try { await message.guild.channels.fetch(applications.channel); } catch (err) {
             return await message.channel.send("Cannot find the application channel. Maybe it is deleted. Tell an admin and try again later.");
         }

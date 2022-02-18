@@ -147,7 +147,7 @@ export class GuildConfig {
                 duration: data.vote_duration,
                 applications: new Collection()
             };
-            for (const application of JSON.parse(unescape(data.applications))) {
+            if (data.applications) for (const application of JSON.parse(unescape(data.applications))) {
                 this.applications.applications.set(application.id, application);
             }
         }
