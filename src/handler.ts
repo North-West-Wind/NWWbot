@@ -64,9 +64,8 @@ export class Handler {
     async messageComponentInteraction(interaction: MessageComponentInteraction) {
         const settings = NorthClient.storage.guilds[interaction.guildId].applications;
         if (!settings) return;
-        const application = Array.from(settings.applications).find(app => app.id === interaction.message.id);
+        const application = settings.applications.get(interaction.message.id);
         if (!application || !(<GuildMemberRoleManager> interaction.member.roles).cache.some(r => settings.admins.includes(r.id))) return;
-        settings.applications.delete(application);
         if (interaction.customId === "approve") {
             application.decline.delete(interaction.user.id);
             application.approve.add(interaction.user.id);
@@ -85,11 +84,9 @@ export class Handler {
             const role = await interaction.guild.roles.fetch(roleId);
             for (const member of role.members.keys()) allMembers.add(member);
         }
-        settings.applications.add(application);
+        settings.applications.set(interaction.message.id, application);
         NorthClient.storage.guilds[interaction.guildId].applications = settings;
-        if (allMembers.size >= application.approve.size + application.decline.size) {
-            await endApplication(interaction.client, interaction.message.id, interaction.guildId);
-        }
+        if (allMembers.size >= application.approve.size + application.decline.size) await endApplication(interaction.client, interaction.message.id, interaction.guildId);
     }
 
     async messageLevel(message: Message) {

@@ -8,6 +8,7 @@ export async function endPoll(client: NorthClient, msg: Discord.Message, message
     var shouldDel = true;
     try {
         if (!msg) throw new Error("Poll is deleted");
+        console.log("Got past msg null check")
         var votes = NorthClient.storage.polls.get(msg.id)?.votes;
         var toFetch = "author, options, color, title";
         if (!votes?.length) toFetch += ", votes";
@@ -37,6 +38,7 @@ export async function endPoll(client: NorthClient, msg: Discord.Message, message
         await query("DELETE FROM polls WHERE id = " + msg.id);
         if (message) await msgOrRes(message, "Ended a poll!");
     } catch (err: any) {
+        console.error(err);
         if (shouldDel) {
             await query("DELETE FROM polls WHERE id = " + msg.id);
             if (message) await msgOrRes(message, "Ended a poll!");

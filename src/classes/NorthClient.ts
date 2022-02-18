@@ -99,7 +99,7 @@ export interface Applications {
     admins: Snowflake[];
     channel: Snowflake;
     duration: number;
-    applications: Set<{ id: Snowflake, role: Snowflake, author: Snowflake, approve: Set<Snowflake>, decline: Set<Snowflake> }>;
+    applications: Collection<Snowflake, { id: Snowflake, role: Snowflake, author: Snowflake, approve: Set<Snowflake>, decline: Set<Snowflake> }>;
 }
 
 export interface GuildConfigs {
@@ -139,13 +139,17 @@ export class GuildConfig {
             };
             if (data.safe === undefined) this.safe = true;
             else this.safe = !!data.safe;
+
             this.applications = {
                 roles: data.app_roles,
                 admins: data.admin_roles,
                 channel: data.app_channel,
                 duration: data.vote_duration,
-                applications: new Set(JSON.parse(unescape(data.applications)))
+                applications: new Collection()
             };
+            for (const application of JSON.parse(unescape(data.applications))) {
+                this.applications.applications.set(application.id, application);
+            }
         }
     }
 }

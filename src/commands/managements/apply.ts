@@ -1,4 +1,4 @@
-import { Client, Message, MessageActionRow, MessageButton, MessageComponentInteraction, MessageEmbed, Snowflake, TextChannel } from "discord.js";
+import { Client, GuildMember, Message, MessageActionRow, MessageButton, MessageComponentInteraction, MessageEmbed, Snowflake, TextChannel } from "discord.js";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { query, setTimeout_ } from "../../function.js";
 
@@ -6,7 +6,7 @@ export async function endApplication(client: Client, id: Snowflake, guildId: Sno
     try {
         const guild = await client.guilds.fetch(guildId);
         const settings = NorthClient.storage.guilds[guild.id].applications;
-        const application = Array.from(settings.applications).find(x => x.id === id);
+        const application = settings.applications.get(id);
         if (!application) return;
         const member = await guild.members.fetch(application.author);
         const role = await guild.roles.fetch(application.role);
@@ -18,7 +18,7 @@ export async function endApplication(client: Client, id: Snowflake, guildId: Sno
                 await member.user.send(`However, I am having problem trying to add you to the role. Capture this message and send it to admins! (${id})`);
             }
         } else await member.user.send(`Sorry! Your application of role **${role.name}** on server **${guild.name}** was **DECLINED**! You may apply again and try to give a better reason.`);
-        NorthClient.storage.guilds[guild.id].applications.applications.delete(application);
+        NorthClient.storage.guilds[guild.id].applications.applications.delete(id);
         try {
             const channel = <TextChannel> await guild.channels.fetch(settings.channel);
             const msg = await channel.messages.fetch(id);
@@ -104,6 +104,10 @@ class ApplyCommand implements SlashCommand {
             return await interaction.update({ embeds: [embed], components: [] });
         }
         const role = await message.guild.roles.fetch(interaction.customId);
+        if ((<GuildMember> message.member).roles.cache.has(role.id)) {
+            embed.setTitle("Application Cancelled").setDescription("You already have that role.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
+            return await interaction.update({ embeds: [embed], components: [] });
+        }
         embed.setTitle(`Applying for role ${role.name}`).setDescription("Please enter the reason of why you should get this role.\nThe reason you entered will be viewed by administrators or moderators").setFooter({ text: "You have 10 minutes.", iconURL: message.client.user.displayAvatarURL() });
         await interaction.update({ embeds: [embed], components: [] });
         try {
@@ -120,10 +124,10 @@ class ApplyCommand implements SlashCommand {
                 .addComponents(new MessageButton({ label: "Decline", customId: "decline", style: "DANGER", emoji: "❌" }));
             const settings = NorthClient.storage.guilds[message.guildId].applications;
             const { id } = await (<TextChannel> await message.guild.channels.fetch(settings.channel)).send({ embeds: [em], components: [row] });
-            NorthClient.storage.guilds[message.guildId].applications.applications.add({ id, role: role.id, author: author.id, approve: new Set(), decline: new Set() });
+            NorthClient.storage.guilds[message.guildId].applications.applications.set(id, { id, role: role.id, author: author.id, approve: new Set(), decline: new Set() });
             if (settings.duration) setTimeout_(() => endApplication(message.client, id, message.guildId), settings.duration);
             // We don't care if it syncs to DB or not. It is gonna get batch processed anyway.
-            query(`UPDATE servers SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[message.guildId].applications.applications]))}' WHERE id = '${message.guildId}'`).catch(() => { });
+            query(`UPDATE servers SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[message.guildId].applications.applications.values()]))}' WHERE id = '${message.guildId}'`).catch(() => { });
             embed.setTitle("Application Complete").setDescription("Your application has been submitted and will be viewed by administrators or moderators. You will be notify when it is approved or denied.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
         } catch (err) {
             embed.setTitle("Application Error").setDescription("We failed to receive your description! Try again later.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
