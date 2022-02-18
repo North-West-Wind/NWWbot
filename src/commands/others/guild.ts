@@ -1,7 +1,7 @@
 
 import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, createEmbedScrolling, duration, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, query, readableDateTimeText, setTimeout_ } from "../../function.js";
+import { color, createEmbedScrolling, duration, findChannel, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, query, readableDateTimeText, setTimeout_ } from "../../function.js";
 
 const fetch = getFetch();
 const catabombLevels = [
@@ -163,8 +163,8 @@ class GuildCommand implements SlashCommand {
 			.first()
 			.content.replace(/<#/g, "")
 			.replace(/>/g, "");
-		const channel = <Discord.TextChannel> await message.guild.channels.fetch(channelID);
-		if (!channel) return await msg.edit(channelID + " isn't a valid channel!");
+		const channel = await findChannel(message.guild, channelID);
+		if (!channel || !(channel instanceof Discord.TextChannel)) return await msg.edit(channelID + " isn't a valid channel!");
 		await msg.edit(`The announcement will be made in <#${channelID}>. What is the location of the splash?`);
 		const filter = x => x.author.id === message.author.id;
 		collected = undefined;
@@ -208,8 +208,9 @@ class GuildCommand implements SlashCommand {
 		if (collected.first().content === "cancel") {
 			return await msg.edit("Cancelled action.");
 		}
-		var role = await findRole(message, collected.first().content);
+		var role = await findRole(message.guild, collected.first().content);
 		if (!role) {
+			await message.channel.send(`No role was found with \`${collected.first().content}\`!`);
 			msg.delete().catch(() => { });
 			return;
 		}

@@ -1,12 +1,12 @@
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { jsDate2Mysql, readableDateTime, setTimeout_, readableDateTimeText, genPermMsg, findRole, ms, color, query } from "../../function.js";
+import { jsDate2Mysql, readableDateTime, setTimeout_, readableDateTimeText, genPermMsg, ms, color, query, findChannel } from "../../function.js";
 import { globalClient as client } from "../../common.js";
 
 export async function endGiveaway(result: any) {
   try {
-    var channel = <Discord.TextChannel>await client.channels.fetch(result.channel);
+    var channel = <Discord.TextChannel> await client.channels.fetch(result.channel);
     var msg = await channel.messages.fetch(result.id);
   } catch (err: any) {
     return await query("DELETE FROM giveaways WHERE id = " + result.id);
@@ -175,8 +175,8 @@ class GiveawayCommand implements SlashCommand {
     if (!args[3]) return await message.channel.send("Missing winner count!");
     if (!args[4]) return await message.channel.send("Missing items!");
 
-    const channel = <Discord.TextChannel>await message.client.channels.fetch(args[1].replace(/<#/g, "").replace(/>/g, ""));
-    if (!channel) return await message.channel.send(args[1] + " is not a valid channel!");
+    const channel = await findChannel(message.guild, args[1].replace(/<#/g, "").replace(/>/g, ""));
+    if (!channel || !(channel instanceof Discord.TextChannel)) return await message.channel.send(args[1] + " is not a valid channel!");
     const permissions = channel.permissionsFor(message.guild.me);
     const userPermission = channel.permissionsFor(message.member);
     if (!permissions.has(BigInt(18432))) return await message.channel.send(genPermMsg(18432, 1));

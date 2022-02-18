@@ -96,22 +96,29 @@ export async function findMember(message: Discord.Message, str: string): Promise
         await message.channel.send(err);
     }
 }
-export async function findRole(message, str, suppress = false) {
+export async function findRole(guild: Discord.Guild, str: string) {
     var roleID = str.replace(/<@&/g, "").replace(/>/g, "");
-    if (isNaN(parseInt(roleID))) {
-        var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === str);
-        if (!role) {
-            if (!suppress) await message.channel.send("No role was found with the name " + str);
-            return null;
-        }
-    } else {
-        var role = await message.guild.roles.cache.get(roleID);
-        if (!role) {
-            if (!suppress) await message.channel.send("No role was found!");
-            return null;
-        }
+    try {
+        var role: Discord.Role;
+        if (isNaN(parseInt(roleID))) role = guild.roles.cache.find(x => x.name.toLowerCase() === str.toLowerCase());
+        else role = await guild.roles.fetch(roleID);
+        if (!role) throw new Error();
+        return role;
+    } catch (err) {
+        return null;
     }
-    return role;
+}
+export async function findChannel(parent: Discord.Guild, str: string) {
+    var channelID = str.replace(/<@&/g, "").replace(/>/g, "");
+    try {
+        var channel: Discord.Channel;
+        if (isNaN(parseInt(channelID))) channel = parent.channels.cache.find(x => x.name.toLowerCase() === str.toLowerCase());
+        else channel = await parent.channels.fetch(channelID);
+        if (!channel) throw new Error();
+        else return channel;
+    } catch (err) {
+        return null;
+    }
 }
 export function getRandomNumber(min, max) { return Math.random() * (max - min) + min; }
 export function applyText(canvas, text) {

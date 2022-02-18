@@ -1,6 +1,6 @@
 import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, jsDate2Mysql, ms, msgOrRes, query, readableDateTime, readableDateTimeText } from "../../function.js";
+import { color, findChannel, jsDate2Mysql, ms, msgOrRes, query, readableDateTime, readableDateTimeText } from "../../function.js";
 import cfg from "../../../config.json";
 const emojis = cfg.poll;
 
@@ -105,8 +105,8 @@ class PollCommand implements SlashCommand {
         if (!title) return await msgOrRes(message, "Missing title!");
         const author = message instanceof Discord.Message ? message.author : message.user;
         const filter = (m: Discord.Message) => m.author.id === author.id;
-        const channel = <Discord.TextChannel>await message.client.channels.fetch(channelID);
-        if (!channel) return await msgOrRes(message, channelID + " isn't a valid channel!");
+        const channel = await findChannel(message.guild, channelID);
+        if (!channel || !(channel instanceof Discord.TextChannel)) return await msgOrRes(message, channelID + " isn't a valid channel!");
         const duration = ms(durationStr);
         if (isNaN(duration)) return await msgOrRes(message, "**" + durationStr + "** is not a valid duration!");
         const msg = await msgOrRes(message, `Alright! The poll will last for**${readableDateTimeText(duration)}**. \nLast but not least, please enter the options. Please break a line for each options!`);

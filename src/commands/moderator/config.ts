@@ -1,5 +1,5 @@
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd, query, wait, duration, ms } from "../../function.js";
+import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd, query, wait, duration, ms, findChannel } from "../../function.js";
 import { globalClient as client } from "../../common.js";
 import * as Discord from "discord.js";
 import { isImageUrl } from "../../function.js";
@@ -141,8 +141,8 @@ class ConfigCommand implements SlashCommand {
         msgCollected.first().delete().catch(() => { });
         switch (type) {
           case "channel":
-            const channel = await msg.guild.channels.fetch(content);
-            if (!channel) {
+            const channel = await findChannel(msg.guild, content);
+            if (!channel || !(channel instanceof Discord.TextChannel)) {
               panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
                 .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
               await msg.edit({ embeds: [panelEmbed] });

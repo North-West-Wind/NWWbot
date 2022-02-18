@@ -1,7 +1,7 @@
 import { GuildMember, Message, MessageEmbed, Snowflake, TextChannel } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { genPermMsg, findRole, msgOrRes, query } from "../../function.js";
+import { genPermMsg, findRole, msgOrRes, query, findChannel } from "../../function.js";
 
 class RoleMessageCommand implements SlashCommand {
     name = "role-message"
@@ -36,8 +36,8 @@ class RoleMessageCommand implements SlashCommand {
         if (!collected2.first().content) return await msg.edit("Did not receive any channel! Action cancelled.");
         if (collected2.first().content === "cancel") return await msg.edit("Action cancelled.");
         const channelID = collected2.first().content.replace(/<#/g, "").replace(/>/g, "");
-        const channel = <TextChannel> await message.client.channels.fetch(channelID);
-        if (!channel) return msg.edit(channelID + " isn't a valid channel!");
+        const channel = await findChannel(message.guild, channelID);
+        if (!channel || !(channel instanceof TextChannel)) return msg.edit(channelID + " isn't a valid channel!");
         if (!channel.permissionsFor(message.guild.me).has(BigInt(10240))) return await msg.edit(genPermMsg(10240, 1));
         if (!channel.permissionsFor(<GuildMember> message.member).has(BigInt(10240))) return await msg.edit(genPermMsg(10240, 0));
         await msg.edit(`Great! The channel will be <#${channel.id}>.\n\nAfter that, can you tell me what role you are giving the users? Please break a line for each role.`);
@@ -51,8 +51,11 @@ class RoleMessageCommand implements SlashCommand {
         for (const str of collected3.first().content.split("\n")) {
             const roless: Snowflake[] = [];
             for (const stri of str.split(/ +/).filter(x => !!x)) {
-                const role = await findRole(message, stri);
-                if (!role) continue;
+                const role = await findRole(message.guild, stri);
+                if (!role) {
+                    await message.channel.send(`No role was found with \`${stri}\`!`);
+                    continue;
+                }
                 const highest = message.guild.me.roles.highest.position;
                 if (role.position > highest) return await msg.edit("I cannot assign this role to users.");
                 roless.push(role.id);
