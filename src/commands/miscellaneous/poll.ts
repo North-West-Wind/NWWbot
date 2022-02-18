@@ -142,12 +142,13 @@ class PollCommand implements SlashCommand {
             }
             reaction.users.remove(user.id).catch(() => {});
             NorthClient.storage.polls.set(mesg.id, poll);
-            await query(`UPDATE polls SET votes = "${escape(JSON.stringify(poll))}" WHERE id = '${mesg.id}'`);
+            const votes = poll.votes.map(set => [...set]);
+            await query(`UPDATE polls SET votes = "${escape(JSON.stringify(votes))}" WHERE id = '${mesg.id}'`);
         });
         collector.on("end", async () => {
             await endPoll(await channel.messages.fetch(mesg.id));
         });
-        await query(`INSERT INTO polls VALUES(${mesg.id}, ${message.guild.id}, ${channel.id}, ${author.id}, '${escape(JSON.stringify(options))}', '${newDateSql}', '${escape("[]")}')`);
+        await query(`INSERT INTO polls VALUES(${mesg.id}, ${message.guild.id}, ${channel.id}, ${author.id}, '${escape(JSON.stringify(options))}', '${newDateSql}', '${escape(JSON.stringify(Array(options.length).fill([])))}')`);
     }
 
     async end(message: NorthMessage | NorthInteraction, msgID: string) {
