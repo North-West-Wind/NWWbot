@@ -72,7 +72,7 @@ export class UnoGame {
 
 export interface Poll {
     options: string[];
-    votes: Snowflake[][];
+    votes: Set<Snowflake>[];
 }
 
 export interface Giveaway {
