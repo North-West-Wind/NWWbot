@@ -8,11 +8,10 @@ export async function endPoll(client: NorthClient, msg: Discord.Message, message
     var shouldDel = true;
     try {
         if (!msg) throw new Error("Poll is deleted");
-        console.log("Got past msg null check")
         var votes = NorthClient.storage.polls.get(msg.id)?.votes;
         var toFetch = "author, options, color, title";
         if (!votes?.length) toFetch += ", votes";
-        const [[result]] = await query(`SELECT ${toFetch} FROM polls WHERE id = '${msg.id}'`);
+        const [result] = await query(`SELECT ${toFetch} FROM polls WHERE id = '${msg.id}'`);
         if (result.votes) votes = JSON.parse(unescape(result.votes));
         shouldDel = false;
         const author = await client.users.fetch(result.author);
@@ -32,13 +31,11 @@ export async function endPoll(client: NorthClient, msg: Discord.Message, message
             .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
         msg.edit({ content: pollMsg, embeds: [Ended] });
         const link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
-
         await msg.channel.send("A poll has ended!\n" + link);
         msg.reactions.removeAll().catch(() => { });
         await query("DELETE FROM polls WHERE id = " + msg.id);
         if (message) await msgOrRes(message, "Ended a poll!");
     } catch (err: any) {
-        console.error(err);
         if (shouldDel) {
             await query("DELETE FROM polls WHERE id = " + msg.id);
             if (message) await msgOrRes(message, "Ended a poll!");
