@@ -96,16 +96,6 @@ export default async (client: NorthClient) => {
       } catch (err: any) { }
       NorthClient.storage.pendingLvlData = [];
     }
-    if (NorthClient.storage.pendingPollVote.length) {
-      try {
-        const [results] = await query(`SELECT id FROM polls`);
-        const arr = NorthClient.storage.pendingPollVote.filter(poll => results.some(x => x.id == poll.message) && NorthClient.storage.polls.has(poll.message));
-        for (const q of arr) try {
-          await query(`UPDATE polls SET votes = "${escape(JSON.stringify(NorthClient.storage.polls.get(q.message).votes))}"`);
-        } catch (err: any) { }
-      } catch (err: any) { }
-      NorthClient.storage.pendingPollVote = [];
-    }
   }, 60000);
 }
 

@@ -175,7 +175,6 @@ export class ClientStorage {
     migrating: any[] = [];
     gtimers: GuildTimer[] = [];
     pendingLvlData: LevelData[] = [];
-    pendingPollVote: PollVote[] = [];
 }
 
 export class LevelData {

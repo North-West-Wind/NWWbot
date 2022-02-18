@@ -135,8 +135,10 @@ class PollCommand implements SlashCommand {
         NorthClient.storage.polls.set(mesg.id, { options: allOptions, votes: Array(optionArray.length).fill([]) });
         collector.on("collect", async (reaction, user) => {
             const index = emojis.indexOf(reaction.emoji.name);
-            console.debug(`Option index: ${index}`);
             const poll = NorthClient.storage.polls.get(mesg.id);
+            console.debug(`Before voting ${reaction.emoji.name}`);
+            console.debug(poll.votes);
+            console.debug(`Option index: ${index}`);
             for (let i = 0; i < poll.votes.length; i++) {
                 const uIndex = poll.votes[i].indexOf(user.id);
                 console.debug(`User Index of ${i}: ${uIndex}`);
@@ -151,6 +153,7 @@ class PollCommand implements SlashCommand {
             console.debug(poll.votes);
             reaction.users.remove(user.id).catch(() => {});
             NorthClient.storage.polls.set(mesg.id, poll);
+            await query(`UPDATE polls SET votes = "${escape(JSON.stringify(poll))}" WHERE id = '${mesg.id}'`);
         });
         collector.on("end", async () => {
             await endPoll(await channel.messages.fetch(mesg.id));
