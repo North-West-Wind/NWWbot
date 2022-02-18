@@ -179,7 +179,7 @@ export class Handler {
                 const channel = <TextChannel>await client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
                 const collector = msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
-                NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map(array => new Set(array)) });
+                NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map((array: Snowflake[]) => new Set(array)) });
                 collector.on("collect", async (reaction, user) => {
                     const index = emojis.indexOf(reaction.emoji.name);
                     const poll = NorthClient.storage.polls.get(msg.id);
@@ -658,7 +658,7 @@ export class AliceHandler extends Handler {
                 const channel = <TextChannel>await client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
                 const collector = msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
-                NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map(array => new Set(array)) });
+                NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map((array: Snowflake[]) => new Set(array)) });
                 collector.on("collect", async (reaction, user) => {
                     const index = emojis.indexOf(reaction.emoji.name);
                     const poll = NorthClient.storage.polls.get(msg.id);

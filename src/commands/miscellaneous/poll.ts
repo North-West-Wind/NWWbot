@@ -132,7 +132,7 @@ class PollCommand implements SlashCommand {
         const mesg = await channel.send({ content: pollMsg, embeds: [Embed] });
         for (var i = 0; i < optionArray.length; i++) await mesg.react(emojis[i]);
         const collector = mesg.createReactionCollector({ time: duration, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
-        NorthClient.storage.polls.set(mesg.id, { options: allOptions, votes: Array(optionArray.length).fill([]) });
+        NorthClient.storage.polls.set(mesg.id, { options: allOptions, votes: Array(optionArray.length).fill(new Set()) });
         collector.on("collect", async (reaction, user) => {
             const index = emojis.indexOf(reaction.emoji.name);
             const poll = NorthClient.storage.polls.get(mesg.id);
