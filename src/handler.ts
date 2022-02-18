@@ -105,7 +105,7 @@ export class Handler {
     async preRead(_client: NorthClient) { }
 
     async setPresence(client: NorthClient) {
-        client.user.setPresence({ activities: [{ name: "AFK", type: "PLAYING" }], status: "idle", afk: true });
+        client.user.setPresence({ activities: [{ name: `AFK | ${client.prefix}help`, type: "PLAYING" }], status: "idle", afk: true });
     }
 
     async readCurrency(_client: NorthClient) {
@@ -182,11 +182,16 @@ export class Handler {
                 NorthClient.storage.polls.set(msg.id, JSON.parse(unescape(result.votes)));
                 collector.on("collect", async (reaction, user) => {
                     const index = emojis.indexOf(reaction.emoji.name);
-                    if (index < 0) return;
                     const poll = NorthClient.storage.polls.get(msg.id);
-                    const uIndex = poll.votes[index].indexOf(user.id);
-                    if (uIndex < 0) poll.votes[index].push(user.id);
-                    else poll.votes[index].splice(uIndex, 1);
+                    for (let i = 0; i < poll.votes.length; i++) {
+                        const uIndex = poll.votes[i].indexOf(user.id);
+                        if (i === index) {
+                            if (uIndex < 0) poll.votes[i].push(user.id);
+                            else poll.votes[i].splice(uIndex, 1);
+                            continue;
+                        }
+                        if (uIndex > -1) poll.votes[i].splice(uIndex, 1);
+                    }
                     reaction.users.remove(user.id).catch(() => {});
                     NorthClient.storage.polls.set(msg.id, poll);
                     await query(`UPDATE polls SET votes = '${escape(JSON.stringify(poll))}' WHERE id = '${result.id}'`);
@@ -660,11 +665,16 @@ export class AliceHandler extends Handler {
                 NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)) });
                 collector.on("collect", async (reaction, user) => {
                     const index = emojis.indexOf(reaction.emoji.name);
-                    if (index < 0) return;
                     const poll = NorthClient.storage.polls.get(msg.id);
-                    const uIndex = poll.votes[index].indexOf(user.id);
-                    if (uIndex < 0) poll.votes[index].push(user.id);
-                    else poll.votes[index].splice(uIndex, 1);
+                    for (let i = 0; i < poll.votes.length; i++) {
+                        const uIndex = poll.votes[i].indexOf(user.id);
+                        if (i === index) {
+                            if (uIndex < 0) poll.votes[i].push(user.id);
+                            else poll.votes[i].splice(uIndex, 1);
+                            continue;
+                        }
+                        if (uIndex > -1) poll.votes[i].splice(uIndex, 1);
+                    }
                     reaction.users.remove(user.id).catch(() => {});
                     NorthClient.storage.polls.set(msg.id, poll);
                     await query(`UPDATE polls SET votes = '${escape(JSON.stringify(poll))}' WHERE id = '${result.id}'`);

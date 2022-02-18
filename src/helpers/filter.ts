@@ -42,7 +42,7 @@ export async function all(command: Command, message: NorthMessage | NorthInterac
             timeout = undefined;
         } else message.client.user.setPresence({ activities: [{ name: `${(message instanceof Message ? message.author : message.user).username}'s Commands`, type: "WATCHING" }], status: "online", afk: false });
         timeout = setTimeout(() => {
-            message.client.user.setPresence({ activities: [{ name: "AFK", type: "PLAYING" }], status: "idle", afk: true });
+            message.client.user.setPresence({ activities: [{ name: `AFK | ${message.client.prefix}help`, type: "PLAYING" }], status: "idle", afk: true });
             timeout = undefined;
         }, 10000);
     }
