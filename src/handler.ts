@@ -86,6 +86,7 @@ export class Handler {
         }
         settings.applications.set(interaction.message.id, application);
         NorthClient.storage.guilds[interaction.guildId].applications = settings;
+        await query(`UPDATE servers SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[interaction.guildId].applications.applications.values()]))}' WHERE id = '${interaction.guildId}'`);
         if (allMembers.size >= application.approve.size + application.decline.size) await endApplication(interaction.client, interaction.message.id, interaction.guildId);
     }
 
@@ -154,10 +155,17 @@ export class Handler {
     async readGiveaways(client: NorthClient) {
         var results = await query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
         console.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
-        results.forEach(async result => {
+        results.forEach(async (result: any) => {
             var currentDate = Date.now();
             var millisec = result.endAt - currentDate;
-            setTimeout_(async () => await endGiveaway(result), millisec);
+            try {
+                const channel = <TextChannel>await client.channels.fetch(result.channel);
+                await channel.messages.fetch(result.id);
+                setTimeout_(async () => await endGiveaway(await channel.messages.fetch(result.id)), millisec);
+            } catch (err) {
+                await query("DELETE FROM giveaways WHERE id = " + result.id);
+                return console.log("Deleted an ended giveaway.");
+            }
         });
     }
 
@@ -181,9 +189,10 @@ export class Handler {
                     else poll.votes[index].splice(uIndex, 1);
                     reaction.users.remove(user.id).catch(() => {});
                     NorthClient.storage.polls.set(msg.id, poll);
+                    await query(`UPDATE polls SET votes = '${escape(JSON.stringify(poll))}' WHERE id = '${result.id}'`);
                 });
                 collector.on("end", async () => {
-                    await endPoll(client, await channel.messages.fetch(msg.id));
+                    await endPoll(await channel.messages.fetch(msg.id));
                 });
             } catch (err) {
                 await query("DELETE FROM polls WHERE id = " + result.id);
@@ -624,28 +633,49 @@ export class AliceHandler extends Handler {
     async readGiveaways(client: NorthClient) {
         var results = await query("SELECT * FROM giveaways WHERE guild = '622311594654695434' ORDER BY endAt ASC");
         console.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
-        results.forEach(async result => {
+        results.forEach(async (result: any) => {
             var currentDate = Date.now();
             var millisec = result.endAt - currentDate;
-            setTimeout_(async () => await endGiveaway(result), millisec);
+            try {
+                const channel = <TextChannel>await client.channels.fetch(result.channel);
+                await channel.messages.fetch(result.id);
+                setTimeout_(async () => await endGiveaway(await channel.messages.fetch(result.id)), millisec);
+            } catch (err) {
+                await query("DELETE FROM giveaways WHERE id = " + result.id);
+                return console.log("Deleted an ended giveaway.");
+            }
         });
     }
 
     async readPoll(client: NorthClient) {
         const results = await query("SELECT * FROM polls WHERE guild = '622311594654695434' ORDER BY endAt ASC");
         console.log(`[${client.id}] ` + "Found " + results.length + " polls.");
-        results.forEach(result => {
+        results.forEach(async (result: any) => {
             var currentDate = Date.now();
             var time = result.endAt - currentDate;
-            setTimeout_(async () => {
-                try {
-                    var channel = <TextChannel>await client.channels.fetch(result.channel);
-                    var msg = await channel.messages.fetch(result.id);
-                } catch (err: any) {
-                    await query("DELETE FROM polls WHERE id = " + result.id);
-                }
-                await endPoll(client, msg);
-            }, time);
+            try {
+                const channel = <TextChannel>await client.channels.fetch(result.channel);
+                const msg = await channel.messages.fetch(result.id);
+                const collector = msg.createReactionCollector({ time, filter: (_reaction, user) => !user.bot });
+                NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)) });
+                collector.on("collect", async (reaction, user) => {
+                    const index = emojis.indexOf(reaction.emoji.name);
+                    if (index < 0) return;
+                    const poll = NorthClient.storage.polls.get(msg.id);
+                    const uIndex = poll.votes[index].indexOf(user.id);
+                    if (uIndex < 0) poll.votes[index].push(user.id);
+                    else poll.votes[index].splice(uIndex, 1);
+                    reaction.users.remove(user.id).catch(() => {});
+                    NorthClient.storage.polls.set(msg.id, poll);
+                    await query(`UPDATE polls SET votes = '${escape(JSON.stringify(poll))}' WHERE id = '${result.id}'`);
+                });
+                collector.on("end", async () => {
+                    await endPoll(await channel.messages.fetch(msg.id));
+                });
+            } catch (err) {
+                await query("DELETE FROM polls WHERE id = " + result.id);
+                return console.log("Deleted an ended poll.");
+            }
         });
     }
 

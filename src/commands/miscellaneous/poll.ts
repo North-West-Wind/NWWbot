@@ -4,31 +4,21 @@ import { color, findChannel, jsDate2Mysql, ms, msgOrRes, query, readableDateTime
 import cfg from "../../../config.json";
 const emojis = cfg.poll;
 
-export async function endPoll(client: NorthClient, msg: Discord.Message, message: Discord.Message | Discord.CommandInteraction = null) {
+export async function endPoll(msg: Discord.Message, message: Discord.Message | Discord.CommandInteraction = null) {
     var shouldDel = true;
     try {
         if (!msg) throw new Error("Poll is deleted");
-        var votes = NorthClient.storage.polls.get(msg.id)?.votes;
-        var toFetch = "author, options, color, title";
-        if (!votes?.length) toFetch += ", votes";
-        const [result] = await query(`SELECT ${toFetch} FROM polls WHERE id = '${msg.id}'`);
-        if (result.votes) votes = JSON.parse(unescape(result.votes));
+        const poll = NorthClient.storage.polls.get(msg.id);
         shouldDel = false;
-        const author = await client.users.fetch(result.author);
-        const allOptions = JSON.parse(unescape(result.options));
+        const allOptions = poll.options;
         const end = [];
         for (let i = 0; i < allOptions.length; i++) {
             const option = allOptions[i];
-            const mesg = `**${votes[i].length}** - ${option}`;
+            const mesg = `**${poll.votes[i].length}** - ${option}`;
             end.push(mesg);
         }
         const pollMsg = "⬆**Poll**⬇";
-        const Ended = new Discord.MessageEmbed()
-            .setColor(result.color)
-            .setTitle(unescape(result.title))
-            .setDescription(`Poll ended. Here are the results:\n\n${end.join("\n")}`)
-            .setTimestamp()
-            .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
+        const Ended = msg.embeds[0].setDescription(`Poll ended. Here are the results:\n\n${end.join("\n")}`);
         msg.edit({ content: pollMsg, embeds: [Ended] });
         const link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
         await msg.channel.send("A poll has ended!\n" + link);
@@ -133,9 +123,8 @@ class PollCommand implements SlashCommand {
         const newDateSql = jsDate2Mysql(newDate);
         const readableTime = readableDateTime(newDate);
         const pollMsg = "⬆**Poll**⬇";
-        const c = color();
         const Embed = new Discord.MessageEmbed()
-            .setColor(c)
+            .setColor(color())
             .setTitle(title)
             .setDescription(`React with the numbers to vote!\nThis poll will end at:\n**${readableTime}**\n\n${optionArray.join("\n")}`)
             .setTimestamp()
@@ -143,7 +132,7 @@ class PollCommand implements SlashCommand {
         const mesg = await channel.send({ content: pollMsg, embeds: [Embed] });
         for (var i = 0; i < optionArray.length; i++) await mesg.react(emojis[i]);
         const collector = mesg.createReactionCollector({ time: duration, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
-        NorthClient.storage.polls.set(mesg.id, { votes: Array(optionArray.length).fill([]) });
+        NorthClient.storage.polls.set(mesg.id, { options: allOptions, votes: Array(optionArray.length).fill([]) });
         collector.on("collect", async (reaction, user) => {
             const index = emojis.indexOf(reaction.emoji.name);
             const poll = NorthClient.storage.polls.get(mesg.id);
@@ -154,9 +143,9 @@ class PollCommand implements SlashCommand {
             NorthClient.storage.polls.set(mesg.id, poll);
         });
         collector.on("end", async () => {
-            await endPoll(message.client, await channel.messages.fetch(mesg.id));
+            await endPoll(await channel.messages.fetch(mesg.id));
         });
-        await query(`INSERT INTO polls VALUES(${mesg.id}, ${message.guild.id}, ${channel.id}, '${escape(JSON.stringify(options))}', '${newDateSql}', ${author.id}, ${c}, '${escape(title)}', '${escape("[]")}')`);
+        await query(`INSERT INTO polls VALUES(${mesg.id}, ${message.guild.id}, ${channel.id}, ${author.id}, '${escape(JSON.stringify(options))}', '${newDateSql}', '${escape("[]")}')`);
     }
 
     async end(message: NorthMessage | NorthInteraction, msgID: string) {
@@ -168,7 +157,7 @@ class PollCommand implements SlashCommand {
         try {
             const channel = <Discord.TextChannel>await message.client.channels.fetch(result[0].channel);
             const msg = await channel.messages.fetch(result[0].id);
-            await endPoll(message.client, msg, message);
+            await endPoll(msg, message);
         } catch (err: any) { }
     }
 
