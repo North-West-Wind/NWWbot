@@ -36,6 +36,7 @@ export async function endPoll(client: NorthClient, msg: Discord.Message, message
         await query("DELETE FROM polls WHERE id = " + msg.id);
         if (message) await msgOrRes(message, "Ended a poll!");
     } catch (err: any) {
+        console.error(err);
         if (shouldDel) {
             await query("DELETE FROM polls WHERE id = " + msg.id);
             if (message) await msgOrRes(message, "Ended a poll!");
@@ -141,11 +142,10 @@ class PollCommand implements SlashCommand {
             .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
         const mesg = await channel.send({ content: pollMsg, embeds: [Embed] });
         for (var i = 0; i < optionArray.length; i++) await mesg.react(emojis[i]);
-        const collector = mesg.createReactionCollector({ time: duration, filter: (_reaction, user) => !user.bot });
+        const collector = mesg.createReactionCollector({ time: duration, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
         NorthClient.storage.polls.set(mesg.id, { votes: Array(optionArray.length).fill([]) });
         collector.on("collect", async (reaction, user) => {
             const index = emojis.indexOf(reaction.emoji.name);
-            if (index < 0) return;
             const poll = NorthClient.storage.polls.get(mesg.id);
             const uIndex = poll.votes[index].indexOf(user.id);
             if (uIndex < 0) poll.votes[index].push(user.id);
