@@ -179,22 +179,18 @@ export class Handler {
                 const channel = <TextChannel>await client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
                 const collector = msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
-                NorthClient.storage.polls.set(msg.id, JSON.parse(unescape(result.votes)));
+                NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map(array => new Set(array)) });
                 collector.on("collect", async (reaction, user) => {
                     const index = emojis.indexOf(reaction.emoji.name);
                     const poll = NorthClient.storage.polls.get(msg.id);
                     for (let i = 0; i < poll.votes.length; i++) {
-                        const uIndex = poll.votes[i].indexOf(user.id);
-                        if (i === index) {
-                            if (uIndex < 0) poll.votes[i].push(user.id);
-                            else poll.votes[i].splice(uIndex, 1);
-                            continue;
-                        }
-                        if (uIndex > -1) poll.votes[i].splice(uIndex, 1);
+                        poll.votes[i].delete(user.id);
+                        if (i === index) poll.votes[i].add(user.id);
                     }
                     reaction.users.remove(user.id).catch(() => {});
                     NorthClient.storage.polls.set(msg.id, poll);
-                    await query(`UPDATE polls SET votes = '${escape(JSON.stringify(poll))}' WHERE id = '${result.id}'`);
+                    const votes = poll.votes.map(set => [...set]);
+                    await query(`UPDATE polls SET votes = '${escape(JSON.stringify(votes))}' WHERE id = '${result.id}'`);
                 });
                 collector.on("end", async () => {
                     await endPoll(await channel.messages.fetch(msg.id));
@@ -662,22 +658,18 @@ export class AliceHandler extends Handler {
                 const channel = <TextChannel>await client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
                 const collector = msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
-                NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)) });
+                NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map(array => new Set(array)) });
                 collector.on("collect", async (reaction, user) => {
                     const index = emojis.indexOf(reaction.emoji.name);
                     const poll = NorthClient.storage.polls.get(msg.id);
                     for (let i = 0; i < poll.votes.length; i++) {
-                        const uIndex = poll.votes[i].indexOf(user.id);
-                        if (i === index) {
-                            if (uIndex < 0) poll.votes[i].push(user.id);
-                            else poll.votes[i].splice(uIndex, 1);
-                            continue;
-                        }
-                        if (uIndex > -1) poll.votes[i].splice(uIndex, 1);
+                        poll.votes[i].delete(user.id);
+                        if (i === index) poll.votes[i].add(user.id);
                     }
                     reaction.users.remove(user.id).catch(() => {});
                     NorthClient.storage.polls.set(msg.id, poll);
-                    await query(`UPDATE polls SET votes = '${escape(JSON.stringify(poll))}' WHERE id = '${result.id}'`);
+                    const votes = poll.votes.map(set => [...set]);
+                    await query(`UPDATE polls SET votes = '${escape(JSON.stringify(votes))}' WHERE id = '${result.id}'`);
                 });
                 collector.on("end", async () => {
                     await endPoll(await channel.messages.fetch(msg.id));
