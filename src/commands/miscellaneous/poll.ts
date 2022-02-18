@@ -14,7 +14,7 @@ export async function endPoll(msg: Discord.Message, message: Discord.Message | D
         const end = [];
         for (let i = 0; i < allOptions.length; i++) {
             const option = allOptions[i];
-            const mesg = `**${poll.votes[i].length}** - ${option}`;
+            const mesg = `**${poll.votes[i].size}** - ${option}`;
             end.push(mesg);
         }
         const pollMsg = "⬆**Poll**⬇";
@@ -136,21 +136,10 @@ class PollCommand implements SlashCommand {
         collector.on("collect", async (reaction, user) => {
             const index = emojis.indexOf(reaction.emoji.name);
             const poll = NorthClient.storage.polls.get(mesg.id);
-            console.debug(`Before voting ${reaction.emoji.name}`);
-            console.debug(poll.votes);
-            console.debug(`Option index: ${index}`);
             for (let i = 0; i < poll.votes.length; i++) {
-                const uIndex = poll.votes[i].indexOf(user.id);
-                console.debug(`User Index of ${i}: ${uIndex}`);
-                if (i === index) {
-                    if (uIndex < 0) poll.votes[i].push(user.id);
-                    else poll.votes[i].splice(uIndex, 1);
-                    continue;
-                }
-                if (uIndex > -1) poll.votes[i].splice(uIndex, 1);
+                poll.votes[i].delete(user.id);
+                if (i === index) poll.votes[i].add(user.id);
             }
-            console.debug(`After voting ${reaction.emoji.name}`);
-            console.debug(poll.votes);
             reaction.users.remove(user.id).catch(() => {});
             NorthClient.storage.polls.set(mesg.id, poll);
             await query(`UPDATE polls SET votes = "${escape(JSON.stringify(poll))}" WHERE id = '${mesg.id}'`);
