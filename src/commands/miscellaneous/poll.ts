@@ -145,6 +145,8 @@ class PollCommand implements SlashCommand {
                 }
                 if (uIndex > -1) poll.votes[i].splice(uIndex, 1);
             }
+            console.debug(`After voting ${reaction.emoji.name}`);
+            console.debug(poll.votes);
             reaction.users.remove(user.id).catch(() => {});
             NorthClient.storage.polls.set(mesg.id, poll);
         });
