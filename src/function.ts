@@ -109,7 +109,7 @@ export async function findRole(guild: Discord.Guild, str: string) {
     }
 }
 export async function findChannel(parent: Discord.Guild, str: string) {
-    var channelID = str.replace(/<@&/g, "").replace(/>/g, "");
+    var channelID = str.replace(/<#/g, "").replace(/>/g, "");
     try {
         var channel: Discord.Channel;
         if (isNaN(parseInt(channelID))) channel = parent.channels.cache.find(x => x.name.toLowerCase() === str.toLowerCase());
