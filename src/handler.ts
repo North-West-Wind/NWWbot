@@ -178,7 +178,7 @@ export class Handler {
             try {
                 const channel = <TextChannel>await client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
-                const collector = msg.createReactionCollector({ time, filter: (_reaction, user) => !user.bot });
+                const collector = msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
                 NorthClient.storage.polls.set(msg.id, JSON.parse(unescape(result.votes)));
                 collector.on("collect", async (reaction, user) => {
                     const index = emojis.indexOf(reaction.emoji.name);
@@ -661,7 +661,7 @@ export class AliceHandler extends Handler {
             try {
                 const channel = <TextChannel>await client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
-                const collector = msg.createReactionCollector({ time, filter: (_reaction, user) => !user.bot });
+                const collector = msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
                 NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)) });
                 collector.on("collect", async (reaction, user) => {
                     const index = emojis.indexOf(reaction.emoji.name);

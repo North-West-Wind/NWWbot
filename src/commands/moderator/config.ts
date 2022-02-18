@@ -125,6 +125,7 @@ class ConfigCommand implements SlashCommand {
         case "boost": return await boost(msg);
         case "giveaway": return await giveaway(msg);
         case "safemode": return await safe(msg);
+        case "app": return await application(msg);
         default: return await end(msg);
       }
     }

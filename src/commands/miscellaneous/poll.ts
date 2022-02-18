@@ -135,9 +135,11 @@ class PollCommand implements SlashCommand {
         NorthClient.storage.polls.set(mesg.id, { options: allOptions, votes: Array(optionArray.length).fill([]) });
         collector.on("collect", async (reaction, user) => {
             const index = emojis.indexOf(reaction.emoji.name);
+            console.debug(`Option index: ${index}`);
             const poll = NorthClient.storage.polls.get(mesg.id);
             for (let i = 0; i < poll.votes.length; i++) {
                 const uIndex = poll.votes[i].indexOf(user.id);
+                console.debug(`User Index of ${i}: ${uIndex}`);
                 if (i === index) {
                     if (uIndex < 0) poll.votes[i].push(user.id);
                     else poll.votes[i].splice(uIndex, 1);
