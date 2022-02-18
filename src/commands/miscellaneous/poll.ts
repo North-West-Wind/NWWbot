@@ -136,6 +136,7 @@ class PollCommand implements SlashCommand {
         collector.on("collect", async (reaction, user) => {
             const index = emojis.indexOf(reaction.emoji.name);
             const poll = NorthClient.storage.polls.get(mesg.id);
+            console.debug(`Before processing: ${poll.votes.map(set => [...set])}`);
             for (let i = 0; i < poll.votes.length; i++) {
                 poll.votes[i].delete(user.id);
                 if (i === index) poll.votes[i].add(user.id);
@@ -143,6 +144,7 @@ class PollCommand implements SlashCommand {
             reaction.users.remove(user.id).catch(() => {});
             NorthClient.storage.polls.set(mesg.id, poll);
             const votes = poll.votes.map(set => [...set]);
+            console.debug(`After processing: ${votes}`);
             await query(`UPDATE polls SET votes = "${escape(JSON.stringify(votes))}" WHERE id = '${mesg.id}'`);
         });
         collector.on("end", async () => {
