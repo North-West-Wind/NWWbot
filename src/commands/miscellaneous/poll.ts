@@ -132,30 +132,22 @@ class PollCommand implements SlashCommand {
         const mesg = await channel.send({ content: pollMsg, embeds: [Embed] });
         for (var i = 0; i < optionArray.length; i++) await mesg.react(emojis[i]);
         const collector = mesg.createReactionCollector({ time: duration, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
-        NorthClient.storage.polls.set(mesg.id, { options: allOptions, votes: Array(optionArray.length).fill(new Set()) });
+        const votes: Set<Discord.Snowflake>[] = [];
+        for (let i = 0; i < options.length; i++) votes.push(new Set());
+        NorthClient.storage.polls.set(mesg.id, { options: allOptions, votes });
         collector.on("collect", async (reaction, user) => {
             const index = emojis.indexOf(reaction.emoji.name);
             const poll = NorthClient.storage.polls.get(mesg.id);
-            const votes = poll.votes;
-            console.debug(`Before processing: ${votes.map(set => [...set])}`);
-            for (let i = 0; i < votes.length; i++) {
-                const set = votes[i];
-                set.delete(user.id);
-                console.debug(`Deleting ${user.id} from ${i}`);
-                console.debug(...set);
-                if (i === index) {
-                    set.add(user.id);
-                    console.debug(`Adding ${user.id} to ${i}`);
-                    console.debug(...set);
-                }
-                votes[i] = set;
+            console.debug(`Before processing: ${poll.votes.map(set => [...set])}`);
+            for (let i = 0; i < poll.votes.length; i++) {
+                poll.votes[i].delete(user.id);
+                if (i === index) poll.votes[i].add(user.id);
             }
-            poll.votes = votes;
             reaction.users.remove(user.id).catch(() => {});
             NorthClient.storage.polls.set(mesg.id, poll);
-            const v = poll.votes.map(set => [...set]);
-            console.debug(`After processing: ${v}`);
-            await query(`UPDATE polls SET votes = "${escape(JSON.stringify(v))}" WHERE id = '${mesg.id}'`);
+            const votes = poll.votes.map(set => [...set]);
+            console.debug(`After processing: ${votes}`);
+            await query(`UPDATE polls SET votes = "${escape(JSON.stringify(votes))}" WHERE id = '${mesg.id}'`);
         });
         collector.on("end", async () => {
             await endPoll(await channel.messages.fetch(mesg.id));
