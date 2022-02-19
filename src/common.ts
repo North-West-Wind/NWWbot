@@ -53,18 +53,6 @@ export default async (client: NorthClient) => {
   console.error = (message: string, ...data: any[]) => logger.error(message, ...data);
   client.setVersion(pkg.version);
   globalClient = client;
-
-  const _add = Set.prototype.add;
-  const _delete = Set.prototype.delete;
-  Set.prototype.add = (value) => {
-    console.debug(`Adding ${value} to set`);
-    return _add(value);
-  }
-  Set.prototype.delete = (value) => {
-    console.debug(`Deleting ${value} from set`);
-    return _delete(value);
-  }
-
   const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
   for (const file of fontFiles) canvas.registerFont(`./fonts/${file}`, { family: "NotoSans", style: file.split(/[\-\.]/)[1].toLowerCase() });
   canvas.registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
