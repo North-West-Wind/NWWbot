@@ -145,9 +145,7 @@ class PollCommand implements SlashCommand {
             }
             reaction.users.remove(user.id).catch(() => {});
             NorthClient.storage.polls.set(mesg.id, poll);
-            const votes = poll.votes.map(set => [...set]);
-            console.debug(`After processing: ${votes}`);
-            await query(`UPDATE polls SET votes = "${escape(JSON.stringify(votes))}" WHERE id = '${mesg.id}'`);
+            await query(`UPDATE polls SET votes = "${escape(JSON.stringify(poll.votes.map(set => [...set])))}" WHERE id = '${mesg.id}'`);
         });
         collector.on("end", async () => {
             await endPoll(await channel.messages.fetch(mesg.id));
