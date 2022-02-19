@@ -147,8 +147,8 @@ export class GuildConfig {
             else this.safe = !!data.safe;
 
             this.applications = {
-                roles: data.app_roles,
-                admins: data.admin_roles,
+                roles: data.app_roles ? JSON.parse(unescape(data.app_roles)) : [],
+                admins: data.admin_roles ? JSON.parse(unescape(data.admin_roles)) : [],
                 channel: data.app_channel,
                 duration: data.vote_duration,
                 applications: new Collection()

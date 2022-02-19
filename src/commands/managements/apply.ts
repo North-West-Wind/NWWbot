@@ -37,7 +37,7 @@ class ApplyCommand implements SlashCommand {
 
     async execute(interaction: NorthInteraction) {
         const applications = NorthClient.storage.guilds[interaction.guildId]?.applications;
-        if (!applications || !applications.roles || !applications.admins || !applications.channel) return await interaction.reply("The server does not have the application system set up!");
+        if (!applications || !applications.roles?.length || !applications.admins?.length || !applications.channel) return await interaction.reply("The server does not have the application system set up!");
         try { await interaction.guild.channels.fetch(applications.channel); } catch (err) {
             return await interaction.reply("Cannot find the application channel. Maybe it is deleted. Tell an admin and try again later.");
         }
