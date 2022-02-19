@@ -130,10 +130,10 @@ export class GuildConfig {
             this.token = data.token;
             this.giveaway = data.giveaway || "🎉";
             this.welcome = {
-                message: data.welcome,
+                message: data.wel_msg,
                 channel: data.wel_channel,
-                image: JSON.parse(data.wel_img || "[]"),
-                autorole: JSON.parse(data.autorole || "[]")
+                image: data.wel_img?.split(",").map(url => decodeURIComponent(url)) || [],
+                autorole: data.autorole?.split(",") || []
             };
             this.leave = {
                 message: data.leave_msg,
@@ -147,8 +147,8 @@ export class GuildConfig {
             else this.safe = !!data.safe;
 
             this.applications = {
-                roles: data.app_roles ? JSON.parse(unescape(data.app_roles)) : [],
-                admins: data.admin_roles ? JSON.parse(unescape(data.admin_roles)) : [],
+                roles: data.app_roles?.split(",") || [],
+                admins: data.admin_roles?.split(",") || [],
                 channel: data.app_channel,
                 duration: data.vote_duration,
                 applications: new Collection()

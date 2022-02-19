@@ -1,4 +1,4 @@
-import { Client, GuildMember, Message, MessageActionRow, MessageButton, MessageComponentInteraction, MessageEmbed, Snowflake, TextChannel } from "discord.js";
+import { Client, Collection, GuildMember, Message, MessageActionRow, MessageButton, MessageComponentInteraction, MessageEmbed, Role, Snowflake, TextChannel } from "discord.js";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { query, setTimeout_ } from "../../function.js";
 
@@ -73,7 +73,11 @@ class ApplyCommand implements SlashCommand {
     async getEmbedsAndComponents(message: NorthMessage | NorthInteraction) {
         const applications = NorthClient.storage.guilds[message.guildId]?.applications;
         const components = [];
-        const mapped = applications.roles.map(role => `<@&${role}>`);
+        const rs: Collection<Snowflake, Role> = new Collection();
+        for (const role of applications.roles) rs.set(role, await message.guild.roles.fetch(role));
+        var mapped = [];
+        if (message instanceof NorthMessage) for (let i = 0; i < applications.roles.length; i++) mapped = applications.roles.map(role => rs.get(role).name);
+        else mapped = applications.roles.map(role => `<@&${role}>`);
         const rowNum = Math.ceil(applications.roles.length / 5);
         const lines: string[][] = Array(rowNum).fill([]);
         for (let j = 0; j < rowNum; j++)
@@ -87,7 +91,7 @@ class ApplyCommand implements SlashCommand {
         for (const roles of lines) {
             const row = new MessageActionRow();
             for (const role of roles) try {
-                const r = await message.guild.roles.fetch(role);
+                const r = rs.get(role);
                 row.addComponents(new MessageButton({ label: r.name, customId: role, style: "SECONDARY" }));
             } catch (err) {
                 row.addComponents(new MessageButton({ label: "(Broken)", customId: "broken", style: "SECONDARY", disabled: true }));
