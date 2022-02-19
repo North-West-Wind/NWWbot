@@ -1,8 +1,8 @@
-import { Client, Collection, GuildMember, Message, MessageActionRow, MessageButton, MessageComponentInteraction, MessageEmbed, Role, Snowflake, TextChannel } from "discord.js";
+import * as Discord from "discord.js";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { query, setTimeout_ } from "../../function.js";
+import { color, query, setTimeout_ } from "../../function.js";
 
-export async function endApplication(client: Client, id: Snowflake, guildId: Snowflake) {
+export async function endApplication(client: Discord.Client, id: Discord.Snowflake, guildId: Discord.Snowflake) {
     try {
         const guild = await client.guilds.fetch(guildId);
         const settings = NorthClient.storage.guilds[guild.id].applications;
@@ -20,7 +20,7 @@ export async function endApplication(client: Client, id: Snowflake, guildId: Sno
         } else await member.user.send(`Sorry! Your application of role **${role.name}** on server **${guild.name}** was **DECLINED**! You may apply again and try to give a better reason.`);
         NorthClient.storage.guilds[guild.id].applications.applications.delete(id);
         try {
-            const channel = <TextChannel> await guild.channels.fetch(settings.channel);
+            const channel = <Discord.TextChannel> await guild.channels.fetch(settings.channel);
             const msg = await channel.messages.fetch(id);
             await msg?.edit({ components: [] });
         } catch (err) { }
@@ -42,7 +42,7 @@ class ApplyCommand implements SlashCommand {
             return await interaction.reply("Cannot find the application channel. Maybe it is deleted. Tell an admin and try again later.");
         }
         const { embed, components } = await this.getEmbedsAndComponents(interaction);
-        const msg = <Message> await interaction.reply({ embeds: [embed], components, ephemeral: true, fetchReply: true });
+        const msg = <Discord.Message> await interaction.reply({ embeds: [embed], components, ephemeral: true, fetchReply: true });
         try {
             const compoInter = await msg.awaitMessageComponent({ filter: m => m.user.id === interaction.user.id, time: 60000 });
             await this.handle(interaction, compoInter, embed);
@@ -72,62 +72,63 @@ class ApplyCommand implements SlashCommand {
 
     async getEmbedsAndComponents(message: NorthMessage | NorthInteraction) {
         const applications = NorthClient.storage.guilds[message.guildId]?.applications;
-        const components = [];
-        const rs: Collection<Snowflake, Role> = new Collection();
+        const components: Discord.MessageActionRow[] = [];
+        const rs: Discord.Collection<Discord.Snowflake, Discord.Role> = new Discord.Collection();
         for (const role of applications.roles) rs.set(role, await message.guild.roles.fetch(role));
         var mapped = [];
-        if (message instanceof NorthMessage) for (let i = 0; i < applications.roles.length; i++) mapped = applications.roles.map(role => rs.get(role).name);
+        if (message instanceof Discord.Message) for (let i = 0; i < applications.roles.length; i++) mapped = applications.roles.map(role => `**${rs.get(role).name}**`);
         else mapped = applications.roles.map(role => `<@&${role}>`);
         const rowNum = Math.ceil(applications.roles.length / 5);
         const lines: string[][] = Array(rowNum).fill([]);
         for (let j = 0; j < rowNum; j++)
             for (let k = 0; k < mapped.length; k++)
                 lines[j].push(mapped[k + (j + 1) * 5]);
-        const embed = new MessageEmbed()
+        const embed = new Discord.MessageEmbed()
+            .setColor(color())
             .setTitle(`Roles you can apply`)
-            .setDescription(`${lines.map(roles => roles.join(", ")).join("\n")}\n\n**Click on a button below to choose which role to apply**`)
+            .setDescription(`${lines.map(roles => roles.join(", ")).join("\n")}\n\nClick on a button below to choose which role to apply`)
             .setTimestamp()
-            .setFooter({ text: "You may also view other pages if applicable", iconURL: message.client.user.displayAvatarURL() });
-        for (const roles of lines) {
-            const row = new MessageActionRow();
-            for (const role of roles) try {
-                const r = rs.get(role);
-                row.addComponents(new MessageButton({ label: r.name, customId: role, style: "SECONDARY" }));
-            } catch (err) {
-                row.addComponents(new MessageButton({ label: "(Broken)", customId: "broken", style: "SECONDARY", disabled: true }));
+            .setFooter({ text: "Make your choice within 60 seconds", iconURL: message.client.user.displayAvatarURL() });
+        for (let i = 0; i < rowNum; i++) {
+            const row = new Discord.MessageActionRow();
+            for (let j = 0; j < Math.min(rowNum, applications.roles.length - i*5); j++) {
+                const role = applications.roles[j + i*5];
+                if (rs.has(role)) row.addComponents(new Discord.MessageButton({ label: rs.get(role).name, customId: role, style: "SECONDARY" }));
+                else row.addComponents(new Discord.MessageButton({ label: "(Broken)", customId: "broken", style: "SECONDARY", disabled: true }));
             }
             components.push(row);
         }
-        components.push(new MessageActionRow().addComponents(new MessageButton({ label: "Cancel", customId: "cancel", style: "DANGER", emoji: "⏹️" })));
+        components.push(new Discord.MessageActionRow().addComponents(new Discord.MessageButton({ label: "Cancel", customId: "cancel", style: "DANGER", emoji: "⏹️" })));
         return { embed, components };
     }
 
-    async handle(message: NorthMessage | NorthInteraction, interaction: MessageComponentInteraction, embed: MessageEmbed) {
+    async handle(message: NorthMessage | NorthInteraction, interaction: Discord.MessageComponentInteraction, embed: Discord.MessageEmbed) {
         if (interaction.customId === "cancel") {
             embed.setTitle("Application Cancelled").setDescription("You cancelled the application.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             return await interaction.update({ embeds: [embed], components: [] });
         }
         const role = await message.guild.roles.fetch(interaction.customId);
-        if ((<GuildMember> message.member).roles.cache.has(role.id)) {
+        if ((<Discord.GuildMember> message.member).roles.cache.has(role.id)) {
             embed.setTitle("Application Cancelled").setDescription("You already have that role.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             return await interaction.update({ embeds: [embed], components: [] });
         }
         embed.setTitle(`Applying for role ${role.name}`).setDescription("Please enter the reason of why you should get this role.\nThe reason you entered will be viewed by administrators or moderators").setFooter({ text: "You have 10 minutes.", iconURL: message.client.user.displayAvatarURL() });
         await interaction.update({ embeds: [embed], components: [] });
         try {
-            const author = message instanceof Message ? message.author : message.user;
+            const author = message instanceof Discord.Message ? message.author : message.user;
             const collected = await interaction.channel.awaitMessages({ filter: m => m.author.id === author.id, max: 1, time: 600000 });
             if (!collected.first()?.content) throw new Error();
-            const em = new MessageEmbed()
+            const em = new Discord.MessageEmbed()
+                .setColor(color())
                 .setTitle("Role Application")
                 .setDescription(`**Applicant:** <@${author.id}> | ${author.tag}\n**Applying:** <@&${role.id}> | ${role.name}\n**Reason:**\n${collected.first().content}\n\nPlease make your vote by clicking the buttons.\nApproved: 0\nDeclined: 0`)
                 .setTimestamp()
                 .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
-            const row = new MessageActionRow()
-                .addComponents(new MessageButton({ label: "Approve", customId: "approve", style: "SUCCESS", emoji: "⭕" }))
-                .addComponents(new MessageButton({ label: "Decline", customId: "decline", style: "DANGER", emoji: "❌" }));
+            const row = new Discord.MessageActionRow()
+                .addComponents(new Discord.MessageButton({ label: "Approve", customId: "approve", style: "SUCCESS", emoji: "⭕" }))
+                .addComponents(new Discord.MessageButton({ label: "Decline", customId: "decline", style: "DANGER", emoji: "❌" }));
             const settings = NorthClient.storage.guilds[message.guildId].applications;
-            const { id } = await (<TextChannel> await message.guild.channels.fetch(settings.channel)).send({ embeds: [em], components: [row] });
+            const { id } = await (<Discord.TextChannel> await message.guild.channels.fetch(settings.channel)).send({ embeds: [em], components: [row] });
             NorthClient.storage.guilds[message.guildId].applications.applications.set(id, { id, role: role.id, author: author.id, approve: new Set(), decline: new Set() });
             if (settings.duration) setTimeout_(() => endApplication(message.client, id, message.guildId), settings.duration);
             await query(`UPDATE servers SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[message.guildId].applications.applications.values()]))}' WHERE id = '${message.guildId}'`);

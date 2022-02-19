@@ -62,7 +62,8 @@ export class Handler {
     }
 
     async messageComponentInteraction(interaction: MessageComponentInteraction) {
-        const settings = NorthClient.storage.guilds[interaction.guildId].applications;
+        if (!interaction.guildId) return;
+        const settings = NorthClient.storage.guilds[interaction.guildId]?.applications;
         if (!settings) return;
         const application = settings.applications.get(interaction.message.id);
         if (!application || !(<GuildMemberRoleManager> interaction.member.roles).cache.some(r => settings.admins.includes(r.id))) return;
