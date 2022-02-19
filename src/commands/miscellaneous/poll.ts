@@ -34,6 +34,18 @@ export async function endPoll(msg: Discord.Message, message: Discord.Message | D
     }
 }
 
+export async function updatePoll(id: Discord.Snowflake, reaction: Discord.MessageReaction, user: Discord.User) {
+    const index = emojis.indexOf(reaction.emoji.name);
+    const poll = NorthClient.storage.polls.get(id);
+    for (let i = 0; i < poll.votes.length; i++) {
+        poll.votes[i].delete(user.id);
+        if (i === index) poll.votes[i].add(user.id);
+    }
+    reaction.users.remove(user.id).catch(() => {});
+    NorthClient.storage.polls.set(id, poll);
+    await query(`UPDATE polls SET votes = "${escape(JSON.stringify(poll.votes.map(set => [...set])))}" WHERE id = '${id}'`);
+}
+
 class PollCommand implements SlashCommand {
     name = "poll"
     description = "Manage polls on the server."
@@ -135,18 +147,7 @@ class PollCommand implements SlashCommand {
         const votes: Set<Discord.Snowflake>[] = [];
         for (let i = 0; i < options.length; i++) votes.push(new Set());
         NorthClient.storage.polls.set(mesg.id, { options: allOptions, votes });
-        collector.on("collect", async (reaction, user) => {
-            const index = emojis.indexOf(reaction.emoji.name);
-            const poll = NorthClient.storage.polls.get(mesg.id);
-            console.debug(`Before processing: ${poll.votes.map(set => [...set])}`);
-            for (let i = 0; i < poll.votes.length; i++) {
-                poll.votes[i].delete(user.id);
-                if (i === index) poll.votes[i].add(user.id);
-            }
-            reaction.users.remove(user.id).catch(() => {});
-            NorthClient.storage.polls.set(mesg.id, poll);
-            await query(`UPDATE polls SET votes = "${escape(JSON.stringify(poll.votes.map(set => [...set])))}" WHERE id = '${mesg.id}'`);
-        });
+        collector.on("collect", async (reaction, user) => await updatePoll(mesg.id, reaction, user));
         collector.on("end", async () => {
             await endPoll(await channel.messages.fetch(mesg.id));
         });

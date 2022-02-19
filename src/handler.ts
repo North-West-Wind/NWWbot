@@ -1,7 +1,7 @@
 import cv from "canvas";
 import { CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageAttachment, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Snowflake, TextChannel, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
-import { endPoll } from "./commands/miscellaneous/poll.js";
+import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
 import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration } from "./function.js";
 import { setQueue, stop } from "./helpers/music.js";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient.js";
@@ -179,20 +179,16 @@ export class Handler {
             try {
                 const channel = <TextChannel>await client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
+                for (const reaction of msg.reactions.cache.values()) {
+                    if (!emojis.includes(reaction.emoji.name) || reaction.count == 1) continue;
+                    for (const user of (await reaction.users.fetch()).values()) {
+                        if (user.id === client.user.id) continue;
+                        await updatePoll(msg.id, reaction, user);
+                    }
+                }
                 const collector = msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
                 NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map((array: Snowflake[]) => new Set(array)) });
-                collector.on("collect", async (reaction, user) => {
-                    const index = emojis.indexOf(reaction.emoji.name);
-                    const poll = NorthClient.storage.polls.get(msg.id);
-                    for (let i = 0; i < poll.votes.length; i++) {
-                        poll.votes[i].delete(user.id);
-                        if (i === index) poll.votes[i].add(user.id);
-                    }
-                    reaction.users.remove(user.id).catch(() => {});
-                    NorthClient.storage.polls.set(msg.id, poll);
-                    const votes = poll.votes.map(set => [...set]);
-                    await query(`UPDATE polls SET votes = '${escape(JSON.stringify(votes))}' WHERE id = '${result.id}'`);
-                });
+                collector.on("collect", async (reaction, user) => await updatePoll(msg.id, reaction, user));
                 collector.on("end", async () => {
                     await endPoll(await channel.messages.fetch(msg.id));
                 });
@@ -658,20 +654,16 @@ export class AliceHandler extends Handler {
             try {
                 const channel = <TextChannel>await client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
+                for (const reaction of msg.reactions.cache.values()) {
+                    if (!emojis.includes(reaction.emoji.name) || reaction.count == 1) continue;
+                    for (const user of (await reaction.users.fetch()).values()) {
+                        if (user.id === client.user.id) continue;
+                        await updatePoll(msg.id, reaction, user);
+                    }
+                }
                 const collector = msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
                 NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map((array: Snowflake[]) => new Set(array)) });
-                collector.on("collect", async (reaction, user) => {
-                    const index = emojis.indexOf(reaction.emoji.name);
-                    const poll = NorthClient.storage.polls.get(msg.id);
-                    for (let i = 0; i < poll.votes.length; i++) {
-                        poll.votes[i].delete(user.id);
-                        if (i === index) poll.votes[i].add(user.id);
-                    }
-                    reaction.users.remove(user.id).catch(() => {});
-                    NorthClient.storage.polls.set(msg.id, poll);
-                    const votes = poll.votes.map(set => [...set]);
-                    await query(`UPDATE polls SET votes = '${escape(JSON.stringify(votes))}' WHERE id = '${result.id}'`);
-                });
+                collector.on("collect", async (reaction, user) => await updatePoll(msg.id, reaction, user));
                 collector.on("end", async () => {
                     await endPoll(await channel.messages.fetch(msg.id));
                 });
