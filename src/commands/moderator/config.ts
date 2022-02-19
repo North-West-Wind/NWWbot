@@ -150,6 +150,7 @@ class ConfigCommand implements SlashCommand {
               await wait(3000);
               return await start(msg);
             }
+            content = channel.id;
             break;
           case "roles":
             const collectedArgs = msgCollected.first().content.split(/ +/);

@@ -139,12 +139,12 @@ class PollCommand implements SlashCommand {
             console.debug(`Before processing: ${poll.votes.map(set => [...set])}`);
             for (let i = 0; i < poll.votes.length; i++) {
                 console.debug(`Deleting ${user.id} from ${i}`);
-                console.debug(poll.votes[i]);
+                console.debug(...poll.votes[i]);
                 poll.votes[i].delete(user.id);
                 if (i === index) {
                     poll.votes[i].add(user.id);
                     console.debug(`Adding ${user.id} to ${i}`);
-                    console.debug(poll.votes[i]);
+                    console.debug(...poll.votes[i]);
                 }
             }
             reaction.users.remove(user.id).catch(() => {});
