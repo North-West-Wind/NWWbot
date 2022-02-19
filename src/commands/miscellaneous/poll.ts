@@ -136,22 +136,26 @@ class PollCommand implements SlashCommand {
         collector.on("collect", async (reaction, user) => {
             const index = emojis.indexOf(reaction.emoji.name);
             const poll = NorthClient.storage.polls.get(mesg.id);
-            console.debug(`Before processing: ${poll.votes.map(set => [...set])}`);
-            for (let i = 0; i < poll.votes.length; i++) {
+            const votes = poll.votes;
+            console.debug(`Before processing: ${votes.map(set => [...set])}`);
+            for (let i = 0; i < votes.length; i++) {
+                const set = votes[i];
+                set.delete(user.id);
                 console.debug(`Deleting ${user.id} from ${i}`);
-                console.debug(...poll.votes[i]);
-                poll.votes[i].delete(user.id);
+                console.debug(...set);
                 if (i === index) {
-                    poll.votes[i].add(user.id);
+                    set.add(user.id);
                     console.debug(`Adding ${user.id} to ${i}`);
-                    console.debug(...poll.votes[i]);
+                    console.debug(...set);
                 }
+                votes[i] = set;
             }
+            poll.votes = votes;
             reaction.users.remove(user.id).catch(() => {});
             NorthClient.storage.polls.set(mesg.id, poll);
-            const votes = poll.votes.map(set => [...set]);
-            console.debug(`After processing: ${votes}`);
-            await query(`UPDATE polls SET votes = "${escape(JSON.stringify(votes))}" WHERE id = '${mesg.id}'`);
+            const v = poll.votes.map(set => [...set]);
+            console.debug(`After processing: ${v}`);
+            await query(`UPDATE polls SET votes = "${escape(JSON.stringify(v))}" WHERE id = '${mesg.id}'`);
         });
         collector.on("end", async () => {
             await endPoll(await channel.messages.fetch(mesg.id));
