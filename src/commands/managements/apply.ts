@@ -118,6 +118,7 @@ class ApplyCommand implements SlashCommand {
             const author = message instanceof Discord.Message ? message.author : message.user;
             const collected = await interaction.channel.awaitMessages({ filter: m => m.author.id === author.id, max: 1, time: 600000 });
             if (!collected.first()?.content) throw new Error();
+            collected.first().delete().catch(() => {});
             const em = new Discord.MessageEmbed()
                 .setColor(color())
                 .setTitle("Role Application")
@@ -136,7 +137,7 @@ class ApplyCommand implements SlashCommand {
         } catch (err) {
             embed.setTitle("Application Error").setDescription("We failed to receive your description! Try again later.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
         }
-        await interaction.update({ embeds: [embed], components: [] });
+        await (<Discord.Message> interaction.message).edit({ embeds: [embed], components: [] });
     }
 }
 
