@@ -137,7 +137,7 @@ class ConfigCommand implements SlashCommand {
       const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, time, max: 1 });
       if (!msgCollected.first() || !msgCollected.first().content) return await end(msg);
       var content;
-      if (["message", "channel", "roles", "duration"].includes(type)) {
+      if (["message", "channel", "roles", "reaction", "duration"].includes(type)) {
         content = msgCollected.first().content.replace(/'/g, "\\'");
         msgCollected.first().delete().catch(() => { });
         switch (type) {
@@ -208,12 +208,13 @@ class ConfigCommand implements SlashCommand {
         if (configLoc.length === 1) cfg = config[configLoc[0]];
         else if (configLoc.length === 2) cfg = config[configLoc[0]][configLoc[1]];
         if (Array.isArray(cfg)) content = content.concat(cfg);
+        else content.push(cfg);
       }
       try {
         if (configLoc.length === 1) config[configLoc[0]] = content;
         else if (configLoc.length === 2) config[configLoc[0]][configLoc[1]] = content;
         NorthClient.storage.guilds[message.guild.id] = config;
-        await query(`UPDATE servers SET ${column} = ${typeof content === "number" ? content : `'${content}'`} WHERE id = '${message.guild.id}'`);
+        await query(`UPDATE servers SET ${column} = ${typeof content === "number" ? content : `'${Array.isArray(content) ? content.join() : content}'`} WHERE id = '${message.guild.id}'`);
         panelEmbed.setDescription(`**${path}/Set**\n${thing} received! Returning to panel main page in 3 seconds...`);
       } catch (err: any) {
         console.error(err);

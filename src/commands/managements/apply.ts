@@ -20,7 +20,7 @@ export async function endApplication(client: Discord.Client, id: Discord.Snowfla
         } else await member.user.send(`Sorry! Your application of role **${role.name}** on server **${guild.name}** was **DECLINED**! You may apply again and try to give a better reason.`);
         NorthClient.storage.guilds[guild.id].applications.applications.delete(id);
         try {
-            const channel = <Discord.TextChannel> await guild.channels.fetch(settings.channel);
+            const channel = <Discord.TextChannel>await guild.channels.fetch(settings.channel);
             const msg = await channel.messages.fetch(id);
             await msg?.edit({ components: [] });
         } catch (err) { }
@@ -42,7 +42,7 @@ class ApplyCommand implements SlashCommand {
             return await interaction.reply("Cannot find the application channel. Maybe it is deleted. Tell an admin and try again later.");
         }
         const { embed, components } = await this.getEmbedsAndComponents(interaction);
-        const msg = <Discord.Message> await interaction.reply({ embeds: [embed], components, ephemeral: true, fetchReply: true });
+        const msg = <Discord.Message>await interaction.reply({ embeds: [embed], components, ephemeral: true, fetchReply: true });
         try {
             const compoInter = await msg.awaitMessageComponent({ filter: m => m.user.id === interaction.user.id, time: 60000 });
             await this.handle(interaction, compoInter, embed);
@@ -81,8 +81,8 @@ class ApplyCommand implements SlashCommand {
         const rowNum = Math.ceil(applications.roles.length / 5);
         const lines: string[][] = Array(rowNum).fill([]);
         for (let j = 0; j < rowNum; j++)
-            for (let k = 0; k < mapped.length; k++)
-                lines[j].push(mapped[k + (j + 1) * 5]);
+            for (let k = 0; k < Math.min(rowNum, applications.roles.length - j * 5); k++)
+                lines[j].push(mapped[k + j * 5]);
         const embed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle(`Roles you can apply`)
@@ -91,8 +91,8 @@ class ApplyCommand implements SlashCommand {
             .setFooter({ text: "Make your choice within 60 seconds", iconURL: message.client.user.displayAvatarURL() });
         for (let i = 0; i < rowNum; i++) {
             const row = new Discord.MessageActionRow();
-            for (let j = 0; j < Math.min(rowNum, applications.roles.length - i*5); j++) {
-                const role = applications.roles[j + i*5];
+            for (let j = 0; j < Math.min(rowNum, applications.roles.length - i * 5); j++) {
+                const role = applications.roles[j + i * 5];
                 if (rs.has(role)) row.addComponents(new Discord.MessageButton({ label: rs.get(role).name, customId: role, style: "SECONDARY" }));
                 else row.addComponents(new Discord.MessageButton({ label: "(Broken)", customId: "broken", style: "SECONDARY", disabled: true }));
             }
@@ -108,7 +108,7 @@ class ApplyCommand implements SlashCommand {
             return await interaction.update({ embeds: [embed], components: [] });
         }
         const role = await message.guild.roles.fetch(interaction.customId);
-        if ((<Discord.GuildMember> message.member).roles.cache.has(role.id)) {
+        if ((<Discord.GuildMember>message.member).roles.cache.has(role.id)) {
             embed.setTitle("Application Cancelled").setDescription("You already have that role.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             return await interaction.update({ embeds: [embed], components: [] });
         }
@@ -128,7 +128,7 @@ class ApplyCommand implements SlashCommand {
                 .addComponents(new Discord.MessageButton({ label: "Approve", customId: "approve", style: "SUCCESS", emoji: "⭕" }))
                 .addComponents(new Discord.MessageButton({ label: "Decline", customId: "decline", style: "DANGER", emoji: "❌" }));
             const settings = NorthClient.storage.guilds[message.guildId].applications;
-            const { id } = await (<Discord.TextChannel> await message.guild.channels.fetch(settings.channel)).send({ embeds: [em], components: [row] });
+            const { id } = await (<Discord.TextChannel>await message.guild.channels.fetch(settings.channel)).send({ embeds: [em], components: [row] });
             NorthClient.storage.guilds[message.guildId].applications.applications.set(id, { id, role: role.id, author: author.id, approve: new Set(), decline: new Set() });
             if (settings.duration) setTimeout_(() => endApplication(message.client, id, message.guildId), settings.duration);
             await query(`UPDATE servers SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[message.guildId].applications.applications.values()]))}' WHERE id = '${message.guildId}'`);
