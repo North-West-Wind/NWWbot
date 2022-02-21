@@ -31,8 +31,9 @@ export async function endApplication(client: Discord.Client, id: Discord.Snowfla
 
 class ApplyCommand implements SlashCommand {
     name = "apply";
-    description = "Apply for a role on the server.";
+    description = "Allows users to apply for a role on the server.";
     category = 0;
+    aliases: ["app"];
     permissions = { guild: { me: 268435456 } };
 
     async execute(interaction: NorthInteraction) {

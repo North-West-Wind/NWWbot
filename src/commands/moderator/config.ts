@@ -572,7 +572,7 @@ class ConfigCommand implements SlashCommand {
         .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
       const row1 = new Discord.MessageActionRow()
         .addComponents(new Discord.MessageButton({ label: "Applicable Roles", customId: "roles", style: "PRIMARY", emoji: "✉️" }))
-        .addComponents(new Discord.MessageButton({ label: "Administrator Roles", customId: "admin", style: "PRIMARY", emoji: "🛠️" }))
+        .addComponents(new Discord.MessageButton({ label: "Voter Roles", customId: "admin", style: "PRIMARY", emoji: "🛠️" }))
         .addComponents(new Discord.MessageButton({ label: "Channel", customId: "channel", style: "PRIMARY", emoji: "🏞️" }))
         .addComponents(new Discord.MessageButton({ label: "Duration", customId: "duration", style: "SECONDARY", emoji: "⏰" }));
       const row2 = new Discord.MessageActionRow()
@@ -614,7 +614,7 @@ class ConfigCommand implements SlashCommand {
     }
 
     async function applicationAdmins(msg: Discord.Message) {
-      panelEmbed.setDescription("**Applications/Admin Roles**\nRoles that users will be voting for approval.\nPlease choose an option to configure by clicking a button.")
+      panelEmbed.setDescription("**Applications/Voter Roles**\nRoles that users will be voting for approval.\nPlease choose an option to configure by clicking a button.")
         .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
       const row = new Discord.MessageActionRow()
         .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
@@ -627,8 +627,8 @@ class ConfigCommand implements SlashCommand {
       if (!interaction) return await end(msg);
       await interaction.update({ components: [] });
       switch (interaction.customId) {
-        case "set": return await set(msg, "Applications/Admin Roles", ["applications", "admins"], "Admin Roles", "admin_roles", 60000, "roles");
-        case "reset": return await reset(msg, "Applications/Admin Roles", ["applications", "admins"], "Admin Roles", "admin_roles");
+        case "set": return await set(msg, "Applications/Voter Roles", ["applications", "admins"], "Voter Roles", "admin_roles", 60000, "roles");
+        case "reset": return await reset(msg, "Applications/Voter Roles", ["applications", "admins"], "Voter Roles", "admin_roles");
         case "back": return await application(msg);
         default: return await end(msg);
       }
