@@ -97,7 +97,7 @@ class KrunkerCommand implements SlashCommand {
             controller.abort();
         }, 10000);
         try {
-            const res = await getFetch()("http://localhost:4269/api/krunker/profile/" + username, { signal: controller.signal });
+            const res = await getFetch()("http://192.168.1.29:4269/api/krunker/profile/" + username, { signal: controller.signal });
             if (!res.ok) throw new Error();
             const json = <any> await res.json();
             if (!json.found) return await msgOrRes(message, "The user does not exist!");
@@ -115,7 +115,7 @@ class KrunkerCommand implements SlashCommand {
             controller.abort();
         }, 10000);
         try {
-            const res = await getFetch()("http://localhost:4269/api/krunker/clan/" + name, { signal: controller.signal });
+            const res = await getFetch()("http://192.168.1.29:4269/api/krunker/clan/" + name, { signal: controller.signal });
             if (!res.ok) throw new Error();
             const json = <any> await res.json();
             if (!json.found) return await msgOrRes(message, "The clan does not exist!");

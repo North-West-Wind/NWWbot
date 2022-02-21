@@ -249,18 +249,12 @@ export function ms(val: string) {
             }
             return mses.reduce((acc, c) => acc + c);
         }
-        var mses = [];
-        let temp = "";
-        let last = "";
-        for (let i = 0; i < val.length; i++) {
-            let char = val.substr(i, 1);
-            if (!/\d/.test(last) && /\d/.test(char) && i != 0) {
-                if (superms(temp) === undefined) return undefined;
-                mses.push(superms(temp));
-                temp = "";
-            }
-            temp += char;
-            if (val[i + 1] === undefined) mses.push(superms(temp));
+        const mses = [];
+        const split = val.match(/[\d\.]+[dhms]/g);
+        for (const str of split) {
+            const msed = superms(str);
+            if (!msed) return undefined;
+            mses.push(msed);
         }
         return mses.reduce((acc, c) => acc + c);
     } else return superms(val);
@@ -692,18 +686,18 @@ export function getText(key: string, lang: string = "en") {
 }
 
 export async function query(query: string) {
-    const res = await fetch("http://localhost:4269/api/" + encodeURIComponent(query) + "?token=" + process.env.DB_TOKEN);
+    const res = await fetch("http://192.168.1.29:4269/api/" + encodeURIComponent(query) + "?token=" + process.env.DB_TOKEN);
     if (!res.ok) return null;
     else return <any> await res.json();
 }
 
 export async function checkTradeW1nd(guild: Discord.Snowflake) {
-    const res = await fetch("http://localhost:3000/checkGuild/" + guild);
+    const res = await fetch("http://192.168.1.29:3000/checkGuild/" + guild);
     return res.ok && (<any> await res.json()).isIn;
 }
 
 export async function getTradeW1ndStats() {
-    const res = await fetch("http://localhost:3000");
+    const res = await fetch("http://192.168.1.29:3000");
     if (!res.ok) return null;
     return <{ version: string, size: number, lastReady: number, uptime: number }> await res.json();
 }
@@ -711,22 +705,22 @@ export async function getTradeW1ndStats() {
 export async function syncTradeW1nd(guild: Discord.Snowflake) {
     const config = NorthClient.storage.guilds[guild];
     if (!config) return;
-    await fetch(`http://localhost:3000/update/${guild}`, { method: "post", body: JSON.stringify(config), headers: { "Content-Type": "application/json" } });
+    await fetch(`http://192.168.1.29:3000/update/${guild}`, { method: "post", body: JSON.stringify(config), headers: { "Content-Type": "application/json" } });
 }
 
 export async function tradeW1ndAct(interaction: Discord.CommandInteraction, author: Discord.Snowflake, command: string) {
     const channel = interaction.channel;
     await interaction.deferReply();
-    var res = await fetch("http://localhost:3000/checkChannel/" + channel.id);
+    var res = await fetch("http://192.168.1.29:3000/checkChannel/" + channel.id);
     if (!res.ok) return await interaction.editReply("I've found TradeW1nd on this server, but I cannot talk to him! Try again later.");
     if (!(<any> await res.json()).canUse) return await interaction.editReply("I've found TradeW1nd on this server, but he cannot talk in this channel! Find an admin to help him!");
     // Best act of the century
-    res = await fetch("http://localhost:3000/act", { method: "post", body: JSON.stringify({ channel: channel.id, botId: interaction.client.user.id }), headers: { "Content-Type": "application/json" } });
+    res = await fetch("http://192.168.1.29:3000/act", { method: "post", body: JSON.stringify({ channel: channel.id, botId: interaction.client.user.id }), headers: { "Content-Type": "application/json" } });
     if (!res.ok) return await interaction.editReply("TradeW1nd seems to be having some trouble. Try again later.");
     const { id } = await interaction.editReply("hey <@895321877109690419>");
     await channel.awaitMessages({ filter: m => m.author.id == "895321877109690419", max: 1 });
     await interaction.followUp(`pls help run this command from <@${author}>`);
-    await fetch("http://localhost:3000/run", { method: "post", body: JSON.stringify({ channel: channel.id, command, author, msgId: id }), headers: { "Content-Type": "application/json" } });
+    await fetch("http://192.168.1.29:3000/run", { method: "post", body: JSON.stringify({ channel: channel.id, command, author, msgId: id }), headers: { "Content-Type": "application/json" } });
 }
 
 export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: string) {

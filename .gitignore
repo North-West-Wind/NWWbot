@@ -3,3 +3,4 @@ node_modules
 test
 out
 log
+.bot-track-cache

@@ -8,7 +8,6 @@ import * as Stream from 'stream';
 import { globalClient as client } from "../../common.js";
 import { AudioPlayerError, AudioPlayerStatus, createAudioPlayer, createAudioResource, demuxProbe, entersState, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus } from "@discordjs/voice";
 import Ffmpeg from "fluent-ffmpeg";
-import { link } from "pdfkit";
 
 function createPlayer(guild: Discord.Guild) {
   var serverQueue = getQueues().get(guild.id);
@@ -123,9 +122,9 @@ export async function play(guild: Discord.Guild, song: SoundTrack) {
     }
   }
   const streamTime = serverQueue.getPlaybackDuration();
-  const seek = serverQueue.seek;
+  const seek = serverQueue.seek || 0;
   if (seek) serverQueue.seek = undefined;
-  if (serverQueue.connection) serverQueue.startTime = streamTime - seek * 1000;
+  if (streamTime) serverQueue.startTime = streamTime - seek * 1000;
   else serverQueue.startTime = -seek * 1000;
   try {
     if (!song.url) {
