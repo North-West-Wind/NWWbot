@@ -2,7 +2,7 @@ import * as cheerio from 'cheerio';
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { validMSURL, requestStream, findValueByPrefix, streamToString, color, requestYTDLStream } from "../../function.js";
 import { run } from "../../helpers/puppeteer.js";
-import muse from "musescore-metadata";
+import { muse } from "musescore-metadata";
 import * as Discord from "discord.js";
 import sanitize from "sanitize-filename";
 import rp from "request-promise-native";
@@ -89,16 +89,16 @@ class MusescoreCommand implements SlashCommand {
             .setColor(color())
             .setTitle(data.title)
             .setURL(data.url)
-            .setThumbnail(data.thumbnail)
+            .setThumbnail(data.thumbnails.original)
             .setDescription(`Description: **${data.description}**\n\nClick 📥 to download **MP3/PDF/MIDI**\nFor **other formats (MSCZ/MXL)**, please use [Xmader's Musescore Downloader](https://github.com/LibreScore/dl-musescore)`)
             .addField("ID", data.id.toString(), true)
             .addField("Author", data.user.name, true)
             .addField("Duration", data.duration, true)
-            .addField("Page Count", data.pageCount.toString(), true)
-            .addField("Date Created", new Date(data.created * 1000).toLocaleString(), true)
-            .addField("Date Updated", new Date(data.updated * 1000).toLocaleString(), true)
+            .addField("Page Count", data.pages_count.toString(), true)
+            .addField("Date Created", new Date(data.date_created * 1000).toLocaleString(), true)
+            .addField("Date Updated", new Date(data.date_updated * 1000).toLocaleString(), true)
             .addField(`Tags [${data.tags.length}]`, data.tags.length > 0 ? (data.tags.join(", ").length > 1024 ? (data.tags.join(" ").slice(0, 1020) + "...") : data.tags.join(" ")) : "None")
-            .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ? (data.parts.join(", ").length > 1024 ? (data.parts.join(" ").slice(0, 1020) + "...") : data.parts.join(" ")) : "None")
+            .addField(`Parts [${data.parts}]`, data.parts > 0 ? (data.parts_names.join(", ").length > 1024 ? (data.parts_names.join(" ").slice(0, 1020) + "...") : data.parts_names.join(" ")) : "None")
             .setTimestamp()
             .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
         msg = await msg.edit({ content: null, embeds: [em] });
