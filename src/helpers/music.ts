@@ -8,7 +8,6 @@ import { humanDurationToNum, query } from "../function.js";
 const queue = new Discord.Collection<Discord.Snowflake, ServerQueue>();
 const using: { [key: string]: number } = {};
 
-export function getQueues() { return queue; }
 export function getQueue(id: Discord.Snowflake) {
 	return queue.get(id);
 }

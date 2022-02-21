@@ -3,7 +3,7 @@ import { GuildMember, Message, VoiceChannel } from "discord.js";
 
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { msgOrRes } from "../../function.js";
-import { createDiscordJSAdapter, getQueues, setQueue } from "../../helpers/music.js";
+import { createDiscordJSAdapter, getQueue, setQueue } from "../../helpers/music.js";
 
 class UnSkipCommand implements SlashCommand {
     name = "unskip"
@@ -35,7 +35,7 @@ class UnSkipCommand implements SlashCommand {
     }
 
     async unskip(message: Message | NorthInteraction, unskip: number) {
-        var serverQueue = getQueues().get(message.guild.id);
+        var serverQueue = getQueue(message.guild.id);
         const guild = message.guild;
         const member = (<GuildMember> message.member);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);

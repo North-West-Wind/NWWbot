@@ -2,7 +2,7 @@ import { GuildMember, Message } from "discord.js";
 
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { msgOrRes } from "../../function.js";
-import { getQueues, setQueue, updateQueue } from "../../helpers/music.js";
+import { getQueue, setQueue, updateQueue } from "../../helpers/music.js";
 
 class ResumeCommand implements SlashCommand {
     name = "resume"
@@ -18,7 +18,7 @@ class ResumeCommand implements SlashCommand {
     }
 
     async resume(message: Message | NorthInteraction) {
-        var serverQueue = getQueues().get(message.guild.id);
+        var serverQueue = getQueue(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (((<GuildMember> message.member).voice.channelId !== message.guild.me.voice.channelId) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to resume the music when the bot is playing!");
         if (!serverQueue?.player) return await msgOrRes(message, "There is nothing playing.");

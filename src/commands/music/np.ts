@@ -1,8 +1,8 @@
 
-import { NorthInteraction, NorthMessage, ServerQueue, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color, duration, msgOrRes, wait } from "../../function.js";
-import { getQueues, setQueue, updateQueue } from "../../helpers/music.js";
+import { getQueue, setQueue, updateQueue } from "../../helpers/music.js";
 import { globalClient as client } from "../../common.js";
 
 const type = [
@@ -48,7 +48,7 @@ class NPCommand implements SlashCommand {
     }
 
     getEmbed(id: Discord.Snowflake, embed: Discord.MessageEmbed = null) {
-        var serverQueue = getQueues().get(id);
+        var serverQueue = getQueue(id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(id, [], false, false);
         if (serverQueue.songs.length < 1) return null;
         const filtered = serverQueue.songs.filter(song => !!song);

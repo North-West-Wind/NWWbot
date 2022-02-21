@@ -4,7 +4,7 @@ import * as Discord from "discord.js";
 import sanitize from "sanitize-filename";
 import { isEquivalent, requestStream, validYTPlaylistURL, validYTURL, validSPURL, validSCURL, validGDURL, validMSURL, validURL, msgOrRes, requestYTDLStream, validMSSetURL } from "../../function.js";
 import { addYTURL, addYTPlaylist, addSPURL, addSCURL, addMSURL, search, getSCDL, addMSSetURL } from "../../helpers/addTrack.js";
-import { getQueues, setQueue, updateQueue } from "../../helpers/music.js";
+import { getQueue, setQueue, updateQueue } from "../../helpers/music.js";
 import { getMP3 } from "../api/musescore.js";
 
 class DownloadCommand implements SlashCommand {
@@ -21,7 +21,7 @@ class DownloadCommand implements SlashCommand {
     }]
 
     async execute(interaction: NorthInteraction) {
-        var serverQueue = getQueues().get(interaction.guild.id);
+        var serverQueue = getQueue(interaction.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(interaction.guild.id, [], false, false);
         const keywords = interaction.options.getString("keywords");
         await interaction.deferReply();
@@ -34,7 +34,7 @@ class DownloadCommand implements SlashCommand {
     }
     
     async run(message: NorthMessage, args: string[]) {
-        var serverQueue = getQueues().get(message.guild.id);
+        var serverQueue = getQueue(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         const parsed = parseInt(args[0]);
         if (args[0] && isNaN(parsed)) return await this.downloadFromArgs(message, serverQueue, args.join(" "));

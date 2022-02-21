@@ -2,7 +2,7 @@ import { Message } from "discord.js";
 import { NorthInteraction, NorthMessage, ServerQueue, SlashCommand, SoundTrack } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color, createEmbedScrolling, duration, msgOrRes, query } from "../../function.js";
-import { getQueues, setQueue, updateQueue } from "../../helpers/music.js";
+import { getQueue, setQueue, updateQueue } from "../../helpers/music.js";
 import { globalClient as client } from "../../common.js";
 
 class QueueCommand implements SlashCommand {
@@ -73,7 +73,7 @@ class QueueCommand implements SlashCommand {
 
 
     async execute(interaction: NorthInteraction) {
-        var serverQueue = getQueues().get(interaction.guild.id);
+        var serverQueue = getQueue(interaction.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(interaction.guild.id, [], false, false);
         const sub = interaction.options.getSubcommand();
         if (sub === "current") return await this.viewQueue(interaction, serverQueue);
@@ -86,7 +86,7 @@ class QueueCommand implements SlashCommand {
     }
     
     async run(message: NorthMessage, args: string[]) {
-        var serverQueue = getQueues().get(message.guild.id);
+        var serverQueue = getQueue(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (args[0] && (args[0].toLowerCase() === "save" || args[0].toLowerCase() === "s")) return await this.save(message, serverQueue, args.slice(1).join(" "));
         if (args[0] && (args[0].toLowerCase() === "load" || args[0].toLowerCase() === "l")) return await this.load(message, serverQueue, args.slice(1).join(" "));

@@ -2,7 +2,7 @@ import { GuildMember, Message } from "discord.js";
 
 import { NorthInteraction, SlashCommand } from "../../classes/NorthClient.js";
 import { msgOrRes } from "../../function.js";
-import { getQueues, setQueue, updateQueue } from "../../helpers/music.js";
+import { getQueue, setQueue, updateQueue } from "../../helpers/music.js";
 
 class ClearCommand implements SlashCommand {
     name = "clear"
@@ -19,7 +19,7 @@ class ClearCommand implements SlashCommand {
     }
 
     async clear(message: Message | NorthInteraction) {
-        var serverQueue = getQueues().get(message.guild.id);
+        var serverQueue = getQueue(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (serverQueue.songs.length < 1) return await msgOrRes(message, "The queue is already empty!");
         if (((<GuildMember> message.member).voice.channelId !== message.guild.me.voice.channelId) && serverQueue.playing) return await msgOrRes(message, "You have to be in a voice channel to clear the queue when the bot is playing!");
