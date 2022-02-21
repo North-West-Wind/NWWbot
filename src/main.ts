@@ -2,6 +2,7 @@ import * as dotenv from "dotenv";
 import { Handler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
 import { Intents, Options } from "discord.js";
+import express from "express";
 import config from "../config.json";
 dotenv.config();
 
@@ -27,3 +28,20 @@ NorthClient.storage = new ClientStorage();
 client.prefix = config.prefix0;
 client.id = 0;
 Handler.setup(client, process.env.TOKEN0);
+
+const app = express();
+
+app.get("/checkGuild/:guild", async (req, res) => {
+    var isInGuild = false;
+    var id = null;
+    try {
+        const guild = await client.guilds.fetch(req.params.guild);
+        if (guild) {
+            isInGuild = true;
+            id = guild.id;
+        }
+    } catch (err) { }
+    res.json({ guildId: id, isIn: isInGuild });
+});
+
+app.listen(3001);
