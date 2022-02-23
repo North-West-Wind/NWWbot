@@ -10,7 +10,8 @@ class WorkCommand implements SlashCommand {
   category = 2
 
   async execute(interaction: NorthInteraction) {
-    const currentDateSql = jsDate2Mysql(new Date());
+    const date = new Date();
+    const currentDateSql = jsDate2Mysql(date.getTime() + date.getTimezoneOffset() * 60000);
     var results = await query(`SELECT * FROM users WHERE id = '${interaction.user.id}'`);
     if (results.length == 0) await query(`INSERT INTO users(id) VALUES('${interaction.user.id}')`);
     const lastDate = results[0]?.last_worked || new Date(0);
@@ -29,7 +30,8 @@ class WorkCommand implements SlashCommand {
   }
 
   async run(message: NorthMessage) {
-    const currentDateSql = jsDate2Mysql(new Date());
+    const date = new Date();
+    const currentDateSql = jsDate2Mysql(date.getTime() + date.getTimezoneOffset() * 60000);
     var results = await query(`SELECT * FROM users WHERE id = '${message.author.id}'`);
     if (results.length == 0) await query(`INSERT INTO users(id) VALUES('${message.author.id}')`);
     const lastDate = results[0]?.last_worked || new Date(0);

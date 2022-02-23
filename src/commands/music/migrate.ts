@@ -3,11 +3,11 @@ import { GuildMember, Message, TextChannel, VoiceChannel } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { moveArray, msgOrRes } from "../../function.js";
-import { createDiscordJSAdapter, getQueues, setQueue, updateQueue } from "../../helpers/music.js";
+import { createDiscordJSAdapter, getQueue, setQueue, updateQueue } from "../../helpers/music.js";
 import { play } from "./play.js";
 
 export async function migrate(message: Message | NorthInteraction) {
-    var serverQueue = getQueues().get(message.guild.id);
+    var serverQueue = getQueue(message.guild.id);
     const member = <GuildMember> message.member;
     const exit = NorthClient.storage.guilds[message.guild.id].exit;
     const migrating = NorthClient.storage.migrating;

@@ -42,7 +42,7 @@ export async function all(command: Command, message: NorthMessage | NorthInterac
             timeout = undefined;
         } else message.client.user.setPresence({ activities: [{ name: `${(message instanceof Message ? message.author : message.user).username}'s Commands`, type: "WATCHING" }], status: "online", afk: false });
         timeout = setTimeout(() => {
-            message.client.user.setPresence({ activities: [{ name: "AFK", type: "PLAYING" }], status: "idle", afk: true });
+            message.client.user.setPresence({ activities: [{ name: `AFK | ${message.client.prefix}help`, type: "PLAYING" }], status: "idle", afk: true });
             timeout = undefined;
         }, 10000);
     }
@@ -50,21 +50,21 @@ export async function all(command: Command, message: NorthMessage | NorthInterac
 }
 export async function managements(_command: Command, message: NorthMessage | NorthInteraction) {
     if (!message.guild) {
-        await msgOrRes(message, "You can only use management commands in server!");
+        await msgOrRes(message, "You can only use management commands on a server!");
         return false;
     }
     return true;
 }
 export async function moderator(_command: Command, message: NorthMessage | NorthInteraction) {
     if (!message.guild) {
-        await msgOrRes(message, "You can only use moderator commands in server!");
+        await msgOrRes(message, "You can only use moderator commands on a server!");
         return false;
     }
     return true;
 }
 export async function music(command: Command, message: NorthMessage | NorthInteraction) {
     if (!message.guild) {
-        await msgOrRes(message, "You can only use music commands in server!");
+        await msgOrRes(message, "You can only use music commands on a server!");
         return false;
     }
     return true;

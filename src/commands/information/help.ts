@@ -46,32 +46,17 @@ class HelpCommand implements SlashCommand {
   async execute(interaction: NorthInteraction) {
     const sub = interaction.options.getSubcommand();
     if (sub === "all") {
-      const msg = await interaction.user.send({embeds: [await this.getAllCommands(interaction.guildId)]});
-      interaction.reply("Slided into your DM!").then(() => setTimeout(() => interaction.deleteReply().catch(() => {}), 3000)).catch(() => {});
-      await wait(60000);
-      var content;
-      if (this.isSafe(interaction.guildId)) content = "This is the **[manual](https://northwestwind.ml/n0rthwestw1nd/manual)**, my friend.";
-      else content = "This is the **[manual](https://northwestwind.ml/n0rthwestw1nd/manual/unsafe)**, my friend.";
-      await msg.edit({
-        content,
-        embeds: []
-      });
-      return;
+      await interaction.user.send({embeds: [await this.getAllCommands(interaction.guildId)]});
+      return await interaction.reply({ content: "Slid into your DM!", ephemeral: true });
     }
     const name = interaction.options.getString("command").toLowerCase();
-    await interaction.reply(this.getCommand(name, "/", interaction.guildId).join("\n"));
+    await interaction.reply({ content: this.getCommand(name, "/", interaction.guildId).join("\n"), ephemeral: true });
   }
 
   async run(message: NorthMessage, args: string[]) {
     if (!args.length) {
-      const msg = await message.author.send({embeds: [await this.getAllCommands(message.guildId)]});
-      await message.react("💨");
-      var content;
-      if (this.isSafe(message.guildId)) content = "This is the **[manual](https://northwestwind.ml/n0rthwestw1nd/manual)**, my friend.";
-      else content = "This is the **[manual](https://northwestwind.ml/n0rthwestw1nd/manual/unsafe)**, my friend.";
-      await wait(60000);
-      await msg.edit({ content, embeds: [] });
-      return;
+      await message.author.send({embeds: [await this.getAllCommands(message.guildId)]});
+      return await message.react("💨");
     }
     const name = args[0].toLowerCase();
     await message.channel.send(this.getCommand(name, message.prefix, message.guildId).join("\n"));

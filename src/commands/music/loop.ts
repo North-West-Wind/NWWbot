@@ -2,7 +2,7 @@ import { Message } from "discord.js";
 
 import { NorthInteraction, SlashCommand } from "../../classes/NorthClient.js";
 import { msgOrRes } from "../../function.js";
-import { getQueues, setQueue, updateQueue } from "../../helpers/music.js";
+import { getQueue, setQueue, updateQueue } from "../../helpers/music.js";
 
 class LoopCommand implements SlashCommand {
     name = "loop"
@@ -19,7 +19,7 @@ class LoopCommand implements SlashCommand {
     }
 
     async loop(message: Message | NorthInteraction) {
-        var serverQueue = getQueues().get(message.guild.id);
+        var serverQueue = getQueue(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         serverQueue.looping = !serverQueue.looping;
         if (serverQueue.repeating && serverQueue.looping) {

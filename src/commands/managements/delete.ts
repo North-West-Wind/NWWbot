@@ -1,7 +1,7 @@
 import { GuildMember, TextChannel } from "discord.js";
 
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { genPermMsg, wait } from "../../function.js";
+import { findChannel, genPermMsg, wait } from "../../function.js";
 
 class DeleteCommand implements SlashCommand {
   name = "delete"
@@ -73,7 +73,7 @@ class DeleteCommand implements SlashCommand {
     if (!args[0]) return await message.channel.send("You didn't provide any amount!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
 
     var amount = parseInt(args[0]);
-    const channel = <TextChannel> (args[1] ? await message.guild.channels.fetch(args[1].replace(/<#/g, "").replace(/>/g, "")) : message.channel);
+    const channel = <TextChannel> (args[1] ? await findChannel(message.guild, args[1].replace(/<#/g, "").replace(/>/g, "")) : message.channel);
     if (isNaN(amount)) {
         if (args[0] == "all") {
           if (!message.member.permissions.has(BigInt(16))) return await message.channel.send(genPermMsg(16, 0));

@@ -1,9 +1,9 @@
 import { Message } from "discord.js";
 
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { validYTPlaylistURL, validYTURL, validSPURL, validSCURL, validGDFolderURL, validGDURL, validGDDLURL, validMSURL, validURL, msgOrRes, wait } from "../../function.js";
-import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search } from "../../helpers/addTrack.js";
-import { getQueues, setQueue, updateQueue } from "../../helpers/music.js";
+import { validYTPlaylistURL, validYTURL, validSPURL, validSCURL, validGDFolderURL, validGDURL, validGDDLURL, validMSURL, validURL, msgOrRes, wait, validMSSetURL } from "../../function.js";
+import { addYTPlaylist, addYTURL, addSPURL, addSCURL, addGDFolderURL, addGDURL, addMSURL, addURL, addAttachment, search, addMSSetURL } from "../../helpers/addTrack.js";
+import { getQueue, setQueue, updateQueue } from "../../helpers/music.js";
 import { createEmbed } from "./play.js";
 
 class AddCommand implements SlashCommand {
@@ -24,11 +24,13 @@ class AddCommand implements SlashCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        await this.add(message, args.join(" "));
+        const str = args.join(" ");
+        if (!str) return await message.channel.send("You didn't provide any link or keywords!");
+        await this.add(message, str);
     }
 
     async add(message: Message | NorthInteraction, str: string) {
-        var serverQueue = getQueues().get(message.guild.id);
+        var serverQueue = getQueue(message.guild.id);
         try {
             var songs = [];
             var result = { error: true, message: "No link/keywords/attachments!", songs: [], msg: null };
@@ -41,6 +43,7 @@ class AddCommand implements SlashCommand {
                 result = await addGDFolderURL(str, async(i, l) => await msg.edit(`Processing track: **${i}/${l}**`));
                 result.msg = msg;
             } else if (validGDURL(str) || validGDDLURL(str)) result = await addGDURL(str);
+            else if (validMSSetURL(str)) result = await addMSSetURL(str);
             else if (validMSURL(str)) result = await addMSURL(str);
             else if (validURL(str)) result = await addURL(str);
             else if (message instanceof Message && message.attachments.size > 0) result = await addAttachment(message);

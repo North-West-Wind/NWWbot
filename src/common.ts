@@ -6,7 +6,6 @@ import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
 import { Handler } from "./handler.js";
 import pkg from "../package.json";
-import { getQueues } from "./helpers/music.js";
 var globalClient: NorthClient;
 var logger: Logger;
 
@@ -74,23 +73,23 @@ export default async (client: NorthClient) => {
     if (memUse.heapUsed > memUse.rss * 0.8) {
       console.debug("80% heap used! ", Math.round(memUse.heapUsed / 1024 / 1024), "MB/", Math.round(memUse.rss / 1024 / 1024), "MB");
       console.debug("Last run command: ", Handler.lastRunCommand);
-      console.debug("Playing queues: ", getQueues().filter(x => x.playing).size);
     }
 
-    if (NorthClient.storage.queries.length < 1) return;
-    try {
-      const results = await query(`SELECT * FROM leveling`);
-      for (const q of NorthClient.storage.queries) try {
-        const result = results.find(x => x.user == q.author && x.guild == q.guild);
-        if (!result) await query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${q.author}', '${q.guild}', ${q.exp}, '${q.date}')`);
-        else {
-          if (Date.now() - result.last < 60000) continue;
-          const newExp = parseInt(result.exp) + q.exp;
-          await query(`UPDATE leveling SET exp = ${newExp}, last = '${q.date}' WHERE user = '${q.author}' AND guild = '${q.guild}'`);
-        }
+    if (NorthClient.storage.pendingLvlData.length) {
+      try {
+        const results = await query(`SELECT * FROM leveling`);
+        for (const q of NorthClient.storage.pendingLvlData) try {
+          const result = results.find(x => x.user == q.author && x.guild == q.guild);
+          if (!result) await query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${q.author}', '${q.guild}', ${q.exp}, '${q.date}')`);
+          else {
+            if (Date.now() - result.last < 60000) continue;
+            const newExp = parseInt(result.exp) + q.exp;
+            await query(`UPDATE leveling SET exp = ${newExp}, last = '${q.date}' WHERE user = '${q.author}' AND guild = '${q.guild}'`);
+          }
+        } catch (err: any) { }
       } catch (err: any) { }
-      NorthClient.storage.queries = [];
-    } catch (err: any) { }
+      NorthClient.storage.pendingLvlData = [];
+    }
   }, 60000);
 }
 

@@ -1,5 +1,5 @@
 import { AudioPlayer, AudioPlayerStatus, AudioResource, VoiceConnection } from "@discordjs/voice";
-import { Client, ClientOptions, Collection, CommandInteraction, Invite, Message, MessageEmbed, Role, Snowflake, StageChannel, TextChannel, User, VoiceChannel } from "discord.js";
+import { Client, ClientOptions, Collection, CommandInteraction, Invite, Message, MessageEmbed, Snowflake, TextChannel, User, VoiceChannel } from "discord.js";
 import { Pool, RowDataPacket } from "mysql2/promise";
 import { removeUsing } from "../helpers/music.js";
 
@@ -70,6 +70,16 @@ export class UnoGame {
     cards: number;
 }
 
+export interface Poll {
+    options: string[];
+    votes: Set<Snowflake>[];
+}
+
+export interface Giveaway {
+    winner: number;
+    emoji: string;
+}
+
 export interface RoleMessage {
     id: Snowflake;
     guild: Snowflake;
@@ -90,6 +100,14 @@ export interface WelcomeInfo extends InfoBase {
     autorole: Snowflake[];
 }
 
+export interface Applications {
+    roles: Snowflake[];
+    admins: Snowflake[];
+    channel: Snowflake;
+    duration: number;
+    applications: Collection<Snowflake, { id: Snowflake, role: Snowflake, author: Snowflake, approve: Set<Snowflake>, decline: Set<Snowflake> }>;
+}
+
 export interface GuildConfigs {
     [key: Snowflake]: GuildConfig;
 }
@@ -102,6 +120,7 @@ export class GuildConfig {
     leave: InfoBase;
     boost: InfoBase;
     safe: boolean;
+    applications: Applications;
     invites?: Collection<string, Invite>;
     exit?: boolean;
 
@@ -111,10 +130,10 @@ export class GuildConfig {
             this.token = data.token;
             this.giveaway = data.giveaway || "🎉";
             this.welcome = {
-                message: data.welcome,
+                message: data.wel_msg,
                 channel: data.wel_channel,
-                image: JSON.parse(data.wel_img || "[]"),
-                autorole: JSON.parse(data.autorole || "[]")
+                image: data.wel_img?.split(",").map(url => decodeURIComponent(url)) || [],
+                autorole: data.autorole?.split(",") || []
             };
             this.leave = {
                 message: data.leave_msg,
@@ -126,12 +145,25 @@ export class GuildConfig {
             };
             if (data.safe === undefined) this.safe = true;
             else this.safe = !!data.safe;
+
+            this.applications = {
+                roles: data.app_roles?.split(",") || [],
+                admins: data.admin_roles?.split(",") || [],
+                channel: data.app_channel,
+                duration: data.vote_duration,
+                applications: new Collection()
+            };
+            if (data.applications) for (const application of JSON.parse(unescape(data.applications))) {
+                this.applications.applications.set(application.id, application);
+            }
         }
     }
 }
 
 export class ClientStorage {
     guilds: GuildConfigs = {};
+    polls: Collection<Snowflake, Poll> = new Collection();
+    giveaways: Collection<Snowflake, Giveaway> = new Collection();
     rm: RoleMessage[] = [];
     timers: Collection<Snowflake, NodeJS.Timeout> = new Collection();
     noLog: Snowflake[] = [];
@@ -142,7 +174,7 @@ export class ClientStorage {
     mathgames: Collection<any, any> = new Collection();
     migrating: any[] = [];
     gtimers: GuildTimer[] = [];
-    queries: LevelData[] = [];
+    pendingLvlData: LevelData[] = [];
 }
 
 export class LevelData {
@@ -157,6 +189,14 @@ export class LevelData {
     guild: Snowflake;
     exp: number;
     date: string;
+}
+
+export class PollVote {
+    constructor(m: Snowflake) {
+        this.message = m;
+    }
+
+    message: Snowflake;
 }
 
 export class NorthMessage extends Message {

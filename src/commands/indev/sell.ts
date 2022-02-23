@@ -41,7 +41,7 @@ class SellCommand implements SlashCommand {
         var reaction = collected.first();
         if (reaction.emoji.name === "✅") {
             const currentDate = new Date();
-            const newDateSql = jsDate2Mysql(new Date(currentDate.getTime() + 604800000));
+            const newDateSql = jsDate2Mysql(new Date(currentDate.getTime() + currentDate.getTimezoneOffset() * 60000 + 604800000));
             try {
                 var result = await query(`SELECT users FROM currency WHERE id = '${message.author.id}'`);
                 if (result.length == 0) await message.channel.send("You don't have any money!");

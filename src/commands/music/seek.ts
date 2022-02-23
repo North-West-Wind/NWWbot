@@ -1,7 +1,7 @@
 import { GuildMember, Message, VoiceChannel } from "discord.js";
 import { NorthInteraction, NorthMessage, ServerQueue, SlashCommand } from "../../classes/NorthClient.js";
 import { duration, ms, msgOrRes } from "../../function.js";
-import { createDiscordJSAdapter, getQueues, setQueue } from "../../helpers/music.js";
+import { createDiscordJSAdapter, getQueue, setQueue } from "../../helpers/music.js";
 import { joinVoiceChannel } from "@discordjs/voice";
 
 class SeekCommand implements SlashCommand {
@@ -18,7 +18,7 @@ class SeekCommand implements SlashCommand {
     }]
 
     async execute(interaction: NorthInteraction) {
-        var serverQueue = getQueues().get(interaction.guild.id);
+        var serverQueue = getQueue(interaction.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(interaction.guild.id, [], false, false);
         var parsed = ms(interaction.options.getString("time")) || interaction.options.getString("time");
         if (typeof parsed === "string" && parsed.endsWith("%")) {
@@ -30,7 +30,7 @@ class SeekCommand implements SlashCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        var serverQueue = getQueues().get(message.guild.id);
+        var serverQueue = getQueue(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         if (args.length < 1) return await message.channel.send("You didn't provide the time to skip to!");
         var parsed = ms(args.join(" "));

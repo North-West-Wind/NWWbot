@@ -31,29 +31,29 @@ export function setTimeout_(fn: Function, delay: number) {
     return setTimeout(fn, delay);
 }
 
-export function validURL(str) { return !!str.match(/^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?.*)?(\#[-a-z\d_]*)?$/i); }
-export function validYTURL(str) { return !!str.match(/^(https?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/.+/); }
-export function validYTPlaylistURL(str) { return !!str.match(/^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/playlist\?list=\w+/); }
-export function validSPURL(str) { return !!str.match(/^(spotify:|https:\/\/[a-z]+\.spotify\.com\/)/); }
-export function validGDURL(str) { return !!str.match(/^(https?)?:\/\/drive\.google\.com\/(file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing|open\?id=(?<id1>.*?)$)/); }
-export function validGDFolderURL(str) { return !!str.match(/^(https?)?:\/\/drive\.google\.com\/drive\/folders\/[\w\-]+(\?usp=sharing)?$/); }
-export function validGDDLURL(str) { return !!str.match(/^(https?)?:\/\/drive\.google\.com\/uc\?export=download&id=[\w-]+/); }
-export function validImgurURL(str) { return !!str.match(/^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/); }
-export function validImgurVideoURL(str) { return !!str.match(/^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/); }
-export function validImgur4wordsURL(str) { return !!str.match(/^https?:\/\/(\w+\.)?imgur.com\/(\w\/)?(\w*\w*)+(\.[a-zA-Z0-9]*)?$/); }
-export function validImgurAURL(str) { return !!str.match(/^https?:\/\/(\w+\.)?imgur.com\/(\w\/)?(\w*\w*)$/); }
-export function validNotImgurURL(str) { return !!str.match(/^https?:\/\/imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/); }
-export function validRedditURL(str) { return !!str.match(/^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z]{3})?$/); }
-export function validRedditVideoURL(str) { return !!str.match(/^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/); }
-export function validGfyURL(str) { return !!str.match(/^(http(s)?:\/\/)?((w){3}.)?gfycat(.com)?\/\w*/); }
-export function validRedGifURL(str) { return !!str.match(/^https?:\/\/(\w+\.)?redgifs.com\/(\w*\/)?(\w*\w*)$/); }
-export function validSCURL(str) { return !!str.match(/^https?:\/\/(soundcloud\.com|snd\.sc)\/(.+)?/); }
-export function validMSURL(str) { return !!str.match(/^(https?:\/\/)?musescore\.com\/(user\/\d+\/scores\/\d+|[\w-]+\/(scores\/\d+|[\w-]+))[#\?]?$/); }
-export function validPHURL(str) { return !!str.match(/^(https?:\/\/)(\w+\.)?pornhub\.com\/view_video\.php\?viewkey=\w+\/?$/); }
+export function validURL(str: string) { return !!str.match(/^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?.*)?(\#[-a-z\d_]*)?$/i); }
+export function validYTURL(str: string) { return !!str.match(/^(https?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/.+/); }
+export function validYTPlaylistURL(str: string) { return !!str.match(/^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(.com)?\/playlist\?list=\w+/); }
+export function validSPURL(str: string) { return !!str.match(/^(spotify:|https:\/\/[a-z]+\.spotify\.com\/)/); }
+export function validGDURL(str: string) { return !!str.match(/^(https?)?:\/\/drive\.google\.com\/(file\/d\/(?<id>.*?)\/(?:edit|view)\?usp=sharing|open\?id=(?<id1>.*?)$)/); }
+export function validGDFolderURL(str: string) { return !!str.match(/^(https?)?:\/\/drive\.google\.com\/drive\/folders\/[\w\-]+(\?usp=sharing)?$/); }
+export function validGDDLURL(str: string) { return !!str.match(/^(https?)?:\/\/drive\.google\.com\/uc\?export=download&id=[\w-]+/); }
+export function validImgurURL(str: string) { return !!str.match(/^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/); }
+export function validImgurVideoURL(str: string) { return !!str.match(/^https?:\/\/(\w+\.)?imgur.com\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/); }
+export function validImgur4wordsURL(str: string) { return !!str.match(/^https?:\/\/(\w+\.)?imgur.com\/(\w\/)?(\w*\w*)+(\.[a-zA-Z0-9]*)?$/); }
+export function validImgurAURL(str: string) { return !!str.match(/^https?:\/\/(\w+\.)?imgur.com\/(\w\/)?(\w*\w*)$/); }
+export function validNotImgurURL(str: string) { return !!str.match(/^https?:\/\/imgur.com\/(\w*\w*)+(\.[a-zA-Z]{3})?$/); }
+export function validRedditURL(str: string) { return !!str.match(/^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z]{3})?$/); }
+export function validRedditVideoURL(str: string) { return !!str.match(/^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/); }
+export function validGfyURL(str: string) { return !!str.match(/^(http(s)?:\/\/)?((w){3}.)?gfycat(.com)?\/\w*/); }
+export function validRedGifURL(str: string) { return !!str.match(/^https?:\/\/(\w+\.)?redgifs.com\/(\w*\/)?(\w*\w*)$/); }
+export function validSCURL(str: string) { return !!str.match(/^https?:\/\/(soundcloud\.com|snd\.sc)\/(.+)?/); }
+export function validMSURL(str: string) { return !!str.match(/^(https?:\/\/)?musescore\.com\/(user\/\d+\/scores\/\d+|[\w-]+\/(scores\/\d+|[\w-]+))[#\?]?$/); }
+export function validMSSetURL(str: string) { return !!str.match(/^https?:\/\/musescore.com\/user\/[\w-]+\/sets\/[\w-]+$/); }
 export function decodeHtmlEntity(str: string) { return str?.replace(/&#(\d+);/g, (_match, dec) => String.fromCharCode(dec)).replace(/&quot;/g, `"`).replace(/&amp;/g, `&`); }
-export function encodeHtmlEntity(str) {
+export function encodeHtmlEntity(str: string) {
     const buf = [];
-    for (var i = str.length - 1; i >= 0; i--) buf.unshift(["&#", str[i].charCodeAt(), ";"].join(""));
+    for (var i = str.length - 1; i >= 0; i--) buf.unshift(["&#", str.charCodeAt(i), ";"].join(""));
     return buf.join("");
 }
 
@@ -98,22 +98,29 @@ export async function findMember(message: Discord.Message, str: string): Promise
         await message.channel.send(err);
     }
 }
-export async function findRole(message, str, suppress = false) {
+export async function findRole(guild: Discord.Guild, str: string) {
     var roleID = str.replace(/<@&/g, "").replace(/>/g, "");
-    if (isNaN(parseInt(roleID))) {
-        var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === str);
-        if (!role) {
-            if (!suppress) await message.channel.send("No role was found with the name " + str);
-            return null;
-        }
-    } else {
-        var role = await message.guild.roles.cache.get(roleID);
-        if (!role) {
-            if (!suppress) await message.channel.send("No role was found!");
-            return null;
-        }
+    try {
+        var role: Discord.Role;
+        if (isNaN(parseInt(roleID))) role = guild.roles.cache.find(x => x.name.toLowerCase() === str.toLowerCase());
+        else role = await guild.roles.fetch(roleID);
+        if (!role) throw new Error();
+        return role;
+    } catch (err) {
+        return null;
     }
-    return role;
+}
+export async function findChannel(parent: Discord.Guild, str: string) {
+    var channelID = str.replace(/<#/g, "").replace(/>/g, "");
+    try {
+        var channel: Discord.Channel;
+        if (isNaN(parseInt(channelID))) channel = parent.channels.cache.find(x => x.name.toLowerCase() === str.toLowerCase());
+        else channel = await parent.channels.fetch(channelID);
+        if (!channel) throw new Error();
+        else return channel;
+    } catch (err) {
+        return null;
+    }
 }
 export function getRandomNumber(min, max) { return Math.random() * (max - min) + min; }
 export function applyText(canvas, text) {
@@ -138,7 +145,8 @@ export function elegantUnpair(z) {
     const sqrtz = Math.floor(Math.sqrt(z)), sqz = sqrtz * sqrtz;
     return z - sqz >= sqrtz ? [sqrtz, z - sqz - sqrtz] : [z - sqz, sqrtz];
 }
-export function jsDate2Mysql(newDate) {
+export function jsDate2Mysql(newDate: Date | number) {
+    if (typeof newDate === "number") newDate = new Date(newDate);
     function twoDigits(d) {
         if (0 <= d && d < 10) return "0" + d.toString();
         if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
@@ -243,18 +251,12 @@ export function ms(val: string) {
             }
             return mses.reduce((acc, c) => acc + c);
         }
-        var mses = [];
-        let temp = "";
-        let last = "";
-        for (let i = 0; i < val.length; i++) {
-            let char = val.substr(i, 1);
-            if (!/\d/.test(last) && /\d/.test(char) && i != 0) {
-                if (superms(temp) === undefined) return undefined;
-                mses.push(superms(temp));
-                temp = "";
-            }
-            temp += char;
-            if (val[i + 1] === undefined) mses.push(superms(temp));
+        const mses = [];
+        const split = val.match(/[\d\.]+[dhms]/g);
+        for (const str of split) {
+            const msed = superms(str);
+            if (!msed) return undefined;
+            mses.push(msed);
         }
         return mses.reduce((acc, c) => acc + c);
     } else return superms(val);
@@ -647,7 +649,7 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
         NorthClient.storage.guilds[results[0].id] = new GuildConfig(results[0]);
     } else {
         try {
-            await query(`INSERT INTO servers (id, autorole, giveaway, safe) VALUES ('${id}', '[]', '${escape("🎉")}', 1)`);
+            await query(`INSERT INTO servers (id, giveaway, safe) VALUES ('${id}', '${escape("🎉")}', 1)`);
             NorthClient.storage.guilds[id] = new GuildConfig();
         } catch (err: any) { }
     }
@@ -685,7 +687,7 @@ export function getText(key: string, lang: string = "en") {
     return str;
 }
 
-	const mysql_config = {
+const mysql_config = {
     connectTimeout: 60000,
     connectionLimit: 10,
     host: process.env.DBHOST,

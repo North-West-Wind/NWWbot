@@ -1,5 +1,5 @@
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { msgOrRes, ID, color, fixGuildRecord, query, wait, duration } from "../../function.js";
+import { msgOrRes, ID, color, fixGuildRecord, query, wait, duration, ms, findChannel } from "../../function.js";
 import { globalClient as client } from "../../common.js";
 import * as Discord from "discord.js";
 import { isImageUrl } from "../../function.js";
@@ -112,6 +112,7 @@ class ConfigCommand implements SlashCommand {
         .addComponents(new Discord.MessageButton({ label: "Giveaway Emoji", customId: "giveaway", style: "SECONDARY", emoji: "🎁" }))
         .addComponents(new Discord.MessageButton({ label: "Safe Mode", customId: "safemode", style: "SECONDARY", emoji: "🦺" }));
       const row2 = new Discord.MessageActionRow()
+        .addComponents(new Discord.MessageButton({ label: "Applications", customId: "app", style: "SECONDARY", emoji: "🧑‍💻" }))
         .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
       await msg.edit({ embeds: [panelEmbed], components: [row1, row2] });
       const interaction = await getButtonInteraction(msg);
@@ -123,55 +124,73 @@ class ConfigCommand implements SlashCommand {
         case "boost": return await boost(msg);
         case "giveaway": return await giveaway(msg);
         case "safemode": return await safe(msg);
+        case "app": return await application(msg);
         default: return await end(msg);
       }
     }
 
-    async function set(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, time: number, type: "message" | "channel" | "image" | "roles" | "reaction") {
+    async function set(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, time: number, type: "message" | "channel" | "image" | "roles" | "reaction" | "duration", extraData: any = {}) {
       panelEmbed.setDescription(`**${path}/Set**\nPlease enter the ${thing} in this channel.`)
         .setFooter({ text: `You will have ${duration(time, "milliseconds")}`, iconURL: msg.client.user.displayAvatarURL() });
       await msg.edit({ embeds: [panelEmbed] });
       const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, time, max: 1 });
       if (!msgCollected.first() || !msgCollected.first().content) return await end(msg);
       var content;
-      if (["message", "channel", "roles"].includes(type)) {
+      if (["message", "channel", "roles", "reaction", "duration"].includes(type)) {
         content = msgCollected.first().content.replace(/'/g, "\\'");
         msgCollected.first().delete().catch(() => { });
-        if (type === "channel") {
-          const channel = await msg.guild.channels.fetch(content);
-          if (!channel) {
-            panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
-              .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
-            await msg.edit({ embeds: [panelEmbed] });
-            await wait(3000);
-            return await start(msg);
-          }
-        } else if (type === "roles") {
-          const collectedArgs = msgCollected.first().content.split(/ +/);
-          content = [];
-
-          for (var i = 0; i < collectedArgs.length; i++) {
-            if (isNaN(parseInt(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, "")))) {
-              panelEmbed.setDescription(`**${path}/Set**\nOne of the roles is not valid! Returning to panel main page in 3 seconds...`)
+        switch (type) {
+          case "channel":
+            const channel = await findChannel(msg.guild, content);
+            if (!channel || !(channel instanceof Discord.TextChannel)) {
+              panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
                 .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
               await msg.edit({ embeds: [panelEmbed] });
               await wait(3000);
               return await start(msg);
             }
-            content.push(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, ""));
-          }
-        } else if (type === "reaction") {
-          content = msgCollected.first().content;
-          try {
-            await msg.react(content);
-            msg.reactions.removeAll().catch(() => { });
-          } catch (err) {
-            panelEmbed.setDescription(`**${path}/Set**\nThe reaction is not valid! Returning to panel main page in 3 seconds...`)
-              .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
-            await msg.edit({ embeds: [panelEmbed] });
-            await wait(3000);
-            return await start(msg);
-          }
+            content = channel.id;
+            break;
+          case "roles":
+            const collectedArgs = msgCollected.first().content.split(/ +/);
+            content = [];
+  
+            for (var i = 0; i < collectedArgs.length; i++) {
+              if (isNaN(parseInt(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, "")))) {
+                panelEmbed.setDescription(`**${path}/Set**\nOne of the roles is not valid! Returning to panel main page in 3 seconds...`)
+                  .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
+                await msg.edit({ embeds: [panelEmbed] });
+                await wait(3000);
+                return await start(msg);
+              }
+              content.push(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, ""));
+            }
+            if (extraData.max && content.length > extraData.max) 
+              panelEmbed.setDescription(`**${path}/Set**\nThere can only be at most ${extraData.max} roles! Returning to panel main page in 3 seconds...`)
+                .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
+            break;
+          case "reaction":
+            content = msgCollected.first().content;
+            try {
+              await msg.react(content);
+              msg.reactions.removeAll().catch(() => { });
+            } catch (err) {
+              panelEmbed.setDescription(`**${path}/Set**\nThe reaction is not valid! Returning to panel main page in 3 seconds...`)
+                .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
+              await msg.edit({ embeds: [panelEmbed] });
+              await wait(3000);
+              return await start(msg);
+            }
+            break;
+          case "duration":
+            content = ms(content);
+            if (isNaN(content)) {
+              panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
+                .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
+              await msg.edit({ embeds: [panelEmbed] });
+              await wait(3000);
+              return await start(msg);
+            }
         }
       } else if (type === "image") {
         content = [];
@@ -188,12 +207,13 @@ class ConfigCommand implements SlashCommand {
         if (configLoc.length === 1) cfg = config[configLoc[0]];
         else if (configLoc.length === 2) cfg = config[configLoc[0]][configLoc[1]];
         if (Array.isArray(cfg)) content = content.concat(cfg);
+        else content.push(cfg);
       }
       try {
         if (configLoc.length === 1) config[configLoc[0]] = content;
         else if (configLoc.length === 2) config[configLoc[0]][configLoc[1]] = content;
         NorthClient.storage.guilds[message.guild.id] = config;
-        await query(`UPDATE servers SET ${column} = '${content}' WHERE id = '${message.guild.id}'`);
+        await query(`UPDATE servers SET ${column} = ${typeof content === "number" ? content : `'${Array.isArray(content) ? content.join() : content}'`} WHERE id = '${message.guild.id}'`);
         panelEmbed.setDescription(`**${path}/Set**\n${thing} received! Returning to panel main page in 3 seconds...`);
       } catch (err: any) {
         console.error(err);
@@ -542,6 +562,115 @@ class ConfigCommand implements SlashCommand {
           await wait(3000);
           return await start(msg);
         case "back": return await welcome(msg);
+        default: return await end(msg);
+      }
+    }
+
+    async function application(msg: Discord.Message) {
+      panelEmbed.setDescription("**Applications**\nAllows user to apply for a specific role.\nPlease choose an option to configure by clicking a button.")
+        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
+      const row1 = new Discord.MessageActionRow()
+        .addComponents(new Discord.MessageButton({ label: "Applicable Roles", customId: "roles", style: "PRIMARY", emoji: "✉️" }))
+        .addComponents(new Discord.MessageButton({ label: "Voter Roles", customId: "admin", style: "PRIMARY", emoji: "🛠️" }))
+        .addComponents(new Discord.MessageButton({ label: "Channel", customId: "channel", style: "PRIMARY", emoji: "🏞️" }))
+        .addComponents(new Discord.MessageButton({ label: "Duration", customId: "duration", style: "SECONDARY", emoji: "⏰" }));
+      const row2 = new Discord.MessageActionRow()
+        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
+        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
+      await msg.edit({ embeds: [panelEmbed], components: [row1, row2] });
+      const interaction = await getButtonInteraction(msg);
+      if (!interaction) return await end(msg);
+      await interaction.update({ components: [] });
+      switch (interaction.customId) {
+        case "roles": return await applicationRoles(msg);
+        case "admin": return await applicationAdmins(msg);
+        case "channel": return await applicationChannel(msg);
+        case "duration": return await applicationDuration(msg);
+        case "back": return await start(msg);
+        default: return await end(msg);
+      }
+    }
+
+    async function applicationRoles(msg: Discord.Message) {
+      panelEmbed.setDescription("**Applications/Applicable Roles**\nRoles that users can apply for.\nPlease choose an option to configure by clicking a button.")
+        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
+      const row = new Discord.MessageActionRow()
+        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
+        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
+        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
+        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
+      await msg.edit({ embeds: [panelEmbed], components: [row] });
+      await msg.edit({ embeds: [panelEmbed], components: [row] });
+      const interaction = await getButtonInteraction(msg);
+      if (!interaction) return await end(msg);
+      await interaction.update({ components: [] });
+      switch (interaction.customId) {
+        case "set": return await set(msg, "Applications/Applicable Roles", ["applications", "roles"], "Applicable Roles", "app_roles", 60000, "roles", { max: 20 });
+        case "reset": return await reset(msg, "Applications/Applicable Roles", ["applications", "roles"], "Applicable Roles", "app_roles");
+        case "back": return await application(msg);
+        default: return await end(msg);
+      }
+    }
+
+    async function applicationAdmins(msg: Discord.Message) {
+      panelEmbed.setDescription("**Applications/Voter Roles**\nRoles that users will be voting for approval.\nPlease choose an option to configure by clicking a button.")
+        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
+      const row = new Discord.MessageActionRow()
+        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
+        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
+        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
+        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
+      await msg.edit({ embeds: [panelEmbed], components: [row] });
+      await msg.edit({ embeds: [panelEmbed], components: [row] });
+      const interaction = await getButtonInteraction(msg);
+      if (!interaction) return await end(msg);
+      await interaction.update({ components: [] });
+      switch (interaction.customId) {
+        case "set": return await set(msg, "Applications/Voter Roles", ["applications", "admins"], "Voter Roles", "admin_roles", 60000, "roles");
+        case "reset": return await reset(msg, "Applications/Voter Roles", ["applications", "admins"], "Voter Roles", "admin_roles");
+        case "back": return await application(msg);
+        default: return await end(msg);
+      }
+    }
+
+    async function applicationChannel(msg: Discord.Message) {
+      panelEmbed.setDescription("**Applications/Channel**\nWhere the application will be sent. Private channels are recommended.\nPlease choose an option to configure by clicking a button.")
+        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
+      const row = new Discord.MessageActionRow()
+        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
+        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
+        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
+        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
+      await msg.edit({ embeds: [panelEmbed], components: [row] });
+      await msg.edit({ embeds: [panelEmbed], components: [row] });
+      const interaction = await getButtonInteraction(msg);
+      if (!interaction) return await end(msg);
+      await interaction.update({ components: [] });
+      switch (interaction.customId) {
+        case "set": return await set(msg, "Applications/Channel", ["applications", "channel"], "Channel", "app_channel", 60000, "channel");
+        case "reset": return await reset(msg, "Applications/Channel", ["applications", "channel"], "Channel", "app_channel");
+        case "back": return await application(msg);
+        default: return await end(msg);
+      }
+    }
+
+    async function applicationDuration(msg: Discord.Message) {
+      panelEmbed.setDescription("**Applications/Duration**\nHow long until the application cannot be voted.\nPlease choose an option to configure by clicking a button.")
+        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
+      const row = new Discord.MessageActionRow()
+        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
+        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
+        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
+        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
+      await msg.edit({ embeds: [panelEmbed], components: [row] });
+      await msg.edit({ embeds: [panelEmbed], components: [row] });
+      const interaction = await getButtonInteraction(msg);
+      if (!interaction) return await end(msg);
+      await interaction.update({ components: [] });
+      switch (interaction.customId) {
+        case "set": return await set(msg, "Applications/Duration", ["applications", "duration"], "Duration", "vote_duration", 60000, "duration");
+        case "reset": return await reset(msg, "Applications/Duration", ["applications", "duration"], "Duration", "vote_duration");
+        case "back": return await application(msg);
         default: return await end(msg);
       }
     }
