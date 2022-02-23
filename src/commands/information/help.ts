@@ -47,7 +47,7 @@ class HelpCommand implements SlashCommand {
     const sub = interaction.options.getSubcommand();
     if (sub === "all") {
       await interaction.user.send({embeds: [await this.getAllCommands(interaction.guildId)]});
-      return await interaction.reply({ content: "Slided into your DM!", ephemeral: true });
+      return await interaction.reply({ content: "Slid into your DM!", ephemeral: true });
     }
     const name = interaction.options.getString("command").toLowerCase();
     await interaction.reply({ content: this.getCommand(name, "/", interaction.guildId).join("\n"), ephemeral: true });
