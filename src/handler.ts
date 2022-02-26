@@ -175,7 +175,7 @@ export class Handler {
         console.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(async (result: any) => {
             var currentDate = Date.now();
-            var time = result.endAt - currentDate;
+            var time = new Date(result.endAt).getTime() - currentDate;
             try {
                 const channel = <TextChannel>await client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
@@ -192,7 +192,7 @@ export class Handler {
                     .on("collect", async (reaction, user) => await updatePoll(msg.id, reaction, user))
                     .on("end", async () => await endPoll(await channel.messages.fetch(msg.id)));
             } catch (err) {
-                await query("DELETE FROM polls WHERE id = " + result.id);
+                if (!client.id) await query("DELETE FROM polls WHERE id = " + result.id);
                 return console.log("Deleted an ended poll.");
             }
         });
@@ -649,7 +649,7 @@ export class AliceHandler extends Handler {
         console.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(async (result: any) => {
             var currentDate = Date.now();
-            var time = result.endAt - currentDate;
+            var time = new Date(result.endAt).getTime() - currentDate;
             try {
                 const channel = <TextChannel>await client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
