@@ -186,12 +186,11 @@ export class Handler {
                         await updatePoll(msg.id, reaction, user);
                     }
                 }
-                const collector = msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
                 NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map((array: Snowflake[]) => new Set(array)) });
-                collector.on("collect", async (reaction, user) => await updatePoll(msg.id, reaction, user));
-                collector.on("end", async () => {
-                    await endPoll(await channel.messages.fetch(msg.id));
-                });
+                if (time <= 0) return await endPoll(msg);
+                msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot })
+                    .on("collect", async (reaction, user) => await updatePoll(msg.id, reaction, user))
+                    .on("end", async () => await endPoll(await channel.messages.fetch(msg.id)));
             } catch (err) {
                 await query("DELETE FROM polls WHERE id = " + result.id);
                 return console.log("Deleted an ended poll.");
@@ -661,12 +660,11 @@ export class AliceHandler extends Handler {
                         await updatePoll(msg.id, reaction, user);
                     }
                 }
-                const collector = msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
                 NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map((array: Snowflake[]) => new Set(array)) });
-                collector.on("collect", async (reaction, user) => await updatePoll(msg.id, reaction, user));
-                collector.on("end", async () => {
-                    await endPoll(await channel.messages.fetch(msg.id));
-                });
+                if (time <= 0) return await endPoll(msg);
+                msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot })
+                    .on("collect", async (reaction, user) => await updatePoll(msg.id, reaction, user))
+                    .on("end", async () => await endPoll(await channel.messages.fetch(msg.id)));
             } catch (err) {
                 await query("DELETE FROM polls WHERE id = " + result.id);
                 return console.log("Deleted an ended poll.");
