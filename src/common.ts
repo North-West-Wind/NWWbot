@@ -4,6 +4,7 @@ import { NorthClient, Card, SlashCommand, Item, ClientStorage } from "./classes/
 import { twoDigits, deepReaddir, query } from "./function.js";
 import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
+import memwatch from "node-memwatch-new";
 import { AliceHandler, CanaryHandler, Handler } from "./handler.js";
 import pkg from "../package.json";
 var globalClient: NorthClient;
@@ -42,6 +43,7 @@ function reloadClient() {
 
 export default async (client: NorthClient) => {
   if (!fs.existsSync("log")) fs.mkdirSync("log");
+  if (!fs.existsSync("log/memDump")) fs.mkdirSync("log/memDump");
   logger = SimpleNodeLogger.createSimpleLogger({
     logFilePath: `log/console_${client.id}.log`,
     timestampFormat:  'YYYY-MM-DD HH:mm:ss.SSS'
@@ -52,6 +54,10 @@ export default async (client: NorthClient) => {
   console.error = (message: string, ...data: any[]) => logger.error(message, ...data);
   client.setVersion(pkg.version);
   globalClient = client;
+  memwatch.on("leak", (info: any) => {
+    console.debug("Potentially leaking stuff!");
+    console.debug(info);
+  });
   const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
   for (const file of fontFiles) canvas.registerFont(`./fonts/${file}`, { family: "NotoSans", style: file.split(/[\-\.]/)[1].toLowerCase() });
   canvas.registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });
@@ -89,13 +95,6 @@ export default async (client: NorthClient) => {
       NorthClient.storage.pendingLvlData = [];
     }
   }, 60000);
-  setInterval(async () => {
-    const memUse = process.memoryUsage();
-    if (memUse.heapUsed > memUse.rss * 0.8) {
-      console.debug("80% heap used! ", Math.round(memUse.heapUsed / 1024 / 1024), "MB/", Math.round(memUse.rss / 1024 / 1024), "MB");
-      console.debug("Last run command: ", Handler.lastRunCommand);
-    }
-  }, 5000);
 }
 
 export { globalClient };

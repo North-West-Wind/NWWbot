@@ -50,6 +50,7 @@
     "music-metadata": "^7.11.7",
     "mysql2": "^2.3.3-rc.0",
     "node-fetch": "^3.2.0",
+    "node-memwatch-new": "^0.0.3",
     "number-to-words": "^1.2.4",
     "opusscript": "^0.0.8",
     "oxford-dictionary": "^1.5.1",
