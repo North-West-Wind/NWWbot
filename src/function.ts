@@ -686,7 +686,7 @@ export function getText(key: string, lang: string = "en") {
 }
 
 export async function query(query: string) {
-    const res = await fetch("http://192.168.1.29:4269/api/" + encodeURIComponent(query) + "?token=" + process.env.DB_TOKEN);
+    const res = await fetch("http://192.168.1.29:4269/api/query", { method: "post", body: JSON.stringify({ token: process.env.DB_TOKEN, query }), headers: { 'Content-Type': 'application/json' } });
     if (!res.ok) return null;
     else return <any> await res.json();
 }

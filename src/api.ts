@@ -43,9 +43,10 @@ const profiles = {};
 const clans = {};
 
 const app = express();
+app.use(express.json())
 
-app.get("/api/:query", async(req, res) => {
-    if (req.query.token !== process.env.DB_TOKEN) return res.sendStatus(403);
+app.post("/api/query", async(req, res) => {
+    if (req.body.token !== process.env.DB_TOKEN) return res.sendStatus(403);
     if (!con) {
         con = await pool.getConnection();
         conTimeout = setTimeout(() => {
@@ -54,7 +55,7 @@ app.get("/api/:query", async(req, res) => {
             conTimeout = undefined;
         }, 30000);
     } else if (conTimeout) conTimeout.refresh();
-    const [results] = <mysql.RowDataPacket[][]> await con.query(req.params.query);
+    const [results] = <mysql.RowDataPacket[][]> await con.query(req.body.query);
     res.json(results);
 });
 
