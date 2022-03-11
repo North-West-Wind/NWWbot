@@ -702,7 +702,7 @@ export class AliceHandler extends Handler {
                     return await msg.edit("Failed to request Hypixel API!").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
                 }
                 const hyDc = res.links.DISCORD;
-                if (hyDc !== message.author.tag) return await msg.edit("⚠️This Hypixel account is not linked to your Discord account!\nhttps://imgur.com/8ILZ3LX").then(msg => setTimeout(() => msg.delete().catch(() => {}), 60000));
+                if (hyDc !== message.author.tag) return await msg.edit("⚠️This Hypixel account is not linked to your Discord account!\nIf you have just linked your account, you may need to wait for a few minutes.\nhttps://cdn.discordapp.com/attachments/647630951169523762/951420917588836372/verify.gif").then(msg => setTimeout(() => msg.delete().catch(() => {}), 60000));
                 var results = await query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                 if (results.length == 0) {
                     await query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
