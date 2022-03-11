@@ -463,7 +463,7 @@ export class Handler {
         const command = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
         Handler.lastRunCommand = command.name;
-        const heapDiff = new memwatch.HeapDiff();
+        //const heapDiff = new memwatch.HeapDiff();
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
@@ -474,8 +474,8 @@ export class Handler {
                 await msg.reply(error);
             } catch (err: any) { }
         }
-        const diff = heapDiff.end();
-        fs.writeFileSync(`log/memDump/${Date.now()}.json`, JSON.stringify({ command: command.name, diff }, null, 2), { encoding: "utf8" });
+        //const diff = heapDiff.end();
+        //fs.writeFileSync(`log/memDump/${Date.now()}.json`, JSON.stringify({ command: command.name, diff }, null, 2), { encoding: "utf8" });
     }
 }
 
