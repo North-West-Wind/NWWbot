@@ -23,12 +23,14 @@ class TranslateCommand implements SlashCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
+        const msg = await message.channel.send("Translating! (Iterating through 25 languages!)")
         await this.repeat(message, args.join(" "));
+        await msg.delete();
     }
 
     async repeat(message: NorthMessage | NorthInteraction, text: string) {
         const langCopy = shuffleArray(langs);
-        for (let i = 0; i < 50; i++) text = await translate(text, { to: langCopy[i] });
+        for (let i = 0; i < 25; i++) text = await translate(text, { to: langCopy[i] });
         await msgOrRes(message, await translate(text, { to: "en" }));
     }
 }
