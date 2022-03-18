@@ -92,6 +92,7 @@ class KrunkerCommand implements SlashCommand {
     }
 
     async stats(message: Discord.Message | Discord.CommandInteraction, username: string) {
+        return await msgOrRes(message, "This feature is currently disabled.");
         const controller = new AbortController();
         const timeout = setTimeout(() => {
             controller.abort();
@@ -110,6 +111,7 @@ class KrunkerCommand implements SlashCommand {
     }
 
     async clan(message: Discord.Message | Discord.CommandInteraction, name: string) {
+        return await msgOrRes(message, "This feature is currently disabled.");
         const controller = new AbortController();
         const timeout = setTimeout(() => {
             controller.abort();
