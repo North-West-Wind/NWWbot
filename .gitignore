@@ -4,3 +4,4 @@ test
 out
 log
 .bot-track-cache
+**/tmp
