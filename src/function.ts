@@ -667,6 +667,18 @@ export function humanDurationToNum(duration: string) {
     return sec;
 }
 
+export function milliToHumanDuration(milli: number) {
+    var x = Math.floor(milli / 1000);
+    const seconds = x % 60;
+    x = Math.floor(x / 60);
+    const minutes = x % 60;
+    x = Math.floor(x / 60);
+    const hours = x % 24;
+    x = Math.floor(x / 24);
+    const days = x;
+    return `${days}D, ${hours}H, ${minutes}M, ${seconds}S`
+}
+
 export function getText(key: string, lang: string = "en") {
     if (!key) return "";
     const languageJson = require(`../lang/${lang}.json`);
@@ -689,6 +701,11 @@ export async function query(query: string) {
     const res = await fetch("http://192.168.1.29:4269/api/query", { method: "post", body: JSON.stringify({ token: process.env.DB_TOKEN, query }), headers: { 'Content-Type': 'application/json' } });
     if (!res.ok) return null;
     else return <any> await res.json();
+}
+
+export async function roundTo(num: number, decimal: number) {
+    const powed = Math.pow(10, decimal);
+    return Math.round((num + Number.EPSILON) * powed) / powed;
 }
 
 export async function checkTradeW1nd(guild: Discord.Snowflake) {
