@@ -27,7 +27,7 @@ app.post("/api/query", async(req, res) => {
     if (!con) {
         con = await pool.getConnection();
         conTimeout = setTimeout(() => {
-            con.release();
+            con?.release();
             con = undefined;
             conTimeout = undefined;
         }, 30000);
