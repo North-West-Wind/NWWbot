@@ -143,14 +143,12 @@ class PollCommand implements SlashCommand {
             .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
         const mesg = await channel.send({ content: pollMsg, embeds: [Embed] });
         for (var i = 0; i < optionArray.length; i++) await mesg.react(emojis[i]);
-        const collector = mesg.createReactionCollector({ time: duration, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
         const votes: Set<Discord.Snowflake>[] = [];
         for (let i = 0; i < options.length; i++) votes.push(new Set());
         NorthClient.storage.polls.set(mesg.id, { options: allOptions, votes });
-        collector.on("collect", async (reaction, user) => await updatePoll(mesg.id, reaction, user));
-        collector.on("end", async () => {
-            await endPoll(await channel.messages.fetch(mesg.id));
-        });
+        mesg.createReactionCollector({ time: duration, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot })
+            .on("collect", async (reaction, user) => await updatePoll(mesg.id, reaction, user))
+            .on("end", async () => await endPoll(await channel.messages.fetch(mesg.id)));
         await query(`INSERT INTO polls VALUES(${mesg.id}, ${message.guild.id}, ${channel.id}, ${author.id}, '${escape(JSON.stringify(options))}', '${newDateSql}', '${escape(JSON.stringify(Array(options.length).fill([])))}')`);
     }
 

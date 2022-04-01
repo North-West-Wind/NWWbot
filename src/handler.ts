@@ -1,4 +1,6 @@
 import cv from "canvas";
+import memwatch from "node-memwatch-new";
+import * as fs from "fs";
 import { CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageAttachment, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Snowflake, TextChannel, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
@@ -175,7 +177,7 @@ export class Handler {
         console.log(`[${client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(async (result: any) => {
             var currentDate = Date.now();
-            var time = result.endAt - currentDate;
+            var time = new Date(result.endAt).getTime() - currentDate;
             try {
                 const channel = <TextChannel>await client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
@@ -186,14 +188,13 @@ export class Handler {
                         await updatePoll(msg.id, reaction, user);
                     }
                 }
-                const collector = msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot });
                 NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map((array: Snowflake[]) => new Set(array)) });
-                collector.on("collect", async (reaction, user) => await updatePoll(msg.id, reaction, user));
-                collector.on("end", async () => {
-                    await endPoll(await channel.messages.fetch(msg.id));
-                });
+                if (time <= 0) return await endPoll(msg);
+                msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot })
+                    .on("collect", async (reaction, user) => await updatePoll(msg.id, reaction, user))
+                    .on("end", async () => await endPoll(await channel.messages.fetch(msg.id)));
             } catch (err) {
-                await query("DELETE FROM polls WHERE id = " + result.id);
+                if (!client.id) await query("DELETE FROM polls WHERE id = " + result.id);
                 return console.log("Deleted an ended poll.");
             }
         });
@@ -462,6 +463,7 @@ export class Handler {
         const command = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
         Handler.lastRunCommand = command.name;
+        //const heapDiff = new memwatch.HeapDiff();
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
@@ -472,5 +474,7 @@ export class Handler {
                 await msg.reply(error);
             } catch (err: any) { }
         }
+        //const diff = heapDiff.end();
+        //fs.writeFileSync(`log/memDump/${Date.now()}.json`, JSON.stringify({ command: command.name, diff }, null, 2), { encoding: "utf8" });
     }
 }

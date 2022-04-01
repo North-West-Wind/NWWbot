@@ -46,20 +46,32 @@ class HelpCommand implements SlashCommand {
   async execute(interaction: NorthInteraction) {
     const sub = interaction.options.getSubcommand();
     if (sub === "all") {
-      await interaction.user.send({embeds: [await this.getAllCommands(interaction.guildId)]});
-      return await interaction.reply({ content: "Slid into your DM!", ephemeral: true });
+      try {
+        await interaction.user.send({ embeds: [await this.getAllCommands(interaction.guildId)] });
+        await interaction.reply({ content: "Slid into your DM!", ephemeral: true });
+      } catch (err) {
+        await interaction.reply({ embeds: [await this.getAllCommands(interaction.guildId)], ephemeral: true });
+      }
+    } else {
+      const name = interaction.options.getString("command").toLowerCase();
+      await interaction.reply({ content: this.getCommand(name, "/", interaction.guildId).join("\n"), ephemeral: true });
     }
-    const name = interaction.options.getString("command").toLowerCase();
-    await interaction.reply({ content: this.getCommand(name, "/", interaction.guildId).join("\n"), ephemeral: true });
   }
 
   async run(message: NorthMessage, args: string[]) {
     if (!args.length) {
-      await message.author.send({embeds: [await this.getAllCommands(message.guildId)]});
-      return await message.react("💨");
+      try {
+        await message.author.send({ embeds: [await this.getAllCommands(message.guildId)] });
+        await message.react("💨");
+      } catch (err) {
+        const msg = await message.channel.send({ embeds: [await this.getAllCommands(message.guildId)] });
+        await wait(30000);
+        msg.delete().catch(() => { });
+      }
+    } else {
+      const name = args[0].toLowerCase();
+      await message.channel.send(this.getCommand(name, message.prefix, message.guildId).join("\n"));
     }
-    const name = args[0].toLowerCase();
-    await message.channel.send(this.getCommand(name, message.prefix, message.guildId).join("\n"));
   }
 
   async getAllCommands(guildID: Discord.Snowflake) {

@@ -21,6 +21,7 @@ class DownloadCommand implements SlashCommand {
     }]
 
     async execute(interaction: NorthInteraction) {
+        return await interaction.reply("This feature is currently disabled.");
         var serverQueue = getQueue(interaction.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(interaction.guild.id, [], false, false);
         const keywords = interaction.options.getString("keywords");
@@ -34,6 +35,7 @@ class DownloadCommand implements SlashCommand {
     }
     
     async run(message: NorthMessage, args: string[]) {
+        return await message.reply("This feature is currently disabled.");
         var serverQueue = getQueue(message.guild.id);
         if (!serverQueue || !serverQueue.songs || !Array.isArray(serverQueue.songs)) serverQueue = setQueue(message.guild.id, [], false, false);
         const parsed = parseInt(args[0]);

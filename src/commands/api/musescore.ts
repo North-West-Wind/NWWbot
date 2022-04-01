@@ -90,7 +90,7 @@ class MusescoreCommand implements SlashCommand {
             .setTitle(data.title)
             .setURL(data.url)
             .setThumbnail(data.thumbnails.original)
-            .setDescription(`Description: **${data.description}**\n\nClick 📥 to download **MP3/PDF/MIDI**\nFor **other formats (MSCZ/MXL)**, please use [Xmader's Musescore Downloader](https://github.com/LibreScore/dl-musescore)`)
+            .setDescription(`Description: **${data.description}**\n\n~~Click 📥 to download **MP3/PDF/MIDI**~~ This is currently disabled\nFor **other formats (MSCZ/MXL)**, please use [Xmader's Musescore Downloader](https://github.com/LibreScore/dl-musescore)`)
             .addField("ID", data.id.toString(), true)
             .addField("Author", data.user.name, true)
             .addField("Duration", data.duration, true)
@@ -102,8 +102,9 @@ class MusescoreCommand implements SlashCommand {
             .setTimestamp()
             .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
         msg = await msg.edit({ content: null, embeds: [em] });
+        return;
         await msg.react("📥");
-        const author = (message instanceof Discord.Message ? message.author : (message.member?.user || await message.client.users.fetch(message.channelId))).id;
+        const author = (message.member?.user || await message.client.users.fetch(message.channelId)).id;
         const collected = await msg.awaitReactions({ filter: (r, u) => r.emoji.name === "📥" && u.id === author, max: 1, time: 30000 });
         await msg.reactions.removeAll().catch(() => { });
         if (collected && collected.first()) {

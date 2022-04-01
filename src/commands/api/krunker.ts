@@ -1,30 +1,10 @@
 import * as Discord from "discord.js";
-import * as DCBots from "discord-user-bots";
-import { color, getFetch, msgOrRes, wait } from "../../function.js";
+import { color, getFetch, milliToHumanDuration, msgOrRes, readableDateTime, roundTo, wait } from "../../function.js";
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { run } from "../../helpers/puppeteer.js";
 import { Page } from "puppeteer-core";
 import { globalClient as client } from "../../common.js";
-
-const profiles = {};
-const clans = {};
-const clientU = new DCBots.Client(process.env.TOKEN_U);
-clientU.on.message_create = async (message: any) => {
-    if (message.author.id != process.env.GBID) return;
-    const msg = (await clientU.fetch_messages(2, process.env.CHANNEL_U))[1];
-    if (msg.author.id != clientU.user.id) return;
-    const [command, name] = msg.content.split(" ");
-    switch (<string>command) {
-        case "g.pf":
-            if (message.embeds.length || !message.attachments[0]?.url) profiles[name] = { found: false };
-            else profiles[name] = { found: true, url: message.attachments[0].url };
-            break;
-        case "g.clan":
-            if (message.embeds.length || !message.content) clans[name] = { found: false };
-            else clans[name] = { found: true, url: message.content };
-            break;
-    }
-}
+import { Clan, Profile, Response } from "../../classes/Krunker.js";
 
 class KrunkerCommand implements SlashCommand {
     name = "krunker";
@@ -92,7 +72,6 @@ class KrunkerCommand implements SlashCommand {
 
     async execute(interaction: NorthInteraction) {
         await interaction.deferReply();
-        const sub = interaction.options.getSubcommand();
         switch (interaction.options.getSubcommand()) {
             case "stats": return await this.stats(interaction, interaction.options.getString("username"));
             case "clan": return await this.clan(interaction, interaction.options.getString("name"));
@@ -112,39 +91,57 @@ class KrunkerCommand implements SlashCommand {
     }
 
     async stats(message: Discord.Message | Discord.CommandInteraction, username: string) {
-        await clientU.send(process.env.CHANNEL_U, { content: `g.pf ${username}` });
-        var timeout = 0;
-        async function check() {
-            await wait(100);
-            timeout += 100;
-            if (timeout >= 10000) await msgOrRes(message, "Failed to acquire user stats!")
-            else if (!profiles[username]) await check();
-            else {
-                const json = profiles[username];
-                if (!json.found) return await msgOrRes(message, "The user does not exist!");
-                else await msgOrRes(message, { files: [new Discord.MessageAttachment(json.url)] });
-                delete profiles[username];
-            }
+        try {
+            const res = await getFetch()("https://kr.vercel.app/api/profile?username=" + username);
+            if (!res.ok) throw new Error();
+            const json = <Response>await res.json();
+            if (!json.success) throw new Error(json.error);
+            const data = <Profile>json.data;
+            const em = new Discord.MessageEmbed()
+                .setTitle(`${data.username} [${data.clan}]`)
+                .setURL("https://krunker.io/social.html?p=profile&q=" + data.username)
+                .setDescription(`ID: **${data.id}**\nLevel: **${data.level}** | **${data.levelPercentage.percent}%**`)
+                .addField("Kills / Deaths / Ratio", `**${data.kills}** / **${data.deaths}** / **${roundTo(data.kills / data.deaths, 2)}**`, true)
+                .addField("Wins / Losses / Ratio / Games", `**${data.wins}** / **${data.games - data.wins}** / **${roundTo(data.wins / (data.games - data.wins), 2)}** / **${data.games}**`, true)
+                .addField("Score (per Kill / Game)", `**${data.score}** / **${roundTo(data.score / data.kills, 2)}** / **${roundTo(data.score / data.games, 2)}**`, true)
+                .addField("Time Played", `**${milliToHumanDuration(data.timePlayed)}**`, true)
+                .addField("Creation Date", `**${readableDateTime(new Date(data.createdAt))}**`, true)
+                .addField("Followers / Following", `**${data.followers}** / **${data.following}**`, true)
+                .addField("KR", `**${data.funds}**`, true)
+                .addField("Hacker / Verified / Infected", `**${data.hacker ? "Y" : "N"}** / **${data.verified ? "Y" : "N"}** / **${data.infected ? "Y" : "N"}**`, true)
+                .addField("Maps / Mods / Assets / Skins", `**${data.maps.length}** / **${data.mods.length}** / **${data.assets.length}** / **${data.skins.length}**`, true)
+                .setTimestamp()
+                .setFooter({ text: "Made with hitthemoney's API", iconURL: message.client.user.displayAvatarURL() });
+            await msgOrRes(message, em);
+        } catch (err: any) {
+            await msgOrRes(message, "Failed to acquire user stats!");
+            if (err.message) console.error(err);
         }
-        await check();
     }
 
     async clan(message: Discord.Message | Discord.CommandInteraction, name: string) {
-        await clientU.send(process.env.CHANNEL_U, { content: `g.clan ${name}` });
-        var timeout = 0;
-        async function check() {
-            await wait(100);
-            timeout += 100;
-            if (timeout >= 10000) await msgOrRes(message, "Failed to acquire clan stats!")
-            else if (!clans[name]) await check();
-            else {
-                const json = clans[name];
-                if (!json.found) return await msgOrRes(message, "The clan does not exist!");
-                else await msgOrRes(message, { files: [new Discord.MessageAttachment(json.url)] });
-                delete clans[name];
-            }
+        try {
+            const res = await getFetch()("https://kr.vercel.app/api/clan?clan=" + name);
+            if (!res.ok) throw new Error();
+            const json = <Response>await res.json();
+            if (!json.success) throw new Error(json.error);
+            const data = <Clan>json.data;
+            const em = new Discord.MessageEmbed()
+                .setTitle(`${data.name}`)
+                .setURL("https://krunker.io/social.html?p=clan&q=" + data.name)
+                .setDescription(`ID: **${data.id}**\nLevel: **${data.level}**\nOwner: **${data.owner}**`)
+                .addField("Members", `**${data.members.length}**`, true)
+                .addField("Score", `**${data.score}**`, true)
+                .addField("KR", `**${data.funds}**`, true)
+                .setTimestamp()
+                .setFooter({ text: "Made with hitthemoney's API", iconURL: message.client.user.displayAvatarURL() });
+            if (data.discord) em.setDescription(em.description + `\nDiscord: [Join](https://discord.gg/${data.discord})`);
+            await msgOrRes(message, em);
+        } catch (err: any) {
+            await msgOrRes(message, "Failed to acquire user stats!");
+            if (err.message) console.error(err);
         }
-        await check();
+        return await msgOrRes(message, "This feature is currently disabled.");
     }
 
     async server(message: Discord.Message | Discord.CommandInteraction, search: string, author: Discord.User) {

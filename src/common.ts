@@ -38,6 +38,7 @@ function reloadClient() {
 
 export default async (client: NorthClient) => {
   if (!fs.existsSync("log")) fs.mkdirSync("log");
+  if (!fs.existsSync("log/memDump")) fs.mkdirSync("log/memDump");
   logger = SimpleNodeLogger.createSimpleLogger({
     logFilePath: `log/console_${client.id}.log`,
     timestampFormat:  'YYYY-MM-DD HH:mm:ss.SSS'
@@ -69,12 +70,6 @@ export default async (client: NorthClient) => {
   if (!fs.existsSync(process.env.CACHE_DIR)) fs.mkdirSync(process.env.CACHE_DIR);
 
   setInterval(async () => {
-    const memUse = process.memoryUsage();
-    if (memUse.heapUsed > memUse.rss * 0.8) {
-      console.debug("80% heap used! ", Math.round(memUse.heapUsed / 1024 / 1024), "MB/", Math.round(memUse.rss / 1024 / 1024), "MB");
-      console.debug("Last run command: ", Handler.lastRunCommand);
-    }
-
     if (NorthClient.storage.pendingLvlData.length) {
       try {
         const results = await query(`SELECT * FROM leveling`);
