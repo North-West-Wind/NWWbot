@@ -44,7 +44,7 @@ class YachtCommand implements SlashCommand {
         const em = new Discord.MessageEmbed()
             .setTitle(`Yacht Dice Game (Round 1)`)
             .setColor(color())
-            .setDescription(st + `\nCommands:\n**Roll** - Roll the dices (${3 - rolled} times left)\n**Lock <index>** - Lock the dices with indexes 1 to 6\n**Score <category>** Choose a category to place your score and move to the next turn\n**End** - End the game immediately`)
+            .setDescription(st + `\nCommands:\n**Roll** - Rolls the dice (${3 - rolled} times left)\n**Lock <index>** - Locks the dice with indexes 1 to 6\n**Score <category>** Chooses a category to place your score and move to the next turn\n**End** - Ends the game immediately`)
             .setTimestamp()
             .setFooter({ text: "Please type in commands within 2 minutes.", iconURL: message.client.user.displayAvatarURL() });
         var msg = <Discord.Message> await msgOrRes(message, em);
