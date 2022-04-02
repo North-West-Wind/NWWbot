@@ -32,8 +32,12 @@ app.post("/api/query", async(req, res) => {
             conTimeout = undefined;
         }, 30000);
     } else if (conTimeout) conTimeout.refresh();
-    const [results] = <mysql.RowDataPacket[][]> await con.query(req.body.query);
-    res.json(results);
+    try {
+        const [results] = <mysql.RowDataPacket[][]> await con.query(req.body.query);
+        res.json(results);
+    } catch (err) {
+        res.sendStatus(500);
+    }
 });
 
 app.listen(4269, () => console.log("API Ready!"));
