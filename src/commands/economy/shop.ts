@@ -1,7 +1,7 @@
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js"
 import * as Discord from "discord.js";
-import { color, wait, genPermMsg, ID, msgOrRes, query } from "../../function.js";
+import { color, wait, genPermMsg, ID, msgOrRes, query, roundTo } from "../../function.js";
 import { globalClient as client } from "../../common.js";
 
 
@@ -316,11 +316,11 @@ class ShopCommand implements SlashCommand {
         if (!collected1.first()?.content) return await msg.edit("I cannot read the message!");
         if (collected1.first().content.toLowerCase() == "cancel") return await msg.edit("Action cancelled.");
         const prices = collected1.first().content.split(/ +/);
-        const buyPrice = Math.round((Number(prices[0]) + Number.EPSILON) * 100) / 100;
+        const buyPrice = roundTo(Number(prices[0]), 2);
         if (isNaN(buyPrice)) return await msg.edit("The buying price entered is not valid.");
         var sellPrice = buyPrice;
         if (prices.length < 2) await msg.edit("Selling price missing. I'll assume that it equals to the buying price.");
-        else sellPrice = Math.round((Number(prices[1]) + Number.EPSILON) * 100) / 100;
+        else sellPrice = roundTo(Number(prices[1]), 2);
         if (isNaN(sellPrice)) return await msg.edit("The selling price entered is not valid.");
         await msg.edit(`**${name}** will be able to be bought with **$${buyPrice}** and sold at **$${sellPrice}**.\nNext, please enter the purchase limit and the stock limit of it. (Use space to separate them) (negative number for infinity)`);
         const collected2 = await message.channel.awaitMessages({ filter: x => x.author.id === author.id,  max: 1, time: 30000 });

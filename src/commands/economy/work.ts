@@ -1,7 +1,7 @@
 import randomWords from "@genzou/random-words";
 import Canvas from "canvas";
 import * as Discord from "discord.js";
-import { getRandomNumber, applyText, jsDate2Mysql, query } from "../../function.js";
+import { getRandomNumber, applyText, jsDate2Mysql, query, roundTo } from "../../function.js";
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 
 class WorkCommand implements SlashCommand {
@@ -18,15 +18,15 @@ class WorkCommand implements SlashCommand {
     if (Date.now() - lastDate < 3600000) return await interaction.reply("You can only work once an hour!");
     await interaction.reply("Distributing work...");
     const worked = results[0]?.worked || 0;
-    var gain = Math.round((getRandomNumber(Math.pow(2, worked / 20), 1.2 * Math.pow(2, worked / 20)) + Number.EPSILON) * 100) / 100;
+    var gain = roundTo(getRandomNumber(Math.pow(2, worked / 20), 1.2 * Math.pow(2, worked / 20)), 2)
     await interaction.deleteReply();
     const rate = await this.work(interaction, worked);
     var doubling = false;
     if (results[0]?.doubling && results[0].doubling - Date.now() > 0) doubling = true;
     gain *= rate * (doubling ? 2 : 1);
-    var newCurrency = Math.round(((Number(results[0]?.currency) || 0) + gain + Number.EPSILON) * 100) / 100;
+    var newCurrency = roundTo((results[0]?.currency || 0) + gain, 2);
     await query(`UPDATE users SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE id = '${interaction.user.id}'`);
-    await interaction.channel.send(`<@${interaction.user.id}> worked and gained **$${Math.round((gain + Number.EPSILON) * 100) / 100}**${rate < 1 ? ` (and it's multiplied by **${rate}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
+    await interaction.channel.send(`<@${interaction.user.id}> worked and gained **$${roundTo(gain, 2)}**${rate < 1 ? ` (and it's multiplied by **${rate}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
   }
 
   async run(message: NorthMessage) {
@@ -37,14 +37,14 @@ class WorkCommand implements SlashCommand {
     const lastDate = results[0]?.last_worked || new Date(0);
     if (Date.now() - lastDate < 3600000) return message.channel.send("You can only work once an hour!");
     const worked = results[0]?.worked || 0;
-    var gain = Math.round((getRandomNumber(Math.pow(2, worked / 20), 1.2 * Math.pow(2, worked / 20)) + Number.EPSILON) * 100) / 100;
+    var gain = roundTo(getRandomNumber(Math.pow(2, worked / 20), 1.2 * Math.pow(2, worked / 20)), 2);
     const rate = await this.work(message, worked);
     var doubling = false;
     if (results[0]?.doubling && results[0].doubling - Date.now() > 0) doubling = true;
     gain *= rate * (doubling ? 2 : 1);
-    var newCurrency = Math.round(((Number(results[0]?.currency) || 0) + gain + Number.EPSILON) * 100) / 100;
+    var newCurrency = roundTo((results[0]?.currency || 0) + gain, 2);
     await query(`UPDATE users SET currency = ${newCurrency}, worked = ${worked + 1}, last_worked = '${currentDateSql}'${(!doubling ? ", doubling = NULL" : "")} WHERE id = '${message.author.id}'`);
-    await message.channel.send(`<@${message.author.id}> worked and gained **$${Math.round((gain + Number.EPSILON) * 100) / 100}**${rate < 1 ? ` (and it's multiplied by **${rate}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
+    await message.channel.send(`<@${message.author.id}> worked and gained **$${roundTo(gain, 2)}**${rate < 1 ? ` (and it's multiplied by **${rate}**)` : ""}!${(doubling ? " The money you gained is doubled!" : "")}`);
   }
 
   async work(message: NorthMessage | NorthInteraction, worked: number) {

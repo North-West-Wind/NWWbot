@@ -2,7 +2,7 @@ import { Message } from "discord.js";
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { globalClient as client } from "../../common.js";
 import * as Discord from "discord.js";
-import { color, msgOrRes, query, wait } from "../../function.js";
+import { color, msgOrRes, query, roundTo, wait } from "../../function.js";
 
 class BankCommand implements SlashCommand {
   name = "bank"
@@ -81,13 +81,13 @@ class BankCommand implements SlashCommand {
         amount.first().delete().catch(() => { });
         var deposits = 0;
         if (isNaN(parseInt(amount.first().content))) {
-          if (amount.first().content === "quarter") deposits = Math.round((Number(newResults[0].currency) / 4 + Number.EPSILON) * 100) / 100;
-          else if (amount.first().content === "half") deposits = Math.round((Number(newResults[0].currency) / 2 + Number.EPSILON) * 100) / 100;
-          else if (amount.first().content === "all") deposits = Math.round((Number(newResults[0].currency) + Number.EPSILON) * 100) / 100;
+          if (amount.first().content === "quarter") deposits = roundTo(newResults[0].currency / 4, 2);
+          else if (amount.first().content === "half") deposits = roundTo(newResults[0].currency / 2, 2);
+          else if (amount.first().content === "all") deposits = roundTo(newResults[0].currency, 2);
           else return await depositNotValid();
-        } else deposits = Number(amount.first().content) > Number(newResults[0].currency) ? Number(newResults[0].currency) : Number(amount.first().content);
-        const newCurrency = Number(newResults[0].currency) - deposits;
-        const newBank = Number(newResults[0].bank) + deposits;
+        } else deposits = Math.min(newResults[0].currency, Number(amount.first().content));
+        const newCurrency = newResults[0].currency - deposits;
+        const newBank = newResults[0].bank + deposits;
         try {
           await query(`UPDATE users SET currency = '${newCurrency}', bank = '${newBank}' WHERE id = '${author.id}'`);
           const depositedEmbed = new Discord.MessageEmbed()
@@ -127,13 +127,13 @@ class BankCommand implements SlashCommand {
         amount.first().delete().catch(() => { });
         var withdraws = 0;
         if (isNaN(parseInt(amount.first().content))) {
-          if (amount.first().content === "quarter") withdraws = Math.round((Number(newResults[0].bank) / 4 + Number.EPSILON) * 100) / 100;
-          else if (amount.first().content === "half") withdraws = Math.round((Number(newResults[0].bank) / 2 + Number.EPSILON) * 100) / 100;
-          else if (amount.first().content === "all") withdraws = Math.round((Number(newResults[0].bank) + Number.EPSILON) * 100) / 100;
+          if (amount.first().content === "quarter") withdraws = roundTo(newResults[0].bank / 4, 2);
+          else if (amount.first().content === "half") withdraws = roundTo(newResults[0].bank / 2, 2);
+          else if (amount.first().content === "all") withdraws = roundTo(newResults[0].bank, 2);
           else return await withdrawNotValid();
-        } else withdraws = Number(amount.first().content) > Number(newResults[0].bank) ? Number(newResults[0].bank) : Number(amount.first().content);
-        const newCurrency = Number(newResults[0].currency) + withdraws;
-        const newBank = Number(newResults[0].bank) - withdraws;
+        } else withdraws = Math.min(newResults[0].bank, Number(amount.first().content));
+        const newCurrency = newResults[0].currency + withdraws;
+        const newBank = newResults[0].bank - withdraws;
         try {
           await query(`UPDATE users SET currency = '${newCurrency}', bank = '${newBank}' WHERE id = '${author.id}'`);
           const withdrawedEmbed = new Discord.MessageEmbed()

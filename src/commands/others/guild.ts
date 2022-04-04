@@ -1,7 +1,7 @@
 
 import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, createEmbedScrolling, duration, findChannel, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, query, readableDateTimeText, setTimeout_ } from "../../function.js";
+import { color, createEmbedScrolling, duration, findChannel, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, query, readableDateTimeText, roundTo, setTimeout_ } from "../../function.js";
 
 const fetch = getFetch();
 const catabombLevels = [
@@ -442,7 +442,7 @@ class GuildCommand implements SlashCommand {
 				if (["runecrafting", "carpentry"].includes(skill)) continue;
 				sum += skills[skill].level + skills[skill].progress;
 			}
-			const sa = Math.round(((sum / 8) + Number.EPSILON) * 100) / 100;
+			const sa = roundTo(sum / 8, 2);
 			if (sa > maxSa) maxSa = sa;
 
 			var slayers = pApi.members[uuid].slayer;

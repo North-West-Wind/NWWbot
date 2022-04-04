@@ -1,6 +1,6 @@
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, jsDate2Mysql, query } from "../../function.js";
+import { color, jsDate2Mysql, query, roundTo } from "../../function.js";
 import { RowDataPacket } from "mysql2";
 
 
@@ -17,7 +17,7 @@ class SellCommand implements SlashCommand {
 
     async run(message: NorthMessage, args: string[]) {
         if (isNaN(Number(args[0]))) return message.channel.send(args[0] + " is not a valid price!");
-        const price = Math.round((Number(args[0]) + Number.EPSILON) * 100) / 100;
+        const price = roundTo(Number(args[0]), 2);
         const confirmationEmbed = new Discord.MessageEmbed()
             .setColor(color())
             .setTitle("Confirm?")

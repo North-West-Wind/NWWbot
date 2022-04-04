@@ -4,7 +4,7 @@ import * as fs from "fs";
 import { CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageAttachment, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Snowflake, TextChannel, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
-import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd } from "./function.js";
+import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo } from "./function.js";
 import { setQueue, stop } from "./helpers/music.js";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient.js";
 import fetch from "node-fetch";
@@ -116,7 +116,7 @@ export class Handler {
         for (const result of r) {
             try {
                 if (result.bank <= 0) continue;
-                const newBank = Math.round((Number(result.bank) * 1.02 + Number.EPSILON) * 100) / 100;
+                const newBank = roundTo(result.bank * 1.02, 2);
                 await query(`UPDATE users SET bank = ${newBank} WHERE id = ${result.id}`);
             } catch (err: any) {
                 console.error(err);

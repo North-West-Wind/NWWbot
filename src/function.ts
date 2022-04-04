@@ -703,7 +703,7 @@ export async function query(query: string) {
     else return <any> await res.json();
 }
 
-export async function roundTo(num: number, decimal: number) {
+export function roundTo(num: number, decimal: number) {
     const powed = Math.pow(10, decimal);
     return Math.round((num + Number.EPSILON) * powed) / powed;
 }

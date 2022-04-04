@@ -90,7 +90,7 @@ class MusescoreCommand implements SlashCommand {
             .setTitle(data.title)
             .setURL(data.url)
             .setThumbnail(data.thumbnails.original)
-            .setDescription(`Description: **${data.description}**\n\n~~Click 📥 to download **MP3/PDF/MIDI**~~ This is currently disabled\nFor **other formats (MSCZ/MXL)**, please use [Xmader's Musescore Downloader](https://github.com/LibreScore/dl-musescore)`)
+            .setDescription(`Description: **${data.description}**`)
             .addField("ID", data.id.toString(), true)
             .addField("Author", data.user.name, true)
             .addField("Duration", data.duration, true)
@@ -101,8 +101,9 @@ class MusescoreCommand implements SlashCommand {
             .addField(`Parts [${data.parts}]`, data.parts > 0 ? (data.parts_names.join(", ").length > 1024 ? (data.parts_names.join(" ").slice(0, 1020) + "...") : data.parts_names.join(" ")) : "None")
             .setTimestamp()
             .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
-        msg = await msg.edit({ content: null, embeds: [em] });
-        return;
+        if (data.is_public_domain) em.setDescription(em.description + "\n\nClick 📥 to download **MP3/PDF/MIDI**\nFor **other formats (MSCZ/MXL)**, please use [Xmader's Musescore Downloader](https://github.com/LibreScore/dl-musescore)")
+        msg = await msg.edit({ embeds: [em] });
+        if (!data.is_public_domain) return;
         await msg.react("📥");
         const author = (message.member?.user || await message.client.users.fetch(message.channelId)).id;
         const collected = await msg.awaitReactions({ filter: (r, u) => r.emoji.name === "📥" && u.id === author, max: 1, time: 30000 });
