@@ -33,20 +33,14 @@ export async function getMP3(url: string): Promise<{ error: boolean, url: string
         const start = Date.now();
         try {
             await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36');
-            console.debug("Set user agent");
             await page.setRequestInterception(true);
-            console.debug("Set request interception");
             page.on('request', (req) => {
                 if (["image", "font", "stylesheet", "media"].includes(req.resourceType())) req.abort();
                 else req.continue();
             });
-            console.debug("Set request filter");
             await page.goto(url, { waitUntil: "domcontentloaded" });
-            console.debug("Went to url");
             await page.waitForSelector("button[title='Toggle Play']").then(el => el.click());
-            console.debug("Clicked button");
             const mp3 = await page.waitForRequest(req => req.url()?.startsWith("https://s3.ultimate-guitar.com/") || req.url()?.startsWith("https://www.youtube.com/embed/"));
-            console.debug("Found MP3");
             result.url = mp3.url();
             result.error = false;
         } catch (err: any) {
@@ -108,7 +102,7 @@ class MusescoreCommand implements SlashCommand {
             .setTimestamp()
             .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
         if (data.is_public_domain) em.setDescription(em.description + "\n\nClick 📥 to download **MP3/PDF/MIDI**\nFor **other formats (MSCZ/MXL)**, please use [Xmader's Musescore Downloader](https://github.com/LibreScore/dl-musescore)")
-        msg = await msg.edit({ embeds: [em] });
+        msg = await msg.edit({ content: null, embeds: [em] });
         if (!data.is_public_domain) return;
         await msg.react("📥");
         const author = (message.member?.user || await message.client.users.fetch(message.channelId)).id;
