@@ -13,11 +13,15 @@ async function getBrowser() {
 export async function run(cb: Function) {
     try {
         if (timeout) {
+            console.debug("Found timeout. Clearing...");
             clearTimeout(timeout);
             timeout = undefined;
         }
         const b = await getBrowser();
+        console.debug("Obtained browser");
         const page = await b.newPage();
+        console.debug("Created page");
+        console.debug(cb);
         const result = await cb(page);
         page?.close();
         timeout = setTimeout(() => {
