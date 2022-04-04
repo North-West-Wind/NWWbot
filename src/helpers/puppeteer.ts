@@ -4,7 +4,7 @@ var browser: puppeteer.Browser, timeout: NodeJS.Timeout;
 async function getBrowser() {
     if (!browser) browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-accelerated-2d-canvas', '--no-first-run', '--no-zygote', '--single-process', '--disable-gpu', "--proxy-server='direct://'", '--proxy-bypass-list=*'],
-      headless: true,
+      headless: false,
       executablePath: process.env.CHROMIUM
     });
     return browser;
