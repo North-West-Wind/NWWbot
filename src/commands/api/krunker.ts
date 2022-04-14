@@ -102,15 +102,18 @@ class KrunkerCommand implements SlashCommand {
                 .setURL("https://krunker.io/social.html?p=profile&q=" + data.username)
                 .setColor(color())
                 .setDescription(`ID: **${data.id}**\nLevel: **${data.level}** | **${data.levelPercentage.percent}%**`)
-                .addField("Kills / Deaths / Ratio", `**${data.kills}** / **${data.deaths}** / **${roundTo(data.kills / data.deaths, 2)}**`, true)
-                .addField("Wins / Losses / Ratio / Games", `**${data.wins}** / **${data.games - data.wins}** / **${roundTo(data.wins / (data.games - data.wins), 2)}** / **${data.games}**`, true)
-                .addField("Score (per Kill / Game)", `**${data.score}** / **${roundTo(data.score / data.kills, 2)}** / **${roundTo(data.score / data.games, 2)}**`, true)
+                .addField("Kills / Deaths", `**${data.kills}** / **${data.deaths}**`, true)
+                .addField("Wins / Losses", `**${data.wins}** / **${data.games - data.wins}**`, true)
+                .addField("Score / Games", `**${data.score}** / **${data.games}**`, true)
+                .addField("KDR / WLR", `**${roundTo(data.kills / data.deaths, 2)}** / **${roundTo(data.wins / (data.games - data.wins), 2)}**`, true)
+                .addField("SPK / SPG", `**${roundTo(data.score / data.kills, 2)}** / **${roundTo(data.score / data.games, 2)}**`, true)
+                .addField("KR", `**${data.funds}**`, true)
                 .addField("Time Played", `**${milliToHumanDuration(data.timePlayed)}**`, true)
                 .addField("Creation Date", `**${readableDateTime(new Date(data.createdAt))}**`, true)
                 .addField("Followers / Following", `**${data.followers}** / **${data.following}**`, true)
-                .addField("KR", `**${data.funds}**`, true)
                 .addField("Hacker / Verified / Infected", `**${data.hacker ? "Y" : "N"}** / **${data.verified ? "Y" : "N"}** / **${data.infected ? "Y" : "N"}**`, true)
-                .addField("Maps / Mods / Assets / Skins", `**${data.maps.length}** / **${data.mods.length}** / **${data.assets.length}** / **${data.skins.length}**`, true)
+                .addField("Maps / Mods", `**${data.maps.length}** / **${data.mods.length}**`, true)
+                .addField("Assets / Skins", `**${data.assets.length}** / **${data.skins.length}**`, true)
                 .setTimestamp()
                 .setFooter({ text: "Made with hitthemoney's API", iconURL: message.client.user.displayAvatarURL() });
             await msgOrRes(message, em);
@@ -143,7 +146,6 @@ class KrunkerCommand implements SlashCommand {
             await msgOrRes(message, "Failed to acquire user stats!");
             if (err.message) console.error(err);
         }
-        return await msgOrRes(message, "This feature is currently disabled.");
     }
 
     async server(message: Discord.Message | Discord.CommandInteraction, search: string, author: Discord.User) {

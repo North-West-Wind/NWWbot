@@ -1,4 +1,5 @@
 // Copied from https://kr.vercel.app/guide#documentation
+// Props to @hitthemoney!
 
 export interface Response {
     success: boolean // wether if it succeeded or not, if false check response.error, if true then check response.data
