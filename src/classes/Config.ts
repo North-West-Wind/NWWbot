@@ -1,6 +1,6 @@
 import { EmojiIdentifierResolvable, Message, MessageButtonStyle, MessageEmbed, Snowflake } from "discord.js";
-import { capitalize, query } from "../function";
-import { NorthClient } from "./NorthClient";
+import { capitalize, query } from "../function.js";
+import { NorthClient } from "./NorthClient.js";
 
 type OptionType = "message" | "channel" | "image" | "roles" | "reaction" | "duration" | "boolean";
 

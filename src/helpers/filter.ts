@@ -77,6 +77,7 @@ export async function music(command: Command, message: NorthMessage | NorthInter
             return false;
         }
     } catch (err) {}
+    await message.channel.send("Music commands will be removed on 16th April 00:00 UTC.\nIf you want to keep using music commands, please consider switching to TradeW1nd:\nhttps://discord.com/oauth2/authorize?client_id=895321877109690419&permissions=2150755392&scope=bot%20applications.commands")
     return true;
 }
 export async function nsfw(_command: Command, message: NorthMessage | NorthInteraction) {
