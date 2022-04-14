@@ -20,9 +20,10 @@ var con: PoolConnection;
 var conTimeout: NodeJS.Timeout;
 
 const app = express();
-app.use(express.json())
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ limit: '100mb' }));
 
-app.post("/api/query", async(req, res) => {
+app.post("/api/query", async (req, res) => {
     if (req.body.token !== process.env.DB_TOKEN) return res.sendStatus(403);
     if (!con) {
         con = await pool.getConnection();
@@ -33,7 +34,7 @@ app.post("/api/query", async(req, res) => {
         }, 30000);
     } else if (conTimeout) conTimeout.refresh();
     try {
-        const [results] = <mysql.RowDataPacket[][]> await con.query(req.body.query);
+        const [results] = <mysql.RowDataPacket[][]>await con.query(req.body.query);
         res.json(results);
     } catch (err) {
         res.sendStatus(500);
