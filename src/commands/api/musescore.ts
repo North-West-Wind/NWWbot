@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { validMSURL, requestStream, findValueByPrefix, streamToString, color, requestYTDLStream } from "../../function.js";
+import { validMSURL, requestStream, findValueByPrefix, streamToString, color, requestYTDLStream, createEmbedScrolling } from "../../function.js";
 import { run } from "../../helpers/puppeteer.js";
 import { muse } from "musescore-metadata";
 import * as Discord from "discord.js";
@@ -26,31 +26,6 @@ function PNGtoPDF(doc: PDFKit.PDFDocument, url: string): Promise<void> {
         });
     })
 };
-
-export async function getMP3(url: string): Promise<{ error: boolean, url: string, message: string, timeTaken: number }> {
-    return await run(async (page: Page) => {
-        var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
-        const start = Date.now();
-        try {
-            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36');
-            await page.setRequestInterception(true);
-            page.on('request', (req) => {
-                if (["image", "font", "stylesheet", "media"].includes(req.resourceType())) req.abort();
-                else req.continue();
-            });
-            await page.goto(url, { waitUntil: "domcontentloaded" });
-            await page.waitForSelector("circle, button[title='Toggle Play']").then(el => el.click());
-            const mp3 = await page.waitForRequest(req => req.url()?.startsWith("https://s3.ultimate-guitar.com/") || req.url()?.startsWith("https://www.youtube.com/embed/"));
-            result.url = mp3.url();
-            result.error = false;
-        } catch (err: any) {
-            result.message = err.message;
-        } finally {
-            result.timeTaken = Date.now() - start;
-            return result;
-        }
-    })
-}
 
 class MusescoreCommand implements SlashCommand {
     name = "musescore";
@@ -112,7 +87,7 @@ class MusescoreCommand implements SlashCommand {
             try {
                 try {
                     var mesg = await message.channel.send("Generating MP3...");
-                    const mp3 = await getMP3(url);
+                    const mp3 = await this.getMP3(url);
                     try {
                         if (mp3.error) throw new Error(mp3.message);
                         var res;
@@ -171,12 +146,10 @@ class MusescoreCommand implements SlashCommand {
             console.error(err);
             return await message.reply("There was an error trying to search for scores!");
         }
-        const author = (message instanceof Discord.Message ? message.author : (message.member?.user || await message.client.users.fetch(message.channelId))).id;
         var $ = cheerio.load(body);
         const stores = Array.from($('div[class^="js-"]'));
         const store = findValueByPrefix(stores.find((x: any) => x.attribs?.class?.match(/^js-\w+$/)), "data-");
         var data = JSON.parse(store);
-        console.log(data);
         const allEmbeds = [];
         const importants = [];
         var num = 0;
@@ -203,46 +176,33 @@ class MusescoreCommand implements SlashCommand {
             importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl, title: data.title, id: data.id });
         }
         if (allEmbeds.length < 1) return message.channel.send("No score was found!");
-        const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author);
-        var s = 0;
         await msg.delete();
-        msg = await message.channel.send({ embeds: [allEmbeds[0]] });
-        await msg.react("⏮");
-        await msg.react("◀");
-        await msg.react("▶");
-        await msg.react("⏭");
-        await msg.react("⏹");
-        var collector = msg.createReactionCollector({ filter, idle: 60000 });
+        await createEmbedScrolling(message, allEmbeds);
+    }
 
-        collector.on("collect", async function (reaction, user) {
-            reaction.users.remove(user.id).catch(() => { });
-            switch (reaction.emoji.name) {
-                case "⏮":
-                    s = 0;
-                    msg.edit({ embeds: [allEmbeds[s]] });
-                    break;
-                case "◀":
-                    s -= 1;
-                    if (s < 0) s = allEmbeds.length - 1;
-                    msg.edit({ embeds: [allEmbeds[s]] });
-                    break;
-                case "▶":
-                    s += 1;
-                    if (s > allEmbeds.length - 1) s = 0;
-                    msg.edit({ embeds: [allEmbeds[s]] });
-                    break;
-                case "⏭":
-                    s = allEmbeds.length - 1;
-                    msg.edit({ embeds: [allEmbeds[s]] });
-                    break;
-                case "⏹":
-                    collector.emit("end");
-                    break;
+    async getMP3(url: string): Promise<{ error: boolean, url: string, message: string, timeTaken: number }> {
+        return await run(async (page: Page) => {
+            var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
+            const start = Date.now();
+            try {
+                await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36');
+                await page.setRequestInterception(true);
+                page.on('request', (req) => {
+                    if (["image", "font", "stylesheet", "media"].includes(req.resourceType())) req.abort();
+                    else req.continue();
+                });
+                await page.goto(url, { waitUntil: "domcontentloaded" });
+                await page.waitForSelector("circle, button[title='Toggle Play']").then(el => el.click());
+                const mp3 = await page.waitForRequest(req => req.url()?.startsWith("https://s3.ultimate-guitar.com/") || req.url()?.startsWith("https://www.youtube.com/embed/"));
+                result.url = mp3.url();
+                result.error = false;
+            } catch (err: any) {
+                result.message = err.message;
+            } finally {
+                result.timeTaken = Date.now() - start;
+                return result;
             }
-        });
-        collector.on("end", function () {
-            msg.reactions.removeAll().catch(() => { });
-        });
+        })
     }
 
     async getMIDI(url: string) {

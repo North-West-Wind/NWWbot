@@ -1,17 +1,13 @@
 import cv from "canvas";
-import memwatch from "node-memwatch-new";
-import * as fs from "fs";
 import { CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageAttachment, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Snowflake, TextChannel, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
 import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo } from "./function.js";
-import { setQueue, stop } from "./helpers/music.js";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient.js";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter.js";
 import { sCategories } from "./commands/information/help.js";
 import common from "./common.js";
-import { init } from "./helpers/addTrack.js";
 import cfg from "../config.json";
 import { endApplication } from "./commands/managements/apply.js";
 const { createCanvas, loadImage, Image } = cv;
@@ -33,7 +29,6 @@ export class Handler {
         client.on("guildMemberRemove", member => this.guildMemberRemove(member));
         client.on("guildCreate", guild => this.guildCreate(guild));
         client.on("guildDelete", guild => this.guildDelete(guild));
-        client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(oldState, newState));
         client.on("guildMemberUpdate", (oldMember, newMember) => this.guildMemberUpdate(oldMember, newMember));
         client.on("messageReactionAdd", (reaction, user) => this.messageReactionAdd(reaction, user));
         client.on("messageReactionRemove", (reaction, user) => this.messageReactionRemove(reaction, user));
@@ -133,12 +128,6 @@ export class Handler {
                 await query(`DELETE FROM servers WHERE id = '${result.id}'`);
                 return console.log("Removed left servers");
             }
-            if (result.queue || result.looping || result.repeating) {
-                var queue = [];
-                try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
-                catch (err: any) { console.error(`Error parsing queue of ${result.id}`); }
-                setQueue(result.id, queue, !!result.looping, !!result.repeating);
-            }
             NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);
@@ -211,7 +200,6 @@ export class Handler {
         console.log(`[${id}] Ready!`);
         this.setPresence(client);
         try {
-            init();
             await this.preRead(client);
             await this.readCurrency(client);
             await this.readServers(client);
@@ -382,19 +370,6 @@ export class Handler {
         }
     }
 
-    async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
-        const guild = oldState.guild || newState.guild;
-        const exit = NorthClient.storage.guilds[guild.id]?.exit;
-        if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice?.channel)) return stop(guild);
-        if (!guild.me.voice?.channel || (newState.channelId !== guild.me.voice.channelId && oldState.channelId !== guild.me.voice.channelId)) return;
-        if (!NorthClient.storage.guilds[guild.id]) await fixGuildRecord(guild.id);
-        if (guild.me.voice.channel?.members.size <= 1) {
-            if (exit) return;
-            NorthClient.storage.guilds[guild.id].exit = true;
-            setTimeout(() => NorthClient.storage.guilds[guild.id]?.exit ? stop(guild) : 0, 30000);
-        } else NorthClient.storage.guilds[guild.id].exit = false;
-    }
-
     async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
         const client = <NorthClient>(oldMember.client || newMember.client);
         if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
@@ -493,12 +468,6 @@ export class AliceHandler extends Handler {
     async readServers(client: NorthClient) {
         var results = await query("SELECT * FROM servers WHERE id = '622311594654695434'");
         const result = results[0];
-        if (result.queue || result.looping || result.repeating) {
-            var queue = [];
-            try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
-            catch (err: any) { console.error(`Error parsing queue of ${result.id}`); }
-            setQueue(result.id, queue, !!result.looping, !!result.repeating);
-        }
         NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }
@@ -737,12 +706,6 @@ export class CanaryHandler extends Handler {
     async readServers(client: NorthClient) {
         var results = await query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
         results.forEach(async result => {
-            if (result.queue || result.looping || result.repeating) {
-                var queue = [];
-                try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
-                catch (err: any) { console.error(`Error parsing queue of ${result.id}`); }
-                setQueue(result.id, queue, !!result.looping, !!result.repeating);
-            }
             NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);

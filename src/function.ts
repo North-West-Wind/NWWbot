@@ -11,7 +11,6 @@ import * as path from "path";
 import moment from "moment";
 import { Readable } from "stream";
 import ytdl, { downloadOptions } from "ytdl-core";
-import { setQueue } from "./helpers/music.js";
 
 export function twoDigits(d) {
     if (0 <= d && d < 10) return "0" + d.toString();
@@ -637,15 +636,8 @@ export function requestYTDLStream(url: string, opts: downloadOptions & { timeout
 export async function fixGuildRecord(id: Discord.Snowflake) {
     if (NorthClient.storage.guilds[id]) return NorthClient.storage.guilds[id];
     const results = await query("SELECT id FROM servers WHERE id = " + id);
-    if (results.length > 0) {
-        if (results[0].queue || results[0].looping || results[0].repeating) {
-            var queue = [];
-            try { if (results[0].queue) queue = JSON.parse(unescape(results[0].queue)); }
-            catch (err: any) { console.error(`Error parsing queue of ${results[0].id}`); }
-            setQueue(results[0].id, queue, !!results[0].looping, !!results[0].repeating);
-        }
-        NorthClient.storage.guilds[results[0].id] = new GuildConfig(results[0]);
-    } else {
+    if (results.length > 0) NorthClient.storage.guilds[results[0].id] = new GuildConfig(results[0]);
+    else {
         try {
             await query(`INSERT INTO servers (id, giveaway, safe) VALUES ('${id}', '${escape("🎉")}', 1)`);
             NorthClient.storage.guilds[id] = new GuildConfig();
