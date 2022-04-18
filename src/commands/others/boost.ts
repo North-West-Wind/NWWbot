@@ -1,6 +1,6 @@
 import { MessageEmbed } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient";
-import { color, getFetch } from "../../function";
+import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { color, getFetch } from "../../function.js";
 
 const fetch = getFetch();
 
