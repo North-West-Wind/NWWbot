@@ -1,7 +1,7 @@
 
 import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, createEmbedScrolling, duration, findChannel, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, nameToUuid, profile, query, readableDateTimeText, roundTo, setTimeout_ } from "../../function.js";
+import { color, createEmbedScrolling, findChannel, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, msgOrRes, nameToUuid, profile, query, readableDateTimeText, roundTo, setTimeout_ } from "../../function.js";
 
 const fetch = getFetch();
 const catabombLevels = [
@@ -64,23 +64,114 @@ class GuildCommand implements SlashCommand {
 	aliases = ["gu"]
 	subcommands = ["splash", "invite", "lottery", "timer", "calculate"]
 	subaliases = ["sp", "in", "lot", "tim", "calc"]
-	subdesc = ["Create a splash notification.", "Manage invites.", "Start a lottery.", "Manage timers.", "Calculate user points."]
-	subusage = [null, "<subcommand> <user>", null, "<subsubcommand> <user> <mc username> <ranks>"]
+	subdesc = ["Creates a splash notification.", "Manages invites.", "Starts a lottery.", "Manages timers.", "Calculates user points."]
+	subusage = [null, "<subcommand> <user>", null, "<subsubcommand> <user> <username> <time> <ranks>", "<subcommand> <username>"]
 	args = 1
+	category = -1;
+
+	options = [
+		{
+			name: "splash",
+			description: "Creates a splash notification.",
+			type: "SUBCOMMAND"
+		},
+		{
+			name: "invite",
+			description: "Manages invites.",
+			type: "SUBCOMMAND",
+			options: [{
+				name: "user",
+				description: "The user's information to display.",
+				required: true,
+				type: "USER"
+			}]
+		},
+		{
+			name: "lottery",
+			description: "Starts a lottery.",
+			type: "SUBCOMMAND"
+		},
+		{
+			name: "timer",
+			description: "Manages timers.",
+			type: "SUBCOMMAND",
+			options: [
+				{
+					name: "user",
+					description: "The user's timers to display.",
+					required: true,
+					type: "USER"
+				},
+				{
+					name: "username",
+					description: "The Minecraft username of the user.",
+					required: true,
+					type: "STRING"
+				},
+				{
+					name: "time",
+					description: "The time limit.",
+					required: true,
+					type: "STRING"
+				},
+				{
+					name: "ranks",
+					description: "The ranks to timeout.",
+					required: true,
+					type: "STRING"
+				}
+			]
+		},
+		{
+			name: "calculate",
+			description: "Calculates user points.",
+			type: "SUBCOMMAND",
+			options: [{
+				name: "username",
+				description: "The Minecraft username to calculate.",
+				required: true,
+				type: "STRING"
+			}]
+		}
+	]
 
 	async execute(interaction: NorthInteraction) {
-		return;
+		switch (interaction.options.getSubcommand()) {
+			case "sp":
+			case "splash":
+				return await this.splash(interaction);
+			case "in":
+			case "invite":
+				return await this.invite(interaction, interaction.options.getUser("user"));
+			case "lot":
+			case "lottery":
+				return await this.lottery(interaction);
+			case "tim":
+			case "timer":
+				return await this.timer(interaction, [interaction.options.getUser("user").id, interaction.options.getString("username"), interaction.options.getString("time"), interaction.options.getString("ranks")]);
+			case "calculate":
+			case "calc":
+				return await this.calculate(interaction, interaction.options.getString("username"));
+			default:
+				return await interaction.reply("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${interaction.prefix}${this.name} ${this.usage}`);
+		}
 	}
 
 	async run(message: NorthMessage, args: string[]) {
-		if (message.guild.id !== "622311594654695434") return;
 		switch (args[0]) {
 			case "sp":
 			case "splash":
 				return await this.splash(message);
 			case "in":
 			case "invite":
-				return await this.invite(message, args);
+				if (!args[1]) return await message.channel.send("You didn't mention any user!");
+				var user: Discord.User;
+				try {
+					user = await findUser(message, args[1]);
+				} catch (err: any) {
+					return await message.reply(err.message);
+				}
+				return await this.invite(message, user);
 			case "lot":
 			case "lottery":
 				return await this.lottery(message);
@@ -89,22 +180,18 @@ class GuildCommand implements SlashCommand {
 				return await this.timer(message, args);
 			case "calculate":
 			case "calc":
-				return await this.calculate(message, args);
+				return await this.calculate(message, args[1]);
 			default:
 				return message.channel.send("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${message.prefix}${this.name} ${this.usage}`);
 		}
 	}
 
-	async invite(message: NorthMessage, args: string[]) {
-		if (message.guild.id != "622311594654695434") return message.channel.send("Please use this command in the server War of Underworld. Thank you.");
+	async invite(message: NorthMessage | NorthInteraction, user: Discord.User) {
 		const divine = await message.guild.roles.fetch("640148120579211265");
-		if (message.member.roles.highest.position < divine.position) return message.channel.send("You don't have the role to use this command!")
-		if (!args[1]) return message.channel.send("You didn't mention any user!");
-		const user = await findUser(message, args[1]);
-		if (!user) return;
+		if ((<Discord.GuildMember>message.member).roles.highest.position < divine.position) return await msgOrRes(message, "You don't have the role to use this command!");
 		try {
 			const result = await query(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`);
-			const channel = <Discord.TextChannel> await message.client.channels.fetch("723479832452661269");
+			const channel = <Discord.TextChannel>await message.client.channels.fetch("723479832452661269");
 			var noname = false;
 			if (result.length < 1) noname = true;
 			const em = new Discord.MessageEmbed()
@@ -114,14 +201,14 @@ class GuildCommand implements SlashCommand {
 				.setTimestamp()
 				.setFooter({ text: "Please choose within 2 minutes.", iconURL: message.client.user.displayAvatarURL() });
 
-			const msg = await message.channel.send({ embeds: [em] });
+			const msg = await msgOrRes(message, em);
 			await msg.react("1️⃣");
 			await msg.react("2️⃣");
 			await msg.react("3️⃣");
 			await msg.react("4️⃣");
 
-			const collected = await msg.awaitReactions({ filter: (r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.author.id, max: 1, time: 120000 }).catch(console.error);
-			msg.reactions.removeAll().catch(() => {});
+			const collected = await msg.awaitReactions({ filter: (r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.member.user.id, max: 1, time: 120000 }).catch(console.error);
+			msg.reactions.removeAll().catch(() => { });
 			if (!collected || !collected.first()) return await message.channel.send("No operation chosen in 2 minutes. Please try again.");
 			const reaction = collected.first();
 			switch (reaction.emoji.name) {
@@ -144,13 +231,13 @@ class GuildCommand implements SlashCommand {
 			}
 		} catch (err: any) {
 			console.error(err);
-			await message.reply("there was an error fetching the player!");
+			await msgOrRes(message, "There was an error fetching the player!");
 		}
 	}
-	
-	async splash(message: NorthMessage) {
-		let msg = await message.channel.send("Which channel do you want the message to be announced?");
-		let collected = await msg.channel.awaitMessages({ filter: x => x.author.id === message.author.id, max: 1, time: 30000 }).catch(err => collected = undefined);
+
+	async splash(message: NorthMessage | NorthInteraction) {
+		var msg = await msgOrRes(message, "Which channel do you want the message to be announced?");
+		let collected = await msg.channel.awaitMessages({ filter: x => x.author.id === message.member.user.id, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete().catch(() => { });
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -166,7 +253,7 @@ class GuildCommand implements SlashCommand {
 		const channel = await findChannel(message.guild, channelID);
 		if (!channel || !(channel instanceof Discord.TextChannel)) return await msg.edit(channelID + " isn't a valid channel!");
 		await msg.edit(`The announcement will be made in <#${channelID}>. What is the location of the splash?`);
-		const filter = x => x.author.id === message.author.id;
+		const filter = x => x.author.id === message.member.user.id;
 		collected = undefined;
 		collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
@@ -269,7 +356,7 @@ class GuildCommand implements SlashCommand {
 		await msg.edit("The message has been sent!");
 	}
 
-	async lottery(message: NorthMessage) {
+	async lottery(message: NorthMessage | NorthInteraction) {
 		let items = {
 			"1": 65,
 			"2": 5,
@@ -304,25 +391,29 @@ class GuildCommand implements SlashCommand {
 				prize = "Uncommon Item";
 				break;
 		}
-		message.channel.send(prize);
+		await msgOrRes(message, prize);
 	}
 
-	async timer(message: NorthMessage, args: string[]) {
-		if (!message.member.permissions.has(BigInt(8)) || !message.guild) return;
+	async timer(message: NorthMessage | NorthInteraction, args: string[]) {
+		if (!(<Discord.GuildMember>message.member).permissions.has(BigInt(8)) || !message.guild) return;
 		switch (args[1]) {
 			case "create":
-				if (!args[2]) return await message.channel.send("Please mention a user or provide the user's ID!");
-				if (!args[3]) return await message.channel.send("Please provide the user's Minecraft username!");
-				if (!args[4]) return await message.channel.send("Please provide the time limit!");
-				if (!args[5]) return await message.channel.send("Please provide the rank of the user!");
-				const user = await findUser(message, args[2]);
-				if (!user) return;
+				if (!args[2]) return await msgOrRes(message, "Please mention a user or provide the user's ID!");
+				if (!args[3]) return await msgOrRes(message, "Please provide the user's Minecraft username!");
+				if (!args[4]) return await msgOrRes(message, "Please provide the time limit!");
+				if (!args[5]) return await msgOrRes(message, "Please provide the rank of the user!");
+				var user: Discord.User;
+				try {
+					user = await findUser(message, args[2]);
+				} catch (err: any) {
+					return await msgOrRes(message, err.message);
+				}
 				const ranks = args.slice(5).join(" ");
 				const duration = ms(args[4]);
-				if (isNaN(duration)) return await message.channel.send("The duration given is not valid!");
+				if (isNaN(duration)) return await msgOrRes(message, "The duration given is not valid!");
 				const title = `${user.tag} - ${ranks} [${args[3]}] (Timer)`;
 				const uuid = await nameToUuid(args[3]);
-				if (!uuid) return message.reply("there was an error trying to find the player in Minecraft!");
+				if (!uuid) return msgOrRes(message, "There was an error trying to find the player in Minecraft!");
 				try {
 					NorthClient.storage.gtimers.push({
 						user: user.id,
@@ -331,12 +422,12 @@ class GuildCommand implements SlashCommand {
 						endAt: new Date(Date.now() + duration)
 					});
 					await query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(ranks)}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + duration))}')`);
-					await message.channel.send("Timer recorded.");
+					await msgOrRes(message, "Timer recorded.");
 				} catch (err: any) {
 					console.error(err);
-					await message.reply("there was an error trying to insert the timer to the database!");
+					await msgOrRes(message, "There was an error trying to insert the timer to the database!");
 				}
-				await message.channel.send(`Timer created with the title **${title}** and will last for **${readableDateTimeText(duration)}**`);
+				await msgOrRes(message, `Timer created with the title **${title}** and will last for **${readableDateTimeText(duration)}**`);
 				setTimeout_(async () => {
 					let asuna = await message.client.users.fetch("461516729047318529");
 					try {
@@ -352,19 +443,23 @@ class GuildCommand implements SlashCommand {
 				}, duration);
 				break;
 			case "delete":
-				if (!args[2]) return message.channel.send("Please mention a user or provide the user's ID!");
-				let userd = await findUser(message, args[2]);
-				if (!userd) return;
+				if (!args[2]) return await msgOrRes(message, "Please mention a user or provide the user's ID!");
+				var user: Discord.User;
+				try {
+					user = await findUser(message, args[2]);
+				} catch (err: any) {
+					return await msgOrRes(message, err.content);
+				}
 				try {
 					const index = NorthClient.storage.gtimers.indexOf(NorthClient.storage.gtimers.find(t => t.user == user.id));
 					if (index > -1) NorthClient.storage.gtimers.splice(index, 1);
-					const results = await query(`SELECT * FROM gtimer WHERE user = '${userd.id}'`);
-					if (results.length == 0) return message.channel.send("No timer was found.");
-					await query(`DELETE FROM gtimer WHERE user = '${userd.id}'`);
-					await message.channel.send(`Deleted ${results.length} timers.`);
+					const results = await query(`SELECT * FROM gtimer WHERE user = '${user.id}'`);
+					if (results.length == 0) return await msgOrRes(message, "No timer was found.");
+					await query(`DELETE FROM gtimer WHERE user = '${user.id}'`);
+					await msgOrRes(message, `Deleted ${results.length} timers.`);
 				} catch (err: any) {
 					console.error(err);
-					await message.reply("there was an error trying to delete the timer!");
+					await msgOrRes(message, "There was an error trying to delete the timer!");
 				}
 				break;
 			case "list":
@@ -417,24 +512,24 @@ class GuildCommand implements SlashCommand {
 					}
 				} catch (err: any) {
 					console.error(err);
-					await message.reply("there was an error trying to fetch data from the database!");
+					await msgOrRes(message, "There was an error trying to fetch data from the database!");
 				}
 				break;
 			default:
-				await message.channel.send("That is not a sub-subcommand!");
+				await msgOrRes(message, "That is not a sub-subcommand!");
 		}
 	}
 
-	async calculate(message: NorthMessage, args: string[]) {
-		if (!args[1]) return await message.channel.send("You didn't provide any username!");
-		const profiles = await fetch(`https://api.slothpixel.me/api/skyblock/profiles/${args[1]}?key=${process.env.API}`).then(res => <any> res.json());
-		if (profiles.error || (Object.keys(profiles).length === 0 && profiles.constructor === Object)) return await message.channel.send(profiles.error);
-		const uuid = await nameToUuid(args[1]);
+	async calculate(message: NorthMessage | NorthInteraction, username: string) {
+		if (!username) return await msgOrRes(message, "You didn't provide any username!");
+		const profiles = await fetch(`https://api.slothpixel.me/api/skyblock/profiles/${username}?key=${process.env.API}`).then(res => <any>res.json());
+		if (profiles.error || (Object.keys(profiles).length === 0 && profiles.constructor === Object)) return await msgOrRes(message, profiles.error);
+		const uuid = await nameToUuid(username);
 		var maxSa = 0;
 		var maxSlayer = 0;
 		var maxCatacomb = 0;
 		for (const profile in profiles) {
-			const pApi = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${args[1]}/${profile}?key=${process.env.API}`).then(res => <any> res.json());
+			const pApi = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${username}/${profile}?key=${process.env.API}`).then(res => <any>res.json());
 			var skills = pApi.members[uuid]?.skills;
 			if (!skills) skills = {};
 			var sum = 0;
@@ -448,7 +543,7 @@ class GuildCommand implements SlashCommand {
 			var slayers = pApi.members[uuid].slayer;
 			if (!slayers) slayers = {};
 			var slayerXp = 0;
-			for (const slayer of (<any[]> Object.values(slayers))) {
+			for (const slayer of (<any[]>Object.values(slayers))) {
 				slayerXp += slayer.xp;
 			}
 			if (slayerXp > maxSlayer) maxSlayer = slayerXp;
@@ -461,8 +556,8 @@ class GuildCommand implements SlashCommand {
 				else break;
 			if (catacombLvl > maxCatacomb) maxCatacomb = catacombLvl;
 		}
-		const player = await fetch(`https://api.slothpixel.me/api/players/${args[1]}?key=${process.env.API}`).then(res => <any> res.json());
-		const api = await fetch(`https://api.hypixel.net/player?name=${args[1]}&key=${process.env.API}`).then(res => <any> res.json());
+		const player = await fetch(`https://api.slothpixel.me/api/players/${username}?key=${process.env.API}`).then(res => <any>res.json());
+		const api = await fetch(`https://api.hypixel.net/player?name=${username}&key=${process.env.API}`).then(res => <any>res.json());
 		var stars = api.player.achievements.bedwars_level;
 		var fkdr = player.stats.BedWars?.final_k_d;
 
@@ -480,17 +575,17 @@ class GuildCommand implements SlashCommand {
 		else if (maxCatacomb > 25) sbpt += 4;
 		else if (maxCatacomb > 20) sbpt += 3;
 		else if (maxCatacomb > 15) sbpt += 2;
-		
+
 		if (maxSlayer > 500000) sbpt = Infinity;
 		else if (maxSlayer > 300000) sbpt += 4;
 		else if (maxSlayer > 120000) sbpt += 3;
 		else if (maxSlayer > 60000) sbpt += 2;
-		
+
 		if (stars > 200) bwpt = Infinity;
 		else if (stars > 150) bwpt += 4;
 		else if (stars > 100) bwpt += 3;
 		else if (stars > 50) bwpt += 2;
-		
+
 		if (fkdr > 3) bwpt = Infinity;
 		else if (fkdr > 2) bwpt += 6;
 		else if (fkdr > 1) bwpt += 3;
@@ -498,17 +593,17 @@ class GuildCommand implements SlashCommand {
 		var points = sbpt + bwpt;
 
 		const result = new Discord.MessageEmbed()
-		.setTitle(`Points of ${args[1]}`)
-		.setColor(color())
-		.setDescription(`Total Points: **${points}**${points == Infinity ? " (Instant Accept!)" : (points >= 12 ? " (Accepted)" : "")}\nSkyBlock Points: **${sbpt}**${sbpt >= 8 ? " (Accepted)" : ""}\nBedWars Points: **${bwpt}**${bwpt >= 4 ? " (Accepted)" : ""}`)
-		.addField("Average Skill Level", maxSa.toString(), true)
-		.addField("Catacomb Level", maxCatacomb.toString(), true)
-		.addField("Slayer EXP", maxSlayer.toString(), true)
-		.addField("Bedwars Stars", stars, true)
-		.addField("Final Kill/Death Ratio", fkdr, true)
-		.setTimestamp()
-		.setFooter({ text: "This command only took me 2 hours :D", iconURL: message.client.user.displayAvatarURL() });
-		await message.channel.send({ embeds: [result] });
+			.setTitle(`Points of ${username}`)
+			.setColor(color())
+			.setDescription(`Total Points: **${points}**${points == Infinity ? " (Instant Accept!)" : (points >= 12 ? " (Accepted)" : "")}\nSkyBlock Points: **${sbpt}**${sbpt >= 8 ? " (Accepted)" : ""}\nBedWars Points: **${bwpt}**${bwpt >= 4 ? " (Accepted)" : ""}`)
+			.addField("Average Skill Level", maxSa.toString(), true)
+			.addField("Catacomb Level", maxCatacomb.toString(), true)
+			.addField("Slayer EXP", maxSlayer.toString(), true)
+			.addField("Bedwars Stars", stars, true)
+			.addField("Final Kill/Death Ratio", fkdr, true)
+			.setTimestamp()
+			.setFooter({ text: "This command only took me 2 hours :D", iconURL: message.client.user.displayAvatarURL() });
+		await msgOrRes(message, result);
 	}
 }
 

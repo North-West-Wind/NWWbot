@@ -4,6 +4,7 @@ import { checkTradeW1nd, genPermMsg, getOwner, msgOrRes, tradeW1ndAct } from "..
 var timeout: NodeJS.Timeout;
 
 export async function all(command: Command, message: NorthMessage | NorthInteraction, args: string[] = []) {
+    if (command.category < 0 && message.client.id !== 1) return false;
     if (message instanceof Message) {
         if (command.args && args.length < command.args) {
             await msgOrRes(message, `The command \`${message.prefix}${command.name}\` requires ${command.args} arguments.\nHere's how you are supposed to use it: \`${message.prefix}${command.name}${command.usage ? ` ${command.usage}` : ""}\``);

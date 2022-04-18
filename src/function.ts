@@ -66,18 +66,14 @@ export function moveArray(array, index) {
     const a1 = array.splice(0, index);
     return array.concat(a1);
 }
-export async function findUser(message: Discord.Message, str: string) {
-    if (isNaN(parseInt(str))) if (!str.startsWith("<@")) {
-        await message.channel.send("**" + str + "** is neither a mention or ID.");
-        return;
-    }
+export async function findUser(message: Discord.Message | Discord.CommandInteraction, str: string): Promise<Discord.User> {
+    if (isNaN(parseInt(str))) if (!str.startsWith("<@")) throw new Error("**" + str + "** is neither a mention or ID.");
     const userID = str.replace(/<@/g, "").replace(/!/g, "").replace(/>/g, "");
     try {
         return await message.client.users.fetch(userID);
     } catch (err: any) {
-        await message.channel.send("No user was found!");
+        throw new Error("No user was found!");
     }
-    return;
 }
 export async function findMemberWithGuild(guild: Discord.Guild, str: string): Promise<Discord.GuildMember> {
     if (isNaN(parseInt(str))) if (!str.startsWith("<@")) throw "**" + str + "** is neither a mention or ID.";

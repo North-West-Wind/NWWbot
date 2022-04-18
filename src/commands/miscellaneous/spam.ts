@@ -1,4 +1,5 @@
 
+import { User } from "discord.js";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { findUser, getOwner } from "../../function.js";
 
@@ -36,8 +37,12 @@ class SpamCommand implements SlashCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        const taggedUser = await findUser(message, args[0]);
-        if (!taggedUser) return;
+        var taggedUser: User;
+        try {
+            taggedUser = await findUser(message, args[0]);
+        } catch (err: any) {
+            return await message.channel.send(err.message);
+        }
         if (taggedUser.id === message.author.id) return message.channel.send("Don't try to spam youself.");
 
         const time = parseInt(args[1]);
