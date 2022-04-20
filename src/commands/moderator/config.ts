@@ -332,7 +332,13 @@ class ConfigCommand implements SlashCommand {
         else if (cateSett.handler) extra = { handler: cateSett.handler };
       }
       var location: string[];
-      if (cateSett instanceof Setting) location = cateSett.storage.location || paths;
+      if (cateSett instanceof Setting) {
+        location = cateSett.storage.location || paths;
+        var settings: any;
+        if (location.length === 1) settings = NorthClient.storage.guilds[message.guildId][location[0]];
+        else if (location.length === 2) settings =NorthClient.storage.guilds[message.guildId][location[0]][location[1]];
+        panelEmbed.setDescription(panelEmbed.description + `\n\nCurrent settings:\n\`${settings}\``);
+      }
       switch (interaction.customId) {
         case "back": return await next(msg, paths);
         case "quit": return await end(msg);
