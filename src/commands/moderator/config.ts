@@ -8,8 +8,8 @@ const configs: (Category | Setting)[] = [
   new Category(
     new Setting("message", null, "What to send for the Welcome Message.", "message", 600000, "PRIMARY", "✉️", "Welcome Message").info({ column: "wel_msg" }),
     new Setting("channel", null, "Where to send the Welcome Message.", "channel", 60000, "PRIMARY", "🏞️", "Welcome Channel").info({ column: "wel_channel" }),
-    new Setting("image", null, "Includes image(s) for the Welcome Message.", "image", 60000, "SECONDARY", "Welcome Image").info({ column: "wel_img" }),
-    new Setting("autorole", "Auto-Role", "Gives users roles when joined automatically.", "roles", 60000, "SECONDARY").info({ column: "autorole" })
+    new Setting("image", null, "Includes image(s) for the Welcome Message.", "image", 60000, "SECONDARY", "📷", "Welcome Image").info({ column: "wel_img" }),
+    new Setting("autorole", "Auto-Role", "Gives users roles when joined automatically.", "roles", 60000, "SECONDARY", "🤖").info({ column: "autorole" })
   ).info({ id: "welcome", name: "Welcome", description: "Sends a message and adds user to role(s) when someone joins the server.", style: "PRIMARY", emoji: "🙌" }),
   new Category(
     new Setting("message", null, "What to send for the Leave Message.", "message", 600000, "PRIMARY", "✉️", "Leave Message").info({ column: "leave_msg" }),
@@ -234,7 +234,7 @@ class ConfigCommand implements SlashCommand {
         else if (configLoc.length === 2) cfg = config[configLoc[0]][configLoc[1]];
         content = !cfg;
       }
-      if (typeof extraData.handler === "function") await extraData.handler(msg, content);
+      if (typeof extraData?.handler === "function") await extraData.handler(msg, content);
       try {
         if (configLoc.length === 1) config[configLoc[0]] = content;
         else if (configLoc.length === 2) config[configLoc[0]][configLoc[1]] = content;
@@ -292,7 +292,6 @@ class ConfigCommand implements SlashCommand {
 
     async function next(msg: Discord.Message, paths: string[]) {
       if (!paths.length) return await start(msg);
-      const last = paths.pop();
       var cateSett: Category | Setting;
       const capitalized: string[] = [];
       for (const path of paths) {
@@ -301,14 +300,11 @@ class ConfigCommand implements SlashCommand {
         else return await start(msg);
         capitalized.push(cateSett.name);
       }
-      const category = <Category>cateSett;
-      cateSett = category.children.find(s => s.id === last);
-      capitalized.push(cateSett.name);
       panelEmbed.setDescription(`**${capitalized.join("/")}**\n${cateSett.description}\nPlease choose an option to configure by clicking a button.`)
         .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
       const rows = [];
       if (cateSett instanceof Category) {
-        for (let ii = 0; ii < Math.floor(cateSett.children.length / 5); ii++) {
+        for (let ii = 0; ii < Math.ceil(cateSett.children.length / 5); ii++) {
           const row = new Discord.MessageActionRow();
           for (let jj = ii * 5; jj < Math.min(ii * 5 + 5, cateSett.children.length); jj++) {
             const config = cateSett.children[jj];
@@ -336,7 +332,7 @@ class ConfigCommand implements SlashCommand {
         else if (cateSett.handler) extra = { handler: cateSett.handler };
       }
       var location: string[];
-      if (cateSett instanceof Setting) location = cateSett.storage.location?.concat(last) || paths.concat(last);
+      if (cateSett instanceof Setting) location = cateSett.storage.location || paths;
       switch (interaction.customId) {
         case "back": return await next(msg, paths);
         case "quit": return await end(msg);
@@ -347,7 +343,7 @@ class ConfigCommand implements SlashCommand {
         default:
           const nextSet = (<Category>cateSett).children.find(s => s.id === interaction.customId);
           if (!nextSet) return await start(msg);
-          return await next(msg, paths.concat(last, nextSet.id));
+          return await next(msg, paths.concat(nextSet.id));
       }
     }
   }
