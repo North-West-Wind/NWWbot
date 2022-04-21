@@ -5,8 +5,8 @@ import * as Discord from "discord.js";
 import { AkiCommand } from "../api/aki.js";
 import { globalClient as client } from "../../common.js";
 
-const categories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Music", "Under Development", "Dev Command"];
-export const sCategories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Music", "InDev", "Dev"];
+const categories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Under Development", "Dev Command"];
+export const sCategories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "InDev", "Dev"];
 
 class HelpCommand implements SlashCommand {
   name = "help"

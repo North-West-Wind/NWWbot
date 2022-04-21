@@ -9,7 +9,7 @@ class SellCommand implements SlashCommand {
     description = "Put something to the cross-server shop and sell it!"
     usage = "<price> <item>"
     args = 2
-    category = 9
+    category = 8
 
     async execute(interaction: NorthInteraction) {
         await interaction.reply("This command is not available in slash.");

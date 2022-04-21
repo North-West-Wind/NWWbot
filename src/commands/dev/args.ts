@@ -4,7 +4,7 @@ import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../..
 class ArgsCommand implements SlashCommand {
   name = "args"
   description = "Check args of messages."
-  category = 10
+  category = 9
   args = 1
   options = [{
     name: "arguments",

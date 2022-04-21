@@ -6,7 +6,7 @@ import * as math from "mathjs";
 class MathGameCommand implements SlashCommand {
     name = "mathgame"
     description = "Math Game prototype."
-    category = 9
+    category = 8
     permissions = { channel: { me: 8192 } };
 
     async execute(interaction: NorthInteraction) {
