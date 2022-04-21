@@ -82,7 +82,7 @@ class LyricsCommand implements SlashCommand {
                         .setThumbnail(icon)
                         .setColor(color())
                         .setTitle(title)
-                        .setAuthor(author)
+                        .setAuthor({ name: author })
                         .setDescription(str.join("\n"))
                         .setTimestamp()
                         .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
@@ -105,7 +105,7 @@ class LyricsCommand implements SlashCommand {
                 .setThumbnail(icon)
                 .setColor(color())
                 .setTitle(title)
-                .setAuthor(author)
+                .setAuthor({ name: author })
                 .setDescription(str.join(splitChar))
                 .setTimestamp()
                 .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });

@@ -340,7 +340,7 @@ class ConfigCommand implements SlashCommand {
         panelEmbed.setDescription(panelEmbed.description + `\n\nCurrent settings:\n\`${settings}\``);
       }
       switch (interaction.customId) {
-        case "back": return await next(msg, paths);
+        case "back": return await next(msg, paths.slice(0, -1));
         case "quit": return await end(msg);
 
         case "set": return await set(msg, capitalized.join("/"), location, (<Setting> cateSett).longname, (<Setting> cateSett).storage.column, (<Setting> cateSett).time, (<Setting> cateSett).type, extra);
