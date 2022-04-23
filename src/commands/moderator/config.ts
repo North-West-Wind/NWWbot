@@ -2,31 +2,38 @@ import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../..
 import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd, query, wait, duration, ms, findChannel } from "../../function.js";
 import * as Discord from "discord.js";
 import { isImageUrl } from "../../function.js";
-import { Category, SafeSetting, Setting } from "../../classes/Config.js";
+import { Category, SafeSetting, Setting, SettableType, TemplateSetting } from "../../classes/Config.js";
 
 const configs: (Category | Setting)[] = [
-  new Category(
+  new Category([
     new Setting("message", null, "What to send for the Welcome Message.", "message", 600000, "PRIMARY", "✉️", "Welcome Message").info({ column: "wel_msg" }),
     new Setting("channel", null, "Where to send the Welcome Message.", "channel", 60000, "PRIMARY", "🏞️", "Welcome Channel").info({ column: "wel_channel" }),
     new Setting("image", null, "Includes image(s) for the Welcome Message.", "image", 60000, "SECONDARY", "📷", "Welcome Image").info({ column: "wel_img" }),
     new Setting("autorole", "Auto-Role", "Gives users roles when joined automatically.", "roles", 60000, "SECONDARY", "🤖").info({ column: "autorole" })
-  ).info({ id: "welcome", name: "Welcome", description: "Sends a message and adds user to role(s) when someone joins the server.", style: "PRIMARY", emoji: "🙌" }),
-  new Category(
+  ]).info({ id: "welcome", name: "Welcome", description: "Sends a message and adds user to role(s) when someone joins the server.", style: "PRIMARY", emoji: "🙌" }),
+  new Category([
     new Setting("message", null, "What to send for the Leave Message.", "message", 600000, "PRIMARY", "✉️", "Leave Message").info({ column: "leave_msg" }),
     new Setting("channel", null, "Where to send the Leave Message.", "channel", 60000, "PRIMARY", "🏞️", "Leave Channel").info({ column: "leave_channel" })
-  ).info({ id: "leave", name: "Leave", description: "Sends a message when someone leaves the server.", style: "PRIMARY", emoji: "👋" }),
-  new Category(
+  ]).info({ id: "leave", name: "Leave", description: "Sends a message when someone leaves the server.", style: "PRIMARY", emoji: "👋" }),
+  new Category([
     new Setting("message", null, "What to send for the Boost Message.", "message", 600000, "PRIMARY", "✉️", "Boost Message").info({ column: "boost_msg" }),
     new Setting("channel", null, "Where to send the Boost Message.", "channel", 60000, "PRIMARY", "🏞️", "Boost Channel").info({ column: "boost_channel" })
-  ).info({ id: "boost", name: "Boost", description: "Sends a message when someone boosts the server.", style: "PRIMARY", emoji: "🏎️" }),
+  ]).info({ id: "boost", name: "Boost", description: "Sends a message when someone boosts the server.", style: "PRIMARY", emoji: "🏎️" }),
   new Setting("giveaway", "Giveaway Emoji", "Changes the emoji used for giveaways.", "reaction", 60000, "SECONDARY", "🎁").def("🎉").info({ column: "giveaway" }),
-  new SafeSetting("safe", "Safe Mode", "Toggles NSFW commands on this server.", "boolean", 60000, "SECONDARY", "🦺").info({ column: "safe" }).def(true),
-  new Category(
+  new SafeSetting("safe", "Safe Mode", "Toggles NSFW commands on this server.", 60000, "SECONDARY", "🦺").info({ column: "safe" }).def(true),
+  new Category([
     new Setting("roles", "Applicable Roles", "Roles that users can apply for.", "roles", 60000, "PRIMARY", "✉️").info({ column: "app_roles" }),
     new Setting("admins", "Voter Roles", "Roles that users will be voting for approval.", "roles", 60000, "PRIMARY", "🛠️").info({ column: "admin_roles" }),
     new Setting("channel", null, "Where the application will be sent. Private channels are recommended.", "channel", 60000, "PRIMARY", "🏞️").info({ column: "app_channel" }),
-    new Setting("duration", null, "How long until the application cannot be voted.", "duration", 60000, "SECONDARY", "⏰").info({ column: "duration" })
-  ).info({ id: "applications", name: "Applications", description: "Allows user to apply for a specific role.", style: "SECONDARY", emoji: "🧑‍💻" })
+    new Setting("duration", null, "How long until the application cannot be voted.", "duration", 60000, "SECONDARY", "⏰").info({ column: "duration" }),
+    new Category(async(self: Category, guild: Discord.Guild) => {
+      self.children = [];
+      for (const role of NorthClient.storage.guilds[guild.id].applications.roles) {
+        const r = await guild.roles.fetch(role);
+        self.children.push(new TemplateSetting(r.id, r.name, `Template for ${r.name}.`, 600000, "SECONDARY"));
+      }
+    }).info({ id: "templates", name: "Templates", description: "The templates applicants need to fill in.", style: "SECONDARY", emoji: "📋" })
+  ]).info({ id: "applications", name: "Applications", description: "Allows user to apply for a specific role.", style: "SECONDARY", emoji: "🧑‍💻" })
 ];
 
 class ConfigCommand implements SlashCommand {
@@ -149,8 +156,12 @@ class ConfigCommand implements SlashCommand {
       return await next(msg, [interaction.customId]);
     }
 
-    async function set(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, time: number, type: "message" | "channel" | "image" | "roles" | "reaction" | "duration" | "boolean", extraData: any = {}) {
-      panelEmbed.setDescription(`**${path}/Set**\nPlease enter the ${thing} in this channel.`)
+    async function set(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, time: number, type: SettableType, extraData: any = {}) {
+      if (typeof extraData?.pre === "function") {
+        await extraData.pre(msg, path, configLoc, thing, column, time, type);
+        if (extraData.endPre) return;
+      }
+      panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Set" : "Toggle"}**\nPlease enter the ${thing} in this channel.`)
         .setFooter({ text: `You will have ${duration(time, "milliseconds")}`, iconURL: msg.client.user.displayAvatarURL() });
       await msg.edit({ embeds: [panelEmbed] });
       const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, time, max: 1 });
@@ -234,7 +245,10 @@ class ConfigCommand implements SlashCommand {
         else if (configLoc.length === 2) cfg = config[configLoc[0]][configLoc[1]];
         content = !cfg;
       }
-      if (typeof extraData?.handler === "function") await extraData.handler(msg, content);
+      if (typeof extraData?.mid === "function") {
+        await extraData.mid(msg, content);
+        if (extraData.endMid) return;
+      }
       try {
         if (configLoc.length === 1) config[configLoc[0]] = content;
         else if (configLoc.length === 2) config[configLoc[0]][configLoc[1]] = content;
@@ -244,20 +258,21 @@ class ConfigCommand implements SlashCommand {
         else if (Array.isArray(content)) val = `"${content.join()}"`;
         else if (typeof content === "boolean") val = content ? 1 : 0;
         else val = `"${content}"`;
-        await query(`UPDATE servers SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
-        if (type === "boolean") panelEmbed.setDescription(`**${path}/Toggle**\n${content ? "Enabled" : "Disabled"} ${thing}! Returning to panel main page in 3 seconds...`);
-        else panelEmbed.setDescription(`**${path}/Set**\n${thing} received! Returning to panel main page in 3 seconds...`);
+        if (typeof extraData?.sql === "function") await extraData.sql(column, val, message.guildId);
+        else await query(`UPDATE servers SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
+        panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Set" : "Toggle"}**\n${thing} received! Returning to panel main page in 3 seconds...`);
       } catch (err: any) {
         console.error(err);
         panelEmbed.setDescription(`**${path}/Set**\nFailed to update ${thing}! Returning to panel main page in 3 seconds...`);
       }
       panelEmbed.setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
       await msg.edit({ embeds: [panelEmbed] });
+      if (typeof extraData?.post === "function") await extraData.post(msg, content);
       await wait(3000);
       return await start(msg);
     }
 
-    async function reset(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, defaultVal: any = null, handler: Function = null) {
+    async function reset(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, defaultVal: any = null, extraData: any = {}) {
       panelEmbed.setDescription(`**${path}/Reset**\nResetting...`)
         .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
       await msg.edit({ embeds: [panelEmbed] });
@@ -265,14 +280,15 @@ class ConfigCommand implements SlashCommand {
         if (configLoc.length === 1) config[configLoc[0]] = defaultVal;
         else if (configLoc.length === 2) config[configLoc[0]][configLoc[1]] = defaultVal;
         NorthClient.storage.guilds[message.guild.id] = config;
-        if (handler) await handler(msg, defaultVal);
+        if (typeof extraData?.handler === "function") await extraData.handler(msg, defaultVal);
         var val;
         if (!defaultVal) val = "NULL"
         else if (typeof defaultVal === "number") val = defaultVal;
         else if (Array.isArray(defaultVal)) val = `"${defaultVal.join()}"`;
         else if (typeof defaultVal === "boolean") val = defaultVal ? 1 : 0;
         else val = `"${defaultVal}"`;
-        await query(`UPDATE servers SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
+        if (typeof extraData?.sql === "function") await extraData.sql(column, val, message.guildId);
+        else await query(`UPDATE servers SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
         panelEmbed.setDescription(`**${path}/Reset**\n${thing} was reset! Returning to panel main page in 3 seconds...`);
       } catch (err: any) {
         console.error(err);
@@ -304,6 +320,7 @@ class ConfigCommand implements SlashCommand {
         .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
       const rows = [];
       if (cateSett instanceof Category) {
+        if (cateSett.breeder) await cateSett.breeder(cateSett, msg.guild);
         for (let ii = 0; ii < Math.ceil(cateSett.children.length / 5); ii++) {
           const row = new Discord.MessageActionRow();
           for (let jj = ii * 5; jj < Math.min(ii * 5 + 5, cateSett.children.length); jj++) {
@@ -327,10 +344,7 @@ class ConfigCommand implements SlashCommand {
       if (!interaction) return await end(msg);
       await interaction.update({ components: [] });
       var extra = null;
-      if (cateSett instanceof Setting) {
-        if (cateSett.max) extra = { max: cateSett.max };
-        else if (cateSett.handler) extra = { handler: cateSett.handler };
-      }
+      if (cateSett instanceof Setting) extra = cateSett.extra;
       var location: string[];
       if (cateSett instanceof Setting) {
         location = cateSett.storage.location || paths;
@@ -344,7 +358,7 @@ class ConfigCommand implements SlashCommand {
         case "quit": return await end(msg);
 
         case "set": return await set(msg, capitalized.join("/"), location, (<Setting> cateSett).longname, (<Setting> cateSett).storage.column, (<Setting> cateSett).time, (<Setting> cateSett).type, extra);
-        case "reset": return await reset(msg, capitalized.join("/"), location, (<Setting> cateSett).longname, (<Setting> cateSett).storage.column, (<Setting> cateSett).default || null, extra?.handler);
+        case "reset": return await reset(msg, capitalized.join("/"), location, (<Setting> cateSett).longname, (<Setting> cateSett).storage.column, (<Setting> cateSett).default || null, extra);
 
         default:
           const nextSet = (<Category>cateSett).children.find(s => s.id === interaction.customId);

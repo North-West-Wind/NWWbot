@@ -104,6 +104,7 @@ export interface Applications {
     channel: Snowflake;
     duration: number;
     applications: Collection<Snowflake, { id: Snowflake, role: Snowflake, author: Snowflake, approve: Set<Snowflake>, decline: Set<Snowflake> }>;
+    templates: Collection<Snowflake, string>;
 }
 
 export interface GuildConfigs {
@@ -149,10 +150,14 @@ export class GuildConfig {
                 admins: data.admin_roles?.split(",") || [],
                 channel: data.app_channel,
                 duration: data.vote_duration,
-                applications: new Collection()
+                applications: new Collection(),
+                templates: new Collection()
             };
             if (data.applications) for (const application of JSON.parse(unescape(data.applications))) {
                 this.applications.applications.set(application.id, application);
+            }
+            if (data.templates) for (const template of JSON.parse(decodeURIComponent(data.templates))) {
+                this.applications.templates.set(template.id, template.val);
             }
         }
     }
