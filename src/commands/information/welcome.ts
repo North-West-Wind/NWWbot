@@ -19,7 +19,7 @@ class WelcomeCommand implements SlashCommand {
     async execute(interaction: NorthInteraction) {
         if (!interaction.guild) return await interaction.reply("This command only works on server.");
         var member = <Discord.GuildMember>(interaction.options.getMember("user") || interaction.member);
-        const { message, image, error } = await this.getWelcome(member, interaction.client);
+        const { message, image, error } = await this.getWelcome(member);
         const obj = { content: message, files: null };
         if (!error) obj.files = [image];
         await interaction.reply(obj);
@@ -31,13 +31,13 @@ class WelcomeCommand implements SlashCommand {
             member = await findMember(message, args[0]);
             if (!member) member = message.member;
         }
-        const { message: msg, image, error } = await this.getWelcome(member, message.client);
+        const { message: msg, image, error } = await this.getWelcome(member);
         const obj = { content: msg, files: undefined };
         if (!error) obj.files = [image];
         await message.channel.send(obj);
     }
 
-    async getWelcome(member: Discord.GuildMember, client: NorthClient) {
+    async getWelcome(member: Discord.GuildMember) {
         const guild = member.guild;
         const result = { message: null, image: null, error: true };
         try {
@@ -49,7 +49,7 @@ class WelcomeCommand implements SlashCommand {
             if (!welcome) return { message: "No configuration found!", image: null, error: true };
             if (!welcome.channel) return { message: "No welcome channel found!", image: null, error: true };
             if (welcome.message) try {
-                const welcomeMessage = replaceMsgContent(welcome.message, guild, client, member, "welcome");
+                const welcomeMessage = replaceMsgContent(welcome.message, member, "welcome");
                 result.message = welcomeMessage;
             } catch (err: any) {
                 console.error(err);

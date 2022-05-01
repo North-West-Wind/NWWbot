@@ -215,6 +215,8 @@ export class Handler {
     async guildMemberAdd(member: GuildMember) {
         const client = (member.client as NorthClient);
         const guild = member.guild;
+        const simMems = NorthClient.storage.guilds[guild.id].checkMember(member);
+        if (simMems.length >= 2) console.debug(`Potential nuke happening on ${guild.name}. Members: ${simMems.map(mem => mem.user.tag).join(" ")} ${member}`);
         if (member.user.bot) return;
         guild.invites.fetch().then(async guildInvites => {
             const ei = NorthClient.storage.guilds[member.guild.id].invites;
@@ -241,7 +243,7 @@ export class Handler {
             const channel = <TextChannel>guild.channels.resolve(welcome.channel);
             if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
             if (welcome.message) try {
-                const welcomeMessage = replaceMsgContent(welcome.message, guild, client, member, "welcome");
+                const welcomeMessage = replaceMsgContent(welcome.message, member, "welcome");
                 await channel.send(welcomeMessage);
             } catch (err: any) {
                 console.error(err);
@@ -322,7 +324,6 @@ export class Handler {
     }
 
     async guildMemberRemove(member: GuildMember | PartialGuildMember) {
-        const client = (member.client as NorthClient);
         const guild = member.guild;
         try {
             if (!NorthClient.storage.guilds[guild.id]) {
@@ -340,7 +341,7 @@ export class Handler {
             if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
             if (!leave.message) return;
             try {
-                const leaveMessage = replaceMsgContent(leave.message, guild, client, member, "leave");
+                const leaveMessage = replaceMsgContent(leave.message, <GuildMember> member, "leave");
                 await channel.send(leaveMessage);
             } catch (err: any) {
                 console.error(err);

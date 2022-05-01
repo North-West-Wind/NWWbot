@@ -1,11 +1,9 @@
-import * as cheerio from 'cheerio';
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { validMSURL, requestStream, findValueByPrefix, streamToString, color, requestYTDLStream, createEmbedScrolling } from "../../function.js";
+import { validMSURL, requestStream, streamToString, color, requestYTDLStream, createEmbedScrolling } from "../../function.js";
 import { run } from "../../helpers/puppeteer.js";
-import { muse } from "musescore-metadata";
+import { muse, museSearch } from "musescore-metadata";
 import * as Discord from "discord.js";
 import sanitize from "sanitize-filename";
-import rp from "request-promise-native";
 import PDFKit from "pdfkit";
 import fetch from "node-fetch";
 import { globalClient as client } from "../../common.js";
@@ -138,42 +136,27 @@ class MusescoreCommand implements SlashCommand {
     }
 
     async search(message: NorthMessage | NorthInteraction, args: string, msg: Discord.Message) {
-        try {
-            const response = await rp({ uri: `https://musescore.com/sheetmusic?text=${encodeURIComponent(args)}`, resolveWithFullResponse: true });
-            if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
-            var body = response.body;
-        } catch (err: any) {
-            console.error(err);
-            return await message.reply("There was an error trying to search for scores!");
-        }
-        var $ = cheerio.load(body);
-        const stores = Array.from($('div[class^="js-"]'));
-        const store = findValueByPrefix(stores.find((x: any) => x.attribs?.class?.match(/^js-\w+$/)), "data-");
-        var data = JSON.parse(store);
-        const allEmbeds = [];
-        const importants = [];
+        const results = await museSearch(args);
         var num = 0;
-        var scores = data.store.page.data.scores;
-        for (const score of scores) {
-            data = muse(score.share.publicUrl);
+        const allEmbeds = [];
+        for (const score of results.page.data.scores) {
             const em = new Discord.MessageEmbed()
                 .setColor(color())
-                .setTitle(data.title)
-                .setURL(data.url)
-                .setThumbnail(data.thumbnail)
-                .setDescription(`Description: **${data.description}**\n\nTo download, please copy the URL and use \`${message instanceof NorthMessage ? message.prefix : "/"}${this.name} <link>\``)
-                .addField("ID", data.id, true)
-                .addField("Author", data.user.name, true)
-                .addField("Duration", data.duration, true)
-                .addField("Page Count", data.pageCount, true)
-                .addField("Date Created", new Date(data.created * 1000).toLocaleString(), true)
-                .addField("Date Updated", new Date(data.updated * 1000).toLocaleString(), true)
-                .addField(`Tags [${data.tags.length}]`, data.tags.length > 0 ? data.tags.join(", ") : "None")
-                .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ? data.parts.join(", ") : "None")
+                .setTitle(score.title)
+                .setURL(score.url)
+                .setThumbnail(score.thumbnails.original)
+                .setDescription(`Description: **${score.description}**\n\nTo download, please copy the URL and use \`${message instanceof NorthMessage ? message.prefix : "/"}${this.name} <link>\``)
+                .addField("ID", score.id.toString(), true)
+                .addField("Author", score.user.name, true)
+                .addField("Duration", score.duration, true)
+                .addField("Page Count", score.pages_count.toString(), true)
+                .addField("Date Created", new Date(score.date_created * 1000).toLocaleString(), true)
+                .addField("Date Updated", new Date(score.date_updated * 1000).toLocaleString(), true)
+                .addField(`Tags [${score.tags.length}]`, score.tags.length > 0 ? score.tags.join(", ") : "None")
+                .addField(`Parts [${score.parts}]`, score.parts > 0 ? score.parts_names.join(", ") : "None")
                 .setTimestamp()
-                .setFooter({ text: `Currently on page ${++num}/${scores.length}`, iconURL: client.user.displayAvatarURL() });
+                .setFooter({ text: `Currently on page ${++num}/${results.page.data.scores.length}`, iconURL: client.user.displayAvatarURL() });
             allEmbeds.push(em);
-            importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl, title: data.title, id: data.id });
         }
         if (allEmbeds.length < 1) return message.channel.send("No score was found!");
         await msg.delete();
@@ -304,7 +287,7 @@ class MusescoreCommand implements SlashCommand {
             try {
                 const ext = page.split("?")[0].split(".").slice(-1)[0];
                 if (ext === "svg") try {
-                    SVGtoPDF(doc, await streamToString(await requestStream(page)), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                    SVGtoPDF(doc, await streamToString((await requestStream(page)).data), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
                 } catch (err: any) {
                     SVGtoPDF(doc, await fetch(page).then(res => res.text()), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
                 }

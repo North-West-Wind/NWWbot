@@ -1,5 +1,6 @@
-import { Client, ClientOptions, Collection, CommandInteraction, Invite, Message, MessageEmbed, Snowflake, TextChannel, User, VoiceChannel } from "discord.js";
+import { Client, ClientOptions, Collection, CommandInteraction, GuildMember, Invite, Message, MessageEmbed, Snowflake, TextChannel, User, VoiceChannel } from "discord.js";
 import { RowDataPacket } from "mysql2/promise";
+import { strDist } from "../function";
 
 export class NorthClient extends Client {
     constructor(options: ClientOptions) {
@@ -122,6 +123,8 @@ export class GuildConfig {
     applications: Applications;
     invites?: Collection<string, Invite>;
     exit?: boolean;
+    joinedMembers: GuildMember[] = [];
+    joinedClear: NodeJS.Timeout;
 
     constructor(data: RowDataPacket = (<RowDataPacket> {})) {
         if (data) {
@@ -160,6 +163,15 @@ export class GuildConfig {
                 this.applications.templates.set(template.id, template.val);
             }
         }
+    }
+
+    checkMember(member: GuildMember) {
+        const close = this.joinedMembers.filter(mem => strDist(member.user.username, mem.user.username) <= 2);
+        this.joinedMembers.push(member);
+        if (this.joinedMembers.length > 10) this.joinedMembers.slice(this.joinedMembers.length - 10);
+        if (this.joinedClear) this.joinedClear.refresh();
+        else this.joinedClear = setTimeout(() => this.joinedMembers = [], 60000);
+        return close;
     }
 }
 
