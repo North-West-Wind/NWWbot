@@ -1,6 +1,6 @@
-import { Client, ClientOptions, Collection, CommandInteraction, GuildMember, Invite, Message, MessageEmbed, Snowflake, TextChannel, User, VoiceChannel } from "discord.js";
+import { Client, ClientOptions, Collection, CommandInteraction, GuildMember, Invite, Message, MessageEmbed, Snowflake, User } from "discord.js";
 import { RowDataPacket } from "mysql2/promise";
-import { strDist } from "../function";
+import { strDist } from "../function.js";
 
 export class NorthClient extends Client {
     constructor(options: ClientOptions) {
