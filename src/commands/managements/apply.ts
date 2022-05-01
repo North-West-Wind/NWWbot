@@ -113,7 +113,10 @@ class ApplyCommand implements SlashCommand {
             embed.setTitle("Application Cancelled").setDescription("You already have that role.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             return await interaction.update({ embeds: [embed], components: [] });
         }
-        embed.setTitle(`Applying for role ${role.name}`).setDescription("Please enter the reason of why you should get this role.\nThe reason you entered will be viewed by administrators or moderators").setFooter({ text: "You have 10 minutes.", iconURL: message.client.user.displayAvatarURL() });
+        embed.setTitle(`Applying for role ${role.name}`).setFooter({ text: "You have 10 minutes.", iconURL: message.client.user.displayAvatarURL() });
+        const template = NorthClient.storage.guilds[message.guildId].applications.templates.get(role.id);
+        if (template) embed.setDescription(`Please fill in the following template:\n\n${template}`);
+        else embed.setDescription(`Please enter the reason of why you should get this role.`);
         await interaction.update({ embeds: [embed], components: [] });
         try {
             const author = message instanceof Discord.Message ? message.author : message.user;
