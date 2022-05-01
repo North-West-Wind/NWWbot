@@ -35,7 +35,7 @@ export class Setting extends Base {
     this.style = style;
     this.emoji = emoji;
     this.longname = longname || this.name;
-    if (type === "roles") this.extra.max = 25;
+    if (type === "roles") this.extra = { max: 25 }
   }
 
   info(storage: StorageInfo) {
