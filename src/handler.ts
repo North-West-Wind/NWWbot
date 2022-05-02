@@ -691,6 +691,8 @@ export class AliceHandler extends Handler {
 }
 
 export class CanaryHandler extends Handler {
+    static pendingKick: Snowflake[] = [];
+
     static async setup(client: NorthClient, token: string) {
         await common(client);
         new CanaryHandler(client);
@@ -699,6 +701,7 @@ export class CanaryHandler extends Handler {
 
     constructor(client: NorthClient) {
         super(client);
+        client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(oldState, newState));
     }
 
     async readServers(client: NorthClient) {
@@ -707,6 +710,25 @@ export class CanaryHandler extends Handler {
             NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);
+    }
+
+    async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
+        if (!oldState.mute && newState.mute) {
+            CanaryHandler.pendingKick.push(newState.member.id);
+            setTimeout(async () => {
+                if (CanaryHandler.pendingKick.includes(newState.member.id)) {
+                    const index = CanaryHandler.pendingKick.indexOf(newState.member.id);
+                    CanaryHandler.pendingKick.splice(index, 1);
+                    await newState.disconnect();
+
+                }
+            }, 10000);
+        } else if (oldState.mute && !newState.mute) {
+            const index = CanaryHandler.pendingKick.indexOf(newState.member.id);
+            if (index > -1) {
+                CanaryHandler.pendingKick.splice(index, 1);
+            }
+        }
     }
 
     messagePrefix(_message: Message, _client: NorthClient): string {

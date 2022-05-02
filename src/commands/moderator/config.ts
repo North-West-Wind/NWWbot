@@ -33,7 +33,12 @@ const configs: (Category | Setting)[] = [
         self.children.push(new TemplateSetting(r.id, r.name, `Template for ${r.name}.`, 600000, "SECONDARY"));
       }
     }).info({ id: "templates", name: "Templates", description: "The templates applicants need to fill in.", style: "SECONDARY", emoji: "📋" })
-  ]).info({ id: "applications", name: "Applications", description: "Allows user to apply for a specific role.", style: "SECONDARY", emoji: "🧑‍💻" })
+  ]).info({ id: "applications", name: "Applications", description: "Allows user to apply for a specific role.", style: "SECONDARY", emoji: "🧑‍💻" }),
+  new Category([
+    new Category([
+      new Setting("channels", null, "The channels to be monitored.", "channels", 120000, "PRIMARY", "🏞️").info({ column: "channels" })
+    ]).info({ id: "kick", name: "Muted Kick", description: "Automatically kicks members that are muted for too long.", style: "SECONDARY", emoji: "👟" })
+  ]).info({ id: "voice", name: "Voice", description: "Voice states monitoring.", style: "SECONDARY", emoji: "🔉" })
 ];
 
 class ConfigCommand implements SlashCommand {
@@ -166,8 +171,8 @@ class ConfigCommand implements SlashCommand {
       await msg.edit({ embeds: [panelEmbed] });
       const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, time, max: 1 });
       if (!msgCollected.first() || !msgCollected.first().content) return await end(msg);
-      var content;
-      if (["message", "channel", "roles", "reaction", "duration"].includes(type)) {
+      var content: any;
+      if (["message", "channel", "channels", "roles", "reaction", "duration"].includes(type)) {
         content = msgCollected.first().content.replace(/'/g, "\\'");
         msgCollected.first().delete().catch(() => { });
         switch (type) {
@@ -181,6 +186,21 @@ class ConfigCommand implements SlashCommand {
               return await start(msg);
             }
             content = channel.id;
+            break;
+          case "channels":
+            const channels = [];
+            for (const arg of content.split(/ +/)) {
+              const channel = await findChannel(msg.guild, arg);
+              if (!channel || !(channel instanceof Discord.TextChannel)) {
+                panelEmbed.setDescription(`**${path}/Set**\nOne of the channels is not valid! Returning to panel main page in 3 seconds...`)
+                  .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
+                await msg.edit({ embeds: [panelEmbed] });
+                await wait(3000);
+                return await start(msg);
+              }
+              channels.push(channel);
+            }
+            content = channels;
             break;
           case "roles":
             const collectedArgs = msgCollected.first().content.split(/ +/);
@@ -250,8 +270,15 @@ class ConfigCommand implements SlashCommand {
         if (extraData.endMid) return;
       }
       try {
-        if (configLoc.length === 1) config[configLoc[0]] = content;
-        else if (configLoc.length === 2) config[configLoc[0]][configLoc[1]] = content;
+        const layers = [config[configLoc[0]]];
+        for (let i = 1; i < configLoc.length - 1; i++) {
+          layers.push(layers[i - 1][configLoc[i]]);
+        }
+        layers.push(content);
+        for (let i = configLoc.length - 1; i > 0; i--) {
+          layers[i-1][configLoc[i]] = layers[i];
+        }
+        config[configLoc[0]] = layers[0];
         NorthClient.storage.guilds[message.guild.id] = config;
         var val;
         if (typeof content === "number") val = content;
@@ -277,8 +304,15 @@ class ConfigCommand implements SlashCommand {
         .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
       await msg.edit({ embeds: [panelEmbed] });
       try {
-        if (configLoc.length === 1) config[configLoc[0]] = defaultVal;
-        else if (configLoc.length === 2) config[configLoc[0]][configLoc[1]] = defaultVal;
+        const layers = [config[configLoc[0]]];
+        for (let i = 1; i < configLoc.length - 1; i++) {
+          layers.push(layers[i - 1][configLoc[i]]);
+        }
+        layers.push(defaultVal);
+        for (let i = configLoc.length - 1; i > 0; i--) {
+          layers[i-1][configLoc[i]] = layers[i];
+        }
+        config[configLoc[0]] = layers[0];
         NorthClient.storage.guilds[message.guild.id] = config;
         if (typeof extraData?.handler === "function") await extraData.handler(msg, defaultVal);
         var val;

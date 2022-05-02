@@ -1,8 +1,6 @@
-import { EmojiIdentifierResolvable, Guild, Message, MessageButtonStyle, MessageEmbed, Snowflake } from "discord.js";
+import { EmojiIdentifierResolvable, Guild, Message, MessageButtonStyle, Snowflake } from "discord.js";
 import { capitalize, query } from "../function.js";
 import { NorthClient } from "./NorthClient.js";
-
-type OptionType = "message" | "channel" | "image" | "roles" | "reaction" | "duration" | "boolean";
 
 interface StorageInfo {
   column: string;
@@ -18,14 +16,14 @@ class Base {
 }
 
 export class Setting extends Base {
-  type: OptionType;
+  type: SettableType;
   time: number;
   storage: StorageInfo;
   longname: string;
   extra?: any;
   default?: any;
 
-  constructor(id: string, name: string, description: string, type: OptionType, time: number, style?: MessageButtonStyle, emoji?: string, longname?: string) {
+  constructor(id: string, name: string, description: string, type: SettableType, time: number, style?: MessageButtonStyle, emoji?: string, longname?: string) {
     super();
     this.id = id;
     this.name = name || capitalize(this.id);
@@ -120,7 +118,7 @@ export class TemplateSetting extends Setting {
   }
 }
 
-export type SettableType = "message" | "channel" | "image" | "roles" | "reaction" | "duration" | "boolean";
+export type SettableType = "message" | "channel" | "channels" | "image" | "roles" | "reaction" | "duration" | "boolean";
 type SettableKeyType = "role";
 export class KeyType {
   key: SettableKeyType;
