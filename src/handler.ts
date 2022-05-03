@@ -10,6 +10,7 @@ import { sCategories } from "./commands/information/help.js";
 import common from "./common.js";
 import cfg from "../config.json";
 import { endApplication } from "./commands/managements/apply.js";
+import { MutedKickSetting } from "./classes/Config.js";
 const { createCanvas, loadImage, Image } = cv;
 const emojis = cfg.poll;
 const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
@@ -124,11 +125,12 @@ export class Handler {
         var results = await query("SELECT * FROM configs WHERE id <> '622311594654695434'");
         results.forEach(async result => {
             try {
-                await client.guilds.fetch(result.id);
+                const guild = await client.guilds.fetch(result.id);
+                NorthClient.storage.guilds[result.id] = new GuildConfig(result);
+                MutedKickSetting.check(guild);
             } catch (err: any) {
                 return await query(`DELETE FROM configs WHERE id = '${result.id}'`);
             }
-            NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }
@@ -480,7 +482,9 @@ export class AliceHandler extends Handler {
     async readServers(client: NorthClient) {
         var results = await query("SELECT * FROM configs WHERE id = '622311594654695434'");
         const result = results[0];
+        const guild = await client.guilds.fetch(result.id);
         NorthClient.storage.guilds[result.id] = new GuildConfig(result);
+        MutedKickSetting.check(guild);
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }
 
@@ -718,7 +722,9 @@ export class CanaryHandler extends Handler {
     async readServers(client: NorthClient) {
         var results = await query("SELECT * FROM configs WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
         results.forEach(async result => {
+            const guild = await client.guilds.fetch(result.id);
             NorthClient.storage.guilds[result.id] = new GuildConfig(result);
+            MutedKickSetting.check(guild);
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }

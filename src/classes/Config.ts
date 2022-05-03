@@ -125,7 +125,10 @@ export class MutedKickSetting extends Setting {
   }
 
   async post(msg: Message) {
-    const guild = msg.guild;
+    await MutedKickSetting.check(msg.guild);
+  }
+
+  static async check(guild: Guild) {
     const timeout = NorthClient.storage.guilds[guild.id].voice.kick.timeout;
     if (timeout < 0) return;
     for (const ch of NorthClient.storage.guilds[guild.id].voice.kick.channels) {

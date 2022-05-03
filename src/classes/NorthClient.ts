@@ -172,7 +172,7 @@ export class GuildConfig {
                     channels: data.voice_kick_channels?.split(",") || [],
                     timeout: data.voice_kick_timeout || -1
                 }
-            }
+            };
         }
     }
 
