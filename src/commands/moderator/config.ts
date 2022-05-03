@@ -198,7 +198,7 @@ class ConfigCommand implements SlashCommand {
               await wait(3000);
               return await start(msg);
             }
-            channels.push(channel);
+            channels.push(channel.id);
           }
           content = channels;
         } else {
