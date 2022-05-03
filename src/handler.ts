@@ -425,13 +425,13 @@ export class Handler {
         const guild = newState.guild;
         const timeout = NorthClient.storage.guilds[guild.id].voice.kick.timeout;
         if (!NorthClient.storage.guilds[guild.id].voice.kick.channels.includes(newState.channelId) || timeout < 0) return;
-        if (!oldState?.mute && newState?.mute) {
+        if ((!oldState.channel || !oldState?.mute) && newState?.mute) {
             NorthClient.storage.guilds[guild.id].pendingKick.add(newState.member.id);
             setTimeout(async () => {
                 if (NorthClient.storage.guilds[guild.id].pendingKick.delete(newState.member.id))
                     newState.disconnect().catch(() => {});
             }, timeout);
-        } else if (oldState?.mute && !newState?.mute)
+        } else if (oldState?.mute && (!newState?.channel || !newState?.mute))
             NorthClient.storage.guilds[guild.id].pendingKick.delete(newState.member.id);
     }
 
