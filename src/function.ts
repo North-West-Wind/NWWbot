@@ -630,11 +630,11 @@ export async function query(query: string) {
 }
 export async function fixGuildRecord(id: Discord.Snowflake) {
     if (NorthClient.storage.guilds[id]) return NorthClient.storage.guilds[id];
-    const results = await query("SELECT id FROM servers WHERE id = " + id);
+    const results = await query("SELECT id FROM configs WHERE id = " + id);
     if (results.length > 0) NorthClient.storage.guilds[results[0].id] = new GuildConfig(results[0]);
     else {
         try {
-            await query(`INSERT INTO servers (id, giveaway, safe) VALUES ('${id}', '${escape("🎉")}', 1)`);
+            await query(`INSERT INTO configs (id, token, safe) VALUES ('${id}', ${await ID()}, 1)`);
             NorthClient.storage.guilds[id] = new GuildConfig();
         } catch (err: any) { }
     }

@@ -84,7 +84,6 @@ export interface RoleMessage {
     guild: Snowflake;
     channel: Snowflake;
     author: Snowflake;
-    expiration: number;
     roles: Snowflake[][];
     emojis: string[];
 }
@@ -108,6 +107,10 @@ export interface Applications {
     templates: Collection<Snowflake, string>;
 }
 
+export interface VoiceConfig {
+    kick: { channels: Snowflake[], timeout: number };
+}
+
 export interface GuildConfigs {
     [key: Snowflake]: GuildConfig;
 }
@@ -121,6 +124,7 @@ export class GuildConfig {
     boost: InfoBase;
     safe: boolean;
     applications: Applications;
+    voice: VoiceConfig;
     invites?: Collection<string, Invite>;
     exit?: boolean;
     joinedMembers: GuildMember[] = [];
@@ -134,7 +138,7 @@ export class GuildConfig {
             this.welcome = {
                 message: data.wel_msg,
                 channel: data.wel_channel,
-                image: data.wel_img?.split(",").map(url => decodeURIComponent(url)) || [],
+                image: data.wel_img?.split(",").map((url: string) => decodeURIComponent(url)) || [],
                 autorole: data.autorole?.split(",") || []
             };
             this.leave = {
@@ -162,6 +166,8 @@ export class GuildConfig {
             if (data.templates) for (const template of JSON.parse(decodeURIComponent(data.templates))) {
                 this.applications.templates.set(template.id, template.val);
             }
+            this.voice.kick.channels = data.voice_kick_channels?.split(",") || [];
+            this.voice.kick.timeout = data.voice_kick_timeout || -1;
         }
     }
 

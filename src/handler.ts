@@ -35,6 +35,7 @@ export class Handler {
         client.on("messageDelete", message => this.messageDelete(message));
         client.on("messageCreate", message => this.message(message));
         client.on("interactionCreate", interaction => this.interactionCreate(interaction));
+        client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(oldState, newState));
     }
 
     async interactionCreate(interaction: Interaction) {
@@ -84,7 +85,7 @@ export class Handler {
         }
         settings.applications.set(interaction.message.id, application);
         NorthClient.storage.guilds[interaction.guildId].applications = settings;
-        await query(`UPDATE servers SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[interaction.guildId].applications.applications.values()]))}' WHERE id = '${interaction.guildId}'`);
+        await query(`UPDATE configs SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[interaction.guildId].applications.applications.values()]))}' WHERE id = '${interaction.guildId}'`);
         if (allMembers.size >= application.approve.size + application.decline.size) await endApplication(interaction.client, interaction.message.id, interaction.guildId);
     }
 
@@ -120,13 +121,12 @@ export class Handler {
     }
 
     async readServers(client: NorthClient) {
-        var results = await query("SELECT * FROM servers WHERE id <> '622311594654695434'");
+        var results = await query("SELECT * FROM configs WHERE id <> '622311594654695434'");
         results.forEach(async result => {
             try {
                 await client.guilds.fetch(result.id);
             } catch (err: any) {
-                await query(`DELETE FROM servers WHERE id = '${result.id}'`);
-                return console.log("Removed left servers");
+                return await query(`DELETE FROM configs WHERE id = '${result.id}'`);
             }
             NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         });
@@ -364,8 +364,8 @@ export class Handler {
         console.log(`Left a guild: ${guild.name} | ID: ${guild.id}`);
         delete NorthClient.storage.guilds[guild.id];
         try {
-            await query("DELETE FROM servers WHERE id=" + guild.id);
-            console.log("Deleted record for " + guild.name);
+            await query("DELETE FROM servers WHERE id = " + guild.id);
+            await query("DELETE FROM configs WHERE id = " + guild.id);
         } catch (err: any) {
             console.error(err);
         }
@@ -419,6 +419,27 @@ export class Handler {
         await query(`DELETE FROM rolemsg WHERE id = '${message.id}'`);
     }
 
+    async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
+        const guild = newState.guild;
+        const timeout = NorthClient.storage.guilds[guild.id].voice.kick.timeout;
+        if (!NorthClient.storage.guilds[guild.id].voice.kick.channels.includes(newState.channelId) || timeout < 0) return;
+        if (!oldState.mute && newState.mute) {
+            CanaryHandler.pendingKick.push(newState.member.id);
+            setTimeout(async () => {
+                if (CanaryHandler.pendingKick.includes(newState.member.id)) {
+                    const index = CanaryHandler.pendingKick.indexOf(newState.member.id);
+                    CanaryHandler.pendingKick.splice(index, 1);
+                    newState.disconnect().catch(() => {});
+                }
+            }, timeout);
+        } else if (oldState.mute && !newState.mute) {
+            const index = CanaryHandler.pendingKick.indexOf(newState.member.id);
+            if (index > -1) {
+                CanaryHandler.pendingKick.splice(index, 1);
+            }
+        }
+    }
+
     async preMessage(_message: Message): Promise<any> {
 
     }
@@ -464,7 +485,7 @@ export class AliceHandler extends Handler {
     }
 
     async readServers(client: NorthClient) {
-        var results = await query("SELECT * FROM servers WHERE id = '622311594654695434'");
+        var results = await query("SELECT * FROM configs WHERE id = '622311594654695434'");
         const result = results[0];
         NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         console.log(`[${client.id}] Set ${results.length} configurations`);
@@ -701,34 +722,14 @@ export class CanaryHandler extends Handler {
 
     constructor(client: NorthClient) {
         super(client);
-        client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(oldState, newState));
     }
 
     async readServers(client: NorthClient) {
-        var results = await query("SELECT * FROM servers WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
+        var results = await query("SELECT * FROM configs WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
         results.forEach(async result => {
             NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);
-    }
-
-    async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
-        if (!oldState.mute && newState.mute) {
-            CanaryHandler.pendingKick.push(newState.member.id);
-            setTimeout(async () => {
-                if (CanaryHandler.pendingKick.includes(newState.member.id)) {
-                    const index = CanaryHandler.pendingKick.indexOf(newState.member.id);
-                    CanaryHandler.pendingKick.splice(index, 1);
-                    await newState.disconnect();
-
-                }
-            }, 10000);
-        } else if (oldState.mute && !newState.mute) {
-            const index = CanaryHandler.pendingKick.indexOf(newState.member.id);
-            if (index > -1) {
-                CanaryHandler.pendingKick.splice(index, 1);
-            }
-        }
     }
 
     messagePrefix(_message: Message, _client: NorthClient): string {

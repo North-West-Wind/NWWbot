@@ -36,7 +36,8 @@ const configs: (Category | Setting)[] = [
   ]).info({ id: "applications", name: "Applications", description: "Allows user to apply for a specific role.", style: "SECONDARY", emoji: "🧑‍💻" }),
   new Category([
     new Category([
-      new Setting("channels", null, "The channels to be monitored.", "channels", 120000, "PRIMARY", "🏞️").info({ column: "channels" })
+      new Setting("channels", null, "The channels to be monitored.", "channels", 120000, "PRIMARY", "🏞️").info({ column: "voice_kick_channels" }),
+      new Setting("timeout", null, "The delay before a member gets kicked for muting.", "duration", 60000, "PRIMARY", "⏲️").info({ column: "voice_kick_timeout" })
     ]).info({ id: "kick", name: "Muted Kick", description: "Automatically kicks members that are muted for too long.", style: "SECONDARY", emoji: "👟" })
   ]).info({ id: "voice", name: "Voice", description: "Voice states monitoring.", style: "SECONDARY", emoji: "🔉" })
 ];
@@ -72,7 +73,6 @@ class ConfigCommand implements SlashCommand {
     if (sub === "panel") return await this.panel(interaction);
     const guild = interaction.guild;
     const author = interaction.user;
-    const client = interaction.client;
     var config = NorthClient.storage.guilds[guild.id];
     const generated = await ID();
     try {
@@ -83,7 +83,7 @@ class ConfigCommand implements SlashCommand {
       config.token = generated;
       NorthClient.storage.guilds[guild.id] = config;
       await interaction.reply("See you in DM!");
-      await query(`UPDATE servers SET token = '${config.token}' WHERE id = '${guild.id}'`);
+      await query(`UPDATE configs SET token = '${config.token}' WHERE id = '${guild.id}'`);
       return;
     } catch (err: any) {
       console.error(err);
@@ -103,7 +103,7 @@ class ConfigCommand implements SlashCommand {
       } else if (args[0] !== "new") return await message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
       config.token = generated;
       NorthClient.storage.guilds[guild.id] = config;
-      await query(`UPDATE servers SET token = '${config.token}' WHERE id = '${guild.id}'`);
+      await query(`UPDATE configs SET token = '${config.token}' WHERE id = '${guild.id}'`);
     } catch (err: any) {
       message.reply("There was an error trying to update the token! This token will be temporary.");
       console.error(err);
@@ -286,7 +286,7 @@ class ConfigCommand implements SlashCommand {
         else if (typeof content === "boolean") val = content ? 1 : 0;
         else val = `"${content}"`;
         if (typeof extraData?.sql === "function") await extraData.sql(column, val, message.guildId);
-        else await query(`UPDATE servers SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
+        else await query(`UPDATE configs SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
         panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Set" : "Toggle"}**\n${thing} received! Returning to panel main page in 3 seconds...`);
       } catch (err: any) {
         console.error(err);
@@ -322,7 +322,7 @@ class ConfigCommand implements SlashCommand {
         else if (typeof defaultVal === "boolean") val = defaultVal ? 1 : 0;
         else val = `"${defaultVal}"`;
         if (typeof extraData?.sql === "function") await extraData.sql(column, val, message.guildId);
-        else await query(`UPDATE servers SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
+        else await query(`UPDATE configs SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
         panelEmbed.setDescription(`**${path}/Reset**\n${thing} was reset! Returning to panel main page in 3 seconds...`);
       } catch (err: any) {
         console.error(err);
