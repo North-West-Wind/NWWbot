@@ -7,24 +7,24 @@ import { Category, SafeSetting, Setting, SettableType, TemplateSetting } from ".
 const configs: (Category | Setting)[] = [
   new Category([
     new Setting("message", null, "What to send for the Welcome Message.", "message", 600000, "PRIMARY", "✉️", "Welcome Message").info({ column: "wel_msg" }),
-    new Setting("channel", null, "Where to send the Welcome Message.", "channel", 60000, "PRIMARY", "🏞️", "Welcome Channel").info({ column: "wel_channel" }),
+    new Setting("channel", null, "Where to send the Welcome Message.", "text_channel", 60000, "PRIMARY", "🏞️", "Welcome Channel").info({ column: "wel_channel" }),
     new Setting("image", null, "Includes image(s) for the Welcome Message.", "image", 60000, "SECONDARY", "📷", "Welcome Image").info({ column: "wel_img" }),
     new Setting("autorole", "Auto-Role", "Gives users roles when joined automatically.", "roles", 60000, "SECONDARY", "🤖").info({ column: "autorole" })
   ]).info({ id: "welcome", name: "Welcome", description: "Sends a message and adds user to role(s) when someone joins the server.", style: "PRIMARY", emoji: "🙌" }),
   new Category([
     new Setting("message", null, "What to send for the Leave Message.", "message", 600000, "PRIMARY", "✉️", "Leave Message").info({ column: "leave_msg" }),
-    new Setting("channel", null, "Where to send the Leave Message.", "channel", 60000, "PRIMARY", "🏞️", "Leave Channel").info({ column: "leave_channel" })
+    new Setting("channel", null, "Where to send the Leave Message.", "text_channel", 60000, "PRIMARY", "🏞️", "Leave Channel").info({ column: "leave_channel" })
   ]).info({ id: "leave", name: "Leave", description: "Sends a message when someone leaves the server.", style: "PRIMARY", emoji: "👋" }),
   new Category([
     new Setting("message", null, "What to send for the Boost Message.", "message", 600000, "PRIMARY", "✉️", "Boost Message").info({ column: "boost_msg" }),
-    new Setting("channel", null, "Where to send the Boost Message.", "channel", 60000, "PRIMARY", "🏞️", "Boost Channel").info({ column: "boost_channel" })
+    new Setting("channel", null, "Where to send the Boost Message.", "text_channel", 60000, "PRIMARY", "🏞️", "Boost Channel").info({ column: "boost_channel" })
   ]).info({ id: "boost", name: "Boost", description: "Sends a message when someone boosts the server.", style: "PRIMARY", emoji: "🏎️" }),
   new Setting("giveaway", "Giveaway Emoji", "Changes the emoji used for giveaways.", "reaction", 60000, "SECONDARY", "🎁").def("🎉").info({ column: "giveaway" }),
   new SafeSetting("safe", "Safe Mode", "Toggles NSFW commands on this server.", 60000, "SECONDARY", "🦺").info({ column: "safe" }).def(true),
   new Category([
     new Setting("roles", "Applicable Roles", "Roles that users can apply for.", "roles", 60000, "PRIMARY", "✉️").info({ column: "app_roles" }),
     new Setting("admins", "Voter Roles", "Roles that users will be voting for approval.", "roles", 60000, "PRIMARY", "🛠️").info({ column: "admin_roles" }),
-    new Setting("channel", null, "Where the application will be sent. Private channels are recommended.", "channel", 60000, "PRIMARY", "🏞️").info({ column: "app_channel" }),
+    new Setting("channel", null, "Where the application will be sent. Private channels are recommended.", "text_channel", 60000, "PRIMARY", "🏞️").info({ column: "app_channel" }),
     new Setting("duration", null, "How long until the application cannot be voted.", "duration", 60000, "SECONDARY", "⏰").info({ column: "duration" }),
     new Category(async(self: Category, guild: Discord.Guild) => {
       self.children = [];
@@ -36,7 +36,7 @@ const configs: (Category | Setting)[] = [
   ]).info({ id: "applications", name: "Applications", description: "Allows user to apply for a specific role.", style: "PRIMARY", emoji: "🧑‍💻" }),
   new Category([
     new Category([
-      new Setting("channels", null, "The channels to be monitored.", "channels", 120000, "PRIMARY", "🏞️").info({ column: "voice_kick_channels" }),
+      new Setting("channels", null, "The channels to be monitored.", "voice_channels", 120000, "PRIMARY", "🏞️").info({ column: "voice_kick_channels" }),
       new Setting("timeout", null, "The delay before a member gets kicked for muting.", "duration", 60000, "PRIMARY", "⏲️").info({ column: "voice_kick_timeout" })
     ]).info({ id: "kick", name: "Muted Kick", description: "Automatically kicks members that are muted for too long.", style: "PRIMARY", emoji: "👟" })
   ]).info({ id: "voice", name: "Voice", description: "Voice states monitoring.", style: "SECONDARY", emoji: "🔉" })
@@ -172,76 +172,78 @@ class ConfigCommand implements SlashCommand {
       const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, time, max: 1 });
       if (!msgCollected.first() || !msgCollected.first().content) return await end(msg);
       var content: any;
-      if (["message", "channel", "channels", "roles", "reaction", "duration"].includes(type)) {
+      if (["message", "roles", "reaction", "duration"].includes(type) || type.endsWith("channel") || type.endsWith("channels")) {
         content = msgCollected.first().content.replace(/'/g, "\\'");
         msgCollected.first().delete().catch(() => { });
-        switch (type) {
-          case "channel":
-            const channel = await findChannel(msg.guild, content);
-            if (!channel || !(channel instanceof Discord.TextChannel)) {
-              panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
+        if (type.endsWith("channel")) {
+          const chType = type.split("_")[0];
+          const channel = await findChannel(msg.guild, content);
+          if (!channel || channel.type != ("GUILD_" + chType.toUpperCase())) {
+            panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
+              .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
+            await msg.edit({ embeds: [panelEmbed] });
+            await wait(3000);
+            return await start(msg);
+          }
+          content = channel.id;
+        } else if (type.endsWith("channels")) {
+          const chType = type.split("_")[0];
+          const channels = [];
+          for (const arg of content.split(/ +/)) {
+            const channel = await findChannel(msg.guild, arg);
+            if (!channel || channel.type != ("GUILD_" + chType.toUpperCase())) {
+              panelEmbed.setDescription(`**${path}/Set**\nOne of the channels is not valid! Returning to panel main page in 3 seconds...`)
                 .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
               await msg.edit({ embeds: [panelEmbed] });
               await wait(3000);
               return await start(msg);
             }
-            content = channel.id;
-            break;
-          case "channels":
-            const channels = [];
-            for (const arg of content.split(/ +/)) {
-              const channel = await findChannel(msg.guild, arg);
-              if (!channel || !(channel instanceof Discord.TextChannel)) {
-                panelEmbed.setDescription(`**${path}/Set**\nOne of the channels is not valid! Returning to panel main page in 3 seconds...`)
+            channels.push(channel);
+          }
+          content = channels;
+        } else {
+          switch (type) {
+            case "roles":
+              const collectedArgs = msgCollected.first().content.split(/ +/);
+              content = [];
+  
+              for (var i = 0; i < collectedArgs.length; i++) {
+                if (isNaN(parseInt(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, "")))) {
+                  panelEmbed.setDescription(`**${path}/Set**\nOne of the roles is not valid! Returning to panel main page in 3 seconds...`)
+                    .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
+                  await msg.edit({ embeds: [panelEmbed] });
+                  await wait(3000);
+                  return await start(msg);
+                }
+                content.push(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, ""));
+              }
+              if (extraData.max && content.length > extraData.max)
+                panelEmbed.setDescription(`**${path}/Set**\nThere can only be at most ${extraData.max} roles! Returning to panel main page in 3 seconds...`)
+                  .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
+              break;
+            case "reaction":
+              content = msgCollected.first().content;
+              try {
+                await msg.react(content);
+                msg.reactions.removeAll().catch(() => { });
+              } catch (err) {
+                panelEmbed.setDescription(`**${path}/Set**\nThe reaction is not valid! Returning to panel main page in 3 seconds...`)
                   .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
                 await msg.edit({ embeds: [panelEmbed] });
                 await wait(3000);
                 return await start(msg);
               }
-              channels.push(channel);
-            }
-            content = channels;
-            break;
-          case "roles":
-            const collectedArgs = msgCollected.first().content.split(/ +/);
-            content = [];
-
-            for (var i = 0; i < collectedArgs.length; i++) {
-              if (isNaN(parseInt(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, "")))) {
-                panelEmbed.setDescription(`**${path}/Set**\nOne of the roles is not valid! Returning to panel main page in 3 seconds...`)
+              break;
+            case "duration":
+              content = ms(content);
+              if (isNaN(content)) {
+                panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
                   .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
                 await msg.edit({ embeds: [panelEmbed] });
                 await wait(3000);
                 return await start(msg);
               }
-              content.push(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, ""));
-            }
-            if (extraData.max && content.length > extraData.max)
-              panelEmbed.setDescription(`**${path}/Set**\nThere can only be at most ${extraData.max} roles! Returning to panel main page in 3 seconds...`)
-                .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
-            break;
-          case "reaction":
-            content = msgCollected.first().content;
-            try {
-              await msg.react(content);
-              msg.reactions.removeAll().catch(() => { });
-            } catch (err) {
-              panelEmbed.setDescription(`**${path}/Set**\nThe reaction is not valid! Returning to panel main page in 3 seconds...`)
-                .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
-              await msg.edit({ embeds: [panelEmbed] });
-              await wait(3000);
-              return await start(msg);
-            }
-            break;
-          case "duration":
-            content = ms(content);
-            if (isNaN(content)) {
-              panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
-                .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
-              await msg.edit({ embeds: [panelEmbed] });
-              await wait(3000);
-              return await start(msg);
-            }
+          }
         }
       } else if (type === "image") {
         content = [];

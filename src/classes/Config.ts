@@ -118,7 +118,7 @@ export class TemplateSetting extends Setting {
   }
 }
 
-export type SettableType = "message" | "channel" | "channels" | "image" | "roles" | "reaction" | "duration" | "boolean";
+export type SettableType = "message" | "text_channel" | "voice_channel" | "text_channels" | "voice_channels" | "image" | "roles" | "reaction" | "duration" | "boolean";
 type SettableKeyType = "role";
 export class KeyType {
   key: SettableKeyType;
