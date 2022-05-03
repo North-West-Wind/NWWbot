@@ -166,9 +166,11 @@ export class GuildConfig {
             if (data.templates) for (const template of JSON.parse(decodeURIComponent(data.templates))) {
                 this.applications.templates.set(template.id, template.val);
             }
-            this.voice.kick = {
-                channels: data.voice_kick_channels?.split(",") || [],
-                timeout: data.voice_kick_timeout || -1
+            this.voice = {
+                kick: {
+                    channels: data.voice_kick_channels?.split(",") || [],
+                    timeout: data.voice_kick_timeout || -1
+                }
             }
         }
     }
