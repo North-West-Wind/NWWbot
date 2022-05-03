@@ -1,4 +1,4 @@
-import { EmojiIdentifierResolvable, Guild, Message, MessageButtonStyle, Snowflake } from "discord.js";
+import { EmojiIdentifierResolvable, Guild, Message, MessageButtonStyle, Snowflake, VoiceChannel } from "discord.js";
 import { capitalize, query } from "../function.js";
 import { NorthClient } from "./NorthClient.js";
 
@@ -115,6 +115,31 @@ export class TemplateSetting extends Setting {
 
   async sql(_column: string, _val: any, guild: Snowflake) {
     await query(`UPDATE server SET templates = "${encodeURIComponent(JSON.stringify(NorthClient.storage.guilds[guild].applications.templates.map((val, key) => { const obj = {}; obj[key] = val; return obj; })))}" WHERE id = ${guild}`);
+  }
+}
+
+export class MutedKickSetting extends Setting {
+  constructor(id: string, name: string, description: string, type: SettableType, time: number, style?: MessageButtonStyle, emoji?: string, longname?: string) {
+    super(id, name, description, type, time, style, emoji, longname);
+    this.extra = { post: this.post };
+  }
+
+  async post(msg: Message) {
+    const guild = msg.guild;
+    const timeout = NorthClient.storage.guilds[guild.id].voice.kick.timeout;
+    if (timeout < 0) return;
+    for (const ch of NorthClient.storage.guilds[guild.id].voice.kick.channels) {
+      const channel = <VoiceChannel> await guild.channels.fetch(ch);
+      for (const member of channel.members.values()) {
+        if (member.voice.mute) {
+          NorthClient.storage.guilds[guild.id].pendingKick.add(member.id);
+          setTimeout(async () => {
+              if (NorthClient.storage.guilds[guild.id].pendingKick.delete(member.id))
+                  member.voice.disconnect().catch(() => {});
+          }, timeout);
+        }
+      }
+    }
   }
 }
 

@@ -166,7 +166,7 @@ class ConfigCommand implements SlashCommand {
         await extraData.pre(msg, path, configLoc, thing, column, time, type);
         if (extraData.endPre) return;
       }
-      panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Set" : "Toggle"}**\nPlease enter the ${thing} in this channel.`)
+      panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Toggle" : "Set"}**\nPlease enter the ${thing} in this channel.`)
         .setFooter({ text: `You will have ${duration(time, "milliseconds")}`, iconURL: msg.client.user.displayAvatarURL() });
       await msg.edit({ embeds: [panelEmbed] });
       const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, time, max: 1 });
@@ -289,7 +289,7 @@ class ConfigCommand implements SlashCommand {
         else val = `"${content}"`;
         if (typeof extraData?.sql === "function") await extraData.sql(column, val, message.guildId);
         else await query(`UPDATE configs SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
-        panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Set" : "Toggle"}**\n${thing} received! Returning to panel main page in 3 seconds...`);
+        panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Toggle" : "Set"}**\n${thing} received! Returning to panel main page in 3 seconds...`);
       } catch (err: any) {
         console.error(err);
         panelEmbed.setDescription(`**${path}/Set**\nFailed to update ${thing}! Returning to panel main page in 3 seconds...`);

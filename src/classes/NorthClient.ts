@@ -129,6 +129,7 @@ export class GuildConfig {
     exit?: boolean;
     joinedMembers: GuildMember[] = [];
     joinedClear: NodeJS.Timeout;
+    pendingKick: Set<Snowflake> = new Set();
 
     constructor(data: RowDataPacket = (<RowDataPacket> {})) {
         if (data) {

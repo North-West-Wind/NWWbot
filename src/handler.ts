@@ -424,20 +424,13 @@ export class Handler {
         const timeout = NorthClient.storage.guilds[guild.id].voice.kick.timeout;
         if (!NorthClient.storage.guilds[guild.id].voice.kick.channels.includes(newState.channelId) || timeout < 0) return;
         if (!oldState.mute && newState.mute) {
-            CanaryHandler.pendingKick.push(newState.member.id);
+            NorthClient.storage.guilds[guild.id].pendingKick.add(newState.member.id);
             setTimeout(async () => {
-                if (CanaryHandler.pendingKick.includes(newState.member.id)) {
-                    const index = CanaryHandler.pendingKick.indexOf(newState.member.id);
-                    CanaryHandler.pendingKick.splice(index, 1);
+                if (NorthClient.storage.guilds[guild.id].pendingKick.delete(newState.member.id))
                     newState.disconnect().catch(() => {});
-                }
             }, timeout);
-        } else if (oldState.mute && !newState.mute) {
-            const index = CanaryHandler.pendingKick.indexOf(newState.member.id);
-            if (index > -1) {
-                CanaryHandler.pendingKick.splice(index, 1);
-            }
-        }
+        } else if (oldState.mute && !newState.mute)
+            NorthClient.storage.guilds[guild.id].pendingKick.delete(newState.member.id);
     }
 
     async preMessage(_message: Message): Promise<any> {
@@ -712,8 +705,6 @@ export class AliceHandler extends Handler {
 }
 
 export class CanaryHandler extends Handler {
-    static pendingKick: Snowflake[] = [];
-
     static async setup(client: NorthClient, token: string) {
         await common(client);
         new CanaryHandler(client);
