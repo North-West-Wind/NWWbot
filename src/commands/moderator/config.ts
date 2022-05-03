@@ -33,12 +33,12 @@ const configs: (Category | Setting)[] = [
         self.children.push(new TemplateSetting(r.id, r.name, `Template for ${r.name}.`, 600000, "SECONDARY"));
       }
     }).info({ id: "templates", name: "Templates", description: "The templates applicants need to fill in.", style: "SECONDARY", emoji: "📋" })
-  ]).info({ id: "applications", name: "Applications", description: "Allows user to apply for a specific role.", style: "SECONDARY", emoji: "🧑‍💻" }),
+  ]).info({ id: "applications", name: "Applications", description: "Allows user to apply for a specific role.", style: "PRIMARY", emoji: "🧑‍💻" }),
   new Category([
     new Category([
       new Setting("channels", null, "The channels to be monitored.", "channels", 120000, "PRIMARY", "🏞️").info({ column: "voice_kick_channels" }),
       new Setting("timeout", null, "The delay before a member gets kicked for muting.", "duration", 60000, "PRIMARY", "⏲️").info({ column: "voice_kick_timeout" })
-    ]).info({ id: "kick", name: "Muted Kick", description: "Automatically kicks members that are muted for too long.", style: "SECONDARY", emoji: "👟" })
+    ]).info({ id: "kick", name: "Muted Kick", description: "Automatically kicks members that are muted for too long.", style: "PRIMARY", emoji: "👟" })
   ]).info({ id: "voice", name: "Voice", description: "Voice states monitoring.", style: "SECONDARY", emoji: "🔉" })
 ];
 
@@ -144,7 +144,7 @@ class ConfigCommand implements SlashCommand {
       panelEmbed.setDescription("Please choose an option to configure by clicking a button.")
         .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
       const rows = [];
-      for (let ii = 0; ii < Math.floor(configs.length / 5); ii++) {
+      for (let ii = 0; ii < Math.ceil(configs.length / 5); ii++) {
         const row = new Discord.MessageActionRow();
         for (let jj = ii * 5; jj < Math.min(ii * 5 + 5, configs.length); jj++) {
           const config = configs[jj];
