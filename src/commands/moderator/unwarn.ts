@@ -33,8 +33,12 @@ class UnWarnCommand implements SlashCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        const user = await findUser(message, args[0]);
-        if (!user) return;
+        var user: Discord.User;
+        try {
+            user = await findUser(message, args[0]);
+        } catch (err: any) {
+            return await message.channel.send(err.message);
+        }
         const embeds = this.unwarnEmbeds(message.guild, message.author, user);
         var results = await query(`SELECT * FROM warn WHERE user = '${user.id}' AND guild = '${message.guild.id}'`);
         if (results.length == 0) await message.channel.send("This user haven't been warned before.");

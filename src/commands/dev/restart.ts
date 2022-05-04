@@ -5,7 +5,7 @@ class RestartCommand implements SlashCommand {
     name = "restart"
     description = "Restart the bot"
     aliases = ["re"]
-    category = 10
+    category = 9
 
     async execute(interaction: NorthInteraction) {
         await interaction.reply("Restarted.");

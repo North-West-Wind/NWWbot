@@ -113,7 +113,10 @@ class ApplyCommand implements SlashCommand {
             embed.setTitle("Application Cancelled").setDescription("You already have that role.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             return await interaction.update({ embeds: [embed], components: [] });
         }
-        embed.setTitle(`Applying for role ${role.name}`).setDescription("Please enter the reason of why you should get this role.\nThe reason you entered will be viewed by administrators or moderators").setFooter({ text: "You have 10 minutes.", iconURL: message.client.user.displayAvatarURL() });
+        embed.setTitle(`Applying for role ${role.name}`).setFooter({ text: "You have 10 minutes.", iconURL: message.client.user.displayAvatarURL() });
+        const template = NorthClient.storage.guilds[message.guildId].applications.templates.get(role.id);
+        if (template) embed.setDescription(`Please fill in the following template:\n\n${template}`);
+        else embed.setDescription(`Please enter the reason of why you should get this role.`);
         await interaction.update({ embeds: [embed], components: [] });
         try {
             const author = message instanceof Discord.Message ? message.author : message.user;
@@ -133,7 +136,7 @@ class ApplyCommand implements SlashCommand {
             const { id } = await (<Discord.TextChannel>await message.guild.channels.fetch(settings.channel)).send({ embeds: [em], components: [row] });
             NorthClient.storage.guilds[message.guildId].applications.applications.set(id, { id, role: role.id, author: author.id, approve: new Set(), decline: new Set() });
             if (settings.duration) setTimeout_(() => endApplication(message.client, id, message.guildId), settings.duration);
-            await query(`UPDATE servers SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[message.guildId].applications.applications.values()]))}' WHERE id = '${message.guildId}'`);
+            await query(`UPDATE configs SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[message.guildId].applications.applications.values()]))}' WHERE id = '${message.guildId}'`);
             embed.setTitle("Application Complete").setDescription("Your application has been submitted and will be viewed by administrators or moderators. You will be notify when it is approved or denied.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
         } catch (err) {
             embed.setTitle("Application Error").setDescription("We failed to receive your description! Try again later.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });

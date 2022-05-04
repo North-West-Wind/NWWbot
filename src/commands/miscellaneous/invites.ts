@@ -47,6 +47,7 @@ class InvitesCommand implements SlashCommand {
   }
 
   async run(message: NorthMessage, args: string[]) {
+    if (args[0] !== "toggle" && !message.guild) return await message.channel.send("This subcommand only works on server.");
     if (!args[0]) {
       if (!message.guild.me.permissions.has(BigInt(32))) return message.channel.send(genPermMsg(32, 1));
       const allEmbeds = await this.createInvitesEmbed(message.guild, message.client);

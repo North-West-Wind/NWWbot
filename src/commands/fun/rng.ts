@@ -1,6 +1,6 @@
 
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { getRandomNumber } from "../../function.js";
+import { getRandomNumber, roundTo } from "../../function.js";
 
 class RNGCommand implements SlashCommand {
     name = "rng"
@@ -43,7 +43,7 @@ class RNGCommand implements SlashCommand {
         const max = interaction.options.getNumber("max");
         let msg = "";
         for (let i = 0; i < count; i++) {
-            var number = decimal < 0 ? getRandomNumber(min, max) : Math.round((getRandomNumber(min, max) + Number.EPSILON) * Math.pow(10, decimal)) / Math.pow(10, decimal);
+            var number = decimal < 0 ? getRandomNumber(min, max) : roundTo(getRandomNumber(min, max), decimal);
             msg += number + "\n";
         }
         await interaction.reply(msg);
@@ -59,8 +59,7 @@ class RNGCommand implements SlashCommand {
         if (args[3] !== undefined && !isNaN(parseInt(args[3]))) decimal = parseInt(args[3]);
         let msg = "";
         for (let i = 0; i < count; i++) {
-            var number = decimal < 0 ? getRandomNumber(min, max) : Math.round((getRandomNumber(Number(args[0]), Number(args[1])) + Number.EPSILON) * Math.pow(10, decimal)) / Math.pow(10, decimal);
-            if (decimal >= 0) number = Math.round((number + Number.EPSILON) * Math.pow(10, decimal)) / Math.pow(10, decimal);
+            var number = decimal < 0 ? getRandomNumber(min, max) : roundTo(getRandomNumber(Number(args[0]), Number(args[1])), decimal);
             msg += number + "\n";
         }
         await message.channel.send(msg);

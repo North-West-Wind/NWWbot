@@ -1,4 +1,5 @@
 
+import { Collection, Message, User } from "discord.js";
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { findUser, getOwner } from "../../function.js";
 
@@ -19,6 +20,10 @@ class SpamCommand implements SlashCommand {
         const author = interaction.user;
         const taggedUser = interaction.options.getUser("user");
         if (taggedUser.id === author.id) return await interaction.reply("Don't try to spam youself.");
+        await interaction.deferReply();
+        const m = await taggedUser.send(`**${author.tag}** is spamming you! You now have 10 seconds to catch it. Type anything here!`);
+        const collected: Collection<string, Message> = await m.channel.awaitMessages({ filter: ms => ms.author.id === taggedUser.id, max: 1, time: 10000 }).catch(() => null);
+        if (collected?.first().content) return await interaction.editReply(`**${taggedUser.tag}** caught you spamming!`);
         const time = interaction.options.getInteger("amount");
         if (time > 120) return await interaction.reply("Please don't spam more than 120 times. That would be annoying.")
         const msg = interaction.options.getString("message");
@@ -31,14 +36,21 @@ class SpamCommand implements SlashCommand {
                 if (author.id !== owner) author.send(`Failed to spam ${taggedUser.tag} for ${i + 1} time(s) due to \`${err.message}\`.`).catch(() => i = time);
             });
             i++;
-        }, 1000);
+        }, 500);
         await interaction.reply("Spamming started >:)");
     }
 
     async run(message: NorthMessage, args: string[]) {
-        const taggedUser = await findUser(message, args[0]);
-        if (!taggedUser) return;
+        var taggedUser: User;
+        try {
+            taggedUser = await findUser(message, args[0]);
+        } catch (err: any) {
+            return await message.channel.send(err.message);
+        }
         if (taggedUser.id === message.author.id) return message.channel.send("Don't try to spam youself.");
+        const m = await taggedUser.send(`**${message.author.tag}** is spamming you! You now have 10 seconds to catch it. Type anything here!`);
+        const collected: Collection<string, Message> = await m.channel.awaitMessages({ filter: ms => ms.author.id === taggedUser.id, max: 1, time: 10000 }).catch(() => null);
+        if (collected?.first().content) return await message.reply(`**${taggedUser.tag}** caught you spamming!`);
 
         const time = parseInt(args[1]);
         if (isNaN(time)) {
@@ -57,7 +69,7 @@ class SpamCommand implements SlashCommand {
                 if (message.author.id !== owner) message.author.send(`Failed to spam ${taggedUser.tag} for ${i + 1} time(s) due to \`${err.message}\`.`).catch(() => i = time);
             });
             i++;
-        }, 1000);
+        }, 500);
     }
 }
 

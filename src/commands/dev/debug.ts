@@ -6,7 +6,7 @@ import * as Discord from "discord.js";
 class DebugCommand implements SlashCommand {
     name = "debug"
     description = "Developer debugging command."
-    category = 10
+    category = 9
     args = 1
     options = [{
         name: "function",

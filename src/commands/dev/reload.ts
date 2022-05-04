@@ -7,7 +7,7 @@ class ReloadCommand implements SlashCommand {
     description = "Reload command(s).";
     usage = "<command>";
     aliases = ["rl"];
-    category = 2;
+    category = 9;
     args = 1;
 
     options = [

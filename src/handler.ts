@@ -1,19 +1,15 @@
 import cv from "canvas";
-import memwatch from "node-memwatch-new";
-import * as fs from "fs";
 import { CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageAttachment, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Snowflake, TextChannel, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
-import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, nameToUuid, color, fixGuildRecord, query, duration } from "./function.js";
-import { setQueue, stop } from "./helpers/music.js";
-import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient.js";
-import fetch from "node-fetch";
+import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, fixGuildRecord, query, roundTo } from "./function.js";
+import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildConfig } from "./classes/NorthClient.js";
 import * as filter from "./helpers/filter.js";
 import { sCategories } from "./commands/information/help.js";
 import common from "./common.js";
-import { init } from "./helpers/addTrack.js";
 import cfg from "../config.json";
 import { endApplication } from "./commands/managements/apply.js";
+import { MutedKickSetting } from "./classes/Config.js";
 const { createCanvas, loadImage, Image } = cv;
 const emojis = cfg.poll;
 const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
@@ -33,13 +29,13 @@ export class Handler {
         client.on("guildMemberRemove", member => this.guildMemberRemove(member));
         client.on("guildCreate", guild => this.guildCreate(guild));
         client.on("guildDelete", guild => this.guildDelete(guild));
-        client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(oldState, newState));
         client.on("guildMemberUpdate", (oldMember, newMember) => this.guildMemberUpdate(oldMember, newMember));
         client.on("messageReactionAdd", (reaction, user) => this.messageReactionAdd(reaction, user));
         client.on("messageReactionRemove", (reaction, user) => this.messageReactionRemove(reaction, user));
         client.on("messageDelete", message => this.messageDelete(message));
         client.on("messageCreate", message => this.message(message));
         client.on("interactionCreate", interaction => this.interactionCreate(interaction));
+        client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(oldState, newState));
     }
 
     async interactionCreate(interaction: Interaction) {
@@ -89,7 +85,7 @@ export class Handler {
         }
         settings.applications.set(interaction.message.id, application);
         NorthClient.storage.guilds[interaction.guildId].applications = settings;
-        await query(`UPDATE servers SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[interaction.guildId].applications.applications.values()]))}' WHERE id = '${interaction.guildId}'`);
+        await query(`UPDATE configs SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[interaction.guildId].applications.applications.values()]))}' WHERE id = '${interaction.guildId}'`);
         if (allMembers.size >= application.approve.size + application.decline.size) await endApplication(interaction.client, interaction.message.id, interaction.guildId);
     }
 
@@ -116,7 +112,7 @@ export class Handler {
         for (const result of r) {
             try {
                 if (result.bank <= 0) continue;
-                const newBank = Math.round((Number(result.bank) * 1.02 + Number.EPSILON) * 100) / 100;
+                const newBank = roundTo(result.bank * 1.02, 2);
                 await query(`UPDATE users SET bank = ${newBank} WHERE id = ${result.id}`);
             } catch (err: any) {
                 console.error(err);
@@ -125,21 +121,15 @@ export class Handler {
     }
 
     async readServers(client: NorthClient) {
-        var results = await query("SELECT * FROM servers WHERE id <> '622311594654695434'");
+        var results = await query("SELECT * FROM configs WHERE id <> '622311594654695434'");
         results.forEach(async result => {
             try {
-                await client.guilds.fetch(result.id);
+                const guild = await client.guilds.fetch(result.id);
+                NorthClient.storage.guilds[result.id] = new GuildConfig(result);
+                MutedKickSetting.check(guild);
             } catch (err: any) {
-                await query(`DELETE FROM servers WHERE id = '${result.id}'`);
-                return console.log("Removed left servers");
+                return await query(`DELETE FROM configs WHERE id = '${result.id}'`);
             }
-            if (result.queue || result.looping || result.repeating) {
-                var queue = [];
-                try { if (result.queue) queue = JSON.parse(unescape(result.queue)); }
-                catch (err: any) { console.error(`Error parsing queue of ${result.id}`); }
-                setQueue(result.id, queue, !!result.looping, !!result.repeating);
-            }
-            NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }
@@ -211,7 +201,6 @@ export class Handler {
         console.log(`[${id}] Ready!`);
         this.setPresence(client);
         try {
-            init();
             await this.preRead(client);
             await this.readCurrency(client);
             await this.readServers(client);
@@ -227,6 +216,8 @@ export class Handler {
     async guildMemberAdd(member: GuildMember) {
         const client = (member.client as NorthClient);
         const guild = member.guild;
+        const simMems = NorthClient.storage.guilds[guild.id].checkMember(member);
+        if (simMems.length >= 2) console.debug(`Potential nuke happening on ${guild.name}. Members: ${simMems.map(mem => mem.user.tag).join(" ")} ${member}`);
         if (member.user.bot) return;
         guild.invites.fetch().then(async guildInvites => {
             const ei = NorthClient.storage.guilds[member.guild.id].invites;
@@ -253,7 +244,7 @@ export class Handler {
             const channel = <TextChannel>guild.channels.resolve(welcome.channel);
             if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
             if (welcome.message) try {
-                const welcomeMessage = replaceMsgContent(welcome.message, guild, client, member, "welcome");
+                const welcomeMessage = replaceMsgContent(welcome.message, member, "welcome");
                 await channel.send(welcomeMessage);
             } catch (err: any) {
                 console.error(err);
@@ -334,7 +325,6 @@ export class Handler {
     }
 
     async guildMemberRemove(member: GuildMember | PartialGuildMember) {
-        const client = (member.client as NorthClient);
         const guild = member.guild;
         try {
             if (!NorthClient.storage.guilds[guild.id]) {
@@ -352,7 +342,7 @@ export class Handler {
             if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
             if (!leave.message) return;
             try {
-                const leaveMessage = replaceMsgContent(leave.message, guild, client, member, "leave");
+                const leaveMessage = replaceMsgContent(leave.message, <GuildMember> member, "leave");
                 await channel.send(leaveMessage);
             } catch (err: any) {
                 console.error(err);
@@ -375,24 +365,11 @@ export class Handler {
         console.log(`Left a guild: ${guild.name} | ID: ${guild.id}`);
         delete NorthClient.storage.guilds[guild.id];
         try {
-            await query("DELETE FROM servers WHERE id=" + guild.id);
-            console.log("Deleted record for " + guild.name);
+            await query("DELETE FROM servers WHERE id = " + guild.id);
+            await query("DELETE FROM configs WHERE id = " + guild.id);
         } catch (err: any) {
             console.error(err);
         }
-    }
-
-    async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
-        const guild = oldState.guild || newState.guild;
-        const exit = NorthClient.storage.guilds[guild.id]?.exit;
-        if ((oldState.id == guild.me.id || newState.id == guild.me.id) && (!guild.me.voice?.channel)) return stop(guild);
-        if (!guild.me.voice?.channel || (newState.channelId !== guild.me.voice.channelId && oldState.channelId !== guild.me.voice.channelId)) return;
-        if (!NorthClient.storage.guilds[guild.id]) await fixGuildRecord(guild.id);
-        if (guild.me.voice.channel?.members.size <= 1) {
-            if (exit) return;
-            NorthClient.storage.guilds[guild.id].exit = true;
-            setTimeout(() => NorthClient.storage.guilds[guild.id]?.exit ? stop(guild) : 0, 30000);
-        } else NorthClient.storage.guilds[guild.id].exit = false;
     }
 
     async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
@@ -402,7 +379,7 @@ export class Handler {
         if (!boost?.channel || !boost.message) return;
         try {
             const channel = <TextChannel>await client.channels.fetch(boost.channel);
-            channel.send(boost.message.replace(/\{user\}/gi, `<@${newMember.id}>`));
+            await channel.send(boost.message.replace(/\{user\}/gi, `<@${newMember.id}>`));
         } catch (err: any) { }
     }
 
@@ -443,6 +420,20 @@ export class Handler {
         await query(`DELETE FROM rolemsg WHERE id = '${message.id}'`);
     }
 
+    async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
+        const guild = newState.guild;
+        const timeout = NorthClient.storage.guilds[guild.id].voice.kick.timeout;
+        if (!NorthClient.storage.guilds[guild.id].voice.kick.channels.includes(newState.channelId) || timeout < 0) return;
+        if ((!oldState.channel || !oldState?.mute) && newState?.mute) {
+            NorthClient.storage.guilds[guild.id].pendingKick.add(newState.member.id);
+            setTimeout(async () => {
+                if (NorthClient.storage.guilds[guild.id].pendingKick.delete(newState.member.id))
+                    newState.disconnect().catch(() => {});
+            }, timeout);
+        } else if (oldState?.mute && (!newState?.channel || !newState?.mute))
+            NorthClient.storage.guilds[guild.id].pendingKick.delete(newState.member.id);
+    }
+
     async preMessage(_message: Message): Promise<any> {
 
     }
@@ -463,7 +454,6 @@ export class Handler {
         const command = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command) return;
         Handler.lastRunCommand = command.name;
-        //const heapDiff = new memwatch.HeapDiff();
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
@@ -474,7 +464,5 @@ export class Handler {
                 await msg.reply(error);
             } catch (err: any) { }
         }
-        //const diff = heapDiff.end();
-        //fs.writeFileSync(`log/memDump/${Date.now()}.json`, JSON.stringify({ command: command.name, diff }, null, 2), { encoding: "utf8" });
     }
 }

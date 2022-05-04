@@ -6,7 +6,7 @@ class DevSlashCommand implements SlashCommand {
     description = "N0rthWestW1nd's Slash Command Manager.";
     usage = "<subcommand>";
     aliases = ["scm"];
-    category = 10;
+    category = 9;
     args = 1;
     subcommands = ["register", "refresh"];
     subdesc = ["Register all Slash Commands.", "Refresh all Slash Commands."];

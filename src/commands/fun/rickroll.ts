@@ -29,8 +29,12 @@ class RickrollCommand implements SlashCommand {
     async run(message: NorthMessage, args: string[]) {
         const attachment = new Discord.MessageAttachment("https://drive.google.com/uc?export=download&id=1kiVMwDCNN5kRN9BtMPfSYoU1QM0yRdS2", "rick.gif");
         if (!args[0]) return await message.channel.send({files: [attachment]});
-        var user = await findUser(message, args[0]);
-        if (!user) return;
+        var user: Discord.User;
+        try {
+            user = await findUser(message, args[0]);
+        } catch (err: any) {
+            return await message.channel.send(err.message);
+        }
         if (user.id === message.client.user.id || user.id == await getOwner()) user = message.author;
         await message.channel.send(`Hey! <@${user.id}>`);
         await wait(5000);

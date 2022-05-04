@@ -1,8 +1,46 @@
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import { msgOrRes, ID, color, fixGuildRecord, query, wait, duration, ms, findChannel } from "../../function.js";
-import { globalClient as client } from "../../common.js";
 import * as Discord from "discord.js";
 import { isImageUrl } from "../../function.js";
+import { Category, SafeSetting, Setting, SettableType, TemplateSetting } from "../../classes/Config.js";
+
+const configs: (Category | Setting)[] = [
+  new Category([
+    new Setting("message", null, "What to send for the Welcome Message.", "message", 600000, "PRIMARY", "✉️", "Welcome Message").info({ column: "wel_msg" }),
+    new Setting("channel", null, "Where to send the Welcome Message.", "text_channel", 60000, "PRIMARY", "🏞️", "Welcome Channel").info({ column: "wel_channel" }),
+    new Setting("image", null, "Includes image(s) for the Welcome Message.", "image", 60000, "SECONDARY", "📷", "Welcome Image").info({ column: "wel_img" }),
+    new Setting("autorole", "Auto-Role", "Gives users roles when joined automatically.", "roles", 60000, "SECONDARY", "🤖").info({ column: "autorole" })
+  ]).info({ id: "welcome", name: "Welcome", description: "Sends a message and adds user to role(s) when someone joins the server.", style: "PRIMARY", emoji: "🙌" }),
+  new Category([
+    new Setting("message", null, "What to send for the Leave Message.", "message", 600000, "PRIMARY", "✉️", "Leave Message").info({ column: "leave_msg" }),
+    new Setting("channel", null, "Where to send the Leave Message.", "text_channel", 60000, "PRIMARY", "🏞️", "Leave Channel").info({ column: "leave_channel" })
+  ]).info({ id: "leave", name: "Leave", description: "Sends a message when someone leaves the server.", style: "PRIMARY", emoji: "👋" }),
+  new Category([
+    new Setting("message", null, "What to send for the Boost Message.", "message", 600000, "PRIMARY", "✉️", "Boost Message").info({ column: "boost_msg" }),
+    new Setting("channel", null, "Where to send the Boost Message.", "text_channel", 60000, "PRIMARY", "🏞️", "Boost Channel").info({ column: "boost_channel" })
+  ]).info({ id: "boost", name: "Boost", description: "Sends a message when someone boosts the server.", style: "PRIMARY", emoji: "🏎️" }),
+  new Setting("giveaway", "Giveaway Emoji", "Changes the emoji used for giveaways.", "reaction", 60000, "SECONDARY", "🎁").def("🎉").info({ column: "giveaway" }),
+  new SafeSetting("safe", "Safe Mode", "Toggles NSFW commands on this server.", 60000, "SECONDARY", "🦺").info({ column: "safe" }).def(true),
+  new Category([
+    new Setting("roles", "Applicable Roles", "Roles that users can apply for.", "roles", 60000, "PRIMARY", "✉️").info({ column: "app_roles" }),
+    new Setting("admins", "Voter Roles", "Roles that users will be voting for approval.", "roles", 60000, "PRIMARY", "🛠️").info({ column: "admin_roles" }),
+    new Setting("channel", null, "Where the application will be sent. Private channels are recommended.", "text_channel", 60000, "PRIMARY", "🏞️").info({ column: "app_channel" }),
+    new Setting("duration", null, "How long until the application cannot be voted.", "duration", 60000, "SECONDARY", "⏰").info({ column: "duration" }),
+    new Category(async(self: Category, guild: Discord.Guild) => {
+      self.children = [];
+      for (const role of NorthClient.storage.guilds[guild.id].applications.roles) {
+        const r = await guild.roles.fetch(role);
+        self.children.push(new TemplateSetting(r.id, r.name, `Template for ${r.name}.`, 600000, "SECONDARY"));
+      }
+    }).info({ id: "templates", name: "Templates", description: "The templates applicants need to fill in.", style: "SECONDARY", emoji: "📋" })
+  ]).info({ id: "applications", name: "Applications", description: "Allows user to apply for a specific role.", style: "PRIMARY", emoji: "🧑‍💻" }),
+  new Category([
+    new Category([
+      new Setting("channels", null, "The channels to be monitored.", "voice_channels", 120000, "PRIMARY", "🏞️").info({ column: "voice_kick_channels" }),
+      new Setting("timeout", null, "The delay before a member gets kicked for muting.", "duration", 60000, "PRIMARY", "⏲️").info({ column: "voice_kick_timeout" })
+    ]).info({ id: "kick", name: "Muted Kick", description: "Automatically kicks members that are muted for too long.", style: "PRIMARY", emoji: "👟" })
+  ]).info({ id: "voice", name: "Voice", description: "Voice states monitoring.", style: "SECONDARY", emoji: "🔉" })
+];
 
 class ConfigCommand implements SlashCommand {
   name = "config"
@@ -35,7 +73,6 @@ class ConfigCommand implements SlashCommand {
     if (sub === "panel") return await this.panel(interaction);
     const guild = interaction.guild;
     const author = interaction.user;
-    const client = interaction.client;
     var config = NorthClient.storage.guilds[guild.id];
     const generated = await ID();
     try {
@@ -46,7 +83,7 @@ class ConfigCommand implements SlashCommand {
       config.token = generated;
       NorthClient.storage.guilds[guild.id] = config;
       await interaction.reply("See you in DM!");
-      await query(`UPDATE servers SET token = '${config.token}' WHERE id = '${guild.id}'`);
+      await query(`UPDATE configs SET token = '${config.token}' WHERE id = '${guild.id}'`);
       return;
     } catch (err: any) {
       console.error(err);
@@ -66,7 +103,7 @@ class ConfigCommand implements SlashCommand {
       } else if (args[0] !== "new") return await message.author.send(`Token was created for **${guild.name}** before.\nToken: \`${config.token}\``);
       config.token = generated;
       NorthClient.storage.guilds[guild.id] = config;
-      await query(`UPDATE servers SET token = '${config.token}' WHERE id = '${guild.id}'`);
+      await query(`UPDATE configs SET token = '${config.token}' WHERE id = '${guild.id}'`);
     } catch (err: any) {
       message.reply("There was an error trying to update the token! This token will be temporary.");
       console.error(err);
@@ -105,92 +142,107 @@ class ConfigCommand implements SlashCommand {
     async function start(msg: Discord.Message) {
       panelEmbed.setDescription("Please choose an option to configure by clicking a button.")
         .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row1 = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Welcome", customId: "welcome", style: "PRIMARY", emoji: "🙌" }))
-        .addComponents(new Discord.MessageButton({ label: "Leave", customId: "leave", style: "PRIMARY", emoji: "👋" }))
-        .addComponents(new Discord.MessageButton({ label: "Boost", customId: "boost", style: "PRIMARY", emoji: "🏎️" }))
-        .addComponents(new Discord.MessageButton({ label: "Giveaway Emoji", customId: "giveaway", style: "SECONDARY", emoji: "🎁" }))
-        .addComponents(new Discord.MessageButton({ label: "Safe Mode", customId: "safemode", style: "SECONDARY", emoji: "🦺" }));
-      const row2 = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Applications", customId: "app", style: "SECONDARY", emoji: "🧑‍💻" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row1, row2] });
+      const rows = [];
+      for (let ii = 0; ii < Math.ceil(configs.length / 5); ii++) {
+        const row = new Discord.MessageActionRow();
+        for (let jj = ii * 5; jj < Math.min(ii * 5 + 5, configs.length); jj++) {
+          const config = configs[jj];
+          row.addComponents(new Discord.MessageButton(<Discord.MessageButtonOptions>{ label: config.name, customId: config.id, style: config.style || "PRIMARY", emoji: config.emoji }));
+        }
+        rows.push(row);
+      }
+      rows.push(new Discord.MessageActionRow().addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" })));
+      await msg.edit({ embeds: [panelEmbed], components: rows });
       const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
       await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "welcome": return await welcome(msg);
-        case "leave": return await leave(msg);
-        case "boost": return await boost(msg);
-        case "giveaway": return await giveaway(msg);
-        case "safemode": return await safe(msg);
-        case "app": return await application(msg);
-        default: return await end(msg);
-      }
+      if (interaction.customId === "quit") return await end(msg);
+      return await next(msg, [interaction.customId]);
     }
 
-    async function set(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, time: number, type: "message" | "channel" | "image" | "roles" | "reaction" | "duration", extraData: any = {}) {
-      panelEmbed.setDescription(`**${path}/Set**\nPlease enter the ${thing} in this channel.`)
+    async function set(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, time: number, type: SettableType, extraData: any = {}) {
+      if (typeof extraData?.pre === "function") {
+        await extraData.pre(msg, path, configLoc, thing, column, time, type);
+        if (extraData.endPre) return;
+      }
+      panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Toggle" : "Set"}**\nPlease enter the ${thing} in this channel.`)
         .setFooter({ text: `You will have ${duration(time, "milliseconds")}`, iconURL: msg.client.user.displayAvatarURL() });
       await msg.edit({ embeds: [panelEmbed] });
       const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, time, max: 1 });
       if (!msgCollected.first() || !msgCollected.first().content) return await end(msg);
-      var content;
-      if (["message", "channel", "roles", "reaction", "duration"].includes(type)) {
+      var content: any;
+      if (["message", "roles", "reaction", "duration"].includes(type) || type.endsWith("channel") || type.endsWith("channels")) {
         content = msgCollected.first().content.replace(/'/g, "\\'");
         msgCollected.first().delete().catch(() => { });
-        switch (type) {
-          case "channel":
-            const channel = await findChannel(msg.guild, content);
-            if (!channel || !(channel instanceof Discord.TextChannel)) {
-              panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
+        if (type.endsWith("channel")) {
+          const chType = type.split("_")[0];
+          const channel = await findChannel(msg.guild, content);
+          if (!channel || channel.type != ("GUILD_" + chType.toUpperCase())) {
+            panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
+              .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
+            await msg.edit({ embeds: [panelEmbed] });
+            await wait(3000);
+            return await start(msg);
+          }
+          content = channel.id;
+        } else if (type.endsWith("channels")) {
+          const chType = type.split("_")[0];
+          const channels = [];
+          for (const arg of content.split(/ +/)) {
+            const channel = await findChannel(msg.guild, arg);
+            if (!channel || channel.type != ("GUILD_" + chType.toUpperCase())) {
+              panelEmbed.setDescription(`**${path}/Set**\nOne of the channels is not valid! Returning to panel main page in 3 seconds...`)
                 .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
               await msg.edit({ embeds: [panelEmbed] });
               await wait(3000);
               return await start(msg);
             }
-            content = channel.id;
-            break;
-          case "roles":
-            const collectedArgs = msgCollected.first().content.split(/ +/);
-            content = [];
+            channels.push(channel.id);
+          }
+          content = channels;
+        } else {
+          switch (type) {
+            case "roles":
+              const collectedArgs = msgCollected.first().content.split(/ +/);
+              content = [];
   
-            for (var i = 0; i < collectedArgs.length; i++) {
-              if (isNaN(parseInt(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, "")))) {
-                panelEmbed.setDescription(`**${path}/Set**\nOne of the roles is not valid! Returning to panel main page in 3 seconds...`)
+              for (var i = 0; i < collectedArgs.length; i++) {
+                if (isNaN(parseInt(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, "")))) {
+                  panelEmbed.setDescription(`**${path}/Set**\nOne of the roles is not valid! Returning to panel main page in 3 seconds...`)
+                    .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
+                  await msg.edit({ embeds: [panelEmbed] });
+                  await wait(3000);
+                  return await start(msg);
+                }
+                content.push(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, ""));
+              }
+              if (extraData.max && content.length > extraData.max)
+                panelEmbed.setDescription(`**${path}/Set**\nThere can only be at most ${extraData.max} roles! Returning to panel main page in 3 seconds...`)
+                  .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
+              break;
+            case "reaction":
+              content = msgCollected.first().content;
+              try {
+                await msg.react(content);
+                msg.reactions.removeAll().catch(() => { });
+              } catch (err) {
+                panelEmbed.setDescription(`**${path}/Set**\nThe reaction is not valid! Returning to panel main page in 3 seconds...`)
                   .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
                 await msg.edit({ embeds: [panelEmbed] });
                 await wait(3000);
                 return await start(msg);
               }
-              content.push(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, ""));
-            }
-            if (extraData.max && content.length > extraData.max) 
-              panelEmbed.setDescription(`**${path}/Set**\nThere can only be at most ${extraData.max} roles! Returning to panel main page in 3 seconds...`)
-                .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
-            break;
-          case "reaction":
-            content = msgCollected.first().content;
-            try {
-              await msg.react(content);
-              msg.reactions.removeAll().catch(() => { });
-            } catch (err) {
-              panelEmbed.setDescription(`**${path}/Set**\nThe reaction is not valid! Returning to panel main page in 3 seconds...`)
-                .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
-              await msg.edit({ embeds: [panelEmbed] });
-              await wait(3000);
-              return await start(msg);
-            }
-            break;
-          case "duration":
-            content = ms(content);
-            if (isNaN(content)) {
-              panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
-                .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
-              await msg.edit({ embeds: [panelEmbed] });
-              await wait(3000);
-              return await start(msg);
-            }
+              break;
+            case "duration":
+              content = ms(content);
+              if (isNaN(content)) {
+                panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
+                  .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
+                await msg.edit({ embeds: [panelEmbed] });
+                await wait(3000);
+                return await start(msg);
+              }
+          }
         }
       } else if (type === "image") {
         content = [];
@@ -208,32 +260,70 @@ class ConfigCommand implements SlashCommand {
         else if (configLoc.length === 2) cfg = config[configLoc[0]][configLoc[1]];
         if (Array.isArray(cfg)) content = content.concat(cfg);
         else content.push(cfg);
+      } else if (type === "boolean") {
+        var cfg;
+        if (configLoc.length === 1) cfg = config[configLoc[0]];
+        else if (configLoc.length === 2) cfg = config[configLoc[0]][configLoc[1]];
+        content = !cfg;
+      }
+      if (typeof extraData?.mid === "function") {
+        await extraData.mid(msg, content);
+        if (extraData.endMid) return;
       }
       try {
-        if (configLoc.length === 1) config[configLoc[0]] = content;
-        else if (configLoc.length === 2) config[configLoc[0]][configLoc[1]] = content;
+        const layers = [config[configLoc[0]]];
+        for (let i = 1; i < configLoc.length - 1; i++) {
+          layers.push(layers[i - 1][configLoc[i]]);
+        }
+        layers.push(content);
+        for (let i = configLoc.length - 1; i > 0; i--) {
+          layers[i-1][configLoc[i]] = layers[i];
+        }
+        config[configLoc[0]] = layers[0];
         NorthClient.storage.guilds[message.guild.id] = config;
-        await query(`UPDATE servers SET ${column} = ${typeof content === "number" ? content : `'${Array.isArray(content) ? content.join() : content}'`} WHERE id = '${message.guild.id}'`);
-        panelEmbed.setDescription(`**${path}/Set**\n${thing} received! Returning to panel main page in 3 seconds...`);
+        var val;
+        if (typeof content === "number") val = content;
+        else if (Array.isArray(content)) val = `"${content.join()}"`;
+        else if (typeof content === "boolean") val = content ? 1 : 0;
+        else val = `"${content}"`;
+        if (typeof extraData?.sql === "function") await extraData.sql(column, val, message.guildId);
+        else await query(`UPDATE configs SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
+        panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Toggle" : "Set"}**\n${thing} received! Returning to panel main page in 3 seconds...`);
       } catch (err: any) {
         console.error(err);
         panelEmbed.setDescription(`**${path}/Set**\nFailed to update ${thing}! Returning to panel main page in 3 seconds...`);
       }
       panelEmbed.setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
       await msg.edit({ embeds: [panelEmbed] });
+      if (typeof extraData?.post === "function") await extraData.post(msg, content);
       await wait(3000);
       return await start(msg);
     }
 
-    async function reset(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, defaultVal: any = null) {
+    async function reset(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, defaultVal: any = null, extraData: any = {}) {
       panelEmbed.setDescription(`**${path}/Reset**\nResetting...`)
         .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
       await msg.edit({ embeds: [panelEmbed] });
       try {
-        if (configLoc.length === 1) config[configLoc[0]] = defaultVal;
-        else if (configLoc.length === 2) config[configLoc[0]][configLoc[1]] = defaultVal;
+        const layers = [config[configLoc[0]]];
+        for (let i = 1; i < configLoc.length - 1; i++) {
+          layers.push(layers[i - 1][configLoc[i]]);
+        }
+        layers.push(defaultVal);
+        for (let i = configLoc.length - 1; i > 0; i--) {
+          layers[i-1][configLoc[i]] = layers[i];
+        }
+        config[configLoc[0]] = layers[0];
         NorthClient.storage.guilds[message.guild.id] = config;
-        await query(`UPDATE servers SET ${column} = ${defaultVal ? `'${defaultVal}'` : "NULL"} WHERE id = '${message.guild.id}'`);
+        if (typeof extraData?.handler === "function") await extraData.handler(msg, defaultVal);
+        var val;
+        if (!defaultVal) val = "NULL"
+        else if (typeof defaultVal === "number") val = defaultVal;
+        else if (Array.isArray(defaultVal)) val = `"${defaultVal.join()}"`;
+        else if (typeof defaultVal === "boolean") val = defaultVal ? 1 : 0;
+        else val = `"${defaultVal}"`;
+        if (typeof extraData?.sql === "function") await extraData.sql(column, val, message.guildId);
+        else await query(`UPDATE configs SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
         panelEmbed.setDescription(`**${path}/Reset**\n${thing} was reset! Returning to panel main page in 3 seconds...`);
       } catch (err: any) {
         console.error(err);
@@ -251,427 +341,64 @@ class ConfigCommand implements SlashCommand {
       return interaction;
     }
 
-    async function welcome(msg: Discord.Message) {
-      panelEmbed.setDescription("**Welcome**\nSends a message when someone joins the server.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row1 = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Message", customId: "message", style: "PRIMARY", emoji: "✉️" }))
-        .addComponents(new Discord.MessageButton({ label: "Channel", customId: "channel", style: "PRIMARY", emoji: "🏞️" }))
-        .addComponents(new Discord.MessageButton({ label: "Image", customId: "image", style: "SECONDARY", emoji: "📷" }))
-        .addComponents(new Discord.MessageButton({ label: "Auto-Role", customId: "autorole", style: "SECONDARY", emoji: "🤖" }));
-      const row2 = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row1, row2] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "message": return await welcomeMsg(msg);
-        case "channel": return await welcomeChannel(msg);
-        case "image": return await welcomeImage(msg);
-        case "autorole": return await welcomeAutorole(msg);
-        case "back": return await start(msg);
-        default: return await end(msg);
+    async function next(msg: Discord.Message, paths: string[]) {
+      if (!paths.length) return await start(msg);
+      var cateSett: Category | Setting;
+      const capitalized: string[] = [];
+      for (const path of paths) {
+        if (!cateSett) cateSett = configs.find(cat => cat.id === path);
+        else if (cateSett instanceof Category) cateSett = cateSett.children.find(cat => cat.id === path);
+        else return await start(msg);
+        capitalized.push(cateSett.name);
       }
-    }
-
-    async function welcomeMsg(msg: Discord.Message) {
-      panelEmbed.setDescription("**Welcome/Message**\nWhat to send for the Welcome Message.\nPlease choose an option to configure by clicking a button.")
+      panelEmbed.setDescription(`**${capitalized.join("/")}**\n${cateSett.description}\nPlease choose an option to configure by clicking a button.`)
         .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set": return await set(msg, "Welcome/Message", ["welcome", "message"], "Welcome Message", "wel_msg", 600000, "message");
-        case "reset": return await reset(msg, "Welcome/Message", ["welcome", "message"], "Welcome Message", "wel_msg");
-        case "back": return await welcome(msg);
-        default: return await end(msg);
-      }
-    }
-
-    async function welcomeChannel(msg: Discord.Message) {
-      panelEmbed.setDescription("**Welcome/Channel**\nWhere to send the Welcome Message.\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set": return await set(msg, "Welcome/Channel", ["welcome", "channel"], "Welcome Channel", "wel_channel", 60000, "channel");
-        case "reset": return await reset(msg, "Welcome/Channel", ["welcome", "channel"], "Welcome Channel", "wel_channel");
-        case "back": return await welcome(msg);
-        default: return await end(msg);
-      }
-    }
-
-    async function welcomeImage(msg: Discord.Message) {
-      panelEmbed.setDescription("**Welcome/Image**\nIncludes image(s) for the Welcome Message.\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set": return set(msg, "Welcome/Image", ["welcome", "image"], "Welcome Image", "wel_img", 60000, "image");
-        case "unset": return reset(msg, "Welcome/Image", ["welcome", "image"], "Welcome Image", "wel_img");
-        case "back": return await welcome(msg);
-        default: return await end(msg);
-      }
-    }
-
-    async function welcomeAutorole(msg: Discord.Message) {
-      panelEmbed.setDescription("**Welcome Message/Autorole**\nGives users roles when joined automatically.\nPlease choose an option to configure:\n\n1️⃣ Set\n2️⃣ Reset\n⬅ Back\n⏹ Quit")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set": return set(msg, "Welcome/Auto-Role", ["welcome", "autorole"], "Auto-Role", "autorole", 60000, "roles");
-        case "unset": return reset(msg, "Welcome/Image", ["welcome", "autorole"], "Auto-Role", "autorole");
-        case "back": return await welcome(msg);
-        default: return await end(msg);
-      }
-    }
-
-    async function leave(msg: Discord.Message) {
-      panelEmbed.setDescription("**Leave**\nSends a message when someone leaves the server.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row1 = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Message", customId: "message", style: "PRIMARY", emoji: "✉️" }))
-        .addComponents(new Discord.MessageButton({ label: "Channel", customId: "channel", style: "PRIMARY", emoji: "🏞️" }))
-      const row2 = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row1, row2] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "message": return await leaveMsg(msg);
-        case "channel": return await leaveChannel(msg);
-        case "back": return await start(msg);
-        default: return await end(msg);
-      }
-    }
-
-    async function leaveMsg(msg: Discord.Message) {
-      panelEmbed.setDescription("**Leave/Message**\nWhat to send for the Leave Message.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set": return await set(msg, "Leave/Message", ["leave", "message"], "Leave Message", "leave_msg", 600000, "message");
-        case "reset": return await reset(msg, "Leave/Message", ["leave", "message"], "Leave Message", "leave_msg");
-        case "back": return await welcome(msg);
-        default: return await end(msg);
-      }
-    }
-
-    async function leaveChannel(msg: Discord.Message) {
-      panelEmbed.setDescription("**Leave/Channel**\nWhere to send the Leave Message.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set": return await set(msg, "Leave/Channel", ["leave", "channel"], "Leave Channel", "leave_channel", 60000, "channel");
-        case "reset": return await reset(msg, "Leave/Channel", ["leave", "channel"], "Leave Channel", "leave_channel");
-        case "back": return await welcome(msg);
-        default: return await end(msg);
-      }
-    }
-
-    async function boost(msg: Discord.Message) {
-      panelEmbed.setDescription("**Boost Message**\nSends a message when someone boosts the server.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row1 = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Message", customId: "message", style: "PRIMARY", emoji: "✉️" }))
-        .addComponents(new Discord.MessageButton({ label: "Channel", customId: "channel", style: "PRIMARY", emoji: "🏞️" }))
-      const row2 = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row1, row2] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "message": return await boostMsg(msg);
-        case "channel": return await boostChannel(msg);
-        case "back": return await start(msg);
-        default: return await end(msg);
-      }
-    }
-
-    async function boostMsg(msg: Discord.Message) {
-      panelEmbed.setDescription("**Boost/Message**\nWhat to send for the Boost Message.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set": return await set(msg, "Boost/Message", ["boost", "message"], "Boost Message", "boost_msg", 600000, "message");
-        case "reset": return await reset(msg, "Boost/Message", ["boost", "message"], "Boost Message", "boost_msg");
-        case "back": return await welcome(msg);
-        default: return await end(msg);
-      }
-    }
-
-    async function boostChannel(msg: Discord.Message) {
-      panelEmbed.setDescription("**Boost/Channel**\nWhere to send the Boost Message.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set": return await set(msg, "Boost/Channel", ["boost", "channel"], "Boost Channel", "boost_channel", 60000, "channel");
-        case "reset": return await reset(msg, "Boost/Channel", ["boost", "channel"], "Boost Channel", "boost_channel");
-        case "back": return await welcome(msg);
-        default: return await end(msg);
-      }
-    }
-
-    async function giveaway(msg: Discord.Message) {
-      panelEmbed.setDescription("**Giveaway Emoji**\nChanges the emoji used for giveaways.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set": return await set(msg, "Giveaway Emoji", ["giveaway"], "Giveaway Emoji", "giveaway", 60000, "reaction");
-        case "reset": return await reset(msg, "Giveaway Emoji", ["giveaway"], "Giveaway Emoji", "giveaway", "🎉");
-        case "back": return await welcome(msg);
-        default: return await end(msg);
-      }
-    }
-
-    async function safe(msg: Discord.Message) {
-      panelEmbed.setDescription("**Safe Mode**\nToggles NSFW commands on this server.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set":
-          try {
-            config.safe = true;
-            NorthClient.storage.guilds[message.guild.id] = config;
-            await query(`UPDATE servers SET safe = 1 WHERE id = '${message.guild.id}'`);
-            panelEmbed.setDescription("**Safe Mode/Enable**\nEnabled Safe Mode! Returning to panel main page in 3 seconds...")
-            await msg.edit({ embeds: [panelEmbed] });
-            for (const command of NorthClient.storage.commands.values()) {
-              if (command.category !== 5) continue;
-              try {
-                const options = {
-                  name: command.name,
-                  description: command.description,
-                  options: command.options
-                };
-                await client.application.commands.create(options, message.guild.id);
-              } catch (err: any) {
-                console.error("Failed to create slash command " + command.name);
-                console.error(err);
-              }
-            }
-          } catch (err: any) {
-            panelEmbed.setDescription(`**Safe Mode/Set**\nFailed to update Safe Mode! Returning to panel main page in 3 seconds...`);
+      const rows = [];
+      if (cateSett instanceof Category) {
+        if (cateSett.breeder) await cateSett.breeder(cateSett, msg.guild);
+        for (let ii = 0; ii < Math.ceil(cateSett.children.length / 5); ii++) {
+          const row = new Discord.MessageActionRow();
+          for (let jj = ii * 5; jj < Math.min(ii * 5 + 5, cateSett.children.length); jj++) {
+            const config = cateSett.children[jj];
+            row.addComponents(new Discord.MessageButton(<Discord.MessageButtonOptions>{ label: config.name, customId: config.id, style: config.style || "PRIMARY", emoji: config.emoji }));
           }
-          panelEmbed.setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
-          await wait(3000);
-          return await start(msg);
-        case "reset":
-          try {
-            config.safe = false;
-            NorthClient.storage.guilds[message.guild.id] = config;
-            await query(`UPDATE servers SET safe = 0 WHERE id = '${message.guild.id}'`);
-            panelEmbed.setDescription("**Safe Mode/Disable**\nDisabled Safe Mode! Returning to panel main page in 3 seconds...");
-            await msg.edit({ embeds: [panelEmbed] });
-            const commands = await message.guild.commands.fetch();
-            for (const command of commands.values()) {
-              if (NorthClient.storage.commands.get(command.name)?.category !== 5) continue;
-              try {
-                await client.application.commands.delete(command.id, command.guildId);
-              } catch (err: any) {
-                console.error("Failed to delete slash command " + command.name);
-                console.error(err);
-              }
-            }
-          } catch (err: any) {
-            panelEmbed.setDescription(`**Safe Mode/Set**\nFailed to update Safe Mode! Returning to panel main page in 3 seconds...`);
-          }
-          panelEmbed.setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
-          await wait(3000);
-          return await start(msg);
-        case "back": return await welcome(msg);
-        default: return await end(msg);
+          rows.push(row);
+        }
+        rows.push(new Discord.MessageActionRow()
+          .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
+          .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" })));
+      } else {
+        rows.push(new Discord.MessageActionRow()
+          .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
+          .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
+          .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
+          .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" })));
       }
-    }
-
-    async function application(msg: Discord.Message) {
-      panelEmbed.setDescription("**Applications**\nAllows user to apply for a specific role.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row1 = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Applicable Roles", customId: "roles", style: "PRIMARY", emoji: "✉️" }))
-        .addComponents(new Discord.MessageButton({ label: "Voter Roles", customId: "admin", style: "PRIMARY", emoji: "🛠️" }))
-        .addComponents(new Discord.MessageButton({ label: "Channel", customId: "channel", style: "PRIMARY", emoji: "🏞️" }))
-        .addComponents(new Discord.MessageButton({ label: "Duration", customId: "duration", style: "SECONDARY", emoji: "⏰" }));
-      const row2 = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row1, row2] });
+      await msg.edit({ embeds: [panelEmbed], components: rows });
       const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
       await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "roles": return await applicationRoles(msg);
-        case "admin": return await applicationAdmins(msg);
-        case "channel": return await applicationChannel(msg);
-        case "duration": return await applicationDuration(msg);
-        case "back": return await start(msg);
-        default: return await end(msg);
+      var extra = null;
+      if (cateSett instanceof Setting) extra = cateSett.extra;
+      var location: string[];
+      if (cateSett instanceof Setting) {
+        location = cateSett.storage.location || paths;
+        var settings: any;
+        if (location.length === 1) settings = NorthClient.storage.guilds[message.guildId][location[0]];
+        else if (location.length === 2) settings =NorthClient.storage.guilds[message.guildId][location[0]][location[1]];
+        panelEmbed.setDescription(panelEmbed.description + `\n\nCurrent settings:\n\`${settings}\``);
       }
-    }
-
-    async function applicationRoles(msg: Discord.Message) {
-      panelEmbed.setDescription("**Applications/Applicable Roles**\nRoles that users can apply for.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
       switch (interaction.customId) {
-        case "set": return await set(msg, "Applications/Applicable Roles", ["applications", "roles"], "Applicable Roles", "app_roles", 60000, "roles", { max: 20 });
-        case "reset": return await reset(msg, "Applications/Applicable Roles", ["applications", "roles"], "Applicable Roles", "app_roles");
-        case "back": return await application(msg);
-        default: return await end(msg);
-      }
-    }
+        case "back": return await next(msg, paths.slice(0, -1));
+        case "quit": return await end(msg);
 
-    async function applicationAdmins(msg: Discord.Message) {
-      panelEmbed.setDescription("**Applications/Voter Roles**\nRoles that users will be voting for approval.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set": return await set(msg, "Applications/Voter Roles", ["applications", "admins"], "Voter Roles", "admin_roles", 60000, "roles");
-        case "reset": return await reset(msg, "Applications/Voter Roles", ["applications", "admins"], "Voter Roles", "admin_roles");
-        case "back": return await application(msg);
-        default: return await end(msg);
-      }
-    }
+        case "set": return await set(msg, capitalized.join("/"), location, (<Setting> cateSett).longname, (<Setting> cateSett).storage.column, (<Setting> cateSett).time, (<Setting> cateSett).type, extra);
+        case "reset": return await reset(msg, capitalized.join("/"), location, (<Setting> cateSett).longname, (<Setting> cateSett).storage.column, (<Setting> cateSett).default || null, extra);
 
-    async function applicationChannel(msg: Discord.Message) {
-      panelEmbed.setDescription("**Applications/Channel**\nWhere the application will be sent. Private channels are recommended.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set": return await set(msg, "Applications/Channel", ["applications", "channel"], "Channel", "app_channel", 60000, "channel");
-        case "reset": return await reset(msg, "Applications/Channel", ["applications", "channel"], "Channel", "app_channel");
-        case "back": return await application(msg);
-        default: return await end(msg);
-      }
-    }
-
-    async function applicationDuration(msg: Discord.Message) {
-      panelEmbed.setDescription("**Applications/Duration**\nHow long until the application cannot be voted.\nPlease choose an option to configure by clicking a button.")
-        .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-        .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-        .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-        .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" }));
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      await msg.edit({ embeds: [panelEmbed], components: [row] });
-      const interaction = await getButtonInteraction(msg);
-      if (!interaction) return await end(msg);
-      await interaction.update({ components: [] });
-      switch (interaction.customId) {
-        case "set": return await set(msg, "Applications/Duration", ["applications", "duration"], "Duration", "vote_duration", 60000, "duration");
-        case "reset": return await reset(msg, "Applications/Duration", ["applications", "duration"], "Duration", "vote_duration");
-        case "back": return await application(msg);
-        default: return await end(msg);
+        default:
+          const nextSet = (<Category>cateSett).children.find(s => s.id === interaction.customId);
+          if (!nextSet) return await start(msg);
+          return await next(msg, paths.concat(nextSet.id));
       }
     }
   }

@@ -4,7 +4,7 @@ import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/Nort
 import { findMember, findMemberWithGuild } from "../../function.js";
 
 class AutoRoleCommand implements SlashCommand {
-  name = "autorole"
+  name = "massrole"
   description = 'Assigns a single role to multiple users at once.'
   usage = "<role> <user>"
   category = 0
@@ -25,18 +25,17 @@ class AutoRoleCommand implements SlashCommand {
     }
   ];
   async execute(interaction: NorthInteraction) {
-    if (!interaction.guild) return await interaction.reply("This command only works on server.");
     const role = <Role> interaction.options.getRole("role");
     await interaction.reply("Adding members to role...");
 
     interaction.options.getString("users").split(/ +/).forEach(async mentioned => {
-      const user = await findMemberWithGuild(interaction.guild, mentioned);
-      if (!user) return await interaction.reply("Cannot find the user " + mentioned);
       try {
+        const user = await findMemberWithGuild(interaction.guild, mentioned);
+        if (!user) return await interaction.channel.send("Cannot find the user " + mentioned);
         await user.roles.add(role);
         await interaction.channel.send("Successfully added **" + user.user.tag + "** to role **" + role.name + "**.")
       } catch (err: any) {
-        await interaction.channel.send("Failed adding **" + user.user.tag + "** to role **" + role.name + "**.")
+        await interaction.channel.send("Failed adding **" + mentioned + "** to role **" + role.name + "**.")
       }
     });
   }
@@ -49,13 +48,13 @@ class AutoRoleCommand implements SlashCommand {
     if (!role) return message.channel.send("No role was found!");
 
     args.slice(1).forEach(async mentioned => {
-      const user = await findMember(message, mentioned);
-      if (!user) return;
       try {
+        const user = await findMemberWithGuild(message.guild, mentioned);
+        if (!user) return await message.channel.send("Cannot find the user " + mentioned);
         await user.roles.add(role);
         await message.channel.send("Successfully added **" + user.user.tag + "** to role **" + role.name + "**.")
       } catch (err: any) {
-        await message.channel.send("Failed adding **" + user.user.tag + "** to role **" + role.name + "**.")
+        await message.channel.send("Failed adding **" + mentioned + "** to role **" + role.name + "**.")
       }
     });
   }

@@ -1,11 +1,9 @@
-import * as cheerio from 'cheerio';
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { validMSURL, requestStream, findValueByPrefix, streamToString, color, requestYTDLStream } from "../../function.js";
+import { validMSURL, requestStream, streamToString, color, requestYTDLStream, createEmbedScrolling } from "../../function.js";
 import { run } from "../../helpers/puppeteer.js";
-import { muse } from "musescore-metadata";
+import { muse, museSearch } from "musescore-metadata";
 import * as Discord from "discord.js";
 import sanitize from "sanitize-filename";
-import rp from "request-promise-native";
 import PDFKit from "pdfkit";
 import fetch from "node-fetch";
 import { globalClient as client } from "../../common.js";
@@ -26,31 +24,6 @@ function PNGtoPDF(doc: PDFKit.PDFDocument, url: string): Promise<void> {
         });
     })
 };
-
-export async function getMP3(url: string): Promise<{ error: boolean, url: string, message: string, timeTaken: number }> {
-    return await run(async (page: Page) => {
-        var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
-        const start = Date.now();
-        try {
-            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36');
-            await page.setRequestInterception(true);
-            page.on('request', (req) => {
-                if (["image", "font", "stylesheet", "media"].includes(req.resourceType())) req.abort();
-                else req.continue();
-            });
-            await page.goto(url, { waitUntil: "domcontentloaded" });
-            await page.waitForSelector("button[title='Toggle Play']").then(el => el.click());
-            const mp3 = await page.waitForRequest(req => req.url()?.startsWith("https://s3.ultimate-guitar.com/") || req.url()?.startsWith("https://www.youtube.com/embed/"));
-            result.url = mp3.url();
-            result.error = false;
-        } catch (err: any) {
-            result.message = err.message;
-        } finally {
-            result.timeTaken = Date.now() - start;
-            return result;
-        }
-    })
-}
 
 class MusescoreCommand implements SlashCommand {
     name = "musescore";
@@ -90,7 +63,7 @@ class MusescoreCommand implements SlashCommand {
             .setTitle(data.title)
             .setURL(data.url)
             .setThumbnail(data.thumbnails.original)
-            .setDescription(`Description: **${data.description}**\n\n~~Click 📥 to download **MP3/PDF/MIDI**~~ This is currently disabled\nFor **other formats (MSCZ/MXL)**, please use [Xmader's Musescore Downloader](https://github.com/LibreScore/dl-musescore)`)
+            .setDescription(`Description: **${data.description}**`)
             .addField("ID", data.id.toString(), true)
             .addField("Author", data.user.name, true)
             .addField("Duration", data.duration, true)
@@ -101,8 +74,9 @@ class MusescoreCommand implements SlashCommand {
             .addField(`Parts [${data.parts}]`, data.parts > 0 ? (data.parts_names.join(", ").length > 1024 ? (data.parts_names.join(" ").slice(0, 1020) + "...") : data.parts_names.join(" ")) : "None")
             .setTimestamp()
             .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
+        if (data.is_public_domain) em.setDescription(em.description + "\n\nClick 📥 to download **MP3/PDF/MIDI**\nFor **other formats (MSCZ/MXL)**, please use [Xmader's Musescore Downloader](https://github.com/LibreScore/dl-musescore)")
         msg = await msg.edit({ content: null, embeds: [em] });
-        return;
+        if (!data.is_public_domain) return;
         await msg.react("📥");
         const author = (message.member?.user || await message.client.users.fetch(message.channelId)).id;
         const collected = await msg.awaitReactions({ filter: (r, u) => r.emoji.name === "📥" && u.id === author, max: 1, time: 30000 });
@@ -111,7 +85,7 @@ class MusescoreCommand implements SlashCommand {
             try {
                 try {
                     var mesg = await message.channel.send("Generating MP3...");
-                    const mp3 = await getMP3(url);
+                    const mp3 = await this.getMP3(url);
                     try {
                         if (mp3.error) throw new Error(mp3.message);
                         var res;
@@ -162,86 +136,56 @@ class MusescoreCommand implements SlashCommand {
     }
 
     async search(message: NorthMessage | NorthInteraction, args: string, msg: Discord.Message) {
-        try {
-            const response = await rp({ uri: `https://musescore.com/sheetmusic?text=${encodeURIComponent(args)}`, resolveWithFullResponse: true });
-            if (Math.floor(response.statusCode / 100) !== 2) return message.channel.send(`Received HTTP status code ${response.statusCode} when fetching data.`);
-            var body = response.body;
-        } catch (err: any) {
-            console.error(err);
-            return await message.reply("There was an error trying to search for scores!");
-        }
-        const author = (message instanceof Discord.Message ? message.author : (message.member?.user || await message.client.users.fetch(message.channelId))).id;
-        var $ = cheerio.load(body);
-        const stores = Array.from($('div[class^="js-"]'));
-        const store = findValueByPrefix(stores.find((x: any) => x.attribs?.class?.match(/^js-\w+$/)), "data-");
-        var data = JSON.parse(store);
-        console.log(data);
-        const allEmbeds = [];
-        const importants = [];
+        const results = await museSearch(args);
         var num = 0;
-        var scores = data.store.page.data.scores;
-        for (const score of scores) {
-            data = muse(score.share.publicUrl);
+        const allEmbeds = [];
+        for (const score of results.page.data.scores) {
             const em = new Discord.MessageEmbed()
                 .setColor(color())
-                .setTitle(data.title)
-                .setURL(data.url)
-                .setThumbnail(data.thumbnail)
-                .setDescription(`Description: **${data.description}**\n\nTo download, please copy the URL and use \`${message instanceof NorthMessage ? message.prefix : "/"}${this.name} <link>\``)
-                .addField("ID", data.id, true)
-                .addField("Author", data.user.name, true)
-                .addField("Duration", data.duration, true)
-                .addField("Page Count", data.pageCount, true)
-                .addField("Date Created", new Date(data.created * 1000).toLocaleString(), true)
-                .addField("Date Updated", new Date(data.updated * 1000).toLocaleString(), true)
-                .addField(`Tags [${data.tags.length}]`, data.tags.length > 0 ? data.tags.join(", ") : "None")
-                .addField(`Parts [${data.parts.length}]`, data.parts.length > 0 ? data.parts.join(", ") : "None")
+                .setTitle(score.title)
+                .setURL(score.url)
+                .setThumbnail(score.thumbnails.original)
+                .setDescription(`Description: **${score.description}**\n\nTo download, please copy the URL and use \`${message instanceof NorthMessage ? message.prefix : "/"}${this.name} <link>\``)
+                .addField("ID", score.id.toString(), true)
+                .addField("Author", score.user.name, true)
+                .addField("Duration", score.duration, true)
+                .addField("Page Count", score.pages_count.toString(), true)
+                .addField("Date Created", new Date(score.date_created * 1000).toLocaleString(), true)
+                .addField("Date Updated", new Date(score.date_updated * 1000).toLocaleString(), true)
+                .addField(`Tags [${score.tags.length}]`, score.tags.length > 0 ? score.tags.join(", ") : "None")
+                .addField(`Parts [${score.parts}]`, score.parts > 0 ? score.parts_names.join(", ") : "None")
                 .setTimestamp()
-                .setFooter({ text: `Currently on page ${++num}/${scores.length}`, iconURL: client.user.displayAvatarURL() });
+                .setFooter({ text: `Currently on page ${++num}/${results.page.data.scores.length}`, iconURL: client.user.displayAvatarURL() });
             allEmbeds.push(em);
-            importants.push({ important: data.important, pages: data.pageCount, url: score.share.publicUrl, title: data.title, id: data.id });
         }
         if (allEmbeds.length < 1) return message.channel.send("No score was found!");
-        const filter = (reaction, user) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author);
-        var s = 0;
         await msg.delete();
-        msg = await message.channel.send({ embeds: [allEmbeds[0]] });
-        await msg.react("⏮");
-        await msg.react("◀");
-        await msg.react("▶");
-        await msg.react("⏭");
-        await msg.react("⏹");
-        var collector = msg.createReactionCollector({ filter, idle: 60000 });
+        await createEmbedScrolling(message, allEmbeds);
+    }
 
-        collector.on("collect", async function (reaction, user) {
-            reaction.users.remove(user.id).catch(() => { });
-            switch (reaction.emoji.name) {
-                case "⏮":
-                    s = 0;
-                    msg.edit({ embeds: [allEmbeds[s]] });
-                    break;
-                case "◀":
-                    s -= 1;
-                    if (s < 0) s = allEmbeds.length - 1;
-                    msg.edit({ embeds: [allEmbeds[s]] });
-                    break;
-                case "▶":
-                    s += 1;
-                    if (s > allEmbeds.length - 1) s = 0;
-                    msg.edit({ embeds: [allEmbeds[s]] });
-                    break;
-                case "⏭":
-                    s = allEmbeds.length - 1;
-                    msg.edit({ embeds: [allEmbeds[s]] });
-                    break;
-                case "⏹":
-                    collector.emit("end");
-                    break;
+    async getMP3(url: string): Promise<{ error: boolean, url: string, message: string, timeTaken: number }> {
+        return await run(async (page: Page) => {
+            var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
+            const start = Date.now();
+            try {
+                await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36');
+                await page.setRequestInterception(true);
+                page.on('request', (req) => {
+                    if (["image", "font", "stylesheet", "media"].includes(req.resourceType())) req.abort();
+                    else req.continue();
+                });
+                await page.goto(url, { waitUntil: "domcontentloaded" });
+                await page.waitForSelector("circle, button[title='Toggle Play']").then(el => el.click());
+                const mp3 = await page.waitForRequest(req => req.url()?.startsWith("https://s3.ultimate-guitar.com/") || req.url()?.startsWith("https://www.youtube.com/embed/"));
+                result.url = mp3.url();
+                result.error = false;
+            } catch (err: any) {
+                result.message = err.message;
+            } finally {
+                result.timeTaken = Date.now() - start;
+                return result;
             }
-        });
-        collector.on("end", function () {
-            msg.reactions.removeAll().catch(() => { });
-        });
+        })
     }
 
     async getMIDI(url: string) {
@@ -343,7 +287,7 @@ class MusescoreCommand implements SlashCommand {
             try {
                 const ext = page.split("?")[0].split(".").slice(-1)[0];
                 if (ext === "svg") try {
-                    SVGtoPDF(doc, await streamToString(await requestStream(page)), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                    SVGtoPDF(doc, await streamToString((await requestStream(page)).data), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
                 } catch (err: any) {
                     SVGtoPDF(doc, await fetch(page).then(res => res.text()), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
                 }

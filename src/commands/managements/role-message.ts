@@ -87,14 +87,11 @@ class RoleMessageCommand implements SlashCommand {
             await mesg.delete();
             return await msgOrRes(message, "I cannot react with one of the reactions!");
         }
-        const now = Date.now();
-        const expiration = now + (7 * 24 * 3600 * 1000);
         NorthClient.storage.rm.push({
             id: mesg.id,
             guild: message.guild.id,
             channel: channel.id,
             author: authorId,
-            expiration: expiration,
             roles: roles,
             emojis: emojis
         });

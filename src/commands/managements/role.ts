@@ -52,7 +52,6 @@ class RoleCommand implements SlashCommand {
       const allMembers = await message.guild.members.fetch();
       for (const member of allMembers.values()) try {
         await member.roles.add(role);
-        console.log(`Added member ${member.displayName} to ${role.name}`);
         await wait(200);
       } catch (err: any) {
         await message.channel.send(`Failed to add **${member.user.tag}** to role **${role.name}**. (Error: **${err.message}**)`);

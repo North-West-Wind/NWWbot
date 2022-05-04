@@ -1,7 +1,6 @@
-import { AudioPlayer, AudioPlayerStatus, AudioResource, VoiceConnection } from "@discordjs/voice";
-import { Client, ClientOptions, Collection, CommandInteraction, Invite, Message, MessageEmbed, Snowflake, TextChannel, User, VoiceChannel } from "discord.js";
-import { Pool, RowDataPacket } from "mysql2/promise";
-import { removeUsing } from "../helpers/music.js";
+import { Client, ClientOptions, Collection, CommandInteraction, GuildMember, Invite, Message, MessageEmbed, Snowflake, User } from "discord.js";
+import { RowDataPacket } from "mysql2/promise";
+import { strDist } from "../function.js";
 
 export class NorthClient extends Client {
     constructor(options: ClientOptions) {
@@ -85,7 +84,6 @@ export interface RoleMessage {
     guild: Snowflake;
     channel: Snowflake;
     author: Snowflake;
-    expiration: number;
     roles: Snowflake[][];
     emojis: string[];
 }
@@ -106,6 +104,11 @@ export interface Applications {
     channel: Snowflake;
     duration: number;
     applications: Collection<Snowflake, { id: Snowflake, role: Snowflake, author: Snowflake, approve: Set<Snowflake>, decline: Set<Snowflake> }>;
+    templates: Collection<Snowflake, string>;
+}
+
+export interface VoiceConfig {
+    kick: { channels: Snowflake[], timeout: number };
 }
 
 export interface GuildConfigs {
@@ -121,8 +124,12 @@ export class GuildConfig {
     boost: InfoBase;
     safe: boolean;
     applications: Applications;
+    voice: VoiceConfig;
     invites?: Collection<string, Invite>;
     exit?: boolean;
+    joinedMembers: GuildMember[] = [];
+    joinedClear: NodeJS.Timeout;
+    pendingKick: Set<Snowflake> = new Set();
 
     constructor(data: RowDataPacket = (<RowDataPacket> {})) {
         if (data) {
@@ -132,7 +139,7 @@ export class GuildConfig {
             this.welcome = {
                 message: data.wel_msg,
                 channel: data.wel_channel,
-                image: data.wel_img?.split(",").map(url => decodeURIComponent(url)) || [],
+                image: data.wel_img?.split(",").map((url: string) => decodeURIComponent(url)) || [],
                 autorole: data.autorole?.split(",") || []
             };
             this.leave = {
@@ -151,12 +158,31 @@ export class GuildConfig {
                 admins: data.admin_roles?.split(",") || [],
                 channel: data.app_channel,
                 duration: data.vote_duration,
-                applications: new Collection()
+                applications: new Collection(),
+                templates: new Collection()
             };
             if (data.applications) for (const application of JSON.parse(unescape(data.applications))) {
                 this.applications.applications.set(application.id, application);
             }
+            if (data.templates) for (const template of JSON.parse(decodeURIComponent(data.templates))) {
+                this.applications.templates.set(template.id, template.val);
+            }
+            this.voice = {
+                kick: {
+                    channels: data.voice_kick_channels?.split(",") || [],
+                    timeout: data.voice_kick_timeout || -1
+                }
+            };
         }
+    }
+
+    checkMember(member: GuildMember) {
+        const close = this.joinedMembers.filter(mem => strDist(member.user.username, mem.user.username) <= 2);
+        this.joinedMembers.push(member);
+        if (this.joinedMembers.length > 10) this.joinedMembers.slice(this.joinedMembers.length - 10);
+        if (this.joinedClear) this.joinedClear.refresh();
+        else this.joinedClear = setTimeout(() => this.joinedMembers = [], 60000);
+        return close;
     }
 }
 
@@ -207,74 +233,6 @@ export class NorthMessage extends Message {
 export class NorthInteraction extends CommandInteraction {
     readonly prefix: string = "/";
     client: NorthClient;
-}
-
-export class ServerQueue {
-    constructor(songs: SoundTrack[], loopStatus: boolean, repeatStatus: boolean) {
-        this.textChannel = null;
-        this.voiceChannel = null;
-        this.connection = null;
-        this.player = null;
-        this.songs = songs;
-        this.volume = 1;
-        this.playing = false;
-        this.paused = false;
-        this.looping = loopStatus;
-        this.repeating = repeatStatus;
-        this.random = false;
-    }
-
-    textChannel: TextChannel;
-    voiceChannel: VoiceChannel;
-    connection: VoiceConnection;
-    player: AudioPlayer;
-    resource?: AudioResource;
-    songs: SoundTrack[];
-    volume: number;
-    playing: boolean;
-    paused: boolean;
-    looping: boolean;
-    repeating: boolean;
-    random: boolean;
-    startTime?: number;
-    errorCounter?: number;
-    isSkipping?: boolean;
-    seek?: number;
-
-    getPlaybackDuration() {
-        if (this.player?.state?.status != AudioPlayerStatus.Playing) return 0;
-        return this.player.state.playbackDuration;
-    }
-
-    destroy() {
-        try {
-            this.player?.stop();
-            this.connection?.destroy();
-            removeUsing(this.songs[0].id);
-        } catch (err: any) { }
-        this.player = null;
-        this.connection = null;
-    }
-
-    stop() {
-        try {
-            this.player?.stop();
-        } catch (err: any) { }
-        this.player = null;
-    }
-}
-
-export class SoundTrack {
-    id?: string;
-    title: string;
-    url: string;
-    type: number;
-    time: number;
-    volume: number;
-    thumbnail: string;
-    isLive: boolean;
-    isPastLive?: boolean;
-    spot?: string;
 }
 
 export interface Item {

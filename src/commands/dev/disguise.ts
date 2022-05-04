@@ -5,7 +5,7 @@ class DisguiseCommand implements SlashCommand {
     name = "disguise"
     description = "disguise"
     aliases = ["say"]
-    category = 10
+    category = 9
 
     async execute(interaction: NorthInteraction) {
         await interaction.reply("This command doesn't work in slash.");
