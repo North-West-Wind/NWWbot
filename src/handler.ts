@@ -411,8 +411,12 @@ export class Handler {
 
     async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
         const guild = newState.guild;
-        const timeout = NorthClient.storage.guilds[guild.id].voice?.kick?.timeout || -1;
-        if (!NorthClient.storage.guilds[guild.id].voice?.kick?.channels?.includes(newState.channelId) || timeout < 0) return;
+        if (!NorthClient.storage.guilds[guild.id]) {
+            await fixGuildRecord(guild.id);
+            return;
+        }
+        const timeout = NorthClient.storage.guilds[guild.id].voice.kick.timeout || -1;
+        if (!NorthClient.storage.guilds[guild.id].voice.kick?.channels.includes(newState.channelId) || timeout < 0) return;
         if ((!oldState.channel || !oldState?.mute) && newState?.mute) {
             NorthClient.storage.guilds[guild.id].pendingKick.add(newState.member.id);
             setTimeout(async () => {
