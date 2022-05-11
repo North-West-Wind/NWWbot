@@ -265,7 +265,7 @@ export class Handler {
                     if (welcome.image.format) {
                         const split = welcome.image.format.split("\n");
                         txt = replaceWithObj(split.shift(), member, channel);
-                        wel = replaceWithObj(split.join("\n"), member, channel);
+                        if (split.length > 0) wel = replaceWithObj(split.join("\n"), member, channel);
                     }
                     ctx.font = getFont(canvas, txt, 9/10);
                     ctx.strokeStyle = "black";
@@ -416,7 +416,7 @@ export class Handler {
             return;
         }
         const timeout = NorthClient.storage.guilds[guild.id].voice.kick.timeout || -1;
-        if (!NorthClient.storage.guilds[guild.id].voice.kick?.channels.includes(newState.channelId) || timeout < 0) return;
+        if (!NorthClient.storage.guilds[guild.id].voice.kick.channels.includes(newState.channelId) || timeout < 0) return;
         if ((!oldState.channel || !oldState?.mute) && newState?.mute) {
             NorthClient.storage.guilds[guild.id].pendingKick.add(newState.member.id);
             setTimeout(async () => {
