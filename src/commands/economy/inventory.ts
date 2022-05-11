@@ -25,7 +25,7 @@ class InventoryCommand implements SlashCommand {
     var IResult = await query(`SELECT * FROM shop WHERE guild = '${message.guild?.id}' OR guild = ''`);
     var itemObject = {};
     for (const item of IResult) itemObject[item.id] = 0;
-    if (result.length == 1) Object.assign(itemObject, JSON.parse(unescape(result[0].items)));
+    if (result.length == 1) Object.assign(itemObject, JSON.parse(result[0].items));
     let i = 0;
     const em = new Discord.MessageEmbed()
       .setColor(color())

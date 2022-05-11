@@ -1,5 +1,5 @@
 import { EmojiIdentifierResolvable, Guild, Message, MessageButtonStyle, Snowflake, VoiceChannel } from "discord.js";
-import { capitalize, query } from "../function.js";
+import { capitalize, mysqlEscape, query } from "../function.js";
 import { NorthClient } from "./NorthClient.js";
 
 interface StorageInfo {
@@ -22,6 +22,7 @@ export class Setting extends Base {
   longname: string;
   extra?: any;
   default?: any;
+  hints: string[] = [];
 
   constructor(id: string, name: string, description: string, type: SettableType, time: number, style?: MessageButtonStyle, emoji?: string, longname?: string) {
     super();
@@ -43,6 +44,11 @@ export class Setting extends Base {
 
   def(val: any) {
     this.default = val;
+    return this;
+  }
+
+  addHint(...hint: string[]) {
+    this.hints.push(...hint);
     return this;
   }
 }
@@ -114,7 +120,7 @@ export class TemplateSetting extends Setting {
   }
 
   async sql(_column: string, _val: any, guild: Snowflake) {
-    await query(`UPDATE server SET templates = "${encodeURIComponent(JSON.stringify(NorthClient.storage.guilds[guild].applications.templates.map((val, key) => { const obj = {}; obj[key] = val; return obj; })))}" WHERE id = ${guild}`);
+    await query(`UPDATE server SET templates = "${mysqlEscape(JSON.stringify(NorthClient.storage.guilds[guild].applications.templates.map((val, key) => { const obj = {}; obj[key] = val; return obj; })))}" WHERE id = ${guild}`);
   }
 }
 

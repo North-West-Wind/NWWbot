@@ -2281,7 +2281,7 @@ class PornCommand implements SlashCommand {
                 var image = decodeHtmlEntity(data.media.oembed.html).split("&").find(x => x.startsWith("image"));
                 if (!image) em.setDescription(`Tag: \`${tag}\`\n${more ? `(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\n` : ""}From r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).`).setImage(undefined);
                 else {
-                    var arr = unescape(image).split("/");
+                    var arr = image.split("/");
                     var id = arr[arr.length - 1].split("-")[0];
                     link = `https://thumbs.gfycat.com/${id}-mobile.mp4`;
                 }

@@ -23,7 +23,7 @@ class SpeedrunCommand implements SlashCommand {
     async execute(interaction: NorthInteraction) {
         await interaction.deferReply();
         const game = interaction.options.getString("game");
-        const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(game)}`).then(res => <any> res.json());
+        const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${encodeURIComponent(game)}`).then(res => <any> res.json());
         var data: any, msg: Discord.Message;
         const em = new Discord.MessageEmbed()
             .setColor(color())
@@ -47,7 +47,7 @@ class SpeedrunCommand implements SlashCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${escape(args.join(" "))}`).then(res => <any> res.json());
+        const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${encodeURIComponent(args.join(" "))}`).then(res => <any> res.json());
         var data, msg: Discord.Message;
         if (!gameFetch) {
             ({ data, msg } = await this.chooseGame(message, args.join(" ")));
@@ -76,7 +76,7 @@ class SpeedrunCommand implements SlashCommand {
     async chooseGame(message: Discord.Message | NorthInteraction, name: string) {
         const games = [];
         const author = message instanceof Discord.Message ? message.author.id : message.user.id;
-        var result = await fetch(`https://www.speedrun.com/api/v1/games?name=${escape(name)}&_bulk=1`).then(res => <any> res.json());
+        var result = await fetch(`https://www.speedrun.com/api/v1/games?name=${encodeURIComponent(name)}&_bulk=1`).then(res => <any> res.json());
         for (var i = 0; i < (result.data.length > 10 ? 10 : result.data.length); i++) games.push(`${i + 1}. **${result.data[i].names.international}** : **${result.data[i].abbreviation}**`);
         const em = new Discord.MessageEmbed()
             .setColor(color())

@@ -1,8 +1,8 @@
-import cv from "canvas";
-import { CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageAttachment, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Snowflake, TextChannel, User, VoiceState } from "discord.js";
+import cv, { Canvas } from "canvas";
+import { CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageAttachment, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Role, Snowflake, TextChannel, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
-import { getRandomNumber, jsDate2Mysql, replaceMsgContent, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo } from "./function.js";
+import { getRandomNumber, jsDate2Mysql, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo, getFont, replaceWithObj, mysqlEscape } from "./function.js";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient.js";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter.js";
@@ -86,7 +86,7 @@ export class Handler {
         }
         settings.applications.set(interaction.message.id, application);
         NorthClient.storage.guilds[interaction.guildId].applications = settings;
-        await query(`UPDATE configs SET applications = '${escape(JSON.stringify([...NorthClient.storage.guilds[interaction.guildId].applications.applications.values()]))}' WHERE id = '${interaction.guildId}'`);
+        await query(`UPDATE configs SET applications = '${mysqlEscape(JSON.stringify([...NorthClient.storage.guilds[interaction.guildId].applications.applications.values()]))}' WHERE id = '${interaction.guildId}'`);
         if (allMembers.size >= application.approve.size + application.decline.size) await endApplication(interaction.client, interaction.message.id, interaction.guildId);
     }
 
@@ -139,6 +139,7 @@ export class Handler {
         const res = await query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434'");
         console.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
         const rm = res.map(r => {
+            // Remove unescape in the future
             r.roles = JSON.parse(unescape(r.roles));
             r.emojis = JSON.parse(unescape(r.emojis));
             return r;
@@ -179,7 +180,7 @@ export class Handler {
                         await updatePoll(msg.id, reaction, user);
                     }
                 }
-                NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map((array: Snowflake[]) => new Set(array)) });
+                NorthClient.storage.polls.set(msg.id, { options: JSON.parse(result.options), votes: JSON.parse(result.votes).map((array: Snowflake[]) => new Set(array)) });
                 if (time <= 0) return await endPoll(msg);
                 msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot })
                     .on("collect", async (reaction, user) => await updatePoll(msg.id, reaction, user))
@@ -245,7 +246,7 @@ export class Handler {
             const channel = <TextChannel>guild.channels.resolve(welcome.channel);
             if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
             if (welcome.message) try {
-                const welcomeMessage = replaceMsgContent(welcome.message, member, "welcome");
+                const welcomeMessage = replaceWithObj(welcome.message, member, channel);
                 await channel.send(welcomeMessage);
             } catch (err: any) {
                 console.error(err);
@@ -257,38 +258,27 @@ export class Handler {
                     var width = img.width;
                     const canvas = createCanvas(width, height);
                     const ctx = canvas.getContext("2d");
-                    const applyText = (canvas, text) => {
-                        const ctx = canvas.getContext("2d");
-                        let fontSize = canvas.width / 12;
-                        do {
-                            ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
-                        } while (ctx.measureText(text).width > canvas.width * 9 / 10);
-                        return ctx.font;
-                    };
-                    const welcomeText = (canvas, text) => {
-                        const ctx = canvas.getContext("2d");
-                        let fontSize = canvas.width / 24;
-                        do {
-                            ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
-                        } while (ctx.measureText(text).width > canvas.width * 3 / 4);
-                        return ctx.font;
-                    };
                     const avatar = await loadImage(member.user.displayAvatarURL({ format: "png" }));
                     ctx.drawImage(img, 0, 0, width, height);
-                    const txt = member.user.tag;
-                    ctx.font = applyText(canvas, txt);
+                    var txt = member.user.tag;
+                    var wel = "Welcome to the server!";
+                    if (welcome.image.format) {
+                        const split = welcome.image.format.split("\n");
+                        txt = replaceWithObj(split.shift(), member, channel);
+                        wel = replaceWithObj(split.join("\n"), member, channel);
+                    }
+                    ctx.font = getFont(canvas, txt, 9/10);
                     ctx.strokeStyle = "black";
                     ctx.lineWidth = canvas.width / 102.4;
                     ctx.strokeText(txt, canvas.width / 2 - ctx.measureText(txt).width / 2, (canvas.height * 3) / 4);
                     ctx.fillStyle = "#ffffff";
                     ctx.fillText(txt, canvas.width / 2 - ctx.measureText(txt).width / 2, (canvas.height * 3) / 4);
-                    const welcome = "Welcome to the server!";
-                    ctx.font = welcomeText(canvas, welcome);
+                    ctx.font = getFont(canvas, wel, 4/5);
                     ctx.strokeStyle = "black";
                     ctx.lineWidth = canvas.width / 204.8;
-                    ctx.strokeText(welcome, canvas.width / 2 - ctx.measureText(welcome).width / 2, (canvas.height * 6) / 7);
+                    ctx.strokeText(wel, canvas.width / 2 - ctx.measureText(wel).width / 2, (canvas.height * 6) / 7);
                     ctx.fillStyle = "#ffffff";
-                    ctx.fillText(welcome, canvas.width / 2 - ctx.measureText(welcome).width / 2, (canvas.height * 6) / 7);
+                    ctx.fillText(wel, canvas.width / 2 - ctx.measureText(wel).width / 2, (canvas.height * 6) / 7);
                     ctx.beginPath();
                     ctx.lineWidth = canvas.width / 51.2;
                     ctx.arc(canvas.width / 2, canvas.height / 3, canvas.height / 5, 0, Math.PI * 2, true);
@@ -305,20 +295,18 @@ export class Handler {
                         console.error(err);
                     }
                 };
-                img.src = welcome.image[Math.floor(Math.random() * welcome.image.length)];
+                img.src = welcome.image.images[Math.floor(Math.random() * welcome.image.images.length)];
             }
             if (welcome?.autorole.length > 0) {
                 const roleArray = welcome.autorole;
                 for (var i = 0; i < roleArray.length; i++) {
                     const roleID = roleArray[i];
-                    var role = undefined;
-                    if (isNaN(parseInt(roleID))) role = await guild.roles.cache.find(x => x.name === roleID);
-                    else role = await guild.roles.fetch(roleID);
-                    if (!role) continue;
+                    var role: Role;
                     try {
+                        role = await guild.roles.fetch(roleID);
                         await member.roles.add(roleID);
                     } catch (err: any) {
-                        console.error(err);
+                        if (role) console.error(err);
                     }
                 }
             }
@@ -343,7 +331,7 @@ export class Handler {
             if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
             if (!leave.message) return;
             try {
-                const leaveMessage = replaceMsgContent(leave.message, <GuildMember> member, "leave");
+                const leaveMessage = replaceWithObj(leave.message, <GuildMember> member, channel);
                 await channel.send(leaveMessage);
             } catch (err: any) {
                 console.error(err);
@@ -423,8 +411,8 @@ export class Handler {
 
     async voiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
         const guild = newState.guild;
-        const timeout = NorthClient.storage.guilds[guild.id].voice.kick.timeout;
-        if (!NorthClient.storage.guilds[guild.id].voice.kick.channels.includes(newState.channelId) || timeout < 0) return;
+        const timeout = NorthClient.storage.guilds[guild.id].voice?.kick?.timeout || -1;
+        if (!NorthClient.storage.guilds[guild.id].voice?.kick?.channels?.includes(newState.channelId) || timeout < 0) return;
         if ((!oldState.channel || !oldState?.mute) && newState?.mute) {
             NorthClient.storage.guilds[guild.id].pendingKick.add(newState.member.id);
             setTimeout(async () => {
@@ -502,7 +490,7 @@ export class AliceHandler extends Handler {
             let username = "undefined";
             if (mc) username = mc.name;
             let dc = `<@${result.user}>`;
-            let rank = unescape(result.dc_rank);
+            let rank = result.dc_rank;
             let title = `${dc} - ${rank} [${username}]`;
             setTimeout_(async () => {
                 let asuna = await client.users.fetch("461516729047318529");
@@ -539,7 +527,7 @@ export class AliceHandler extends Handler {
                         var user = await client.users.fetch(str);
                         dc = user.id;
                     } catch (err: any) { }
-                    let rank = unescape(result.dc_rank);
+                    let rank = result.dc_rank;
                     let title = `<@${dc}> - ${rank} [${username}]`;
                     let seconds = Math.round((result.endAt.getTime() - now) / 1000);
                     tmp.push({ title: title, time: duration(seconds) });
@@ -650,7 +638,7 @@ export class AliceHandler extends Handler {
                         await updatePoll(msg.id, reaction, user);
                     }
                 }
-                NorthClient.storage.polls.set(msg.id, { options: JSON.parse(unescape(result.options)), votes: JSON.parse(unescape(result.votes)).map((array: Snowflake[]) => new Set(array)) });
+                NorthClient.storage.polls.set(msg.id, { options: JSON.parse(result.options), votes: JSON.parse(result.votes).map((array: Snowflake[]) => new Set(array)) });
                 if (time <= 0) return await endPoll(msg);
                 msg.createReactionCollector({ time, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot })
                     .on("collect", async (reaction, user) => await updatePoll(msg.id, reaction, user))
@@ -722,9 +710,9 @@ export class CanaryHandler extends Handler {
     async readServers(client: NorthClient) {
         var results = await query("SELECT * FROM configs WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
         results.forEach(async result => {
-            const guild = await client.guilds.fetch(result.id);
+            const guild = await client.guilds.fetch(result.id).catch(() => null);
             NorthClient.storage.guilds[result.id] = new GuildConfig(result);
-            MutedKickSetting.check(guild);
+            if (guild) MutedKickSetting.check(guild);
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);
     }

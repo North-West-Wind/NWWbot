@@ -1,7 +1,7 @@
 
 import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, createEmbedScrolling, findChannel, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, msgOrRes, nameToUuid, profile, query, readableDateTimeText, roundTo, setTimeout_ } from "../../function.js";
+import { color, createEmbedScrolling, findChannel, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, msgOrRes, mysqlEscape, nameToUuid, profile, query, readableDateTimeText, roundTo, setTimeout_ } from "../../function.js";
 
 const fetch = getFetch();
 const catabombLevels = [
@@ -417,11 +417,11 @@ class GuildCommand implements SlashCommand {
 				try {
 					NorthClient.storage.gtimers.push({
 						user: user.id,
-						dc_rank: escape(ranks),
+						dc_rank: ranks,
 						mc: uuid,
 						endAt: new Date(Date.now() + duration)
 					});
-					await query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${escape(ranks)}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + duration))}')`);
+					await query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${mysqlEscape(ranks)}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + duration))}')`);
 					await msgOrRes(message, "Timer recorded.");
 				} catch (err: any) {
 					console.error(err);
@@ -433,9 +433,9 @@ class GuildCommand implements SlashCommand {
 					try {
 						const index = NorthClient.storage.gtimers.indexOf(NorthClient.storage.gtimers.find(t => t.user == user.id));
 						if (index > -1) NorthClient.storage.gtimers.splice(index, 1);
-						const results = await query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(ranks)}'`);
+						const results = await query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${mysqlEscape(ranks)}'`);
 						if (results.length == 0) throw new Error("Not found");
-						await query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${escape(ranks)}'`);
+						await query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${mysqlEscape(ranks)}'`);
 					} catch (err: any) {
 						console.error(err);
 					}
@@ -476,7 +476,7 @@ class GuildCommand implements SlashCommand {
 							const user = await message.client.users.fetch(str);
 							dc = user.id;
 						} catch (err: any) { }
-						let rank = unescape(result.dc_rank);
+						let rank = result.dc_rank;
 						let title = `<@${dc}> - ${rank} [${username}]`;
 						let seconds = Math.round((result.endAt.getTime() - now) / 1000);
 						tmp.push({ title: title, time: duration(seconds, "seconds") });

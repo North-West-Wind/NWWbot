@@ -14,7 +14,7 @@ const config = {
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36"
 };
 
-const getSearchURL = (term) => (config.BASE_URL + config.SEARCH_URL + term.split(" ").map(s => encodeURIComponent(s)).join("+"));
+const getSearchURL = (term) => (config.BASE_URL + config.SEARCH_URL + term.split(" ").map((s: string) => encodeURIComponent(s)).join("+"));
 const makeRequest = (url) => new Promise(async (resolve, reject) => {
   const res = await fetch(url, { headers: { "User-Agent": config.USER_AGENT } });
   if (!res.ok) reject(new Error("Received Non-200 HTTP Status Code"));

@@ -94,7 +94,7 @@ export interface InfoBase {
 }
 
 export interface WelcomeInfo extends InfoBase {
-    image?: string[];
+    image: { images: string[], format: string };
     autorole: Snowflake[];
 }
 
@@ -139,7 +139,10 @@ export class GuildConfig {
             this.welcome = {
                 message: data.wel_msg,
                 channel: data.wel_channel,
-                image: data.wel_img?.split(",").map((url: string) => decodeURIComponent(url)) || [],
+                image: {
+                    images: data.wel_img?.split(",").map((url: string) => decodeURIComponent(url)) || [],
+                    format: data.wel_img_format
+                },
                 autorole: data.autorole?.split(",") || []
             };
             this.leave = {
@@ -161,7 +164,7 @@ export class GuildConfig {
                 applications: new Collection(),
                 templates: new Collection()
             };
-            if (data.applications) for (const application of JSON.parse(unescape(data.applications))) {
+            if (data.applications) for (const application of JSON.parse(data.applications)) {
                 this.applications.applications.set(application.id, application);
             }
             if (data.templates) for (const template of JSON.parse(decodeURIComponent(data.templates))) {

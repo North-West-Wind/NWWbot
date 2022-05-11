@@ -11,7 +11,9 @@ import * as path from "path";
 import moment from "moment";
 import { Readable } from "stream";
 import ytdl, { downloadOptions } from "ytdl-core";
-import { Canvas } from "canvas";
+import cvs, { Canvas } from "canvas";
+import { escape } from "mysql2";
+const { Image } = cvs;
 
 // Helper functions
 export function twoDigits(d: number) {
@@ -24,6 +26,15 @@ export function applyText(canvas: Canvas, text: string) {
     var fontSize = canvas.width / 12;
     do ctx.font = `${(fontSize -= 5)}px sans-serif`;
     while (ctx.measureText(text).width > canvas.width - 100);
+    return ctx.font;
+}
+export function getFont(canvas: Canvas, text: string, fraction: number) {
+    const ctx = canvas.getContext("2d");
+    const width = canvas.width * fraction;
+    let fontSize = canvas.width / 12;
+    do {
+        ctx.font = `regular ${(fontSize -= 5)}px "NotoSans", "free-sans", Arial`;
+    } while (ctx.measureText(text).width > width);
     return ctx.font;
 }
 export function roundTo(num: number, decimal: number) {
@@ -54,10 +65,6 @@ export function deepReaddir(dir: string) {
 // String operations
 export function capitalize(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
 export function wait(ms: number) { return new Promise(resolve => setTimeout(resolve, ms)); }
-export function replaceMsgContent(msg: string, member: Discord.GuildMember, flag: string) {
-    if (flag === "welcome") return msg.replace(/\{user\}/ig, `<@${member.id}>`);
-    else if (flag === "leave") return msg.replace(/\{user\}/ig, member.user.tag);
-}
 export function decodeHtmlEntity(str: string) { return str?.replace(/&#(\d+);/g, (_match, dec) => String.fromCharCode(dec)).replace(/&quot;/g, `"`).replace(/&amp;/g, `&`); }
 export async function xmlToJson(xml: string) {
     return new Promise((resolve, reject) => parseString(xml, (err, result) => {
@@ -85,6 +92,28 @@ export function strDist(str1: string, str2: string) {
         }
     }
     return track[str2.length][str1.length];
+}
+export function replaceWithObj(str: string, member: Discord.GuildMember, channel: Discord.TextChannel) {
+    const user = member.user;
+    const guild = channel.guild;
+    const split = str.split(/ +/);
+    const replaced: string[] = [];
+    for (const s of split) {
+        var re: string;
+        const matches = s.match(/\{(?<thing>(user|channel|member|guild)(\.\w+)?)\}/);
+        if (matches?.groups?.thing) {
+            const split = matches.groups.thing.split(".");
+            var obj: any;
+            if (split[0] === "user") obj = user;
+            else if (split[0] === "channel") obj = channel;
+            else if (split[0] === "member") obj = member;
+            else obj = guild;
+            for (let ii = 1; ii < split.length; ii++) obj = obj[split[ii]];
+            re = obj.toString();
+        } else re = s;
+        replaced.push(re);
+    }
+    return replaced.join(" ");
 }
 
 // Stream/Buffer operations
@@ -175,7 +204,7 @@ export function isImageUrl(url: string, timeoutT: number = 0) {
     return new Promise(function (resolve, reject) {
         var timeout = timeoutT || 5000;
         var timer: NodeJS.Timeout, img = new Image();
-        img.onerror = img.onabort = function () {
+        img.onerror = function () {
             clearTimeout(timer);
             reject(false);
         };
@@ -627,6 +656,9 @@ export async function query(query: string) {
     const res = await fetch("http://192.168.1.29:4269/api/query", { method: "post", body: JSON.stringify({ token: process.env.DB_TOKEN, query }), headers: { 'Content-Type': 'application/json' } });
     if (!res.ok) return null;
     else return <any>await res.json();
+}
+export function mysqlEscape(str: string) {
+    return escape(str);
 }
 export async function fixGuildRecord(id: Discord.Snowflake) {
     if (NorthClient.storage.guilds[id]) return NorthClient.storage.guilds[id];

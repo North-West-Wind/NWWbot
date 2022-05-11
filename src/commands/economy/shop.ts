@@ -1,7 +1,7 @@
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js"
 import * as Discord from "discord.js";
-import { color, wait, genPermMsg, ID, msgOrRes, query, roundTo } from "../../function.js";
+import { color, wait, genPermMsg, ID, msgOrRes, query, roundTo, mysqlEscape } from "../../function.js";
 import { globalClient as client } from "../../common.js";
 
 
@@ -165,7 +165,7 @@ class ShopCommand implements SlashCommand {
                                 .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
                             const IResult = await query(`SELECT items FROM users WHERE id = '${author.id}'`);
                             if (IResult.length == 1 && result[0].buy_limit > 0) {
-                                const items = JSON.parse(unescape(IResult[0].items));
+                                const items = JSON.parse(IResult[0].items);
                                 if (!items[result[0].id]) items[result[0].id] = 0;
                                 items[result[0].id] += 1;
                                 if (items[result[0].id] > result[0].buy_limit) {
@@ -252,12 +252,12 @@ class ShopCommand implements SlashCommand {
                                         const items = {};
                                         items[result[0].id] = 0;
                                         items[result[0].id] += 1;
-                                        await query(`INSERT INTO users(id, items) VALUES('${author.id}', '${escape(JSON.stringify(items))}')`);
+                                        await query(`INSERT INTO users(id, items) VALUES('${author.id}', '${mysqlEscape(JSON.stringify(items))}')`);
                                     } else {
-                                        const items = JSON.parse(unescape(IResult[0].items));
+                                        const items = JSON.parse(IResult[0].items);
                                         if (!items[result[0].id]) items[result[0].id] = 0;
                                         items[result[0].id] += 1;
-                                        await query(`UPDATE users SET items = '${escape(JSON.stringify(items))}' WHERE id = '${author.id}'`);
+                                        await query(`UPDATE users SET items = '${mysqlEscape(JSON.stringify(items))}' WHERE id = '${author.id}'`);
                                     }
                                 }
                             } catch (err: any) {

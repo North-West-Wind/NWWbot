@@ -1,7 +1,7 @@
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { jsDate2Mysql, readableDateTime, setTimeout_, readableDateTimeText, genPermMsg, ms, color, query, findChannel, msgOrRes } from "../../function.js";
+import { jsDate2Mysql, readableDateTime, setTimeout_, readableDateTimeText, genPermMsg, ms, color, query, findChannel, msgOrRes, mysqlEscape } from "../../function.js";
 import { globalClient as client } from "../../common.js";
 
 export async function endGiveaway(msg: Discord.Message, message: Discord.Message | Discord.CommandInteraction = null) {
@@ -64,7 +64,7 @@ async function setupGiveaway(message: NorthMessage | NorthInteraction, channel: 
     .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
   const giveawayMsg = giveawayEmo + "**GIVEAWAY**" + giveawayEmo;
   var msg = await channel.send({ content: giveawayMsg, embeds: [Embed] });
-  await query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${author.id}', '${winnerCount}', '${newDateSql}', '${escape(giveawayEmo)}')`);
+  await query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${author.id}', '${winnerCount}', '${newDateSql}', '${mysqlEscape(giveawayEmo)}')`);
   await msg.react(giveawayEmo);
   setTimeout_(async () => await endGiveaway(await channel.messages.fetch(msg.id)), time);
 }
@@ -131,7 +131,7 @@ class GiveawayCommand implements SlashCommand {
         .setFooter({ text: "Have a nice day! :)", iconURL: interaction.client.user.displayAvatarURL() });
       for (var i = 0; i < Math.min(25, results.length); i++) {
         const readableTime = readableDateTime(new Date(results[i].endAt));
-        Embed.addField(readableTime, unescape(results[i].item));
+        Embed.addField(readableTime, results[i].item);
       }
       return await interaction.reply({ embeds: [Embed] });
     }
@@ -183,7 +183,7 @@ class GiveawayCommand implements SlashCommand {
       .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
     for (var i = 0; i < Math.min(25, results.length); i++) {
       const readableTime = readableDateTime(new Date(results[i].endAt));
-      Embed.addField(readableTime, unescape(results[i].item));
+      Embed.addField(readableTime, results[i].item);
     }
     await message.channel.send({ embeds: [Embed] });
   }

@@ -2,13 +2,16 @@ import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../..
 import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd, query, wait, duration, ms, findChannel } from "../../function.js";
 import * as Discord from "discord.js";
 import { isImageUrl } from "../../function.js";
-import { Category, SafeSetting, Setting, SettableType, TemplateSetting } from "../../classes/Config.js";
+import { Category, SafeSetting, Setting, TemplateSetting } from "../../classes/Config.js";
 
 const configs: (Category | Setting)[] = [
   new Category([
-    new Setting("message", null, "What to send for the Welcome Message.", "message", 600000, "PRIMARY", "✉️", "Welcome Message").info({ column: "wel_msg" }),
+    new Setting("message", null, "What to send for the Welcome Message.", "message", 600000, "PRIMARY", "✉️", "Welcome Message").info({ column: "wel_msg" }).addHint("Use {user} as a placeholder for the user tag.", "Use {user.username} as a placeholder for the username.", "{channel}, {guild}, {member} are also allowed. Refer to [discord.js' documentation](https://discord.js.org/#/docs/discord.js/stable/general/welcome) for all object properties."),
     new Setting("channel", null, "Where to send the Welcome Message.", "text_channel", 60000, "PRIMARY", "🏞️", "Welcome Channel").info({ column: "wel_channel" }),
-    new Setting("image", null, "Includes image(s) for the Welcome Message.", "image", 60000, "SECONDARY", "📷", "Welcome Image").info({ column: "wel_img" }),
+    new Category([
+      new Setting("images", null, "Includes image(s) for the Welcome Message.", "image", 600000, "PRIMARY", "📸").info({ column: "wel_img" }),
+      new Setting("format", null, "The format of the welcome string on the image.", "message", 600000, "SECONDARY", "📪").info({ column: "wel_img_format" }).addHint("Split this into at least 2 lines. The first line will be how the member is called.", "Use {user} as a placeholder for the user tag.", "Use {user.username} as a placeholder for the username.", "{channel}, {guild}, {member} are also allowed. Refer to [discord.js' documentation](https://discord.js.org/#/docs/discord.js/stable/general/welcome) for all object properties.")
+    ]).info({ id: "image", name: "Image", description: "Settings for the images to be sent when a user joins.", style: "SECONDARY", emoji: "📷" }),
     new Setting("autorole", "Auto-Role", "Gives users roles when joined automatically.", "roles", 60000, "SECONDARY", "🤖").info({ column: "autorole" })
   ]).info({ id: "welcome", name: "Welcome", description: "Sends a message and adds user to role(s) when someone joins the server.", style: "PRIMARY", emoji: "🙌" }),
   new Category([
@@ -161,16 +164,22 @@ class ConfigCommand implements SlashCommand {
       return await next(msg, [interaction.customId]);
     }
 
-    async function set(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, time: number, type: SettableType, extraData: any = {}) {
+    async function set(msg: Discord.Message, path: string, configLoc: string[], setting: Setting) {
+      const thing = setting.longname, column = setting.storage.column, time = setting.time, type = setting.type, extraData = setting.extra;
       if (typeof extraData?.pre === "function") {
         await extraData.pre(msg, path, configLoc, thing, column, time, type);
         if (extraData.endPre) return;
       }
       panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Toggle" : "Set"}**\nPlease enter the ${thing} in this channel.`)
         .setFooter({ text: `You will have ${duration(time, "milliseconds")}`, iconURL: msg.client.user.displayAvatarURL() });
+      if (setting.hints.length > 0) panelEmbed.setDescription(panelEmbed.description + `\n\nHints:\n${setting.hints.join("\n")}`);
       await msg.edit({ embeds: [panelEmbed] });
       const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, time, max: 1 });
-      if (!msgCollected.first() || !msgCollected.first().content) return await end(msg);
+      if (!msgCollected.first()?.content && !msgCollected.first().attachments?.size) {
+        panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Toggle" : "Set"}**\nThe value is invalid! Returning to panel main page in 3 seconds...`)
+          .setFooter({ text: `Please wait patiently.`, iconURL: msg.client.user.displayAvatarURL() });
+        return await start(msg);
+      }
       var content: any;
       if (["message", "roles", "reaction", "duration"].includes(type) || type.endsWith("channel") || type.endsWith("channels")) {
         content = msgCollected.first().content.replace(/'/g, "\\'");
@@ -247,8 +256,9 @@ class ConfigCommand implements SlashCommand {
         }
       } else if (type === "image") {
         content = [];
-        if (msgCollected.first().content) content.concat(msgCollected.first().content.split(/\n+/).filter(att => isImageUrl(att)));
-        if (msgCollected.first().attachments.size > 0) content.concat(msgCollected.first().attachments.map(att => att.url).filter(att => isImageUrl(att)));
+        if (msgCollected.first().content) content = content.concat(msgCollected.first().content.split(/\n+/).filter(att => isImageUrl(att)));
+        if (msgCollected.first().attachments.size > 0) content = content.concat(msgCollected.first().attachments.map(att => att.url).filter(att => isImageUrl(att)));
+        msgCollected.first().delete().catch(() => { });
         if (content.length < 1) {
           panelEmbed.setDescription(`**${path}/Set**\nNo image attachment or link found! Returning to panel main page in 3 seconds...`)
             .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
@@ -256,15 +266,20 @@ class ConfigCommand implements SlashCommand {
           await wait(3000);
           return await start(msg);
         }
-        var cfg;
-        if (configLoc.length === 1) cfg = config[configLoc[0]];
-        else if (configLoc.length === 2) cfg = config[configLoc[0]][configLoc[1]];
+        var cfg: any;
+        for (const loc of configLoc) {
+          if (!cfg) cfg = config[loc];
+          else cfg = cfg[loc];
+        }
         if (Array.isArray(cfg)) content = content.concat(cfg);
         else content.push(cfg);
       } else if (type === "boolean") {
         var cfg;
-        if (configLoc.length === 1) cfg = config[configLoc[0]];
-        else if (configLoc.length === 2) cfg = config[configLoc[0]][configLoc[1]];
+        var cfg: any;
+        for (const loc of configLoc) {
+          if (!cfg) cfg = config[loc];
+          else cfg = cfg[loc];
+        }
         content = !cfg;
       }
       if (typeof extraData?.mid === "function") {
@@ -301,7 +316,8 @@ class ConfigCommand implements SlashCommand {
       return await start(msg);
     }
 
-    async function reset(msg: Discord.Message, path: string, configLoc: string[], thing: string, column: string, defaultVal: any = null, extraData: any = {}) {
+    async function reset(msg: Discord.Message, path: string, configLoc: string[], setting: Setting) {
+      const thing = setting.longname, column = setting.storage.column, defaultVal = setting.default, extraData = setting.extra;
       panelEmbed.setDescription(`**${path}/Reset**\nResetting...`)
         .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
       await msg.edit({ embeds: [panelEmbed] });
@@ -318,10 +334,10 @@ class ConfigCommand implements SlashCommand {
         NorthClient.storage.guilds[message.guild.id] = config;
         if (typeof extraData?.handler === "function") await extraData.handler(msg, defaultVal);
         var val;
-        if (!defaultVal) val = "NULL"
-        else if (typeof defaultVal === "number") val = defaultVal;
-        else if (Array.isArray(defaultVal)) val = `"${defaultVal.join()}"`;
+        if (typeof defaultVal === "number") val = defaultVal;
         else if (typeof defaultVal === "boolean") val = defaultVal ? 1 : 0;
+        else if (!defaultVal) val = "NULL";
+        else if (Array.isArray(defaultVal)) val = `"${defaultVal.join()}"`;
         else val = `"${defaultVal}"`;
         if (typeof extraData?.sql === "function") await extraData.sql(column, val, message.guildId);
         else await query(`UPDATE configs SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
@@ -379,8 +395,6 @@ class ConfigCommand implements SlashCommand {
       const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
       await interaction.update({ components: [] });
-      var extra = null;
-      if (cateSett instanceof Setting) extra = cateSett.extra;
       var location: string[];
       if (cateSett instanceof Setting) {
         location = cateSett.storage.location || paths;
@@ -393,8 +407,8 @@ class ConfigCommand implements SlashCommand {
         case "back": return await next(msg, paths.slice(0, -1));
         case "quit": return await end(msg);
 
-        case "set": return await set(msg, capitalized.join("/"), location, (<Setting> cateSett).longname, (<Setting> cateSett).storage.column, (<Setting> cateSett).time, (<Setting> cateSett).type, extra);
-        case "reset": return await reset(msg, capitalized.join("/"), location, (<Setting> cateSett).longname, (<Setting> cateSett).storage.column, (<Setting> cateSett).default || null, extra);
+        case "set": return await set(msg, capitalized.join("/"), location, <Setting> cateSett);
+        case "reset": return await reset(msg, capitalized.join("/"), location, <Setting> cateSett);
 
         default:
           const nextSet = (<Category>cateSett).children.find(s => s.id === interaction.customId);

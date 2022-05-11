@@ -1,6 +1,6 @@
 import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, findChannel, jsDate2Mysql, ms, msgOrRes, query, readableDateTime, readableDateTimeText } from "../../function.js";
+import { color, findChannel, jsDate2Mysql, ms, msgOrRes, mysqlEscape, query, readableDateTime, readableDateTimeText } from "../../function.js";
 import cfg from "../../../config.json";
 const emojis = cfg.poll;
 
@@ -43,7 +43,7 @@ export async function updatePoll(id: Discord.Snowflake, reaction: Discord.Messag
     }
     reaction.users.remove(user.id).catch(() => {});
     NorthClient.storage.polls.set(id, poll);
-    await query(`UPDATE polls SET votes = "${escape(JSON.stringify(poll.votes.map(set => [...set])))}" WHERE id = '${id}'`);
+    await query(`UPDATE polls SET votes = "${mysqlEscape(JSON.stringify(poll.votes.map(set => [...set])))}" WHERE id = '${id}'`);
 }
 
 class PollCommand implements SlashCommand {
@@ -149,7 +149,7 @@ class PollCommand implements SlashCommand {
         mesg.createReactionCollector({ time: duration, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot })
             .on("collect", async (reaction, user) => await updatePoll(mesg.id, reaction, user))
             .on("end", async () => await endPoll(await channel.messages.fetch(mesg.id)));
-        await query(`INSERT INTO polls VALUES(${mesg.id}, ${message.guild.id}, ${channel.id}, ${author.id}, '${escape(JSON.stringify(options))}', '${newDateSql}', '${escape(JSON.stringify(Array(options.length).fill([])))}')`);
+        await query(`INSERT INTO polls VALUES(${mesg.id}, ${message.guild.id}, ${channel.id}, ${author.id}, '${mysqlEscape(JSON.stringify(options))}', '${newDateSql}', '${mysqlEscape(JSON.stringify(Array(options.length).fill([])))}')`);
     }
 
     async end(message: NorthMessage | NorthInteraction, msgID: string) {
@@ -176,7 +176,7 @@ class PollCommand implements SlashCommand {
         for (var i = 0; i < Math.min(25, results.length); i++) {
             const newDate = new Date(results[i].endAt);
             const readableTime = readableDateTime(newDate);
-            Embed.addField(readableTime, unescape(results[i].title));
+            Embed.addField(readableTime, results[i].title);
         }
         await msgOrRes(message, { embeds: [Embed] });
     }

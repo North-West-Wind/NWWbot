@@ -1,7 +1,7 @@
 import { GuildMember, Message, MessageEmbed, Snowflake, TextChannel } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { genPermMsg, findRole, msgOrRes, query, findChannel } from "../../function.js";
+import { genPermMsg, findRole, msgOrRes, query, findChannel, mysqlEscape } from "../../function.js";
 
 class RoleMessageCommand implements SlashCommand {
     name = "role-message"
@@ -96,7 +96,7 @@ class RoleMessageCommand implements SlashCommand {
             emojis: emojis
         });
         try {
-            await query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${authorId}', '${escape(JSON.stringify(roles))}', '${escape(JSON.stringify(emojis))}')`);
+            await query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${authorId}', '${mysqlEscape(JSON.stringify(roles))}', '${mysqlEscape(JSON.stringify(emojis))}')`);
             await message.channel.send(`Successfully created record for message. Role-messages used on this server: **${totalRm}/5**`);
         } catch (err: any) {
             console.error(err);

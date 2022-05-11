@@ -1,7 +1,7 @@
 
 import { Guild, GuildMember } from "discord.js";
 import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
-import { commonModerationEmbed, findMember, query } from "../../function.js";
+import { commonModerationEmbed, findMember, mysqlEscape, query } from "../../function.js";
 
 class WarnCommand implements SlashCommand {
   name = "warn"
@@ -67,7 +67,7 @@ class WarnCommand implements SlashCommand {
   }
 
   async warn(guild: Guild, member: GuildMember, reason: string) {
-    await query(`INSERT INTO warn VALUES (NULL, '${guild.id}', '${member.id}', '${escape(reason)}')`);
+    await query(`INSERT INTO warn VALUES (NULL, '${guild.id}', '${member.id}', '${mysqlEscape(reason)}')`);
     const results = await query(`SELECT * FROM warn WHERE guild = '${guild.id}' AND user = '${member.id}'`);
     return results.length;
   }
