@@ -174,14 +174,14 @@ class ConfigCommand implements SlashCommand {
         .setFooter({ text: `You will have ${duration(time, "milliseconds")}`, iconURL: msg.client.user.displayAvatarURL() });
       if (setting.hints.length > 0) panelEmbed.setDescription(panelEmbed.description + `\n\nHints:\n${setting.hints.join("\n")}`);
       await msg.edit({ embeds: [panelEmbed] });
-      const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, time, max: 1 });
-      if (!msgCollected.first()?.content && !msgCollected.first().attachments?.size) {
-        panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Toggle" : "Set"}**\nThe value is invalid! Returning to panel main page in 3 seconds...`)
-          .setFooter({ text: `Please wait patiently.`, iconURL: msg.client.user.displayAvatarURL() });
-        return await start(msg);
-      }
       var content: any;
       if (["message", "roles", "reaction", "duration"].includes(type) || type.endsWith("channel") || type.endsWith("channels")) {
+        const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, time, max: 1 });
+        if (!msgCollected.first()?.content && !msgCollected.first().attachments?.size) {
+          panelEmbed.setDescription(`**${path}/Set**\nThe value is invalid! Returning to panel main page in 3 seconds...`)
+            .setFooter({ text: `Please wait patiently.`, iconURL: msg.client.user.displayAvatarURL() });
+          return await start(msg);
+        }
         content = msgCollected.first().content.replace(/'/g, "\\'");
         msgCollected.first().delete().catch(() => { });
         if (type.endsWith("channel")) {
@@ -256,6 +256,12 @@ class ConfigCommand implements SlashCommand {
         }
       } else if (type === "image") {
         content = [];
+        const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, time, max: 1 });
+        if (!msgCollected.first()?.content && !msgCollected.first().attachments?.size) {
+          panelEmbed.setDescription(`**${path}/Set**\nThe value is invalid! Returning to panel main page in 3 seconds...`)
+            .setFooter({ text: `Please wait patiently.`, iconURL: msg.client.user.displayAvatarURL() });
+          return await start(msg);
+        }
         if (msgCollected.first().content) content = content.concat(msgCollected.first().content.split(/\n+/).filter(att => isImageUrl(att)));
         if (msgCollected.first().attachments.size > 0) content = content.concat(msgCollected.first().attachments.map(att => att.url).filter(att => isImageUrl(att)));
         msgCollected.first().delete().catch(() => { });
