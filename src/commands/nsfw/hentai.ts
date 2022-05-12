@@ -3,7 +3,7 @@ import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/Nort
 import { globalClient as client } from "../../common.js";
 import { color, ms, msgOrRes } from "../../function.js";
 import * as Discord from "discord.js";
-import * as akaneko from "akaneko";
+import akaneko from "akaneko";
 
 class HentaiCommand implements SlashCommand {
     name = "hentai"
@@ -19,7 +19,6 @@ class HentaiCommand implements SlashCommand {
         "bdsm",
         "blowjob",
         "cum",
-        "cumslut",
         "doujin",
         "feet",
         "femdom",

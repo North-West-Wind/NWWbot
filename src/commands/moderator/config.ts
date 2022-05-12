@@ -308,6 +308,7 @@ class ConfigCommand implements SlashCommand {
         else if (Array.isArray(content)) val = `"${content.join()}"`;
         else if (typeof content === "boolean") val = content ? 1 : 0;
         else val = `"${content}"`;
+        console.log(column, " ", val);
         if (typeof extraData?.sql === "function") await extraData.sql(column, val, message.guildId);
         else await query(`UPDATE configs SET ${column} = ${val} WHERE id = '${message.guild.id}'`);
         panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Toggle" : "Set"}**\n${thing} received! Returning to panel main page in 3 seconds...`);

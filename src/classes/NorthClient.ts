@@ -153,8 +153,8 @@ export class GuildConfig {
                 message: data.boost_msg,
                 channel: data.boost_channel
             };
-            if (data.safe === undefined) this.safe = true;
-            else this.safe = !!data.safe;
+            if (data.safe == 1) this.safe = true;
+            else this.safe = false;
 
             this.applications = {
                 roles: data.app_roles?.split(",") || [],
