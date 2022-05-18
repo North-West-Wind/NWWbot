@@ -3,12 +3,12 @@ import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/Nort
 import { mergeObjArr, color, validNotImgurURL, validImgurURL, validRedditURL, validImgurVideoURL, validRedditVideoURL, validGfyURL, validRedGifURL, decodeHtmlEntity, wait, ms, getFetch, msgOrRes } from "../../function.js";
 import * as cheerio from 'cheerio';
 import * as Discord from "discord.js";
-import RedditAPI from "reddit-wrapper-v2";
+import RedditAPI, { API } from "reddit-wrapper-v2";
 import Gfycat from "gfycat-sdk";
 
 const fetch = getFetch();
 var gfycat;
-var redditConn;
+var redditConn: { api: API };
 
 class PornCommand implements SlashCommand {
     name = "porn"
@@ -2322,16 +2322,12 @@ class PornCommand implements SlashCommand {
         else return await this.nsfw411(message, args);
     }
 
-    init() {
+    constructor() {
         redditConn = RedditAPI({
             username: process.env.RUSER,
             password: process.env.RPW,
             app_id: process.env.APPID,
-            api_secret: process.env.APPSECRET,
-            user_agent: "Reddit-Watcher-V2",
-            retry_on_wait: true,
-            retry_on_server_error: 5,
-            retry_delay: 1
+            api_secret: process.env.APPSECRET
         });
 
         gfycat = new Gfycat({ clientId: process.env.GFYID, clientSecret: process.env.GFYSECRET });
