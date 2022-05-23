@@ -655,7 +655,7 @@ export class AliceHandler extends Handler {
     }
 
     async preWelcomeImage(channel: TextChannel) {
-        await channel.send({ files: [new MessageAttachment("https://cdn.discordapp.com/attachments/707639765607907358/737859171269214208/welcome.png")] });
+        await channel.send({ files: [new MessageAttachment("https://cdn.discordapp.com/attachments/714804870078660630/978258723749367829/standard_7.gif")] });
     }
 
     async preMessage(message: Message) {
