@@ -15,7 +15,17 @@ export class NorthClient extends Client {
     setVersion(version: string) { this.version = version; }
 }
 
-export interface Command {
+export abstract class IPrefix {
+    abstract run(message: NorthMessage, args: string[]): Promise<any> | any;
+}
+
+export abstract class ISlash {
+    options?: any[];
+    
+    abstract execute(interaction: NorthInteraction): Promise<any> | any;
+}
+
+export abstract class Command {
     name: string;
     description: string;
     args?: number;
@@ -27,14 +37,23 @@ export interface Command {
     subdesc?: string[];
     subusage?: (string | number)[];
     permissions?: { guild?: { user?: number, me?: number }, channel?: { user?: number, me?: number } };
-
-    run(message: NorthMessage, args: string[]): Promise<any> | any;
 }
 
-export interface SlashCommand extends Command {
+export abstract class PrefixCommand extends Command implements IPrefix {
+    abstract run(message: NorthMessage, args: string[]): Promise<any> | any;
+}
+
+export abstract class SlashCommand extends Command implements ISlash {
     options?: any[];
 
-    execute(interaction: NorthInteraction): Promise<any> | any;
+    abstract execute(interaction: NorthInteraction): Promise<any> | any;
+}
+
+export abstract class FullCommand extends Command implements ISlash, IPrefix {
+    options?: any[];
+
+    abstract run(message: NorthMessage, args: string[]): Promise<any> | any;
+    abstract execute(interaction: NorthInteraction): Promise<any> | any;
 }
 
 export class Card {
@@ -111,6 +130,15 @@ export interface VoiceConfig {
     kick: { channels: Snowflake[], timeout: number };
 }
 
+export interface Translation {
+    messageId: Snowflake;
+    channelId: Snowflake;
+    guildId: Snowflake;
+    translations: Collection<string, Snowflake>;
+    existingId?: Snowflake;
+    ended?: boolean;
+}
+
 export interface GuildConfigs {
     [key: Snowflake]: GuildConfig;
 }
@@ -125,6 +153,7 @@ export class GuildConfig {
     safe: boolean;
     applications: Applications;
     voice: VoiceConfig;
+    translations: Collection<Snowflake, Translation> = new Collection();
     invites?: Collection<string, Invite>;
     exit?: boolean;
     joinedMembers: GuildMember[] = [];
@@ -196,7 +225,7 @@ export class ClientStorage {
     rm: RoleMessage[] = [];
     timers: Collection<Snowflake, NodeJS.Timeout> = new Collection();
     noLog: Snowflake[] = [];
-    commands: Collection<string, SlashCommand> = new Collection();
+    commands: Collection<string, Command> = new Collection();
     items: Collection<string, Item> = new Collection();
     card: Collection<string, Card> = new Collection();
     uno: Collection<number, UnoGame> = new Collection();

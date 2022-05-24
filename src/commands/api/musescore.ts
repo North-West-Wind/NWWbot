@@ -1,4 +1,4 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { validMSURL, requestStream, streamToString, color, requestYTDLStream, createEmbedScrolling } from "../../function.js";
 import { run } from "../../helpers/puppeteer.js";
 import { muse, museSearch } from "musescore-metadata";
@@ -25,7 +25,7 @@ function PNGtoPDF(doc: PDFKit.PDFDocument, url: string): Promise<void> {
     })
 };
 
-class MusescoreCommand implements SlashCommand {
+class MusescoreCommand implements FullCommand {
     name = "musescore";
     description = "Gets information of a MuseScore link, or searches the site, and downloads if requested.";
     usage = "<link | keywords>";

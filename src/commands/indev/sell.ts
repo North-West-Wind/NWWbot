@@ -1,10 +1,10 @@
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color, jsDate2Mysql, query, roundTo } from "../../function.js";
 import { RowDataPacket } from "mysql2";
 
 
-class SellCommand implements SlashCommand {
+class SellCommand implements FullCommand {
     name = "sell"
     description = "Put something to the cross-server shop and sell it!"
     usage = "<price> <item>"

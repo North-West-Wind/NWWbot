@@ -1,10 +1,10 @@
 import { Message } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { globalClient as client } from "../../common.js";
 import * as Discord from "discord.js";
 import { color, msgOrRes, query, roundTo, wait } from "../../function.js";
 
-class BankCommand implements SlashCommand {
+class BankCommand implements FullCommand {
   name = "bank"
   description = "Display your Discord Economy status. You can also deposit or withdraw money with this command."
   category = 2

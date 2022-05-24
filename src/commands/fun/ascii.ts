@@ -1,4 +1,4 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 
 import anser from "anser";
 import figlet from "figlet";
@@ -8,7 +8,7 @@ import Canvas from "canvas";
 import asciify from "asciify-image";
 import { isImageUrl } from "../../function.js";
 
-class AsciiCommand implements SlashCommand {
+class AsciiCommand implements FullCommand {
     name = "ascii"
     description = "Generates ASCII arts from text or image."
     usage = "<subcommand>"

@@ -1,10 +1,10 @@
 import wiki from "wikijs";
 import * as Discord from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 
 import { color } from "../../function.js";
 
-class WikiCommand implements SlashCommand {
+class WikiCommand implements FullCommand {
     name = "wiki"
     description = "Searches Wikipedia for stuff."
     usage = "<query>"

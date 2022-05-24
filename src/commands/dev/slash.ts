@@ -1,7 +1,7 @@
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand, SlashCommand } from "../../classes/NorthClient.js";
 import { msgOrRes } from "../../function.js";
 
-class DevSlashCommand implements SlashCommand {
+class DevSlashCommand implements FullCommand {
     name = "slash";
     description = "N0rthWestW1nd's Slash Command Manager.";
     usage = "<subcommand>";
@@ -45,7 +45,7 @@ class DevSlashCommand implements SlashCommand {
         const msg = await msgOrRes(message, `Registering Slash Commands...`);
         const client = message.client;
         for (const command of NorthClient.storage.commands.values()) {
-            if (command.category === 5) continue;
+            if (command.category === 5 || (!(command instanceof FullCommand) && !(command instanceof SlashCommand))) continue;
             try {
                 const options = {
                     name: command.name,
@@ -68,7 +68,7 @@ class DevSlashCommand implements SlashCommand {
         for (const command of commands.values()) {
             try {
                 const cmd = NorthClient.storage.commands.get(command.name);
-                if (!cmd) {
+                if (!cmd || (!(cmd instanceof FullCommand) && !(cmd instanceof SlashCommand))) {
                     await client.application.commands.delete(command.id);
                     continue;
                 }

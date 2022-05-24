@@ -1,12 +1,12 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { color, createEmbedScrolling, getFetch } from "../../function.js";
 import * as Discord from "discord.js";
 import { globalClient as client } from "../../common.js";
 
 const fetch = getFetch();
 
-class SpeedrunCommand implements SlashCommand {
+class SpeedrunCommand implements FullCommand {
     name = "speedrun"
     description = "Displays speedrun attempts of a game from Speedrun.com."
     aliases = ["sr"]

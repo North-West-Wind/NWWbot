@@ -1,4 +1,4 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { capitalize, color, xmlToJson, getFetch } from "../../function.js";
 
@@ -6,7 +6,7 @@ import { globalClient as client } from "../../common.js";
 
 const fetch = getFetch();
 
-class Rule34Command implements SlashCommand {
+class Rule34Command implements FullCommand {
     name = "rule34"
     description = "Displays Rule34 images. Add tags to filter. Requires NSFW channel."
     aliases = ["r34"]

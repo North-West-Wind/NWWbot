@@ -1,5 +1,5 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { mergeObjArr, color, validNotImgurURL, validImgurURL, validRedditURL, validImgurVideoURL, validRedditVideoURL, validGfyURL, validRedGifURL, decodeHtmlEntity, wait, ms, getFetch, msgOrRes } from "../../function.js";
 import * as cheerio from 'cheerio';
 import * as Discord from "discord.js";
@@ -10,7 +10,7 @@ const fetch = getFetch();
 var gfycat;
 var redditConn: { api: API };
 
-class PornCommand implements SlashCommand {
+class PornCommand implements FullCommand {
     name = "porn"
     description = "Returns real porn images from Reddit. Requires NSFW channel."
     usage = "[tag | subcommand]"

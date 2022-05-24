@@ -1,12 +1,12 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { color, createEmbedScrolling, getFetch } from "../../function.js";
 import * as Discord from "discord.js";
 import { globalClient as client } from "../../common.js";
 
 const fetch = getFetch();
 
-class UrbanCommand implements SlashCommand {
+class UrbanCommand implements FullCommand {
     name = "urban"
     description = "Searches the Urban Dictionary on Discord."
     usage = "<query>"

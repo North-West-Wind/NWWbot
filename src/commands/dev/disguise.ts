@@ -1,7 +1,7 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 
-class DisguiseCommand implements SlashCommand {
+class DisguiseCommand implements FullCommand {
     name = "disguise"
     description = "disguise"
     aliases = ["say"]

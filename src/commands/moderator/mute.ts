@@ -1,9 +1,9 @@
 
 import { GuildMember } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { genPermMsg, commonModerationEmbed, findMember } from "../../function.js";
 
-class MuteCommand implements SlashCommand {
+class MuteCommand implements FullCommand {
     name = "mute"
     description = "Mute a member while the member is in a voice channel."
     args = 1

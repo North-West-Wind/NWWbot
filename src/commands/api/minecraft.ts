@@ -3,12 +3,12 @@ import { CategoryList, SectionTypes, SortTypes } from "aio-mc-api/lib/typings/Cu
 import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory, getFetch, isValidMCVer } from "../../function.js";
 import { Message, MessageEmbed } from "discord.js";
 import mcapi from "aio-mc-api";
-import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
+import { FullCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
 import { globalClient as client } from "../../common.js";
 
 const fetch = getFetch();
 
-class MinecraftCommand implements SlashCommand {
+class MinecraftCommand implements FullCommand {
     name = "minecraft";
     description = "Connect to the Minecraft API and display information.";
     aliases = ["mc"];

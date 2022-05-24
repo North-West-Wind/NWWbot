@@ -1,10 +1,10 @@
 import { PermissionResolvable, Role } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color } from "../../function.js";
 
-class RoleInfoCommand implements SlashCommand {
+class RoleInfoCommand implements FullCommand {
   name = "role-info"
   description = "Displays information of a role."
   aliases = ["ri"]

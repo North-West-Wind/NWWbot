@@ -1,9 +1,9 @@
 import { GuildMember, TextChannel } from "discord.js";
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { findChannel, genPermMsg, wait } from "../../function.js";
 
-class DeleteCommand implements SlashCommand {
+class DeleteCommand implements FullCommand {
   name = "delete"
   description = "Delete a specific amount of message in a channel. Sadly, this command does not work for DMs."
   aliases = ["del"]

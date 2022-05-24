@@ -1,8 +1,8 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { findMember, color, readableDateTime } from "../../function.js";
 import * as Discord from "discord.js";
 
-class ProfileCommand implements SlashCommand {
+class ProfileCommand implements FullCommand {
     name = "profile"
     description = "Displays profile of yourself or the mentioned user on the server."
     usage = "[user]"

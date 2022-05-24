@@ -1,9 +1,9 @@
 import { User } from "discord.js";
-import {  NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import {  NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color, duration, ms } from "../../function.js";
 import * as math from "mathjs";
-class MathGameCommand implements SlashCommand {
+class MathGameCommand implements FullCommand {
     name = "mathgame"
     description = "Math Game prototype."
     category = 8

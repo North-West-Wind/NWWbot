@@ -1,11 +1,11 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { globalClient as client } from "../../common.js";
 import { color, ms, msgOrRes } from "../../function.js";
 import * as Discord from "discord.js";
 import akaneko from "akaneko";
 
-class HentaiCommand implements SlashCommand {
+class HentaiCommand implements FullCommand {
     name = "hentai"
     description = "Returns something very NSFW. Requires NSFW channel."
     usage = "[tag | subcommand]"

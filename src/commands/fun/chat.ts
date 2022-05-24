@@ -1,10 +1,10 @@
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 
 import cleverbot from "cleverbot-free";
 
 const log = new Map();
 
-class ChatCommand implements SlashCommand {
+class ChatCommand implements FullCommand {
     name = "chat"
     description = "Chat with the bot."
     usage = "<message>"

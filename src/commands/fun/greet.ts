@@ -1,4 +1,4 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 
 import { findUser } from "../../function.js";
 
@@ -12,7 +12,7 @@ const GREETINGS = [
   "Howdy! <user>!"
 ];
 
-class GreetCommand implements SlashCommand {
+class GreetCommand implements FullCommand {
   name = 'greet'
   description = 'Greet somebody.'
   usage = "<user>"

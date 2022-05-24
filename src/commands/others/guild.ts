@@ -1,5 +1,5 @@
 
-import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
+import { NorthMessage, FullCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color, createEmbedScrolling, findChannel, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, msgOrRes, mysqlEscape, nameToUuid, profile, query, readableDateTimeText, roundTo, setTimeout_ } from "../../function.js";
 
@@ -57,7 +57,7 @@ const catabombLevels = [
 	569809640
 ]
 
-class GuildCommand implements SlashCommand {
+class GuildCommand implements FullCommand {
 	name = "guild"
 	description = "Made specificly for the Hypixel guild War of Underworld."
 	usage = "<subcommand>"

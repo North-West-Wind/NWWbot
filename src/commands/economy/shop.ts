@@ -1,11 +1,11 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js"
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js"
 import * as Discord from "discord.js";
 import { color, wait, genPermMsg, ID, msgOrRes, query, roundTo, mysqlEscape } from "../../function.js";
 import { globalClient as client } from "../../common.js";
 
 
-class ShopCommand implements SlashCommand {
+class ShopCommand implements FullCommand {
     name = "shop"
     description = "Displays the server shop."
     usage = "[subcommand]"

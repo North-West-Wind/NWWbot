@@ -1,7 +1,7 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 
-class RestartCommand implements SlashCommand {
+class RestartCommand implements FullCommand {
     name = "restart"
     description = "Restart the bot"
     aliases = ["re"]

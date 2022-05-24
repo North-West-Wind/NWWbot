@@ -1,9 +1,9 @@
 
 import { GuildMember } from "discord.js";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { checkTradeW1nd, fixGuildRecord, genPermMsg, query, syncTradeW1nd } from "../../function.js";
 
-class PrefixCommand implements SlashCommand {
+class PrefixCommand implements FullCommand {
     name = "prefix"
     description = "Change the prefix of the server."
     usage = "[prefix]"

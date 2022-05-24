@@ -1,8 +1,8 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { getRandomNumber, roundTo } from "../../function.js";
 
-class RNGCommand implements SlashCommand {
+class RNGCommand implements FullCommand {
     name = "rng"
     description = "Random number generator. Generate a random number between range."
     usage = "<min> <max> [count] [decimal place]"

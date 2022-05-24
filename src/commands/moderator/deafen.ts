@@ -1,9 +1,9 @@
 
 import { GuildMember } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { commonModerationEmbed, findMember } from "../../function.js";
 
-class DeafenCommand implements SlashCommand {
+class DeafenCommand implements FullCommand {
   name = "deafen"
   description = "Deafen a member while the member is in a voice channel."
   usage = "<user> [reason]"

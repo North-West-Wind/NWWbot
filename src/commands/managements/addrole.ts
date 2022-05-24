@@ -1,9 +1,9 @@
 
 import { ColorResolvable } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { commonRoleEmbed } from "../../function.js";
 
-class AddRoleCommand implements SlashCommand {
+class AddRoleCommand implements FullCommand {
     name = "addrole"
     description = "Adds a new role to the server. The “color” parameter is optional."
     args = 1

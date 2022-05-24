@@ -1,8 +1,8 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { findUser, color, query } from "../../function.js";
 
-class UnWarnCommand implements SlashCommand {
+class UnWarnCommand implements FullCommand {
     name = "unwarn"
     description = "Remove all warnings of a member of the server."
     usage = "<user>"

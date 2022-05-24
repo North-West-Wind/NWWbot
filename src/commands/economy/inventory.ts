@@ -1,11 +1,11 @@
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { color, msgOrRes, query, wait } from "../../function.js";
 import * as Discord from "discord.js";
 
 import { globalClient as client } from "../../common.js";
 import { RowDataPacket } from "mysql2";
 
-class InventoryCommand implements SlashCommand {
+class InventoryCommand implements FullCommand {
   name = "inventory"
   description = "Displays your inventory and allows you to use your purchased items."
   aliases = ["e"]

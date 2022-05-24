@@ -1,7 +1,7 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 
-class ThxCommand implements SlashCommand {
+class ThxCommand implements FullCommand {
 	name = 'thx'
 	description = 'Thanks the bot.'
 	category = 3

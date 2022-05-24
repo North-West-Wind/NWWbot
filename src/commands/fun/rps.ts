@@ -1,12 +1,12 @@
 import { Message, MessageEmbed } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color } from "../../function.js";
 
 const options = ["🖐", "✌", "👊"];
 
-class RPSCommand implements SlashCommand {
+class RPSCommand implements FullCommand {
   name = "rps"
   description = "Play rock, paper, scissors with the randomizer."
   aliases = ["rockscissorspaper", "rockpaperscissors", "paperscissorsstone", "rsp", "pss"]

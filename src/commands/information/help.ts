@@ -1,4 +1,4 @@
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { color, deepReaddir, fixGuildRecord, wait } from "../../function.js";
 import * as Discord from "discord.js";
 
@@ -8,7 +8,7 @@ import { globalClient as client } from "../../common.js";
 const categories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "Under Development", "Dev Command"];
 export const sCategories = ["Managements", "Moderator", "Economy", "Fun", "Miscellaneous", "NSFW", "Information", "API", "InDev", "Dev"];
 
-class HelpCommand implements SlashCommand {
+class HelpCommand implements FullCommand {
   name = "help"
   description = "Sends you a DM with an embed of all available commands and the user manual."
   usage = "[command]"

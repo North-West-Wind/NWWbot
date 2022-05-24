@@ -1,4 +1,4 @@
-import { Card, NorthInteraction, NorthMessage, Player, SlashCommand, UnoGame } from "../../classes/NorthClient.js";
+import { Card, NorthInteraction, NorthMessage, Player, FullCommand, UnoGame } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild, wait, duration } from "../../function.js";
 import { NorthClient } from "../../classes/NorthClient.js";
@@ -33,7 +33,7 @@ const assets = config.uno.filter((x: any) => !x.deleted && x.type === "image/png
   };
 });
 
-class UnoCommand implements SlashCommand {
+class UnoCommand implements FullCommand {
   name = "uno"
   description = "Play UNO with your friends!"
   category = 3

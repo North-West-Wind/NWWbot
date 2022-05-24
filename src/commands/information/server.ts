@@ -1,9 +1,9 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color, readableDateTime } from "../../function.js";
 
-class ServerCommand implements SlashCommand {
+class ServerCommand implements FullCommand {
   name = 'server'
   description = 'Displays some server information.'
   category = 6

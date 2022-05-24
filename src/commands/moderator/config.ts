@@ -1,4 +1,4 @@
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd, query, wait, duration, ms, findChannel } from "../../function.js";
 import * as Discord from "discord.js";
 import { isImageUrl } from "../../function.js";
@@ -45,7 +45,7 @@ const configs: (Category | Setting)[] = [
   ]).info({ id: "voice", name: "Voice", description: "Voice states monitoring.", style: "SECONDARY", emoji: "🔉" })
 ];
 
-class ConfigCommand implements SlashCommand {
+class ConfigCommand implements FullCommand {
   name = "config"
   description = "Generate a token for logging into the Configuration Panel."
   usage = "[subcommand]"

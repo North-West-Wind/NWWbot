@@ -1,9 +1,9 @@
 import { Message, MessageEmbed, MessageReaction, Snowflake } from "discord.js";
 import { Aki, region } from "aki-api";
-import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
+import { FullCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
 import { color } from "../../function.js";
 
-export class AkiCommand implements SlashCommand {
+export class AkiCommand implements FullCommand {
   name = "aki";
   description = "Play Akinator on Discord!";
   aliases = ["akinator"];

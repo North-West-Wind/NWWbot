@@ -1,10 +1,10 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import config from "../../../config.json";
 import { msgOrRes, shuffleArray } from "../../function.js";
 import translate from "translate-google";
 const langs = config.languages;
 
-class TranslateCommand implements SlashCommand {
+class TranslateCommand implements FullCommand {
     name = "translate";
     description = "Poorly translates some text.";
     category = 3;

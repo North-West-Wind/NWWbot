@@ -1,9 +1,9 @@
 
 import { Guild, GuildMember } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { commonModerationEmbed, findMember, mysqlEscape, query } from "../../function.js";
 
-class WarnCommand implements SlashCommand {
+class WarnCommand implements FullCommand {
   name = "warn"
   description = "Warn a member of the server. 3 warnings will lead to a ban."
   args = 1

@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { color, mysqlEscape, query, setTimeout_ } from "../../function.js";
 
 export async function endApplication(client: Discord.Client, id: Discord.Snowflake, guildId: Discord.Snowflake) {
@@ -29,7 +29,7 @@ export async function endApplication(client: Discord.Client, id: Discord.Snowfla
     }
 }
 
-class ApplyCommand implements SlashCommand {
+class ApplyCommand implements FullCommand {
     name = "apply";
     description = "Allows users to apply for a role on the server.";
     category = 0;

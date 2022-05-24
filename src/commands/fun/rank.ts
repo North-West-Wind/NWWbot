@@ -1,10 +1,10 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color, query } from "../../function.js";
 import { RowDataPacket } from "mysql2";
 
-class RankCommand implements SlashCommand {
+class RankCommand implements FullCommand {
   name = "rank"
   description = "Displays your rank in the server. Leveling system was inspired by MEE6."
   category = 3

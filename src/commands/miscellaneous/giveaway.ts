@@ -1,5 +1,5 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { jsDate2Mysql, readableDateTime, setTimeout_, readableDateTimeText, genPermMsg, ms, color, query, findChannel, msgOrRes, mysqlEscape } from "../../function.js";
 import { globalClient as client } from "../../common.js";
@@ -69,7 +69,7 @@ async function setupGiveaway(message: NorthMessage | NorthInteraction, channel: 
   setTimeout_(async () => await endGiveaway(await channel.messages.fetch(msg.id)), time);
 }
 
-class GiveawayCommand implements SlashCommand {
+class GiveawayCommand implements FullCommand {
   name = "giveaway"
   description = "Manage giveaways on the server."
   args = 1

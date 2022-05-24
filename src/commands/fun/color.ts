@@ -1,4 +1,4 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 
 import * as Discord from "discord.js";
 import Canvas from "canvas";
@@ -36,7 +36,7 @@ function getColor(args: string[]): { red?: number, green?: number, blue?: number
     return { red, green, blue, random };
 }
 
-class ColorCommand implements SlashCommand {
+class ColorCommand implements FullCommand {
     name = "color"
     description = "Displays the color you entered, or a random color."
     usage = "[color]"

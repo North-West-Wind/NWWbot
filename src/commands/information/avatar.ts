@@ -1,9 +1,9 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { color, findUser } from "../../function.js";
 import * as Discord from "discord.js";
 
-class AvatarCommand implements SlashCommand {
+class AvatarCommand implements FullCommand {
     name = "avatar"
     description = "Display the message author's avatar or the mentioned user's avatar."
     aliases = ["icon", "pfp"]

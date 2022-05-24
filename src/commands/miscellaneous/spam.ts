@@ -1,9 +1,9 @@
 
 import { Collection, Message, User } from "discord.js";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { findUser, getOwner } from "../../function.js";
 
-class SpamCommand implements SlashCommand {
+class SpamCommand implements FullCommand {
     name = "spam"
     description = "Spams a user with the message provided."
     aliases = ["sp"]

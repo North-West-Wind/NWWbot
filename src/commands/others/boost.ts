@@ -1,10 +1,10 @@
 import { MessageEmbed } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { color, getFetch } from "../../function.js";
 
 const fetch = getFetch();
 
-class BoostCommand implements SlashCommand {
+class BoostCommand implements FullCommand {
     name = "boost";
     description = "Displays boost information.";
     category = -1;

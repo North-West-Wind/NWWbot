@@ -1,6 +1,6 @@
 import canvas from "canvas";
 import * as fs from "fs";
-import { NorthClient, Card, SlashCommand, Item, ClientStorage } from "./classes/NorthClient.js";
+import { NorthClient, Card, FullCommand, Item, ClientStorage, Command } from "./classes/NorthClient.js";
 import { twoDigits, deepReaddir, query } from "./function.js";
 import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
@@ -69,7 +69,7 @@ export default async (client: NorthClient) => {
   const commandFiles = deepReaddir("./out/src/commands").filter(file => file.endsWith(".js"));
   const itemFiles = deepReaddir("./out/src/items").filter(file => file.endsWith(".js"));
   for (const file of commandFiles) {
-    const command = <SlashCommand>(await import(file)).default;
+    const command = <Command>(await import(file)).default;
     NorthClient.storage.commands.set(command.name, command);
   }
   for (const file of itemFiles) {

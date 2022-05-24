@@ -1,9 +1,9 @@
 
 import { GuildMember } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { findMember } from "../../function.js";
 
-class NicknameCommand implements SlashCommand {
+class NicknameCommand implements FullCommand {
   name = "nickname"
   description = "Sets a user's nickname on the server."
   usage = "<user | user ID> <nickname>"

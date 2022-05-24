@@ -1,5 +1,5 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { color, createEmbedScrolling, getFetch, readableDateTime } from "../../function.js";
 import * as Discord from "discord.js";
 
@@ -12,7 +12,7 @@ const styles = {
     M1: "Super Mario Bros."
 }
 
-class SMM2Command implements SlashCommand {
+class SMM2Command implements FullCommand {
     name = "smm2"
     description = "Searches courses of Super Mario Maker from smmdb.net. API by Tarnadas."
     aliases = ["supermariomaker2"]

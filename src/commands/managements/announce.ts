@@ -1,9 +1,9 @@
 import { GuildMember, TextChannel } from "discord.js";
 
-import { NorthInteraction, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, FullCommand } from "../../classes/NorthClient.js";
 import { genPermMsg } from "../../function.js";
 
-class AnnounceCommand implements SlashCommand {
+class AnnounceCommand implements FullCommand {
   name = 'announce'
   description = 'Lets the bot announce something for you in a specific channel.'
   aliases = ['ann']

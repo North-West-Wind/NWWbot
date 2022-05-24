@@ -1,9 +1,9 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { readableDateTime, color } from "../../function.js";
 import * as Discord from "discord.js";
 
-class PingCommand implements SlashCommand {
+class PingCommand implements FullCommand {
   name = "ping"
   description = "Pings the bot and it will show you something interesting (not really)."
   category = 6

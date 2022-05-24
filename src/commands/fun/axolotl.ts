@@ -1,4 +1,4 @@
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { getFetch } from "../../function.js";
 import * as Discord from "discord.js";
 
@@ -39,7 +39,7 @@ const links = [
     "https://i.redd.it/usi861az4mx41.jpg"
 ];
 
-class AxolotlCommand implements SlashCommand {
+class AxolotlCommand implements FullCommand {
     name = "axolotl"
     description = "Retrieves a random Axolotl image."
     category = 3

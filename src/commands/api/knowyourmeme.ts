@@ -2,7 +2,7 @@ import { color, createEmbedScrolling } from "../../function.js";
 import * as Discord from "discord.js";
 import cheerio from "cheerio";
 import { getFetch } from "../../function.js";
-import { SlashCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
+import { FullCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
 import { globalClient as client } from "../../common.js";
 const fetch = getFetch();
 
@@ -90,7 +90,7 @@ async function doSearch(term) {
   return memes;
 }
 
-class KnowYourMemeCommand implements SlashCommand {
+class KnowYourMemeCommand implements FullCommand {
   name = "knowyourmeme";
   description = "Displays meme information from Know Your Meme.";
   usage = "<keywords>";

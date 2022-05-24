@@ -1,10 +1,10 @@
 
-import {  NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import {  NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { globalClient as client } from "../../common.js";
 import * as Discord from "discord.js";
 import { readableDateTime, color, readableDateTimeText, checkTradeW1nd, getTradeW1ndStats } from "../../function.js";
 
-class InfoCommand implements SlashCommand {
+class InfoCommand implements FullCommand {
   name = "info"
   description = "Display information of the bot."
   category = 6

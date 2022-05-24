@@ -1,5 +1,5 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { readableDateTime, color, createEmbedScrolling } from "../../function.js";
 import smm from "smm-api";
 import * as Discord from "discord.js";
@@ -9,7 +9,7 @@ const themes = ["Ground", "Underground", "Castle", "Airship", "Underwater", "Gho
 const difficulties = ["Easy", "Normal", "Expert", "Super Expert"];
 const styles = ["Super Mario Bros.", "Super Mario Bros. 3", "Super Mario World", "New Super Mario Bros. U"];
 
-class SMMCommand implements SlashCommand {
+class SMMCommand implements FullCommand {
     name = "smm"
     description = "Searches courses of Super Mario Maker from smmdb.net. API by Tarnadas."
     aliases = ["supermariomaker"]

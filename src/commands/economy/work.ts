@@ -2,9 +2,9 @@ import randomWords from "@genzou/random-words";
 import Canvas from "canvas";
 import * as Discord from "discord.js";
 import { getRandomNumber, applyText, jsDate2Mysql, query, roundTo } from "../../function.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 
-class WorkCommand implements SlashCommand {
+class WorkCommand implements FullCommand {
   name = "work"
   description = "Work in the server and gain virtual money."
   category = 2

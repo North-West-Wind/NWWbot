@@ -1,9 +1,9 @@
 
 import { GuildMember } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { commonModerationEmbed, findMember } from "../../function.js";
 
-class UnBanCommand implements SlashCommand {
+class UnBanCommand implements FullCommand {
     name = "unban"
     description = "Unban a member of the server."
     usage = "<user> [reason]"

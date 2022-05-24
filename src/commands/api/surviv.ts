@@ -1,6 +1,6 @@
 import { MessageEmbed } from "discord.js";
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { color, createEmbedScrolling, readableDateTime } from "../../function.js";
 import { globalClient as client } from "../../common.js";
 import { getHistory, getStats, Stats, StatsMode } from "survivio-api";
@@ -23,7 +23,7 @@ const createModeEmbed = (mode: StatsMode, stats: Stats) => {
     return em;
 }
 
-class SurvivCommand implements SlashCommand {
+class SurvivCommand implements FullCommand {
     name = "surviv"
     description = "Displays the user's stats from Surviv.io."
     usage = "<user>"

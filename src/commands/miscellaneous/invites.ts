@@ -1,9 +1,9 @@
 import { RowDataPacket } from "mysql2";
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { genPermMsg, createEmbedScrolling, color, msgOrRes, query } from "../../function.js";
 
-class InvitesCommand implements SlashCommand {
+class InvitesCommand implements FullCommand {
   name = "invites"
   description = "Display information about users invited on the server."
   usage = "[subcommand]"

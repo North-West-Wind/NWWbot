@@ -1,9 +1,9 @@
 import { GuildMember, Message, MessageEmbed, Snowflake, TextChannel } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { genPermMsg, findRole, msgOrRes, query, findChannel, mysqlEscape } from "../../function.js";
 
-class RoleMessageCommand implements SlashCommand {
+class RoleMessageCommand implements FullCommand {
     name = "role-message"
     description = "Creates messages for users to react and join roles. Delete the message to disable a message."
     aliases = ["role-msg", "rm"]

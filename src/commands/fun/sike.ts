@@ -1,9 +1,9 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { wait } from "../../function.js";
 
-class SikeCommand implements SlashCommand {
+class SikeCommand implements FullCommand {
     name = "sike"
     description = "Sends you a video that you will find interesting."
     category = 3

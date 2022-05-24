@@ -1,8 +1,8 @@
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { sCategories } from "../information/help.js";
 import { msgOrRes } from "../../function.js";
 
-class ReloadCommand implements SlashCommand {
+class ReloadCommand implements FullCommand {
     name = "reload";
     description = "Reload command(s).";
     usage = "<command>";
@@ -35,7 +35,7 @@ class ReloadCommand implements SlashCommand {
             if (!cmd?.category === undefined) continue;
             const path = `${__dirname}/../${sCategories[cmd.category].toLowerCase()}.js`;
             delete require.cache[require.resolve(path)];
-            const comd = <SlashCommand> (await import(path)).default;
+            const comd = <FullCommand> (await import(path)).default;
             if (comd.name) NorthClient.storage.commands.set(comd.name, comd);
         }
         await msgOrRes(message, `Reloaded \`${commands.join("`, `")}\``);

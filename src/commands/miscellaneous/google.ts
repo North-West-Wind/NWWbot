@@ -1,11 +1,11 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color } from "../../function.js";
 import { globalClient as client } from "../../common.js";
 import googleIt from "google-it";
 
-class GoogleCommand implements SlashCommand {
+class GoogleCommand implements FullCommand {
   name = "google"
   description = "Google Search everything with Discord."
   usage = "<query>"

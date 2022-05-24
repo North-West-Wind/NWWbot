@@ -1,10 +1,10 @@
 import { TextChannel } from "discord.js";
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color, msgOrRes } from "../../function.js";
 
-class YachtCommand implements SlashCommand {
+class YachtCommand implements FullCommand {
     name = "yacht"
     description = "Play the Yacht Dice Game on Discord."
     category = 3

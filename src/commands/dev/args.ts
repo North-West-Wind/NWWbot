@@ -1,7 +1,7 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 
-class ArgsCommand implements SlashCommand {
+class ArgsCommand implements FullCommand {
   name = "args"
   description = "Check args of messages."
   category = 9

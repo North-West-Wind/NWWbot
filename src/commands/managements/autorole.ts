@@ -1,9 +1,9 @@
 
 import { Role } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { findMember, findMemberWithGuild } from "../../function.js";
 
-class AutoRoleCommand implements SlashCommand {
+class AutoRoleCommand implements FullCommand {
   name = "massrole"
   description = 'Assigns a single role to multiple users at once.'
   usage = "<role> <user>"

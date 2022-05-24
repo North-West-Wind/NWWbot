@@ -1,12 +1,12 @@
 import * as Discord from "discord.js";
 import { color, getFetch, milliToHumanDuration, msgOrRes, readableDateTime, roundTo, wait } from "../../function.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { run } from "../../helpers/puppeteer.js";
 import { Page } from "puppeteer-core";
 import { globalClient as client } from "../../common.js";
 import { Clan, Profile, Response } from "../../classes/Krunker.js";
 
-class KrunkerCommand implements SlashCommand {
+class KrunkerCommand implements FullCommand {
     name = "krunker";
     description = "Connects to the Krunker.io API and display stats.";
     aliases = ["kr"];

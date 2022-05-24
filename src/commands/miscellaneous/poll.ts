@@ -1,4 +1,4 @@
-import { NorthMessage, SlashCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
+import { NorthMessage, FullCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color, findChannel, jsDate2Mysql, ms, msgOrRes, mysqlEscape, query, readableDateTime, readableDateTimeText } from "../../function.js";
 import cfg from "../../../config.json";
@@ -46,7 +46,7 @@ export async function updatePoll(id: Discord.Snowflake, reaction: Discord.Messag
     await query(`UPDATE polls SET votes = "${mysqlEscape(JSON.stringify(poll.votes.map(set => [...set])))}" WHERE id = '${id}'`);
 }
 
-class PollCommand implements SlashCommand {
+class PollCommand implements FullCommand {
     name = "poll"
     description = "Manage polls on the server."
     usage = "<subcommand>"

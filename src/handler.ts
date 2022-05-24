@@ -1,9 +1,9 @@
-import cv, { Canvas } from "canvas";
-import { CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageAttachment, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Role, Snowflake, TextChannel, User, VoiceState } from "discord.js";
+import cv from "canvas";
+import { Collection, CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageActionRow, MessageAttachment, MessageButton, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Role, Snowflake, TextChannel, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
 import { getRandomNumber, jsDate2Mysql, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo, getFont, replaceWithObj, mysqlEscape } from "./function.js";
-import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig } from "./classes/NorthClient.js";
+import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig, FullCommand, SlashCommand, PrefixCommand } from "./classes/NorthClient.js";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter.js";
 import { sCategories } from "./commands/information/help.js";
@@ -46,7 +46,7 @@ export class Handler {
 
     async commandInteraction(interaction: CommandInteraction) {
         const command = NorthClient.storage.commands.get(interaction.commandName);
-        if (!command) return;
+        if (!(command instanceof FullCommand) && !(command instanceof SlashCommand)) return;
         const int = <NorthInteraction>interaction;
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
@@ -197,6 +197,16 @@ export class Handler {
         NorthClient.storage.noLog = results.map(x => x.id);
     }
 
+    async readTranslations(_client: NorthClient) {
+        const results = await query("SELECT * FROM translations");
+        for (const result of results) {
+            const collection = new Collection<string, Snowflake>();
+            const parsed = JSON.parse(result.translations);
+            for (const prop in parsed) collection.set(prop, parsed[prop]);
+            NorthClient.storage.guilds[result.guild].translations.set(result.id, { messageId: result.id, channelId: result.channel, guildId: result.guild, translations: collection, existingId: result.existing });
+        }
+    }
+
     async ready(client: NorthClient) {
         this.preReady(client);
         const id = client.id;
@@ -210,6 +220,7 @@ export class Handler {
             await this.readGiveaways(client);
             await this.readPoll(client);
             await this.readNoLog(client);
+            await this.readTranslations(client);
         } catch (err: any) { console.error(err); };
     }
 
@@ -445,7 +456,7 @@ export class Handler {
         const args = msg.content.slice(msg.prefix.length).split(/ +/);
         const commandName = args.shift().toLowerCase();
         const command = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
-        if (!command) return;
+        if (!(command instanceof FullCommand) && !(command instanceof PrefixCommand)) return;
         Handler.lastRunCommand = command.name;
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
@@ -461,6 +472,15 @@ export class Handler {
 }
 
 export class AliceHandler extends Handler {
+    readonly langMap = {
+        spanish: "977878110492037130",
+        polish: "977881035943604234",
+        indian: "977880381250478120",
+        japanese: "977879407127584848",
+        korean: "977880603577966632",
+        chinese: "977880932000350238"
+    }
+
     static async setup(client: NorthClient, token: string) {
         await common(client);
         new AliceHandler(client);
@@ -659,7 +679,6 @@ export class AliceHandler extends Handler {
     }
 
     async preMessage(message: Message) {
-        const client = <NorthClient>message.client;
         if (message.channel.id == "647630951169523762") {
             if (!message.content.match(/^\w{3,16}$/)) return;
             const mcName = message.content;
@@ -696,6 +715,60 @@ export class AliceHandler extends Handler {
                 await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
             }
             return;
+        } else {
+            for (const lang in this.langMap) {
+                if (message.channelId === this.langMap[lang]) {
+                    const translations = NorthClient.storage.guilds[message.guildId].translations.filter(trans => !trans.ended);
+                    const allEmbeds = [];
+                    const allRows = [];
+                    const pages = Math.ceil(translations.size / 3);
+                    for (let ii = 0; ii < pages; ii++) {
+                        const em = new MessageEmbed()
+                            .setColor(color())
+                            .setTitle(`Choose a message to link this translation [${ii + 1}/${pages}]`)
+                            .setTimestamp()
+                            .setFooter({ text: "Click on one of the buttons to choose." });
+                        const row = new MessageActionRow().addComponents(new MessageButton({ customId: "previous", emoji: "◀️", style: "PRIMARY" }));
+                        var description = "";
+                        for (let jj = 0; jj < Math.min(3, translations.size % 3 + 1); jj++) {
+                            const translation = translations.at(ii * 3 + jj);
+                            const msg = await (<TextChannel> await message.guild.channels.fetch(translation.channelId)).messages.fetch(translation.messageId);
+                            description += `**${translation.messageId}**\n${msg.content.slice(0, 100)}...\n\n`;
+                            row.addComponents(new MessageButton({ customId: translation.messageId, label: translation.messageId, style: "SUCCESS" }));
+                        }
+                        em.setDescription(description);
+                        row.addComponents(new MessageButton({ customId: "next", emoji: "▶️", style: "PRIMARY" }));
+                        allEmbeds.push(em);
+                        allRows.push(row);
+                    }
+                    var s = 0;
+                    const msg = await message.channel.send({ embeds: [allEmbeds[s]], components: [allRows[s]] });
+                    const collector = msg.createMessageComponentCollector({ filter: (interaction) => interaction.user.id === message.author.id, idle: 60000 });
+                    collector.on("collect", async (interaction: MessageComponentInteraction) => {
+                        switch (interaction.customId) {
+                            case "previous":
+                                s -= 1;
+                                if (s < 0) s = allEmbeds.length - 1;
+                                interaction.update({ embeds: [allEmbeds[s]], components: [allRows[s]] });
+                                break;
+                            case "next":
+                                s += 1;
+                                if (s > allEmbeds.length - 1) s = 0;
+                                interaction.update({ embeds: [allEmbeds[s]], components: [allRows[s]] });
+                                break;
+                            default:
+                                const trans = NorthClient.storage.guilds[message.guildId].translations.get(interaction.customId);
+                                trans.translations.set(lang, message.id);
+                                NorthClient.storage.guilds[message.guildId].translations.set(interaction.customId, trans);
+                                await query(`UPDATE translations SET translations = "${mysqlEscape(JSON.stringify(trans.translations))}" WHERE id = ${interaction.customId}`);
+                        }
+                    });
+                    collector.on("end", async () => {
+                        await msg.edit({ components: [] });
+                    })
+                    break;
+                }
+            }
         }
     }
 }

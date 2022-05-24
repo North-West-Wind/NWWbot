@@ -1,9 +1,9 @@
 
 import { Role } from "discord.js";
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { commonRoleEmbed } from "../../function.js";
 
-class DelRoleCommand implements SlashCommand {
+class DelRoleCommand implements FullCommand {
     name = "delrole"
     description = "Remove a role from the server."
     args = 1

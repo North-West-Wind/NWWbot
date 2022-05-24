@@ -1,9 +1,9 @@
 
-import { NorthInteraction, NorthMessage, SlashCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { findUser, getOwner, wait } from "../../function.js";
 
-class RickrollCommand implements SlashCommand {
+class RickrollCommand implements FullCommand {
     name = "rickroll"
     description = "It's rickroll. What's your question?"
     usage = "[user]"
