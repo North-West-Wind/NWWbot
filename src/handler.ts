@@ -1,8 +1,8 @@
 import cv from "canvas";
-import { Collection, CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageActionRow, MessageAttachment, MessageButton, MessageComponentInteraction, MessageEmbed, MessageReaction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Role, Snowflake, TextChannel, User, VoiceState } from "discord.js";
+import { Collection, CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageActionRow, MessageAttachment, MessageButton, MessageComponentInteraction, MessageEmbed, MessageReaction, MessageSelectMenu, Modal, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Role, Snowflake, TextChannel, TextInputComponent, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
-import { getRandomNumber, jsDate2Mysql, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo, getFont, replaceWithObj, mysqlEscape } from "./function.js";
+import { getRandomNumber, jsDate2Mysql, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo, getFont, replaceWithObj, mysqlEscape, wait } from "./function.js";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig, FullCommand, SlashCommand, PrefixCommand } from "./classes/NorthClient.js";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter.js";
@@ -65,7 +65,7 @@ export class Handler {
         const settings = NorthClient.storage.guilds[interaction.guildId]?.applications;
         if (!settings) return;
         const application = settings.applications.get(interaction.message.id);
-        if (!application || !(<GuildMemberRoleManager> interaction.member.roles).cache.some(r => settings.admins.includes(r.id))) return;
+        if (!application || !(<GuildMemberRoleManager>interaction.member.roles).cache.some(r => settings.admins.includes(r.id))) return;
         if (interaction.customId === "approve") {
             application.decline.delete(interaction.user.id);
             application.approve.add(interaction.user.id);
@@ -200,7 +200,7 @@ export class Handler {
     async readTranslations(_client: NorthClient) {
         const results = await query("SELECT * FROM translations");
         for (const result of results) {
-            const collection = new Collection<string, Snowflake>();
+            const collection = new Collection<string, { messageId: Snowflake, channelId: Snowflake }>();
             const parsed = JSON.parse(result.translations);
             for (const prop in parsed) collection.set(prop, parsed[prop]);
             NorthClient.storage.guilds[result.guild].translations.set(result.id, { messageId: result.id, channelId: result.channel, guildId: result.guild, translations: collection, existingId: result.existing });
@@ -278,13 +278,13 @@ export class Handler {
                         txt = replaceWithObj(split.shift(), member, channel);
                         if (split.length > 0) wel = replaceWithObj(split.join("\n"), member, channel);
                     }
-                    ctx.font = getFont(canvas, txt, 9/10);
+                    ctx.font = getFont(canvas, txt, 9 / 10);
                     ctx.strokeStyle = "black";
                     ctx.lineWidth = canvas.width / 102.4;
                     ctx.strokeText(txt, canvas.width / 2 - ctx.measureText(txt).width / 2, (canvas.height * 3) / 4);
                     ctx.fillStyle = "#ffffff";
                     ctx.fillText(txt, canvas.width / 2 - ctx.measureText(txt).width / 2, (canvas.height * 3) / 4);
-                    ctx.font = getFont(canvas, wel, 4/5);
+                    ctx.font = getFont(canvas, wel, 4 / 5);
                     ctx.strokeStyle = "black";
                     ctx.lineWidth = canvas.width / 204.8;
                     ctx.strokeText(wel, canvas.width / 2 - ctx.measureText(wel).width / 2, (canvas.height * 6) / 7);
@@ -342,7 +342,7 @@ export class Handler {
             if (!channel || !channel.permissionsFor(guild.me).has(BigInt(18432))) return;
             if (!leave.message) return;
             try {
-                const leaveMessage = replaceWithObj(leave.message, <GuildMember> member, channel);
+                const leaveMessage = replaceWithObj(leave.message, <GuildMember>member, channel);
                 await channel.send(leaveMessage);
             } catch (err: any) {
                 console.error(err);
@@ -395,7 +395,7 @@ export class Handler {
             const guild = await user.client.guilds.fetch(roleMessage.guild);
             const member = await guild.members.fetch(user.id);
             if (index > -1) await member.roles.add(roleMessage.roles[index]);
-        } catch (err: any) {}
+        } catch (err: any) { }
     }
 
     async messageReactionRemove(r: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
@@ -410,7 +410,7 @@ export class Handler {
             const guild = await r.message.client.guilds.fetch(roleMessage.guild);
             const member = await guild.members.fetch(user.id);
             if (index > -1) await member.roles.remove(roleMessage.roles[index]);
-        } catch (err: any) {}
+        } catch (err: any) { }
     }
 
     async messageDelete(message: Message | PartialMessage) {
@@ -432,7 +432,7 @@ export class Handler {
             NorthClient.storage.guilds[guild.id].pendingKick.add(newState.member.id);
             setTimeout(async () => {
                 if (NorthClient.storage.guilds[guild.id].pendingKick.delete(newState.member.id))
-                    newState.disconnect().catch(() => {});
+                    newState.disconnect().catch(() => { });
             }, timeout);
         } else if (oldState?.mute && (!newState?.channel || !newState?.mute))
             NorthClient.storage.guilds[guild.id].pendingKick.delete(newState.member.id);
@@ -473,12 +473,12 @@ export class Handler {
 
 export class AliceHandler extends Handler {
     readonly langMap = {
-        spanish: "977878110492037130",
-        polish: "977881035943604234",
-        indian: "977880381250478120",
-        japanese: "977879407127584848",
-        korean: "977880603577966632",
-        chinese: "977880932000350238"
+        española: "977878110492037130",
+        polskie: "977881035943604234",
+        भारतीय: "977880381250478120",
+        日本: "977879407127584848",
+        한국어: "977880603577966632",
+        中文: "977880932000350238"
     }
 
     static async setup(client: NorthClient, token: string) {
@@ -534,7 +534,7 @@ export class AliceHandler extends Handler {
             }, endAfter);
         });
         const gtimers = await query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
-        NorthClient.storage.gtimers = <GuildTimer[]> gtimers;
+        NorthClient.storage.gtimers = <GuildTimer[]>gtimers;
         setInterval(async () => {
             try {
                 const timerChannel = <TextChannel>await client.channels.fetch(process.env.TIME_LIST_CHANNEL);
@@ -557,7 +557,7 @@ export class AliceHandler extends Handler {
                     tmp.push({ title: title, time: duration(seconds) });
                 }
                 if (tmp.length <= 10) {
-                    timerMsg.reactions.removeAll().catch(() => {});
+                    timerMsg.reactions.removeAll().catch(() => { });
                     let description = "";
                     let num = 0;
                     for (const result of tmp) description += `${++num}. ${result.title} : ${result.time}\n`;
@@ -595,7 +595,7 @@ export class AliceHandler extends Handler {
                     const collector = msg.createReactionCollector({ filter, time: 30000 });
                     collector.on("collect", function (reaction, user) {
                         try {
-                            reaction.users.remove(user.id).catch(() => {});
+                            reaction.users.remove(user.id).catch(() => { });
                             switch (reaction.emoji.name) {
                                 case "⏮":
                                     s = 0;
@@ -623,9 +623,9 @@ export class AliceHandler extends Handler {
                             console.error(err);
                         }
                     });
-                    collector.on("end", () => msg.reactions.removeAll().catch(() => {}));
+                    collector.on("end", () => msg.reactions.removeAll().catch(() => { }));
                 }
-            } catch (err: any) {}
+            } catch (err: any) { }
         }, 60000);
     }
 
@@ -687,84 +687,113 @@ export class AliceHandler extends Handler {
             const msg = await message.channel.send("Processing...");
             try {
                 const mcUuid = await nameToUuid(mcName);
-                if (!mcUuid) return await msg.edit("Error finding that user!").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
+                if (!mcUuid) return await msg.edit("Error finding that user!").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
                 console.log("Found UUID: " + mcUuid);
                 var res;
                 try {
                     const f = await fetch(`https://api.slothpixel.me/api/players/${mcUuid}?key=${process.env.API}`);
-                    if (f.status == 404) return await msg.edit("This player doesn't exist!").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
+                    if (f.status == 404) return await msg.edit("This player doesn't exist!").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
                     res = await f.json();
                 } catch (err: any) {
-                    return await msg.edit("Failed to request Hypixel API!").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
+                    return await msg.edit("Failed to request Hypixel API!").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
                 }
                 const hyDc = res.links.DISCORD;
-                if (hyDc !== message.author.tag) return await msg.edit("⚠️This Hypixel account is not linked to your Discord account!\nIf you have just linked your account, you may need to wait for a few minutes.\nhttps://cdn.discordapp.com/attachments/647630951169523762/951420917588836372/verify.gif").then(msg => setTimeout(() => msg.delete().catch(() => {}), 60000));
+                if (hyDc !== message.author.tag) return await msg.edit("⚠️This Hypixel account is not linked to your Discord account!\nIf you have just linked your account, you may need to wait for a few minutes.\nhttps://cdn.discordapp.com/attachments/647630951169523762/951420917588836372/verify.gif").then(msg => setTimeout(() => msg.delete().catch(() => { }), 60000));
                 var results = await query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                 if (results.length == 0) {
                     await query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
-                    msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
+                    msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
                     console.log("Inserted record for mc-name.");
                 } else {
                     await query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${dcUserID}'`);
-                    msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
+                    msg.edit("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
                     console.log("Updated record for mc-name.");
                 }
                 await updateGuildMemberMC(message.member, mcUuid);
             } catch (err: any) {
                 console.error(err);
-                await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => setTimeout(() => msg.delete().catch(() => {}), 10000));
+                await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
             }
             return;
         } else {
             for (const lang in this.langMap) {
                 if (message.channelId === this.langMap[lang]) {
                     const translations = NorthClient.storage.guilds[message.guildId].translations.filter(trans => !trans.ended);
-                    const allEmbeds = [];
-                    const allRows = [];
-                    const pages = Math.ceil(translations.size / 3);
+                    const allEmbeds: MessageEmbed[] = [];
+                    const allRows: MessageActionRow[][] = [];
+                    const pages = Math.ceil(translations.size / 5);
                     for (let ii = 0; ii < pages; ii++) {
                         const em = new MessageEmbed()
                             .setColor(color())
                             .setTitle(`Choose a message to link this translation [${ii + 1}/${pages}]`)
                             .setTimestamp()
-                            .setFooter({ text: "Click on one of the buttons to choose." });
-                        const row = new MessageActionRow().addComponents(new MessageButton({ customId: "previous", emoji: "◀️", style: "PRIMARY" }));
+                            .setFooter({ text: "Use the buttons to navigate pages and choose an option in the select menu." });
+                        const menu = new MessageSelectMenu()
+                            .setCustomId("select")
+                            .setPlaceholder("Select message...");
                         var description = "";
-                        for (let jj = 0; jj < Math.min(3, translations.size % 3 + 1); jj++) {
-                            const translation = translations.at(ii * 3 + jj);
-                            const msg = await (<TextChannel> await message.guild.channels.fetch(translation.channelId)).messages.fetch(translation.messageId);
+                        for (let jj = 0; jj < Math.min(3, translations.size % 5 + 1); jj++) {
+                            const translation = translations.at(ii * 5 + jj);
+                            const msg = await (<TextChannel>await message.guild.channels.fetch(translation.channelId)).messages.fetch(translation.messageId);
                             description += `**${translation.messageId}**\n${msg.content.slice(0, 100)}...\n\n`;
-                            row.addComponents(new MessageButton({ customId: translation.messageId, label: translation.messageId, style: "SUCCESS" }));
+                            menu.addOptions({ label: translation.messageId, value: translation.messageId });
                         }
                         em.setDescription(description);
-                        row.addComponents(new MessageButton({ customId: "next", emoji: "▶️", style: "PRIMARY" }));
                         allEmbeds.push(em);
-                        allRows.push(row);
+                        allRows.push([new MessageActionRow().addComponents(menu), new MessageActionRow().addComponents(new MessageButton({ customId: "previous", emoji: "◀️", style: "PRIMARY" }), new MessageButton({ customId: "search", label: "Search by ID", emoji: "🔍", style: "SECONDARY" }), new MessageButton({ customId: "next", emoji: "▶️", style: "PRIMARY" }))]);
                     }
                     var s = 0;
-                    const msg = await message.channel.send({ embeds: [allEmbeds[s]], components: [allRows[s]] });
+                    const msg = await message.channel.send({ embeds: [allEmbeds[s]], components: allRows[s] });
                     const collector = msg.createMessageComponentCollector({ filter: (interaction) => interaction.user.id === message.author.id, idle: 60000 });
                     collector.on("collect", async (interaction: MessageComponentInteraction) => {
-                        switch (interaction.customId) {
-                            case "previous":
-                                s -= 1;
-                                if (s < 0) s = allEmbeds.length - 1;
-                                interaction.update({ embeds: [allEmbeds[s]], components: [allRows[s]] });
-                                break;
-                            case "next":
-                                s += 1;
-                                if (s > allEmbeds.length - 1) s = 0;
-                                interaction.update({ embeds: [allEmbeds[s]], components: [allRows[s]] });
-                                break;
-                            default:
-                                const trans = NorthClient.storage.guilds[message.guildId].translations.get(interaction.customId);
-                                trans.translations.set(lang, message.id);
-                                NorthClient.storage.guilds[message.guildId].translations.set(interaction.customId, trans);
-                                await query(`UPDATE translations SET translations = "${mysqlEscape(JSON.stringify(trans.translations))}" WHERE id = ${interaction.customId}`);
+                        if (interaction.isButton()) {
+                            switch (interaction.customId) {
+                                case "previous":
+                                    s -= 1;
+                                    if (s < 0) s = allEmbeds.length - 1;
+                                    interaction.update({ embeds: [allEmbeds[s]], components: allRows[s] });
+                                    break;
+                                case "next":
+                                    s += 1;
+                                    if (s > allEmbeds.length - 1) s = 0;
+                                    interaction.update({ embeds: [allEmbeds[s]], components: allRows[s] });
+                                    break;
+                                case "search":
+                                    const modal = new Modal()
+                                        .setCustomId("modal")
+                                        .setTitle("Search by ID")
+                                        .addComponents(new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent().setCustomId("id").setLabel("What is the message ID you are searching for?").setStyle("SHORT")));
+                                    await interaction.showModal(modal);
+                            }
+                        } else if (interaction.isSelectMenu()) {
+                            await interaction.deferUpdate();
+                            const id = interaction.values[0];
+                            const trans = NorthClient.storage.guilds[message.guildId].translations.get(id);
+                            trans.translations.set(lang, { messageId: message.id, channelId: message.channelId });
+                            NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
+                            await query(`UPDATE translations SET translations = "${mysqlEscape(JSON.stringify(trans.translations))}" WHERE id = ${id}`);
+                            await interaction.update({ embeds: [], components: [], content: `Linked translation to message ${id}.` });
+                            await wait(10000);
+                            collector.emit("end");
+                        } else if (interaction.isModalSubmit()) {
+                            const id = interaction.fields.getTextInputValue("id");
+                            const trans = NorthClient.storage.guilds[message.guildId].translations.get(id);
+                            if (!trans) {
+                                await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
+                                await wait(10000);
+                                collector.emit("end");
+                                return;
+                            }
+                            trans.translations.set(lang, { messageId: message.id, channelId: message.channelId });
+                            NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
+                            await query(`UPDATE translations SET translations = "${mysqlEscape(JSON.stringify(trans.translations))}" WHERE id = ${id}`);
+                            await interaction.update({ embeds: [], components: [], content: `Linked translation to message ${id}.` });
+                            await wait(10000);
+                            collector.emit("end");
                         }
                     });
                     collector.on("end", async () => {
-                        await msg.edit({ components: [] });
+                        msg.delete().catch(() => { });
                     })
                     break;
                 }

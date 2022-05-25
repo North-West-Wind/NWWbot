@@ -37,7 +37,7 @@ class LyricsCommand implements FullCommand {
         if (!lyrics) lyrics = "No lyrics were found";
         const allEmbeds = await this.createLyricsEmbeds(lyrics, title, author, icon);
         if (allEmbeds.length == 1) return await interaction.editReply({ embeds: [allEmbeds[0]] });
-        await createEmbedScrolling({ interaction: interaction, useEdit: true }, allEmbeds, 2, { title });
+        await createEmbedScrolling({ interaction: interaction, useEdit: true }, allEmbeds, (msg: Discord.Message) => setTimeout(() => msg.edit({ embeds: [], content: `**[Lyrics of ${title}**]` }).catch(() => { }), 10000));
     }
 
     async run(message: NorthMessage, args: string[]) {
@@ -55,7 +55,7 @@ class LyricsCommand implements FullCommand {
         if (!lyrics) lyrics = "No lyrics were found";
         const allEmbeds = await this.createLyricsEmbeds(lyrics, title, author, icon);
         if (allEmbeds.length == 1) await message.channel.send({embeds: [allEmbeds[0]]});
-        else await createEmbedScrolling(message, allEmbeds, 2, { title });
+        else await createEmbedScrolling(message, allEmbeds, (msg: Discord.Message) => setTimeout(() => msg.edit({ embeds: [], content: `**[Lyrics of ${title}**]` }).catch(() => { }), 10000));
     }
 
     async createLyricsEmbeds(lyrics: string, title: string, author: string, icon: string) {

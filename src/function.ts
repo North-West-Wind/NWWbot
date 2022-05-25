@@ -433,92 +433,58 @@ export function ms(val: string) {
 }
 
 // Embed presentations
-export async function createEmbedScrolling(message: Discord.Message | NorthInteraction | { interaction: NorthInteraction, useEdit: boolean }, allEmbeds: Discord.MessageEmbed[], id: number = 0, additionalData: any = undefined) {
+export async function createEmbedScrolling(message: Discord.Message | NorthInteraction | { interaction: NorthInteraction, useEdit: boolean }, allEmbeds: Discord.MessageEmbed[], post?: Function) {
     var author: Discord.Snowflake;
     if (message instanceof Discord.Message) author = message.author.id;
     else if (message instanceof Discord.Interaction) author = message.user.id;
     else author = message.interaction.user.id;
-    const filter = (reaction: Discord.MessageReaction, user: Discord.User) => (["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === author);
+    const row = new Discord.MessageActionRow()
+        .addComponents(new Discord.MessageButton({ customId: "first", emoji: "⏮", style: "SECONDARY" }))
+        .addComponents(new Discord.MessageButton({ customId: "previous", emoji: "◀", style: "PRIMARY" }))
+        .addComponents(new Discord.MessageButton({ customId: "next", emoji: "▶", style: "PRIMARY" }))
+        .addComponents(new Discord.MessageButton({ customId: "last", emoji: "⏭", style: "SECONDARY" }))
+        .addComponents(new Discord.MessageButton({ customId: "quit", emoji: "⏹", style: "DANGER" }));
+    const filter = (interaction: Discord.MessageComponentInteraction) => interaction.user.id === author;
     var s = 0;
     var msg: Discord.Message;
-    if (message instanceof Discord.Message) msg = await message.channel.send({ embeds: [allEmbeds[0]] });
-    else if (message instanceof Discord.Interaction) msg = <Discord.Message>await message.reply({ embeds: [allEmbeds[0]], fetchReply: true });
+    if (message instanceof Discord.Message) msg = await message.channel.send({ embeds: [allEmbeds[0]], components: [row] });
+    else if (message instanceof Discord.Interaction) msg = <Discord.Message>await message.reply({ embeds: [allEmbeds[0]], components: [row], fetchReply: true });
     else {
-        if (message.useEdit) msg = <Discord.Message>await message.interaction.editReply({ embeds: [allEmbeds[0]] });
-        else msg = <Discord.Message>await message.interaction.reply({ embeds: [allEmbeds[0]], fetchReply: true });
+        if (message.useEdit) msg = <Discord.Message>await message.interaction.editReply({ embeds: [allEmbeds[0]], components: [row] });
+        else msg = <Discord.Message>await message.interaction.reply({ embeds: [allEmbeds[0]], components: [row], fetchReply: true });
     }
-    await msg.react("⏮");
-    await msg.react("◀");
-    await msg.react("▶");
-    await msg.react("⏭");
-    await msg.react("⏹");
-    const collector = msg.createReactionCollector({ filter, idle: 60000 });
-    collector.on("collect", function (reaction, user) {
-        reaction.users.remove(user.id).catch(() => { });
-        switch (reaction.emoji.name) {
-            case "⏮":
+    const collector = msg.createMessageComponentCollector({ filter, idle: 60000 });
+    collector.on("collect", async (interaction: Discord.MessageComponentInteraction) => {
+        switch (interaction.customId) {
+            case "first":
                 s = 0;
-                msg.edit({ embeds: [allEmbeds[s]] });
+                await interaction.update({ embeds: [allEmbeds[s]] });
                 break;
-            case "◀":
+            case "previous":
                 s -= 1;
-                if (s < 0) {
-                    s = allEmbeds.length - 1;
-                }
-                msg.edit({ embeds: [allEmbeds[s]] });
+                if (s < 0) s = allEmbeds.length - 1;
+                await interaction.update({ embeds: [allEmbeds[s]] });
                 break;
-            case "▶":
+            case "next":
                 s += 1;
-                if (s > allEmbeds.length - 1) {
-                    s = 0;
-                }
-                msg.edit({ embeds: [allEmbeds[s]] });
+                if (s > allEmbeds.length - 1) s = 0;
+                await interaction.update({ embeds: [allEmbeds[s]] });
                 break;
-            case "⏭":
+            case "last":
                 s = allEmbeds.length - 1;
-                msg.edit({ embeds: [allEmbeds[s]] });
+                await interaction.update({ embeds: [allEmbeds[s]] });
                 break;
-            case "⏹":
+            case "quit":
+                await interaction.update({ });
                 collector.emit("end");
                 break;
         }
     });
     collector.on("end", async () => {
-        msg.reactions.removeAll().catch(() => { });
-        if (id == 1) {
-            await msg.edit({ content: "Loading simplier version...", embeds: [] });
-            await msg.edit("https://sky.shiiyu.moe/stats/" + additionalData.res[0].name);
-        } else if (id == 2) setTimeout(() => msg.edit({ embeds: [], content: `**[Lyrics of ${additionalData.title}**]` }).catch(() => { }), 10000);
-        else if (id == 3) setTimeout(() => msg.edit({ embeds: [], content: `**[Queue: ${additionalData.songArray.length} tracks in total]**` }).catch(() => { }), 60000);
+        await msg.edit({ components: [] });
+        if (post) await post(msg);
     });
     return { msg, collector };
-}
-export async function commonCollectorListener(reaction, user, s, allEmbeds, msg, collector) {
-    reaction.users.remove(user.id).catch(() => { });
-    switch (reaction.emoji.name) {
-        case "⏮":
-            s = 0;
-            await msg.edit({ embeds: [allEmbeds[s]] });
-            break;
-        case "◀":
-            s -= 1;
-            if (s < 0) s = allEmbeds.length - 1;
-            await msg.edit({ embeds: [allEmbeds[s]] });
-            break;
-        case "▶":
-            s += 1;
-            if (s > allEmbeds.length - 1) s = 0;
-            await msg.edit({ embeds: [allEmbeds[s]] });
-            break;
-        case "⏭":
-            s = allEmbeds.length - 1;
-            await msg.edit({ embeds: [allEmbeds[s]] });
-            break;
-        case "⏹":
-            collector.emit("end");
-            break;
-    }
-    return { s, msg };
 }
 export function commonModerationEmbed(guild: Discord.Guild, author: Discord.User, member: Discord.GuildMember, word: string, past: string, reason: string = undefined) {
     const color = () => Math.floor(Math.random() * 16777214) + 1;
