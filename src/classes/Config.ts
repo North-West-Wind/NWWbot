@@ -1,6 +1,6 @@
 import { EmojiIdentifierResolvable, Guild, Message, MessageButtonStyle, Snowflake, VoiceChannel } from "discord.js";
 import { capitalize, mysqlEscape, query } from "../function.js";
-import { NorthClient } from "./NorthClient.js";
+import { FullCommand, NorthClient, SlashCommand } from "./NorthClient.js";
 
 interface StorageInfo {
   column: string;
@@ -85,7 +85,7 @@ export class SafeSetting extends Setting {
   async handler(msg: Message, value: any) {
     if (value) {
       for (const command of NorthClient.storage.commands.values()) {
-        if (command.category !== 5) continue;
+        if (command.category !== 5 || (!(command instanceof FullCommand) && !(command instanceof SlashCommand))) continue;
         try {
           const options = {
             name: command.name,

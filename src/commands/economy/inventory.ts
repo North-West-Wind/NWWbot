@@ -1,4 +1,4 @@
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand, PrefixCommand } from "../../classes/NorthClient.js";
 import { color, msgOrRes, query, wait } from "../../function.js";
 import * as Discord from "discord.js";
 
@@ -127,7 +127,7 @@ class InventoryCommand implements FullCommand {
             try {
               if (c.category === 8) throw new Error("Do NOT run music command with items.");
               else {
-                  if (message instanceof Discord.Message) await c.run(message, cArgs);
+                  if (message instanceof Discord.Message && (c instanceof FullCommand || c instanceof PrefixCommand)) await c.run(message, cArgs);
                   else throw new Error("This is a little too hard for slash.");
                 }
             } catch (error: any) {

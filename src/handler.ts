@@ -30,13 +30,13 @@ export class Handler {
         client.on("guildMemberRemove", member => this.guildMemberRemove(member));
         client.on("guildCreate", guild => this.guildCreate(guild));
         client.on("guildDelete", guild => this.guildDelete(guild));
-        client.on("guildMemberUpdate", (oldMember, newMember) => this.guildMemberUpdate(oldMember, newMember));
-        client.on("messageReactionAdd", (reaction, user) => this.messageReactionAdd(reaction, user));
-        client.on("messageReactionRemove", (reaction, user) => this.messageReactionRemove(reaction, user));
+        client.on("guildMemberUpdate", (oldMember, newMember) => this.guildMemberUpdate(<GuildMember> oldMember, <GuildMember> newMember));
+        client.on("messageReactionAdd", (reaction, user) => this.messageReactionAdd(<MessageReaction> reaction, <User> user));
+        client.on("messageReactionRemove", (reaction, user) => this.messageReactionRemove(<MessageReaction> reaction, <User> user));
         client.on("messageDelete", message => this.messageDelete(message));
         client.on("messageCreate", message => this.message(message));
         client.on("interactionCreate", interaction => this.interactionCreate(interaction));
-        client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(oldState, newState));
+        client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(<VoiceState> oldState, <VoiceState> newState));
     }
 
     async interactionCreate(interaction: Interaction) {
