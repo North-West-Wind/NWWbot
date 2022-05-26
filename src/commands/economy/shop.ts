@@ -1,5 +1,5 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand, PrefixCommand } from "../../classes/NorthClient.js"
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand, PrefixCommand, IPrefix } from "../../classes/NorthClient.js"
 import * as Discord from "discord.js";
 import { color, wait, genPermMsg, ID, msgOrRes, query, roundTo, mysqlEscape } from "../../function.js";
 import { globalClient as client } from "../../common.js";
@@ -230,7 +230,7 @@ class ShopCommand implements FullCommand {
                                         return await mainMenu(msg);
                                     }
                                     try {
-                                        if (message instanceof Discord.Message && (c instanceof FullCommand || c instanceof PrefixCommand)) await c.run(message, cArgs);
+                                        if (message instanceof Discord.Message && typeof c["run"] === "function") await (<IPrefix> <unknown> c).run(message, cArgs);
                                         else throw new Error("This is a little too hard for slash.");
                                     } catch (error: any) {
                                         console.error(error);

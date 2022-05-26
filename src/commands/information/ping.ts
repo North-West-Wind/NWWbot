@@ -16,13 +16,13 @@ class PingCommand implements FullCommand {
     const msgDate = new Date(message.createdTimestamp);
     const msgTime = readableDateTime(msgDate)
 
-    var currentDate = new Date();
-    currentDate = new Date(currentDate.getTime() + currentDate.getTimezoneOffset() * 60000)
+    const currentDate = new Date();
     const currentTime = readableDateTime(currentDate);
 
     const Embed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle("Ping")
+      .setDescription("Note: The ping is fake lol")
       .addField("Message sent", "`" + msgTime + "`")
       .addField("Message received", "`" + currentTime + "`")
       .addField("Ping", "`" + (currentDate.getTime() - msgDate.getTime()) + "ms`")

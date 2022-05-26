@@ -1,4 +1,4 @@
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand, PrefixCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand, PrefixCommand, IPrefix } from "../../classes/NorthClient.js";
 import { color, msgOrRes, query, wait } from "../../function.js";
 import * as Discord from "discord.js";
 
@@ -125,11 +125,8 @@ class InventoryCommand implements FullCommand {
               return await this.navigate(message, msg);
             }
             try {
-              if (c.category === 8) throw new Error("Do NOT run music command with items.");
-              else {
-                  if (message instanceof Discord.Message && (c instanceof FullCommand || c instanceof PrefixCommand)) await c.run(message, cArgs);
-                  else throw new Error("This is a little too hard for slash.");
-                }
+              if (message instanceof Discord.Message && typeof c["run"] === "function") await (<IPrefix> <unknown> c).run(message, cArgs);
+              else throw new Error("This is a little too hard for slash.");
             } catch (error: any) {
               console.error(error);
               em.setDescription(`Failed to use the item! Please contact NorthWestWind#1885 to fix this! Preserving item...\nError: \`${error.message}\``)

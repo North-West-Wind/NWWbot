@@ -3,7 +3,7 @@ import { Collection, CommandInteraction, Guild, GuildMember, GuildMemberRoleMana
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
 import { getRandomNumber, jsDate2Mysql, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo, getFont, replaceWithObj, mysqlEscape, wait } from "./function.js";
-import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig, FullCommand, SlashCommand, PrefixCommand } from "./classes/NorthClient.js";
+import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig, FullCommand, SlashCommand, PrefixCommand, IPrefix, ISlash } from "./classes/NorthClient.js";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter.js";
 import { sCategories } from "./commands/information/help.js";
@@ -46,11 +46,11 @@ export class Handler {
 
     async commandInteraction(interaction: CommandInteraction) {
         const command = NorthClient.storage.commands.get(interaction.commandName);
-        if (!(command instanceof FullCommand) && !(command instanceof SlashCommand)) return;
+        if (!(typeof command["execute"] === "function")) return;
         const int = <NorthInteraction>interaction;
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
-            if (await filter.all(command, int) && (catFilter ? await catFilter(command, int) : true)) await command.execute(int);
+            if (await filter.all(command, int) && (catFilter ? await catFilter(command, int) : true)) await (<ISlash> <unknown> command).execute(int);
         } catch (err: any) {
             try {
                 if (int.replied || int.deferred) await int.editReply(error);
@@ -456,11 +456,11 @@ export class Handler {
         const args = msg.content.slice(msg.prefix.length).split(/ +/);
         const commandName = args.shift().toLowerCase();
         const command = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
-        if (!(command instanceof FullCommand) && !(command instanceof PrefixCommand)) return;
+        if (!(typeof command["run"] === "function")) return;
         Handler.lastRunCommand = command.name;
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
-            if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await command.run(msg, args);
+            if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await (<IPrefix> <unknown> command).run(msg, args);
         } catch (err: any) {
             console.error(`Error in command ${command.name}!`);
             console.error(err);
