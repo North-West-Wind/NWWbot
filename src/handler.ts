@@ -46,7 +46,7 @@ export class Handler {
 
     async commandInteraction(interaction: CommandInteraction) {
         const command = NorthClient.storage.commands.get(interaction.commandName);
-        if (!(typeof command["execute"] === "function")) return;
+        if (!command || !(typeof command["execute"] === "function")) return;
         const int = <NorthInteraction>interaction;
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
@@ -456,7 +456,7 @@ export class Handler {
         const args = msg.content.slice(msg.prefix.length).split(/ +/);
         const commandName = args.shift().toLowerCase();
         const command = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
-        if (!(typeof command["run"] === "function")) return;
+        if (!command || !(typeof command["run"] === "function")) return;
         Handler.lastRunCommand = command.name;
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
