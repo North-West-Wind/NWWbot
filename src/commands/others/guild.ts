@@ -1,7 +1,7 @@
 
-import { NorthMessage, FullCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
+import { NorthMessage, NorthClient, NorthInteraction, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { color, createEmbedScrolling, findChannel, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, msgOrRes, mysqlEscape, nameToUuid, profile, query, readableDateTimeText, roundTo, setTimeout_ } from "../../function.js";
+import { color, createEmbedScrolling, findChannel, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, msgOrRes, mysqlEscape, nameExists, nameToUuid, profile, query, readableDateTimeText, roundTo, setTimeout_, updateGuildMemberMC } from "../../function.js";
 
 const fetch = getFetch();
 const catabombLevels = [
@@ -57,7 +57,7 @@ const catabombLevels = [
 	569809640
 ]
 
-class GuildCommand implements FullCommand {
+class GuildCommand implements SlashCommand {
 	name = "guild"
 	description = "Made specificly for the Hypixel guild War of Underworld."
 	usage = "<subcommand>"
@@ -73,12 +73,12 @@ class GuildCommand implements FullCommand {
 		{
 			name: "splash",
 			description: "Creates a splash notification.",
-			type: "SUBCOMMAND"
+			type: "SUB_COMMAND"
 		},
 		{
 			name: "invite",
 			description: "Manages invites.",
-			type: "SUBCOMMAND",
+			type: "SUB_COMMAND",
 			options: [{
 				name: "user",
 				description: "The user's information to display.",
@@ -89,12 +89,12 @@ class GuildCommand implements FullCommand {
 		{
 			name: "lottery",
 			description: "Starts a lottery.",
-			type: "SUBCOMMAND"
+			type: "SUB_COMMAND"
 		},
 		{
 			name: "timer",
 			description: "Manages timers.",
-			type: "SUBCOMMAND",
+			type: "SUB_COMMAND",
 			options: [
 				{
 					name: "user",
@@ -125,73 +125,61 @@ class GuildCommand implements FullCommand {
 		{
 			name: "calculate",
 			description: "Calculates user points.",
-			type: "SUBCOMMAND",
+			type: "SUB_COMMAND",
 			options: [{
 				name: "username",
 				description: "The Minecraft username to calculate.",
 				required: true,
 				type: "STRING"
 			}]
+		},
+		{
+			name: "verify",
+			description: "Force-verifies the user and add it into database.",
+			type: "SUB_COMMAND",
+			options: [
+				{
+					name: "user",
+					description: "The Discord user to verify.",
+					type: "USER",
+					required: true
+				},
+				{
+					name: "minecraft",
+					description: "The Minecraft username to link to.",
+					type: "STRING",
+					required: true
+				}
+			]
 		}
 	]
 
 	async execute(interaction: NorthInteraction) {
 		switch (interaction.options.getSubcommand()) {
-			case "sp":
 			case "splash":
 				return await this.splash(interaction);
-			case "in":
 			case "invite":
 				return await this.invite(interaction, interaction.options.getUser("user"));
-			case "lot":
 			case "lottery":
 				return await this.lottery(interaction);
-			case "tim":
 			case "timer":
 				return await this.timer(interaction, [interaction.options.getUser("user").id, interaction.options.getString("username"), interaction.options.getString("time"), interaction.options.getString("ranks")]);
 			case "calculate":
-			case "calc":
 				return await this.calculate(interaction, interaction.options.getString("username"));
+			case "verify":
+				return await this.verify(interaction, <Discord.GuildMember> interaction.options.getMember("user"), interaction.options.getString("minecraft"));
 			default:
 				return await interaction.reply("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${interaction.prefix}${this.name} ${this.usage}`);
 		}
 	}
 
-	async run(message: NorthMessage, args: string[]) {
-		switch (args[0]) {
-			case "sp":
-			case "splash":
-				return await this.splash(message);
-			case "in":
-			case "invite":
-				if (!args[1]) return await message.channel.send("You didn't mention any user!");
-				var user: Discord.User;
-				try {
-					user = await findUser(message, args[1]);
-				} catch (err: any) {
-					return await message.reply(err.message);
-				}
-				return await this.invite(message, user);
-			case "lot":
-			case "lottery":
-				return await this.lottery(message);
-			case "tim":
-			case "timer":
-				return await this.timer(message, args);
-			case "calculate":
-			case "calc":
-				return await this.calculate(message, args[1]);
-			default:
-				return message.channel.send("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${message.prefix}${this.name} ${this.usage}`);
-		}
-	}
-
-	async invite(message: NorthMessage | NorthInteraction, user: Discord.User) {
-		const divine = await message.guild.roles.fetch("640148120579211265");
-		if ((<Discord.GuildMember>message.member).roles.highest.position < divine.position) return await msgOrRes(message, "You don't have the role to use this command!");
+	async invite(interaction: NorthInteraction, user: Discord.User) {
+		const divine = await interaction.guild.roles.fetch("640148120579211265");
+		if ((<Discord.GuildMember>interaction.member).roles.highest.position < divine.position) return await interaction.reply("You don't have the role to use this command!");
+		await interaction.deferReply();
 		try {
 			const result = await query(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`);
-			const channel = <Discord.TextChannel>await message.client.channels.fetch("723479832452661269");
+			const channel = <Discord.TextChannel>await interaction.client.channels.fetch("723479832452661269");
 			var noname = false;
 			if (result.length < 1) noname = true;
 			const em = new Discord.MessageEmbed()
@@ -199,45 +187,45 @@ class GuildCommand implements FullCommand {
 				.setTitle("Please choose an operation:")
 				.setDescription("1️⃣: Accept\n2️⃣: Decline (Already in another guild)\n3️⃣: Decline (Already in guild)\n4️⃣: Decline (Banned)")
 				.setTimestamp()
-				.setFooter({ text: "Please choose within 2 minutes.", iconURL: message.client.user.displayAvatarURL() });
+				.setFooter({ text: "Please choose within 2 minutes.", iconURL: interaction.client.user.displayAvatarURL() });
 
-			const msg = await msgOrRes(message, em);
-			await msg.react("1️⃣");
-			await msg.react("2️⃣");
-			await msg.react("3️⃣");
-			await msg.react("4️⃣");
+			const msg = <Discord.Message> await interaction.editReply({ embeds: [em], components: [
+				new Discord.MessageActionRow()
+					.addComponents(new Discord.MessageButton({ customId: "1", emoji: "1️⃣", style: "SECONDARY" }))
+					.addComponents(new Discord.MessageButton({ customId: "2", emoji: "2️⃣", style: "SECONDARY" }))
+					.addComponents(new Discord.MessageButton({ customId: "3", emoji: "3️⃣", style: "SECONDARY" }))
+					.addComponents(new Discord.MessageButton({ customId: "4", emoji: "4️⃣", style: "SECONDARY" }))
+			] });
 
-			const collected = await msg.awaitReactions({ filter: (r, u) => ["1️⃣", "2️⃣", "3️⃣", "4️⃣"].includes(r.emoji.name) && u.id == message.member.user.id, max: 1, time: 120000 }).catch(console.error);
-			msg.reactions.removeAll().catch(() => { });
-			if (!collected || !collected.first()) return await message.channel.send("No operation chosen in 2 minutes. Please try again.");
-			const reaction = collected.first();
-			switch (reaction.emoji.name) {
-				case "1️⃣":
-					await msg.edit({ content: "Request Accpected", embeds: [] });
+			const collected = await msg.awaitMessageComponent({ filter: (int) => int.user.id == interaction.user.id, time: 120000 }).catch(() => null);
+			if (!collected || !(collected instanceof Discord.ButtonInteraction)) return await interaction.editReply("No operation chosen in 2 minutes. Please try again.");
+			switch (collected.customId) {
+				case "1":
+					await collected.update({ content: "Request Accpected", embeds: [] });
 					channel.send(`✅ | <@${user.id}> Congratulations ! You have been invited to the guild. Please accept the invite in Hypixel in 5 minutes ! If you can't join our guild right now, you will need to find guild officers to invite you again later.` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
 					break;
-				case "2️⃣":
-					await msg.edit({ content: "Request Declined (Already in another guild)", embeds: [] });
+				case "2":
+					await collected.update({ content: "Request Declined (Already in another guild)", embeds: [] });
 					channel.send(`❌ | <@${user.id}> Sorry, you are not allow to join our guild because you are already in another guild. Please read the pinned message in <#724271012492869642>!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
 					break;
-				case "3️⃣":
-					await msg.edit({ content: "Request Declined (Already in guild)", embeds: [] });
+				case "3":
+					await collected.update({ content: "Request Declined (Already in guild)", embeds: [] });
 					channel.send(`❌ | <@${user.id}> Sorry, you are already in our guild. If you keep spamming requests, you will get banned!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
 					break;
-				case "4️⃣":
-					await msg.edit({ content: "Request Declined (Already in guild)", embeds: [] });
+				case "4":
+					await collected.update({ content: "Request Declined (Already in guild)", embeds: [] });
 					channel.send(`❌ | <@${user.id}> Sorry, you are banned from our guild. Good luck finding another one!` + (noname ? "Don't forget to enter your Minecraft username in <#647630951169523762>!" : ""));
 					break;
 			}
 		} catch (err: any) {
 			console.error(err);
-			await msgOrRes(message, "There was an error fetching the player!");
+			await interaction.editReply("There was an error fetching the player!");
 		}
 	}
 
-	async splash(message: NorthMessage | NorthInteraction) {
-		var msg = await msgOrRes(message, "Which channel do you want the message to be announced?");
-		let collected = await msg.channel.awaitMessages({ filter: x => x.author.id === message.member.user.id, max: 1, time: 30000 }).catch(err => collected = undefined);
+	async splash(interaction: NorthInteraction) {
+		var msg = await msgOrRes(interaction, "Which channel do you want the message to be announced?");
+		let collected = await msg.channel.awaitMessages({ filter: x => x.author.id === interaction.member.user.id, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete().catch(() => { });
 		if (!collected || !collected.first() || !collected.first().content) {
@@ -250,10 +238,10 @@ class GuildCommand implements FullCommand {
 			.first()
 			.content.replace(/<#/g, "")
 			.replace(/>/g, "");
-		const channel = await findChannel(message.guild, channelID);
+		const channel = await findChannel(interaction.guild, channelID);
 		if (!channel || !(channel instanceof Discord.TextChannel)) return await msg.edit(channelID + " isn't a valid channel!");
 		await msg.edit(`The announcement will be made in <#${channelID}>. What is the location of the splash?`);
-		const filter = x => x.author.id === message.member.user.id;
+		const filter = x => x.author.id === interaction.member.user.id;
 		collected = undefined;
 		collected = await msg.channel.awaitMessages({ filter, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
@@ -295,9 +283,9 @@ class GuildCommand implements FullCommand {
 		if (collected.first().content === "cancel") {
 			return await msg.edit("Cancelled action.");
 		}
-		var role = await findRole(message.guild, collected.first().content);
+		var role = await findRole(interaction.guild, collected.first().content);
 		if (!role) {
-			await message.channel.send(`No role was found with \`${collected.first().content}\`!`);
+			await interaction.channel.send(`No role was found with \`${collected.first().content}\`!`);
 			msg.delete().catch(() => { });
 			return;
 		}
@@ -349,7 +337,7 @@ class GuildCommand implements FullCommand {
 			.setColor(color())
 			.setDescription(`\`${mc}\` is hosting a splash!\nDo \`/p join ${mc}\` in Hypixel or join the guild party to be part of it!\n\n**Location:** ${location}\n**Potions:** ${potions}\n**Slots:** ${slots}\n**Note: ** ${notes.length > 0 ? notes : "N/A"}`)
 			.setTimestamp()
-			.setFooter({ text: `Hosted by ${mc}`, iconURL: message.client.user.displayAvatarURL() });
+			.setFooter({ text: `Hosted by ${mc}`, iconURL: interaction.client.user.displayAvatarURL() });
 
 		channel.send({ content: `<@&${role.id}>`, embeds: [em] });
 
@@ -604,6 +592,23 @@ class GuildCommand implements FullCommand {
 			.setTimestamp()
 			.setFooter({ text: "This command only took me 2 hours :D", iconURL: message.client.user.displayAvatarURL() });
 		await msgOrRes(message, result);
+	}
+
+	async verify(interaction: NorthInteraction, member: Discord.GuildMember, minecraft: string) {
+		await interaction.deferReply();
+		if (!await nameExists(minecraft)) return await interaction.editReply("The Minecraft username doesn't exist.");
+		const mcUuid = await nameToUuid(minecraft);
+		var results = await query(`SELECT * FROM dcmc WHERE dcid = '${member.id}'`);
+		if (results.length == 0) {
+			await query(`INSERT INTO dcmc VALUES(NULL, '${member.id}', '${mcUuid}')`);
+			await interaction.editReply("Added record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => interaction.deleteReply().catch(() => { }), 10000));
+			console.log("Inserted record for mc-name.");
+		} else {
+			await query(`UPDATE dcmc SET uuid = '${mcUuid}' WHERE dcid = '${member.id}'`);
+			await interaction.editReply("Updated record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => interaction.deleteReply().catch(() => { }), 10000));
+			console.log("Updated record for mc-name.");
+		}
+		await updateGuildMemberMC(member, mcUuid);
 	}
 }
 

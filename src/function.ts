@@ -41,7 +41,7 @@ export function roundTo(num: number, decimal: number) {
     const powed = Math.pow(10, decimal);
     return Math.round((num + Number.EPSILON) * powed) / powed;
 }
-export function deepReaddir(dir: string) {
+export function deepReaddir(dir: string): string[] {
     var results = [];
     const list = fs.readdirSync(dir);
     var i = 0;
@@ -114,6 +114,24 @@ export function replaceWithObj(str: string, member: Discord.GuildMember, channel
         replaced.push(re);
     }
     return replaced.join(" ");
+}
+const SYM = '        ⁽⁾ ⁺ ⁻  ⁰¹²³⁴⁵⁶⁷⁸⁹   ⁼   ᴬᴮ ᴰᴱ ᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾ ᴿ ᵀᵁ ᵂ         ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖ ʳˢᵗᵘᵛʷˣʸᶻ     ';
+export function toSuperscript(str: string) {
+    var z = '';
+    for (var c of str) {
+        var d = SYM[c.charCodeAt(0) - 32] || ' ';
+        z += d === ' ' ? c : d;
+    }
+    return z;
+};
+const SUB_SYM = '        ₍₎ ₊ ₋  ₀₁₂₃₄₅₆₇₈₉   ₌                                   ₐ   ₑ  ₕᵢⱼₖₗₘₙₒₚ ᵣₛₜᵤᵥ ₓ       ';
+export function toSubscript(str: string) {
+    var z = '';
+    for (var c of str) {
+        var d = SUB_SYM[c.charCodeAt(0) - 32] || ' ';
+        z += d === ' ' ? c : d;
+    }
+    return z;
 }
 
 // Stream/Buffer operations
@@ -475,7 +493,7 @@ export async function createEmbedScrolling(message: Discord.Message | NorthInter
                 await interaction.update({ embeds: [allEmbeds[s]] });
                 break;
             case "quit":
-                await interaction.update({ });
+                await interaction.update({});
                 collector.emit("end");
                 break;
         }
@@ -563,6 +581,12 @@ export function isValidMCVer(version: string) {
         if (ii == 0 && parseInt(subVer) > 1) return false;
     }
     return true;
+}
+export async function nameExists(str: string) {
+    try {
+        await mcapi.mojang.getUUID(str);
+        return true;
+    } catch (err) { return false; }
 }
 
 // Getters

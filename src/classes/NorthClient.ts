@@ -279,3 +279,11 @@ export interface GuildTimer {
     mc: string;
     endAt: Date;
 }
+
+export interface DailyModule {
+    name: string;
+    description: string;
+
+    get(): any;
+    update(): void;
+}
