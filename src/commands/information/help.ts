@@ -1,4 +1,4 @@
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand, Command } from "../../classes/NorthClient.js";
 import { color, deepReaddir, fixGuildRecord, wait } from "../../function.js";
 import * as Discord from "discord.js";
 
@@ -25,22 +25,26 @@ class HelpCommand implements FullCommand {
       }
     ];
     const commandFiles = deepReaddir("./out/src/commands").filter(file => file.endsWith(".js"));
-    for (const category of sCategories) {
-      const fetchOpt = {
-        name: "command",
-        description: "The command to fetch.",
-        required: true,
-        type: "STRING",
-        choices: commandFiles.map(async file => (await import(file)).default).filter(async command => (await command).category === sCategories.indexOf(category)).map(async x => ({ name: (await x).name, value: (await x).name }))
-      };
-      const option = {
-        name: category.toLowerCase(),
-        description: `${category} - Command Category`,
-        type: "SUB_COMMAND",
-        options: [fetchOpt]
-      };
-      this.options.push(option);
-    }
+    (async () => {
+      const commands: Command[] = [];
+      for (const file of commandFiles) commands.push((await import(file)).default);
+      for (const category of sCategories) {
+        const fetchOpt = {
+          name: "command",
+          description: "The command to fetch.",
+          required: true,
+          type: "STRING",
+          choices: commands.filter(async command => command.category === sCategories.indexOf(category)).map(async x => ({ name: x.name, value: x.name }))
+        };
+        const option = {
+          name: category.toLowerCase(),
+          description: `${category} - Command Category`,
+          type: "SUB_COMMAND",
+          options: [fetchOpt]
+        };
+        this.options.push(option);
+      }
+    })();
   }
 
   async execute(interaction: NorthInteraction) {
