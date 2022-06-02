@@ -30,13 +30,13 @@ export class Handler {
         client.on("guildMemberRemove", member => this.guildMemberRemove(member));
         client.on("guildCreate", guild => this.guildCreate(guild));
         client.on("guildDelete", guild => this.guildDelete(guild));
-        client.on("guildMemberUpdate", (oldMember, newMember) => this.guildMemberUpdate(<GuildMember> oldMember, <GuildMember> newMember));
-        client.on("messageReactionAdd", (reaction, user) => this.messageReactionAdd(<MessageReaction> reaction, <User> user));
-        client.on("messageReactionRemove", (reaction, user) => this.messageReactionRemove(<MessageReaction> reaction, <User> user));
+        client.on("guildMemberUpdate", (oldMember, newMember) => this.guildMemberUpdate(<GuildMember>oldMember, <GuildMember>newMember));
+        client.on("messageReactionAdd", (reaction, user) => this.messageReactionAdd(<MessageReaction>reaction, <User>user));
+        client.on("messageReactionRemove", (reaction, user) => this.messageReactionRemove(<MessageReaction>reaction, <User>user));
         client.on("messageDelete", message => this.messageDelete(message));
         client.on("messageCreate", message => this.message(message));
         client.on("interactionCreate", interaction => this.interactionCreate(interaction));
-        client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(<VoiceState> oldState, <VoiceState> newState));
+        client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(<VoiceState>oldState, <VoiceState>newState));
     }
 
     async interactionCreate(interaction: Interaction) {
@@ -50,7 +50,7 @@ export class Handler {
         const int = <NorthInteraction>interaction;
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
-            if (await filter.all(command, int) && (catFilter ? await catFilter(command, int) : true)) await (<ISlash> <unknown> command).execute(int);
+            if (await filter.all(command, int) && (catFilter ? await catFilter(command, int) : true)) await (<ISlash><unknown>command).execute(int);
         } catch (err: any) {
             try {
                 if (int.replied || int.deferred) await int.editReply(error);
@@ -413,7 +413,7 @@ export class Handler {
         } catch (err: any) { }
     }
 
-    async messageDelete(message: Message | PartialMessage) {
+    async messageDelete(message: Message | PartialMessage): Promise<any> {
         var roleMessage = NorthClient.storage.rm.find(x => x.id === message.id);
         if (!roleMessage) return;
         NorthClient.storage.rm.splice(NorthClient.storage.rm.indexOf(roleMessage), 1);
@@ -438,16 +438,11 @@ export class Handler {
             NorthClient.storage.guilds[guild.id].pendingKick.delete(newState.member.id);
     }
 
-    async preMessage(_message: Message): Promise<any> {
-
-    }
-
     messagePrefix(message: Message, client: NorthClient): string {
         return NorthClient.storage.guilds[message.guildId]?.prefix || client.prefix;
     }
 
-    async message(message: Message) {
-        await this.preMessage(message);
+    async message(message: Message): Promise<any> {
         const client = <NorthClient>message.client;
         const msg = (<NorthMessage>message);
         msg.prefix = this.messagePrefix(msg, client);
@@ -460,7 +455,7 @@ export class Handler {
         Handler.lastRunCommand = command.name;
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
-            if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await (<IPrefix> <unknown> command).run(msg, args);
+            if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await (<IPrefix><unknown>command).run(msg, args);
         } catch (err: any) {
             console.error(`Error in command ${command.name}!`);
             console.error(err);
@@ -473,6 +468,7 @@ export class Handler {
 
 export class AliceHandler extends Handler {
     readonly langMap = {
+        english: "978612824601395200",
         española: "977878110492037130",
         polskie: "977881035943604234",
         भारतीय: "977880381250478120",
@@ -678,7 +674,15 @@ export class AliceHandler extends Handler {
         await channel.send({ files: [new MessageAttachment("https://cdn.discordapp.com/attachments/714804870078660630/978258723749367829/standard_7.gif")] });
     }
 
-    async preMessage(message: Message) {
+    async messageDelete(message: Message | PartialMessage) {
+        if (NorthClient.storage.guilds[message.guildId]?.translations?.has(message.id)) {
+            NorthClient.storage.guilds[message.guildId].translations.delete(message.id)
+            await query(`DELETE FROM translations WHERE id = ${message.id}`);
+        }
+        super.messageDelete(message);
+    }
+
+    async message(message: Message) {
         if (message.channel.id == "647630951169523762") {
             if (!message.content.match(/^\w{3,16}$/)) return;
             const mcName = message.content;
@@ -718,6 +722,15 @@ export class AliceHandler extends Handler {
         } else {
             for (const lang in this.langMap) {
                 if (message.channelId === this.langMap[lang]) {
+                    if (lang === "english") {
+                        const msg = await message.channel.send({ content: "Do you want to accept translation for this message?", components: [new MessageActionRow().addComponents(new MessageButton({ customId: "yes", label: "Yes", emoji: "✅", style: "SUCCESS" }), new MessageButton({ customId: "no", label: "No", emoji: "❌", style: "DANGER" }))] });
+                        const interaction = <MessageComponentInteraction>await msg.awaitMessageComponent({ filter: interaction => interaction.user.id === message.author.id, time: 30000 }).catch(() => null);
+                        if (!interaction?.isButton() || interaction.customId === "no") return interaction.deleteReply();
+                        await interaction.deferUpdate();
+                        NorthClient.storage.guilds[interaction.guildId].translations.set(message.id, { messageId: message.id, channelId: message.channel.id, guildId: interaction.guildId, translations: new Collection() });
+                        await query(`INSERT INTO translations (id, guild, channel, translations) VALUES(${message.id}, ${message.guildId}, ${message.channel.id}, "{}")`);
+                        return await interaction.update("Added message to translation submission.");
+                    }
                     const translations = NorthClient.storage.guilds[message.guildId].translations.filter(trans => !trans.ended);
                     const allEmbeds: MessageEmbed[] = [];
                     const allRows: MessageActionRow[][] = [];
@@ -732,8 +745,9 @@ export class AliceHandler extends Handler {
                             .setCustomId("select")
                             .setPlaceholder("Select message...");
                         var description = "";
-                        for (let jj = 0; jj < Math.min(3, translations.size % 5 + 1); jj++) {
+                        for (let jj = 0; jj < 5; jj++) {
                             const translation = translations.at(ii * 5 + jj);
+                            if (!translation) break;
                             const msg = await (<TextChannel>await message.guild.channels.fetch(translation.channelId)).messages.fetch(translation.messageId);
                             description += `**${translation.messageId}**\n${msg.content.slice(0, 100)}...\n\n`;
                             menu.addOptions({ label: translation.messageId, value: translation.messageId });
@@ -799,6 +813,7 @@ export class AliceHandler extends Handler {
                 }
             }
         }
+        super.message(message);
     }
 }
 

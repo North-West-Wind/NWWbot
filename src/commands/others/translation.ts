@@ -7,17 +7,6 @@ class TranslationCommand implements SlashCommand {
 	description = "Handles translations of messages.";
 	options = [
 		{
-			name: "add",
-			description: "Adds a new message to be translated.",
-			type: "SUB_COMMAND",
-			options: [{
-				name: "message",
-				description: "The message.",
-				type: "STRING",
-				required: true
-			}]
-		},
-		{
 			name: "end",
 			description: "Ends a translation's submission.",
 			type: "SUB_COMMAND",
@@ -38,21 +27,10 @@ class TranslationCommand implements SlashCommand {
 	async execute(interaction: NorthInteraction) {
 		await interaction.deferReply({ ephemeral: true });
 		switch (interaction.options.getSubcommand()) {
-			case "add": return await this.add(interaction);
 			case "end": return await this.end(interaction);
 			case "get": return await this.get(interaction);
 			default: await interaction.editReply("how tf did u get here?")
 		}
-	}
-
-	async add(interaction: NorthInteraction) {
-		const message = interaction.options.getString("message");
-		const channel = <TextChannel>await interaction.guild.channels.fetch("978612824601395200");
-		if (NorthClient.storage.guilds[interaction.guildId].translations.has(message)) return await interaction.editReply("This message is already added!");
-		const msg = await channel.send(message);
-		NorthClient.storage.guilds[interaction.guildId].translations.set(msg.id, { messageId: msg.id, channelId: channel.id, guildId: interaction.guildId, translations: new Collection() });
-		await query(`INSERT INTO translations (id, guild, channel, translations) VALUES(${msg.id}, ${interaction.guildId}, ${channel.id}, "{}")`);
-		await interaction.editReply("Added message to translation submission.");
 	}
 
 	async end(interaction: NorthInteraction) {

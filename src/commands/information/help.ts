@@ -34,7 +34,7 @@ class HelpCommand implements FullCommand {
           description: "The command to fetch.",
           required: true,
           type: "STRING",
-          choices: commands.filter(async command => command.category === sCategories.indexOf(category)).map(async x => ({ name: x.name, value: x.name }))
+          choices: commands.filter(command => command.category === sCategories.indexOf(category)).map(x => ({ name: x.name, value: x.name }))
         };
         const option = {
           name: category.toLowerCase(),
