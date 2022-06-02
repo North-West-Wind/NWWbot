@@ -721,7 +721,7 @@ export class AliceHandler extends Handler {
             return;
         } else {
             for (const lang in this.langMap) {
-                if (message.channelId === this.langMap[lang]) {
+                if (message.channelId == this.langMap[lang]) {
                     if (lang === "english") {
                         const msg = await message.channel.send({ content: "Do you want to accept translation for this message?", components: [new MessageActionRow().addComponents(new MessageButton({ customId: "yes", label: "Yes", emoji: "✅", style: "SUCCESS" }), new MessageButton({ customId: "no", label: "No", emoji: "❌", style: "DANGER" }))] });
                         const interaction = <MessageComponentInteraction>await msg.awaitMessageComponent({ filter: interaction => interaction.user.id === message.author.id, time: 30000 }).catch(() => null);
