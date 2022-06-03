@@ -769,7 +769,6 @@ export class AliceHandler extends Handler {
                         const msg = await message.channel.send({ content: "Do you want to accept translation for this message?", components: [new MessageActionRow().addComponents(new MessageButton({ customId: "yes", label: "Yes", emoji: "✅", style: "SUCCESS" }), new MessageButton({ customId: "no", label: "No", emoji: "❌", style: "DANGER" }))] });
                         const interaction = <MessageComponentInteraction>await msg.awaitMessageComponent({ filter: interaction => interaction.user.id === message.author.id, time: 30000 }).catch(() => null);
                         if (!interaction?.isButton() || interaction.customId === "no") return interaction.deleteReply();
-                        await interaction.deferUpdate();
                         NorthClient.storage.guilds[interaction.guildId].translations.set(message.id, { messageId: message.id, channelId: message.channel.id, guildId: interaction.guildId, translations: new Collection() });
                         await query(`INSERT INTO translations (id, guild, channel, translations) VALUES(${message.id}, ${message.guildId}, ${message.channel.id}, "{}")`);
                         return await interaction.update("Added message to translation submission.");
@@ -823,7 +822,6 @@ export class AliceHandler extends Handler {
                                     await interaction.showModal(modal);
                             }
                         } else if (interaction.isSelectMenu()) {
-                            await interaction.deferUpdate();
                             const id = interaction.values[0];
                             const trans = NorthClient.storage.guilds[message.guildId].translations.get(id);
                             trans.translations.set(lang, { messageId: message.id, channelId: message.channelId });

@@ -126,7 +126,6 @@ class TranslationCommand implements SlashCommand {
 				if (interaction.customId === "message") {
 					id = interaction.values[0];
 					const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
-					await interaction.deferUpdate();
 					const mm = await (<TextChannel> await interaction.guild.channels.fetch(trans.channelId)).messages.fetch(trans.messageId);
 					const msg = await channel.send({ tts: mm.tts, nonce: mm.nonce, content: mm.content, embeds: mm.embeds, attachments: Array.from(mm.attachments.values()) });
 					trans.existingId = msg.id;
@@ -138,7 +137,6 @@ class TranslationCommand implements SlashCommand {
 				id = interaction.fields.getTextInputValue("id");
 				const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
 				if (!trans) return await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
-				await interaction.deferUpdate();
 				const mm = await (<TextChannel> await interaction.guild.channels.fetch(trans.channelId)).messages.fetch(trans.messageId);
 				const msg = await channel.send({ tts: mm.tts, nonce: mm.nonce, content: mm.content, embeds: mm.embeds, attachments: Array.from(mm.attachments.values()) });
 				trans.existingId = msg.id;
@@ -213,7 +211,6 @@ class TranslationCommand implements SlashCommand {
 				if (interaction.customId === "message") {
 					id = interaction.values[0];
 					const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
-					await interaction.deferUpdate();
 					trans.ended = true;
 					NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
 					await query(`UPDATE translations SET ended = 1 WHERE id = ${id}`);
@@ -223,7 +220,6 @@ class TranslationCommand implements SlashCommand {
 				id = interaction.fields.getTextInputValue("id");
 				const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
 				if (!trans) return await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
-				await interaction.deferUpdate();
 				trans.ended = true;
 				NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
 				await query(`UPDATE translations SET ended = 1 WHERE id = ${id}`);
