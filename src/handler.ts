@@ -201,7 +201,10 @@ export class Handler {
         const results = await query("SELECT * FROM translations");
         for (const result of results) {
             const collection = new Collection<string, { messageId: Snowflake, channelId: Snowflake }>();
-            for (const translation of JSON.parse(result.translations)) collection.set(translation.lang, { messageId: translation.messageId, channelId: translation.channelId });
+            const parsed = JSON.parse(result.translations);
+            for (const lang in parsed) {
+                collection.set(lang, { messageId: parsed[lang].messageId, channelId: parsed[lang].channelId });
+            }
             NorthClient.storage.guilds[result.guild].translations.set(result.id, { messageId: result.id, channelId: result.channel, guildId: result.guild, translations: collection, existingId: result.existing });
         }
     }
