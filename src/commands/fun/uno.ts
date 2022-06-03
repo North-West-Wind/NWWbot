@@ -118,12 +118,12 @@ class UnoCommand implements FullCommand {
         .setAuthor({ name: author.tag, iconURL: author.displayAvatarURL()})
         .setColor(c)
         .setTitle(`${author.tag} invited you to play UNO!`)
-        .setDescription(`Server: **${message.guild.name}**\nChannel: **${(<Discord.TextChannel>message.channel).name}**\nAccept invitation?\n\n✅ Accept\n❌ Deny`)
+        .setDescription(`Server: **${message.guild.name}**\nChannel: **${(<Discord.TextChannel>message.channel).name}**\nAccept invitation?\n\n✅ Accept\n✖️ Deny`)
         .setTimestamp()
         .setFooter({ text: "Please decide in 30 seconds.", iconURL: message.client.user.displayAvatarURL() });
       const row = new Discord.MessageActionRow()
         .addComponents(new Discord.MessageButton({ customId: "accept", label: "Accept", style: "SUCCESS", emoji: "✅" }))
-        .addComponents(new Discord.MessageButton({ customId: "deny", label: "Deny", style: "DANGER", emoji: "❌" }));
+        .addComponents(new Discord.MessageButton({ customId: "deny", label: "Deny", style: "DANGER", emoji: "✖️" }));
       var mesg: Discord.Message;
       try {
         mesg = await member.user.send({ embeds: [em], components: [row] });

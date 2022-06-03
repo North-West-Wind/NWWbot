@@ -766,12 +766,15 @@ export class AliceHandler extends Handler {
             for (const lang in this.langMap) {
                 if (message.channelId == this.langMap[lang]) {
                     if (lang === "english") {
-                        const msg = await message.channel.send({ content: "Do you want to accept translation for this message?", components: [new MessageActionRow().addComponents(new MessageButton({ customId: "yes", label: "Yes", emoji: "✅", style: "SUCCESS" }), new MessageButton({ customId: "no", label: "No", emoji: "❌", style: "DANGER" }))] });
+                        const msg = await message.channel.send({ content: "Do you want to accept translation for this message?", components: [new MessageActionRow().addComponents(new MessageButton({ customId: "yes", label: "Yes", emoji: "✅", style: "SUCCESS" }), new MessageButton({ customId: "no", label: "No", emoji: "✖️", style: "DANGER" }))] });
                         const interaction = <MessageComponentInteraction>await msg.awaitMessageComponent({ filter: interaction => interaction.user.id === message.author.id, time: 30000 }).catch(() => null);
                         if (!interaction?.isButton() || interaction.customId === "no") return interaction.deleteReply();
                         NorthClient.storage.guilds[interaction.guildId].translations.set(message.id, { messageId: message.id, channelId: message.channel.id, guildId: interaction.guildId, translations: new Collection() });
                         await query(`INSERT INTO translations (id, guild, channel, translations) VALUES(${message.id}, ${message.guildId}, ${message.channel.id}, "{}")`);
-                        return await interaction.update("Added message to translation submission.");
+                        await interaction.update({ content: "Added message to translation submission.", components: [] });
+                        await message.react("✅")
+                        await wait(10000);
+                        await interaction.deleteReply();
                     }
                     const translations = NorthClient.storage.guilds[message.guildId].translations.filter(trans => !trans.ended);
                     const allEmbeds: MessageEmbed[] = [];
@@ -828,14 +831,12 @@ export class AliceHandler extends Handler {
                             NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
                             await query(`UPDATE translations SET translations = "${mysqlEscape(JSON.stringify(trans.translations))}" WHERE id = ${id}`);
                             await interaction.update({ embeds: [], components: [], content: `Linked translation to message ${id}.` });
-                            await wait(10000);
                             collector.emit("end");
                         } else if (interaction.isModalSubmit()) {
                             const id = interaction.fields.getTextInputValue("id");
                             const trans = NorthClient.storage.guilds[message.guildId].translations.get(id);
                             if (!trans) {
                                 await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
-                                await wait(10000);
                                 collector.emit("end");
                                 return;
                             }
@@ -843,11 +844,11 @@ export class AliceHandler extends Handler {
                             NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
                             await query(`UPDATE translations SET translations = "${mysqlEscape(JSON.stringify(trans.translations))}" WHERE id = ${id}`);
                             await interaction.update({ embeds: [], components: [], content: `Linked translation to message ${id}.` });
-                            await wait(10000);
                             collector.emit("end");
                         }
                     });
                     collector.on("end", async () => {
+                        await wait(10000);
                         msg.delete().catch(() => { });
                     })
                     break;

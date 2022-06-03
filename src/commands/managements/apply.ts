@@ -131,7 +131,7 @@ class ApplyCommand implements FullCommand {
                 .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
             const row = new Discord.MessageActionRow()
                 .addComponents(new Discord.MessageButton({ label: "Approve", customId: "approve", style: "SUCCESS", emoji: "⭕" }))
-                .addComponents(new Discord.MessageButton({ label: "Decline", customId: "decline", style: "DANGER", emoji: "❌" }));
+                .addComponents(new Discord.MessageButton({ label: "Decline", customId: "decline", style: "DANGER", emoji: "✖️" }));
             const settings = NorthClient.storage.guilds[message.guildId].applications;
             const { id } = await (<Discord.TextChannel>await message.guild.channels.fetch(settings.channel)).send({ embeds: [em], components: [row] });
             NorthClient.storage.guilds[message.guildId].applications.applications.set(id, { id, role: role.id, author: author.id, approve: new Set(), decline: new Set() });
