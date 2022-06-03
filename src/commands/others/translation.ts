@@ -294,7 +294,7 @@ class TranslationCommand implements SlashCommand {
 				if (interaction.customId === "message") {
 					const id = interaction.values[0];
 					const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
-					const menu = new MessageSelectMenu().setCustomId("language").setPlaceholder("Language...").addOptions(Object.keys(trans.translations).map(key => ({ label: key, value: `${id}_${key}` })));
+					const menu = new MessageSelectMenu().setCustomId("language").setPlaceholder("Language...").addOptions(trans.translations.map((val, key) => ({ label: key, value: `${id}_${key}` })));
 					await interaction.update({ embeds: [], components: [new MessageActionRow().addComponents(menu)], content: "Please choose a language." });
 				} else if (interaction.customId === "language") {
 					const [id, lang] = interaction.values[0].split("_");
@@ -305,7 +305,7 @@ class TranslationCommand implements SlashCommand {
 				const id = interaction.fields.getTextInputValue("id");
 				const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
 				if (!trans) return await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
-				const menu = new MessageSelectMenu().setCustomId("language").setPlaceholder("Language...").addOptions(Object.keys(trans.translations).map(key => ({ label: key, value: `${id}_${key}` })));
+				const menu = new MessageSelectMenu().setCustomId("language").setPlaceholder("Language...").addOptions(trans.translations.map((val, key) => ({ label: key, value: `${id}_${key}` })));
 				await interaction.update({ embeds: [], components: [new MessageActionRow().addComponents(menu)], content: "Please choose a language." });
 			}
 		});
