@@ -772,9 +772,9 @@ export class AliceHandler extends Handler {
                         NorthClient.storage.guilds[interaction.guildId].translations.set(message.id, { messageId: message.id, channelId: message.channel.id, guildId: interaction.guildId, translations: new Collection() });
                         await query(`INSERT INTO translations (id, guild, channel, translations) VALUES(${message.id}, ${message.guildId}, ${message.channel.id}, "{}")`);
                         await interaction.update({ content: "Added message to translation submission.", components: [] });
-                        await message.react("✅")
+                        await message.react("✅");
                         await wait(10000);
-                        await interaction.deleteReply();
+                        return await interaction.deleteReply();
                     }
                     const translations = NorthClient.storage.guilds[message.guildId].translations.filter(trans => !trans.ended);
                     const allEmbeds: MessageEmbed[] = [];
@@ -831,6 +831,7 @@ export class AliceHandler extends Handler {
                             NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
                             await query(`UPDATE translations SET translations = "${mysqlEscape(JSON.stringify(trans.translations))}" WHERE id = ${id}`);
                             await interaction.update({ embeds: [], components: [], content: `Linked translation to message ${id}.` });
+                            await message.react("✅");
                             collector.emit("end");
                         } else if (interaction.isModalSubmit()) {
                             const id = interaction.fields.getTextInputValue("id");
@@ -844,6 +845,7 @@ export class AliceHandler extends Handler {
                             NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
                             await query(`UPDATE translations SET translations = "${mysqlEscape(JSON.stringify(trans.translations))}" WHERE id = ${id}`);
                             await interaction.update({ embeds: [], components: [], content: `Linked translation to message ${id}.` });
+                            await message.react("✅");
                             collector.emit("end");
                         }
                     });
