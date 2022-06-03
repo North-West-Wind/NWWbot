@@ -680,8 +680,10 @@ export class AliceHandler extends Handler {
         } else if (NorthClient.storage.guilds[message.guildId]?.translations?.find(trans => trans.translations.has(message.id))) {
             const key = NorthClient.storage.guilds[message.guildId]?.translations?.findKey(trans => trans.translations.has(message.id));
             const translation = NorthClient.storage.guilds[message.guildId].translations.get(key);
+            const obj = {};
+            for (const key of translation.translations.keys()) obj[key] = { messageId: translation.translations.get(key).messageId, channelId: translation.translations.get(key).channelId };
             translation.translations.delete(message.id);
-            await query(`UPDATE translations SET translations = ${mysqlEscape(JSON.stringify(translation.translations))} WHERE id = ${key}`);
+            await query(`UPDATE translations SET translations = ${mysqlEscape(JSON.stringify(obj))} WHERE id = ${key}`);
             NorthClient.storage.guilds[message.guildId].translations.set(key, translation);
         }
         super.messageDelete(message);
@@ -828,7 +830,9 @@ export class AliceHandler extends Handler {
                             const trans = NorthClient.storage.guilds[message.guildId].translations.get(id);
                             trans.translations.set(lang, { messageId: message.id, channelId: message.channelId });
                             NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
-                            await query(`UPDATE translations SET translations = ${mysqlEscape(JSON.stringify({ lang, messageId: message.id, channelId: message.channelId }))} WHERE id = ${id}`);
+                            const obj = {};
+                            for (const key of trans.translations.keys()) obj[key] = { messageId: trans.translations.get(key).messageId, channelId: trans.translations.get(key).channelId };
+                            await query(`UPDATE translations SET translations = ${mysqlEscape(JSON.stringify(obj))} WHERE id = ${id}`);
                             await interaction.update({ embeds: [], components: [], content: `Linked translation to message ${id}.` });
                             await message.react("✅");
                             collector.emit("end");
@@ -842,7 +846,9 @@ export class AliceHandler extends Handler {
                             }
                             trans.translations.set(lang, { messageId: message.id, channelId: message.channelId });
                             NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
-                            await query(`UPDATE translations SET translations = ${mysqlEscape(JSON.stringify({ lang, messageId: message.id, channelId: message.channelId }))} WHERE id = ${id}`);
+                            const obj = {};
+                            for (const key of trans.translations.keys()) obj[key] = { messageId: trans.translations.get(key).messageId, channelId: trans.translations.get(key).channelId };
+                            await query(`UPDATE translations SET translations = ${mysqlEscape(JSON.stringify(obj))} WHERE id = ${id}`);
                             await interaction.update({ embeds: [], components: [], content: `Linked translation to message ${id}.` });
                             await message.react("✅");
                             collector.emit("end");
