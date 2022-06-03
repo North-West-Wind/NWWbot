@@ -128,7 +128,7 @@ class TranslationCommand implements SlashCommand {
 					id = interaction.values[0];
 					const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
 					const mm = await (<TextChannel> await interaction.guild.channels.fetch(trans.channelId)).messages.fetch(trans.messageId);
-					const msg = await channel.send({ tts: mm.tts, nonce: mm.nonce, content: mm.content, embeds: mm.embeds, attachments: Array.from(mm.attachments.values()) });
+					const msg = await channel.send({ tts: mm.tts, nonce: mm.nonce || "", content: mm.content, embeds: mm.embeds, attachments: Array.from(mm.attachments.values()) });
 					trans.existingId = msg.id;
 					NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
 					await query(`UPDATE translations SET existing = ${msg.id} WHERE id = ${id}`);
