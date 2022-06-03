@@ -124,6 +124,16 @@ class TranslationCommand implements SlashCommand {
 							.setTitle("Search by ID")
 							.addComponents(new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent().setCustomId("id").setLabel("What is the message ID you are searching for?").setStyle("SHORT")));
 						await interaction.showModal(modal);
+						const received = await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id });
+						id = received.fields.getTextInputValue("id");
+						const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
+						if (!trans) return await received.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
+						const mm = await (<TextChannel> await interaction.guild.channels.fetch(trans.channelId)).messages.fetch(trans.messageId);
+						const msg = await channel.send({ tts: mm.tts, nonce: mm.nonce, content: mm.content, embeds: mm.embeds, attachments: Array.from(mm.attachments.values()) });
+						trans.existingId = msg.id;
+						NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
+						await query(`UPDATE translations SET existing = ${msg.id} WHERE id = ${id}`);
+						await received.update({ components: [], content: `Announced message with ID ${id}.` });
 				}
 			} else if (interaction.isSelectMenu()) {
 				if (interaction.customId === "message") {
@@ -136,18 +146,9 @@ class TranslationCommand implements SlashCommand {
 					await query(`UPDATE translations SET existing = ${msg.id} WHERE id = ${id}`);
 					await interaction.update({ components: [], embeds: [], content: `Announced message with ID ${id}.` });
 				}
-			} else if (interaction.isModalSubmit()) {
-				id = interaction.fields.getTextInputValue("id");
-				const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
-				if (!trans) return await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
-				const mm = await (<TextChannel> await interaction.guild.channels.fetch(trans.channelId)).messages.fetch(trans.messageId);
-				const msg = await channel.send({ tts: mm.tts, nonce: mm.nonce, content: mm.content, embeds: mm.embeds, attachments: Array.from(mm.attachments.values()) });
-				trans.existingId = msg.id;
-				NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
-				await query(`UPDATE translations SET existing = ${msg.id} WHERE id = ${id}`);
-				await interaction.update({ components: [], content: `Announced message with ID ${id}.` });
 			}
 		});
+		collector.on("end", () => interaction.editReply({ components: [] }));
 	}
 
 	async end(interaction: NorthInteraction) {
@@ -210,6 +211,14 @@ class TranslationCommand implements SlashCommand {
 							.setTitle("Search by ID")
 							.addComponents(new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent().setCustomId("id").setLabel("What is the message ID you are searching for?").setStyle("SHORT")));
 						await interaction.showModal(modal);
+						const received = await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id });
+						id = received.fields.getTextInputValue("id");
+						const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
+						if (!trans) return await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
+						trans.ended = true;
+						NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
+						await query(`UPDATE translations SET ended = 1 WHERE id = ${id}`);
+						await received.update({ components: [], content: `Ended translation submission for message ID ${id}.` });
 				}
 			} else if (interaction.isSelectMenu()) {
 				if (interaction.customId === "message") {
@@ -220,16 +229,9 @@ class TranslationCommand implements SlashCommand {
 					await query(`UPDATE translations SET ended = 1 WHERE id = ${id}`);
 					await interaction.update({ components: [], embeds: [], content: `Ended translation submission for message ID ${id}.` });
 				}
-			} else if (interaction.isModalSubmit()) {
-				id = interaction.fields.getTextInputValue("id");
-				const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
-				if (!trans) return await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
-				trans.ended = true;
-				NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
-				await query(`UPDATE translations SET ended = 1 WHERE id = ${id}`);
-				await interaction.update({ components: [], content: `Ended translation submission for message ID ${id}.` });
 			}
 		});
+		collector.on("end", () => interaction.editReply({ components: [] }));
 	}
 
 	async get(interaction: NorthInteraction) {
@@ -241,7 +243,7 @@ class TranslationCommand implements SlashCommand {
 			const msg = <Message>await interaction.editReply({ embeds: [], components: [new MessageActionRow().addComponents(menu)], content: "Please choose a language." });
 			const int = <SelectMenuInteraction>await msg.awaitMessageComponent({ filter: int => int.user.id === interaction.user.id, time: 30000 }).catch(() => null);
 			const lang = int.values[0].split("_")[1];
-			const translation = NorthClient.storage.guilds[interaction.guildId].translations.get(id).translations.get(lang);
+			const translation = trans.translations.get(lang);
 			await int.update({ embeds: [], components: [], content: (await (<TextChannel>await interaction.guild.channels.fetch(translation.channelId)).messages.fetch(translation.messageId)).content });
 			return;
 		}
@@ -274,7 +276,6 @@ class TranslationCommand implements SlashCommand {
 		const msg = <Message>await interaction.editReply({ embeds: [allEmbeds[s]], components: allRows[s] });
 		const collector = msg.createMessageComponentCollector({ filter: (int) => int.user.id === interaction.user.id, idle: 60000 });
 		collector.on("collect", async (interaction: MessageComponentInteraction) => {
-			console.log(interaction.customId);
 			if (interaction.isButton()) {
 				switch (interaction.customId) {
 					case "previous":
@@ -293,10 +294,16 @@ class TranslationCommand implements SlashCommand {
 							.setTitle("Search by ID")
 							.addComponents(new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent().setCustomId("id").setLabel("What is the message ID you are searching for?").setStyle("SHORT")));
 						await interaction.showModal(modal);
+						const received = await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id });
+						id = received.fields.getTextInputValue("id");
+						const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
+						if (!trans) return await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
+						const menu = new MessageSelectMenu().setCustomId("language").setPlaceholder("Language...").addOptions(trans.translations.map((val, key) => ({ label: key, value: `${id}_${key}` })));
+						await received.update({ embeds: [], components: [new MessageActionRow().addComponents(menu)], content: "Please choose a language." });
 				}
 			} else if (interaction.isSelectMenu()) {
 				if (interaction.customId === "message") {
-					const id = interaction.values[0];
+					id = interaction.values[0];
 					const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
 					const menu = new MessageSelectMenu().setCustomId("language").setPlaceholder("Language...").addOptions(trans.translations.map((val, key) => ({ label: key, value: `${id}_${key}` })));
 					await interaction.update({ embeds: [], components: [new MessageActionRow().addComponents(menu)], content: "Please choose a language." });
@@ -305,14 +312,9 @@ class TranslationCommand implements SlashCommand {
 					const translation = NorthClient.storage.guilds[interaction.guildId].translations.get(id).translations.get(lang);
 					await interaction.update({ embeds: [], components: [], content: (await (<TextChannel>await interaction.guild.channels.fetch(translation.channelId)).messages.fetch(translation.messageId)).content });
 				}
-			} else if (interaction.isModalSubmit()) {
-				const id = interaction.fields.getTextInputValue("id");
-				const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
-				if (!trans) return await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
-				const menu = new MessageSelectMenu().setCustomId("language").setPlaceholder("Language...").addOptions(trans.translations.map((val, key) => ({ label: key, value: `${id}_${key}` })));
-				await interaction.update({ embeds: [], components: [new MessageActionRow().addComponents(menu)], content: "Please choose a language." });
 			}
 		});
+		collector.on("end", () => interaction.editReply({ components: [] }));
 	}
 }
 
