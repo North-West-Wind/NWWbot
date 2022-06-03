@@ -135,6 +135,7 @@ class TranslationCommand implements SlashCommand {
 						NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
 						await query(`UPDATE translations SET existing = ${msg.id} WHERE id = ${id}`);
 						await received.update({ components: [], content: `Announced message with ID ${id}.` });
+						collector.emit("end");
 				}
 			} else if (interaction.isSelectMenu()) {
 				if (interaction.customId === "message") {
@@ -146,6 +147,7 @@ class TranslationCommand implements SlashCommand {
 					NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
 					await query(`UPDATE translations SET existing = ${msg.id} WHERE id = ${id}`);
 					await interaction.update({ components: [], embeds: [], content: `Announced message with ID ${id}.` });
+					collector.emit("end");
 				}
 			}
 		});
@@ -221,6 +223,7 @@ class TranslationCommand implements SlashCommand {
 						NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
 						await query(`UPDATE translations SET ended = 1 WHERE id = ${id}`);
 						await received.update({ components: [], content: `Ended translation submission for message ID ${id}.` });
+						collector.emit("end");
 				}
 			} else if (interaction.isSelectMenu()) {
 				if (interaction.customId === "message") {
@@ -230,6 +233,7 @@ class TranslationCommand implements SlashCommand {
 					NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
 					await query(`UPDATE translations SET ended = 1 WHERE id = ${id}`);
 					await interaction.update({ components: [], embeds: [], content: `Ended translation submission for message ID ${id}.` });
+					collector.emit("end");
 				}
 			}
 		});
@@ -314,6 +318,7 @@ class TranslationCommand implements SlashCommand {
 					const [id, lang] = interaction.values[0].split("_");
 					const translation = NorthClient.storage.guilds[interaction.guildId].translations.get(id).translations.get(lang);
 					await interaction.update({ embeds: [], components: [], content: (await (<TextChannel>await interaction.guild.channels.fetch(translation.channelId)).messages.fetch(translation.messageId)).content });
+					collector.emit("end");
 				}
 			}
 		});

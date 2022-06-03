@@ -1,5 +1,5 @@
 import cv from "canvas";
-import { Collection, CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageActionRow, MessageAttachment, MessageButton, MessageComponentInteraction, MessageEmbed, MessageReaction, MessageSelectMenu, Modal, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Role, Snowflake, TextChannel, TextInputComponent, User, VoiceState } from "discord.js";
+import { Collection, CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageActionRow, MessageAttachment, MessageButton, MessageComponentInteraction, MessageEmbed, MessageReaction, MessageSelectMenu, Modal, ModalSubmitInteraction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Role, Snowflake, TextChannel, TextInputComponent, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
 import { getRandomNumber, jsDate2Mysql, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo, getFont, replaceWithObj, mysqlEscape, wait } from "./function.js";
@@ -766,7 +766,7 @@ export class AliceHandler extends Handler {
                 await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
             }
             return;
-        } else if (!message.author.bot) {
+        } else if (!message.author.bot && message.member.permissions.has(BigInt(32))) {
             for (const lang in this.langMap) {
                 if (message.channelId == this.langMap[lang]) {
                     if (lang === "english") {
@@ -827,26 +827,27 @@ export class AliceHandler extends Handler {
                                         .setTitle("Search by ID")
                                         .addComponents(new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent().setCustomId("id").setLabel("What is the message ID you are searching for?").setStyle("SHORT")));
                                     await interaction.showModal(modal);
+                                    const received = <ModalSubmitInteraction>await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id, time: 60000 }).catch(() => null);
+                                    if (!received) break;
+                                    const id = received.fields.getTextInputValue("id");
+                                    const trans = NorthClient.storage.guilds[message.guildId].translations.get(id);
+                                    if (!trans) {
+                                        await received.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
+                                        collector.emit("end");
+                                        return;
+                                    }
+                                    trans.translations.set(lang, { messageId: message.id, channelId: message.channelId });
+                                    NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
+                                    const obj = {};
+                                    for (const key of trans.translations.keys()) obj[key] = { messageId: trans.translations.get(key).messageId, channelId: trans.translations.get(key).channelId };
+                                    await query(`UPDATE translations SET translations = ${mysqlEscape(JSON.stringify(obj))} WHERE id = ${id}`);
+                                    await received.update({ embeds: [], components: [], content: `Linked translation to message ${id}.` });
+                                    await message.react("✅");
+                                    collector.emit("end");
                             }
                         } else if (interaction.isSelectMenu()) {
                             const id = interaction.values[0];
                             const trans = NorthClient.storage.guilds[message.guildId].translations.get(id);
-                            trans.translations.set(lang, { messageId: message.id, channelId: message.channelId });
-                            NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
-                            const obj = {};
-                            for (const key of trans.translations.keys()) obj[key] = { messageId: trans.translations.get(key).messageId, channelId: trans.translations.get(key).channelId };
-                            await query(`UPDATE translations SET translations = ${mysqlEscape(JSON.stringify(obj))} WHERE id = ${id}`);
-                            await interaction.update({ embeds: [], components: [], content: `Linked translation to message ${id}.` });
-                            await message.react("✅");
-                            collector.emit("end");
-                        } else if (interaction.isModalSubmit()) {
-                            const id = interaction.fields.getTextInputValue("id");
-                            const trans = NorthClient.storage.guilds[message.guildId].translations.get(id);
-                            if (!trans) {
-                                await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
-                                collector.emit("end");
-                                return;
-                            }
                             trans.translations.set(lang, { messageId: message.id, channelId: message.channelId });
                             NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
                             const obj = {};
