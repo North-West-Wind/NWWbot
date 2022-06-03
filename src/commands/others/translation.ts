@@ -60,7 +60,8 @@ class TranslationCommand implements SlashCommand {
 	}
 
 	async announce(interaction: NorthInteraction) {
-		const channel = <TextChannel> interaction.options.getChannel("channel");
+		const channel = interaction.options.getChannel("channel");
+		if (!channel.isText()) return await interaction.editReply(`The channel is not a text channel!`);
 		var id: Snowflake;
 		if (id = interaction.options.getString("id")) {
 			const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
@@ -102,7 +103,7 @@ class TranslationCommand implements SlashCommand {
 		}
 		var s = 0;
 		const msg = <Message>await interaction.editReply({ embeds: [allEmbeds[s]], components: allRows[s] });
-		const collector = msg.createMessageComponentCollector({ filter: (interaction) => interaction.user.id === interaction.user.id, idle: 60000 });
+		const collector = msg.createMessageComponentCollector({ filter: (int) => int.user.id === interaction.user.id, idle: 60000 });
 		collector.on("collect", async (interaction: MessageComponentInteraction) => {
 			if (interaction.isButton()) {
 				switch (interaction.customId) {
@@ -132,7 +133,7 @@ class TranslationCommand implements SlashCommand {
 					trans.existingId = msg.id;
 					NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
 					await query(`UPDATE translations SET existing = ${msg.id} WHERE id = ${id}`);
-					await interaction.update({ components: [], content: `Announced message with ID ${id}.` });
+					await interaction.update({ components: [], embeds: [], content: `Announced message with ID ${id}.` });
 				}
 			} else if (interaction.isModalSubmit()) {
 				id = interaction.fields.getTextInputValue("id");
@@ -187,7 +188,7 @@ class TranslationCommand implements SlashCommand {
 		}
 		var s = 0;
 		const msg = <Message>await interaction.editReply({ embeds: [allEmbeds[s]], components: allRows[s] });
-		const collector = msg.createMessageComponentCollector({ filter: (interaction) => interaction.user.id === interaction.user.id, idle: 60000 });
+		const collector = msg.createMessageComponentCollector({ filter: (int) => int.user.id === interaction.user.id, idle: 60000 });
 		collector.on("collect", async (interaction: MessageComponentInteraction) => {
 			if (interaction.isButton()) {
 				switch (interaction.customId) {
@@ -215,7 +216,7 @@ class TranslationCommand implements SlashCommand {
 					trans.ended = true;
 					NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
 					await query(`UPDATE translations SET ended = 1 WHERE id = ${id}`);
-					await interaction.update({ components: [], content: `Ended translation submission for message ID ${id}.` });
+					await interaction.update({ components: [], embeds: [], content: `Ended translation submission for message ID ${id}.` });
 				}
 			} else if (interaction.isModalSubmit()) {
 				id = interaction.fields.getTextInputValue("id");
@@ -232,7 +233,7 @@ class TranslationCommand implements SlashCommand {
 	async get(interaction: NorthInteraction) {
 		var id: Snowflake;
 		if (id = interaction.options.getString("id")) {
-			const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
+			const trans = NorthClient.storage.guilds[interaction.guildId].translations.find(tr => tr.existingId == id);
 			if (!trans) return await interaction.editReply(`Message with ID ${id} doesn't exist!`);
 			const menu = new MessageSelectMenu().setCustomId("language").setPlaceholder("Language...").addOptions(Object.keys(trans.translations).map(key => ({ label: key, value: `${id}_${key}` })));
 			const msg = <Message>await interaction.editReply({ embeds: [], components: [new MessageActionRow().addComponents(menu)], content: "Please choose a language." });
@@ -269,7 +270,7 @@ class TranslationCommand implements SlashCommand {
 		}
 		var s = 0;
 		const msg = <Message>await interaction.editReply({ embeds: [allEmbeds[s]], components: allRows[s] });
-		const collector = msg.createMessageComponentCollector({ filter: (interaction) => interaction.user.id === interaction.user.id, idle: 60000 });
+		const collector = msg.createMessageComponentCollector({ filter: (int) => int.user.id === interaction.user.id, idle: 60000 });
 		collector.on("collect", async (interaction: MessageComponentInteraction) => {
 			if (interaction.isButton()) {
 				switch (interaction.customId) {
@@ -309,10 +310,6 @@ class TranslationCommand implements SlashCommand {
 				await interaction.update({ embeds: [], components: [new MessageActionRow().addComponents(menu)], content: "Please choose a language." });
 			}
 		});
-	}
-
-	select() {
-
 	}
 }
 
