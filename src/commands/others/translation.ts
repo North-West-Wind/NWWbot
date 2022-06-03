@@ -148,7 +148,7 @@ class TranslationCommand implements SlashCommand {
 				}
 			}
 		});
-		collector.on("end", () => interaction.editReply({ components: [] }));
+		collector.on("end", () => { interaction.editReply({ components: [] }); });
 	}
 
 	async end(interaction: NorthInteraction) {
@@ -231,7 +231,7 @@ class TranslationCommand implements SlashCommand {
 				}
 			}
 		});
-		collector.on("end", () => interaction.editReply({ components: [] }));
+		collector.on("end", () => { interaction.editReply({ components: [] }); });
 	}
 
 	async get(interaction: NorthInteraction) {
@@ -314,7 +314,7 @@ class TranslationCommand implements SlashCommand {
 				}
 			}
 		});
-		collector.on("end", () => interaction.editReply({ components: [] }));
+		collector.on("end", () => { interaction.editReply({ components: [] }); });
 	}
 }
 
