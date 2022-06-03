@@ -676,8 +676,14 @@ export class AliceHandler extends Handler {
 
     async messageDelete(message: Message | PartialMessage) {
         if (NorthClient.storage.guilds[message.guildId]?.translations?.has(message.id)) {
-            NorthClient.storage.guilds[message.guildId].translations.delete(message.id)
+            NorthClient.storage.guilds[message.guildId].translations.delete(message.id);
             await query(`DELETE FROM translations WHERE id = ${message.id}`);
+        } else if (NorthClient.storage.guilds[message.guildId]?.translations?.find(trans => trans.translations.has(message.id))) {
+            const key = NorthClient.storage.guilds[message.guildId]?.translations?.findKey(trans => trans.translations.has(message.id));
+            const translation = NorthClient.storage.guilds[message.guildId].translations.get(key);
+            translation.translations.delete(message.id);
+            await query(`UPDATE translations SET translations = "${mysqlEscape(JSON.stringify(translation.translations))}" WHERE id = ${key}`);
+            NorthClient.storage.guilds[message.guildId].translations.set(key, translation);
         }
         super.messageDelete(message);
     }
@@ -756,7 +762,7 @@ export class AliceHandler extends Handler {
                 await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
             }
             return;
-        } else {
+        } else if (!message.author.bot) {
             for (const lang in this.langMap) {
                 if (message.channelId == this.langMap[lang]) {
                     if (lang === "english") {
