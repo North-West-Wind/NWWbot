@@ -60,6 +60,7 @@ class TranslationCommand implements SlashCommand {
 	}
 
 	async announce(interaction: NorthInteraction) {
+		if (!interaction.member.permissions.has(BigInt(32))) return await interaction.editReply("You don't have the permissions to use this subcommand!");
 		const channel = interaction.options.getChannel("channel");
 		if (!(channel instanceof TextChannel)) return await interaction.editReply(`The channel is not a text channel!`);
 		var id: Snowflake;
@@ -150,6 +151,7 @@ class TranslationCommand implements SlashCommand {
 	}
 
 	async end(interaction: NorthInteraction) {
+		if (!interaction.member.permissions.has(BigInt(32))) return await interaction.editReply("You don't have the permissions to use this subcommand!");
 		var id: Snowflake;
 		if (id = interaction.options.getString("id")) {
 			const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
@@ -272,6 +274,7 @@ class TranslationCommand implements SlashCommand {
 		const msg = <Message>await interaction.editReply({ embeds: [allEmbeds[s]], components: allRows[s] });
 		const collector = msg.createMessageComponentCollector({ filter: (int) => int.user.id === interaction.user.id, idle: 60000 });
 		collector.on("collect", async (interaction: MessageComponentInteraction) => {
+			console.log(interaction.customId);
 			if (interaction.isButton()) {
 				switch (interaction.customId) {
 					case "previous":
