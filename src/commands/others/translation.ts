@@ -235,7 +235,7 @@ class TranslationCommand implements SlashCommand {
 		if (id = interaction.options.getString("id")) {
 			const trans = NorthClient.storage.guilds[interaction.guildId].translations.find(tr => tr.existingId == id);
 			if (!trans) return await interaction.editReply(`Message with ID ${id} doesn't exist!`);
-			const menu = new MessageSelectMenu().setCustomId("language").setPlaceholder("Language...").addOptions(Object.keys(trans.translations).map(key => ({ label: key, value: `${id}_${key}` })));
+			const menu = new MessageSelectMenu().setCustomId("language").setPlaceholder("Language...").addOptions(trans.translations.map((val, key) => ({ label: key, value: `${id}_${key}` })));
 			const msg = <Message>await interaction.editReply({ embeds: [], components: [new MessageActionRow().addComponents(menu)], content: "Please choose a language." });
 			const int = <SelectMenuInteraction>await msg.awaitMessageComponent({ filter: int => int.user.id === interaction.user.id, time: 30000 }).catch(() => null);
 			const lang = int.values[0].split("_")[1];
