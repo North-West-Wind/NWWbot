@@ -95,6 +95,7 @@ class TranslationCommand implements SlashCommand {
 				description += `**${translation.messageId}**\n${msg.content.slice(0, 100)}...\n\n`;
 				menu.addOptions({ label: translation.messageId, value: translation.messageId });
 			}
+			console.log(description);
 			em.setDescription(description);
 			allEmbeds.push(em);
 			allRows.push([new MessageActionRow().addComponents(menu), new MessageActionRow().addComponents(new MessageButton({ customId: "previous", emoji: "◀️", style: "PRIMARY" }), new MessageButton({ customId: "search", label: "Search by ID", emoji: "🔍", style: "SECONDARY" }), new MessageButton({ customId: "next", emoji: "▶️", style: "PRIMARY" }))]);
