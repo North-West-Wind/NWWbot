@@ -125,7 +125,7 @@ class TranslationCommand implements SlashCommand {
 							.addComponents(new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent().setCustomId("id").setLabel("What is the message ID you are searching for?").setStyle("SHORT")));
 						await interaction.showModal(modal);
 						const received = <ModalSubmitInteraction> await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id, time: 60000 }).catch(() => null);
-						if (received) break;
+						if (!received) break;
 						id = received.fields.getTextInputValue("id");
 						const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
 						if (!trans) return await received.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
@@ -213,7 +213,7 @@ class TranslationCommand implements SlashCommand {
 							.addComponents(new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent().setCustomId("id").setLabel("What is the message ID you are searching for?").setStyle("SHORT")));
 						await interaction.showModal(modal);
 						const received = <ModalSubmitInteraction> await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id, time: 60000 }).catch(() => null);
-						if (received) break;
+						if (!received) break;
 						id = received.fields.getTextInputValue("id");
 						const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
 						if (!trans) return await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
@@ -297,7 +297,7 @@ class TranslationCommand implements SlashCommand {
 							.addComponents(new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent().setCustomId("id").setLabel("What is the message ID you are searching for?").setStyle("SHORT")));
 						await interaction.showModal(modal);
 						const received = <ModalSubmitInteraction> await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id, time: 60000 }).catch(() => null);
-						if (received) break;
+						if (!received) break;
 						id = received.fields.getTextInputValue("id");
 						const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
 						if (!trans) return await interaction.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
