@@ -252,12 +252,12 @@ class ShopCommand implements FullCommand {
                                         const items = {};
                                         items[result[0].id] = 0;
                                         items[result[0].id] += 1;
-                                        await query(`INSERT INTO users(id, items) VALUES('${author.id}', '${mysqlEscape(JSON.stringify(items))}')`);
+                                        await query(`INSERT INTO users(id, items) VALUES('${author.id}', ${mysqlEscape(JSON.stringify(items))})`);
                                     } else {
                                         const items = JSON.parse(IResult[0].items);
                                         if (!items[result[0].id]) items[result[0].id] = 0;
                                         items[result[0].id] += 1;
-                                        await query(`UPDATE users SET items = '${mysqlEscape(JSON.stringify(items))}' WHERE id = '${author.id}'`);
+                                        await query(`UPDATE users SET items = ${mysqlEscape(JSON.stringify(items))} WHERE id = '${author.id}'`);
                                     }
                                 }
                             } catch (err: any) {

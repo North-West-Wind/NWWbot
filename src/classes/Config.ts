@@ -120,7 +120,7 @@ export class TemplateSetting extends Setting {
   }
 
   async sql(_column: string, _val: any, guild: Snowflake) {
-    await query(`UPDATE server SET templates = "${mysqlEscape(JSON.stringify(NorthClient.storage.guilds[guild].applications.templates.map((val, key) => { const obj = {}; obj[key] = val; return obj; })))}" WHERE id = ${guild}`);
+    await query(`UPDATE server SET templates = ${mysqlEscape(JSON.stringify(NorthClient.storage.guilds[guild].applications.templates.map((val, key) => { const obj = {}; obj[key] = val; return obj; })))} WHERE id = ${guild}`);
   }
 }
 

@@ -43,7 +43,7 @@ export async function updatePoll(id: Discord.Snowflake, reaction: Discord.Messag
     }
     reaction.users.remove(user.id).catch(() => {});
     NorthClient.storage.polls.set(id, poll);
-    await query(`UPDATE polls SET votes = "${mysqlEscape(JSON.stringify(poll.votes.map(set => [...set])))}" WHERE id = '${id}'`);
+    await query(`UPDATE polls SET votes = ${mysqlEscape(JSON.stringify(poll.votes.map(set => [...set])))} WHERE id = '${id}'`);
 }
 
 class PollCommand implements FullCommand {
@@ -149,7 +149,7 @@ class PollCommand implements FullCommand {
         mesg.createReactionCollector({ time: duration, filter: (reaction, user) => emojis.includes(reaction.emoji.name) && !user.bot })
             .on("collect", async (reaction, user) => await updatePoll(mesg.id, reaction, user))
             .on("end", async () => await endPoll(await channel.messages.fetch(mesg.id)));
-        await query(`INSERT INTO polls VALUES(${mesg.id}, ${message.guild.id}, ${channel.id}, ${author.id}, '${mysqlEscape(JSON.stringify(options))}', '${newDateSql}', '${mysqlEscape(JSON.stringify(Array(options.length).fill([])))}')`);
+        await query(`INSERT INTO polls VALUES(${mesg.id}, ${message.guild.id}, ${channel.id}, ${author.id}, ${mysqlEscape(JSON.stringify(options))}, '${newDateSql}', ${mysqlEscape(JSON.stringify(Array(options.length).fill([])))})`);
     }
 
     async end(message: NorthMessage | NorthInteraction, msgID: string) {

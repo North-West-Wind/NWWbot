@@ -136,7 +136,7 @@ class ApplyCommand implements FullCommand {
             const { id } = await (<Discord.TextChannel>await message.guild.channels.fetch(settings.channel)).send({ embeds: [em], components: [row] });
             NorthClient.storage.guilds[message.guildId].applications.applications.set(id, { id, role: role.id, author: author.id, approve: new Set(), decline: new Set() });
             if (settings.duration) setTimeout_(() => endApplication(message.client, id, message.guildId), settings.duration);
-            await query(`UPDATE configs SET applications = '${mysqlEscape(JSON.stringify([...NorthClient.storage.guilds[message.guildId].applications.applications.values()]))}' WHERE id = '${message.guildId}'`);
+            await query(`UPDATE configs SET applications = ${mysqlEscape(JSON.stringify([...NorthClient.storage.guilds[message.guildId].applications.applications.values()]))} WHERE id = '${message.guildId}'`);
             embed.setTitle("Application Complete").setDescription("Your application has been submitted and will be viewed by administrators or moderators. You will be notify when it is approved or denied.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
         } catch (err) {
             embed.setTitle("Application Error").setDescription("We failed to receive your description! Try again later.").setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });

@@ -64,7 +64,7 @@ async function setupGiveaway(message: NorthMessage | NorthInteraction, channel: 
     .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
   const giveawayMsg = giveawayEmo + "**GIVEAWAY**" + giveawayEmo;
   var msg = await channel.send({ content: giveawayMsg, embeds: [Embed] });
-  await query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${author.id}', '${winnerCount}', '${newDateSql}', '${mysqlEscape(giveawayEmo)}')`);
+  await query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${author.id}', '${winnerCount}', '${newDateSql}', ${mysqlEscape(giveawayEmo)})`);
   await msg.react(giveawayEmo);
   setTimeout_(async () => await endGiveaway(await channel.messages.fetch(msg.id)), time);
 }

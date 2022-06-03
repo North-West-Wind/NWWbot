@@ -67,7 +67,7 @@ class WarnCommand implements FullCommand {
   }
 
   async warn(guild: Guild, member: GuildMember, reason: string) {
-    await query(`INSERT INTO warn VALUES (NULL, '${guild.id}', '${member.id}', '${mysqlEscape(reason)}')`);
+    await query(`INSERT INTO warn VALUES (NULL, '${guild.id}', '${member.id}', ${mysqlEscape(reason)})`);
     const results = await query(`SELECT * FROM warn WHERE guild = '${guild.id}' AND user = '${member.id}'`);
     return results.length;
   }

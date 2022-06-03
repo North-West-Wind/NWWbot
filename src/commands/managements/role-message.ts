@@ -96,7 +96,7 @@ class RoleMessageCommand implements FullCommand {
             emojis: emojis
         });
         try {
-            await query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${authorId}', '${mysqlEscape(JSON.stringify(roles))}', '${mysqlEscape(JSON.stringify(emojis))}')`);
+            await query(`INSERT INTO rolemsg VALUES('${mesg.id}', '${message.guild.id}', '${channel.id}', '${authorId}', ${mysqlEscape(JSON.stringify(roles))}, ${mysqlEscape(JSON.stringify(emojis))})`);
             await message.channel.send(`Successfully created record for message. Role-messages used on this server: **${totalRm}/5**`);
         } catch (err: any) {
             console.error(err);

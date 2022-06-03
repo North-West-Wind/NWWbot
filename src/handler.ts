@@ -86,7 +86,7 @@ export class Handler {
         }
         settings.applications.set(interaction.message.id, application);
         NorthClient.storage.guilds[interaction.guildId].applications = settings;
-        await query(`UPDATE configs SET applications = '${mysqlEscape(JSON.stringify([...NorthClient.storage.guilds[interaction.guildId].applications.applications.values()]))}' WHERE id = '${interaction.guildId}'`);
+        await query(`UPDATE configs SET applications = ${mysqlEscape(JSON.stringify([...NorthClient.storage.guilds[interaction.guildId].applications.applications.values()]))} WHERE id = '${interaction.guildId}'`);
         if (allMembers.size >= application.approve.size + application.decline.size) await endApplication(interaction.client, interaction.message.id, interaction.guildId);
     }
 
@@ -201,8 +201,7 @@ export class Handler {
         const results = await query("SELECT * FROM translations");
         for (const result of results) {
             const collection = new Collection<string, { messageId: Snowflake, channelId: Snowflake }>();
-            const parsed = JSON.parse(result.translations);
-            for (const prop in parsed) collection.set(prop, parsed[prop]);
+            for (const translation of JSON.parse(result.translations)) collection.set(translation.lang, { messageId: translation.messageId, channelId: translation.channelId });
             NorthClient.storage.guilds[result.guild].translations.set(result.id, { messageId: result.id, channelId: result.channel, guildId: result.guild, translations: collection, existingId: result.existing });
         }
     }
@@ -682,7 +681,7 @@ export class AliceHandler extends Handler {
             const key = NorthClient.storage.guilds[message.guildId]?.translations?.findKey(trans => trans.translations.has(message.id));
             const translation = NorthClient.storage.guilds[message.guildId].translations.get(key);
             translation.translations.delete(message.id);
-            await query(`UPDATE translations SET translations = "${mysqlEscape(JSON.stringify(translation.translations))}" WHERE id = ${key}`);
+            await query(`UPDATE translations SET translations = ${mysqlEscape(JSON.stringify(translation.translations))} WHERE id = ${key}`);
             NorthClient.storage.guilds[message.guildId].translations.set(key, translation);
         }
         super.messageDelete(message);
@@ -829,7 +828,7 @@ export class AliceHandler extends Handler {
                             const trans = NorthClient.storage.guilds[message.guildId].translations.get(id);
                             trans.translations.set(lang, { messageId: message.id, channelId: message.channelId });
                             NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
-                            await query(`UPDATE translations SET translations = "${mysqlEscape(JSON.stringify(trans.translations))}" WHERE id = ${id}`);
+                            await query(`UPDATE translations SET translations = ${mysqlEscape(JSON.stringify({ lang, messageId: message.id, channelId: message.channelId }))} WHERE id = ${id}`);
                             await interaction.update({ embeds: [], components: [], content: `Linked translation to message ${id}.` });
                             await message.react("✅");
                             collector.emit("end");
@@ -843,7 +842,7 @@ export class AliceHandler extends Handler {
                             }
                             trans.translations.set(lang, { messageId: message.id, channelId: message.channelId });
                             NorthClient.storage.guilds[message.guildId].translations.set(id, trans);
-                            await query(`UPDATE translations SET translations = "${mysqlEscape(JSON.stringify(trans.translations))}" WHERE id = ${id}`);
+                            await query(`UPDATE translations SET translations = ${mysqlEscape(JSON.stringify({ lang, messageId: message.id, channelId: message.channelId }))} WHERE id = ${id}`);
                             await interaction.update({ embeds: [], components: [], content: `Linked translation to message ${id}.` });
                             await message.react("✅");
                             collector.emit("end");

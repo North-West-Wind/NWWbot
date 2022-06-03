@@ -409,7 +409,7 @@ class GuildCommand implements SlashCommand {
 						mc: uuid,
 						endAt: new Date(Date.now() + duration)
 					});
-					await query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', '${mysqlEscape(ranks)}', '${uuid}', '${jsDate2Mysql(new Date(Date.now() + duration))}')`);
+					await query(`INSERT INTO gtimer VALUES(NULL, '${user.id}', ${mysqlEscape(ranks)}, '${uuid}', '${jsDate2Mysql(new Date(Date.now() + duration))}')`);
 					await msgOrRes(message, "Timer recorded.");
 				} catch (err: any) {
 					console.error(err);
@@ -421,9 +421,9 @@ class GuildCommand implements SlashCommand {
 					try {
 						const index = NorthClient.storage.gtimers.indexOf(NorthClient.storage.gtimers.find(t => t.user == user.id));
 						if (index > -1) NorthClient.storage.gtimers.splice(index, 1);
-						const results = await query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${mysqlEscape(ranks)}'`);
+						const results = await query(`SELECT id FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = ${mysqlEscape(ranks)}`);
 						if (results.length == 0) throw new Error("Not found");
-						await query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = '${mysqlEscape(ranks)}'`);
+						await query(`DELETE FROM gtimer WHERE user = '${user.id}' AND mc = '${uuid}' AND dc_rank = ${mysqlEscape(ranks)}`);
 					} catch (err: any) {
 						console.error(err);
 					}
