@@ -61,7 +61,7 @@ class TranslationCommand implements SlashCommand {
 
 	async announce(interaction: NorthInteraction) {
 		const channel = interaction.options.getChannel("channel");
-		if (!channel.isText()) return await interaction.editReply(`The channel is not a text channel!`);
+		if (!(channel instanceof TextChannel)) return await interaction.editReply(`The channel is not a text channel!`);
 		var id: Snowflake;
 		if (id = interaction.options.getString("id")) {
 			const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
