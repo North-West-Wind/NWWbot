@@ -74,7 +74,7 @@ class TranslationCommand implements SlashCommand {
 			} else await interaction.editReply(`Message with ID ${id} doesn't exist!`);
 			return;
 		}
-		const translations = NorthClient.storage.guilds[interaction.guildId].translations.filter(trans => trans.ended);
+		const translations = NorthClient.storage.guilds[interaction.guildId].translations.filter(trans => !trans.existingId);
 		const allEmbeds: MessageEmbed[] = [];
 		const allRows: MessageActionRow[][] = [];
 		const pages = Math.ceil(translations.size / 5);
@@ -160,7 +160,7 @@ class TranslationCommand implements SlashCommand {
 			} else await interaction.editReply(`Message with ID ${id} doesn't exist!`);
 			return;
 		}
-		const translations = NorthClient.storage.guilds[interaction.guildId].translations.filter(trans => trans.ended);
+		const translations = NorthClient.storage.guilds[interaction.guildId].translations.filter(trans => !trans.ended);
 		const allEmbeds: MessageEmbed[] = [];
 		const allRows: MessageActionRow[][] = [];
 		const pages = Math.ceil(translations.size / 5);
@@ -242,7 +242,7 @@ class TranslationCommand implements SlashCommand {
 			await int.update({ embeds: [], components: [], content: (await (<TextChannel>await interaction.guild.channels.fetch(translation.channelId)).messages.fetch(translation.messageId)).content });
 			return;
 		}
-		const translations = NorthClient.storage.guilds[interaction.guildId].translations.filter(trans => trans.ended);
+		const translations = NorthClient.storage.guilds[interaction.guildId].translations.filter(trans => trans.existingId);
 		const allEmbeds: MessageEmbed[] = [];
 		const allRows: MessageActionRow[][] = [];
 		const pages = Math.ceil(translations.size / 5);
