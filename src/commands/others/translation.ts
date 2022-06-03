@@ -60,7 +60,7 @@ class TranslationCommand implements SlashCommand {
 	}
 
 	async announce(interaction: NorthInteraction) {
-		if (!(<Permissions> interaction.member.permissions.has(BigInt(32)))) return await interaction.editReply("You don't have the permissions to use this subcommand!");
+		if (!(<Permissions> interaction.member.permissions).has(BigInt(32))) return await interaction.editReply("You don't have the permissions to use this subcommand!");
 		const channel = interaction.options.getChannel("channel");
 		if (!(channel instanceof TextChannel)) return await interaction.editReply(`The channel is not a text channel!`);
 		var id: Snowflake;
@@ -151,7 +151,7 @@ class TranslationCommand implements SlashCommand {
 	}
 
 	async end(interaction: NorthInteraction) {
-		if (!(<Permissions> interaction.member.permissions.has(BigInt(32)))) return await interaction.editReply("You don't have the permissions to use this subcommand!");
+		if (!(<Permissions> interaction.member.permissions).has(BigInt(32))) return await interaction.editReply("You don't have the permissions to use this subcommand!");
 		var id: Snowflake;
 		if (id = interaction.options.getString("id")) {
 			const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
