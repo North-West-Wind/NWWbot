@@ -1,7 +1,7 @@
 import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import config from "../../../config.json";
 import { msgOrRes, shuffleArray } from "../../function.js";
-import translate from "translate-google";
+import translate from "@vitalets/google-translate-api";
 const langs = config.languages;
 
 class TranslateCommand implements FullCommand {
@@ -30,8 +30,8 @@ class TranslateCommand implements FullCommand {
 
     async repeat(message: NorthMessage | NorthInteraction, text: string) {
         const langCopy = shuffleArray(langs);
-        for (let i = 0; i < 25; i++) text = await translate(text, { to: langCopy[i] });
-        await msgOrRes(message, await translate(text, { to: "en" }));
+        for (let i = 0; i < 25; i++) text = (await translate(text, { to: langCopy[i] })).text;
+        await msgOrRes(message, (await translate(text, { to: "en" })).text);
     }
 }
 

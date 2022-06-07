@@ -1,9 +1,9 @@
 
-import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand, NorthClient } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color } from "../../function.js";
 import { globalClient as client } from "../../common.js";
-import googleIt from "google-it";
+import google from "googlethis";
 
 class GoogleCommand implements FullCommand {
   name = "google"
@@ -12,37 +12,30 @@ class GoogleCommand implements FullCommand {
   args = 1
   category = 4
   options = [{
-      name: "query",
-      description: "The keywords to search for.",
-      required: true,
-      type: "STRING"
+    name: "query",
+    description: "The keywords to search for.",
+    required: true,
+    type: "STRING"
   }]
-  
+
   async execute(interaction: NorthInteraction) {
     await interaction.deferReply();
-    await interaction.editReply({embeds: [await this.getSearchEmbed(interaction.options.getString("query"))]});
+    await interaction.editReply({ embeds: [await this.getSearchEmbed(interaction.options.getString("query"), !interaction.guildId || NorthClient.storage.guilds[interaction.guildId].safe)] });
   }
 
   async run(message: NorthMessage, args: string[]) {
-    await message.channel.send({embeds: [await this.getSearchEmbed(args.join(" "))]});
+    await message.channel.send({ embeds: [await this.getSearchEmbed(args.join(" "), !message.guildId || NorthClient.storage.guilds[message.guildId].safe)] });
   }
 
-  async getSearchEmbed(query: string) {
-    const results = [];
-    var links = await googleIt({ limit: 10, query });
+  async getSearchEmbed(query: string, safe: boolean) {
+    const { results } = await google.search(query, { page: 0, safe });
     var num = 0;
-    for(var i = 0; i < links.length; i++) {
-      try {results.push(`${++num}. **[${links[i].title}](${links[i].link})**`);}
-      catch(err) {
-        --num
-      }
-    }
     const Embed = new Discord.MessageEmbed()
-    .setColor(color())
-    .setTitle("Search results of " + query)
-    .setDescription(results.join("\n"))
-    .setTimestamp()
-    .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
+      .setColor(color())
+      .setTitle("Search results of " + query)
+      .setDescription(results.map(result => `${++num}. **[${result.title}](${result.url})**`).join("\n"))
+      .setTimestamp()
+      .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
     return Embed;
   }
 }
