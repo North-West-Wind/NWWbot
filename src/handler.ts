@@ -766,10 +766,12 @@ export class AliceHandler extends Handler {
                 await msg.edit("Error updating record! Please contact NorthWestWind#1885 to fix this.").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
             }
             return;
-        } else if (!message.author.bot && message.member.permissions.has(BigInt(32))) {
+        } else if (!message.author.bot) {
+            const translatorRole = await message.guild.roles.fetch("640150106028638229");
+            if (message.member.roles.highest.position < translatorRole.position) return;
             for (const lang in this.langMap) {
                 if (message.channelId == this.langMap[lang]) {
-                    if (lang === "english") {
+                    if (lang === "english" && message.member.permissions.has(BigInt(32))) {
                         const msg = await message.channel.send({ content: "Do you want to accept translation for this message?", components: [new MessageActionRow().addComponents(new MessageButton({ customId: "yes", label: "Yes", emoji: "✅", style: "SUCCESS" }), new MessageButton({ customId: "no", label: "No", emoji: "✖️", style: "DANGER" }))] });
                         const interaction = <MessageComponentInteraction>await msg.awaitMessageComponent({ filter: interaction => interaction.user.id === message.author.id, time: 30000 }).catch(() => null);
                         if (!interaction?.isButton() || interaction.customId === "no") return interaction.deleteReply();
@@ -866,7 +868,7 @@ export class AliceHandler extends Handler {
                 }
             }
         }
-        if (message.content?.toLowerCase() === "ez") {
+        if (message.content?.toLowerCase().search("ez")) {
             await message.delete();
             await message.channel.send(`<@${message.author.id}> said:\n> ${AliceHandler.replacements[Math.floor(Math.random() * AliceHandler.replacements.length)]}`);
         }
