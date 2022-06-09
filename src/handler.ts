@@ -868,7 +868,7 @@ export class AliceHandler extends Handler {
                 }
             }
         }
-        if (message.content?.toLowerCase().search("ez")) {
+        if (message.content?.toLowerCase().split(/ +/).includes("ez")) {
             await message.delete();
             await message.channel.send(`<@${message.author.id}> said:\n> ${AliceHandler.replacements[Math.floor(Math.random() * AliceHandler.replacements.length)]}`);
         }
