@@ -769,6 +769,10 @@ export class AliceHandler extends Handler {
         } else if (!message.author.bot) {
             const translatorRole = await message.guild.roles.fetch("640150106028638229");
             if (message.member.roles.highest.position < translatorRole.position) return;
+            else if (message.content?.toLowerCase().split(/ +/).includes("ez")) {
+                await message.delete();
+                await message.channel.send(`<@${message.author.id}> said:\n> ${AliceHandler.replacements[Math.floor(Math.random() * AliceHandler.replacements.length)]}`);
+            }
             for (const lang in this.langMap) {
                 if (message.channelId == this.langMap[lang]) {
                     if (lang === "english" && message.member.permissions.has(BigInt(32))) {
@@ -867,10 +871,6 @@ export class AliceHandler extends Handler {
                     break;
                 }
             }
-        }
-        if (message.content?.toLowerCase().split(/ +/).includes("ez")) {
-            await message.delete();
-            await message.channel.send(`<@${message.author.id}> said:\n> ${AliceHandler.replacements[Math.floor(Math.random() * AliceHandler.replacements.length)]}`);
         }
         super.message(message);
     }
