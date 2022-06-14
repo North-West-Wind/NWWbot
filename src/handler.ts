@@ -205,7 +205,7 @@ export class Handler {
             for (const lang in parsed) {
                 collection.set(lang, { messageId: parsed[lang].messageId, channelId: parsed[lang].channelId });
             }
-            NorthClient.storage.guilds[result.guild].translations.set(result.id, { messageId: result.id, channelId: result.channel, guildId: result.guild, translations: collection, existingId: result.existing });
+            NorthClient.storage.guilds[result.guild]?.translations.set(result.id, { messageId: result.id, channelId: result.channel, guildId: result.guild, translations: collection, existingId: result.existing });
         }
     }
 
