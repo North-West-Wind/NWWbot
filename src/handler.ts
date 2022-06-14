@@ -1,5 +1,5 @@
 import cv from "canvas";
-import { Collection, CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Message, MessageActionRow, MessageAttachment, MessageButton, MessageComponentInteraction, MessageEmbed, MessageReaction, MessageSelectMenu, Modal, ModalSubmitInteraction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Role, Snowflake, TextChannel, TextInputComponent, User, VoiceState } from "discord.js";
+import { Collection, CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Invite, Message, MessageActionRow, MessageAttachment, MessageButton, MessageComponentInteraction, MessageEmbed, MessageReaction, MessageSelectMenu, Modal, ModalSubmitInteraction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Role, Snowflake, TextChannel, TextInputComponent, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
 import { getRandomNumber, jsDate2Mysql, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo, getFont, replaceWithObj, mysqlEscape, wait } from "./function.js";
@@ -234,17 +234,15 @@ export class Handler {
         const simMems = NorthClient.storage.guilds[guild.id].checkMember(member);
         if (simMems.length >= 2) console.debug(`Potential nuke happening on ${guild.name}. Members: ${simMems.map(mem => mem.user.tag).join(" ")} ${member}`);
         if (member.user.bot) return;
-        guild.invites.fetch().then(async guildInvites => {
+        guild.invites.fetch().then(async invites => {
             const ei = NorthClient.storage.guilds[member.guild.id].invites;
-            NorthClient.storage.guilds[member.guild.id].invites = guildInvites;
-            const invite = guildInvites.find(i => !ei.get(i.code) || ei.get(i.code).uses < i.uses);
+            NorthClient.storage.guilds[member.guild.id].invites = invites;
+            const invite = invites.find(i => ei.get(i.code)?.uses < i.uses);
             if (!invite) return;
             const inviter = await client.users.fetch(invite.inviter.id);
-            if (!inviter) return;
-            const allUserInvites = guildInvites.filter(i => i.inviter.id === inviter.id && i.guild.id === guild.id);
-            const reducer = (a: number, b: number) => a + b;
-            const uses = allUserInvites.map(i => i.uses ? i.uses : 0).reduce(reducer);
-            if (NorthClient.storage.noLog.find(x => x === inviter.id)) return;
+            if (!inviter || NorthClient.storage.noLog.find(x => x === inviter.id)) return;
+            const allUserInvites = invites.filter(i => i.inviter.id === inviter.id && i.guild.id === guild.id);
+            const uses = allUserInvites.map(i => i.uses ? i.uses : 0).reduce((a, b) => a + b);
             try {
                 await inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${client.prefix}invites toggle\` to turn it off)`);
             } catch (err: any) { }
@@ -438,6 +436,12 @@ export class Handler {
             }, timeout);
         } else if (oldState?.mute && (!newState?.channel || !newState?.mute))
             NorthClient.storage.guilds[guild.id].pendingKick.delete(newState.member.id);
+    }
+
+    async inviteCreate(invite: Invite) {
+        var invites = NorthClient.storage.guilds[invite.guild.id]?.invites;
+        if (!invites) invites = new Collection();
+        invites.set(invite.code, invite);
     }
 
     messagePrefix(message: Message, client: NorthClient): string {
