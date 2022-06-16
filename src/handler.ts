@@ -307,6 +307,7 @@ export class Handler {
                     }
                 };
                 img.src = welcome.image.images[Math.floor(Math.random() * welcome.image.images.length)];
+                console.log("Using image: ", img.src);
             }
             if (welcome?.autorole.length > 0) {
                 const roleArray = welcome.autorole;
