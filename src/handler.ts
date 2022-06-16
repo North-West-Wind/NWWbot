@@ -306,8 +306,11 @@ export class Handler {
                         console.error(err);
                     }
                 };
+                img.onerror = (err) => {
+                    console.log("Error loading ", img.src);
+                    console.error(err);
+                }
                 img.src = welcome.image.images[Math.floor(Math.random() * welcome.image.images.length)];
-                console.log("Using image: ", img.src);
             }
             if (welcome?.autorole.length > 0) {
                 const roleArray = welcome.autorole;
