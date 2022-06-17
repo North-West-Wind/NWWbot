@@ -376,15 +376,17 @@ export class Handler {
         }
     }
 
-    async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
+    async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember): Promise<any> {
         const client = <NorthClient>(oldMember.client || newMember.client);
         if (oldMember.premiumSinceTimestamp || !newMember.premiumSinceTimestamp) return;
         const boost = NorthClient.storage.guilds[newMember.guild.id]?.boost;
-        if (!boost?.channel || !boost.message) return;
-        try {
-            const channel = <TextChannel>await client.channels.fetch(boost.channel);
-            await channel.send(boost.message.replace(/\{user\}/gi, `<@${newMember.id}>`));
-        } catch (err: any) { }
+        if (boost?.channel && boost.message) {
+            try {
+                const channel = <TextChannel>await client.channels.fetch(boost.channel);
+                await channel.send(boost.message.replace(/\{user\}/gi, `<@${newMember.id}>`));
+            } catch (err: any) { }
+        }
+        return true;
     }
 
     async messageReactionAdd(r: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
@@ -684,6 +686,12 @@ export class AliceHandler extends Handler {
         await channel.send({ files: [new MessageAttachment("https://cdn.discordapp.com/attachments/714804870078660630/978258723749367829/standard_7.gif")] });
     }
 
+    async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
+        if (super.guildMemberUpdate(oldMember, newMember)) {
+
+        }
+    }
+
     async messageDelete(message: Message | PartialMessage) {
         if (NorthClient.storage.guilds[message.guildId]?.translations?.has(message.id)) {
             NorthClient.storage.guilds[message.guildId].translations.delete(message.id);
@@ -760,7 +768,7 @@ export class AliceHandler extends Handler {
                 if (hyDc !== message.author.tag) return await msg.edit("⚠️This Hypixel account is not linked to your Discord account!\nIf you have just linked your account, you may need to wait for a few minutes.\nhttps://cdn.discordapp.com/attachments/647630951169523762/951420917588836372/verify.gif").then(msg => setTimeout(() => msg.delete().catch(() => { }), 60000));
                 var results = await query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
                 if (results.length == 0) {
-                    await query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}')`);
+                    await query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}', 0)`);
                     msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
                     console.log("Inserted record for mc-name.");
                 } else {
@@ -884,10 +892,10 @@ export class AliceHandler extends Handler {
     }
 }
 
-export class CanaryHandler extends Handler {
+export class V2Handler extends Handler {
     static async setup(client: NorthClient, token: string) {
         await common(client);
-        new CanaryHandler(client);
+        new V2Handler(client);
         client.login(token);
     }
 
@@ -896,13 +904,25 @@ export class CanaryHandler extends Handler {
     }
 
     async readServers(client: NorthClient) {
-        var results = await query("SELECT * FROM configs WHERE id <> '622311594654695434' AND id <> '819539026792808448'");
+        var results = await query("SELECT * FROM configs WHERE id <> '622311594654695434'");
         results.forEach(async result => {
             const guild = await client.guilds.fetch(result.id).catch(() => null);
             NorthClient.storage.guilds[result.id] = new GuildConfig(result);
             if (guild) MutedKickSetting.check(guild);
         });
         console.log(`[${client.id}] Set ${results.length} configurations`);
+    }
+}
+
+export class CanaryHandler extends V2Handler {
+    static async setup(client: NorthClient, token: string) {
+        await common(client);
+        new CanaryHandler(client);
+        client.login(token);
+    }
+
+    constructor(client: NorthClient) {
+        super(client);
     }
 
     messagePrefix(_message: Message, _client: NorthClient): string {

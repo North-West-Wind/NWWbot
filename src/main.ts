@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import { Handler } from "./handler.js";
+import { Handler, V2Handler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
 import { Intents, Options } from "discord.js";
 import express from "express";
@@ -27,7 +27,8 @@ NorthClient.storage = new ClientStorage();
 
 client.prefix = config.prefix0;
 client.id = 0;
-Handler.setup(client, process.env.TOKEN0);
+if (process.argv.includes("--old")) Handler.setup(client, process.env.TOKEN_OLD);
+else V2Handler.setup(client, process.env.TOKEN0);
 
 const app = express();
 

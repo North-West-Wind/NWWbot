@@ -44,21 +44,27 @@ setInterval(async () => {
   } catch (err: any) { }
 }, 3600000);
 
+const points = [5, 2, 1];
+var top3: { uuid: string, exp: number }[] = [];
+var lastDate: string;
 setInterval(async () => {
   try {
     const guildApi = <any> await fetch(`https://api.slothpixel.me/api/guilds/id/5b25306a0cf212fe4c98d739?key=${process.env.API}`).then(res => res.json());
     const level = Math.round(guildApi.level);
     const members = guildApi.members;
-    var top = { member: null, exp: 0 };
-    for (const member of members) {
-      const exp = <number> Object.values(member.exp_history)[0];
-      if (exp > top.exp) {
-        top.exp = exp;
-        top.member = member.uuid;
+    const latestDate = Object.keys(members[0].exp_history)[0];
+    if (lastDate !== latestDate && top3.length == 3) {
+      for (let ii = 0; ii < top3.length; ii++) {
+        const top = top3[ii];
+        const [result] = await query(`SELECT tokens FROM dcmc WHERE uuid = '${top.uuid}'`);
+        if (!result) continue;
+        await query(`UPDATE dcmc SET tokens = ${result.tokens + points[ii]}`);
       }
     }
-    (<VoiceChannel> await client.channels.fetch("871765968190324796")).edit({ name: `Guild Members: ${members.length}` });
+    top3 = members.map((mem: any) => ({ uuid: mem.uuid, exp: mem.exp_history[latestDate] })).sort((a: any, b: any) => b.exp - a.exp).slice(0, 3);
+    lastDate = latestDate;
     (<VoiceChannel> await client.channels.fetch("871768634228355162")).edit({ name: `Guild Level: ${level}` });
-    (<VoiceChannel> await client.channels.fetch("871768862629187606")).edit({ name: `Daily Guild Top: ${(await profile(top.member)).name}` });
+    (<VoiceChannel> await client.channels.fetch("871765968190324796")).edit({ name: `Guild Members: ${members.length}` });
+    (<VoiceChannel> await client.channels.fetch("871768862629187606")).edit({ name: `Daily Guild Top: ${(await profile(top3[0].uuid)).name}` });
   } catch (err: any) { }
 }, 60000);

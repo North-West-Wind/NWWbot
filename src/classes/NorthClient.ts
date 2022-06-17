@@ -3,7 +3,7 @@ import { RowDataPacket } from "mysql2/promise";
 import { strDist } from "../function.js";
 
 export class NorthClient extends Client {
-    constructor(options: ClientOptions) {
+    constructor(options?: ClientOptions) {
         super(options);
     }
 

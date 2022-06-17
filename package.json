@@ -9,6 +9,7 @@
     "alice": "node --optimize_for_size --max_old_space_size=256 --gc_interval=100 --experimental-json-modules out/src/alice.js",
     "canary": "node --optimize_for_size --max_old_space_size=256 --gc_interval=100 --experimental-json-modules out/src/canary.js",
     "api": "node --optimize_for_size --max_old_space_size=256 --gc_interval=100 --experimental-json-modules out/src/api.js",
+    "old": "npm start --old",
     "tsc": "node fix.js && tsc"
   },
   "engines": {
