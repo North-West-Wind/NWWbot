@@ -45,4 +45,7 @@ app.get("/checkGuild/:guild", async (req, res) => {
     res.json({ guildId: id, isIn: isInGuild });
 });
 
+app.once("error", err => {
+    if (err.code != "EADDRINUSE") throw err;
+})
 app.listen(3001);
