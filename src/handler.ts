@@ -17,7 +17,6 @@ const emojis = cfg.poll;
 const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
 
 export class Handler {
-    static lastRunCommand: string;
     protected readonly client: NorthClient;
 
     static async setup(client: NorthClient, token: string) {
@@ -113,7 +112,7 @@ export class Handler {
     async preRead() { }
 
     async setPresence() {
-        this.client.user.setPresence({ activities: [{ name: `AFK | ${this.client.prefix}help`, type: "PLAYING" }], status: "idle", afk: true });
+        this.client.user.setPresence({ activities: [{ name: `Important! Click!`, type: "PLAYING" }], status: "dnd", afk: true });
     }
 
     async readCurrency() {
@@ -475,7 +474,6 @@ export class Handler {
         const commandName = args.shift().toLowerCase();
         const command = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
         if (!command || !(typeof command["run"] === "function")) return;
-        Handler.lastRunCommand = command.name;
         try {
             const catFilter = filter[sCategories.map(x => x.toLowerCase())[(command.category)]];
             if (await filter.all(command, msg, args) && (catFilter ? await catFilter(command, msg) : true)) await (<IPrefix><unknown>command).run(msg, args);
@@ -922,6 +920,10 @@ export class V2Handler extends Handler {
 
     constructor(client: NorthClient) {
         super(client);
+    }
+
+    async setPresence() {
+        this.client.user.setPresence({ activities: [{ name: `AFK | ${this.client.prefix}help`, type: "PLAYING" }], status: "idle", afk: true });
     }
 
     async readServers() {

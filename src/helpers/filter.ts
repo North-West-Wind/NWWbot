@@ -37,7 +37,7 @@ export async function all(command: Command, message: NorthMessage | NorthInterac
             }
         }
     }
-    if (message.client.id == 0) {
+    if (message.client.id == 0 && !process.argv.includes("--old")) {
         if (timeout) {
             clearTimeout(timeout);
             timeout = undefined;
