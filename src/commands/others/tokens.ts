@@ -1,5 +1,5 @@
-import { NorthInteraction, SlashCommand } from "../../classes/NorthClient";
-import { getTokensAndMultiplier, updateMultiplier, updateTokens } from "../../function";
+import { NorthInteraction, SlashCommand } from "../../classes/NorthClient.js";
+import { getTokensAndMultiplier, updateMultiplier, updateTokens } from "../../function.js";
 
 class TokensCommand implements SlashCommand {
 	name = "tokens";
