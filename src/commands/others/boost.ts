@@ -8,6 +8,7 @@ class BoostCommand implements FullCommand {
     name = "boost";
     description = "Displays boost information.";
     category = -1;
+    permissions = { guild: { user: 8 } };
 
     async execute(interaction: NorthInteraction) {
         const stats = await this.getStats();

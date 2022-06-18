@@ -33,7 +33,7 @@ class GreetCommand implements FullCommand {
 
   async run(message: NorthMessage, args: string[]) {
     var taggedUser = message.author;
-    if (args[0]) try { taggedUser = await findUser(message, args[0]); } catch (err) { }
+    if (args[0]) try { taggedUser = await findUser(args[0]); } catch (err) { }
     if (!taggedUser) return;
     const chosen = GREETINGS[Math.floor(GREETINGS.length * Math.random())];
     await message.channel.send(chosen.replace(/\<user\>/, `<@${taggedUser.id}>`));

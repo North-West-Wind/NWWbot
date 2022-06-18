@@ -249,11 +249,11 @@ export function setTimeout_(fn: Function, delay: number) {
 }
 
 // D.js object fetchers
-export async function findUser(message: Discord.Message | Discord.CommandInteraction, str: string): Promise<Discord.User> {
+export async function findUser(str: string): Promise<Discord.User> {
     if (isNaN(parseInt(str))) if (!str.startsWith("<@")) throw new Error("**" + str + "** is neither a mention or ID.");
     const userID = str.replace(/<@/g, "").replace(/!/g, "").replace(/>/g, "");
     try {
-        return await message.client.users.fetch(userID);
+        return await globalClient.users.fetch(userID);
     } catch (err: any) {
         throw new Error("No user was found!");
     }
@@ -662,6 +662,8 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
     }
     return NorthClient.storage.guilds[id];
 }
+
+// Sub-bot things
 export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: string) {
     const { name } = await profile(mcUuid);
     const res = await fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => <any>res.json());
@@ -717,6 +719,27 @@ export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: s
     else if (res.rank === "MVP") await roles.add("837271173027856404");
     else if (res.rank === "MVP_PLUS") await roles.add("837271172319674378");
     else if (res.rank === "MVP_PLUS_PLUS") await roles.add("837271171619356692");
+}
+export async function getTokensAndMultiplier(author: Discord.Snowflake, uuid: string) {
+    var conditions: string[], condition = " WHERE ";
+    if (author) conditions.push(`dcid = "${author}"`);
+    if (uuid) conditions.push(`uuid = "${uuid}"`);
+    const [result] = await query(`SELECT tokens, multiplier FROM dcmc${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
+    return <{ tokens: number, multiplier: number }> result;
+}
+export async function updateTokens(author: Discord.Snowflake, uuid: string, change: number, data?: { tokens: number, multiplier: number }) {
+    if (!data) {
+        data = await getTokensAndMultiplier(author, uuid);
+        if (!data) return;
+    }
+    await query(`UPDATE dcmc SET tokens = ${data.tokens + change * data.multiplier}`);
+}
+export async function updateMultiplier(author: Discord.Snowflake, uuid: string, change: number, data?: { tokens: number, multiplier: number }) {
+    if (!data) {
+        data = await getTokensAndMultiplier(author, uuid);
+        if (!data) return;
+    }
+    await query(`UPDATE dcmc SET multiplier = ${data.multiplier + change}`);
 }
 
 // Prototyping

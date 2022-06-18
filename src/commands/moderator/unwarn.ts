@@ -35,7 +35,7 @@ class UnWarnCommand implements FullCommand {
     async run(message: NorthMessage, args: string[]) {
         var user: Discord.User;
         try {
-            user = await findUser(message, args[0]);
+            user = await findUser(args[0]);
         } catch (err: any) {
             return await message.channel.send(err.message);
         }

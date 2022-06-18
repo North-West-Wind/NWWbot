@@ -43,7 +43,7 @@ class SpamCommand implements FullCommand {
     async run(message: NorthMessage, args: string[]) {
         var taggedUser: User;
         try {
-            taggedUser = await findUser(message, args[0]);
+            taggedUser = await findUser(args[0]);
         } catch (err: any) {
             return await message.channel.send(err.message);
         }

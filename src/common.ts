@@ -1,7 +1,7 @@
 import canvas from "canvas";
 import * as fs from "fs";
 import { NorthClient, Card, FullCommand, Item, ClientStorage, Command } from "./classes/NorthClient.js";
-import { twoDigits, deepReaddir, query } from "./function.js";
+import { twoDigits, deepReaddir, query, jsDate2Mysql } from "./function.js";
 import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
 import memwatch from "node-memwatch-new";
@@ -79,20 +79,14 @@ export default async (client: NorthClient) => {
   if (!fs.existsSync(process.env.CACHE_DIR)) fs.mkdirSync(process.env.CACHE_DIR);
 
   setInterval(async () => {
-    if (NorthClient.storage.pendingLvlData.length) {
-      try {
-        const results = await query(`SELECT * FROM leveling`);
-        for (const q of NorthClient.storage.pendingLvlData) try {
-          const result = results.find(x => x.user == q.author && x.guild == q.guild);
-          if (!result) await query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${q.author}', '${q.guild}', ${q.exp}, '${q.date}')`);
-          else {
-            if (Date.now() - result.last < 60000) continue;
-            const newExp = parseInt(result.exp) + q.exp;
-            await query(`UPDATE leveling SET exp = ${newExp}, last = '${q.date}' WHERE user = '${q.author}' AND guild = '${q.guild}'`);
-          }
-        } catch (err: any) { }
-      } catch (err: any) { }
-      NorthClient.storage.pendingLvlData = [];
+    const results = await query(`SELECT id FROM leveling`);
+    for (const data of Object.values(NorthClient.storage.guilds).map(guild => guild.levelData)) {
+      for (const datum of data.values()) {
+        if (!datum.changed) continue;
+        const result = results.find(x => x.user == datum.author && x.guild == datum.guild);
+        if (!result) await query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${datum.author}', '${datum.guild}', ${datum.exp}, '${jsDate2Mysql(datum.date)}')`);
+        else await query(`UPDATE leveling SET exp = ${datum.exp}, last = '${datum.date}' WHERE user = '${datum.author}' AND guild = '${datum.guild}'`);
+      }
     }
   }, 60000);
 }

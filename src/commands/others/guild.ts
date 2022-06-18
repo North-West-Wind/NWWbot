@@ -392,7 +392,7 @@ class GuildCommand implements SlashCommand {
 				if (!args[5]) return await msgOrRes(message, "Please provide the rank of the user!");
 				var user: Discord.User;
 				try {
-					user = await findUser(message, args[2]);
+					user = await findUser(args[2]);
 				} catch (err: any) {
 					return await msgOrRes(message, err.message);
 				}
@@ -434,7 +434,7 @@ class GuildCommand implements SlashCommand {
 				if (!args[2]) return await msgOrRes(message, "Please mention a user or provide the user's ID!");
 				var user: Discord.User;
 				try {
-					user = await findUser(message, args[2]);
+					user = await findUser(args[2]);
 				} catch (err: any) {
 					return await msgOrRes(message, err.content);
 				}

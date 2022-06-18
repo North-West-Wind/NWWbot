@@ -159,6 +159,7 @@ export class GuildConfig {
     joinedMembers: GuildMember[] = [];
     joinedClear: NodeJS.Timeout;
     pendingKick: Set<Snowflake> = new Set();
+    levelData: Collection<Snowflake, LevelData> = new Collection();
 
     constructor(data: RowDataPacket = (<RowDataPacket> {})) {
         if (data) {
@@ -232,21 +233,23 @@ export class ClientStorage {
     mathgames: Collection<any, any> = new Collection();
     migrating: any[] = [];
     gtimers: GuildTimer[] = [];
-    pendingLvlData: LevelData[] = [];
 }
 
 export class LevelData {
-    constructor(a: Snowflake, g: Snowflake, e: number, d: string) {
-        this.author = a;
-        this.guild = g;
-        this.exp = e;
-        this.date = d;
+    constructor(author: Snowflake, guild: Snowflake, exp: number, date: Date, multiplier?: number) {
+        this.author = author;
+        this.guild = guild;
+        this.exp = exp;
+        this.date = date;
+        if (multiplier) this.multiplier = multiplier;
     }
 
     author: Snowflake;
     guild: Snowflake;
     exp: number;
-    date: string;
+    date: Date;
+    multiplier: number = 1;
+    changed: boolean;
 }
 
 export class PollVote {

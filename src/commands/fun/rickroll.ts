@@ -31,7 +31,7 @@ class RickrollCommand implements FullCommand {
         if (!args[0]) return await message.channel.send({files: [attachment]});
         var user: Discord.User;
         try {
-            user = await findUser(message, args[0]);
+            user = await findUser(args[0]);
         } catch (err: any) {
             return await message.channel.send(err.message);
         }

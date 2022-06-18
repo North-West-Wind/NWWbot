@@ -5,6 +5,7 @@ import { color, query } from "../../function.js";
 class TranslationCommand implements SlashCommand {
 	name = "translation";
 	description = "Handles translations of messages.";
+	category = -1;
 	options = [
 		{
 			name: "announce",

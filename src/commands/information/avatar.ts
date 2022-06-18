@@ -31,7 +31,7 @@ class AvatarCommand implements FullCommand {
         var user;
         if (!args[0]) user = message.author;
         else try {
-            user = await findUser(message, args[0]);
+            user = await findUser(args[0]);
         } catch (err: any) {
             return await message.channel.send(err.message);
         }

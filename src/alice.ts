@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 import { AliceHandler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
-import { getFetch, profile, query, updateGuildMemberMC } from "./function.js";
+import { getFetch, profile, query, updateGuildMemberMC, updateTokens } from "./function.js";
 import { Intents, Options, VoiceChannel } from "discord.js";
 import config from "../config.json";
 dotenv.config();
@@ -56,9 +56,7 @@ setInterval(async () => {
     if (lastDate !== latestDate && top3.length == 3) {
       for (let ii = 0; ii < top3.length; ii++) {
         const top = top3[ii];
-        const [result] = await query(`SELECT tokens FROM dcmc WHERE uuid = '${top.uuid}'`);
-        if (!result) continue;
-        await query(`UPDATE dcmc SET tokens = ${result.tokens + points[ii]}`);
+        await updateTokens(null, top.uuid, points[ii]);
       }
     }
     top3 = members.map((mem: any) => ({ uuid: mem.uuid, exp: mem.exp_history[latestDate] })).sort((a: any, b: any) => b.exp - a.exp).slice(0, 3);

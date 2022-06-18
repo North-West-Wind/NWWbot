@@ -2,7 +2,7 @@ import cv from "canvas";
 import { Collection, CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Invite, Message, MessageActionRow, MessageAttachment, MessageButton, MessageComponentInteraction, MessageEmbed, MessageReaction, MessageSelectMenu, Modal, ModalSubmitInteraction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Role, Snowflake, TextChannel, TextInputComponent, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
-import { getRandomNumber, jsDate2Mysql, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo, getFont, replaceWithObj, mysqlEscape, wait } from "./function.js";
+import { getRandomNumber, jsDate2Mysql, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo, getFont, replaceWithObj, mysqlEscape, wait, updateTokens } from "./function.js";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig, FullCommand, SlashCommand, PrefixCommand, IPrefix, ISlash } from "./classes/NorthClient.js";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter.js";
@@ -11,12 +11,14 @@ import common from "./common.js";
 import cfg from "../config.json";
 import { endApplication } from "./commands/managements/apply.js";
 import { MutedKickSetting } from "./classes/Config.js";
+import { calculateLevel } from "./commands/fun/rank.js";
 const { createCanvas, loadImage, Image } = cv;
 const emojis = cfg.poll;
 const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
 
 export class Handler {
     static lastRunCommand: string;
+    protected readonly client: NorthClient;
 
     static async setup(client: NorthClient, token: string) {
         await common(client);
@@ -25,7 +27,8 @@ export class Handler {
     }
 
     constructor(client: NorthClient) {
-        client.once("ready", () => this.ready(client));
+        this.client = client;
+        client.once("ready", () => this.ready());
         client.on("guildMemberAdd", member => this.guildMemberAdd(member));
         client.on("guildMemberRemove", member => this.guildMemberRemove(member));
         client.on("guildCreate", guild => this.guildCreate(guild));
@@ -90,25 +93,30 @@ export class Handler {
         if (allMembers.size >= application.approve.size + application.decline.size) await endApplication(interaction.client, interaction.message.id, interaction.guildId);
     }
 
-    async messageLevel(message: Message) {
-        if (!message || !message.author || !message.author.id || !message.guild || message.author.bot) return;
-        const exp = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100));
+    async messageLevel(message: Message): Promise<any> {
+        if (!message.guild || message.author.bot) return;
         const date = new Date();
-        const sqlDate = jsDate2Mysql(date.getTime() + date.getTimezoneOffset() * 60000);
-        NorthClient.storage.pendingLvlData.push(new LevelData(message.author.id, message.guild.id, exp, sqlDate));
+        var data = NorthClient.storage.guilds[message.guildId].levelData.get(message.author.id);
+        if (!data) data = new LevelData(message.author.id, message.guildId, 0, date);
+        else if (date.getTime() - data.date.getTime() < 60000) return;
+        else data.date = date;
+        const oldLevel = calculateLevel(data.exp);
+        data.exp += Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100)) * data.multiplier;
+        data.changed = true;
+        return { oldLevel, level: calculateLevel(data.exp) };
     }
 
-    async preReady(client: NorthClient) {
-        client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
+    async preReady() {
+        this.client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
     }
 
-    async preRead(_client: NorthClient) { }
+    async preRead() { }
 
-    async setPresence(client: NorthClient) {
-        client.user.setPresence({ activities: [{ name: `AFK | ${client.prefix}help`, type: "PLAYING" }], status: "idle", afk: true });
+    async setPresence() {
+        this.client.user.setPresence({ activities: [{ name: `AFK | ${this.client.prefix}help`, type: "PLAYING" }], status: "idle", afk: true });
     }
 
-    async readCurrency(_client: NorthClient) {
+    async readCurrency() {
         const r = await query("SELECT id, bank FROM users");
         for (const result of r) {
             try {
@@ -121,40 +129,39 @@ export class Handler {
         }
     }
 
-    async readServers(client: NorthClient) {
+    async readServers() {
         var results = await query("SELECT * FROM configs WHERE id <> '622311594654695434'");
         results.forEach(async result => {
             try {
-                const guild = await client.guilds.fetch(result.id);
+                const guild = await this.client.guilds.fetch(result.id);
                 NorthClient.storage.guilds[result.id] = new GuildConfig(result);
                 MutedKickSetting.check(guild);
             } catch (err: any) {
                 return await query(`DELETE FROM configs WHERE id = '${result.id}'`);
             }
         });
-        console.log(`[${client.id}] Set ${results.length} configurations`);
+        console.log(`[${this.client.id}] Set ${results.length} configurations`);
     }
 
-    async readRoleMsg(client: NorthClient) {
+    async readRoleMsg() {
         const res = await query("SELECT * FROM rolemsg WHERE guild <> '622311594654695434'");
-        console.log(`[${client.id}] ` + "Found " + res.length + " role messages.");
+        console.log(`[${this.client.id}] ` + "Found " + res.length + " role messages.");
         const rm = res.map(r => {
-            // Remove unescape in the future
-            r.roles = JSON.parse(unescape(r.roles));
-            r.emojis = JSON.parse(unescape(r.emojis));
+            r.roles = JSON.parse(r.roles);
+            r.emojis = JSON.parse(r.emojis);
             return r;
         });
         NorthClient.storage.rm = <RoleMessage[]>rm;
     }
 
-    async readGiveaways(client: NorthClient) {
+    async readGiveaways() {
         var results = await query("SELECT * FROM giveaways WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
-        console.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
+        console.log(`[${this.client.id}] ` + "Found " + results.length + " giveaways");
         results.forEach(async (result: any) => {
             var currentDate = Date.now();
             var millisec = result.endAt - currentDate;
             try {
-                const channel = <TextChannel>await client.channels.fetch(result.channel);
+                const channel = <TextChannel>await this.client.channels.fetch(result.channel);
                 await channel.messages.fetch(result.id);
                 setTimeout_(async () => await endGiveaway(await channel.messages.fetch(result.id)), millisec);
             } catch (err) {
@@ -164,19 +171,19 @@ export class Handler {
         });
     }
 
-    async readPoll(client: NorthClient) {
+    async readPoll() {
         var results = await query("SELECT * FROM polls WHERE guild <> '622311594654695434' ORDER BY endAt ASC");
-        console.log(`[${client.id}] ` + "Found " + results.length + " polls.");
+        console.log(`[${this.client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(async (result: any) => {
             var currentDate = Date.now();
             var time = new Date(result.endAt).getTime() - currentDate;
             try {
-                const channel = <TextChannel>await client.channels.fetch(result.channel);
+                const channel = <TextChannel>await this.client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
                 for (const reaction of msg.reactions.cache.values()) {
                     if (!emojis.includes(reaction.emoji.name) || reaction.count == 1) continue;
                     for (const user of (await reaction.users.fetch()).values()) {
-                        if (user.id === client.user.id) continue;
+                        if (user.id === this.client.user.id) continue;
                         await updatePoll(msg.id, reaction, user);
                     }
                 }
@@ -186,18 +193,18 @@ export class Handler {
                     .on("collect", async (reaction, user) => await updatePoll(msg.id, reaction, user))
                     .on("end", async () => await endPoll(await channel.messages.fetch(msg.id)));
             } catch (err) {
-                if (!client.id) await query("DELETE FROM polls WHERE id = " + result.id);
+                if (!this.client.id) await query("DELETE FROM polls WHERE id = " + result.id);
                 return console.log("Deleted an ended poll.");
             }
         });
     }
 
-    async readNoLog(_client: NorthClient) {
+    async readNoLog() {
         var results = await query("SELECT id FROM users WHERE no_log = 1");
         NorthClient.storage.noLog = results.map(x => x.id);
     }
 
-    async readTranslations(_client: NorthClient) {
+    async readTranslations() {
         const results = await query("SELECT * FROM translations");
         for (const result of results) {
             const collection = new Collection<string, { messageId: Snowflake, channelId: Snowflake }>();
@@ -209,20 +216,26 @@ export class Handler {
         }
     }
 
-    async ready(client: NorthClient) {
-        this.preReady(client);
-        const id = client.id;
-        console.log(`[${id}] Ready!`);
-        this.setPresence(client);
+    async readLevel() {
+        const results = await query("SELECT * FROM leveling");
+        for (const result of results)
+            NorthClient.storage.guilds[result.guild]?.levelData.set(result.author, new LevelData(result.author, result.guild, result.exp, result.date, result.multiplier));
+    }
+
+    async ready() {
+        this.preReady();
+        console.log(`[${this.client.id}] Ready!`);
+        this.setPresence();
         try {
-            await this.preRead(client);
-            await this.readCurrency(client);
-            await this.readServers(client);
-            await this.readRoleMsg(client);
-            await this.readGiveaways(client);
-            await this.readPoll(client);
-            await this.readNoLog(client);
-            await this.readTranslations(client);
+            await this.preRead();
+            await this.readCurrency();
+            await this.readServers();
+            await this.readRoleMsg();
+            await this.readGiveaways();
+            await this.readPoll();
+            await this.readNoLog();
+            await this.readTranslations();
+            await this.readLevel();
         } catch (err: any) { console.error(err); };
     }
 
@@ -450,16 +463,14 @@ export class Handler {
         invites.set(invite.code, invite);
     }
 
-    messagePrefix(message: Message, client: NorthClient): string {
-        return NorthClient.storage.guilds[message.guildId]?.prefix || client.prefix;
+    messagePrefix(message: Message): string {
+        return NorthClient.storage.guilds[message.guildId]?.prefix || this.client.prefix;
     }
 
     async message(message: Message): Promise<any> {
-        const client = <NorthClient>message.client;
         const msg = (<NorthMessage>message);
-        msg.prefix = this.messagePrefix(msg, client);
-        this.messageLevel(msg);
-        if (!msg.content.startsWith(msg.prefix)) return;
+        msg.prefix = this.messagePrefix(msg);
+        if (!msg.content.startsWith(msg.prefix)) return this.messageLevel(msg);
         const args = msg.content.slice(msg.prefix.length).split(/ +/);
         const commandName = args.shift().toLowerCase();
         const command = NorthClient.storage.commands.get(commandName) || NorthClient.storage.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
@@ -499,23 +510,28 @@ export class AliceHandler extends Handler {
         super(client);
     }
 
-    async readServers(client: NorthClient) {
+    async messageLevel(message: Message<boolean>) {
+        const data = await super.messageLevel(message);
+        if (data && data.oldLevel != data.level && data.level % 5 == 0) await updateTokens(message.author.id, null, 7);
+    }
+
+    async readServers() {
         var results = await query("SELECT * FROM configs WHERE id = '622311594654695434'");
         const result = results[0];
-        const guild = await client.guilds.fetch(result.id);
+        const guild = await this.client.guilds.fetch(result.id);
         NorthClient.storage.guilds[result.id] = new GuildConfig(result);
         MutedKickSetting.check(guild);
-        console.log(`[${client.id}] Set ${results.length} configurations`);
+        console.log(`[${this.client.id}] Set ${results.length} configurations`);
     }
 
-    async setPresence(client: NorthClient) {
-        client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
+    async setPresence() {
+        this.client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
     }
 
-    async preRead(client: NorthClient) {
-        client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
+    async preRead() {
+        this.client.guilds.cache.forEach(g => g.invites.fetch().then(guildInvites => NorthClient.storage.guilds[g.id].invites = guildInvites).catch(() => { }));
         const res = await query(`SELECT * FROM gtimer ORDER BY endAt ASC`);
-        console.log(`[${client.id}] Found ${res.length} guild timers`);
+        console.log(`[${this.client.id}] Found ${res.length} guild timers`);
         res.forEach(async result => {
             let endAfter = result.endAt.getTime() - Date.now();
             let mc = await profile(result.mc);
@@ -525,13 +541,13 @@ export class AliceHandler extends Handler {
             let rank = result.dc_rank;
             let title = `${dc} - ${rank} [${username}]`;
             setTimeout_(async () => {
-                let asuna = await client.users.fetch("461516729047318529");
+                let asuna = await this.client.users.fetch("461516729047318529");
                 try {
                     const results = await query(`SELECT id FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
                     if (results.length == 0) return;
                     try {
                         asuna.send(title + " expired");
-                        var user = await client.users.fetch(result.user);
+                        var user = await this.client.users.fetch(result.user);
                         user.send(`Your rank **${rank}** in War of Underworld has expired.`);
                     } catch (err: any) { }
                     await query(`DELETE FROM gtimer WHERE user = '${result.user}' AND mc = '${result.mc}' AND dc_rank = '${result.dc_rank}'`);
@@ -545,7 +561,7 @@ export class AliceHandler extends Handler {
         NorthClient.storage.gtimers = <GuildTimer[]>gtimers;
         setInterval(async () => {
             try {
-                const timerChannel = <TextChannel>await client.channels.fetch(process.env.TIME_LIST_CHANNEL);
+                const timerChannel = <TextChannel>await this.client.channels.fetch(process.env.TIME_LIST_CHANNEL);
                 const timerMsg = await timerChannel.messages.fetch(process.env.TIME_LIST_ID);
                 const now = Date.now();
                 const tmp = [];
@@ -556,7 +572,7 @@ export class AliceHandler extends Handler {
                     const str = result.user;
                     let dc = "0";
                     try {
-                        var user = await client.users.fetch(str);
+                        var user = await this.client.users.fetch(str);
                         dc = user.id;
                     } catch (err: any) { }
                     let rank = result.dc_rank;
@@ -574,7 +590,7 @@ export class AliceHandler extends Handler {
                         .setTitle("Rank Expiration Timers")
                         .setDescription(description)
                         .setTimestamp()
-                        .setFooter({ text: "This list updates every 30 seconds", iconURL: client.user.displayAvatarURL() });
+                        .setFooter({ text: "This list updates every 30 seconds", iconURL: this.client.user.displayAvatarURL() });
                     await timerMsg.edit({ content: null, embeds: [em] });
                 } else {
                     const allEmbeds = [];
@@ -589,7 +605,7 @@ export class AliceHandler extends Handler {
                             .setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
                             .setDescription(desc)
                             .setTimestamp()
-                            .setFooter({ text: "This list updates every 30 seconds", iconURL: client.user.displayAvatarURL() });
+                            .setFooter({ text: "This list updates every 30 seconds", iconURL: this.client.user.displayAvatarURL() });
                         allEmbeds.push(em);
                     }
                     const filter = (reaction: MessageReaction) => ["◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name);
@@ -637,14 +653,14 @@ export class AliceHandler extends Handler {
         }, 60000);
     }
 
-    async readGiveaways(client: NorthClient) {
+    async readGiveaways() {
         var results = await query("SELECT * FROM giveaways WHERE guild = '622311594654695434' ORDER BY endAt ASC");
-        console.log(`[${client.id}] ` + "Found " + results.length + " giveaways");
+        console.log(`[${this.client.id}] ` + "Found " + results.length + " giveaways");
         results.forEach(async (result: any) => {
             var currentDate = Date.now();
             var millisec = result.endAt - currentDate;
             try {
-                const channel = <TextChannel>await client.channels.fetch(result.channel);
+                const channel = <TextChannel>await this.client.channels.fetch(result.channel);
                 await channel.messages.fetch(result.id);
                 setTimeout_(async () => await endGiveaway(await channel.messages.fetch(result.id)), millisec);
             } catch (err) {
@@ -654,19 +670,19 @@ export class AliceHandler extends Handler {
         });
     }
 
-    async readPoll(client: NorthClient) {
+    async readPoll() {
         const results = await query("SELECT * FROM polls WHERE guild = '622311594654695434' ORDER BY endAt ASC");
-        console.log(`[${client.id}] ` + "Found " + results.length + " polls.");
+        console.log(`[${this.client.id}] ` + "Found " + results.length + " polls.");
         results.forEach(async (result: any) => {
             var currentDate = Date.now();
             var time = new Date(result.endAt).getTime() - currentDate;
             try {
-                const channel = <TextChannel>await client.channels.fetch(result.channel);
+                const channel = <TextChannel>await this.client.channels.fetch(result.channel);
                 const msg = await channel.messages.fetch(result.id);
                 for (const reaction of msg.reactions.cache.values()) {
                     if (!emojis.includes(reaction.emoji.name) || reaction.count == 1) continue;
                     for (const user of (await reaction.users.fetch()).values()) {
-                        if (user.id === client.user.id) continue;
+                        if (user.id === this.client.user.id) continue;
                         await updatePoll(msg.id, reaction, user);
                     }
                 }
@@ -688,8 +704,13 @@ export class AliceHandler extends Handler {
 
     async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
         if (super.guildMemberUpdate(oldMember, newMember)) {
-
         }
+    }
+
+    async guildDelete(guild: Guild) {
+        if (!guild?.id || !guild.name || await checkTradeW1nd(guild.id)) return;
+        console.log(`Left a guild: ${guild.name} | ID: ${guild.id}`);
+        delete NorthClient.storage.guilds[guild.id];
     }
 
     async messageDelete(message: Message | PartialMessage) {
@@ -903,14 +924,14 @@ export class V2Handler extends Handler {
         super(client);
     }
 
-    async readServers(client: NorthClient) {
+    async readServers() {
         var results = await query("SELECT * FROM configs WHERE id <> '622311594654695434'");
         results.forEach(async result => {
-            const guild = await client.guilds.fetch(result.id).catch(() => null);
+            const guild = await this.client.guilds.fetch(result.id).catch(() => null);
             NorthClient.storage.guilds[result.id] = new GuildConfig(result);
             if (guild) MutedKickSetting.check(guild);
         });
-        console.log(`[${client.id}] Set ${results.length} configurations`);
+        console.log(`[${this.client.id}] Set ${results.length} configurations`);
     }
 }
 
@@ -925,7 +946,7 @@ export class CanaryHandler extends V2Handler {
         super(client);
     }
 
-    messagePrefix(_message: Message, _client: NorthClient): string {
+    messagePrefix(_message: Message): string {
         return "%";
     }
 }
