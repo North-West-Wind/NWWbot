@@ -382,11 +382,10 @@ export class Handler {
     }
 
     async guildDelete(guild: Guild) {
-        /*
-        if (!guild?.id || !guild.name || await checkTradeW1nd(guild.id)) return;
-        console.log(`Left a guild: ${guild.name} | ID: ${guild.id}`);
+        /*if (!guild?.id || !guild.name || await checkTradeW1nd(guild.id)) return;
+        console.log(`Left a guild: ${guild.name} | ID: ${guild.id}`);*/
         delete NorthClient.storage.guilds[guild.id];
-        try {
+        /*try {
             await query("DELETE FROM servers WHERE id = " + guild.id);
             await query("DELETE FROM configs WHERE id = " + guild.id);
         } catch (err: any) {
