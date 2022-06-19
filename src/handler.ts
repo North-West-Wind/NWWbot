@@ -39,6 +39,10 @@ export class Handler {
         client.on("messageCreate", message => this.message(message));
         client.on("interactionCreate", interaction => this.interactionCreate(interaction));
         client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(<VoiceState>oldState, <VoiceState>newState));
+
+        setInterval(async () => {
+            if (!client.user.presence.activities.length) await this.setPresence().catch(() => { });
+        }, 60000);
     }
 
     async interactionCreate(interaction: Interaction) {

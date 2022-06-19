@@ -5,7 +5,7 @@ import { twoDigits, deepReaddir, query, jsDate2Mysql } from "./function.js";
 import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
 import memwatch from "node-memwatch-new";
-import { AliceHandler, CanaryHandler, Handler } from "./handler.js";
+import { AliceHandler, CanaryHandler, Handler, V2Handler } from "./handler.js";
 import pkg from "../package.json";
 var globalClient: NorthClient;
 var logger: Logger;
@@ -35,7 +35,9 @@ function reloadClient() {
   globalClient.id = id;
 
   switch (id) {
-    case 0: return Handler.setup(globalClient, token);
+    case 0:
+      if (process.argv.includes("--old")) return Handler.setup(globalClient, token);
+      else return V2Handler.setup(globalClient, token);
     case 1: return AliceHandler.setup(globalClient, token);
     case 2: return CanaryHandler.setup(globalClient, token);
   }
