@@ -169,7 +169,7 @@ class TokensCommand implements SlashCommand {
 			const user = interaction.options.getUser("user") || interaction.user;
 			const data = await getTokensAndMultiplier(user.id, null);
 			if (!data) return await interaction.editReply("This user didn't have their Minecraft username verified!");
-			const change = Math.max(interaction.options.getInteger("value") - data.tokens, -data.tokens);
+			const change = Math.round(Math.max(interaction.options.getInteger("value") - data.tokens, -data.tokens));
 			await updateTokens(user.id, null, change, data);
 			await interaction.editReply(`Set **${user.tag}**'s tokens to **${data.tokens + change}**`);
 		},
@@ -177,7 +177,7 @@ class TokensCommand implements SlashCommand {
 			const user = interaction.options.getUser("user") || interaction.user;
 			const data = await getTokensAndMultiplier(user.id, null);
 			if (!data) return await interaction.editReply("This user didn't have their Minecraft username verified!");
-			const change = Math.max(interaction.options.getInteger("change"), -data.tokens);
+			const change = Math.round(Math.max(interaction.options.getInteger("change"), -data.tokens));
 			await updateTokens(user.id, null, change, data);
 			await interaction.editReply(`Changed **${user.tag}**'s tokens by **${change}** to **${data.tokens + change}**`);
 		},
@@ -186,8 +186,9 @@ class TokensCommand implements SlashCommand {
 			const data = await getTokensAndMultiplier(user.id, null);
 			if (!data) return await interaction.editReply("This user didn't have their Minecraft username verified!");
 			const scale = Math.max(interaction.options.getNumber("ratio"), 0);
-			await updateTokens(user.id, null, data.tokens * scale - data.tokens, data);
-			await interaction.editReply(`Scaled **${user.tag}**'s tokens by **${scale}** to **${data.tokens * scale}**`);
+			const value = Math.round(data.tokens * scale);
+			await updateTokens(user.id, null, value - data.tokens, data);
+			await interaction.editReply(`Scaled **${user.tag}**'s tokens by **${scale}** to **${value}**`);
 		}
 	}
 
