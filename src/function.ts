@@ -721,7 +721,7 @@ export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: s
     else if (res.rank === "MVP_PLUS_PLUS") await roles.add("837271171619356692");
 }
 export async function getTokensAndMultiplier(author: Discord.Snowflake, uuid: string) {
-    var conditions: string[], condition = " WHERE ";
+    var conditions: string[] = [], condition = " WHERE ";
     if (author) conditions.push(`dcid = "${author}"`);
     if (uuid) conditions.push(`uuid = "${uuid}"`);
     const [result] = await query(`SELECT tokens, multiplier FROM dcmc${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
