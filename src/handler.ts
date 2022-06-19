@@ -95,6 +95,7 @@ export class Handler {
     async messageLevel(message: Message): Promise<any> {
         if (!message.guild || message.author.bot) return;
         const date = new Date();
+        if (!NorthClient.storage.guilds[message.guildId]) NorthClient.storage.guilds[message.guildId] = await fixGuildRecord(message.guildId);
         var data = NorthClient.storage.guilds[message.guildId].levelData.get(message.author.id);
         if (!data) data = new LevelData(message.author.id, message.guildId, 0, date);
         else if (date.getTime() - data.date.getTime() < 60000) return;
@@ -377,6 +378,7 @@ export class Handler {
     }
 
     async guildDelete(guild: Guild) {
+        /*
         if (!guild?.id || !guild.name || await checkTradeW1nd(guild.id)) return;
         console.log(`Left a guild: ${guild.name} | ID: ${guild.id}`);
         delete NorthClient.storage.guilds[guild.id];
@@ -385,7 +387,7 @@ export class Handler {
             await query("DELETE FROM configs WHERE id = " + guild.id);
         } catch (err: any) {
             console.error(err);
-        }
+        }*/
     }
 
     async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember): Promise<any> {
