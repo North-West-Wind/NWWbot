@@ -41,7 +41,7 @@ export class Handler {
         client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(<VoiceState>oldState, <VoiceState>newState));
 
         setInterval(async () => {
-            if (!client.user.presence.activities.length) await this.setPresence().catch(() => { });
+            if (!client.user.presence.activities?.length) await this.setPresence().catch(() => { });
         }, 60000);
     }
 
