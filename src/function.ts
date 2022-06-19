@@ -742,7 +742,10 @@ export async function updateMultiplier(author: Discord.Snowflake, uuid: string, 
         data = await getTokensAndMultiplier(author, uuid);
         if (!data) return;
     }
-    await query(`UPDATE dcmc SET multiplier = ${data.multiplier + change}`);
+    var conditions: string[] = [], condition = " WHERE ";
+    if (author) conditions.push(`dcid = "${author}"`);
+    if (uuid) conditions.push(`uuid = "${uuid}"`);
+    await query(`UPDATE dcmc SET multiplier = ${data.multiplier + change}${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
 }
 
 // Prototyping
