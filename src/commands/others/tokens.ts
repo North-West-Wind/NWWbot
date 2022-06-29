@@ -150,7 +150,7 @@ class TokensCommand implements SlashCommand {
 
 	async execute(interaction: NorthInteraction) {
 		await interaction.deferReply();
-		const group = interaction.options.getSubcommandGroup();
+		const group = interaction.options.getSubcommandGroup(false);
 		const subcommand = interaction.options.getSubcommand();
 		if (!group && subcommand === "get") return await this.get(interaction);
 		if (group === "tokens") return this.tokens[subcommand](interaction);
