@@ -197,6 +197,7 @@ class TokensCommand implements SlashCommand {
 			const user = interaction.options.getUser("user") || interaction.user;
 			const data = await getTokensAndMultiplier(user.id, null);
 			if (!data) return await interaction.editReply("This user didn't have their Minecraft username verified!");
+			console.log(data.multiplier);
 			const change = Math.max(interaction.options.getNumber("value") - data.multiplier, -data.multiplier);
 			await updateMultiplier(user.id, null, change, data);
 			await interaction.editReply(`Set **${user.tag}**'s multiplier to **${data.multiplier + change}**`);

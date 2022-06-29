@@ -62,7 +62,7 @@ class RankCommand implements FullCommand {
     const rankEmbed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(`Rank of **${user.tag}** in **${guild.name}**`)
-      .setDescription(`Rank: **${rank}**\nLevel: **${level}**\nOverall Progress: **${exp}** / **${cost}**\n\nProgress to Next Level: \n**${exp}** / **${cost}** - **${percentage}%**\n${level} **${dashes.join("")}** ${(level + 1)}`)
+      .setDescription(`Rank: **${rank}**\nLevel: **${level}**\nMultiplier: **${result.multiplier}**\nOverall Progress: **${exp}** / **${cost}**\n\nProgress to Next Level: \n**${exp}** / **${cost}** - **${percentage}%**\n${level} **${dashes.join("")}** ${(level + 1)}`)
       .setFooter({ text: "Every level requires 50 XP more to level up.", iconURL: client.user.displayAvatarURL() })
       .setTimestamp();
     return rankEmbed;
