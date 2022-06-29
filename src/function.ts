@@ -748,6 +748,17 @@ export async function updateMultiplier(author: Discord.Snowflake, uuid: string, 
     if (uuid) conditions.push(`uuid = "${uuid}"`);
     await query(`UPDATE dcmc SET multiplier = ${roundTo(data.multiplier + change, 2)}${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
 }
+export async function getChatMultiplier(user: Discord.Snowflake, guild: Discord.Snowflake) {
+    const [result] = await query(`SELECT multiplier FROM leveling WHERE user = ${user} AND guild = ${guild}`);
+    return Number(result.multiplier);
+}
+export async function updateChatMultiplier(user: Discord.Snowflake, guild: Discord.Snowflake, value: number) {
+    const data = NorthClient.storage.guilds[guild]?.levelData.get(user);
+    if (!data) return;
+    data.multiplier = roundTo(value, 2);
+    NorthClient.storage.guilds[guild].levelData.set(user, data);
+    await query(`UPDATE leveling SET multiplier = ${data.multiplier} WHERE user = ${user} AND guild = ${guild}`);
+}
 
 // Prototyping
 export function getText(key: string, lang: string = "en") {

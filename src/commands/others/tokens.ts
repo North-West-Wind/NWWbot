@@ -1,5 +1,5 @@
 import { NorthInteraction, SlashCommand } from "../../classes/NorthClient.js";
-import { getTokensAndMultiplier, updateMultiplier, updateTokens } from "../../function.js";
+import { getChatMultiplier, getTokensAndMultiplier, updateChatMultiplier, updateMultiplier, updateTokens } from "../../function.js";
 
 class TokensCommand implements SlashCommand {
 	name = "tokens";
@@ -145,6 +145,70 @@ class TokensCommand implements SlashCommand {
 					]
 				}
 			]
+		},
+		{
+			name: "chat",
+			description: "Sub-commands for chat multiplier modification.",
+			type: "SUB_COMMAND_GROUP",
+			options: [
+				{
+					name: "set",
+					description: "Sets the multiplier of a user.",
+					type: "SUB_COMMAND",
+					options: [
+						{
+							name: "value",
+							description: "The new value of multiplier.",
+							type: "NUMBER",
+							required: true
+						},
+						{
+							name: "user",
+							description: "The user's multiplier to set.",
+							type: "USER",
+							required: false
+						}
+					]
+				},
+				{
+					name: "add",
+					description: "Adds or subtracts multiplier to or from a user.",
+					type: "SUB_COMMAND",
+					options: [
+						{
+							name: "change",
+							description: "The change in multiplier, can be negative.",
+							type: "NUMBER",
+							required: true
+						},
+						{
+							name: "user",
+							description: "The user's multiplier to change.",
+							type: "USER",
+							required: false
+						}
+					]
+				},
+				{
+					name: "scale",
+					description: "Scales the user's multiplier.",
+					type: "SUB_COMMAND",
+					options: [
+						{
+							name: "ratio",
+							description: "The ratio to be multiplied into the multiplier.",
+							type: "NUMBER",
+							required: true
+						},
+						{
+							name: "user",
+							description: "The user's multiplier to scale.",
+							type: "USER",
+							required: false
+						}
+					]
+				}
+			]
 		}
 	]
 
@@ -153,8 +217,7 @@ class TokensCommand implements SlashCommand {
 		const group = interaction.options.getSubcommandGroup(false);
 		const subcommand = interaction.options.getSubcommand();
 		if (!group && subcommand === "get") return await this.get(interaction);
-		if (group === "tokens") return this.tokens[subcommand](interaction);
-		else if (group === "multiplier") return this.multiplier[subcommand](interaction);
+		return await this[group][subcommand](interaction);
 	}
 
 	async get(interaction: NorthInteraction) {
@@ -216,6 +279,30 @@ class TokensCommand implements SlashCommand {
 			const scale = Math.max(interaction.options.getNumber("ratio"), 0);
 			await updateMultiplier(user.id, null, data.multiplier * scale - data.multiplier, data);
 			await interaction.editReply(`Scaled **${user.tag}**'s multiplier by **${scale}** to **${data.multiplier * scale}**`);
+		}
+	}
+
+	chat = {
+		set: async (interaction: NorthInteraction) => {
+			const user = interaction.options.getUser("user") || interaction.user;
+			const multiplier = await getChatMultiplier(user.id, interaction.guildId);
+			const value = Math.max(0, interaction.options.getNumber("value"));
+			await updateChatMultiplier(user.id, interaction.guildId, value);
+			await interaction.editReply(`Set **${user.tag}**'s multiplier to **${value}**`);
+		},
+		add: async (interaction: NorthInteraction) => {
+			const user = interaction.options.getUser("user") || interaction.user;
+			const multiplier = await getChatMultiplier(user.id, interaction.guildId);
+			const change = Math.max(interaction.options.getNumber("change"), -multiplier);
+			await updateChatMultiplier(user.id, interaction.guildId, multiplier + change);
+			await interaction.editReply(`Changed **${user.tag}**'s multiplier by **${change}** to **${multiplier + change}**`);
+		},
+		scale: async (interaction: NorthInteraction) => {
+			const user = interaction.options.getUser("user") || interaction.user;
+			const multiplier = await getChatMultiplier(user.id, interaction.guildId);
+			const scale = Math.max(interaction.options.getNumber("ratio"), 0);
+			await updateChatMultiplier(user.id, interaction.guildId, multiplier * scale);
+			await interaction.editReply(`Scaled **${user.tag}**'s multiplier by **${scale}** to **${multiplier * scale}**`);
 		}
 	}
 }
