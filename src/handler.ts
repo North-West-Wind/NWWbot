@@ -503,7 +503,8 @@ export class AliceHandler extends Handler {
         भारतीय: "977880381250478120",
         日本: "977879407127584848",
         한국어: "977880603577966632",
-        中文: "977880932000350238"
+        中文: "977880932000350238",
+        русский: "991616810577317968"
     }
 
     static async setup(client: NorthClient, token: string) {
