@@ -110,6 +110,7 @@ export class Handler {
         const oldLevel = calculateLevel(data.exp);
         data.exp += Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100)) * data.multiplier;
         data.changed = true;
+        NorthClient.storage.guilds[message.guildId].levelData.set(message.author.id, data);
         return { oldLevel, level: calculateLevel(data.exp) };
     }
 
