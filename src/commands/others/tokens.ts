@@ -232,17 +232,18 @@ class TokensCommand implements SlashCommand {
 			const user = interaction.options.getUser("user") || interaction.user;
 			const data = await getTokensAndMultiplier(user.id, null);
 			if (!data) return await interaction.editReply("This user didn't have their Minecraft username verified!");
-			const change = Math.round(Math.max(interaction.options.getInteger("value") - data.tokens, -data.tokens));
-			await updateTokens(user.id, null, change, data);
-			await interaction.editReply(`Set **${user.tag}**'s tokens to **${data.tokens + change}**`);
+			const value = Math.max(interaction.options.getInteger("value"), 0);
+			await updateTokens(user.id, null, value);
+			await interaction.editReply(`Set **${user.tag}**'s tokens to **${value}**`);
 		},
 		add: async (interaction: NorthInteraction) => {
 			const user = interaction.options.getUser("user") || interaction.user;
 			const data = await getTokensAndMultiplier(user.id, null);
 			if (!data) return await interaction.editReply("This user didn't have their Minecraft username verified!");
-			const change = Math.round(Math.max(interaction.options.getInteger("change"), -data.tokens));
-			await updateTokens(user.id, null, change, data);
-			await interaction.editReply(`Changed **${user.tag}**'s tokens by **${change}** to **${data.tokens + change}**`);
+			const change = interaction.options.getInteger("value");
+			const value = Math.max(data.tokens + change, 0);
+			await updateTokens(user.id, null, value);
+			await interaction.editReply(`Changed **${user.tag}**'s tokens by **${change}** to **${value}**`);
 		},
 		scale: async (interaction: NorthInteraction) => {
 			const user = interaction.options.getUser("user") || interaction.user;
@@ -250,7 +251,7 @@ class TokensCommand implements SlashCommand {
 			if (!data) return await interaction.editReply("This user didn't have their Minecraft username verified!");
 			const scale = Math.max(interaction.options.getNumber("ratio"), 0);
 			const value = Math.round(data.tokens * scale);
-			await updateTokens(user.id, null, value - data.tokens, data);
+			await updateTokens(user.id, null, value);
 			await interaction.editReply(`Scaled **${user.tag}**'s tokens by **${scale}** to **${value}**`);
 		}
 	}
@@ -260,25 +261,27 @@ class TokensCommand implements SlashCommand {
 			const user = interaction.options.getUser("user") || interaction.user;
 			const data = await getTokensAndMultiplier(user.id, null);
 			if (!data) return await interaction.editReply("This user didn't have their Minecraft username verified!");
-			const change = Math.max(interaction.options.getNumber("value") - data.multiplier, -data.multiplier);
-			await updateMultiplier(user.id, null, change, data);
-			await interaction.editReply(`Set **${user.tag}**'s multiplier to **${data.multiplier + change}**`);
+			const value = Math.max(interaction.options.getNumber("value"), 0);
+			await updateMultiplier(user.id, null, value);
+			await interaction.editReply(`Set **${user.tag}**'s multiplier to **${value}**`);
 		},
 		add: async (interaction: NorthInteraction) => {
 			const user = interaction.options.getUser("user") || interaction.user;
 			const data = await getTokensAndMultiplier(user.id, null);
 			if (!data) return await interaction.editReply("This user didn't have their Minecraft username verified!");
-			const change = Math.max(interaction.options.getNumber("change"), -data.multiplier);
-			await updateMultiplier(user.id, null, change, data);
-			await interaction.editReply(`Changed **${user.tag}**'s multiplier by **${change}** to **${data.multiplier + change}**`);
+			const change = interaction.options.getNumber("change");
+			const value = Math.max(data.multiplier + change, 0);
+			await updateMultiplier(user.id, null, value);
+			await interaction.editReply(`Changed **${user.tag}**'s multiplier by **${change}** to **${value}**`);
 		},
 		scale: async (interaction: NorthInteraction) => {
 			const user = interaction.options.getUser("user") || interaction.user;
 			const data = await getTokensAndMultiplier(user.id, null);
 			if (!data) return await interaction.editReply("This user didn't have their Minecraft username verified!");
 			const scale = Math.max(interaction.options.getNumber("ratio"), 0);
-			await updateMultiplier(user.id, null, data.multiplier * scale - data.multiplier, data);
-			await interaction.editReply(`Scaled **${user.tag}**'s multiplier by **${scale}** to **${data.multiplier * scale}**`);
+			const value = data.multiplier * scale;
+			await updateMultiplier(user.id, null, value);
+			await interaction.editReply(`Scaled **${user.tag}**'s multiplier by **${scale}** to **${value}**`);
 		}
 	}
 
