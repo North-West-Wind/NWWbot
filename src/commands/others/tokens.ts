@@ -1,3 +1,4 @@
+import { GuildMember } from "discord.js";
 import { NorthInteraction, SlashCommand } from "../../classes/NorthClient.js";
 import { getChatMultiplier, getTokensAndMultiplier, updateChatMultiplier, updateMultiplier, updateTokens } from "../../function.js";
 
@@ -5,7 +6,6 @@ class TokensCommand implements SlashCommand {
 	name = "tokens";
 	description = "Retrieves and modifies users' tokens.";
 	category = -1;
-    permissions = { guild: { user: 8 } };
 	options = [
 		{
 			name: "get",
@@ -217,7 +217,7 @@ class TokensCommand implements SlashCommand {
 		const group = interaction.options.getSubcommandGroup(false);
 		const subcommand = interaction.options.getSubcommand();
 		if (!group && subcommand === "get") return await this.get(interaction);
-		return await this[group][subcommand](interaction);
+		if ((<GuildMember>interaction.member).permissions.has(BigInt(8))) return await this[group][subcommand](interaction);
 	}
 
 	async get(interaction: NorthInteraction) {
