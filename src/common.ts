@@ -76,7 +76,7 @@ export default async (client: NorthClient) => {
   if (!fs.existsSync(process.env.CACHE_DIR)) fs.mkdirSync(process.env.CACHE_DIR);
 
   setInterval(async () => {
-    const results = await query(`SELECT id FROM leveling`);
+    const results = await query(`SELECT * FROM leveling`);
     for (const data of Object.values(NorthClient.storage.guilds).map(guild => guild.levelData)) {
       for (const datum of data.values()) {
         if (!datum.changed) continue;
