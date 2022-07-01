@@ -236,7 +236,8 @@ export class ClientStorage {
 }
 
 export class LevelData {
-    constructor(author: Snowflake, guild: Snowflake, exp: number, date: Date, multiplier?: number) {
+    constructor(id: number, author: Snowflake, guild: Snowflake, exp: number, date: Date, multiplier?: number) {
+        this.id = id;
         this.author = author;
         this.guild = guild;
         this.exp = exp;
@@ -244,6 +245,7 @@ export class LevelData {
         if (multiplier) this.multiplier = multiplier;
     }
 
+    id: number;
     author: Snowflake;
     guild: Snowflake;
     exp: number;

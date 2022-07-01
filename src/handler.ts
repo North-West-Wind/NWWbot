@@ -100,27 +100,18 @@ export class Handler {
     }
 
     async messageLevel(message: Message): Promise<any> {
-        console.debug("message level called")
         if (!message.guild || message.author.bot) return;
-        console.debug("user is not bot and is in guild")
         const date = new Date();
         if (!NorthClient.storage.guilds[message.guildId]) NorthClient.storage.guilds[message.guildId] = await fixGuildRecord(message.guildId);
         var data = NorthClient.storage.guilds[message.guildId].levelData.get(message.author.id);
-        console.debug(data);
-        if (!data) data = new LevelData(message.author.id, message.guildId, 0, date);
-        else if (date.getTime() - data.date.getTime() < 60000) {
-            console.debug("user got exp within 1 min ago")
-            return;
-        } else data.date = date;
+        if (!data) data = new LevelData(null, message.author.id, message.guildId, 0, date);
+        else if (date.getTime() - data.date.getTime() < 60000) return;
+        else data.date = date;
         const { level } = calculateLevel(data.exp);
         const increment = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100)) * data.multiplier;
-        console.debug("old exp ", data.exp);
-        console.debug("increment ", increment);
         data.exp += increment;
-        console.debug("new exp ", data.exp);
         data.changed = true;
         NorthClient.storage.guilds[message.guildId].levelData.set(message.author.id, data);
-        console.debug("updated data")
         return { oldLevel: level, level: calculateLevel(data.exp) };
     }
 
@@ -236,8 +227,16 @@ export class Handler {
 
     async readLevel() {
         const results = await query("SELECT * FROM leveling");
-        for (const result of results)
-            NorthClient.storage.guilds[result.guild]?.levelData.set(result.user, new LevelData(result.author, result.guild, result.exp, result.last, result.multiplier));
+        for (const result of results) {
+            const existing = NorthClient.storage.guilds[result.guild]?.levelData.find(data => data.author == result.user && data.guild == result.guild);
+            if (existing) {
+                if (existing.exp > result.exp) await query(`DELETE FROM leveling WHERE id = ${result.id}`);
+                else {
+                    await query(`DELETE FROM leveling WHERE id = ${existing.id}`);
+                    NorthClient.storage.guilds[result.guild]?.levelData.set(result.user, new LevelData(result.id, result.user, result.guild, result.exp, new Date(result.last), result.multiplier));
+                }
+            } else NorthClient.storage.guilds[result.guild]?.levelData.set(result.user, new LevelData(result.id, result.user, result.guild, result.exp, new Date(result.last), result.multiplier));
+        }
     }
 
     async ready() {

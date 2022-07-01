@@ -29,7 +29,7 @@ function reloadClient() {
 
   globalClient = new NorthClient(options);
   NorthClient.storage = new ClientStorage();
-  
+
   globalClient.prefix = prefix;
   globalClient.id = id;
 
@@ -47,7 +47,7 @@ export default async (client: NorthClient) => {
   if (!fs.existsSync("log/memDump")) fs.mkdirSync("log/memDump");
   logger = SimpleNodeLogger.createSimpleLogger({
     logFilePath: `log/console_${client.id}.log`,
-    timestampFormat:  'YYYY-MM-DD HH:mm:ss.SSS'
+    timestampFormat: 'YYYY-MM-DD HH:mm:ss.SSS'
   });
   logger.setLevel("all");
   console.debug = (message: string, ...data: any[]) => logger.debug(message, ...data);
@@ -81,8 +81,12 @@ export default async (client: NorthClient) => {
       for (const datum of data.values()) {
         if (!datum.changed) continue;
         const result = results.find(x => x.user == datum.author && x.guild == datum.guild);
-        if (!result) await query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${datum.author}', '${datum.guild}', ${datum.exp}, '${jsDate2Mysql(datum.date)}')`);
-        else await query(`UPDATE leveling SET exp = ${datum.exp}, last = '${datum.date}' WHERE user = '${datum.author}' AND guild = '${datum.guild}'`);
+        if (!result) {
+          await query(`INSERT INTO leveling(user, guild, exp, last) VALUES ('${datum.author}', '${datum.guild}', ${datum.exp}, '${jsDate2Mysql(datum.date)}')`);
+          const [{ id }] = await query(`SELECT id FROM leveling WHERE user = '${datum.author}' AND guild = '${datum.guild}'`);
+          datum.id = id;
+          NorthClient.storage.guilds[datum.guild].levelData.set(datum.author, datum);
+        } else await query(`UPDATE leveling SET exp = ${datum.exp}, last = '${datum.date}' WHERE user = '${datum.author}' AND guild = '${datum.guild}'`);
       }
     }
   }, 60000);
