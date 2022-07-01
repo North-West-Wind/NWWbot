@@ -3,7 +3,7 @@ import { Handler, V2Handler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
 import { Intents, Options } from "discord.js";
 import express from "express";
-import config from "../config.json";
+import config from "../config.json" assert { type: "json" };
 dotenv.config();
 
 const client = new NorthClient({

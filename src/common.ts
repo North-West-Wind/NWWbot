@@ -1,12 +1,11 @@
 import canvas from "canvas";
 import * as fs from "fs";
-import { NorthClient, Card, FullCommand, Item, ClientStorage, Command } from "./classes/NorthClient.js";
+import { NorthClient, Card, Item, ClientStorage, Command } from "./classes/NorthClient.js";
 import { twoDigits, deepReaddir, query, jsDate2Mysql } from "./function.js";
 import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
-import memwatch from "node-memwatch-new";
 import { AliceHandler, CanaryHandler, Handler, V2Handler } from "./handler.js";
-import pkg from "../package.json";
+import pkg from "../package.json" assert { type: "json" };
 var globalClient: NorthClient;
 var logger: Logger;
 
@@ -56,10 +55,6 @@ export default async (client: NorthClient) => {
   console.error = (message: string, ...data: any[]) => logger.error(message, ...data);
   client.setVersion(pkg.version);
   globalClient = client;
-  memwatch.on("leak", (info: any) => {
-    console.debug("Potentially leaking stuff!");
-    console.debug(info);
-  });
   const fontFiles = fs.readdirSync("./fonts").filter(file => file.endsWith(".ttf") && file.startsWith("NotoSans"));
   for (const file of fontFiles) canvas.registerFont(`./fonts/${file}`, { family: "NotoSans", style: file.split(/[\-\.]/)[1].toLowerCase() });
   canvas.registerFont("./fonts/FreeSans.ttf", { family: "free-sans" });

@@ -8,7 +8,7 @@ import fetch from "node-fetch";
 import * as filter from "./helpers/filter.js";
 import { sCategories } from "./commands/information/help.js";
 import common from "./common.js";
-import cfg from "../config.json";
+import cfg from "../config.json" assert { type: "json" };
 import { endApplication } from "./commands/managements/apply.js";
 import { MutedKickSetting } from "./classes/Config.js";
 import { calculateLevel } from "./commands/fun/rank.js";
@@ -106,13 +106,18 @@ export class Handler {
         const date = new Date();
         if (!NorthClient.storage.guilds[message.guildId]) NorthClient.storage.guilds[message.guildId] = await fixGuildRecord(message.guildId);
         var data = NorthClient.storage.guilds[message.guildId].levelData.get(message.author.id);
+        console.debug(data);
         if (!data) data = new LevelData(message.author.id, message.guildId, 0, date);
         else if (date.getTime() - data.date.getTime() < 60000) {
             console.debug("user got exp within 1 min ago")
             return;
         } else data.date = date;
         const { level } = calculateLevel(data.exp);
-        data.exp += Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100)) * data.multiplier;
+        const increment = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100)) * data.multiplier;
+        console.debug("old exp ", data.exp);
+        console.debug("increment ", increment);
+        data.exp += increment;
+        console.debug("new exp ", data.exp);
         data.changed = true;
         NorthClient.storage.guilds[message.guildId].levelData.set(message.author.id, data);
         console.debug("updated data")
@@ -232,7 +237,7 @@ export class Handler {
     async readLevel() {
         const results = await query("SELECT * FROM leveling");
         for (const result of results)
-            NorthClient.storage.guilds[result.guild]?.levelData.set(result.author, new LevelData(result.author, result.guild, result.exp, result.date, result.multiplier));
+            NorthClient.storage.guilds[result.guild]?.levelData.set(result.user, new LevelData(result.author, result.guild, result.exp, result.last, result.multiplier));
     }
 
     async ready() {

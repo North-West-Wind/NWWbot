@@ -1,5 +1,5 @@
 import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
-import config from "../../../config.json";
+import config from "../../../config.json" assert { type: "json" };
 import { msgOrRes, shuffleArray } from "../../function.js";
 import translate from "@vitalets/google-translate-api";
 const langs = config.languages;

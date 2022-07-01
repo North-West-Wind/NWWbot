@@ -4,7 +4,7 @@ import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild, wa
 import { NorthClient } from "../../classes/NorthClient.js";
 import converter from "number-to-words";
 import Canvas from "canvas";
-import config from "../../../config.json";
+import config from "../../../config.json" assert { type: "json" };
 
 const COLOR = ["Yellow", "Blue", "Green", "Red", "Special"];
 const NUMBER = ["Reverse", "Skip", "Draw 2", "Draw 4", "Change Color"];

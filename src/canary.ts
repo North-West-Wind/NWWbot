@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 import { CanaryHandler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
 import { Options, Intents } from "discord.js";
-import config from "../config.json";
+import config from "../config.json" assert { type: "json" };
 dotenv.config();
 
 const client = new NorthClient({
