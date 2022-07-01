@@ -86,7 +86,7 @@ export default async (client: NorthClient) => {
           const [{ id }] = await query(`SELECT id FROM leveling WHERE user = '${datum.author}' AND guild = '${datum.guild}'`);
           datum.id = id;
           NorthClient.storage.guilds[datum.guild].levelData.set(datum.author, datum);
-        } else await query(`UPDATE leveling SET exp = ${datum.exp}, last = '${datum.date}' WHERE user = '${datum.author}' AND guild = '${datum.guild}'`);
+        } else await query(`UPDATE leveling SET exp = ${datum.exp}, last = '${jsDate2Mysql(datum.date)}' WHERE user = '${datum.author}' AND guild = '${datum.guild}'`);
       }
     }
   }, 60000);

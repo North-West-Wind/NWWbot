@@ -108,7 +108,7 @@ export class Handler {
         else if (date.getTime() - data.date.getTime() < 60000) return;
         else data.date = date;
         const { level } = calculateLevel(data.exp);
-        const increment = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100)) * data.multiplier;
+        const increment = Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100) * data.multiplier);
         data.exp += increment;
         data.changed = true;
         NorthClient.storage.guilds[message.guildId].levelData.set(message.author.id, data);

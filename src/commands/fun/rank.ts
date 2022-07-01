@@ -54,7 +54,7 @@ class RankCommand implements FullCommand {
     var percentage = Math.floor((remaining / cost) * 100);
     var progress = Math.round(percentage / 5);
     dashes.splice(progress, 1, "+");
-    var rank = NorthClient.storage.guilds[guild.id].levelData.sort((a, b) => a.exp - b.exp).map(data => data.author).indexOf(user.id) + 1;
+    var rank = NorthClient.storage.guilds[guild.id].levelData.sort((a, b) => b.exp - a.exp).map(data => data.author).indexOf(user.id) + 1;
     const rankEmbed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(`Rank of **${user.tag}** in **${guild.name}**`)
