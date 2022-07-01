@@ -100,18 +100,23 @@ export class Handler {
     }
 
     async messageLevel(message: Message): Promise<any> {
+        console.debug("message level called")
         if (!message.guild || message.author.bot) return;
+        console.debug("user is not bot and is in guild")
         const date = new Date();
         if (!NorthClient.storage.guilds[message.guildId]) NorthClient.storage.guilds[message.guildId] = await fixGuildRecord(message.guildId);
         var data = NorthClient.storage.guilds[message.guildId].levelData.get(message.author.id);
         if (!data) data = new LevelData(message.author.id, message.guildId, 0, date);
-        else if (date.getTime() - data.date.getTime() < 60000) return;
-        else data.date = date;
-        const oldLevel = calculateLevel(data.exp);
+        else if (date.getTime() - data.date.getTime() < 60000) {
+            console.debug("user got exp within 1 min ago")
+            return;
+        } else data.date = date;
+        const { level } = calculateLevel(data.exp);
         data.exp += Math.round(getRandomNumber(5, 15) * (1 + message.content.length / 100)) * data.multiplier;
         data.changed = true;
         NorthClient.storage.guilds[message.guildId].levelData.set(message.author.id, data);
-        return { oldLevel, level: calculateLevel(data.exp) };
+        console.debug("updated data")
+        return { oldLevel: level, level: calculateLevel(data.exp) };
     }
 
     async preReady() {

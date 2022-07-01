@@ -14,7 +14,7 @@ export function calculateLevel(exp: number) {
     level++;
   }
   costs.push(cost);
-  return { level, cost: costs.reduce((a, b) => a + b) }
+  return { level, totalCost: costs.reduce((a, b) => a + b), cost, remaining: exp }
 }
 
 class RankCommand implements FullCommand {
@@ -50,19 +50,19 @@ class RankCommand implements FullCommand {
     const result = results.find(x => x.user == user.id);
     if (!result) return null;
     const exp = parseInt(result.exp);
-    const { level, cost } = calculateLevel(exp);
+    const { level, totalCost, cost, remaining } = calculateLevel(exp);
     const everyone = [];
     for (let i = 0; i < results.length; i++) everyone.push(results[i].id);
     const dashes = [];
     for (let i = 0; i < 20; i++) dashes.push("=");
-    var percentage = Math.floor((exp / cost) * 100);
+    var percentage = Math.floor((remaining / cost) * 100);
     var progress = Math.round(percentage / 5);
     dashes.splice(progress, 1, "+");
     var rank = everyone.indexOf(result.id) + 1;
     const rankEmbed = new Discord.MessageEmbed()
       .setColor(color())
       .setTitle(`Rank of **${user.tag}** in **${guild.name}**`)
-      .setDescription(`Rank: **${rank}**\nLevel: **${level}**\nMultiplier: **${result.multiplier}**\nOverall Progress: **${exp}** / **${cost}**\n\nProgress to Next Level: \n**${exp}** / **${cost}** - **${percentage}%**\n${level} **${dashes.join("")}** ${(level + 1)}`)
+      .setDescription(`Rank: **${rank}**\nLevel: **${level}**\nMultiplier: **${result.multiplier}**\nOverall Progress: **${exp}** / **${totalCost}**\n\nProgress to Next Level: \n**${remaining}** / **${cost}** - **${percentage}%**\n${level} **${dashes.join("")}** ${(level + 1)}`)
       .setFooter({ text: "Every level requires 50 XP more to level up.", iconURL: client.user.displayAvatarURL() })
       .setTimestamp();
     return rankEmbed;
