@@ -219,6 +219,7 @@ export class Handler {
             const collection = new Collection<string, { messageId: Snowflake, channelId: Snowflake }>();
             const parsed = JSON.parse(result.translations);
             for (const lang in parsed) {
+                console.debug(`Adding ${lang} to ${result.id}`);
                 collection.set(lang, { messageId: parsed[lang].messageId, channelId: parsed[lang].channelId });
             }
             NorthClient.storage.guilds[result.guild]?.translations.set(result.id, { messageId: result.id, channelId: result.channel, guildId: result.guild, translations: collection, existingId: result.existing });
