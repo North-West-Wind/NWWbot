@@ -136,7 +136,6 @@ export interface Translation {
     guildId: Snowflake;
     translations: Collection<string, { channelId: Snowflake, messageId: Snowflake }>;
     existingId?: Snowflake;
-    ended?: boolean;
 }
 
 export interface GuildConfigs {

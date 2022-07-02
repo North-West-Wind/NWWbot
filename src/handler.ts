@@ -219,7 +219,6 @@ export class Handler {
             const collection = new Collection<string, { messageId: Snowflake, channelId: Snowflake }>();
             const parsed = JSON.parse(result.translations);
             for (const lang in parsed) {
-                console.debug(`Adding ${lang} to ${result.id}`);
                 collection.set(lang, { messageId: parsed[lang].messageId, channelId: parsed[lang].channelId });
             }
             NorthClient.storage.guilds[result.guild]?.translations.set(result.id, { messageId: result.id, channelId: result.channel, guildId: result.guild, translations: collection, existingId: result.existing });
@@ -845,7 +844,7 @@ export class AliceHandler extends Handler {
                         await wait(10000);
                         return await interaction.deleteReply();
                     }
-                    const translations = NorthClient.storage.guilds[message.guildId].translations.filter(trans => !trans.ended);
+                    const translations = NorthClient.storage.guilds[message.guildId].translations;
                     const allEmbeds: MessageEmbed[] = [];
                     const allRows: MessageActionRow[][] = [];
                     const pages = Math.ceil(translations.size / 5);
