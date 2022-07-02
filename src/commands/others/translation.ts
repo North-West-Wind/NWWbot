@@ -348,6 +348,7 @@ class TranslationCommand implements SlashCommand {
 	async link(interaction: NorthInteraction) {
 		if (!(<Permissions> interaction.member.permissions).has(BigInt(32))) return await interaction.editReply("You don't have the permissions to use this subcommand!");
 		const announced = interaction.options.getString("announced_id");
+		if (NorthClient.storage.guilds[interaction.guildId].translations.find(trans => trans.existingId === announced)) return await interaction.editReply("This announcement is already linked!");
 		var id: Snowflake;
 		if (id = interaction.options.getString("id")) {
 			const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
