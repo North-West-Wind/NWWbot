@@ -53,7 +53,7 @@ setInterval(async () => {
     const level = Math.round(guildApi.level);
     const members = guildApi.members;
     const latestDate = Object.keys(members[0].exp_history)[0];
-    if (lastDate !== latestDate && top3.length == 3) {
+    if (lastDate && lastDate !== latestDate && top3.length == 3) {
       for (let ii = 0; ii < top3.length; ii++) {
         const top = top3[ii];
         const { tokens, multiplier } = await getTokensAndMultiplier(null, top.uuid);
