@@ -1,6 +1,6 @@
 import { GuildConfig, NorthClient, NorthInteraction } from "./classes/NorthClient.js";
 import crypto from "crypto";
-import { globalClient } from "./common.js";
+import { globalClient, localIp } from "./common.js";
 import * as Discord from "discord.js";
 import fetch from "node-fetch";
 import { parseString } from "xml2js";
@@ -623,18 +623,18 @@ export async function getOwner() {
 
 // TradeW1nd communication
 export async function checkTradeW1nd(guild: Discord.Snowflake) {
-    const res = await fetch("http://192.168.1.29:3000/checkGuild/" + guild);
+    const res = await fetch(`http://${localIp}:3000/checkGuild/${guild}`);
     return res.ok && (<any>await res.json()).isIn;
 }
 export async function getTradeW1ndStats() {
-    const res = await fetch("http://192.168.1.29:3000");
+    const res = await fetch(`http://${localIp}:3000`);
     if (!res.ok) return null;
     return <{ version: string, size: number, lastReady: number, uptime: number }>await res.json();
 }
 export async function syncTradeW1nd(guild: Discord.Snowflake) {
     const config = NorthClient.storage.guilds[guild];
     if (!config) return;
-    await fetch(`http://192.168.1.29:3000/update/${guild}`, { method: "post", body: JSON.stringify(config), headers: { "Content-Type": "application/json" } });
+    await fetch(`http://${localIp}:3000/update/${guild}`, { method: "post", body: JSON.stringify(config), headers: { "Content-Type": "application/json" } });
 }
 
 // SQL Database
@@ -666,7 +666,7 @@ export function jsDate2Mysql(newDate: Date | number) {
     return newDateSql;
 }
 export async function query(query: string) {
-    const res = await fetch("http://192.168.1.29:4269/api/query", { method: "post", body: JSON.stringify({ token: process.env.DB_TOKEN, query }), headers: { 'Content-Type': 'application/json' } });
+    const res = await fetch(`http:/${localIp}:4269/api/query`, { method: "post", body: JSON.stringify({ token: process.env.DB_TOKEN, query }), headers: { 'Content-Type': 'application/json' } });
     if (!res.ok) return null;
     else return <any>await res.json();
 }

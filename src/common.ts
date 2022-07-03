@@ -8,6 +8,7 @@ import { AliceHandler, CanaryHandler, Handler, V2Handler } from "./handler.js";
 import pkg from "../package.json" assert { type: "json" };
 var globalClient: NorthClient;
 var logger: Logger;
+var localIp: string;
 
 process.on('unhandledRejection', (reason) => {
   console.error('Reason:', reason);
@@ -43,6 +44,7 @@ function reloadClient() {
 }
 
 export default async (client: NorthClient) => {
+  localIp = process.env.USE_LOCAL ? "localhost" : "192.168.1.29";
   if (!fs.existsSync("log")) fs.mkdirSync("log");
   if (!fs.existsSync("log/memDump")) fs.mkdirSync("log/memDump");
   logger = SimpleNodeLogger.createSimpleLogger({
@@ -92,4 +94,4 @@ export default async (client: NorthClient) => {
   }, 60000);
 }
 
-export { globalClient };
+export { globalClient, localIp };
