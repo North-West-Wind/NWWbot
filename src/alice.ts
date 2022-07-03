@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 import { AliceHandler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
-import { getFetch, getTokensAndMultiplier, profile, query, updateGuildMemberMC, updateTokens } from "./function.js";
+import { changeTokens, getFetch, getTokensAndMultiplier, getWeek, profile, query, updateGuildMemberMC, updateTokens } from "./function.js";
 import { Intents, Options, VoiceChannel } from "discord.js";
 import config from "../config.json" assert { type: "json" };
 dotenv.config();
@@ -46,24 +46,36 @@ setInterval(async () => {
 
 const points = [5, 2, 1];
 var top3: { uuid: string, exp: number }[] = [];
-var lastDate: string;
+var lastDate: string, lastWeek = getWeek(new Date());
 setInterval(async () => {
   try {
     const guildApi = <any> await fetch(`https://api.slothpixel.me/api/guilds/id/5b25306a0cf212fe4c98d739?key=${process.env.API}`).then(res => res.json());
     const level = Math.round(guildApi.level);
     const members = guildApi.members;
     const latestDate = Object.keys(members[0].exp_history)[0];
-    if (lastDate && lastDate !== latestDate && top3.length == 3) {
-      for (let ii = 0; ii < top3.length; ii++) {
-        const top = top3[ii];
-        const { tokens, multiplier } = await getTokensAndMultiplier(null, top.uuid);
-        await updateTokens(null, top.uuid, tokens + points[ii] * multiplier);
+    if (lastDate && lastDate !== latestDate) {
+      if (top3.length === 3) {
+        for (let ii = 0; ii < top3.length; ii++) {
+          const top = top3[ii];
+          await changeTokens(null, top.uuid, points[ii]);
+        }
       }
+      const last2Date = Object.keys(members[0].exp_history)[2];
+      for (const member of members.filter(mem => mem.exp_history[lastDate] < 2000)) await changeTokens(null, member.uuid, -4);
+      for (const member of members.filter(mem => mem.exp_history[lastDate] <= 0 && mem.exp_history[last2Date] <= 0)) await changeTokens(null, member.uuid, -4);
     }
     top3 = members.map((mem: any) => ({ uuid: mem.uuid, exp: mem.exp_history[latestDate] })).sort((a: any, b: any) => b.exp - a.exp).slice(0, 3);
     lastDate = latestDate;
     (<VoiceChannel> await client.channels.fetch("871768634228355162")).edit({ name: `Guild Level: ${level}` });
     (<VoiceChannel> await client.channels.fetch("871765968190324796")).edit({ name: `Guild Members: ${members.length}` });
     (<VoiceChannel> await client.channels.fetch("871768862629187606")).edit({ name: `Daily Guild Top: ${(await profile(top3[0].uuid)).name}` });
+
+    const latestWeek = getWeek(new Date());
+    if (lastWeek !== latestWeek) {
+      const guild = await client.guilds.fetch("622311594654695434");
+      const position = (await guild.roles.fetch("640148120579211265")).position;
+      for (const member of (await guild.members.fetch()).filter(mem => mem.roles.highest.position > position).values()) await changeTokens(member.id, null, 5);
+      lastWeek = latestWeek;
+    }
   } catch (err: any) { }
-}, 60000);
+}, 1800000);

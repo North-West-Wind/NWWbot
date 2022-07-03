@@ -1,6 +1,6 @@
-import { Message, MessageActionRow, MessageButton, MessageComponentInteraction, MessageEmbed, MessageSelectMenu, Modal, ModalSubmitInteraction, Permissions, SelectMenuInteraction, Snowflake, TextChannel, TextInputComponent } from "discord.js";
+import { Guild, Message, MessageActionRow, MessageButton, MessageComponentInteraction, MessageEmbed, MessageSelectMenu, Modal, ModalSubmitInteraction, Permissions, SelectMenuInteraction, Snowflake, TextChannel, TextInputComponent } from "discord.js";
 import { NorthClient, NorthInteraction, SlashCommand } from "../../classes/NorthClient.js";
-import { color, query } from "../../function.js";
+import { changeTokens, color, query } from "../../function.js";
 
 class TranslationCommand implements SlashCommand {
 	name = "translation";
@@ -68,19 +68,32 @@ class TranslationCommand implements SlashCommand {
 		}
 	}
 
+	// Also reward guild points
+	async updateExisting(guild: Guild, transId: Snowflake, existId: Snowflake) {
+		const trans = NorthClient.storage.guilds[guild.id].translations.get(transId);
+		trans.existingId = existId;
+		for (const translation of trans.translations.values()) {
+			const channel = await guild.channels.fetch(translation.channelId);
+			if (channel instanceof TextChannel) {
+				const mesg = await channel.messages.fetch(translation.messageId);
+				if (mesg?.author?.id) await changeTokens(mesg.author.id, null, 7);
+			}
+		}
+		NorthClient.storage.guilds[guild.id].translations.set(transId, trans);
+		await query(`UPDATE translations SET existing = ${existId} WHERE id = ${transId}`);
+	}
+
 	async announce(interaction: NorthInteraction) {
-		if (!(<Permissions> interaction.member.permissions).has(BigInt(32))) return await interaction.editReply("You don't have the permissions to use this subcommand!");
+		if (!(<Permissions>interaction.member.permissions).has(BigInt(32))) return await interaction.editReply("You don't have the permissions to use this subcommand!");
 		const channel = interaction.options.getChannel("channel");
 		if (!(channel instanceof TextChannel)) return await interaction.editReply(`The channel is not a text channel!`);
 		var id: Snowflake;
 		if (id = interaction.options.getString("id")) {
 			const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
 			if (trans) {
-				const mm = await (<TextChannel> await interaction.guild.channels.fetch(trans.channelId)).messages.fetch(trans.messageId);
+				const mm = await (<TextChannel>await interaction.guild.channels.fetch(trans.channelId)).messages.fetch(trans.messageId);
 				const msg = await channel.send({ tts: mm.tts, nonce: mm.nonce, content: mm.content, embeds: mm.embeds, attachments: Array.from(mm.attachments.values()) });
-				trans.existingId = msg.id;
-				NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
-				await query(`UPDATE translations SET existing = ${msg.id} WHERE id = ${id}`);
+				await this.updateExisting(interaction.guild, id, msg.id);
 				await interaction.editReply(`Announced message with ID ${id}.`);
 			} else await interaction.editReply(`Message with ID ${id} doesn't exist!`);
 			return;
@@ -132,16 +145,14 @@ class TranslationCommand implements SlashCommand {
 							.setTitle("Search by ID")
 							.addComponents(new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent().setCustomId("id").setLabel("What is the message ID you are searching for?").setStyle("SHORT")));
 						await interaction.showModal(modal);
-						const received = <ModalSubmitInteraction> await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id, time: 60000 }).catch(() => null);
+						const received = <ModalSubmitInteraction>await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id, time: 60000 }).catch(() => null);
 						if (!received) break;
 						id = received.fields.getTextInputValue("id");
 						const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
 						if (!trans) return await received.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
-						const mm = await (<TextChannel> await interaction.guild.channels.fetch(trans.channelId)).messages.fetch(trans.messageId);
+						const mm = await (<TextChannel>await interaction.guild.channels.fetch(trans.channelId)).messages.fetch(trans.messageId);
 						const msg = await channel.send({ tts: mm.tts, nonce: mm.nonce, content: mm.content, embeds: mm.embeds, attachments: Array.from(mm.attachments.values()) });
-						trans.existingId = msg.id;
-						NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
-						await query(`UPDATE translations SET existing = ${msg.id} WHERE id = ${id}`);
+						await this.updateExisting(interaction.guild, id, msg.id);
 						await received.update({ components: [], content: `Announced message with ID ${id}.` });
 						collector.emit("end");
 				}
@@ -149,11 +160,9 @@ class TranslationCommand implements SlashCommand {
 				if (interaction.customId === "message") {
 					id = interaction.values[0];
 					const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
-					const mm = await (<TextChannel> await interaction.guild.channels.fetch(trans.channelId)).messages.fetch(trans.messageId);
+					const mm = await (<TextChannel>await interaction.guild.channels.fetch(trans.channelId)).messages.fetch(trans.messageId);
 					const msg = await channel.send({ tts: mm.tts, nonce: mm.nonce || "", content: mm.content, embeds: mm.embeds, attachments: Array.from(mm.attachments.values()) });
-					trans.existingId = msg.id;
-					NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
-					await query(`UPDATE translations SET existing = ${msg.id} WHERE id = ${id}`);
+					await this.updateExisting(interaction.guild, id, msg.id);
 					await interaction.update({ components: [], embeds: [], content: `Announced message with ID ${id}.` });
 					collector.emit("end");
 				}
@@ -222,7 +231,7 @@ class TranslationCommand implements SlashCommand {
 							.setTitle("Search by ID")
 							.addComponents(new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent().setCustomId("id").setLabel("What is the message ID you are searching for?").setStyle("SHORT")));
 						await interaction.showModal(modal);
-						const received = <ModalSubmitInteraction> await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id, time: 60000 }).catch(() => null);
+						const received = <ModalSubmitInteraction>await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id, time: 60000 }).catch(() => null);
 						if (!received) break;
 						id = received.fields.getTextInputValue("id");
 						const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
@@ -246,19 +255,17 @@ class TranslationCommand implements SlashCommand {
 		});
 		collector.on("end", () => { interaction.editReply({ components: [] }); });
 	}
-	
+
 	async link(interaction: NorthInteraction) {
-		if (!(<Permissions> interaction.member.permissions).has(BigInt(32))) return await interaction.editReply("You don't have the permissions to use this subcommand!");
+		if (!(<Permissions>interaction.member.permissions).has(BigInt(32))) return await interaction.editReply("You don't have the permissions to use this subcommand!");
 		const announced = interaction.options.getString("announced_id");
 		if (NorthClient.storage.guilds[interaction.guildId].translations.find(trans => trans.existingId === announced)) return await interaction.editReply("This announcement is already linked!");
 		var id: Snowflake;
 		if (id = interaction.options.getString("id")) {
 			const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
 			if (trans) {
-				trans.existingId = announced;
-				NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
-				await query(`UPDATE translations SET existing = ${announced} WHERE id = ${id}`);
-				await interaction.editReply(`Announced message with ID ${id}.`);
+				await this.updateExisting(interaction.guild, id, announced);
+				await interaction.editReply(`Linked message with ID ${id} to announcement ${announced}.`);
 			} else await interaction.editReply(`Message with ID ${id} doesn't exist!`);
 			return;
 		}
@@ -309,25 +316,21 @@ class TranslationCommand implements SlashCommand {
 							.setTitle("Search by ID")
 							.addComponents(new MessageActionRow<TextInputComponent>().addComponents(new TextInputComponent().setCustomId("id").setLabel("What is the message ID you are searching for?").setStyle("SHORT")));
 						await interaction.showModal(modal);
-						const received = <ModalSubmitInteraction> await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id, time: 60000 }).catch(() => null);
+						const received = <ModalSubmitInteraction>await interaction.awaitModalSubmit({ filter: int => int.user.id === interaction.user.id, time: 60000 }).catch(() => null);
 						if (!received) break;
 						id = received.fields.getTextInputValue("id");
 						const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
 						if (!trans) return await received.update({ embeds: [], components: [], content: `The message with ID ${id} doesn't exist!` });
-						trans.existingId = announced;
-						NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
-						await query(`UPDATE translations SET existing = ${announced} WHERE id = ${id}`);
-						await received.update({ components: [], content: `Announced message with ID ${id}.` });
+						await this.updateExisting(interaction.guild, id, announced);
+						await received.update({ components: [], content: `Linked message with ID ${id} to announcement ${announced}.` });
 						collector.emit("end");
 				}
 			} else if (interaction.isSelectMenu()) {
 				if (interaction.customId === "message") {
 					id = interaction.values[0];
 					const trans = NorthClient.storage.guilds[interaction.guildId].translations.get(id);
-					trans.existingId = announced;
-					NorthClient.storage.guilds[interaction.guildId].translations.set(id, trans);
-					await query(`UPDATE translations SET existing = ${announced} WHERE id = ${id}`);
-					await interaction.update({ components: [], embeds: [], content: `Announced message with ID ${id}.` });
+					await this.updateExisting(interaction.guild, id, announced);
+					await interaction.update({ components: [], embeds: [], content: `Linked message with ID ${id} to announcement ${announced}.` });
 					collector.emit("end");
 				}
 			}

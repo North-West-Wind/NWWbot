@@ -423,6 +423,29 @@ export function milliToHumanDuration(milli: number) {
     const days = x;
     return `${days}D, ${hours}H, ${minutes}M, ${seconds}S`
 }
+export function getWeek(date: Date, dowOffset: number = 0) {
+    /*getWeek() was developed by Nick Baicoianu at MeanFreePath: http://www.meanfreepath.com */
+    // https://stackoverflow.com/questions/9045868/javascript-date-getweek
+    var newYear = new Date(date.getFullYear(), 0, 1);
+    var day = newYear.getDay() - dowOffset; //the day of week the year begins on
+    day = (day >= 0 ? day : day + 7);
+    var daynum = Math.floor((date.getTime() - newYear.getTime() -
+        (date.getTimezoneOffset() - newYear.getTimezoneOffset()) * 60000) / 86400000) + 1;
+    var weeknum: number;
+    //if the year starts before the middle of a week
+    if (day < 4) {
+        weeknum = Math.floor((daynum + day - 1) / 7) + 1;
+        if (weeknum > 52) {
+            const nYear = new Date(date.getFullYear() + 1, 0, 1);
+            var nday = nYear.getDay() - dowOffset;
+            nday = nday >= 0 ? nday : nday + 7;
+            /*if the next year starts before the middle of
+              the week, it is week #1 of that year*/
+            weeknum = nday < 4 ? 1 : 53;
+        }
+    } else weeknum = Math.floor((daynum + day - 1) / 7);
+    return weeknum;
+};
 
 // Extended functionality of ms
 export function ms(val: string) {
@@ -725,14 +748,22 @@ export async function getTokensAndMultiplier(author: Discord.Snowflake, uuid: st
     if (author) conditions.push(`dcid = "${author}"`);
     if (uuid) conditions.push(`uuid = "${uuid}"`);
     const [result] = await query(`SELECT tokens, multiplier FROM dcmc${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
+    if (!result) return null;
     result.multiplier = Number(result.multiplier);
-    return <{ tokens: number, multiplier: number }> result;
+    return <{ tokens: number, multiplier: number }>result;
 }
 export async function updateTokens(author: Discord.Snowflake, uuid: string, value: number) {
     var conditions: string[] = [], condition = " WHERE ";
     if (author) conditions.push(`dcid = "${author}"`);
     if (uuid) conditions.push(`uuid = "${uuid}"`);
     await query(`UPDATE dcmc SET tokens = ${roundTo(value, 2)}${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
+}
+export async function changeTokens(author: Discord.Snowflake, uuid: string, change: number, data?: { tokens: number, multiplier: number }) {
+    var conditions: string[] = [], condition = " WHERE ";
+    if (author) conditions.push(`dcid = "${author}"`);
+    if (uuid) conditions.push(`uuid = "${uuid}"`);
+    if (!data) data = await getTokensAndMultiplier(author, uuid);
+    await query(`UPDATE dcmc SET tokens = ${roundTo(data.tokens + change * data.multiplier, 2)}${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
 }
 export async function updateMultiplier(author: Discord.Snowflake, uuid: string, value: number) {
     var conditions: string[] = [], condition = " WHERE ";

@@ -2,7 +2,7 @@ import cv from "canvas";
 import { Collection, CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Invite, Message, MessageActionRow, MessageAttachment, MessageButton, MessageComponentInteraction, MessageEmbed, MessageReaction, MessageSelectMenu, Modal, ModalSubmitInteraction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Role, Snowflake, TextChannel, TextInputComponent, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
 import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
-import { getRandomNumber, jsDate2Mysql, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo, getFont, replaceWithObj, mysqlEscape, wait, updateTokens, getTokensAndMultiplier } from "./function.js";
+import { getRandomNumber, jsDate2Mysql, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo, getFont, replaceWithObj, mysqlEscape, wait, updateTokens, getTokensAndMultiplier, changeTokens } from "./function.js";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig, FullCommand, SlashCommand, PrefixCommand, IPrefix, ISlash } from "./classes/NorthClient.js";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter.js";
@@ -258,8 +258,16 @@ export class Handler {
 
     async preWelcomeImage(_channel: TextChannel) { }
 
+    async inviteMember(inviter: GuildMember, invited: GuildMember) {
+        if (NorthClient.storage.noLog.find(x => x === inviter.id)) return;
+        const guild = inviter.guild;
+        const uses = NorthClient.storage.guilds[guild.id].invites.filter(i => i.inviter.id === inviter.id && i.guild.id === guild.id).map(i => i.uses ? i.uses : 0).reduce((a, b) => a + b);
+        try {
+            await inviter.send(`You invited **${invited.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${this.client.prefix}invites toggle\` to turn it off)`);
+        } catch (err) { }
+    }
+
     async guildMemberAdd(member: GuildMember) {
-        const client = (member.client as NorthClient);
         const guild = member.guild;
         const simMems = NorthClient.storage.guilds[guild.id].checkMember(member);
         if (simMems.length >= 2) console.debug(`Potential nuke happening on ${guild.name}. Members: ${simMems.map(mem => mem.user.tag).join(" ")} ${member}`);
@@ -269,13 +277,8 @@ export class Handler {
             NorthClient.storage.guilds[member.guild.id].invites = invites;
             const invite = invites.find(i => ei.get(i.code)?.uses < i.uses);
             if (!invite) return;
-            const inviter = await client.users.fetch(invite.inviter.id);
-            if (!inviter || NorthClient.storage.noLog.find(x => x === inviter.id)) return;
-            const allUserInvites = invites.filter(i => i.inviter.id === inviter.id && i.guild.id === guild.id);
-            const uses = allUserInvites.map(i => i.uses ? i.uses : 0).reduce((a, b) => a + b);
-            try {
-                await inviter.send(`You invited **${member.user.tag}** to the server **${guild.name}**! In total, you have now invited **${uses} users** to the server!\n(If you want to disable this message, use \`${client.prefix}invites toggle\` to turn it off)`);
-            } catch (err: any) { }
+            const inviter = await guild.members.fetch(invite.inviter.id);
+            if (inviter) await this.inviteMember(inviter, member);
         }).catch(() => { });
         try {
             if (!NorthClient.storage.guilds[guild.id]) {
@@ -716,6 +719,11 @@ export class AliceHandler extends Handler {
                 return console.log("Deleted an ended poll.");
             }
         });
+    }
+
+    async inviteMember(inviter: GuildMember, invited: GuildMember) {
+        await super.inviteMember(inviter, invited);
+        await changeTokens(inviter.id, null, 2);
     }
 
     async preWelcomeImage(channel: TextChannel) {
