@@ -599,7 +599,7 @@ class GuildCommand implements SlashCommand {
 		if (!await nameExists(minecraft)) return await interaction.editReply("The Minecraft username doesn't exist.");
 		const mcUuid = await nameToUuid(minecraft);
 		var results = await query(`SELECT * FROM dcmc WHERE dcid = '${member.id}'`);
-		if (results?.length == 0) {
+		if (!results?.length) {
 			await query(`INSERT INTO dcmc VALUES(NULL, '${member.id}', '${mcUuid}')`);
 			await interaction.editReply("Added record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => interaction.deleteReply().catch(() => { }), 10000));
 			console.log("Inserted record for mc-name.");
