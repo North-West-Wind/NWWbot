@@ -207,11 +207,11 @@ class KrunkerCommand implements FullCommand {
             }
             var s = 0;
             const row1 = new Discord.MessageActionRow()
-                .addComponents(new Discord.MessageButton({ emoji: "⏮", customId: "first", style: "PRIMARY" }))
-                .addComponents(new Discord.MessageButton({ emoji: "◀", customId: "previous", style: "PRIMARY" }))
-                .addComponents(new Discord.MessageButton({ emoji: "▶", customId: "next", style: "PRIMARY" }))
-                .addComponents(new Discord.MessageButton({ emoji: "⏭", customId: "last", style: "PRIMARY" }))
-                .addComponents(new Discord.MessageButton({ emoji: "⏹", customId: "quit", style: "DANGER" }));
+                .addComponents(new Discord.MessageButton({ label: "<< First", customId: "first", style: "PRIMARY" }))
+                .addComponents(new Discord.MessageButton({ label: "< Previous", customId: "previous", style: "PRIMARY" }))
+                .addComponents(new Discord.MessageButton({ label: "> Next", customId: "next", style: "PRIMARY" }))
+                .addComponents(new Discord.MessageButton({ label: ">> Last", customId: "last", style: "PRIMARY" }))
+                .addComponents(new Discord.MessageButton({ label: "Stop", emoji: "✖️", customId: "stop", style: "DANGER" }));
             const row2 = new Discord.MessageActionRow()
                 .addComponents(new Discord.MessageButton({ label: "Random Game", emoji: "🎲", customId: "random", style: "SECONDARY" }))
                 .addComponents(new Discord.MessageButton({ label: "Random Regional", emoji: "🔗", customId: "region", style: "SECONDARY" }))
@@ -242,45 +242,52 @@ class KrunkerCommand implements FullCommand {
                         var options = [];
                         if (s > officialPage - 1) options = Array.from(new Set(custom.map(x => x[0].split(":")[0])));
                         else options = Array.from(new Set(official.map(x => x[0].split(":")[0])));
-                        linkEmbed.setDescription(`Available regions:\n**${options.join("\n")}**\n\nPlease type the region in the channel.`);
-                        await interaction.update({ embeds: [linkEmbed], components: [] });
-                        const collected = await message.channel.awaitMessages({ filter: m => m.author.id === author.id, max: 1, time: 30000 });
-                        if (collected && collected.first()) await collected.first().delete();
-                        if (collected.first().content && options.includes(collected.first().content.split(/ +/)[0].toUpperCase())) {
-                            const region = options.find(x => x === collected.first().content.split(/ +/)[0].toUpperCase());
-                            var games = [];
-                            if (s > officialPage - 1) games = custom.filter(x => x[0].startsWith(region));
-                            else games = official.filter(x => x[0].startsWith(region));
-                            await message.channel.send(`https://krunker.io/?game=${games[Math.floor(Math.random() * games.length)][0]}`);
-                        }
-                        await msg.edit({ embeds: [allEmbeds[s]], components: [row1, row2] });
+                        const menu = new Discord.MessageSelectMenu().setCustomId("region_menu").addOptions(options.map(x => ({ label: x, value: x })));
+                        linkEmbed.setDescription(`Please choose a region in the menu.`);
+                        await interaction.update({ embeds: [linkEmbed], components: [new Discord.MessageActionRow(menu)] });
+                        break;
+                    case "region_menu":
+                        const region = (<Discord.SelectMenuInteraction>interaction).values[0];
+                        var games = [];
+                        if (s > officialPage - 1) games = custom.filter(x => x[0].startsWith(region));
+                        else games = official.filter(x => x[0].startsWith(region));
+                        await message.channel.send(`https://krunker.io/?game=${games[Math.floor(Math.random() * games.length)][0]}`);
+                        await interaction.update({ embeds: [allEmbeds[s]], components: [row1, row2] });
                         break;
                     case "warp":
-                        await interaction.update({ embeds: [pageWarp], components: [] });
-                        const collected1 = await msg.channel.awaitMessages({ filter: m => m.author.id === author.id, max: 1, time: 30000 });
-                        if (collected1 && collected1.first()) await collected1.first().delete();
-                        if (collected1.first().content && !isNaN(parseInt(collected1.first().content))) s = (parseInt(collected1.first().content) - 1) % allEmbeds.length;
-                        await msg.edit({ embeds: [allEmbeds[s]], components: [row1, row2] });
+                        await interaction.update({ embeds: [pageWarp] });
+                        const modal = new Discord.Modal().setTitle("Page Select").addComponents(
+                            new Discord.MessageActionRow<Discord.TextInputComponent>().addComponents(
+                                new Discord.TextInputComponent()
+                                    .setCustomId("page")
+                                    .setLabel("Please enter the page number")
+                                    .setStyle("SHORT")
+                            ));
+                        await interaction.showModal(modal);
+                        const collected1 = await interaction.awaitModalSubmit({ filter: int => int.user.id === author.id, time: 30000 });
+                        const parsed = parseInt(collected1.fields.getTextInputValue("page"));
+                        s = (parsed - 1) % allEmbeds.length;
+                        if (s < 0) s = 0;
+                        await collected1.update({ embeds: [allEmbeds[s]], components: [row1, row2] });
                         break;
-                    case "⏮":
+                    case "first":
                         s = 0;
                         await interaction.update({ embeds: [allEmbeds[s]] });
                         break;
-                    case "◀":
+                    case "previous":
                         s -= 1;
                         if (s < 0) s = allEmbeds.length - 1;
                         await interaction.update({ embeds: [allEmbeds[s]] });
                         break;
-                    case "▶":
-                        s += 1;
-                        if (s > allEmbeds.length - 1) s = 0;
+                    case "next":
+                        s = (s + 1) % allEmbeds.length;
                         await interaction.update({ embeds: [allEmbeds[s]] });
                         break;
-                    case "⏭":
+                    case "last":
                         s = allEmbeds.length - 1;
                         await interaction.update({ embeds: [allEmbeds[s]] });
                         break;
-                    case "⏹":
+                    case "stop":
                         collector.emit("end");
                         break;
                 }
@@ -293,7 +300,7 @@ class KrunkerCommand implements FullCommand {
                     else random = (`https://krunker.io/?game=${official[Math.floor(Math.random() * official.length)][0]}`);
                     if (random.endsWith("undefined")) random = "";
                     await wait(30000);
-                    if (random.length) msg.edit(`Here's a random server:\n<${random}>`).catch(() => { });
+                    if (random.length) msg.edit({ content: `Here's a random server:\n<${random}>`, embeds: [] }).catch(() => { });
                 } catch (err) { }
             });
         } catch (err: any) {

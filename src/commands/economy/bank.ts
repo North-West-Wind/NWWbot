@@ -8,7 +8,7 @@ class BankCommand implements FullCommand {
   name = "bank"
   description = "Display your Discord Economy status. You can also deposit or withdraw money with this command."
   category = 2
-  
+
   async execute(interaction: NorthInteraction) {
     var results = await query(`SELECT * FROM users WHERE id = '${interaction.user.id}'`);
     if (results.length == 0) await interaction.reply("You don't have any bank account registered. Use `/work` to work and have an account registered!");
@@ -44,112 +44,75 @@ class BankCommand implements FullCommand {
       const embed = new Discord.MessageEmbed()
         .setColor(color())
         .setTitle(author.tag)
-        .setDescription("Economic status\n\n1️⃣Deposit\n2️⃣Withdraw")
-        .addField("Bank", "$" + bank)
-        .addField("Cash", "$" + cash)
+        .addField("Bank", "$" + bank, true)
+        .addField("Cash", "$" + cash, true)
         .setTimestamp()
         .setFooter({ text: `Have a nice day! :)`, iconURL: message.client.user.displayAvatarURL() });
-      await msg.edit({embeds: [embed]});
-      await msg.react("1️⃣");
-      await msg.react("2️⃣");
-      const filter = (reaction, user) => ["1️⃣", "2️⃣"].includes(reaction.emoji.name) && user.id === author.id;
-      var collected = await msg.awaitReactions({ filter, max: 1, time: 30000 });
-      msg.reactions.removeAll().catch(() => {});
-      if (!collected || !collected.first()) return;
-      const reaction = collected.first();
-      if (reaction.emoji.name === "1️⃣") {
-        var depositEmbed = new Discord.MessageEmbed()
+
+      await msg.edit({
+        embeds: [embed], components: [
+          new Discord.MessageActionRow().addComponents(
+            new Discord.MessageButton({ label: "Deposit", style: "SUCCESS", customId: "deposit" }),
+            new Discord.MessageButton({ label: "Withdraw", style: "DANGER", customId: "withdraw" }),
+          )]
+      });
+      var move: string, noun: string, past: string, multiplier: number;
+      const filter = (int: Discord.Interaction) => int.user.id === author.id;
+      const collected = await msg.awaitMessageComponent({ filter, time: 30000 }).catch(() => { });
+      if (!collected) return;
+      if (collected.customId === "deposit") move = "Deposit", noun = "Deposition", past = "Deposited", multiplier = 1;
+      else if (collected.customId === "withdraw") move = "Withdraw", noun = "Withdrawal", past = "Withdrawed", multiplier = -1;
+      var em = new Discord.MessageEmbed()
           .setColor(color())
-          .setTitle("Deposit")
-          .setDescription("Please enter the amount you want to deposit.\n(Can also enter `all`, `half` or `quarter`)")
+          .setTitle(move)
+          .setDescription(`Please enter the amount you want to ${move.toLowerCase()}.\n(Can also enter \`all\`, \`half\` or \`quarter\`)`)
           .setTimestamp()
           .setFooter({ text: "Please enter within 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-        await msg.edit({embeds: [depositEmbed]});
-        async function depositNotValid() {
-          const depositedEmbed = new Discord.MessageEmbed()
-            .setColor(color())
-            .setTitle("Deposition Failed")
+        const menu = new Discord.MessageSelectMenu().setCustomId("predefined").addOptions(["All", "Half", "Quarter"].map(x => ({ label: x, value: x.toLowerCase() })));
+        await msg.edit({ embeds: [em], components: [new Discord.MessageActionRow().addComponents(menu), new Discord.MessageActionRow().addComponents(new Discord.MessageButton({ label: "Custom Amount", style: "SECONDARY", customId: "custom" }))] });
+        async function invalid(int?: Discord.MessageComponentInteraction | Discord.ModalSubmitInteraction) {
+          em
+            .setTitle(`${noun} Failed`)
             .setDescription("That is not a valid amount!")
             .setTimestamp()
             .setFooter({ text: "Returning to main page in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
-          await msg.edit({embeds: [depositedEmbed]});
+          if (int) await int.update({ embeds: [em] });
+          else await msg.edit({ embeds: [em] });
           await wait(3000);
           await MainPage();
         }
-        const amount = await msg.channel.awaitMessages({ filter: x => x.author.id === author.id,  max: 1, time: 30000 });
-        if (!amount.first() || !amount.first().content) return await depositNotValid();
-        amount.first().delete().catch(() => { });
-        var deposits = 0;
-        if (isNaN(parseInt(amount.first().content))) {
-          if (amount.first().content === "quarter") deposits = roundTo(newResults[0].currency / 4, 2);
-          else if (amount.first().content === "half") deposits = roundTo(newResults[0].currency / 2, 2);
-          else if (amount.first().content === "all") deposits = roundTo(newResults[0].currency, 2);
-          else return await depositNotValid();
-        } else deposits = Math.min(newResults[0].currency, Number(amount.first().content));
-        const newCurrency = newResults[0].currency - deposits;
-        const newBank = newResults[0].bank + deposits;
+        const collected1 = await msg.awaitMessageComponent({ filter, time: 60000 }).catch(() => { });
+        if (!collected1) return await invalid();
+        var change = 0;
+        if (collected1.isSelectMenu()) {
+          if (collected1.values[0] === "quarter") change = roundTo(newResults[0].currency / 4, 2);
+          else if (collected1.values[0] === "half") change = roundTo(newResults[0].currency / 2, 2);
+          else if (collected1.values[0] === "all") change = roundTo(newResults[0].currency, 2);
+        } else if (collected1.isButton()) {
+          const modal = new Discord.Modal().setTitle(`${move} Custom Amount`);
+          modal.addComponents(new Discord.MessageActionRow<Discord.TextInputComponent>().addComponents(new Discord.TextInputComponent().setCustomId("amount").setLabel("Amount")));
+          await collected1.showModal(modal);
+          const collected2 = await collected1.awaitModalSubmit({ filter, time: 60000 }).catch(() => { });
+          if (!collected2) return await invalid();
+          const parsed = parseInt(collected2.fields.getTextInputValue("amount"));
+          if (isNaN(parsed)) return await invalid(collected2);
+          else change = Math.min(newResults[0].currency, parsed);
+        }
+        change *= multiplier;
+        const newCurrency = newResults[0].currency - change;
+        const newBank = newResults[0].bank + change;
         try {
           await query(`UPDATE users SET currency = '${newCurrency}', bank = '${newBank}' WHERE id = '${author.id}'`);
           const depositedEmbed = new Discord.MessageEmbed()
             .setColor(color())
-            .setTitle("Deposition Successful")
-            .setDescription("Deposited **$" + deposits + "** into bank!")
+            .setTitle(`${noun} Successful`)
+            .setDescription(`${past} **$${change}** into bank!`)
             .setTimestamp()
             .setFooter({ text: "Returning to main page in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
-          await msg.edit({embeds: [depositedEmbed]});
+          await msg.edit({ embeds: [depositedEmbed] });
           await wait(3000);
           await MainPage();
-        } catch (err: any) {
-          console.error(err);
-          message.channel.send("There was an error trying to fetch data from the database!");
-        }
-      } else {
-        var withdrawEmbed = new Discord.MessageEmbed()
-          .setColor(color())
-          .setTitle("Withdrawal")
-          .setDescription("Please enter the amount you want to withdraw.\n(Can also enter `all`, `half` or `quarter`)")
-          .setTimestamp()
-          .setFooter({ text: "Please enter within 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-        await msg.edit({embeds: [withdrawEmbed]});
-        async function withdrawNotValid() {
-          const withdrawedEmbed = new Discord.MessageEmbed()
-          .setColor(color())
-          .setTitle("Withdrawal Failed")
-          .setDescription("That is not a valid amount!")
-          .setTimestamp()
-          .setFooter({ text: "Returning to main page in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
-          await msg.edit({embeds: [withdrawedEmbed]});
-          await wait(3000);
-          await MainPage();
-        }
-        const amount = await msg.channel.awaitMessages({ filter: x => x.author.id === author.id,  max: 1, time: 30000 });
-        if (!amount.first() || !amount.first().content) return await withdrawNotValid();
-        amount.first().delete().catch(() => { });
-        var withdraws = 0;
-        if (isNaN(parseInt(amount.first().content))) {
-          if (amount.first().content === "quarter") withdraws = roundTo(newResults[0].bank / 4, 2);
-          else if (amount.first().content === "half") withdraws = roundTo(newResults[0].bank / 2, 2);
-          else if (amount.first().content === "all") withdraws = roundTo(newResults[0].bank, 2);
-          else return await withdrawNotValid();
-        } else withdraws = Math.min(newResults[0].bank, Number(amount.first().content));
-        const newCurrency = newResults[0].currency + withdraws;
-        const newBank = newResults[0].bank - withdraws;
-        try {
-          await query(`UPDATE users SET currency = '${newCurrency}', bank = '${newBank}' WHERE id = '${author.id}'`);
-          const withdrawedEmbed = new Discord.MessageEmbed()
-            .setColor(color())
-            .setTitle("Withdrawal Successful")
-            .setDescription("Withdrawed **$" + withdraws + "** from bank!")
-            .setTimestamp()
-            .setFooter({ text: "Returning to main page in 3 seconds...", iconURL: message.client.user.displayAvatarURL() });
-          await msg.edit({embeds: [withdrawedEmbed]});
-          await wait(3000);
-          await MainPage();
-        } catch (err: any) {
-          console.error(err);
-          message.reply("there was an error trying to fetch data from the database!");
-        }
-      }
+        } catch (err: any) { }
     }
   }
 };
