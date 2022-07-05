@@ -1,6 +1,6 @@
 import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { sCategories } from "../information/help.js";
-import { msgOrRes } from "../../function.js";
+import { __dirname, msgOrRes } from "../../function.js";
 
 class ReloadCommand implements FullCommand {
     name = "reload";

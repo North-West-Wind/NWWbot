@@ -1,11 +1,11 @@
 import canvas from "canvas";
 import * as fs from "fs";
 import { NorthClient, Card, Item, ClientStorage, Command } from "./classes/NorthClient.js";
-import { twoDigits, deepReaddir, query, jsDate2Mysql } from "./function.js";
+import { __dirname, twoDigits, deepReaddir, query, jsDate2Mysql } from "./function.js";
 import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
 import { AliceHandler, CanaryHandler, Handler, V2Handler } from "./handler.js";
-import pkg from "../package.json" assert { type: "json" };
+const pkg = JSON.parse(fs.readFileSync("package.json", { encoding: "utf8" }));
 var globalClient: NorthClient;
 var logger: Logger;
 var localIp: string;
@@ -65,8 +65,8 @@ export default async (client: NorthClient) => {
   NorthClient.storage.card.set("0413", new Card(4, 13));
   NorthClient.storage.card.set("0414", new Card(4, 14));
 
-  const commandFiles = deepReaddir("./out/src/commands").filter(file => file.endsWith(".js"));
-  const itemFiles = deepReaddir("./out/src/items").filter(file => file.endsWith(".js"));
+  const commandFiles = deepReaddir(__dirname + "/commands").filter(file => file.endsWith(".js"));
+  const itemFiles = deepReaddir(__dirname + "/items").filter(file => file.endsWith(".js"));
   for (const file of commandFiles) {
     const command = <Command>(await import(file)).default;
     NorthClient.storage.commands.set(command.name, command);

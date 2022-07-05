@@ -1,19 +1,18 @@
 import cv from "canvas";
 import { Collection, CommandInteraction, Guild, GuildMember, GuildMemberRoleManager, Interaction, Invite, Message, MessageActionRow, MessageAttachment, MessageButton, MessageComponentInteraction, MessageEmbed, MessageReaction, MessageSelectMenu, Modal, ModalSubmitInteraction, PartialGuildMember, PartialMessage, PartialMessageReaction, PartialUser, Role, Snowflake, TextChannel, TextInputComponent, User, VoiceState } from "discord.js";
 import { endGiveaway } from "./commands/miscellaneous/giveaway.js";
-import { endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
+import { emojis as pollEmojis, endPoll, updatePoll } from "./commands/miscellaneous/poll.js";
 import { getRandomNumber, jsDate2Mysql, setTimeout_, profile, updateGuildMemberMC, nameToUuid, color, fixGuildRecord, query, duration, checkTradeW1nd, roundTo, getFont, replaceWithObj, mysqlEscape, wait, updateTokens, getTokensAndMultiplier, changeTokens } from "./function.js";
 import { NorthClient, LevelData, NorthMessage, RoleMessage, NorthInteraction, GuildTimer, GuildConfig, FullCommand, SlashCommand, PrefixCommand, IPrefix, ISlash } from "./classes/NorthClient.js";
 import fetch from "node-fetch";
 import * as filter from "./helpers/filter.js";
 import { sCategories } from "./commands/information/help.js";
 import common from "./common.js";
-import cfg from "../config.json" assert { type: "json" };
 import { endApplication } from "./commands/managements/apply.js";
 import { MutedKickSetting } from "./classes/Config.js";
 import { calculateLevel } from "./commands/fun/rank.js";
 const { createCanvas, loadImage, Image } = cv;
-const emojis = cfg.poll;
+const emojis = pollEmojis;
 const error = "There was an error trying to execute that command!\nIf it still doesn't work after a few tries, please contact NorthWestWind or report it on the [support server](<https://discord.gg/n67DUfQ>) or [GitHub](<https://github.com/North-West-Wind/NWWbot/issues>).\nPlease **DO NOT just** sit there and ignore this error. If you are not reporting it, it is **NEVER getting fixed**.";
 
 export class Handler {

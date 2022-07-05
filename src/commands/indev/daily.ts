@@ -1,6 +1,6 @@
 import { Collection } from "discord.js";
 import { DailyModule, NorthMessage, PrefixCommand } from "../../classes/NorthClient.js";
-import { deepReaddir } from "../../function.js";
+import { __dirname, deepReaddir } from "../../function.js";
 
 class DailyCommand implements PrefixCommand {
 	name = "daily";
@@ -14,7 +14,7 @@ class DailyCommand implements PrefixCommand {
 	}
 
 	constructor() {
-		const files = deepReaddir("./out/src/daily").filter(file => file.endsWith(".js"));
+		const files = deepReaddir(__dirname + "/daily").filter(file => file.endsWith(".js"));
 		for (const file of files) {
 			import(file).then(imported => {
 				const module = <DailyModule> imported.default;

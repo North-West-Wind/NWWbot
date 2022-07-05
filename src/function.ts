@@ -14,6 +14,9 @@ import ytdl, { downloadOptions } from "ytdl-core";
 import cvs, { Canvas } from "canvas";
 import { escape } from "mysql2";
 const { Image } = cvs;
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+export const __dirname = path.dirname(__filename);
 
 // Helper functions
 export function twoDigits(d: number) {

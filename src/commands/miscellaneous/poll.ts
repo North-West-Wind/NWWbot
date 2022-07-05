@@ -1,8 +1,7 @@
 import { NorthMessage, FullCommand, NorthClient, NorthInteraction } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color, findChannel, jsDate2Mysql, ms, msgOrRes, mysqlEscape, query, readableDateTime, readableDateTimeText } from "../../function.js";
-import cfg from "../../../config.json" assert { type: "json" };
-const emojis = cfg.poll;
+export const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
 
 export async function endPoll(msg: Discord.Message, message: Discord.Message | Discord.CommandInteraction = null) {
     var shouldDel = true;

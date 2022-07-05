@@ -4,7 +4,8 @@ import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild, wa
 import { NorthClient } from "../../classes/NorthClient.js";
 import converter from "number-to-words";
 import Canvas from "canvas";
-import config from "../../../config.json" assert { type: "json" };
+import * as fs from "fs";
+const config = JSON.parse(fs.readFileSync("config.json", { encoding: "utf8" })) || { };
 
 const COLOR = ["Yellow", "Blue", "Green", "Red", "Special"];
 const NUMBER = ["Reverse", "Skip", "Draw 2", "Draw 4", "Change Color"];
@@ -55,6 +56,7 @@ class UnoCommand implements FullCommand {
   ];
 
   async execute(interaction: NorthInteraction) {
+    if (!config.uno) return await interaction.reply("The configuration for UNO is not set up!");
     var mentions = new Discord.Collection<Discord.Snowflake, Discord.GuildMember>();
     const users = interaction.options.getString("users");
     const t = interaction.options.getString("time");
@@ -76,6 +78,7 @@ class UnoCommand implements FullCommand {
   }
 
   async run(message: NorthMessage, args: string[]) {
+    if (!config.uno) return await message.reply("The configuration for UNO is not set up!");
     var mentions = new Discord.Collection<Discord.Snowflake, Discord.GuildMember>();
     var t: string;
     for (let i = 0; i < args.length; i++) {

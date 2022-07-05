@@ -1,7 +1,6 @@
 import { NorthClient, NorthInteraction, NorthMessage, FullCommand, Command } from "../../classes/NorthClient.js";
-import { color, deepReaddir, fixGuildRecord, wait } from "../../function.js";
+import { __dirname, color, deepReaddir, fixGuildRecord, wait } from "../../function.js";
 import * as Discord from "discord.js";
-
 import { AkiCommand } from "../api/aki.js";
 import { globalClient as client } from "../../common.js";
 
@@ -24,7 +23,7 @@ class HelpCommand implements FullCommand {
         type: "SUB_COMMAND"
       }
     ];
-    const commandFiles = deepReaddir("./out/src/commands").filter(file => file.endsWith(".js"));
+    const commandFiles = deepReaddir(__dirname + "/commands").filter(file => file.endsWith(".js"));
     (async () => {
       const commands: Command[] = [];
       for (const file of commandFiles) commands.push((await import(file)).default);
