@@ -258,7 +258,6 @@ export class Handler {
     async preWelcomeImage(_channel: TextChannel) { }
 
     async inviteMember(inviter: GuildMember, invited: GuildMember) {
-        console.debug(`${inviter.displayName} invited ${invited.displayName} to server ${inviter.guild.name}`);
         if (NorthClient.storage.noLog.find(x => x === inviter.id)) return;
         const guild = inviter.guild;
         const uses = NorthClient.storage.guilds[guild.id].invites.filter(i => i.inviter.id === inviter.id && i.guild.id === guild.id).map(i => i.uses ? i.uses : 0).reduce((a, b) => a + b);

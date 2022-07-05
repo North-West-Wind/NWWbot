@@ -756,12 +756,16 @@ export async function getTokensAndMultiplier(author: Discord.Snowflake, uuid: st
     return <{ tokens: number, multiplier: number }>result;
 }
 export async function updateTokens(author: Discord.Snowflake, uuid: string, value: number) {
+    console.debug(`Updating tokens of ${author} / ${uuid}`);
+    console.trace();
     var conditions: string[] = [], condition = " WHERE ";
     if (author) conditions.push(`dcid = "${author}"`);
     if (uuid) conditions.push(`uuid = "${uuid}"`);
     await query(`UPDATE dcmc SET tokens = ${roundTo(value, 2)}${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
 }
 export async function changeTokens(author: Discord.Snowflake, uuid: string, change: number, data?: { tokens: number, multiplier: number }) {
+    console.debug(`Changing tokens of ${author} / ${uuid}`);
+    console.trace();
     var conditions: string[] = [], condition = " WHERE ";
     if (author) conditions.push(`dcid = "${author}"`);
     if (uuid) conditions.push(`uuid = "${uuid}"`);
