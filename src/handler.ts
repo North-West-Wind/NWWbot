@@ -814,9 +814,9 @@ export class AliceHandler extends Handler {
                 }
                 const hyDc = res.links.DISCORD;
                 if (hyDc !== message.author.tag) return await msg.edit("⚠️This Hypixel account is not linked to your Discord account!\nIf you have just linked your account, you may need to wait for a few minutes.\nhttps://cdn.discordapp.com/attachments/647630951169523762/951420917588836372/verify.gif").then(msg => setTimeout(() => msg.delete().catch(() => { }), 60000));
-                var results = await query(`SELECT * FROM dcmc WHERE dcid = '${dcUserID}'`);
+                var results = await query(`SELECT id FROM dcmc WHERE dcid = '${dcUserID}'`);
                 if (results.length == 0) {
-                    await query(`INSERT INTO dcmc VALUES(NULL, '${dcUserID}', '${mcUuid}', 0)`);
+                    await query(`INSERT INTO dcmc(dcid, uuid) VALUES('${dcUserID}', '${mcUuid}')`);
                     msg.edit("Added record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => msg.delete().catch(() => { }), 10000));
                     console.log("Inserted record for mc-name.");
                 } else {
