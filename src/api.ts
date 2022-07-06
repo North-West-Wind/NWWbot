@@ -38,6 +38,7 @@ app.post("/api/query", async (req, res) => {
         res.json(results);
     } catch (err) {
         res.sendStatus(500);
+        console.error(err);
     }
 });
 
