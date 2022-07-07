@@ -65,8 +65,8 @@ setInterval(async () => {
       for (const member of members.filter(mem => mem.exp_history[lastDate] < 2000)) await changeTokens(null, member.uuid, -4);
       for (const member of members.filter(mem => mem.exp_history[lastDate] <= 0 && mem.exp_history[last2Date] <= 0)) await changeTokens(null, member.uuid, -4);
     }
-    top3 = members.map((mem: any) => ({ uuid: mem.uuid, exp: mem.exp_history[latestDate] })).sort((a: any, b: any) => b.exp - a.exp).slice(0, 3);
     lastDate = latestDate;
+    top3 = members.map((mem: any) => ({ uuid: mem.uuid, exp: mem.exp_history[latestDate] })).sort((a: any, b: any) => b.exp - a.exp).slice(0, 3);
     (<VoiceChannel> await client.channels.fetch("871768634228355162")).edit({ name: `Guild Level: ${level}` });
     (<VoiceChannel> await client.channels.fetch("871765968190324796")).edit({ name: `Guild Members: ${members.length}` });
     (<VoiceChannel> await client.channels.fetch("871768862629187606")).edit({ name: `Daily Guild Top: ${(await profile(top3[0].uuid)).name}` });
@@ -78,5 +78,5 @@ setInterval(async () => {
       for (const member of (await guild.members.fetch()).filter(mem => mem.roles.highest.position > position).values()) await changeTokens(member.id, null, 5);
       lastWeek = latestWeek;
     }
-  } catch (err: any) { }
+  } catch (err: any) { console.error(err); }
 }, 1800000);
