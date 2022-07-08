@@ -764,6 +764,7 @@ export async function updateTokens(author: Discord.Snowflake, uuid: string, valu
 }
 export async function changeTokens(author: Discord.Snowflake, uuid: string, change: number, data?: { tokens: number, multiplier: number }) {
     if (!data) data = await getTokensAndMultiplier(author, uuid);
+    if (!data) return;
     await updateTokens(author, uuid, roundTo(data.tokens + change * data.multiplier, 2));
 }
 export async function updateMultiplier(author: Discord.Snowflake, uuid: string, value: number) {

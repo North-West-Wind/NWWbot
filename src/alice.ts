@@ -55,6 +55,7 @@ setInterval(async () => {
     const members = guildApi.members;
     const latestDate = Object.keys(members[0].exp_history)[0];
     if (lastDate && lastDate !== latestDate) {
+      console.debug("Crossing date!");
       if (top3.length === 3) {
         for (let ii = 0; ii < top3.length; ii++) {
           const top = top3[ii];
@@ -75,7 +76,7 @@ setInterval(async () => {
     if (lastWeek !== latestWeek) {
       const guild = await client.guilds.fetch("622311594654695434");
       const position = (await guild.roles.fetch("640148120579211265")).position;
-      for (const member of (await guild.members.fetch()).filter(mem => mem.roles.highest.position > position).values()) await changeTokens(member.id, null, 5);
+      for (const member of (await guild.members.fetch()).filter(mem => (mem.roles.highest?.position || 0) > position).values()) await changeTokens(member.id, null, 5);
       lastWeek = latestWeek;
     }
   } catch (err: any) { console.error(err); }
