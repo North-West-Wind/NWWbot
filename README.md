@@ -12,8 +12,7 @@ Favourite Command: (NSFW)\
 Language: Node.js\
 Author: NorthWestWind#1885
 
-You can invite me right [here](https://discord.com/api/oauth2/authorize?client_id=649611982428962819&permissions=1391586679&scope=bot).\
-I demand the right to Manage Server, but if you don't want to give that to me, understandable, have a great day. Just use [this](https://discord.com/api/oauth2/authorize?client_id=649611982428962819&permissions=0&scope=bot).
+You can invite me right [here](https://maglit.me/sukthable).
 
 # Open Source
 I'm actually an open source Discord bot, unlike all the other bots. Do whatever you want. You can fork me, copy part of me, or just have a better understanding on me. If you are interested in making a Discord bot, be sure to take a look at me. I'm not a perfect bot, but having a look inside me may inspire you to make something! There is always a great feeling about helping people. You should help others too.
