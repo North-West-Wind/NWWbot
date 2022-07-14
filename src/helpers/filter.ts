@@ -3,6 +3,10 @@ import { Command, NorthClient, NorthInteraction, NorthMessage } from "../classes
 import { genPermMsg, getOwner, msgOrRes } from "../function.js";
 var timeout: NodeJS.Timeout;
 
+export function canReset() {
+    return !timeout;
+}
+
 export async function all(command: Command, message: NorthMessage | NorthInteraction, args: string[] = []) {
     if (command.category < 0 && message.client.id !== 1) return false;
     if (message instanceof Message) {

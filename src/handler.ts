@@ -40,11 +40,8 @@ export class Handler {
         client.on("voiceStateUpdate", (oldState, newState) => this.voiceStateUpdate(<VoiceState>oldState, <VoiceState>newState));
 
         setInterval(async () => {
-            if (!client.user.presence.activities?.length) {
-                console.log("Found no presence of self. Resetting presence...");
-                await this.setPresence().catch(() => { });
-            }
-        }, 60000);
+            if (filter.canReset()) await this.setPresence().catch(() => { });
+        }, 300000);
     }
 
     async interactionCreate(interaction: Interaction) {

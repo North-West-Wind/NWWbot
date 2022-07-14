@@ -33,6 +33,9 @@ client.prefix = config.prefix1;
 client.id = 1;
 AliceHandler.setup(client, process.env.TOKEN1);
 
+const points = [5, 2, 1];
+var top3: { uuid: string, exp: number }[] = [];
+var lastDate: string, lastWeek = getWeek(new Date());
 setInterval(async () => {
   try {
     const guild = await client.guilds.fetch("622311594654695434");
@@ -43,12 +46,6 @@ setInterval(async () => {
       await updateGuildMemberMC(member, result.uuid);
     }
   } catch (err: any) { }
-}, 3600000);
-
-const points = [5, 2, 1];
-var top3: { uuid: string, exp: number }[] = [];
-var lastDate: string, lastWeek = getWeek(new Date());
-setInterval(async () => {
   try {
     const guildApi = <any> await fetch(`https://api.slothpixel.me/api/guilds/id/5b25306a0cf212fe4c98d739?key=${process.env.API}`).then(res => res.json());
     const level = Math.round(guildApi.level);
