@@ -765,13 +765,13 @@ export async function updateTokens(author: Discord.Snowflake, uuid: string, valu
 export async function changeTokens(author: Discord.Snowflake, uuid: string, change: number, data?: { tokens: number, multiplier: number }) {
     if (!data) data = await getTokensAndMultiplier(author, uuid);
     if (!data) return;
-    await updateTokens(author, uuid, roundTo(data.tokens + change * data.multiplier, 2));
+    await updateTokens(author, uuid, data.tokens + change * data.multiplier);
 }
 export async function updateMultiplier(author: Discord.Snowflake, uuid: string, value: number) {
     var conditions: string[] = [], condition = " WHERE ";
     if (author) conditions.push(`dcid = "${author}"`);
     if (uuid) conditions.push(`uuid = "${uuid}"`);
-    await query(`UPDATE dcmc SET multiplier = ${roundTo(value, 2)}${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
+    await query(`UPDATE dcmc SET multiplier = ${Math.max(0, roundTo(value, 2))}${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
 }
 export async function getChatMultiplier(user: Discord.Snowflake, guild: Discord.Snowflake) {
     const [result] = await query(`SELECT multiplier FROM leveling WHERE user = ${user} AND guild = ${guild}`);
