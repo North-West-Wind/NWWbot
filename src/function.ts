@@ -700,7 +700,7 @@ export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: s
     else await member.setNickname(`${firstHalf} ${res.username}`);
     const gInfo = <any>await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
     const roles = member.roles;
-    if (gInfo.id === "5b25306a0cf212fe4c98d739") await roles.add("622319008758104064");
+    if (gInfo.id === "5b5548e70cf21fddabf8c6c1") await roles.add("622319008758104064");
     await roles.add("676754719120556042");
     await roles.add("837345908697989171");
     await roles.remove("837345919010603048");

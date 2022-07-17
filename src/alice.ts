@@ -47,7 +47,7 @@ setInterval(async () => {
     }
   } catch (err: any) { }
   try {
-    const guildApi = <any> await fetch(`https://api.slothpixel.me/api/guilds/id/5b25306a0cf212fe4c98d739?key=${process.env.API}`).then(res => res.json());
+    const guildApi = <any> await fetch(`https://api.slothpixel.me/api/guilds/id/5b5548e70cf21fddabf8c6c1?key=${process.env.API}`).then(res => res.json());
     const level = Math.round(guildApi.level);
     const members = guildApi.members;
     const latestDate = Object.keys(members[0].exp_history)[0];
