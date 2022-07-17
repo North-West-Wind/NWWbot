@@ -544,7 +544,7 @@ export class AliceHandler extends Handler {
     }
 
     async setPresence() {
-        this.client.user.setActivity("Sword Art Online Alicization", { type: "LISTENING" });
+        this.client.user.setActivity("Aincrad", { type: "LISTENING" });
     }
 
     async preRead() {
