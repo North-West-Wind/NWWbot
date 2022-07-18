@@ -151,6 +151,11 @@ class GuildCommand implements SlashCommand {
 					required: true
 				}
 			]
+		},
+		{
+			name: "update",
+			description: "Force-updates all guild members.",
+			type: "SUB_COMMAND"
 		}
 	]
 
@@ -168,6 +173,8 @@ class GuildCommand implements SlashCommand {
 				return await this.calculate(interaction, interaction.options.getString("username"));
 			case "verify":
 				return await this.verify(interaction, <Discord.GuildMember> interaction.options.getMember("user"), interaction.options.getString("minecraft"));
+			case "update":
+				return await this.update(interaction);
 			default:
 				return await interaction.reply("Please use a subcommand: " + `**${this.subcommands.join("**, **")}**\n` + `Usage: ${interaction.prefix}${this.name} ${this.usage}`);
 		}
@@ -609,6 +616,24 @@ class GuildCommand implements SlashCommand {
 			console.log("Updated record for mc-name.");
 		}
 		await updateGuildMemberMC(member, mcUuid);
+	}
+
+	async update(interaction: NorthInteraction) {
+		await interaction.deferReply();
+		try {
+			const results = await query(`SELECT uuid, dcid FROM dcmc`);
+			for (const result of results) {
+				try {
+					const member = await interaction.guild.members.fetch(result.dcid);
+					if (!member) continue;
+					await updateGuildMemberMC(member, result.uuid);
+				} catch (err) {
+					console.error(err);
+				}
+			}
+		} catch (err: any) {
+			console.error(err);
+		}
 	}
 }
 
