@@ -624,7 +624,7 @@ class GuildCommand implements SlashCommand {
 			const results = await query(`SELECT uuid, dcid FROM dcmc`);
 			for (const result of results) {
 				try {
-					const member = await interaction.guild.members.fetch(result.dcid);
+					const member = await interaction.guild.members.fetch(result.dcid).catch(() => { });
 					if (!member) continue;
 					await updateGuildMemberMC(member, result.uuid);
 				} catch (err) {
@@ -634,6 +634,7 @@ class GuildCommand implements SlashCommand {
 		} catch (err: any) {
 			console.error(err);
 		}
+		await interaction.editReply("Done");
 	}
 }
 

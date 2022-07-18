@@ -41,9 +41,11 @@ setInterval(async () => {
     const guild = await client.guilds.fetch("622311594654695434");
     const results = await query(`SELECT uuid, dcid FROM dcmc`);
     for (const result of results) {
-      const member = await guild.members.fetch(result.dcid);
-      if (!member) continue;
-      await updateGuildMemberMC(member, result.uuid);
+      try {
+        const member = await guild.members.fetch(result.dcid).catch(() => { });
+        if (!member) continue;
+        await updateGuildMemberMC(member, result.uuid);
+      } catch (err) { }
     }
   } catch (err: any) { }
   try {
