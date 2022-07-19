@@ -723,7 +723,7 @@ export class AliceHandler extends Handler {
     }
 
     async preWelcomeImage(channel: TextChannel) {
-        await channel.send({ files: [new MessageAttachment("https://cdn.discordapp.com/attachments/714804870078660630/978258723749367829/standard_7.gif")] });
+        await channel.send({ files: [new MessageAttachment("https://cdn.discordapp.com/attachments/714804870078660630/998803804344569876/standard_6.gif")] });
     }
 
     async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
