@@ -690,7 +690,7 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
 }
 
 // Sub-bot things
-const bwStarRoles = ["851471525802803220", "851469005168181320", "851469138647842896", "851469218310389770", "851469264664789022", "851469323444944907", "851469358076788766", "851469389806829596", "851469422971584573", "851469455791489034", "851469501115793408", "851469537030307870", "851469565287858197", "851469604840013905", "851469652940161084", "851469683764887572", "851469718955229214", "851469754677985280", "851469812050690068", "851469858675097660", "851469898547068938"/*, "851469933606862848", "851469969685479424", "851470006520905748", "851470041031245854", "851470070022406204", "851470099558039622", "851470140410822677", "851470173503881218", "851470230370910248", "851471153188569098"*/];
+//const bwStarRoles = ["851471525802803220", "851469005168181320", "851469138647842896", "851469218310389770", "851469264664789022", "851469323444944907", "851469358076788766", "851469389806829596", "851469422971584573", "851469455791489034", "851469501115793408", "851469537030307870", "851469565287858197", "851469604840013905", "851469652940161084", "851469683764887572", "851469718955229214", "851469754677985280", "851469812050690068", "851469858675097660", "851469898547068938"/*, "851469933606862848", "851469969685479424", "851470006520905748", "851470041031245854", "851470070022406204", "851470099558039622", "851470140410822677", "851470173503881218", "851470230370910248", "851471153188569098"*/];
 const rankRoles = {
     YOUTUBER: "662895829815787530",
     VIP: "837271174827212850",
@@ -702,11 +702,12 @@ const rankRoles = {
 export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: string) {
     const { name } = await profile(mcUuid);
     const res = await fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => <any>res.json());
-    const mcLen = res.username.length + 1;
+    /*const mcLen = res.username.length + 1;
     const bw = res.stats.BedWars;
     const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;
     if (firstHalf.length + mcLen > 32) await member.setNickname(`${firstHalf} ${res.username.slice(0, 28 - firstHalf.length)}...`);
-    else await member.setNickname(`${firstHalf} ${res.username}`);
+    else await member.setNickname(`${firstHalf} ${res.username}`);*/
+    await member.setNickname(res.username);
     const gInfo = <any>await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
     const roles = member.roles;
     if (gInfo.id === "5b5548e70cf21fddabf8c6c1") await roles.add("622319008758104064");
@@ -715,13 +716,13 @@ export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: s
     await roles.add("837345908697989171");
     await roles.remove("837345919010603048");
 
-    const bwIndex = Math.min(Math.floor(bw.level / 100), bwStarRoles.length - 1);
+    /*const bwIndex = Math.min(Math.floor(bw.level / 100), bwStarRoles.length - 1);
     if (!(await member.guild.roles.fetch(bwStarRoles[bwIndex])).members.has(member.id)) {
         await roles.add(bwStarRoles[bwIndex]);
         for (let ii = 0; ii < bwStarRoles.length; ii++)
             if (ii !== bwIndex && (await member.guild.roles.fetch(bwStarRoles[ii])).members.has(member.id))
                 await roles.remove(bwStarRoles[ii]);
-    }
+    }*/
 
     if (res.rank) {
         if (!(await member.guild.roles.fetch(rankRoles[res.rank])).members.has(member.id)) {
