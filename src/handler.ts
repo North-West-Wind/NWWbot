@@ -829,6 +829,7 @@ export class AliceHandler extends Handler {
             return;
         } else if (!message.author.bot) {
             const translatorRole = await message.guild.roles.fetch("640150106028638229");
+            if (!translatorRole) return;
             if (translatorRole.members.has(message.member.id)) { /* do nothing */ }
             else if (message.content?.toLowerCase().split(/ +/).includes("ez")) {
                 await message.delete();
