@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 import { AliceHandler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
-import { changeTokens, getFetch, getWeek, profile, query, updateGuildMemberMC } from "./function.js";
+import { changeTokens, getFetch, getLevel, getWeek, profile, query, updateGuildMemberMC } from "./function.js";
 import { Intents, Options, VoiceChannel } from "discord.js";
 import * as fs from "fs";
 dotenv.config();
@@ -49,7 +49,12 @@ setInterval(async () => {
     }
   } catch (err: any) { }
   try {
-    const guildApi = <any> await fetch(`https://api.slothpixel.me/api/guilds/id/5b5548e70cf21fddabf8c6c1?key=${process.env.API}`).then(res => res.json());
+    var guildApi = <any> await fetch(`https://api.slothpixel.me/api/guilds/id/5b5548e70cf21fddabf8c6c1?key=${process.env.API}`).then(res => res.json());
+    if (guildApi.error) {
+      guildApi = <any> await fetch(`https://api.hypixel.net/guild?id=5b5548e70cf21fddabf8c6c1`, { headers: { "API-Key": process.env.API } }).then(res => res.json());
+      guildApi = guildApi.guild;
+      guildApi.level = getLevel(guildApi.exp);
+    }
     const level = Math.round(guildApi.level);
     const members = guildApi.members;
     const latestDate = Object.keys(members[0].exp_history)[0];

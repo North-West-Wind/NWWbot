@@ -701,14 +701,26 @@ const rankRoles = {
 };
 export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: string) {
     const { name } = await profile(mcUuid);
-    const res = await fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => <any>res.json());
+    var fallback = false;
+    var res = await fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => <any>res.json());
+    if (res.error) {
+        await wait(1000);
+        res = await fetch(`https://api.hypixel.net/player?uuid=${mcUuid}`, { headers: { "API-Key": process.env.API } }).then(res => <any>res.json());
+        res.rank = res.player.rank || res.player.newPackageRank;
+        fallback = true;
+    }
     /*const mcLen = res.username.length + 1;
     const bw = res.stats.BedWars;
     const firstHalf = `[${bw.level}⭐|${bw.final_k_d}]`;
     if (firstHalf.length + mcLen > 32) await member.setNickname(`${firstHalf} ${res.username.slice(0, 28 - firstHalf.length)}...`);
     else await member.setNickname(`${firstHalf} ${res.username}`);*/
-    await member.setNickname(res.username);
-    const gInfo = <any>await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+    await member.setNickname(name);
+    var gInfo: any;
+    if (!fallback) gInfo = <any>await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+    else {
+        gInfo = await fetch(`https://api.hypixel.net/guild?player=${mcUuid}`, { headers: { "API-Key": process.env.API } }).then(res => <any>res.json());
+        gInfo.id = gInfo.guild._id;
+    }
     const roles = member.roles;
     if (gInfo.id === "5b5548e70cf21fddabf8c6c1") await roles.add("622319008758104064");
     else await roles.remove("622319008758104064");
@@ -770,6 +782,51 @@ export async function updateChatMultiplier(user: Discord.Snowflake, guild: Disco
     data.multiplier = roundTo(value, 2);
     NorthClient.storage.guilds[guild].levelData.set(user, data);
     await query(`UPDATE leveling SET multiplier = ${data.multiplier} WHERE user = ${user} AND guild = ${guild}`);
+}
+// Hypixel guild level calculator
+// https://github.com/slothpixel/core/blob/master/processors/processGuildData.js#L7-#L48
+export function getLevel(exp) {
+    const EXP_NEEDED = [
+        100000,
+        150000,
+        250000,
+        500000,
+        750000,
+        1000000,
+        1250000,
+        1500000,
+        2000000,
+        2500000,
+        2500000,
+        2500000,
+        2500000,
+        2500000,
+        3000000,
+    ];
+
+    let level = 0;
+
+    // Increments by one from zero to the level cap
+    for (let i = 0; i <= 1000; i += 1) {
+        // need is the required exp to get to the next level
+        let need = 0;
+        if (i >= EXP_NEEDED.length) {
+            need = EXP_NEEDED[EXP_NEEDED.length - 1];
+        } else { need = EXP_NEEDED[i]; }
+
+        // If the required exp to get to the next level isn't met returns
+        // the current level plus progress towards the next (unused exp/need)
+        // Otherwise increments the level and substracts the used exp from exp var
+        if ((exp - need) < 0) {
+            return Math.round((level + (exp / need)) * 100) / 100;
+        }
+        level += 1;
+        exp -= need;
+    }
+
+    // Returns the level cap - currently 1000
+    // If changed here, also change in for loop above
+    return 1000;
 }
 
 // Prototyping
