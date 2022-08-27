@@ -1,9 +1,8 @@
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand, PrefixCommand, IPrefix } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand, IPrefix } from "../../classes/NorthClient.js";
 import { color, msgOrRes, query, wait } from "../../function.js";
 import * as Discord from "discord.js";
 
 import { globalClient as client } from "../../common.js";
-import { RowDataPacket } from "mysql2";
 
 class InventoryCommand implements FullCommand {
   name = "inventory"
@@ -21,13 +20,13 @@ class InventoryCommand implements FullCommand {
 
   async navigate(message: NorthMessage | NorthInteraction, msg: Discord.Message = undefined) {
     const author = message instanceof Discord.Message ? message.author : message.user;
-    var result = await query(`SELECT items FROM users WHERE id = '${author.id}'`);
-    var IResult = await query(`SELECT * FROM shop WHERE guild = '${message.guild?.id}' OR guild = ''`);
-    var itemObject = {};
+    const result = await query(`SELECT items FROM users WHERE id = '${author.id}'`);
+    const IResult = await query(`SELECT * FROM shop WHERE guild = '${message.guild?.id}' OR guild = ''`);
+    const itemObject = {};
     for (const item of IResult) itemObject[item.id] = 0;
     if (result.length == 1) Object.assign(itemObject, JSON.parse(result[0].items));
     let i = 0;
-    const em = new Discord.MessageEmbed()
+    const em = new Discord.EmbedBuilder()
       .setColor(color())
       .setTitle(author.tag + "'s Inventory")
       .setDescription(IResult.map(x => `**${++i}.** ${x.name} - **${itemObject[x.id]}**`).join("\n"))
@@ -45,7 +44,7 @@ class InventoryCommand implements FullCommand {
     await collected.first().delete();
     const index = parseInt(collected.first().content);
     if (isNaN(index)) return await msg.edit({embeds: [em]});
-    var wanted = IResult[index - 1];
+    const wanted = IResult[index - 1];
     if (!wanted) return await msg.edit({embeds: [em]});
     em.setTitle(wanted.name)
       .setDescription(`${wanted.description}\nQuantity: **${itemObject[wanted.id]}**\n\n1️⃣ Use\n2️⃣ Return`)
@@ -73,7 +72,7 @@ class InventoryCommand implements FullCommand {
       } else {
         em.setFooter({ text: "Using item...", iconURL: message.client.user.displayAvatarURL() });
         const requiredArgs = wanted.args.split(/ +/).filter(s => s != "");
-        var args = [];
+        let args = [];
         if (requiredArgs.length > 0) {
           em.setDescription(`Please input the following arguments and separate them by line breaks:\n**${requiredArgs.join(" ")}**`);
           await msg.edit({embeds: [em]});
@@ -99,7 +98,7 @@ class InventoryCommand implements FullCommand {
             return await this.navigate(message, msg);
           }
         }
-        var run = wanted.run;
+        let run = wanted.run;
         run = run.replace(/{args}/ig, args.join(" "));
         const replaceArgs = run.match(/{( +)?args( +)?\[( +)?\d+( +)?\]( +)?}/ig);
         if (replaceArgs)
@@ -149,7 +148,7 @@ class InventoryCommand implements FullCommand {
       }
     } else return await this.navigate(message, msg);
   }
-};
+}
 
 const cmd = new InventoryCommand();
 export default cmd;

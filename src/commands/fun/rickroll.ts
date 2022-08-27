@@ -17,8 +17,8 @@ class RickrollCommand implements FullCommand {
     }];
     
     async execute(interaction: NorthInteraction) {
-        const attachment = new Discord.MessageAttachment("https://drive.google.com/uc?export=download&id=1kiVMwDCNN5kRN9BtMPfSYoU1QM0yRdS2", "rick.gif");
-        var user = interaction.options.getUser("user");
+        const attachment = new Discord.AttachmentBuilder("https://drive.google.com/uc?export=download&id=1kiVMwDCNN5kRN9BtMPfSYoU1QM0yRdS2").setName("rick.gif");
+        let user = interaction.options.getUser("user");
         if (!user) return await interaction.reply({files: [attachment]});
         if (user.id === interaction.client.user.id || user.id == await getOwner()) user = interaction.user;
         await interaction.reply(`Hey! <@${user.id}>`);
@@ -27,9 +27,9 @@ class RickrollCommand implements FullCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        const attachment = new Discord.MessageAttachment("https://drive.google.com/uc?export=download&id=1kiVMwDCNN5kRN9BtMPfSYoU1QM0yRdS2", "rick.gif");
+        const attachment = new Discord.AttachmentBuilder("https://drive.google.com/uc?export=download&id=1kiVMwDCNN5kRN9BtMPfSYoU1QM0yRdS2").setName("rick.gif");
         if (!args[0]) return await message.channel.send({files: [attachment]});
-        var user: Discord.User;
+        let user: Discord.User;
         try {
             user = await findUser(args[0]);
         } catch (err: any) {

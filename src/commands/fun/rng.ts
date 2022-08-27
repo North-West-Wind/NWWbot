@@ -43,7 +43,7 @@ class RNGCommand implements FullCommand {
         const max = interaction.options.getNumber("max");
         let msg = "";
         for (let i = 0; i < count; i++) {
-            var number = decimal < 0 ? getRandomNumber(min, max) : roundTo(getRandomNumber(min, max), decimal);
+            const number = decimal < 0 ? getRandomNumber(min, max) : roundTo(getRandomNumber(min, max), decimal);
             msg += number + "\n";
         }
         await interaction.reply(msg);
@@ -59,7 +59,7 @@ class RNGCommand implements FullCommand {
         if (args[3] !== undefined && !isNaN(parseInt(args[3]))) decimal = parseInt(args[3]);
         let msg = "";
         for (let i = 0; i < count; i++) {
-            var number = decimal < 0 ? getRandomNumber(min, max) : roundTo(getRandomNumber(Number(args[0]), Number(args[1])), decimal);
+            const number = decimal < 0 ? getRandomNumber(min, max) : roundTo(getRandomNumber(Number(args[0]), Number(args[1])), decimal);
             msg += number + "\n";
         }
         await message.channel.send(msg);

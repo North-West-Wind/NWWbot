@@ -1,5 +1,5 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand, PrefixCommand, IPrefix } from "../../classes/NorthClient.js"
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand, IPrefix } from "../../classes/NorthClient.js"
 import * as Discord from "discord.js";
 import { color, wait, genPermMsg, ID, msgOrRes, query, roundTo, mysqlEscape } from "../../function.js";
 import { globalClient as client } from "../../common.js";
@@ -39,18 +39,18 @@ class ShopCommand implements FullCommand {
         const author = message instanceof Discord.Message ? message.author : message.user;
         mainMenu();
         async function mainMenu(msg = undefined) {
-            var mesg = msg;
-            var results = await query(`SELECT * FROM users WHERE id = '${author.id}'`);
-            var cash = 0;
+            const mesg = msg;
+            const results = await query(`SELECT * FROM users WHERE id = '${author.id}'`);
+            let cash = 0;
             if (results.length == 1) cash = results[0].currency;
-            const shop = new Discord.MessageEmbed()
+            const shop = new Discord.EmbedBuilder()
                 .setTimestamp()
                 .setColor(c)
                 .setTitle("Welcome to the shop!")
                 .setDescription("Choose an action:\n\n1️⃣ Shop\n2️⃣ Leave")
                 .setFooter({ text: "You have $" + cash, iconURL: author.displayAvatarURL() });
 
-            const leave = new Discord.MessageEmbed()
+            const leave = new Discord.EmbedBuilder()
                 .setTimestamp()
                 .setColor(c)
                 .setTitle("You were told to leave.")
@@ -70,17 +70,17 @@ class ShopCommand implements FullCommand {
 
             async function shopMenu() {
                 const allItems = [];
-                var results = await query(`SELECT * FROM shop WHERE guild = '${message.guild.id}' OR guild = ''`);
+                const results = await query(`SELECT * FROM shop WHERE guild = '${message.guild.id}' OR guild = ''`);
                 for (let i = 0; i < results.length; i++) allItems.push(`**${i + 1}.** ${results[i].name} - **\$${results[i].buy_price}** : **${results[i].stock_limit > -1 ? results[i].stock_limit : "∞"}**`);
 
-                const menu = new Discord.MessageEmbed()
+                const menu = new Discord.EmbedBuilder()
                     .setColor(c)
                     .setTitle("Shop Menu")
                     .setDescription("Type the ID to buy or `0` to cancel.\n\n" + allItems.join("\n"))
                     .setTimestamp()
                     .setFooter({ text: "You have $" + cash, iconURL: author.displayAvatarURL() });
                 await msg.edit(menu);
-                var collected = await msg.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 30000 });
+                const collected = await msg.channel.awaitMessages(x => x.author.id === author.id, { max: 1, time: 30000 });
                 if (!collected.first()) {
                     menu.setDescription("30 seconds passed. Returning to main menu in 3 seconds...")
                         .setFooter({ text: "Please be patient.", iconURL: message.client.user.displayAvatarURL() });
@@ -108,9 +108,9 @@ class ShopCommand implements FullCommand {
             }
 
             async function viewItem(msg, id) {
-                var result = await query("SELECT * FROM shop WHERE id = '" + id + "'");
+                const result = await query("SELECT * FROM shop WHERE id = '" + id + "'");
                 if (result.length == 0) {
-                    var itemEmbed = new Discord.MessageEmbed()
+                    var itemEmbed = new Discord.EmbedBuilder()
                         .setTimestamp()
                         .setColor(c)
                         .setTitle("No item found!")
@@ -120,7 +120,7 @@ class ShopCommand implements FullCommand {
                     await wait(3000);
                     return await mainMenu(msg);
                 } else {
-                    var itemEmbed = new Discord.MessageEmbed()
+                    var itemEmbed = new Discord.EmbedBuilder()
                         .setTimestamp()
                         .setColor(c)
                         .setTitle(result[0].name)
@@ -131,7 +131,7 @@ class ShopCommand implements FullCommand {
                     await msg.react("1️⃣");
                     await msg.react("2️⃣");
 
-                    var collected = await msg.awaitReactions(filter, { max: 1, idle: 30000 });
+                    const collected = await msg.awaitReactions(filter, { max: 1, idle: 30000 });
                     const reaction = collected.first();
                     if (!reaction) {
                         itemEmbed.setTitle("Please leave if you are not buying stuff!")
@@ -183,8 +183,8 @@ class ShopCommand implements FullCommand {
                                 await msg.edit(itemEmbed);
                                 await wait(3000);
                                 itemEmbed.setFooter({ text: "Using item...", iconURL: message.client.user.displayAvatarURL() });
-                                const requiredArgs = result[0].args.split(/ +/).filter(s => s != "");;
-                                var args = [];
+                                const requiredArgs = result[0].args.split(/ +/).filter(s => s != "");
+                                let args = [];
                                 if (requiredArgs.length > 0) {
                                     itemEmbed.setDescription(`Please input the following arguments and separate them by line breaks:\n**${requiredArgs.join(" ")}**`);
                                     await msg.edit(itemEmbed);
@@ -206,7 +206,7 @@ class ShopCommand implements FullCommand {
                                         return await mainMenu(msg);
                                     }
                                 }
-                                var run = result[0].run;
+                                let run = result[0].run;
                                 run = run.replace(/{user}/ig, `<@${author.id}>`);
                                 run = run.replace(/{channel}/ig, `<#${message.channel.id}>`);
                                 run = run.replace(/{args}/ig, args.join(" "));
@@ -244,7 +244,7 @@ class ShopCommand implements FullCommand {
                                 }
                                 if (run.length > 0) await message.channel.send(run);
                             }
-                            var paid = cash - result[0].buy_price;
+                            const paid = cash - result[0].buy_price;
                             try {
                                 await query(`UPDATE users SET currency = ${paid} WHERE id = '${author.id}'`);
                                 if (!result[0].must_use) {
@@ -279,7 +279,7 @@ class ShopCommand implements FullCommand {
                 }
             }
 
-            const manualLeave = new Discord.MessageEmbed()
+            const manualLeave = new Discord.EmbedBuilder()
                 .setTimestamp()
                 .setColor(c)
                 .setTitle("Goodbye!")
@@ -298,7 +298,7 @@ class ShopCommand implements FullCommand {
         if (!message.guild) return await message.channel.send("Please don't use this in Direct Message.");
         const author = message instanceof Discord.Message ? message.author : message.user;
         if (!(<Discord.GuildMember> message.member).permissions.has(BigInt(32))) return await message.channel.send(genPermMsg(32, 0));
-        var msg;
+        let msg;
         if (message instanceof Discord.Message) await message.channel.send("Please enter the name and the description of the item. (Break a line to separate them) (Description can be multi-line)");
         else {
             await message.reply("Please enter the name and the description of the item. (Break a line to separate them) (Description can be multi-line)");
@@ -318,7 +318,7 @@ class ShopCommand implements FullCommand {
         const prices = collected1.first().content.split(/ +/);
         const buyPrice = roundTo(Number(prices[0]), 2);
         if (isNaN(buyPrice)) return await msg.edit("The buying price entered is not valid.");
-        var sellPrice = buyPrice;
+        let sellPrice = buyPrice;
         if (prices.length < 2) await msg.edit("Selling price missing. I'll assume that it equals to the buying price.");
         else sellPrice = roundTo(Number(prices[1]), 2);
         if (isNaN(sellPrice)) return await msg.edit("The selling price entered is not valid.");
@@ -328,10 +328,10 @@ class ShopCommand implements FullCommand {
         if (!collected2.first()?.content) return await msg.edit("I cannot read the message!");
         if (collected2.first().content.toLowerCase() == "cancel") return await msg.edit("Action cancelled.");
         const limits = collected2.first().content.split(/ +/);
-        var limit = 0;
+        let limit = 0;
         if (isNaN(parseInt(limits[0]))) await msg.edit("The purchase limit entered is not valid. I'll take that as limitless.").then(() => wait(3000));
         else limit = parseInt(limits[0]);
-        var stock = -1;
+        let stock = -1;
         if (!limits[1] || isNaN(parseInt(limits[1]))) await msg.edit("The stock limit entered is not valid. I'll take that as limitless.").then(() => wait(3000));
         else stock = parseInt(limits[1]);
         await msg.edit(`All users will be able to purchase **${limit < 1 ? "limitlessly" : `${limit} ${name}${limit > 1 ? "s" : ""}`}** and there will be **${stock < 0 ? "infinite stocks" : `${stock} in stock`}**.\nTo finish up, please enter the arguments required ("nothing" for no arguments) and what to do when the user uses this item. (Use line break to separate them) (The code can be multi-line)`);
@@ -358,7 +358,7 @@ class ShopCommand implements FullCommand {
             else await message.followUp("There was an error trying to add the item to the database!");
         }
     }
-};
+}
 
 const cmd = new ShopCommand();
 export default cmd;

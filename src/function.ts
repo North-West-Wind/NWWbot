@@ -5,7 +5,7 @@ import * as Discord from "discord.js";
 import fetch from "node-fetch";
 import { parseString } from "xml2js";
 import superms from "ms";
-import mcapi from "aio-mc-api";
+import mcapi from "@northwestwind/aio-mc-api";
 import * as fs from "fs";
 import * as path from "path";
 import moment from "moment";
@@ -15,6 +15,7 @@ import cvs, { Canvas } from "canvas";
 import { escape } from "mysql2";
 const { Image } = cvs;
 import { fileURLToPath } from 'url';
+import { ButtonStyle } from "discord.js";
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
 
@@ -26,7 +27,7 @@ export function twoDigits(d: number) {
 }
 export function applyText(canvas: Canvas, text: string) {
     const ctx = canvas.getContext("2d");
-    var fontSize = canvas.width / 12;
+    let fontSize = canvas.width / 12;
     do ctx.font = `${(fontSize -= 5)}px sans-serif`;
     while (ctx.measureText(text).width > canvas.width - 100);
     return ctx.font;
@@ -45,11 +46,11 @@ export function roundTo(num: number, decimal: number) {
     return Math.round((num + Number.EPSILON) * powed) / powed;
 }
 export function deepReaddir(dir: string): string[] {
-    var results = [];
+    let results = [];
     const list = fs.readdirSync(dir);
-    var i = 0;
+    let i = 0;
     function next() {
-        var file = list[i++];
+        let file = list[i++];
         if (!file) return results;
         file = path.resolve(dir, file);
         const stat = fs.statSync(file);
@@ -61,7 +62,7 @@ export function deepReaddir(dir: string): string[] {
             results.push(file);
             return next();
         }
-    };
+    }
     return next();
 }
 
@@ -120,18 +121,18 @@ export function replaceWithObj(str: string, member: Discord.GuildMember, channel
 }
 const SYM = '        ⁽⁾ ⁺ ⁻  ⁰¹²³⁴⁵⁶⁷⁸⁹   ⁼   ᴬᴮ ᴰᴱ ᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾ ᴿ ᵀᵁ ᵂ         ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖ ʳˢᵗᵘᵛʷˣʸᶻ     ';
 export function toSuperscript(str: string) {
-    var z = '';
-    for (var c of str) {
-        var d = SYM[c.charCodeAt(0) - 32] || ' ';
+    let z = '';
+    for (const c of str) {
+        const d = SYM[c.charCodeAt(0) - 32] || ' ';
         z += d === ' ' ? c : d;
     }
     return z;
-};
+}
 const SUB_SYM = '        ₍₎ ₊ ₋  ₀₁₂₃₄₅₆₇₈₉   ₌                                   ₐ   ₑ  ₕᵢⱼₖₗₘₙₒₚ ᵣₛₜᵤᵥ ₓ       ';
 export function toSubscript(str: string) {
-    var z = '';
-    for (var c of str) {
-        var d = SUB_SYM[c.charCodeAt(0) - 32] || ' ';
+    let z = '';
+    for (const c of str) {
+        const d = SUB_SYM[c.charCodeAt(0) - 32] || ' ';
         z += d === ' ' ? c : d;
     }
     return z;
@@ -139,14 +140,14 @@ export function toSubscript(str: string) {
 
 // Stream/Buffer operations
 export function streamToString(stream: NodeJS.ReadableStream, enc = undefined) {
-    var str = ''
+    let str = ''
     return new Promise((resolve, reject) => {
         stream.on('data', (data) => str += (typeof enc === 'string') ? data.toString(enc) : data.toString());
         stream.on('end', () => resolve(str));
         stream.on('error', (err) => reject(err));
     })
 }
-export function bufferToStream(buf: any, chunkSize: number = 0) {
+export function bufferToStream(buf: any, chunkSize = 0) {
     if (typeof buf === 'string') buf = Buffer.from(buf, 'utf8');
     if (!Buffer.isBuffer(buf)) throw new TypeError(`"buf" argument must be a string or an instance of Buffer`);
     const reader = new Readable();
@@ -178,10 +179,10 @@ export function requestYTDLStream(url: string, opts: downloadOptions & { timeout
 }
 
 // Array operations
-export function shuffleArray(array: any[], start: number = 0) {
+export function shuffleArray(array: any[], start = 0) {
     const temp = array.splice(0, start);
     for (let i = array.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
     }
     return temp.concat(array);
@@ -199,7 +200,7 @@ export function flatDeep(arr: any[], d = 1) {
 // Object operations
 export function getWithWeight(input: any) {
     const array = [];
-    for (const item in input) if (input.hasOwnProperty(item)) for (var i = 0; i < input[item]; i++) array.push(item);
+    for (const item in input) if (input.hasOwnProperty(item)) for (let i = 0; i < input[item]; i++) array.push(item);
     return array[Math.floor(Math.random() * array.length)];
 }
 export function findValueByPrefix(object: any, prefix: string) {
@@ -221,10 +222,10 @@ export function validRedditURL(str: string) { return !!str.match(/^https?:\/\/(\
 export function validRedditVideoURL(str: string) { return !!str.match(/^https?:\/\/(\w+\.)?redd.it\/(\w*\w*)+(\.[a-zA-Z0-9]{3})?$/); }
 export function validGfyURL(str: string) { return !!str.match(/^(http(s)?:\/\/)?((w){3}.)?gfycat(.com)?\/\w*/); }
 export function validRedGifURL(str: string) { return !!str.match(/^https?:\/\/(\w+\.)?redgifs.com\/(\w*\/)?(\w*\w*)$/); }
-export function isImageUrl(url: string, timeoutT: number = 0) {
+export function isImageUrl(url: string, timeoutT = 0) {
     return new Promise(function (resolve, reject) {
-        var timeout = timeoutT || 5000;
-        var timer: NodeJS.Timeout, img = new Image();
+        const timeout = timeoutT || 5000;
+        let timer: NodeJS.Timeout, img = new Image();
         img.onerror = function () {
             clearTimeout(timer);
             reject(false);
@@ -243,7 +244,7 @@ export function isImageUrl(url: string, timeoutT: number = 0) {
 
 // Allows longer timeout
 export function setTimeout_(fn: Function, delay: number) {
-    var maxDelay = Math.pow(2, 31) - 1;
+    const maxDelay = Math.pow(2, 31) - 1;
     if (delay > maxDelay) {
         delay -= maxDelay;
         return setTimeout(() => setTimeout_(fn, delay), maxDelay);
@@ -278,9 +279,9 @@ export async function findMember(message: Discord.Message, str: string): Promise
     }
 }
 export async function findRole(guild: Discord.Guild, str: string) {
-    var roleID = str.replace(/<@&/g, "").replace(/>/g, "");
+    const roleID = str.replace(/<@&/g, "").replace(/>/g, "");
     try {
-        var role: Discord.Role;
+        let role: Discord.Role;
         if (isNaN(parseInt(roleID))) role = guild.roles.cache.find(x => x.name.toLowerCase() === str.toLowerCase());
         else role = await guild.roles.fetch(roleID);
         if (!role) throw new Error();
@@ -290,9 +291,9 @@ export async function findRole(guild: Discord.Guild, str: string) {
     }
 }
 export async function findChannel(parent: Discord.Guild, str: string) {
-    var channelID = str.replace(/<#/g, "").replace(/>/g, "");
+    const channelID = str.replace(/<#/g, "").replace(/>/g, "");
     try {
-        var channel: Discord.Channel;
+        let channel: Discord.Channel;
         if (isNaN(parseInt(channelID))) channel = parent.channels.cache.find(x => x.name.toLowerCase() === str.toLowerCase());
         else channel = await parent.channels.fetch(channelID);
         if (!channel) throw new Error();
@@ -301,32 +302,32 @@ export async function findChannel(parent: Discord.Guild, str: string) {
         return null;
     }
 }
-export async function msgOrRes(message: Discord.Message | Discord.CommandInteraction, str: string | Discord.MessageEmbed | Discord.MessageAttachment | { content?: string, embeds?: Discord.MessageEmbed[], files?: Discord.MessageAttachment[], components?: Discord.MessageActionRow[] }, reply: boolean = false): Promise<Discord.Message> {
+export async function msgOrRes(message: Discord.Message | Discord.ChatInputCommandInteraction, str: string | Discord.EmbedBuilder | Discord.AttachmentBuilder | { content?: string, embeds?: Discord.EmbedBuilder[], files?: Discord.AttachmentBuilder[], components?: (Discord.JSONEncodable<Discord.APIActionRowComponent<Discord.APIMessageActionRowComponent>> | Discord.ActionRowData<Discord.MessageActionRowComponentData | Discord.MessageActionRowComponentBuilder> | Discord.APIActionRowComponent<Discord.APIMessageActionRowComponent>)[] }, reply = false): Promise<Discord.Message> {
     if (message instanceof Discord.Message) {
         if (reply) {
-            if (str instanceof Discord.MessageEmbed) return await message.reply({ embeds: [str] });
-            else if (str instanceof Discord.MessageAttachment) return await message.reply({ files: [str] });
+            if (str instanceof Discord.EmbedBuilder) return await message.reply({ embeds: [str] });
+            else if (str instanceof Discord.AttachmentBuilder) return await message.reply({ files: [str] });
             else return await message.reply(str);
         } else {
-            if (str instanceof Discord.MessageEmbed) return await message.channel.send({ embeds: [str] });
-            else if (str instanceof Discord.MessageAttachment) return await message.channel.send({ files: [str] });
+            if (str instanceof Discord.EmbedBuilder) return await message.channel.send({ embeds: [str] });
+            else if (str instanceof Discord.AttachmentBuilder) return await message.channel.send({ files: [str] });
             else return await message.channel.send(str);
         }
     } else {
         const useEdit = message.deferred, useFollowUp = message.replied;
         if (useEdit) {
-            if (str instanceof Discord.MessageEmbed) return <Discord.Message>await message.editReply({ embeds: [str] });
-            else if (str instanceof Discord.MessageAttachment) return <Discord.Message>await message.editReply({ files: [str] });
+            if (str instanceof Discord.EmbedBuilder) return <Discord.Message>await message.editReply({ embeds: [str] });
+            else if (str instanceof Discord.AttachmentBuilder) return <Discord.Message>await message.editReply({ files: [str] });
             else return <Discord.Message>await message.editReply(str);
         } else if (useFollowUp) {
             if (typeof str === "string") return <Discord.Message>await message.followUp({ content: str, fetchReply: true });
-            else if (str instanceof Discord.MessageEmbed) return <Discord.Message>await message.followUp({ embeds: [str], fetchReply: true });
-            else if (str instanceof Discord.MessageAttachment) return <Discord.Message>await message.followUp({ files: [str], fetchReply: true });
+            else if (str instanceof Discord.EmbedBuilder) return <Discord.Message>await message.followUp({ embeds: [str], fetchReply: true });
+            else if (str instanceof Discord.AttachmentBuilder) return <Discord.Message>await message.followUp({ files: [str], fetchReply: true });
             else return <Discord.Message>await message.followUp({ fetchReply: true, ...str });
         } else {
             if (typeof str === "string") return <Discord.Message>await message.reply({ content: str, fetchReply: true });
-            else if (str instanceof Discord.MessageEmbed) return <Discord.Message>await message.reply({ embeds: [str], fetchReply: true });
-            else if (str instanceof Discord.MessageAttachment) return <Discord.Message>await message.reply({ files: [str], fetchReply: true });
+            else if (str instanceof Discord.EmbedBuilder) return <Discord.Message>await message.reply({ embeds: [str], fetchReply: true });
+            else if (str instanceof Discord.AttachmentBuilder) return <Discord.Message>await message.reply({ files: [str], fetchReply: true });
             else return <Discord.Message>await message.reply({ fetchReply: true, ...str });
         }
     }
@@ -361,7 +362,7 @@ export function readableDateTime(date: Date) {
     const minute = date.getMinutes();
     const second = date.getSeconds();
 
-    var dateTime =
+    const dateTime =
         twoDigits(day) +
         "/" +
         twoDigits(month + 1) +
@@ -377,17 +378,17 @@ export function readableDateTime(date: Date) {
     return dateTime;
 }
 export function readableDateTimeText(time: number) {
-    var sec = time / 1000;
-    var dd = Math.floor(sec / 86400);
-    var dh = Math.floor((sec % 86400) / 3600);
-    var dm = Math.floor(((sec % 86400) % 3600) / 60);
-    var ds = Math.floor(((sec % 86400) % 3600) % 60);
-    var dmi = Math.floor(time - dd * 86400000 - dh * 3600000 - dm * 60000 - ds * 1000);
-    var d = "";
-    var h = "";
-    var m = "";
-    var s = "";
-    var mi = "";
+    const sec = time / 1000;
+    const dd = Math.floor(sec / 86400);
+    const dh = Math.floor((sec % 86400) / 3600);
+    const dm = Math.floor(((sec % 86400) % 3600) / 60);
+    const ds = Math.floor(((sec % 86400) % 3600) % 60);
+    const dmi = Math.floor(time - dd * 86400000 - dh * 3600000 - dm * 60000 - ds * 1000);
+    let d = "";
+    let h = "";
+    let m = "";
+    let s = "";
+    let mi = "";
     if (dd !== 0) d = " " + dd + " days";
     if (dh !== 0) h = " " + dh + " hours";
     if (dm !== 0) m = " " + dm + " minutes";
@@ -407,7 +408,7 @@ export function humanDurationToNum(duration: string) {
     const splitted = duration.split(".");
     const rest = splitted[0];
     const splitted1 = rest.split(":").reverse();
-    var sec = 0;
+    let sec = 0;
     for (let i = 0; i < splitted1.length; i++) {
         let parsed;
         if (isNaN(parsed = parseInt(splitted1[i]))) continue;
@@ -416,7 +417,7 @@ export function humanDurationToNum(duration: string) {
     return sec;
 }
 export function milliToHumanDuration(milli: number) {
-    var x = Math.floor(milli / 1000);
+    let x = Math.floor(milli / 1000);
     const seconds = x % 60;
     x = Math.floor(x / 60);
     const minutes = x % 60;
@@ -426,21 +427,21 @@ export function milliToHumanDuration(milli: number) {
     const days = x;
     return `${days}D, ${hours}H, ${minutes}M, ${seconds}S`
 }
-export function getWeek(date: Date, dowOffset: number = 0) {
+export function getWeek(date: Date, dowOffset = 0) {
     /*getWeek() was developed by Nick Baicoianu at MeanFreePath: http://www.meanfreepath.com */
     // https://stackoverflow.com/questions/9045868/javascript-date-getweek
-    var newYear = new Date(date.getFullYear(), 0, 1);
-    var day = newYear.getDay() - dowOffset; //the day of week the year begins on
+    const newYear = new Date(date.getFullYear(), 0, 1);
+    let day = newYear.getDay() - dowOffset; //the day of week the year begins on
     day = (day >= 0 ? day : day + 7);
-    var daynum = Math.floor((date.getTime() - newYear.getTime() -
+    const daynum = Math.floor((date.getTime() - newYear.getTime() -
         (date.getTimezoneOffset() - newYear.getTimezoneOffset()) * 60000) / 86400000) + 1;
-    var weeknum: number;
+    let weeknum: number;
     //if the year starts before the middle of a week
     if (day < 4) {
         weeknum = Math.floor((daynum + day - 1) / 7) + 1;
         if (weeknum > 52) {
             const nYear = new Date(date.getFullYear() + 1, 0, 1);
-            var nday = nYear.getDay() - dowOffset;
+            let nday = nYear.getDay() - dowOffset;
             nday = nday >= 0 ? nday : nday + 7;
             /*if the next year starts before the middle of
               the week, it is week #1 of that year*/
@@ -448,7 +449,7 @@ export function getWeek(date: Date, dowOffset: number = 0) {
         }
     } else weeknum = Math.floor((daynum + day - 1) / 7);
     return weeknum;
-};
+}
 
 // Extended functionality of ms
 export function ms(val: string) {
@@ -477,22 +478,22 @@ export function ms(val: string) {
 }
 
 // Embed presentations
-export async function createEmbedScrolling(message: Discord.Message | NorthInteraction | { interaction: NorthInteraction, useEdit: boolean }, allEmbeds: Discord.MessageEmbed[], post?: Function) {
-    var author: Discord.Snowflake;
+export async function createEmbedScrolling(message: Discord.Message | NorthInteraction | { interaction: NorthInteraction, useEdit: boolean }, allEmbeds: Discord.EmbedBuilder[], post?: Function) {
+    let author: Discord.Snowflake;
     if (message instanceof Discord.Message) author = message.author.id;
-    else if (message instanceof Discord.Interaction) author = message.user.id;
+    else if (message instanceof NorthInteraction) author = message.user.id;
     else author = message.interaction.user.id;
-    const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ customId: "first", emoji: "⏮", style: "SECONDARY" }))
-        .addComponents(new Discord.MessageButton({ customId: "previous", emoji: "◀", style: "PRIMARY" }))
-        .addComponents(new Discord.MessageButton({ customId: "next", emoji: "▶", style: "PRIMARY" }))
-        .addComponents(new Discord.MessageButton({ customId: "last", emoji: "⏭", style: "SECONDARY" }))
-        .addComponents(new Discord.MessageButton({ customId: "quit", emoji: "⏹", style: "DANGER" }));
+    const row = new Discord.ActionRowBuilder<Discord.ButtonBuilder>()
+        .addComponents(new Discord.ButtonBuilder({ customId: "first", emoji: "⏮", style: ButtonStyle.Secondary }))
+        .addComponents(new Discord.ButtonBuilder({ customId: "previous", emoji: "◀", style: ButtonStyle.Primary }))
+        .addComponents(new Discord.ButtonBuilder({ customId: "next", emoji: "▶", style: ButtonStyle.Primary }))
+        .addComponents(new Discord.ButtonBuilder({ customId: "last", emoji: "⏭", style: ButtonStyle.Secondary }))
+        .addComponents(new Discord.ButtonBuilder({ customId: "quit", emoji: "⏹", style: ButtonStyle.Danger }));
     const filter = (interaction: Discord.MessageComponentInteraction) => interaction.user.id === author;
-    var s = 0;
-    var msg: Discord.Message;
+    let s = 0;
+    let msg: Discord.Message;
     if (message instanceof Discord.Message) msg = await message.channel.send({ embeds: [allEmbeds[0]], components: [row] });
-    else if (message instanceof Discord.Interaction) msg = <Discord.Message>await message.reply({ embeds: [allEmbeds[0]], components: [row], fetchReply: true });
+    else if (message instanceof Discord.BaseInteraction) msg = <Discord.Message>await message.reply({ embeds: [allEmbeds[0]], components: [row], fetchReply: true });
     else {
         if (message.useEdit) msg = <Discord.Message>await message.interaction.editReply({ embeds: [allEmbeds[0]], components: [row] });
         else msg = <Discord.Message>await message.interaction.reply({ embeds: [allEmbeds[0]], components: [row], fetchReply: true });
@@ -533,18 +534,18 @@ export async function createEmbedScrolling(message: Discord.Message | NorthInter
 export function commonModerationEmbed(guild: Discord.Guild, author: Discord.User, member: Discord.GuildMember, word: string, past: string, reason: string = undefined) {
     const color = () => Math.floor(Math.random() * 16777214) + 1;
     const capitalize = (s) => (typeof s !== 'string') ? '' : s.charAt(0).toUpperCase() + s.slice(1);
-    const notiEmbed = new Discord.MessageEmbed()
+    const notiEmbed = new Discord.EmbedBuilder()
         .setColor(color())
         .setTitle(`You've been ${past}`)
         .setDescription(`In **${guild.name}**`)
         .setTimestamp()
         .setFooter({ text: `${capitalize(past)} by ${author.tag}`, iconURL: author.displayAvatarURL() });
-    if (reason) notiEmbed.addField("Reason", reason);
-    const successfulEmbed = new Discord.MessageEmbed()
+    if (reason) notiEmbed.addFields({ name: "Reason", value: reason });
+    const successfulEmbed = new Discord.EmbedBuilder()
         .setColor(color())
         .setTitle(`User ${capitalize(past)}!`)
         .setDescription(`${capitalize(past)} **${member.user?.tag || member.displayName}** in server **${guild.name}**.`);
-    const failureEmbed = new Discord.MessageEmbed()
+    const failureEmbed = new Discord.EmbedBuilder()
         .setColor(color())
         .setTitle(`Failed to ${word} the user!`)
         .setDescription(`Couldn't ${word} **${member.user?.tag || member.displayName}** in server **${guild.name}**.`);
@@ -553,13 +554,13 @@ export function commonModerationEmbed(guild: Discord.Guild, author: Discord.User
 export function commonRoleEmbed(client: Discord.Client, word: string, past: string, name: string) {
     const color = () => Math.floor(Math.random() * 16777214) + 1;
     const capitalize = (s) => (typeof s !== 'string') ? '' : s.charAt(0).toUpperCase() + s.slice(1);
-    const failEmbed = new Discord.MessageEmbed()
+    const failEmbed = new Discord.EmbedBuilder()
         .setColor(color())
         .setTitle(`Failed to ${word} role`)
         .setDescription(`Failed to ${word} the role **${name}**`)
         .setTimestamp()
         .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
-    const successEmbed = new Discord.MessageEmbed()
+    const successEmbed = new Discord.EmbedBuilder()
         .setColor(color())
         .setTitle(`Role ${past} Successfully`)
         .setDescription(`${capitalize(past)} a new role **${name}**`)
@@ -575,8 +576,8 @@ export async function ID() {
     return buffer.toString("hex");
 }
 export function genPermMsg(permissions: number, id: number) {
-    if (id == 0) return `You need the permissions \`${new Discord.Permissions(BigInt(permissions)).toArray().join("`, `")}\` to use this command.`;
-    else return `I need the permissions \`${new Discord.Permissions(BigInt(permissions)).toArray().join("`, `")}\` to run this command.`;
+    if (id == 0) return `You need the permissions \`${new Discord.PermissionsBitField(BigInt(permissions)).toArray().join("`, `")}\` to use this command.`;
+    else return `I need the permissions \`${new Discord.PermissionsBitField(BigInt(permissions)).toArray().join("`, `")}\` to run this command.`;
 }
 export function color() { return Math.floor(Math.random() * 16777214) + 1; }
 export async function requestStream(url) {
@@ -627,12 +628,15 @@ export async function getOwner() {
 // TradeW1nd communication
 export async function checkTradeW1nd(guild: Discord.Snowflake) {
     const res = await fetch(`http://${localIp}:3000/checkGuild/${guild}`);
-    return res.ok && (<any>await res.json()).isIn;
+    if (!res.ok) return null;
+    const json = <any>await res.json();
+    return json.isIn ? json.botId : null;
 }
-export async function getTradeW1ndStats() {
+export async function getTradeW1ndStats(id: Discord.Snowflake) {
     const res = await fetch(`http://${localIp}:3000`);
     if (!res.ok) return null;
-    return <{ version: string, size: number, lastReady: number, uptime: number }>await res.json();
+    const json =  <[{ id: Discord.Snowflake, version: string, size: number, lastReady: number, uptime: number }]>await res.json();
+    return json.find(x => x.id == id);
 }
 export async function syncTradeW1nd(guild: Discord.Snowflake) {
     const config = NorthClient.storage.guilds[guild];
@@ -648,13 +652,13 @@ export function jsDate2Mysql(newDate: Date | number) {
         if (-10 < d && d < 0) return "-0" + (-1 * d).toString();
         return d.toString();
     }
-    var date = newDate.getDate();
-    var month = newDate.getMonth();
-    var year = newDate.getFullYear();
-    var hour = newDate.getHours();
-    var minute = newDate.getMinutes();
-    var second = newDate.getSeconds();
-    var newDateSql =
+    const date = newDate.getDate();
+    const month = newDate.getMonth();
+    const year = newDate.getFullYear();
+    const hour = newDate.getHours();
+    const minute = newDate.getMinutes();
+    const second = newDate.getSeconds();
+    const newDateSql =
         year +
         "-" +
         twoDigits(month + 1) +
@@ -701,8 +705,8 @@ const rankRoles = {
 };
 export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: string) {
     const { name } = await profile(mcUuid);
-    var fallback = false;
-    var res = await fetch(`https://api.slothpixel.me/api/players/${name}?key=${process.env.API}`).then(res => <any>res.json());
+    let fallback = false;
+    let res = await fetch(`https://api.slothpixel.members.me/api/players/${name}?key=${process.env.API}`).then(res => <any>res.json());
     if (res.error) {
         await wait(1000);
         res = await fetch(`https://api.hypixel.net/player?uuid=${mcUuid}`, { headers: { "API-Key": process.env.API } }).then(res => <any>res.json());
@@ -715,8 +719,8 @@ export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: s
     if (firstHalf.length + mcLen > 32) await member.setNickname(`${firstHalf} ${res.username.slice(0, 28 - firstHalf.length)}...`);
     else await member.setNickname(`${firstHalf} ${res.username}`);*/
     await member.setNickname(name);
-    var gInfo: any;
-    if (!fallback) gInfo = <any>await fetch(`https://api.slothpixel.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
+    let gInfo: any;
+    if (!fallback) gInfo = <any>await fetch(`https://api.slothpixel.members.me/api/guilds/${mcUuid}?key=${process.env.API}`).then(res => res.json());
     else {
         gInfo = await fetch(`https://api.hypixel.net/guild?player=${mcUuid}`, { headers: { "API-Key": process.env.API } }).then(res => <any>res.json());
         gInfo.id = gInfo.guild._id;
@@ -746,7 +750,7 @@ export async function updateGuildMemberMC(member: Discord.GuildMember, mcUuid: s
     }
 }
 export async function getTokensAndMultiplier(author: Discord.Snowflake, uuid: string) {
-    var conditions: string[] = [], condition = " WHERE ";
+    const conditions: string[] = [], condition = " WHERE ";
     if (author) conditions.push(`dcid = "${author}"`);
     if (uuid) conditions.push(`uuid = "${uuid}"`);
     const [result] = await query(`SELECT tokens, multiplier FROM dcmc${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
@@ -756,7 +760,7 @@ export async function getTokensAndMultiplier(author: Discord.Snowflake, uuid: st
 }
 export async function updateTokens(author: Discord.Snowflake, uuid: string, value: number) {
     console.debug(`Updating tokens of ${author} / ${uuid}`);
-    var conditions: string[] = [], condition = " WHERE ";
+    const conditions: string[] = [], condition = " WHERE ";
     if (author) conditions.push(`dcid = "${author}"`);
     if (uuid) conditions.push(`uuid = "${uuid}"`);
     await query(`UPDATE dcmc SET tokens = ${roundTo(value, 2)}${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
@@ -767,7 +771,7 @@ export async function changeTokens(author: Discord.Snowflake, uuid: string, chan
     await updateTokens(author, uuid, data.tokens + change * data.multiplier);
 }
 export async function updateMultiplier(author: Discord.Snowflake, uuid: string, value: number) {
-    var conditions: string[] = [], condition = " WHERE ";
+    const conditions: string[] = [], condition = " WHERE ";
     if (author) conditions.push(`dcid = "${author}"`);
     if (uuid) conditions.push(`uuid = "${uuid}"`);
     await query(`UPDATE dcmc SET multiplier = ${Math.max(0, roundTo(value, 2))}${conditions.length > 0 ? condition + conditions.join(" AND ") : ""}`);
@@ -830,10 +834,10 @@ export function getLevel(exp) {
 }
 
 // Prototyping
-export function getText(key: string, lang: string = "en") {
+export function getText(key: string, lang = "en") {
     if (!key) return "";
     const languageJson = require(`../lang/${lang}.json`);
-    var str, inited = false;
+    let str, inited = false;
     for (const kk of key.split(".")) {
         if (!inited) {
             str = languageJson[kk];

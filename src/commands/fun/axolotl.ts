@@ -53,7 +53,7 @@ class AxolotlCommand implements FullCommand {
         const selected = links[Math.floor(Math.random() * links.length)];
         try {
             const res = await fetch(selected).then(res => res.body);
-            const attachment = new Discord.MessageAttachment(res, `axolotl.${selected.split(".")[selected.split(".").length - 1]}`);
+            const attachment = new Discord.AttachmentBuilder(res).setName(`axolotl.${selected.split(".")[selected.split(".").length - 1]}`);
             await message.channel.send({files: [attachment]});
         } catch(err) {
             console.error(err);

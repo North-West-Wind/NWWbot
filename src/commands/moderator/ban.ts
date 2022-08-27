@@ -34,7 +34,7 @@ class BanCommand implements FullCommand {
     async execute(interaction: NorthInteraction) {
         const member = <GuildMember> interaction.options.getMember("user");
         if (!member) return await interaction.reply("Cannot find the member.");
-        var options: { reason?: string, days?: number } = {};
+        const options: { reason?: string, days?: number } = {};
         const days = interaction.options.getInteger("days");
         if (days) {
             if (days > 7 || days < 0) return await interaction.reply("The number of days of messages to delete provided is not valid. Please provide a number between 0 and 7.");
@@ -56,7 +56,7 @@ class BanCommand implements FullCommand {
         const member = await findMember(message, args[0])
         if (!member) return;
         let reason = "";
-        var options = {};
+        let options = {};
         if (args[1]) {
             const days = parseInt(args[1]);
             if (isNaN(days) || days > 7 || days < 0) return message.channel.send("The number of days of messages to delete provided is not valid. Please provide a number between 0 and 7.")

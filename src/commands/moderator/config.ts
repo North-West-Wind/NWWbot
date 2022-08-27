@@ -1,48 +1,49 @@
 import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
-import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd, query, wait, duration, ms, findChannel } from "../../function.js";
+import { msgOrRes, ID, color, fixGuildRecord, syncTradeW1nd, checkTradeW1nd, query, wait, duration, ms, findChannel, capitalize } from "../../function.js";
 import * as Discord from "discord.js";
 import { isImageUrl } from "../../function.js";
 import { Category, SafeSetting, Setting, TemplateSetting } from "../../classes/Config.js";
+import { ButtonStyle, ChannelType } from "discord.js";
 
 const configs: (Category | Setting)[] = [
   new Category([
-    new Setting("message", null, "What to send for the Welcome Message.", "message", 600000, "PRIMARY", "✉️", "Welcome Message").info({ column: "wel_msg" }).addHint("Use {user} as a placeholder for the user tag.", "Use {user.username} as a placeholder for the username.", "{channel}, {guild}, {member} are also allowed. Refer to [discord.js' documentation](https://discord.js.org/#/docs/discord.js/stable/general/welcome) for all object properties."),
-    new Setting("channel", null, "Where to send the Welcome Message.", "text_channel", 60000, "PRIMARY", "🏞️", "Welcome Channel").info({ column: "wel_channel" }),
+    new Setting("message", null, "What to send for the Welcome Message.", "message", 600000, ButtonStyle.Primary, "✉️", "Welcome Message").info({ column: "wel_msg" }).addHint("Use {user} as a placeholder for the user tag.", "Use {user.username} as a placeholder for the username.", "{channel}, {guild}, {member} are also allowed. Refer to [discord.js' documentation](https://discord.js.org/#/docs/discord.js/stable/general/welcome) for all object properties."),
+    new Setting("channel", null, "Where to send the Welcome Message.", "text_channel", 60000, ButtonStyle.Primary, "🏞️", "Welcome Channel").info({ column: "wel_channel" }),
     new Category([
-      new Setting("images", null, "Includes image(s) for the Welcome Message.", "image", 600000, "PRIMARY", "📸").info({ column: "wel_img" }),
-      new Setting("format", null, "The format of the welcome string on the image.", "message", 600000, "SECONDARY", "📪").info({ column: "wel_img_format" }).addHint("Split this into at least 2 lines. The first line will be how the member is called.", "Use {user} as a placeholder for the user tag.", "Use {user.username} as a placeholder for the username.", "{channel}, {guild}, {member} are also allowed. Refer to [discord.js' documentation](https://discord.js.org/#/docs/discord.js/stable/general/welcome) for all object properties.")
-    ]).info({ id: "image", name: "Image", description: "Settings for the images to be sent when a user joins.", style: "SECONDARY", emoji: "📷" }),
-    new Setting("autorole", "Auto-Role", "Gives users roles when joined automatically.", "roles", 60000, "SECONDARY", "🤖").info({ column: "autorole" })
-  ]).info({ id: "welcome", name: "Welcome", description: "Sends a message and adds user to role(s) when someone joins the server.", style: "PRIMARY", emoji: "🙌" }),
+      new Setting("images", null, "Includes image(s) for the Welcome Message.", "image", 600000, ButtonStyle.Primary, "📸").info({ column: "wel_img" }),
+      new Setting("format", null, "The format of the welcome string on the image.", "message", 600000, ButtonStyle.Secondary, "📪").info({ column: "wel_img_format" }).addHint("Split this into at least 2 lines. The first line will be how the member is called.", "Use {user} as a placeholder for the user tag.", "Use {user.username} as a placeholder for the username.", "{channel}, {guild}, {member} are also allowed. Refer to [discord.js' documentation](https://discord.js.org/#/docs/discord.js/stable/general/welcome) for all object properties.")
+    ]).info({ id: "image", name: "Image", description: "Settings for the images to be sent when a user joins.", style: ButtonStyle.Secondary, emoji: "📷" }),
+    new Setting("autorole", "Auto-Role", "Gives users roles when joined automatically.", "roles", 60000, ButtonStyle.Secondary, "🤖").info({ column: "autorole" })
+  ]).info({ id: "welcome", name: "Welcome", description: "Sends a message and adds user to role(s) when someone joins the server.", style: ButtonStyle.Primary, emoji: "🙌" }),
   new Category([
-    new Setting("message", null, "What to send for the Leave Message.", "message", 600000, "PRIMARY", "✉️", "Leave Message").info({ column: "leave_msg" }),
-    new Setting("channel", null, "Where to send the Leave Message.", "text_channel", 60000, "PRIMARY", "🏞️", "Leave Channel").info({ column: "leave_channel" })
-  ]).info({ id: "leave", name: "Leave", description: "Sends a message when someone leaves the server.", style: "PRIMARY", emoji: "👋" }),
+    new Setting("message", null, "What to send for the Leave Message.", "message", 600000, ButtonStyle.Primary, "✉️", "Leave Message").info({ column: "leave_msg" }),
+    new Setting("channel", null, "Where to send the Leave Message.", "text_channel", 60000, ButtonStyle.Primary, "🏞️", "Leave Channel").info({ column: "leave_channel" })
+  ]).info({ id: "leave", name: "Leave", description: "Sends a message when someone leaves the server.", style: ButtonStyle.Primary, emoji: "👋" }),
   new Category([
-    new Setting("message", null, "What to send for the Boost Message.", "message", 600000, "PRIMARY", "✉️", "Boost Message").info({ column: "boost_msg" }),
-    new Setting("channel", null, "Where to send the Boost Message.", "text_channel", 60000, "PRIMARY", "🏞️", "Boost Channel").info({ column: "boost_channel" })
-  ]).info({ id: "boost", name: "Boost", description: "Sends a message when someone boosts the server.", style: "PRIMARY", emoji: "🏎️" }),
-  new Setting("giveaway", "Giveaway Emoji", "Changes the emoji used for giveaways.", "reaction", 60000, "SECONDARY", "🎁").def("🎉").info({ column: "giveaway" }),
-  new SafeSetting("safe", "Safe Mode", "Toggles NSFW commands on this server.", 60000, "SECONDARY", "🦺").info({ column: "safe" }).def(true),
+    new Setting("message", null, "What to send for the Boost Message.", "message", 600000, ButtonStyle.Primary, "✉️", "Boost Message").info({ column: "boost_msg" }),
+    new Setting("channel", null, "Where to send the Boost Message.", "text_channel", 60000, ButtonStyle.Primary, "🏞️", "Boost Channel").info({ column: "boost_channel" })
+  ]).info({ id: "boost", name: "Boost", description: "Sends a message when someone boosts the server.", style: ButtonStyle.Primary, emoji: "🏎️" }),
+  new Setting("giveaway", "Giveaway Emoji", "Changes the emoji used for giveaways.", "reaction", 60000, ButtonStyle.Secondary, "🎁").def("🎉").info({ column: "giveaway" }),
+  new SafeSetting("safe", "Safe Mode", "Toggles NSFW commands on this server.", 60000, ButtonStyle.Secondary, "🦺").info({ column: "safe" }).def(true),
   new Category([
-    new Setting("roles", "Applicable Roles", "Roles that users can apply for.", "roles", 60000, "PRIMARY", "✉️").info({ column: "app_roles" }),
-    new Setting("admins", "Voter Roles", "Roles that users will be voting for approval.", "roles", 60000, "PRIMARY", "🛠️").info({ column: "admin_roles" }),
-    new Setting("channel", null, "Where the application will be sent. Private channels are recommended.", "text_channel", 60000, "PRIMARY", "🏞️").info({ column: "app_channel" }),
-    new Setting("duration", null, "How long until the application cannot be voted.", "duration", 60000, "SECONDARY", "⏰").info({ column: "duration" }),
+    new Setting("roles", "Applicable Roles", "Roles that users can apply for.", "roles", 60000, ButtonStyle.Primary, "✉️").info({ column: "app_roles" }),
+    new Setting("admins", "Voter Roles", "Roles that users will be voting for approval.", "roles", 60000, ButtonStyle.Primary, "🛠️").info({ column: "admin_roles" }),
+    new Setting("channel", null, "Where the application will be sent. Private channels are recommended.", "text_channel", 60000, ButtonStyle.Primary, "🏞️").info({ column: "app_channel" }),
+    new Setting("duration", null, "How long until the application cannot be voted.", "duration", 60000, ButtonStyle.Secondary, "⏰").info({ column: "duration" }),
     new Category(async(self: Category, guild: Discord.Guild) => {
       self.children = [];
       for (const role of NorthClient.storage.guilds[guild.id].applications.roles) {
         const r = await guild.roles.fetch(role);
-        self.children.push(new TemplateSetting(r.id, r.name, `Template for ${r.name}.`, 600000, "SECONDARY"));
+        self.children.push(new TemplateSetting(r.id, r.name, `Template for ${r.name}.`, 600000, ButtonStyle.Secondary));
       }
-    }).info({ id: "templates", name: "Templates", description: "The templates applicants need to fill in.", style: "SECONDARY", emoji: "📋" })
-  ]).info({ id: "applications", name: "Applications", description: "Allows user to apply for a specific role.", style: "PRIMARY", emoji: "🧑‍💻" }),
+    }).info({ id: "templates", name: "Templates", description: "The templates applicants need to fill in.", style: ButtonStyle.Secondary, emoji: "📋" })
+  ]).info({ id: "applications", name: "Applications", description: "Allows user to apply for a specific role.", style: ButtonStyle.Primary, emoji: "🧑‍💻" }),
   new Category([
     new Category([
-      new Setting("channels", null, "The channels to be monitored.", "voice_channels", 120000, "PRIMARY", "🏞️").info({ column: "voice_kick_channels" }),
-      new Setting("timeout", null, "The delay before a member gets kicked for muting.", "duration", 60000, "PRIMARY", "⏲️").info({ column: "voice_kick_timeout" })
-    ]).info({ id: "kick", name: "Muted Kick", description: "Automatically kicks members that are muted for too long.", style: "PRIMARY", emoji: "👟" })
-  ]).info({ id: "voice", name: "Voice", description: "Voice states monitoring.", style: "SECONDARY", emoji: "🔉" })
+      new Setting("channels", null, "The channels to be monitored.", "voice_channels", 120000, ButtonStyle.Primary, "🏞️").info({ column: "voice_kick_channels" }),
+      new Setting("timeout", null, "The delay before a member gets kicked for muting.", "duration", 60000, ButtonStyle.Primary, "⏲️").info({ column: "voice_kick_timeout" })
+    ]).info({ id: "kick", name: "Muted Kick", description: "Automatically kicks members that are muted for too long.", style: ButtonStyle.Primary, emoji: "👟" })
+  ]).info({ id: "voice", name: "Voice", description: "Voice states monitoring.", style: ButtonStyle.Secondary, emoji: "🔉" })
 ];
 
 class ConfigCommand implements FullCommand {
@@ -76,7 +77,7 @@ class ConfigCommand implements FullCommand {
     if (sub === "panel") return await this.panel(interaction);
     const guild = interaction.guild;
     const author = interaction.user;
-    var config = NorthClient.storage.guilds[guild.id];
+    let config = NorthClient.storage.guilds[guild.id];
     const generated = await ID();
     try {
       if (sub === "new" || !config?.token) await author.send(`Created token for guild - **${guild.name}**\nToken: \`${generated}\``);
@@ -96,7 +97,7 @@ class ConfigCommand implements FullCommand {
 
   async run(message: NorthMessage, args: string[]) {
     const guild = message.guild;
-    var config = NorthClient.storage.guilds[guild.id];
+    let config = NorthClient.storage.guilds[guild.id];
     if (args[0] === "panel") return await this.panel(message);
     const generated = await ID();
     try {
@@ -114,17 +115,17 @@ class ConfigCommand implements FullCommand {
   }
 
   async panel(message: Discord.Message | NorthInteraction) {
-    var config = NorthClient.storage.guilds[message.guildId];
+    const config = NorthClient.storage.guilds[message.guildId];
     const authorId = (message instanceof Discord.Message ? message.author : message.user).id;
     const msgFilter = (x: Discord.Message) => x.author.id === authorId;
     const filter = (interaction: Discord.MessageComponentInteraction) => interaction.user.id === authorId;
-    const login = new Discord.MessageEmbed()
+    const login = new Discord.EmbedBuilder()
       .setColor(color())
       .setTitle(message.guild.name + "'s Configuration Panel")
       .setDescription("Please login with the token.")
       .setTimestamp()
       .setFooter({ text: "Please enter within 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
-    var mesg = <Discord.Message>await msgOrRes(message, login);
+    const mesg = <Discord.Message>await msgOrRes(message, login);
     const loginToken = await message.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 });
     if (!loginToken.first() || !loginToken.first().content) return await end(mesg);
     const receivedToken = loginToken.first().content;
@@ -133,7 +134,7 @@ class ConfigCommand implements FullCommand {
       login.setDescription("Invalid token.").setFooter({ text: "Try again when you have the correct one for your server.", iconURL: message.client.user.displayAvatarURL() });
       return await mesg.edit({ embeds: [login] });
     }
-    const panelEmbed = new Discord.MessageEmbed()
+    const panelEmbed = new Discord.EmbedBuilder()
       .setColor(color())
       .setTitle(message.guild.name + "'s Configuration Panel");
     await start(mesg);
@@ -148,14 +149,14 @@ class ConfigCommand implements FullCommand {
         .setFooter({ text: "Make your choice in 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
       const rows = [];
       for (let ii = 0; ii < Math.ceil(configs.length / 5); ii++) {
-        const row = new Discord.MessageActionRow();
+        const row = new Discord.ActionRowBuilder();
         for (let jj = ii * 5; jj < Math.min(ii * 5 + 5, configs.length); jj++) {
           const config = configs[jj];
-          row.addComponents(new Discord.MessageButton(<Discord.MessageButtonOptions>{ label: config.name, customId: config.id, style: config.style || "PRIMARY", emoji: config.emoji }));
+          row.addComponents(new Discord.ButtonBuilder({ label: config.name, customId: config.id, style: config.style || ButtonStyle.Primary, emoji: config.emoji }));
         }
         rows.push(row);
       }
-      rows.push(new Discord.MessageActionRow().addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" })));
+      rows.push(new Discord.ActionRowBuilder().addComponents(new Discord.ButtonBuilder({ label: "Quit", customId: "quit", style: ButtonStyle.Danger, emoji: "⏹" })));
       await msg.edit({ embeds: [panelEmbed], components: rows });
       const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
@@ -172,9 +173,9 @@ class ConfigCommand implements FullCommand {
       }
       panelEmbed.setDescription(`**${path}/${type === "boolean" ? "Toggle" : "Set"}**\nPlease enter the ${thing} in this channel.`)
         .setFooter({ text: `You will have ${duration(time, "milliseconds")}`, iconURL: msg.client.user.displayAvatarURL() });
-      if (setting.hints.length > 0) panelEmbed.setDescription(panelEmbed.description + `\n\nHints:\n${setting.hints.join("\n")}`);
+      if (setting.hints.length > 0) panelEmbed.setDescription(panelEmbed.data.description + `\n\nHints:\n${setting.hints.join("\n")}`);
       await msg.edit({ embeds: [panelEmbed] });
-      var content: any;
+      let content: any;
       if (["message", "roles", "reaction", "duration"].includes(type) || type.endsWith("channel") || type.endsWith("channels")) {
         const msgCollected = await msg.channel.awaitMessages({ filter: msgFilter, time, max: 1 });
         if (!msgCollected.first()?.content && !msgCollected.first().attachments?.size) {
@@ -187,7 +188,7 @@ class ConfigCommand implements FullCommand {
         if (type.endsWith("channel")) {
           const chType = type.split("_")[0];
           const channel = await findChannel(msg.guild, content);
-          if (!channel || channel.type != ("GUILD_" + chType.toUpperCase())) {
+          if (!channel || channel.type != ChannelType["Guild" + capitalize(chType)]) {
             panelEmbed.setDescription(`**${path}/Set**\nThe channel is not valid! Returning to panel main page in 3 seconds...`)
               .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
             await msg.edit({ embeds: [panelEmbed] });
@@ -200,7 +201,7 @@ class ConfigCommand implements FullCommand {
           const channels = [];
           for (const arg of content.split(/ +/)) {
             const channel = await findChannel(msg.guild, arg);
-            if (!channel || channel.type != ("GUILD_" + chType.toUpperCase())) {
+            if (!channel || channel.type != ChannelType["Guild" + capitalize(chType)]) {
               panelEmbed.setDescription(`**${path}/Set**\nOne of the channels is not valid! Returning to panel main page in 3 seconds...`)
                 .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
               await msg.edit({ embeds: [panelEmbed] });
@@ -216,7 +217,7 @@ class ConfigCommand implements FullCommand {
               const collectedArgs = msgCollected.first().content.split(/ +/);
               content = [];
   
-              for (var i = 0; i < collectedArgs.length; i++) {
+              for (let i = 0; i < collectedArgs.length; i++) {
                 if (isNaN(parseInt(collectedArgs[i].replace(/<@&/g, "").replace(/>/g, "")))) {
                   panelEmbed.setDescription(`**${path}/Set**\nOne of the roles is not valid! Returning to panel main page in 3 seconds...`)
                     .setFooter({ text: "Please wait patiently.", iconURL: msg.client.user.displayAvatarURL() });
@@ -303,7 +304,7 @@ class ConfigCommand implements FullCommand {
         }
         config[configLoc[0]] = layers[0];
         NorthClient.storage.guilds[message.guild.id] = config;
-        var val;
+        let val;
         if (typeof content === "number") val = content;
         else if (Array.isArray(content)) val = `"${content.join()}"`;
         else if (typeof content === "boolean") val = content ? 1 : 0;
@@ -340,7 +341,7 @@ class ConfigCommand implements FullCommand {
         config[configLoc[0]] = layers[0];
         NorthClient.storage.guilds[message.guild.id] = config;
         if (typeof extraData?.handler === "function") await extraData.handler(msg, defaultVal);
-        var val;
+        let val;
         if (typeof defaultVal === "number") val = defaultVal;
         else if (typeof defaultVal === "boolean") val = defaultVal ? 1 : 0;
         else if (!defaultVal) val = "NULL";
@@ -360,14 +361,14 @@ class ConfigCommand implements FullCommand {
     }
 
     async function getButtonInteraction(msg: Discord.Message) {
-      var interaction: Discord.MessageComponentInteraction;
+      let interaction: Discord.MessageComponentInteraction;
       try { interaction = await msg.awaitMessageComponent({ filter, time: 6e4 }); } catch (err) { interaction = null; }
       return interaction;
     }
 
     async function next(msg: Discord.Message, paths: string[]) {
       if (!paths.length) return await start(msg);
-      var cateSett: Category | Setting;
+      let cateSett: Category | Setting;
       const capitalized: string[] = [];
       for (const path of paths) {
         if (!cateSett) cateSett = configs.find(cat => cat.id === path);
@@ -381,34 +382,34 @@ class ConfigCommand implements FullCommand {
       if (cateSett instanceof Category) {
         if (cateSett.breeder) await cateSett.breeder(cateSett, msg.guild);
         for (let ii = 0; ii < Math.ceil(cateSett.children.length / 5); ii++) {
-          const row = new Discord.MessageActionRow();
+          const row = new Discord.ActionRowBuilder();
           for (let jj = ii * 5; jj < Math.min(ii * 5 + 5, cateSett.children.length); jj++) {
             const config = cateSett.children[jj];
-            row.addComponents(new Discord.MessageButton(<Discord.MessageButtonOptions>{ label: config.name, customId: config.id, style: config.style || "PRIMARY", emoji: config.emoji }));
+            row.addComponents(new Discord.ButtonBuilder({ label: config.name, customId: config.id, style: config.style || ButtonStyle.Primary, emoji: config.emoji }));
           }
           rows.push(row);
         }
-        rows.push(new Discord.MessageActionRow()
-          .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-          .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" })));
+        rows.push(new Discord.ActionRowBuilder()
+          .addComponents(new Discord.ButtonBuilder({ label: "Back", customId: "back", style: ButtonStyle.Secondary, emoji: "⬅" }))
+          .addComponents(new Discord.ButtonBuilder({ label: "Quit", customId: "quit", style: ButtonStyle.Danger, emoji: "⏹" })));
       } else {
-        rows.push(new Discord.MessageActionRow()
-          .addComponents(new Discord.MessageButton({ label: "Set", customId: "set", style: "PRIMARY", emoji: "📥" }))
-          .addComponents(new Discord.MessageButton({ label: "Reset", customId: "reset", style: "PRIMARY", emoji: "📤" }))
-          .addComponents(new Discord.MessageButton({ label: "Back", customId: "back", style: "SECONDARY", emoji: "⬅" }))
-          .addComponents(new Discord.MessageButton({ label: "Quit", customId: "quit", style: "DANGER", emoji: "⏹" })));
+        rows.push(new Discord.ActionRowBuilder()
+          .addComponents(new Discord.ButtonBuilder({ label: "Set", customId: "set", style: ButtonStyle.Primary, emoji: "📥" }))
+          .addComponents(new Discord.ButtonBuilder({ label: "Reset", customId: "reset", style: ButtonStyle.Primary, emoji: "📤" }))
+          .addComponents(new Discord.ButtonBuilder({ label: "Back", customId: "back", style: ButtonStyle.Secondary, emoji: "⬅" }))
+          .addComponents(new Discord.ButtonBuilder({ label: "Quit", customId: "quit", style: ButtonStyle.Danger, emoji: "⏹" })));
       }
       await msg.edit({ embeds: [panelEmbed], components: rows });
       const interaction = await getButtonInteraction(msg);
       if (!interaction) return await end(msg);
       await interaction.update({ components: [] });
-      var location: string[];
+      let location: string[];
       if (cateSett instanceof Setting) {
         location = cateSett.storage.location || paths;
-        var settings: any;
+        let settings: any;
         if (location.length === 1) settings = NorthClient.storage.guilds[message.guildId][location[0]];
         else if (location.length === 2) settings =NorthClient.storage.guilds[message.guildId][location[0]][location[1]];
-        panelEmbed.setDescription(panelEmbed.description + `\n\nCurrent settings:\n\`${settings}\``);
+        panelEmbed.setDescription(panelEmbed.data.description + `\n\nCurrent settings:\n\`${settings}\``);
       }
       switch (interaction.customId) {
         case "back": return await next(msg, paths.slice(0, -1));

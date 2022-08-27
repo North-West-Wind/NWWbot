@@ -23,10 +23,10 @@ class LyricsCommand implements FullCommand {
     async execute(interaction: NorthInteraction) {
         const song = interaction.options.getString("song");
         await interaction.deferReply();
-        var lyrics = await solenolyrics.requestLyricsFor(song);
-        var title = await solenolyrics.requestTitleFor(song);
-        var author = await solenolyrics.requestAuthorFor(song);
-        var icon;
+        let lyrics = await solenolyrics.requestLyricsFor(song);
+        let title = await solenolyrics.requestTitleFor(song);
+        let author = await solenolyrics.requestAuthorFor(song);
+        let icon;
         try {
             icon = await solenolyrics.requestIconFor(song);
         } catch (err: any) { }
@@ -41,10 +41,10 @@ class LyricsCommand implements FullCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        var lyrics = await solenolyrics.requestLyricsFor(args.join(" "));
-        var title = await solenolyrics.requestTitleFor(args.join(" "));
-        var author = await solenolyrics.requestAuthorFor(args.join(" "));
-        var icon;
+        let lyrics = await solenolyrics.requestLyricsFor(args.join(" "));
+        let title = await solenolyrics.requestTitleFor(args.join(" "));
+        let author = await solenolyrics.requestAuthorFor(args.join(" "));
+        let icon;
         try {
             icon = await solenolyrics.requestIconFor(args.join(" "));
         } catch (err: any) { }
@@ -59,8 +59,8 @@ class LyricsCommand implements FullCommand {
     }
 
     async createLyricsEmbeds(lyrics: string, title: string, author: string, icon: string) {
-        var splitChar = "\n\n";
-        var lyricsArr = lyrics.split("\n\n");
+        let splitChar = "\n\n";
+        let lyricsArr = lyrics.split("\n\n");
         if (lyricsArr.length === 1) lyricsArr = lyrics.split(splitChar = "\n");
         const allEmbeds = [];
         for (let i = 0; i < lyricsArr.length; i++) {
@@ -70,7 +70,7 @@ class LyricsCommand implements FullCommand {
                 for (let s = 0; s < oneLine.length; s++) {
                     str = [];
                     async function recheck() {
-                        var tempLength = str.join("\n").length;
+                        const tempLength = str.join("\n").length;
                         if ((isNaN(tempLength) ? 0 : tempLength) + ("\n").length + (oneLine[s] ? oneLine[s].length : 2048) < 2048) {
                             str.push(oneLine[s]);
                             s++;
@@ -78,7 +78,7 @@ class LyricsCommand implements FullCommand {
                         }
                     }
                     recheck();
-                    const em = new Discord.MessageEmbed()
+                    const em = new Discord.EmbedBuilder()
                         .setThumbnail(icon)
                         .setColor(color())
                         .setTitle(title)
@@ -91,7 +91,7 @@ class LyricsCommand implements FullCommand {
                 continue;
             }
             async function recheck() {
-                var tempLength = str.join(splitChar).length;
+                const tempLength = str.join(splitChar).length;
                 if ((isNaN(tempLength) ? 0 : tempLength) + splitChar.length + (lyricsArr[i] ? lyricsArr[i].length : 2048) < 2048) {
                     str.push(lyricsArr[i]);
                     i++;
@@ -101,7 +101,7 @@ class LyricsCommand implements FullCommand {
                 }
             }
             recheck();
-            var em = new Discord.MessageEmbed()
+            const em = new Discord.EmbedBuilder()
                 .setThumbnail(icon)
                 .setColor(color())
                 .setTitle(title)

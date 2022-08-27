@@ -78,11 +78,11 @@ class HelpCommand implements FullCommand {
   }
 
   async getAllCommands(guildID: Discord.Snowflake) {
-    var config = NorthClient.storage.guilds[guildID];
+    let config = NorthClient.storage.guilds[guildID];
     if (!config) config = await fixGuildRecord(guildID);
     const safe = config.safe;
     const end = safe ? "" : "/unsafe";
-    const Embed = new Discord.MessageEmbed()
+    const Embed = new Discord.EmbedBuilder()
       .setColor(color())
       .setTitle("Command list is here!")
       .setDescription(`[**Click this**](https://northwestwind.ml/n0rthwestw1nd/manual${end}) for the user manual.\nIf you need any support, you can join the [**Support Server**](https://discord.gg/S44PNSh)\n\nI don't know if you need but [**here's me**](https://top.gg/bot/649611982428962819) in [**Discord bot List**](https://top.gg)!`)
@@ -91,7 +91,7 @@ class HelpCommand implements FullCommand {
       .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
     for (let i = 0; i < categories.length; i++) {
       if (safe && categories[i] === "NSFW") continue;
-      Embed.addField(`**${categories[i]}**`, Array.from(NorthClient.storage.commands.filter(x => x.category === i).keys()).join("\n"), true);
+      Embed.addFields({ name: `**${categories[i]}**`, value: Array.from(NorthClient.storage.commands.filter(x => x.category === i).keys()).join("\n"), inline: true });
     }
     return Embed;
   }
@@ -110,7 +110,7 @@ class HelpCommand implements FullCommand {
     if (command.subcommands) {
       const strs = [];
       for (let i = 0; i < command.subcommands.length; i++) {
-        var str = "    • ";
+        let str = "    • ";
         if (command.subaliases) str = `**${command.subcommands[i]} | ${command.subaliases[i]}**${command.subdesc ? ` - ${command.subdesc[i]}` : ""}`;
         else str = `**${command.subcommands[i]}**${command.subdesc ? ` - ${command.subdesc[i]}` : ""}`;
         str += "\n        • "
@@ -130,7 +130,7 @@ class HelpCommand implements FullCommand {
     if (!NorthClient.storage.guilds[guildID]) return true;
     return NorthClient.storage.guilds[guildID].safe;
   }
-};
+}
 
 const cmd = new HelpCommand();
 export default cmd;

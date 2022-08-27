@@ -37,7 +37,7 @@ async function findAllSearchResult(term) {
 }
 
 function childrenToText(children) {
-  var text = "";
+  let text = "";
   for (let i = 0; i < children.length; i++) {
     const child = children[i];
     if (child.type === "text") {
@@ -59,11 +59,11 @@ function parseMemeBody(url, body) {
   const image = ((<any>photo[0])?.children[0])?.attribs["data-src"];
 
   const children = Array.from(bodycopy.find("h2"));
-  let about = [];
-  let origin = [];
-  let spread = [];
-  let reaction = [];
-  let impact = [];
+  const about = [];
+  const origin = [];
+  const spread = [];
+  const reaction = [];
+  const impact = [];
   for (let i = 0; i < children.length; i++) {
     const child = <any> children[i];
     const sliced = child.parent.children.slice(2);
@@ -110,7 +110,7 @@ class KnowYourMemeCommand implements FullCommand {
   }
 
   async run(message: NorthMessage, args: string[]) {
-    var msg = await message.channel.send("Loading the memes...");
+    const msg = await message.channel.send("Loading the memes...");
     const allEmbeds = await this.getEmbeds(args.join(" "));
     await msg.delete();
     await createEmbedScrolling(message, allEmbeds);
@@ -121,7 +121,7 @@ class KnowYourMemeCommand implements FullCommand {
     const allEmbeds = [];
     let num = 0;
     for (const result of results) {
-      const em = new Discord.MessageEmbed()
+      const em = new Discord.EmbedBuilder()
         .setColor(color())
         .setThumbnail(result.image ? result.image : undefined)
         .setTitle(result.name)
@@ -129,10 +129,10 @@ class KnowYourMemeCommand implements FullCommand {
         .setDescription(result.about.join("\n\n").length > 2048 ? result.about.join("\n\n").slice(0, 2045) + "..." : result.about.join("\n\n"))
         .setTimestamp()
         .setFooter({ text: `Page ${++num} out of ${results.length}`, iconURL: client.user.displayAvatarURL() });
-      if (result.origin.length > 0) em.addField("Origin", result.origin.join("\n\n").length > 1024 ? result.origin.join("\n\n").slice(0, 1021) + "..." : result.origin.join("\n\n"));
-      if (result.spread.length > 0) em.addField("Spread", result.spread.join("\n\n").length > 1024 ? result.spread.join("\n\n").slice(0, 1021) + "..." : result.spread.join("\n\n"));
-      if (result.reaction.length > 0) em.addField("Reaction", result.reaction.join("\n\n").length > 1024 ? result.reaction.join("\n\n").slice(0, 1021) + "..." : result.reaction.join("\n\n"));
-      if (result.impact.length > 0) em.addField("Impact", result.impact.join("\n\n").length > 1024 ? result.impact.join("\n\n").slice(0, 1021) + "..." : result.impact.join("\n\n"));
+      if (result.origin.length > 0) em.addFields({ name: "Origin", value: result.origin.join("\n\n").length > 1024 ? result.origin.join("\n\n").slice(0, 1021) + "..." : result.origin.join("\n\n") });
+      if (result.spread.length > 0) em.addFields({ name: "Spread", value: result.spread.join("\n\n").length > 1024 ? result.spread.join("\n\n").slice(0, 1021) + "..." : result.spread.join("\n\n") });
+      if (result.reaction.length > 0) em.addFields({ name: "Reaction", value: result.reaction.join("\n\n").length > 1024 ? result.reaction.join("\n\n").slice(0, 1021) + "..." : result.reaction.join("\n\n") });
+      if (result.impact.length > 0) em.addFields({ name: "Impact",  value: result.impact.join("\n\n").length > 1024 ? result.impact.join("\n\n").slice(0, 1021) + "..." : result.impact.join("\n\n") });
       allEmbeds.push(em);
     }
     return allEmbeds;

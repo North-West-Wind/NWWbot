@@ -1,6 +1,6 @@
 
 import { GuildMember, Role } from "discord.js";
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { wait, findMember } from "../../function.js";
 
 class RoleCommand implements FullCommand {
@@ -37,7 +37,7 @@ class RoleCommand implements FullCommand {
   }
 
   async run(message: NorthMessage, args: string[]) {
-    var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
+    const roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
       var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === args[1].toLowerCase());
       if (!role) return message.channel.send("No role was found with the name " + args[1]);
@@ -69,7 +69,7 @@ class RoleCommand implements FullCommand {
       }
     }
   }
-};
+}
 
 const cmd = new RoleCommand();
 export default cmd;

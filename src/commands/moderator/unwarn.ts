@@ -33,14 +33,14 @@ class UnWarnCommand implements FullCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        var user: Discord.User;
+        let user: Discord.User;
         try {
             user = await findUser(args[0]);
         } catch (err: any) {
             return await message.channel.send(err.message);
         }
         const embeds = this.unwarnEmbeds(message.guild, message.author, user);
-        var results = await query(`SELECT * FROM warn WHERE user = '${user.id}' AND guild = '${message.guild.id}'`);
+        const results = await query(`SELECT * FROM warn WHERE user = '${user.id}' AND guild = '${message.guild.id}'`);
         if (results.length == 0) await message.channel.send("This user haven't been warned before.");
         else try {
             await query(`DELETE FROM warn WHERE user = '${user.id}' AND guild = '${message.guild.id}'`);
@@ -52,17 +52,17 @@ class UnWarnCommand implements FullCommand {
     }
 
     unwarnEmbeds(guild: Discord.Guild, author: Discord.User, user: Discord.User) {
-        const warningEmbed = new Discord.MessageEmbed()
+        const warningEmbed = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle(`Your warnings have been cleared`)
             .setDescription(`In **${guild.name}**`)
             .setTimestamp()
             .setFooter({ text: "Cleared by " + author.tag, iconURL: author.displayAvatarURL() });
-        const warnSuccessfulEmbed = new Discord.MessageEmbed()
+        const warnSuccessfulEmbed = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle("User Successfully Unwarned!")
             .setDescription(`Unwarned **${user.tag}** in server **${guild.name}**.`);
-        const warnFailureEmbed = new Discord.MessageEmbed()
+        const warnFailureEmbed = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle("Failed to removing warning!")
             .setDescription(`Failed to unwarn **${user.tag}** in server **${guild.name}**.`);

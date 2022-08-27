@@ -33,8 +33,8 @@ class DelRoleCommand implements FullCommand {
 
     async run(message: NorthMessage, args: string[]) {
         if (!args[0]) return await message.channel.send("You didn't tell me the role to delete!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
-        var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
-        var role;
+        const roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
+        let role;
         if (isNaN(parseInt(roleID))) {
             role = message.guild.roles.cache.find(x => x.name.toLowerCase() === `${args[0].toLowerCase()}`);
             if (!role) return await message.channel.send("No role was found with the name " + args[0]);
@@ -50,7 +50,7 @@ class DelRoleCommand implements FullCommand {
             return await message.channel.send({embeds: [embeds[1]]});
         }
     }
-};
+}
 
 const cmd = new DelRoleCommand();
 export default cmd;

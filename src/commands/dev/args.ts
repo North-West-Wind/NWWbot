@@ -1,5 +1,5 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 
 class ArgsCommand implements FullCommand {
   name = "args"

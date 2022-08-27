@@ -2,6 +2,7 @@
 import { NorthMessage, NorthClient, NorthInteraction, SlashCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color, createEmbedScrolling, findChannel, findRole, findUser, getFetch, getRandomNumber, getWithWeight, jsDate2Mysql, ms, msgOrRes, mysqlEscape, nameExists, nameToUuid, profile, query, readableDateTimeText, roundTo, setTimeout_, updateGuildMemberMC } from "../../function.js";
+import { ButtonStyle, MessageActionRowComponentBuilder } from "discord.js";
 
 const fetch = getFetch();
 const catabombLevels = [
@@ -172,7 +173,7 @@ class GuildCommand implements SlashCommand {
 			case "calculate":
 				return await this.calculate(interaction, interaction.options.getString("username"));
 			case "verify":
-				return await this.verify(interaction, <Discord.GuildMember> interaction.options.getMember("user"), interaction.options.getString("minecraft"));
+				return await this.verify(interaction, <Discord.GuildMember>interaction.options.getMember("user"), interaction.options.getString("minecraft"));
 			case "update":
 				return await this.update(interaction);
 			default:
@@ -187,22 +188,24 @@ class GuildCommand implements SlashCommand {
 		try {
 			const result = await query(`SELECT * FROM dcmc WHERE dcid = "${user.id}"`);
 			const channel = <Discord.TextChannel>await interaction.client.channels.fetch("723479832452661269");
-			var noname = false;
+			let noname = false;
 			if (result.length < 1) noname = true;
-			const em = new Discord.MessageEmbed()
+			const em = new Discord.EmbedBuilder()
 				.setColor(color())
 				.setTitle("Please choose an operation:")
 				.setDescription("1️⃣: Accept\n2️⃣: Decline (Already in another guild)\n3️⃣: Decline (Already in guild)\n4️⃣: Decline (Banned)")
 				.setTimestamp()
 				.setFooter({ text: "Please choose within 2 minutes.", iconURL: interaction.client.user.displayAvatarURL() });
 
-			const msg = <Discord.Message> await interaction.editReply({ embeds: [em], components: [
-				new Discord.MessageActionRow()
-					.addComponents(new Discord.MessageButton({ customId: "1", emoji: "1️⃣", style: "SECONDARY" }))
-					.addComponents(new Discord.MessageButton({ customId: "2", emoji: "2️⃣", style: "SECONDARY" }))
-					.addComponents(new Discord.MessageButton({ customId: "3", emoji: "3️⃣", style: "SECONDARY" }))
-					.addComponents(new Discord.MessageButton({ customId: "4", emoji: "4️⃣", style: "SECONDARY" }))
-			] });
+			const msg = <Discord.Message>await interaction.editReply({
+				embeds: [em], components: [
+					new Discord.ActionRowBuilder<MessageActionRowComponentBuilder>()
+						.addComponents(new Discord.ButtonBuilder({ customId: "1", emoji: "1️⃣", style: ButtonStyle.Secondary }))
+						.addComponents(new Discord.ButtonBuilder({ customId: "2", emoji: "2️⃣", style: ButtonStyle.Secondary }))
+						.addComponents(new Discord.ButtonBuilder({ customId: "3", emoji: "3️⃣", style: ButtonStyle.Secondary }))
+						.addComponents(new Discord.ButtonBuilder({ customId: "4", emoji: "4️⃣", style: ButtonStyle.Secondary }))
+				]
+			});
 
 			const collected = await msg.awaitMessageComponent({ filter: (int) => int.user.id == interaction.user.id, time: 120000 }).catch(() => null);
 			if (!collected || !(collected instanceof Discord.ButtonInteraction)) return await interaction.editReply("No operation chosen in 2 minutes. Please try again.");
@@ -231,7 +234,7 @@ class GuildCommand implements SlashCommand {
 	}
 
 	async splash(interaction: NorthInteraction) {
-		var msg = await msgOrRes(interaction, "Which channel do you want the message to be announced?");
+		const msg = await msgOrRes(interaction, "Which channel do you want the message to be announced?");
 		let collected = await msg.channel.awaitMessages({ filter: x => x.author.id === interaction.member.user.id, max: 1, time: 30000 }).catch(err => collected = undefined);
 		if (collected.first())
 			collected.first().delete().catch(() => { });
@@ -241,7 +244,7 @@ class GuildCommand implements SlashCommand {
 		if (collected.first().content === "cancel") {
 			return await msg.edit("Cancelled action.");
 		}
-		var channelID = collected
+		const channelID = collected
 			.first()
 			.content.replace(/<#/g, "")
 			.replace(/>/g, "");
@@ -259,7 +262,7 @@ class GuildCommand implements SlashCommand {
 		if (collected.first().content === "cancel") {
 			return await msg.edit("Cancelled action.");
 		}
-		let location = collected.first().content;
+		const location = collected.first().content;
 
 		await msg.edit(`Ok. The location will be **${location}**. Now, please enter the amount of potions and slots. [Format: <potions> <slots>]`);
 
@@ -276,8 +279,8 @@ class GuildCommand implements SlashCommand {
 		if (!collected.first().content.split(" ")[1]) {
 			return await msg.edit("You didn't enter the amount of slots!");
 		}
-		let potions = parseInt(collected.first().content.split(" ")[0]);
-		let slots = parseInt(collected.first().content.split(" ")[1]);
+		const potions = parseInt(collected.first().content.split(" ")[0]);
+		const slots = parseInt(collected.first().content.split(" ")[1]);
 
 		await msg.edit(`Alright, there will be **${potions} potions** and **${slots} slots**. Which role should I mention?`);
 		collected = undefined;
@@ -290,7 +293,7 @@ class GuildCommand implements SlashCommand {
 		if (collected.first().content === "cancel") {
 			return await msg.edit("Cancelled action.");
 		}
-		var role = await findRole(interaction.guild, collected.first().content);
+		const role = await findRole(interaction.guild, collected.first().content);
 		if (!role) {
 			await interaction.channel.send(`No role was found with \`${collected.first().content}\`!`);
 			msg.delete().catch(() => { });
@@ -339,7 +342,7 @@ class GuildCommand implements SlashCommand {
 		}
 		mc = collected.first().content;
 
-		const em = new Discord.MessageEmbed()
+		const em = new Discord.EmbedBuilder()
 			.setTitle("There is a splash!")
 			.setColor(color())
 			.setDescription(`\`${mc}\` is hosting a splash!\nDo \`/p join ${mc}\` in Hypixel or join the guild party to be part of it!\n\n**Location:** ${location}\n**Potions:** ${potions}\n**Slots:** ${slots}\n**Note: ** ${notes.length > 0 ? notes : "N/A"}`)
@@ -352,7 +355,7 @@ class GuildCommand implements SlashCommand {
 	}
 
 	async lottery(message: NorthMessage | NorthInteraction) {
-		let items = {
+		const items = {
 			"1": 65,
 			"2": 5,
 			"3": 3,
@@ -360,7 +363,7 @@ class GuildCommand implements SlashCommand {
 			"5": 10,
 			"6": 16
 		};
-		let id = parseInt(getWithWeight(items));
+		const id = parseInt(getWithWeight(items));
 		let prize = "";
 		let money = 0;
 		switch (id) {
@@ -424,7 +427,7 @@ class GuildCommand implements SlashCommand {
 				}
 				await msgOrRes(message, `Timer created with the title **${title}** and will last for **${readableDateTimeText(duration)}**`);
 				setTimeout_(async () => {
-					let asuna = await message.client.users.fetch("461516729047318529");
+					const asuna = await message.client.users.fetch("461516729047318529");
 					try {
 						const index = NorthClient.storage.gtimers.indexOf(NorthClient.storage.gtimers.find(t => t.user == user.id));
 						if (index > -1) NorthClient.storage.gtimers.splice(index, 1);
@@ -459,10 +462,10 @@ class GuildCommand implements SlashCommand {
 				break;
 			case "list":
 				try {
-					let now = Date.now();
-					let tmp = [];
+					const now = Date.now();
+					const tmp = [];
 					for (const result of NorthClient.storage.gtimers) {
-						let mc = await profile(result.mc);
+						const mc = await profile(result.mc);
 						let username = "undefined";
 						if (mc) username = mc.name;
 						const str = result.user;
@@ -471,16 +474,16 @@ class GuildCommand implements SlashCommand {
 							const user = await message.client.users.fetch(str);
 							dc = user.id;
 						} catch (err: any) { }
-						let rank = result.dc_rank;
-						let title = `<@${dc}> - ${rank} [${username}]`;
-						let seconds = Math.round((result.endAt.getTime() - now) / 1000);
+						const rank = result.dc_rank;
+						const title = `<@${dc}> - ${rank} [${username}]`;
+						const seconds = Math.round((result.endAt.getTime() - now) / 1000);
 						tmp.push({ title: title, time: duration(seconds, "seconds") });
 					}
 					if (tmp.length <= 10) {
 						let description = "";
 						let num = 0;
 						for (const result of tmp) description += `${++num}. ${result.title} : ${result.time}\n`;
-						const em = new Discord.MessageEmbed()
+						const em = new Discord.EmbedBuilder()
 							.setColor(color())
 							.setTitle("Rank Expiration Timers")
 							.setDescription(description)
@@ -495,7 +498,7 @@ class GuildCommand implements SlashCommand {
 								if (!tmp[i + num]) break;
 								desc += `${num + 1}. ${tmp[i + num].title} : ${tmp[i + num].time}\n`;
 							}
-							const em = new Discord.MessageEmbed()
+							const em = new Discord.EmbedBuilder()
 								.setColor(color())
 								.setTitle(`Rank Expiration Timers [${i + 1}/${Math.ceil(tmp.length / 10)}]`)
 								.setDescription(desc)
@@ -517,17 +520,17 @@ class GuildCommand implements SlashCommand {
 
 	async calculate(message: NorthMessage | NorthInteraction, username: string) {
 		if (!username) return await msgOrRes(message, "You didn't provide any username!");
-		const profiles = await fetch(`https://api.slothpixel.me/api/skyblock/profiles/${username}?key=${process.env.API}`).then(res => <any>res.json());
+		const profiles = await fetch(`https://api.slothpixel.members.me/api/skyblock/profiles/${username}?key=${process.env.API}`).then(res => <any>res.json());
 		if (profiles.error || (Object.keys(profiles).length === 0 && profiles.constructor === Object)) return await msgOrRes(message, profiles.error);
 		const uuid = await nameToUuid(username);
-		var maxSa = 0;
-		var maxSlayer = 0;
-		var maxCatacomb = 0;
+		let maxSa = 0;
+		let maxSlayer = 0;
+		let maxCatacomb = 0;
 		for (const profile in profiles) {
-			const pApi = await fetch(`https://api.slothpixel.me/api/skyblock/profile/${username}/${profile}?key=${process.env.API}`).then(res => <any>res.json());
-			var skills = pApi.members[uuid]?.skills;
+			const pApi = await fetch(`https://api.slothpixel.members.me/api/skyblock/profile/${username}/${profile}?key=${process.env.API}`).then(res => <any>res.json());
+			let skills = pApi.members[uuid]?.skills;
 			if (!skills) skills = {};
-			var sum = 0;
+			let sum = 0;
 			for (const skill in skills) {
 				if (["runecrafting", "carpentry"].includes(skill)) continue;
 				sum += skills[skill].level + skills[skill].progress;
@@ -535,32 +538,32 @@ class GuildCommand implements SlashCommand {
 			const sa = roundTo(sum / 8, 2);
 			if (sa > maxSa) maxSa = sa;
 
-			var slayers = pApi.members[uuid].slayer;
+			let slayers = pApi.members[uuid].slayer;
 			if (!slayers) slayers = {};
-			var slayerXp = 0;
+			let slayerXp = 0;
 			for (const slayer of (<any[]>Object.values(slayers))) {
 				slayerXp += slayer.xp;
 			}
 			if (slayerXp > maxSlayer) maxSlayer = slayerXp;
 
-			var catacomb = pApi.members[uuid].dungeons?.dungeon_types?.catacombs?.experience;
+			let catacomb = pApi.members[uuid].dungeons?.dungeon_types?.catacombs?.experience;
 			if (!catacomb) catacomb = 0;
-			var catacombLvl = 0;
+			let catacombLvl = 0;
 			for (const lvl of catabombLevels)
 				if (catacomb - lvl > 0) catacombLvl++;
 				else break;
 			if (catacombLvl > maxCatacomb) maxCatacomb = catacombLvl;
 		}
-		const player = await fetch(`https://api.slothpixel.me/api/players/${username}?key=${process.env.API}`).then(res => <any>res.json());
+		const player = await fetch(`https://api.slothpixel.members.me/api/players/${username}?key=${process.env.API}`).then(res => <any>res.json());
 		const api = await fetch(`https://api.hypixel.net/player?name=${username}&key=${process.env.API}`).then(res => <any>res.json());
-		var stars = api.player.achievements.bedwars_level;
-		var fkdr = player.stats.BedWars?.final_k_d;
+		let stars = api.player.achievements.bedwars_level;
+		let fkdr = player.stats.BedWars?.final_k_d;
 
 		if (!stars) stars = 0;
 		if (!fkdr) fkdr = 0;
 
-		var bwpt = 0;
-		var sbpt = 0;
+		let bwpt = 0;
+		let sbpt = 0;
 		if (maxSa > 35) sbpt = Infinity;
 		else if (maxSa > 30) sbpt += 4;
 		else if (maxSa > 25) sbpt += 3;
@@ -585,17 +588,19 @@ class GuildCommand implements SlashCommand {
 		else if (fkdr > 2) bwpt += 6;
 		else if (fkdr > 1) bwpt += 3;
 		else if (fkdr > 0.5) bwpt += 1;
-		var points = sbpt + bwpt;
+		const points = sbpt + bwpt;
 
-		const result = new Discord.MessageEmbed()
+		const result = new Discord.EmbedBuilder()
 			.setTitle(`Points of ${username}`)
 			.setColor(color())
 			.setDescription(`Total Points: **${points}**${points == Infinity ? " (Instant Accept!)" : (points >= 12 ? " (Accepted)" : "")}\nSkyBlock Points: **${sbpt}**${sbpt >= 8 ? " (Accepted)" : ""}\nBedWars Points: **${bwpt}**${bwpt >= 4 ? " (Accepted)" : ""}`)
-			.addField("Average Skill Level", maxSa.toString(), true)
-			.addField("Catacomb Level", maxCatacomb.toString(), true)
-			.addField("Slayer EXP", maxSlayer.toString(), true)
-			.addField("Bedwars Stars", stars, true)
-			.addField("Final Kill/Death Ratio", fkdr, true)
+			.addFields([
+				{ name: "Average Skill Level", value: maxSa.toString(), inline: true },
+				{ name: "Catacomb Level", value: maxCatacomb.toString(), inline: true },
+				{ name: "Slayer EXP", value: maxSlayer.toString(), inline: true },
+				{ name: "Bedwars Stars", value: stars, inline: true },
+				{ name: "Final Kill/Death Ratio", value: fkdr, inline: true }
+			])
 			.setTimestamp()
 			.setFooter({ text: "This command only took me 2 hours :D", iconURL: message.client.user.displayAvatarURL() });
 		await msgOrRes(message, result);
@@ -605,7 +610,7 @@ class GuildCommand implements SlashCommand {
 		await interaction.deferReply();
 		if (!await nameExists(minecraft)) return await interaction.editReply("The Minecraft username doesn't exist.");
 		const mcUuid = await nameToUuid(minecraft);
-		var results = await query(`SELECT id FROM dcmc WHERE dcid = '${member.id}'`);
+		const results = await query(`SELECT id FROM dcmc WHERE dcid = '${member.id}'`);
 		if (!results?.length) {
 			await query(`INSERT INTO dcmc(dcid, uuid) VALUES('${member.id}', '${mcUuid}')`);
 			await interaction.editReply("Added record! This message will be auto-deleted in 10 seconds.").then(msg => setTimeout(() => interaction.deleteReply().catch(() => { }), 10000));

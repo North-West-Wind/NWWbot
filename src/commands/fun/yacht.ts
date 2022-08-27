@@ -20,8 +20,8 @@ class YachtCommand implements FullCommand {
 
     async logic(message: Discord.Message | NorthInteraction) {
         const author = message instanceof Discord.Message ? message.author : message.user;
-        var dice: { locked: boolean, number: number }[] = [];
-        var scores = {
+        const dice: { locked: boolean, number: number }[] = [];
+        const scores = {
             "1s": { score: 0, used: false },
             "2s": { score: 0, used: false },
             "3s": { score: 0, used: false },
@@ -38,16 +38,16 @@ class YachtCommand implements FullCommand {
             choice: { score: 0, used: false }
         };
         for (let i = 0; i < 5; i++) dice.push({ locked: false, number: Math.ceil(Math.random() * 6) });
-        var round = 1;
-        var rolled = 0;
+        let round = 1;
+        let rolled = 0;
         const st = `${dice.map(x => `Dice ${dice.indexOf(x) + 1}: **${x.number}${x.locked ? " (Locked)" : ""}**`).join("\n")}\n\nScores:\n1s: **${scores["1s"].score}**\n2s: **${scores["2s"].score}**\n3s: **${scores["3s"].score}**\n4s: **${scores["4s"].score}**\n5s: **${scores["5s"].score}**\n6s: **${scores["6s"].score}**\nBonus: **${scores.bonus.score}**\n3 of a kind: **${scores.triple.score}**\n4 of a kind: **${scores.quadruple.score}**\nFull House: **${scores.doubtri.score}**\n4 Straight: **${scores["4str"].score}**\n5 Straight: **${scores["5str"].score}**\nYacht: **${scores.quintuple.score}**\nChoice: **${scores.choice.score}**`;
-        const em = new Discord.MessageEmbed()
+        const em = new Discord.EmbedBuilder()
             .setTitle(`Yacht Dice Game (Round 1)`)
             .setColor(color())
             .setDescription(st + `\nCommands:\n**Roll** - Rolls the dice (${3 - rolled} times left)\n**Lock <index>** - Locks the dice with indexes 1 to 6\n**Score <category>** Chooses a category to place your score and move to the next turn\n**End** - Ends the game immediately`)
             .setTimestamp()
             .setFooter({ text: "Please type in commands within 2 minutes.", iconURL: message.client.user.displayAvatarURL() });
-        var msg = <Discord.Message> await msgOrRes(message, em);
+        let msg = <Discord.Message> await msgOrRes(message, em);
         const collector = (<TextChannel>message.channel).createMessageCollector({ filter: m => m.author.id === author.id, max: Infinity, idle: 120000 });
         collector.on("collect", async mesg => {
             if (round > 12) {
@@ -184,7 +184,7 @@ class YachtCommand implements FullCommand {
                         case "full house":
                         case "fullhouse":
                             if (scores.doubtri.used) break;
-                            let got = { three: false, two: false };
+                            const got = { three: false, two: false };
                             for (let o = 0; o < 6; o++) {
                                 const filtered = dice.filter(x => x.number === o + 1);
                                 if (filtered.length >= 3) got.three = true;

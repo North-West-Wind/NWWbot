@@ -1,7 +1,7 @@
 
 import { GuildMember } from "discord.js";
 import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
-import { genPermMsg, commonModerationEmbed, findMember } from "../../function.js";
+import { commonModerationEmbed, findMember } from "../../function.js";
 
 class MuteCommand implements FullCommand {
     name = "mute"
@@ -46,7 +46,7 @@ class MuteCommand implements FullCommand {
         if (!member) return;
         if (!member.voice.channel) return message.channel.send("The member is not connected to any voice channel.")
         message.delete().catch(() => { });
-        var reason;
+        let reason;
         if (args[1]) reason = args.slice(1).join(" ");
         const embeds = commonModerationEmbed(message.guild, message.author, member, "mute", "muted", reason);
         try {

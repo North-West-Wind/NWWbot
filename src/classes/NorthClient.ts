@@ -1,4 +1,4 @@
-import { Client, ClientOptions, Collection, CommandInteraction, GuildMember, Invite, Message, MessageEmbed, Snowflake, User } from "discord.js";
+import { Client, ClientOptions, Collection, GuildMember, Invite, Message, EmbedBuilder, Snowflake, User, ChatInputCommandInteraction } from "discord.js";
 import { RowDataPacket } from "mysql2/promise";
 import { strDist } from "../function.js";
 
@@ -249,7 +249,7 @@ export class LevelData {
     guild: Snowflake;
     exp: number;
     date: Date;
-    multiplier: number = 1;
+    multiplier = 1;
     changed: boolean;
 }
 
@@ -266,7 +266,7 @@ export class NorthMessage extends Message {
     client: NorthClient;
 }
 
-export class NorthInteraction extends CommandInteraction {
+export class NorthInteraction extends ChatInputCommandInteraction {
     readonly prefix: string = "/";
     client: NorthClient;
 }
@@ -274,7 +274,7 @@ export class NorthInteraction extends CommandInteraction {
 export interface Item {
     name: string;
     id: string;
-    run(message: NorthMessage | CommandInteraction, msg: Message, em: MessageEmbed, itemObject: any): Promise<any> | any;
+    run(message: NorthMessage | ChatInputCommandInteraction, msg: Message, em: EmbedBuilder, itemObject: any): Promise<any> | any;
 }
 
 export interface GuildTimer {

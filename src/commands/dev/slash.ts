@@ -1,4 +1,4 @@
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand, SlashCommand, ISlash } from "../../classes/NorthClient.js";
+import { NorthClient, NorthInteraction, NorthMessage, FullCommand, ISlash } from "../../classes/NorthClient.js";
 import { msgOrRes } from "../../function.js";
 
 class DevSlashCommand implements FullCommand {

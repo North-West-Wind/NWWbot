@@ -16,7 +16,7 @@ class RestartCommand implements FullCommand {
         await message.channel.send("Restarted.");
         process.exit(-1);
     }
-};
+}
 
 const cmd = new RestartCommand();
 export default cmd;

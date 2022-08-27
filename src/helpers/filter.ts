@@ -1,7 +1,7 @@
-import { GuildMember, Message, Permissions, TextChannel } from "discord.js";
+import { ActivityType, GuildMember, Message, PermissionsBitField, TextChannel } from "discord.js";
 import { Command, NorthClient, NorthInteraction, NorthMessage } from "../classes/NorthClient.js";
 import { genPermMsg, getOwner, msgOrRes } from "../function.js";
-var timeout: NodeJS.Timeout;
+let timeout: NodeJS.Timeout;
 
 export function canReset() {
     return !timeout;
@@ -14,8 +14,8 @@ export async function all(command: Command, message: NorthMessage | NorthInterac
             await msgOrRes(message, `The command \`${message.prefix}${command.name}\` requires ${command.args} arguments.\nHere's how you are supposed to use it: \`${message.prefix}${command.name}${command.usage ? ` ${command.usage}` : ""}\``);
             return false;
         }
-        if (message.guild && !(<TextChannel>message.channel).permissionsFor(message.guild.me).has(BigInt(84992))) {
-            await message.author.send(`I need at least the permissions to \`${new Permissions(BigInt(84992)).toArray().join("`, `")}\` in order to run any command! Please tell your server administrator about that.`);
+        if (message.guild && !(<TextChannel>message.channel).permissionsFor(message.guild.members.me).has(BigInt(84992))) {
+            await message.author.send(`I need at least the permissions to \`${new PermissionsBitField(BigInt(84992)).toArray().join("`, `")}\` in order to run any command! Please tell your server administrator about that.`);
             return false;
         }
     }
@@ -25,7 +25,7 @@ export async function all(command: Command, message: NorthMessage | NorthInterac
                 await msgOrRes(message, genPermMsg(command.permissions.guild.user, 0));
                 return false;
             }
-            if (command.permissions.guild.me && !message.guild.me.permissions.has(BigInt(command.permissions.guild.me))) {
+            if (command.permissions.guild.me && !message.guild.members.me.permissions.has(BigInt(command.permissions.guild.me))) {
                 await msgOrRes(message, genPermMsg(command.permissions.guild.me, 1));
                 return false;
             }
@@ -35,7 +35,7 @@ export async function all(command: Command, message: NorthMessage | NorthInterac
                 await msgOrRes(message, genPermMsg(command.permissions.channel.user, 0));
                 return false;
             }
-            if (command.permissions.channel.me && !(<TextChannel> message.channel).permissionsFor(message.guild.me).has(BigInt(command.permissions.channel.me))) {
+            if (command.permissions.channel.me && !(<TextChannel> message.channel).permissionsFor(message.guild.members.me).has(BigInt(command.permissions.channel.me))) {
                 await msgOrRes(message, genPermMsg(command.permissions.channel.me, 1));
                 return false;
             }
@@ -45,9 +45,9 @@ export async function all(command: Command, message: NorthMessage | NorthInterac
         if (timeout) {
             clearTimeout(timeout);
             timeout = undefined;
-        } else message.client.user.setPresence({ activities: [{ name: `${(message instanceof Message ? message.author : message.user).username}'s Commands`, type: "WATCHING" }], status: "online", afk: false });
+        } else message.client.user.setPresence({ activities: [{ name: `${(message instanceof Message ? message.author : message.user).username}'s Commands`, type: ActivityType.Watching }], status: "online", afk: false });
         timeout = setTimeout(() => {
-            message.client.user.setPresence({ activities: [{ name: `AFK | ${message.client.prefix}help`, type: "PLAYING" }], status: "idle", afk: true });
+            message.client.user.setPresence({ activities: [{ name: `AFK | ${message.client.prefix}help`, type: ActivityType.Playing }], status: "idle", afk: true });
             timeout = undefined;
         }, 10000);
     }

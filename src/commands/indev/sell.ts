@@ -1,7 +1,6 @@
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color, jsDate2Mysql, query, roundTo } from "../../function.js";
-import { RowDataPacket } from "mysql2";
 
 
 class SellCommand implements FullCommand {
@@ -18,14 +17,16 @@ class SellCommand implements FullCommand {
     async run(message: NorthMessage, args: string[]) {
         if (isNaN(Number(args[0]))) return message.channel.send(args[0] + " is not a valid price!");
         const price = roundTo(Number(args[0]), 2);
-        const confirmationEmbed = new Discord.MessageEmbed()
+        const confirmationEmbed = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle("Confirm?")
             .setDescription("This will cost 5% of the price to put it at the shop! The item will be up for 7 days.\n\n✅ Confirm\n❌ Cancel")
-            .addField("Price", price.toString())
-            .addField("Item", args.slice(1).join(" "))
+            .addFields([
+                { name: "Price", value: price.toString() },
+                { name: "Item", value: args.slice(1).join(" ") }
+            ])
             .setFooter({ text: "Please answer within 30 seconds.", iconURL: message.client.user.displayAvatarURL() });
-        var msg = await message.channel.send({embeds: [confirmationEmbed]});
+        const msg = await message.channel.send({ embeds: [confirmationEmbed] });
         await msg.react("✅");
         await msg.react("❌");
         const filter = (reaction, user) => ["✅", "❌"].includes(reaction.emoji.name) && user.id === message.author.id && !user.bot;
@@ -35,15 +36,15 @@ class SellCommand implements FullCommand {
                 .setTitle("Cancelled")
                 .setDescription("Timed out.")
                 .setFooter({ text: "Please try again.", iconURL: message.client.user.displayAvatarURL() });
-            await msg.edit({embeds: [confirmationEmbed]});
-            return msg.reactions.removeAll().catch(() => {});
+            await msg.edit({ embeds: [confirmationEmbed] });
+            return msg.reactions.removeAll().catch(() => { });
         }
-        var reaction = collected.first();
+        const reaction = collected.first();
         if (reaction.emoji.name === "✅") {
             const currentDate = new Date();
             const newDateSql = jsDate2Mysql(new Date(currentDate.getTime() + currentDate.getTimezoneOffset() * 60000 + 604800000));
             try {
-                var result = await query(`SELECT users FROM currency WHERE id = '${message.author.id}'`);
+                const result = await query(`SELECT users FROM currency WHERE id = '${message.author.id}'`);
                 if (result.length == 0) await message.channel.send("You don't have any money!");
                 else if (result[0].currency < price * 0.05) await message.channel.send("You don't have enough money!");
                 else {
@@ -53,8 +54,8 @@ class SellCommand implements FullCommand {
                         .setTitle("Confirmed!")
                         .setDescription("Your item is now at the shop!")
                         .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
-                    await msg.edit({embeds: [confirmationEmbed]});
-                    msg.reactions.removeAll().catch(() => {});
+                    await msg.edit({ embeds: [confirmationEmbed] });
+                    msg.reactions.removeAll().catch(() => { });
                 }
             } catch (err: any) {
                 console.error(err);
@@ -65,10 +66,10 @@ class SellCommand implements FullCommand {
                 .setTitle("Cancelled")
                 .setDescription("Your choice is to cancel it.")
                 .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
-            await msg.edit({embeds: [confirmationEmbed]});
+            await msg.edit({ embeds: [confirmationEmbed] });
         }
     }
-};
+}
 
 const cmd = new SellCommand();
 export default cmd;

@@ -1,6 +1,6 @@
-import { EmojiIdentifierResolvable, Guild, Message, MessageButtonStyle, Snowflake, VoiceChannel } from "discord.js";
+import { EmojiIdentifierResolvable, Guild, Message, ButtonStyle, Snowflake, VoiceChannel } from "discord.js";
 import { capitalize, mysqlEscape, query } from "../function.js";
-import { FullCommand, ISlash, NorthClient, SlashCommand } from "./NorthClient.js";
+import { ISlash, NorthClient } from "./NorthClient.js";
 
 interface StorageInfo {
   column: string;
@@ -11,7 +11,7 @@ class Base {
   id: string;
   name: string;
   description: string;
-  style?: MessageButtonStyle;
+  style?: ButtonStyle.Primary | ButtonStyle.Secondary | ButtonStyle.Success | ButtonStyle.Danger;
   emoji?: EmojiIdentifierResolvable;
 }
 
@@ -24,7 +24,7 @@ export class Setting extends Base {
   default?: any;
   hints: string[] = [];
 
-  constructor(id: string, name: string, description: string, type: SettableType, time: number, style?: MessageButtonStyle, emoji?: string, longname?: string) {
+  constructor(id: string, name: string, description: string, type: SettableType, time: number, style?: ButtonStyle.Primary | ButtonStyle.Secondary | ButtonStyle.Success | ButtonStyle.Danger, emoji?: string, longname?: string) {
     super();
     this.id = id;
     this.name = name || capitalize(this.id);
@@ -77,7 +77,7 @@ export class Category extends Base {
 }
 
 export class SafeSetting extends Setting {
-  constructor(id: string, name: string, description: string, time: number, style?: MessageButtonStyle, emoji?: string, longname?: string) {
+  constructor(id: string, name: string, description: string, time: number, style?: ButtonStyle.Primary | ButtonStyle.Secondary | ButtonStyle.Success | ButtonStyle.Danger, emoji?: string, longname?: string) {
     super(id, name, description, "boolean", time, style, emoji, longname);
     this.extra = { post: this.handler };
   }
@@ -114,7 +114,7 @@ export class SafeSetting extends Setting {
 }
 
 export class TemplateSetting extends Setting {
-  constructor(id: string, name: string, description: string, time: number, style?: MessageButtonStyle, emoji?: string, longname?: string) {
+  constructor(id: string, name: string, description: string, time: number, style?: ButtonStyle.Primary | ButtonStyle.Secondary | ButtonStyle.Success | ButtonStyle.Danger, emoji?: string, longname?: string) {
     super(id, name, description, "message", time, style, emoji, longname);
     this.extra = { sql: this.sql };
   }
@@ -125,7 +125,7 @@ export class TemplateSetting extends Setting {
 }
 
 export class MutedKickSetting extends Setting {
-  constructor(id: string, name: string, description: string, type: SettableType, time: number, style?: MessageButtonStyle, emoji?: string, longname?: string) {
+  constructor(id: string, name: string, description: string, type: SettableType, time: number, style?: ButtonStyle.Primary | ButtonStyle.Secondary | ButtonStyle.Success | ButtonStyle.Danger, emoji?: string, longname?: string) {
     super(id, name, description, type, time, style, emoji, longname);
     this.extra = { post: this.post };
   }

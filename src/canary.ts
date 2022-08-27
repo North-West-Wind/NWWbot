@@ -1,27 +1,27 @@
 import * as dotenv from "dotenv";
 import { CanaryHandler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
-import { Options, Intents } from "discord.js";
+import { Options, GatewayIntentBits, Partials } from "discord.js";
 import * as fs from "fs";
 dotenv.config();
 const config = JSON.parse(fs.readFileSync("config.json", { encoding: "utf8" })) || { prefix1: "%" };
 
 const client = new NorthClient({
-    restRequestTimeout: 60000,
+    closeTimeout: 60000,
     makeCache: Options.cacheWithLimits({
         MessageManager: 50,
         PresenceManager: 0
     }),
-    partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER', 'GUILD_MEMBER'],
+    partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.User, Partials.GuildMember],
     intents: [
-        Intents.FLAGS.DIRECT_MESSAGES,
-        Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
-        Intents.FLAGS.GUILDS,
-        Intents.FLAGS.GUILD_MEMBERS,
-        Intents.FLAGS.GUILD_MESSAGES,
-        Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-        Intents.FLAGS.GUILD_VOICE_STATES,
-        Intents.FLAGS.GUILD_PRESENCES
+        GatewayIntentBits.DirectMessages,
+        GatewayIntentBits.DirectMessageReactions,
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildPresences
     ]
 });
 NorthClient.storage = new ClientStorage();

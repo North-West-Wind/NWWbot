@@ -1,4 +1,4 @@
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 
 import cleverbot from "cleverbot-free";
 
@@ -20,7 +20,7 @@ class ChatCommand implements FullCommand {
     async execute(interaction: NorthInteraction) {
         await interaction.deferReply();
         const author = interaction.member.user;
-        var past = log.get(author.id);
+        let past = log.get(author.id);
         if (!past || Date.now() - past.lastChat > 1800000) {
             log.set(author.id, {
                 lastChat: Date.now(),
@@ -37,7 +37,7 @@ class ChatCommand implements FullCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        var past = log.get(message.author.id);
+        let past = log.get(message.author.id);
         if (!past || Date.now() - past.lastChat > 1800000) {
             log.set(message.author.id, {
                 lastChat: Date.now(),

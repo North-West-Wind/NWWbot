@@ -15,9 +15,9 @@ const mysql_config = {
     supportBigNumbers: true,
     charset: "utf8mb4"
 };
-var pool = mysql.createPool(mysql_config).promise();
-var con: PoolConnection;
-var conTimeout: NodeJS.Timeout;
+const pool = mysql.createPool(mysql_config).promise();
+let con: PoolConnection;
+let conTimeout: NodeJS.Timeout;
 
 const app = express();
 app.use(express.json({ limit: "100mb" }));

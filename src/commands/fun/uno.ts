@@ -1,27 +1,28 @@
 import { Card, NorthInteraction, NorthMessage, Player, FullCommand, UnoGame } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
-import { shuffleArray, twoDigits, color, findMember, ms, findMemberWithGuild, wait, duration } from "../../function.js";
+import { shuffleArray, twoDigits, color, ms, findMemberWithGuild, wait, duration } from "../../function.js";
 import { NorthClient } from "../../classes/NorthClient.js";
 import converter from "number-to-words";
 import Canvas from "canvas";
 import * as fs from "fs";
+import { ButtonStyle, MessageActionRowComponentBuilder } from "discord.js";
 const config = JSON.parse(fs.readFileSync("config.json", { encoding: "utf8" })) || { };
 
 const COLOR = ["Yellow", "Blue", "Green", "Red", "Special"];
 const NUMBER = ["Reverse", "Skip", "Draw 2", "Draw 4", "Change Color"];
 function toString(x: Card) {
-  let colorStr = COLOR[x.color];
+  const colorStr = COLOR[x.color];
   let number = x.number.toString();
   if (x.number > 9) number = NUMBER[x.number - 10];
   return `**${colorStr}** - **${number}**`;
 }
 
 async function canvasImg(assets: { id: string, url: string }[], cards: Card[]) {
-  let canvas = Canvas.createCanvas((cards.length < 5 ? 165 * cards.length : 825), Math.ceil(cards.length / 5) * 256);
-  let ctx = canvas.getContext("2d");
+  const canvas = Canvas.createCanvas((cards.length < 5 ? 165 * cards.length : 825), Math.ceil(cards.length / 5) * 256);
+  const ctx = canvas.getContext("2d");
   for (let i = 0; i < cards.length; i++) {
-    let url = await assets.find(x => x.id === twoDigits(cards[i].color) + twoDigits(cards[i].number)).url;
-    let img = await Canvas.loadImage(url);
+    const url = await assets.find(x => x.id === twoDigits(cards[i].color) + twoDigits(cards[i].number)).url;
+    const img = await Canvas.loadImage(url);
     ctx.drawImage(img, (i % 5) * 165, Math.floor(i / 5) * 256, 165, 256);
   }
   return canvas.toBuffer();
@@ -57,7 +58,7 @@ class UnoCommand implements FullCommand {
 
   async execute(interaction: NorthInteraction) {
     if (!config.uno) return await interaction.reply("The configuration for UNO is not set up!");
-    var mentions = new Discord.Collection<Discord.Snowflake, Discord.GuildMember>();
+    const mentions = new Discord.Collection<Discord.Snowflake, Discord.GuildMember>();
     const users = interaction.options.getString("users");
     const t = interaction.options.getString("time");
     for (const arg of users.split(/ +/)) {
@@ -69,7 +70,7 @@ class UnoCommand implements FullCommand {
     }
     if (mentions.size < 1) return await interaction.reply("All of your mentions are not valid!");
     await interaction.reply({ content: `You invited ${mentions.map(user => `<@${user.id}>`).join(" ")} to play UNO.`, fetchReply: true });
-    var timeLimit = 12 * 60 * 1000;
+    let timeLimit = 12 * 60 * 1000;
     if (t) {
       const time = ms(t);
       if (time) timeLimit = time;
@@ -79,8 +80,8 @@ class UnoCommand implements FullCommand {
 
   async run(message: NorthMessage, args: string[]) {
     if (!config.uno) return await message.reply("The configuration for UNO is not set up!");
-    var mentions = new Discord.Collection<Discord.Snowflake, Discord.GuildMember>();
-    var t: string;
+    const mentions = new Discord.Collection<Discord.Snowflake, Discord.GuildMember>();
+    let t: string;
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
       try {
@@ -94,7 +95,7 @@ class UnoCommand implements FullCommand {
     }
     if (mentions.size < 1) return await message.channel.send("All of your mentions are not valid!");
     await message.channel.send(`You invited ${mentions.map(user => `<@${user.id}>`).join(" ")} to play UNO.`);
-    var timeLimit = 12 * 60 * 1000;
+    let timeLimit = 12 * 60 * 1000;
     if (t) {
       const time = ms(t);
       if (time) timeLimit = time;
@@ -105,29 +106,29 @@ class UnoCommand implements FullCommand {
   async logic(message: Discord.Message | NorthInteraction, mentions: Discord.Collection<Discord.Snowflake, Discord.GuildMember>, timeLimit: number) {
     const author = message instanceof Discord.Message ? message.author : message.user;
     const c = color();
-    var responses = 0;
-    var accepted = 0;
-    var ingame = false;
-    var participants = [author];
+    let responses = 0;
+    let accepted = 0;
+    let ingame = false;
+    const participants = [author];
     mentions.forEach(async member => {
-      var otherGames = NorthClient.storage.uno.find(game => game.players.has(member.id));
-      if (!!otherGames) {
+      const otherGames = NorthClient.storage.uno.find(game => game.players.has(member.id));
+      if (otherGames) {
         responses++;
         ingame = true;
         return message.channel.send(`**${member.user.tag}** is already in another game!`);
       }
       participants.push(member.user);
-      var em = new Discord.MessageEmbed()
+      const em = new Discord.EmbedBuilder()
         .setAuthor({ name: author.tag, iconURL: author.displayAvatarURL()})
         .setColor(c)
         .setTitle(`${author.tag} invited you to play UNO!`)
         .setDescription(`Server: **${message.guild.name}**\nChannel: **${(<Discord.TextChannel>message.channel).name}**\nAccept invitation?\n\n✅ Accept\n✖️ Deny`)
         .setTimestamp()
         .setFooter({ text: "Please decide in 30 seconds.", iconURL: message.client.user.displayAvatarURL() });
-      const row = new Discord.MessageActionRow()
-        .addComponents(new Discord.MessageButton({ customId: "accept", label: "Accept", style: "SUCCESS", emoji: "✅" }))
-        .addComponents(new Discord.MessageButton({ customId: "deny", label: "Deny", style: "DANGER", emoji: "✖️" }));
-      var mesg: Discord.Message;
+      const row = new Discord.ActionRowBuilder<MessageActionRowComponentBuilder>()
+        .addComponents(new Discord.ButtonBuilder({ customId: "accept", label: "Accept", style: ButtonStyle.Success, emoji: "✅" }))
+        .addComponents(new Discord.ButtonBuilder({ customId: "deny", label: "Deny", style: ButtonStyle.Danger, emoji: "✖️" }));
+      let mesg: Discord.Message;
       try {
         mesg = await member.user.send({ embeds: [em], components: [row] });
       } catch (err: any) {
@@ -155,7 +156,7 @@ class UnoCommand implements FullCommand {
       }
       await mesg.edit({ embeds: [em] });
     });
-    var players = new Discord.Collection<Discord.Snowflake, Player>();
+    const players = new Discord.Collection<Discord.Snowflake, Player>();
 
     async function prepare(mesg: Discord.Message, id: number) {
       const uno = NorthClient.storage.uno;
@@ -163,7 +164,7 @@ class UnoCommand implements FullCommand {
       await message.channel.send(`The order has been decided!${order.map(x => `\n${order.indexOf(x) + 1}. **${x.tag}**`)}`);
       for (const participant of order) players.set(participant.id, new Player(participant, NorthClient.storage.card.random(7)));
       for (const [_key, player] of players) {
-        let em = new Discord.MessageEmbed()
+        const em = new Discord.EmbedBuilder()
           .setColor(c)
           .setTitle(`The cards have been distributed!`)
           .setImage("attachment://canvas.png")
@@ -172,9 +173,9 @@ class UnoCommand implements FullCommand {
           .setFooter({ text: "Game started.", iconURL: message.client.user.displayAvatarURL() });
         player.user.send({ embeds: [em], files: [{ attachment: await canvasImg(assets, player.card), name: "canvas.png" }] });
       }
-      var initial = NorthClient.storage.card.filter(x => x.color < 4 && x.number < 10).random();
+      const initial = NorthClient.storage.card.filter(x => x.color < 4 && x.number < 10).random();
       uno.set(id, new UnoGame(players, initial, 1));
-      let em = new Discord.MessageEmbed()
+      const em = new Discord.EmbedBuilder()
         .setColor(c)
         .setTitle("The 1st card has been placed!")
         .setThumbnail(message.client.user.displayAvatarURL())
@@ -186,13 +187,13 @@ class UnoCommand implements FullCommand {
       return await mesg.channel.send({ embeds: [em] });
     }
 
-    var overTime = false;
+    let overTime = false;
     async function handle(mesg: Discord.Message, id: number) {
-      let uno = NorthClient.storage.uno;
+      const uno = NorthClient.storage.uno;
       let drawCard = 0;
       let skip = false;
-      var won = false;
-      var cancelled = false;
+      let won = false;
+      let cancelled = false;
       let nores = 0;
       while (!won) {
         if (nores === players.size) {
@@ -203,13 +204,13 @@ class UnoCommand implements FullCommand {
         nores = 0;
         let i = -1;
         for (var [key, player] of players) {
-          let data = await NorthClient.storage.uno.get(id);
+          const data = await NorthClient.storage.uno.get(id);
           if (overTime) {
             won = true;
             var scores = 0;
-            var lowestP = [], lowestS = -1;
+            let lowestP = [], lowestS = -1;
             for (var p of Array.from(data.players.values())) {
-              var s = 0;
+              let s = 0;
               for (const card of p.card) {
                 if (card.number < 10) s += card.number;
                 else if (card.number < 13) s += 20;
@@ -223,7 +224,7 @@ class UnoCommand implements FullCommand {
               scores += s;
             }
             scores -= lowestS * lowestP.length;
-            let win = new Discord.MessageEmbed()
+            const win = new Discord.EmbedBuilder()
               .setColor(c)
               .setTitle(`The time limit has been reached!`)
               .setThumbnail(player.user.displayAvatarURL())
@@ -238,9 +239,9 @@ class UnoCommand implements FullCommand {
           }
           player.card.sort((a, b) => (a.color * 100 + a.number) - (b.color * 100 + b.number));
           i++;
-          let top = uno.get(id).card;
+          const top = uno.get(id).card;
           if (skip) {
-            let skipEm = new Discord.MessageEmbed()
+            const skipEm = new Discord.EmbedBuilder()
               .setTitle("Your turn was skipped!")
               .setDescription("Someone placed a Skip card!")
               .setColor(c)
@@ -252,7 +253,7 @@ class UnoCommand implements FullCommand {
             skip = false;
             continue;
           }
-          let placeable = player.card.filter(x => {
+          const placeable = player.card.filter(x => {
             if (top.number === 12) {
               if (drawCard > 0) return x.number === 12 || x.number === 13;
               return x.color === 4 || x.color === top.color || x.number === 12;
@@ -262,23 +263,23 @@ class UnoCommand implements FullCommand {
             }
             return (x.color === 4) || (x.color === top.color || x.number === top.number);
           });
-          var em = new Discord.MessageEmbed()
+          let em = new Discord.EmbedBuilder()
             .setColor(c)
             .setTitle(`It's your turn now!`)
             .setDescription(`The current card is ${toString(top)}\nYour cards:\n\n${player.card.map(x => toString(x)).join("\n")}\n\n📥 Place\n📤 Draw\n⏹️ Stop\nIf you draw, you will draw **${drawCard > 0 ? drawCard + " cards" : "1 card"}**.`)
             .setImage("attachment://yourCard.png")
             .setTimestamp()
             .setFooter({ text: "Please decide in 30 seconds.", iconURL: message.client.user.displayAvatarURL() });
-          const row = new Discord.MessageActionRow()
-            .addComponents(new Discord.MessageButton({ customId: "place", label: "Place", style: "PRIMARY", emoji: "📥" }))
-            .addComponents(new Discord.MessageButton({ customId: "draw", label: "Draw", style: "PRIMARY", emoji: "📤" }))
-            .addComponents(new Discord.MessageButton({ customId: "quit", label: "Quit", style: "DANGER", emoji: "⏹️" }));
-          let mssg = await player.user.send({ embeds: [em], files: [{ attachment: await canvasImg(assets, player.card), name: "yourCard.png" }], components: [row] });
-          var collected: Discord.MessageComponentInteraction = <Discord.ButtonInteraction> await mssg.awaitMessageComponent({ filter: interaction => interaction.user.id === player.user.id, time: 30 * 1000 }).catch(() => null);
+          const row = new Discord.ActionRowBuilder<MessageActionRowComponentBuilder>()
+            .addComponents(new Discord.ButtonBuilder({ customId: "place", label: "Place", style: ButtonStyle.Primary, emoji: "📥" }))
+            .addComponents(new Discord.ButtonBuilder({ customId: "draw", label: "Draw", style: ButtonStyle.Primary, emoji: "📤" }))
+            .addComponents(new Discord.ButtonBuilder({ customId: "quit", label: "Quit", style: ButtonStyle.Danger, emoji: "⏹️" }));
+          let mssg: Discord.Message = await player.user.send({ embeds: [em], files: [{ attachment: await canvasImg(assets, player.card), name: "yourCard.png" }], components: [row] });
+          let collected: Discord.MessageComponentInteraction = <Discord.ButtonInteraction> await mssg.awaitMessageComponent({ filter: interaction => interaction.user.id === player.user.id, time: 30 * 1000 }).catch(() => null);
           collected?.update({ components: [] });
-          var newCard = NorthClient.storage.card.random(drawCard > 0 ? drawCard : 1);
-          var card = !newCard.length ? [toString(newCard[0])] : newCard.map(x => toString(x));
-          var draw = new Discord.MessageEmbed()
+          const newCard = NorthClient.storage.card.random(drawCard > 0 ? drawCard : 1);
+          const card = !newCard.length ? [toString(newCard[0])] : newCard.map(x => toString(x));
+          const draw = new Discord.EmbedBuilder()
             .setColor(c)
             .setTitle(`${player.user.tag} drew a card!`)
             .setThumbnail(message.client.user.displayAvatarURL())
@@ -287,7 +288,7 @@ class UnoCommand implements FullCommand {
             .setTimestamp()
             .setFooter({ text: `Placed by ${message.client.user.tag}`, iconURL: message.client.user.displayAvatarURL() });
           if (!collected) {
-            em = new Discord.MessageEmbed()
+            em = new Discord.EmbedBuilder()
               .setColor(c)
               .setTitle(`Your turn ended!`)
               .setDescription(`30 seconds have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
@@ -307,7 +308,7 @@ class UnoCommand implements FullCommand {
           }
           if (collected.customId === "place") {
             if (placeable.length == 0) {
-              em = new Discord.MessageEmbed()
+              em = new Discord.EmbedBuilder()
                 .setColor(c)
                 .setTitle(`Your turn ended!`)
                 .setDescription(`You don't have any card to place so you are forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
@@ -324,7 +325,7 @@ class UnoCommand implements FullCommand {
               await mesg.edit({ embeds: [draw] });
               continue;
             }
-            em = new Discord.MessageEmbed()
+            em = new Discord.EmbedBuilder()
               .setColor(c)
               .setTitle(`Action: Placing`)
               .setDescription(`Select the card to place from the menu.\nCards you can place:`)
@@ -333,7 +334,7 @@ class UnoCommand implements FullCommand {
               .setFooter({ text: `Please decide in 30 seconds.`, iconURL: message.client.user.displayAvatarURL() });
             await mssg.delete();
             const placeableSet = new Set(placeable);
-            const menu = new Discord.MessageSelectMenu();
+            const menu = new Discord.SelectMenuBuilder();
             const keys = [];
             for (const p of placeableSet) {
               const key = NorthClient.storage.card.findKey(f => f === p);
@@ -341,11 +342,11 @@ class UnoCommand implements FullCommand {
               menu.addOptions({ label: toString(p), value: key });
             }
 
-            mssg = await mssg.channel.send({ embeds: [em], files: [{ attachment: await canvasImg(assets, placeable), name: "place.png" }], components: [new Discord.MessageActionRow().addComponents(menu)] });
+            mssg = await mssg.channel.send({ embeds: [em], files: [{ attachment: await canvasImg(assets, placeable), name: "place.png" }], components: [new Discord.ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(menu)] });
             collected = <Discord.SelectMenuInteraction> await mssg.channel.awaitMessageComponent({ filter: interaction => interaction.user.id === player.user.id, time: 30 * 1000 }).catch(() => null);
             collected?.update({ components: [] });
             if (!collected) {
-              em = new Discord.MessageEmbed()
+              em = new Discord.EmbedBuilder()
                 .setColor(c)
                 .setTitle(`Your turn ended!`)
                 .setDescription(`30 seconds have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
@@ -367,16 +368,16 @@ class UnoCommand implements FullCommand {
             if (placedCard.number === 13 || placedCard.number === 14) {
               em.setDescription("Please choose your color:").setFooter({ text: "Please decide in 30 seconds." });
               await mssg.delete();
-              const row = new Discord.MessageActionRow()
-                .addComponents(new Discord.MessageButton({ customId: "red", label: "Red", style: "DANGER", emoji: "🟥" }))
-                .addComponents(new Discord.MessageButton({ customId: "yellow", label: "Yellow", style: "SECONDARY", emoji: "🟨" }))
-                .addComponents(new Discord.MessageButton({ customId: "blue", label: "Blue", style: "PRIMARY", emoji: "🟦" }))
-                .addComponents(new Discord.MessageButton({ customId: "green", label: "Green", style: "SUCCESS", emoji: "🟩" }));
+              const row = new Discord.ActionRowBuilder<MessageActionRowComponentBuilder>()
+                .addComponents(new Discord.ButtonBuilder({ customId: "red", label: "Red", style: ButtonStyle.Danger, emoji: "🟥" }))
+                .addComponents(new Discord.ButtonBuilder({ customId: "yellow", label: "Yellow", style: ButtonStyle.Secondary, emoji: "🟨" }))
+                .addComponents(new Discord.ButtonBuilder({ customId: "blue", label: "Blue", style: ButtonStyle.Primary, emoji: "🟦" }))
+                .addComponents(new Discord.ButtonBuilder({ customId: "green", label: "Green", style: ButtonStyle.Success, emoji: "🟩" }));
               mssg = await mssg.channel.send({ embeds: [em], components: [row] });
               collected = <Discord.ButtonInteraction> await mssg.awaitMessageComponent({ filter: interaction => interaction.user.id === player.user.id, time: 30000 }).catch(() => null);
               collected?.update({ components: [] });
               if (!collected) {
-                em = new Discord.MessageEmbed()
+                em = new Discord.EmbedBuilder()
                   .setColor(c)
                   .setTitle(`Your turn ended!`)
                   .setDescription(`30 seconds have passed!\nYou have been forced to draw ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
@@ -417,7 +418,7 @@ class UnoCommand implements FullCommand {
               player.card.splice(player.card.indexOf(placedCard), 1);
               players.set(key, player);
               placedCard = { color: chosenColor, number: placedCard.number };
-              em = new Discord.MessageEmbed()
+              em = new Discord.EmbedBuilder()
                 .setColor(c)
                 .setTitle(`Your turn ended!`)
                 .setDescription(`The color you chose: ${colorStr}`)
@@ -426,7 +427,7 @@ class UnoCommand implements FullCommand {
             } else {
               player.card.splice(player.card.indexOf(placedCard), 1);
               players.set(key, player);
-              em = new Discord.MessageEmbed()
+              em = new Discord.EmbedBuilder()
                 .setColor(c)
                 .setTitle(`Your turn ended!`)
                 .setDescription(`You placed ${toString(placedCard)}!`)
@@ -436,7 +437,7 @@ class UnoCommand implements FullCommand {
             await mssg.delete();
             await mssg.channel.send({ embeds: [em] });
             uno.set(id, { players: players, card: placedCard, cards: data.cards + 1 });
-            let placed = new Discord.MessageEmbed()
+            const placed = new Discord.EmbedBuilder()
               .setColor(c)
               .setTitle(`The ${converter.toOrdinal(data.cards + 1)} card has been placed`)
               .setThumbnail(player.user.displayAvatarURL())
@@ -462,7 +463,7 @@ class UnoCommand implements FullCommand {
             }
             if (player.card.length === 0) {
               won = true;
-              let data = NorthClient.storage.uno.get(id);
+              const data = NorthClient.storage.uno.get(id);
               var scores = 0;
               for (var p of Array.from(data.players.values())) {
                 for (const card of p.card) {
@@ -471,7 +472,7 @@ class UnoCommand implements FullCommand {
                   else scores += 50;
                 }
               }
-              let win = new Discord.MessageEmbed()
+              const win = new Discord.EmbedBuilder()
                 .setColor(c)
                 .setTitle(`${player.user.tag} won!`)
                 .setThumbnail(player.user.displayAvatarURL())
@@ -487,8 +488,8 @@ class UnoCommand implements FullCommand {
               if (reversing) {
                 let playerKeys = Array.from(players.keys());
                 let playerValues = Array.from(players.values());
-                let keySliced = playerKeys.slice(0, i);
-                let valueSliced = playerValues.slice(0, i);
+                const keySliced = playerKeys.slice(0, i);
+                const valueSliced = playerValues.slice(0, i);
                 playerKeys = playerKeys.slice(i).concat(keySliced).reverse();
                 playerValues = playerValues.slice(i).concat(valueSliced).reverse();
                 players.clear();
@@ -500,7 +501,7 @@ class UnoCommand implements FullCommand {
               continue;
             }
           } else if (collected.customId === "draw") {
-            em = new Discord.MessageEmbed()
+            em = new Discord.EmbedBuilder()
               .setColor(c)
               .setTitle(`Your turn ended!`)
               .setDescription(`You drew ${card.length} card${card.length > 1 ? "s" : ""}!\n\nYour new card${card.length > 1 ? "s" : ""}:\n${card.join("\n")}`)
@@ -517,9 +518,9 @@ class UnoCommand implements FullCommand {
             mesg.edit({ embeds: [draw] });
             continue;
           } else {
-            let data = await NorthClient.storage.uno.get(id);
+            const data = await NorthClient.storage.uno.get(id);
             cancelled = true;
-            let cancel = new Discord.MessageEmbed()
+            const cancel = new Discord.EmbedBuilder()
               .setColor(c)
               .setTitle(`${player.user.tag} doesn't want to play with you anymore!`)
               .setThumbnail(player.user.displayAvatarURL())
@@ -539,8 +540,8 @@ class UnoCommand implements FullCommand {
     if (responses !== accepted) return await message.channel.send("The game cannot start as someone didn't accept the invitation!");
     else if (ingame) return await message.channel.send("The game cannot start as somebody is in another game!");
     else {
-      var mesg = await message.channel.send("The game will start soon!");
-      var id = Date.now();
+      let mesg = await message.channel.send("The game will start soon!");
+      const id = Date.now();
       try {
         mesg = await prepare(mesg, id);
         if (timeLimit > 0) setTimeout(() => overTime = true, timeLimit);
@@ -548,7 +549,7 @@ class UnoCommand implements FullCommand {
       } catch (err: any) { return console.error(err) }
     }
   }
-};
+}
 
 const cmd = new UnoCommand();
 export default cmd;

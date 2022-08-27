@@ -1,7 +1,7 @@
 import { GuildMember, TextChannel } from "discord.js";
 
 import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
-import { findChannel, genPermMsg, wait } from "../../function.js";
+import { findChannel, genPermMsg } from "../../function.js";
 
 class DeleteCommand implements FullCommand {
   name = "delete"
@@ -39,11 +39,11 @@ class DeleteCommand implements FullCommand {
     if (!interaction.guild) return await interaction.reply("This command only works on server.");
     await interaction.deferReply();
     const author = <GuildMember> interaction.member;
-    var amount = interaction.options.getInteger("amount");
+    const amount = interaction.options.getInteger("amount");
     const channel = <TextChannel> (interaction.options.getChannel("channel") || interaction.channel);
     if (interaction.options.getBoolean("all")) {
       if (!author.permissions.has(BigInt(16))) return await interaction.reply(genPermMsg(16, 0));
-      if (!interaction.guild.me.permissions.has(BigInt(16))) return await interaction.reply(genPermMsg(16, 1));
+      if (!interaction.guild.members.me.permissions.has(BigInt(16))) return await interaction.reply(genPermMsg(16, 1));
       const name = channel.name;
       const type = channel.type;
       const topic = channel.topic;
@@ -54,7 +54,7 @@ class DeleteCommand implements FullCommand {
       const rateLimitPerUser = channel.rateLimitPerUser;
 
       await channel.delete();
-      await interaction.guild.channels.create(name, { type, topic, nsfw, parent, permissionOverwrites, position, rateLimitPerUser });
+      await interaction.guild.channels.create({ name, type, topic, nsfw, parent, permissionOverwrites, position, rateLimitPerUser });
       
       await author.user.send("Deleted all message in the channel **" + channel.name + "** of the server **" + interaction.guild.name + "**.");
       return await interaction.editReply(`Deleted all messages in <#${channel.id}>.`);
@@ -72,12 +72,12 @@ class DeleteCommand implements FullCommand {
     if (!message.guild) return await message.channel.send("This command only works on server.");
     if (!args[0]) return await message.channel.send("You didn't provide any amount!" + ` Usage: \`${message.prefix}${this.name} ${this.usage}\``);
 
-    var amount = parseInt(args[0]);
+    const amount = parseInt(args[0]);
     const channel = <TextChannel> (args[1] ? await findChannel(message.guild, args[1].replace(/<#/g, "").replace(/>/g, "")) : message.channel);
     if (isNaN(amount)) {
         if (args[0] == "all") {
           if (!message.member.permissions.has(BigInt(16))) return await message.channel.send(genPermMsg(16, 0));
-          if (!message.guild.me.permissions.has(BigInt(16))) return await message.channel.send(genPermMsg(16, 1));
+          if (!message.guild.members.me.permissions.has(BigInt(16))) return await message.channel.send(genPermMsg(16, 1));
           const name = channel.name;
           const type = channel.type;
           const topic = channel.topic;
@@ -88,7 +88,7 @@ class DeleteCommand implements FullCommand {
           const rateLimitPerUser = channel.rateLimitPerUser;
 
           await message.channel.delete();
-          await message.guild.channels.create(name, { type, topic, nsfw, parent, permissionOverwrites, position, rateLimitPerUser });
+          await message.guild.channels.create({ name, type, topic, nsfw, parent, permissionOverwrites, position, rateLimitPerUser });
           await message.author.send(`Deleted all message in the channel **${channel.name}** of the server **${message.guild.name}**.`);
         } else await message.channel.send("The query provided is not a number!");
         return;
@@ -101,7 +101,7 @@ class DeleteCommand implements FullCommand {
       }
     }
   }
-};
+}
 
 const cmd = new DeleteCommand();
 export default cmd;

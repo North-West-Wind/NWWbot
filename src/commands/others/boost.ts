@@ -1,4 +1,4 @@
-import { MessageEmbed } from "discord.js";
+import { EmbedBuilder } from "discord.js";
 import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { color, getFetch } from "../../function.js";
 
@@ -13,7 +13,7 @@ class BoostCommand implements FullCommand {
     async execute(interaction: NorthInteraction) {
         const stats = await this.getStats();
         if (stats.error) return await interaction.reply(stats.message);
-        const embed = new MessageEmbed()
+        const embed = new EmbedBuilder()
             .setColor(color())
             .setTitle("Boosters")
             .setTimestamp()
@@ -27,7 +27,7 @@ class BoostCommand implements FullCommand {
     async run(message: NorthMessage) {
         const stats = await this.getStats();
         if (stats.error) return await message.channel.send(stats.message);
-        const embed = new MessageEmbed()
+        const embed = new EmbedBuilder()
             .setColor(color())
             .setTitle("Boosters")
             .setTimestamp()

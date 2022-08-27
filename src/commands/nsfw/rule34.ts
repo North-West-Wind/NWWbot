@@ -43,7 +43,7 @@ class Rule34Command implements FullCommand {
         }
         const post = await pick();
         if (post.error) return;
-        const Embed = new Discord.MessageEmbed()
+        const Embed = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle("Searching tags: " + tags.join(", "))
             .setDescription("Tags: `" + post.tags.split(/ +/).join("`, `") + "`\nPlease be patient. Image will load soon...")

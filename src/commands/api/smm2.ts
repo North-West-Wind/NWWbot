@@ -29,18 +29,18 @@ class SMM2Command implements FullCommand {
     async execute(interaction: NorthInteraction) {
         await interaction.deferReply();
         const allEmbeds = await this.getCourseEmbed(interaction.options.getString("keywords"));
-        if(allEmbeds.length < 1) return await interaction.editReply("Cannot find any courses!");
+        if (allEmbeds.length < 1) return await interaction.editReply("Cannot find any courses!");
         await createEmbedScrolling({ interaction: interaction, useEdit: true }, allEmbeds);
     }
-    
+
     async run(message: NorthMessage, args: string[]) {
         const allEmbeds = await this.getCourseEmbed(args.join(" "));
-        if(allEmbeds.length < 1) return await message.channel.send("Cannot find any courses!");
+        if (allEmbeds.length < 1) return await message.channel.send("Cannot find any courses!");
         await createEmbedScrolling(message, allEmbeds);
     }
 
     async getCourseEmbed(keywords: string) {
-        const courses = <any> await fetch(`https://api.smmdb.net/courses2?limit=100&title=${encodeURIComponent(keywords)}`).then(res => res.json());
+        const courses = <any>await fetch(`https://api.smmdb.net/courses2?limit=100&title=${encodeURIComponent(keywords)}`).then(res => res.json());
         const allEmbeds = [];
         for (const course of courses) {
             const uploader = course.uploader;
@@ -60,8 +60,8 @@ class SMM2Command implements FullCommand {
                 orientation: course.course.course_area.orientation.substr(0, 1) + course.course.course_area.orientation.substr(1, course.course.course_area.orientation.length - 1).toLowerCase().split(/_/g).join(" "),
                 day: course.course.course_area.day_time.substr(0, 1) + course.course.course_area.day_time.substr(1, course.course.course_area.day_time.length - 1).toLowerCase().split(/_/g).join(" ")
             };
-            
-            if(course.course.course_sub_area)
+
+            if (course.course.course_sub_area)
                 var sub = {
                     theme: course.course.course_sub_area.course_theme === "GHOUST_HOUSE" ? "Ghost House" : course.course.course_sub_area.course_theme.substr(0, 1) + course.course.course_sub_area.course_theme.substr(1, course.course.course_sub_area.course_theme.length - 1).toLowerCase().split(/_/g).join(" "),
                     autoscroll: course.course.course_sub_area.auto_scroll.substr(0, 1) + course.course.course_sub_area.auto_scroll.substr(1, course.course.course_sub_area.auto_scroll.length - 1).toLowerCase().split(/_/g).join(" "),
@@ -69,21 +69,23 @@ class SMM2Command implements FullCommand {
                     day: course.course.course_sub_area.day_time.substr(0, 1) + course.course.course_sub_area.day_time.substr(1, course.course.course_sub_area.day_time.length - 1).toLowerCase().split(/_/g).join(" ")
                 };
 
-            const em = new Discord.MessageEmbed()
+            const em = new Discord.EmbedBuilder()
                 .setColor(color())
                 .setTitle(title)
                 .setThumbnail(thumbnail)
                 .setDescription(description.length > 2048 ? description.substr(0, 2045) + "..." : description)
-                .addField("Uploader", uploader, true)
-                .addField("Upload Date", uploaded.toString(), true)
-                .addField("Last Modified", lastModified.toString(), true)
-                .addField("Difficulty", difficulty, true)
-                .addField("Time", time.toString(), true)
-                .addField("Style", style, true)
-                .addField("Main Area", `Theme: **${main.theme}**\nAuto-scroll: **${main.autoscroll}**\nOrientation: **${main.orientation}**\nDay/Night: **${main.day}**`)
-                .addField("Sub Area", sub ? `Theme: **${sub.theme}**\nAuto-scroll: **${sub.autoscroll}**\nOrientation: **${sub.orientation}**\nDay/Night: **${sub.day}**` : "No Sub Area")
+                .addFields([
+                    { name: "Uploader", value: uploader, inline: true },
+                    { name: "Upload Date", value: uploaded.toString(), inline: true },
+                    { name: "Last Modified", value: lastModified.toString(), inline: true },
+                    { name: "Difficulty", value: difficulty, inline: true },
+                    { name: "Time", value: time.toString(), inline: true },
+                    { name: "Style", value: style, inline: true },
+                    { name: "Main Area", value: `Theme: **${main.theme}**\nAuto-scroll: **${main.autoscroll}**\nOrientation: **${main.orientation}**\nDay/Night: **${main.day}**` },
+                    { name: "Sub Area", value: sub ? `Theme: **${sub.theme}**\nAuto-scroll: **${sub.autoscroll}**\nOrientation: **${sub.orientation}**\nDay/Night: **${sub.day}**` : "No Sub Area" }
+                ])
                 .setTimestamp()
-                .setFooter(`Votes: ${votes}`);
+                .setFooter({ text: `Votes: ${votes}` });
             allEmbeds.push(em);
         }
         return allEmbeds;

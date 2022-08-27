@@ -1,6 +1,6 @@
-import { Message, MessageEmbed } from "discord.js";
+import { Message, EmbedBuilder } from "discord.js";
 
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as Discord from "discord.js";
 import { color } from "../../function.js";
 
@@ -13,7 +13,7 @@ class RPSCommand implements FullCommand {
   category = 3
   
   async execute(interaction: NorthInteraction) {
-    const em = new Discord.MessageEmbed()
+    const em = new Discord.EmbedBuilder()
       .setColor(color())
       .setTitle("Rock Paper Scissors")
       .setDescription("**React** when you are ready!\n\n🖐 **Paper**\n✌ **Scissors**\n👊 **Rock**")
@@ -24,7 +24,7 @@ class RPSCommand implements FullCommand {
   }
   
   async run(message: NorthMessage) {
-    const em = new Discord.MessageEmbed()
+    const em = new Discord.EmbedBuilder()
       .setColor(color())
       .setTitle("Rock Paper Scissors")
       .setDescription("**React** when you are ready!\n\n🖐 **Paper**\n✌ **Scissors**\n👊 **Rock**")
@@ -34,17 +34,17 @@ class RPSCommand implements FullCommand {
     await this.finishOff(message, msg, em);
   }
 
-  async finishOff(message: NorthMessage | NorthInteraction, msg: Message, em: MessageEmbed) {
+  async finishOff(message: NorthMessage | NorthInteraction, msg: Message, em: EmbedBuilder) {
     for(const option of options) await msg.react(option);
     const filter = (r, u) => options.includes(r.emoji.name) && u.id === (message instanceof Message ? message.author.id : message.user.id);
-    var collected = await msg.awaitReactions({ filter, max: 1, time: 30000 });
+    const collected = await msg.awaitReactions({ filter, max: 1, time: 30000 });
     msg.reactions.removeAll().catch(() => {});
     em.setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
     if(!collected || !collected.first()) {
       em.setDescription("You didn't react in time!");
       return msg.edit({embeds: [em]});
     }
-    let i = Math.floor(Math.random() * 3);
+    const i = Math.floor(Math.random() * 3);
     const index = options.indexOf(collected.first().emoji.name);
     if(i === index) em.setDescription(`You: ${collected.first().emoji.name}\nMe: ${options[i]}\n\nThat's a draw!`);
     else if((i + 1) % 3 === index) em.setDescription(`You: ${collected.first().emoji.name}\nMe: ${options[i]}\n\nCongratulations! You beat me!`);

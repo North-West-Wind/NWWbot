@@ -33,7 +33,7 @@ class SMMCommand implements FullCommand {
     }
 
     async getCourseEmbed(title: string) {
-        const courses = <Discord.MessageEmbed[]> await new Promise((resolve, reject) => {
+        const courses = <Discord.EmbedBuilder[]>await new Promise((resolve, reject) => {
             smm.searchCourses({ title }, async (error: Error, courses) => {
                 if (error) reject(error);
                 const allEmbeds = [];
@@ -51,21 +51,23 @@ class SMMCommand implements FullCommand {
                     const gameStyle = styles[gameStyleID];
                     const courseTheme = themes[courseThemeID];
                     const courseThemeSub = themes[courseThemeSubID];
-                    var description = "No description";
+                    let description = "No description";
                     if (courses[i].description) description = courses[i].description;
-                    const Embed = new Discord.MessageEmbed()
+                    const Embed = new Discord.EmbedBuilder()
                         .setColor(color())
                         .setTitle(courses[i].title)
                         .setDescription(description)
-                        .addField("Uploaded", uploadedTime.toString(), true)
-                        .addField("Last Modified", modifiedTime.toString(), true)
-                        .addField("Difficulty", difficulty, true)
-                        .addField("Game Style", gameStyle, true)
-                        .addField("Course Theme", courseTheme, true)
-                        .addField("Subcourse Theme", courseThemeSub, true)
-                        .addField("Time", time.toString(), true)
-                        .addField("Maker", creator, true)
-                        .addField("Uploader", uploader, true)
+                        .addFields([
+                            { name: "Uploaded", value: uploadedTime.toString(), inline: true },
+                            { name: "Last Modified", value: modifiedTime.toString(), inline: true },
+                            { name: "Difficulty", value: difficulty, inline: true },
+                            { name: "Game Style", value: gameStyle, inline: true },
+                            { name: "Course Theme", value: courseTheme, inline: true },
+                            { name: "Subcourse Theme", value: courseThemeSub, inline: true },
+                            { name: "Time", value: time.toString(), inline: true },
+                            { name: "Maker", value: creator, inline: true },
+                            { name: "Uploader", value: uploader, inline: true }
+                        ])
                         .setTimestamp()
                         .setFooter({ text: "Have a nice day :)", iconURL: client.user.displayAvatarURL() });
                     allEmbeds.push(Embed);

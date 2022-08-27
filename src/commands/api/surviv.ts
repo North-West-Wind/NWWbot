@@ -1,23 +1,25 @@
-import { MessageEmbed } from "discord.js";
+import { EmbedBuilder } from "discord.js";
 
 import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { color, createEmbedScrolling, readableDateTime } from "../../function.js";
 import { globalClient as client } from "../../common.js";
 import { getHistory, getStats, Stats, StatsMode } from "survivio-api";
 const createModeEmbed = (mode: StatsMode, stats: Stats) => {
-    const em = new MessageEmbed()
+    const em = new EmbedBuilder()
         .setColor(color())
         .setTitle(`${stats.username} - ${mode.teamMode == 1 ? "Solo" : (mode.teamMode == 2 ? "Duo" : "Squad")} Statistics`)
         .setImage(stats.player_icon)
-        .addField("Wins", mode.wins.toString(), true)
-        .addField("Kills", mode.kills.toString(), true)
-        .addField("Games", mode.games.toString(), true)
-        .addField("Kill per Game", mode.kpg.toString(), true)
-        .addField("Most Kills", mode.mostKills.toString(), true)
-        .addField("Most Damage", mode.mostDamage.toString(), true)
-        .addField("Win Percentage", mode.winPercent + "%", true)
-        .addField("Average Time Alive", mode.avgTimeAlive + " seconds", true)
-        .addField("Average Damage", mode.avgDamage.toString(), true)
+        .addFields([
+            { name: "Wins", value: mode.wins.toString(), inline: true },
+            { name: "Kills", value: mode.kills.toString(), inline: true },
+            { name: "Games", value: mode.games.toString(), inline: true },
+            { name: "Kill per Game", value: mode.kpg.toString(), inline: true },
+            { name: "Most Kills", value: mode.mostKills.toString(), inline: true },
+            { name: "Most Damage", value: mode.mostDamage.toString(), inline: true },
+            { name: "Win Percentage", value: mode.winPercent + "%", inline: true },
+            { name: "Average Time Alive", value: mode.avgTimeAlive + " seconds", inline: true },
+            { name: "Average Damage", value: mode.avgDamage.toString(), inline: true }
+        ])
         .setTimestamp()
         .setFooter({ text: "Made with Surviv.io API", iconURL: client.user.displayAvatarURL() });
     return em;
@@ -41,7 +43,7 @@ class SurvivCommand implements FullCommand {
         await interaction.deferReply();
         try {
             const allEmbeds = await this.getPlayerEmbed(interaction.options.getString("user"));
-            if (allEmbeds.length == 1) await interaction.editReply({embeds: [allEmbeds[0]]});
+            if (allEmbeds.length == 1) await interaction.editReply({ embeds: [allEmbeds[0]] });
             else await createEmbedScrolling({ interaction, useEdit: true }, allEmbeds);
         } catch (err: any) {
             await interaction.editReply("Cannot find that user!");
@@ -51,7 +53,7 @@ class SurvivCommand implements FullCommand {
     async run(message: NorthMessage, args: string[]) {
         try {
             const allEmbeds = await this.getPlayerEmbed(args.join(" "));
-            if (allEmbeds.length == 1) await message.channel.send({embeds: [allEmbeds[0]]});
+            if (allEmbeds.length == 1) await message.channel.send({ embeds: [allEmbeds[0]] });
             else await createEmbedScrolling(message, allEmbeds);
         } catch (err: any) {
             await message.channel.send("Cannot find that user!");
@@ -72,33 +74,37 @@ class SurvivCommand implements FullCommand {
             return 0;
         });
         const allEmbeds = [];
-        const overall = new MessageEmbed()
+        const overall = new EmbedBuilder()
             .setColor(color())
             .setTitle(`${stats.username} - Overall Statistics`)
             .setImage(stats.player_icon)
-            .addField("Wins", stats.wins.toString(), true)
-            .addField("Kills", stats.kills.toString(), true)
-            .addField("Games", stats.games.toString(), true)
-            .addField("Kill per Game", stats.kpg.toString(), true)
-            .addField("Banned", stats.banned ? "Yes" : "No", true)
+            .addFields([
+                { name: "Wins", value: stats.wins.toString(), inline: true },
+                { name: "Kills", value: stats.kills.toString(), inline: true },
+                { name: "Games", value: stats.games.toString(), inline: true },
+                { name: "Kill per Game", value: stats.kpg.toString(), inline: true },
+                { name: "Banned", value: stats.banned ? "Yes" : "No", inline: true }
+            ])
             .setTimestamp()
             .setFooter({ text: "Made with Surviv.io API", iconURL: client.user.displayAvatarURL() });
         allEmbeds.push(overall);
         for (const mode of stats.modes) allEmbeds.push(createModeEmbed(mode, stats));
         if (history[0]) {
-            const last = new MessageEmbed()
+            const last = new EmbedBuilder()
                 .setColor(color())
                 .setTitle(`${stats.username} - Last Played Game`)
                 .setImage(stats.player_icon)
-                .addField("Mode", history[0].team_mode == 1 ? "Solo" : (history[0].team_mode == 2 ? "Duo" : "Squad"), true)
-                .addField("Number of Teammates", history[0].team_count.toString(), true)
-                .addField("Total Teams", history[0].team_total.toString(), true)
-                .addField("Rank", history[0].rank.toString(), true)
-                .addField("Kills", history[0].kills.toString(), true)
-                .addField("Team Kills", history[0].team_kills.toString(), true)
-                .addField("End Time", readableDateTime(new Date(history[0].end_time)), true)
-                .addField("Damage Dealt", history[0].damage_dealt.toString(), true)
-                .addField("Damage Taken", history[0].damage_taken.toString(), true)
+                .addFields([
+                    { name: "Mode", value: history[0].team_mode == 1 ? "Solo" : (history[0].team_mode == 2 ? "Duo" : "Squad"), inline: true },
+                    { name: "Number of Teammates", value: history[0].team_count.toString(), inline: true },
+                    { name: "Total Teams", value: history[0].team_total.toString(), inline: true },
+                    { name: "Rank", value: history[0].rank.toString(), inline: true },
+                    { name: "Kills", value: history[0].kills.toString(), inline: true },
+                    { name: "Team Kills", value: history[0].team_kills.toString(), inline: true },
+                    { name: "End Time", value: readableDateTime(new Date(history[0].end_time)), inline: true },
+                    { name: "Damage Dealt", value: history[0].damage_dealt.toString(), inline: true },
+                    { name: "Damage Taken", value: history[0].damage_taken.toString(), inline: true }
+                ])
                 .setTimestamp()
                 .setFooter({ text: "Made with Surviv.io API", iconURL: client.user.displayAvatarURL() });
             allEmbeds.push(last);

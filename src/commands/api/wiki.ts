@@ -29,14 +29,14 @@ class WikiCommand implements FullCommand {
 
     async specialCollector(message: Discord.Message | NorthInteraction, query: string) {
         const data = await wiki({ apiUrl: 'https://en.wikipedia.org/w/api.php' }).search(query, 100);
-        var num = 0;
+        let num = 0;
         const allEmbeds = [];
         for (const result of data.results) {
             try {
                 const page = await wiki({ headers: { 'User-Agent': 'N0rthWestW1nd/2.0.0 (https://www.nwws.ml; no_u@nwws.ml) wiki.js' }, apiUrl: 'https://en.wikipedia.org/w/api.php' }).page(result);
                 const url = page.url();
                 const summary = await page.summary();
-                const em = new Discord.MessageEmbed()
+                const em = new Discord.EmbedBuilder()
                     .setColor(color())
                     .setTitle(`${++num}. ${result}`)
                     .setDescription(summary.length > 2048 ? (summary.slice(0, 2045) + "...") : summary)
@@ -55,7 +55,7 @@ class WikiCommand implements FullCommand {
         if (allEmbeds[49]) emojis.push("2️⃣");
         if (allEmbeds[74]) emojis.push("3️⃣")
 
-        var msg: Discord.Message, author;
+        let msg: Discord.Message, author;
         if (message instanceof Discord.Message) {
             msg = await message.channel.send({embeds: [allEmbeds[0]]});
             author = message.author.id;
@@ -65,11 +65,11 @@ class WikiCommand implements FullCommand {
         }
         const filter = (reaction, user) => (emojis.includes(reaction.emoji.name) && user.id === author);
 
-        var s = 0;
+        let s = 0;
         for (const emoji of emojis) {
             msg.react(emoji);
         }
-        var collector = msg.createReactionCollector({
+        const collector = msg.createReactionCollector({
             filter,
             idle: 60000
         });

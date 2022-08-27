@@ -25,7 +25,7 @@ class RoleInfoCommand implements FullCommand {
   }
 
   async run(message: NorthMessage, args: string[]) {
-    var roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
+    const roleID = args[0].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID)) || args.length > 1) {
       var role = message.guild.roles.cache.find(x => x.name.toLowerCase() === args.join(" ").toLowerCase());
       if (!role) return message.channel.send("No role was found with the name " + args.join(" "));
@@ -47,21 +47,23 @@ class RoleInfoCommand implements FullCommand {
       if (user.user.bot) botMemberCount.push(user.id);
     }
     const memberCount = role.members.size;
-    var permissions = [];
-    for (const flag of Object.keys(Discord.Permissions.FLAGS)) if (role.permissions.has(<PermissionResolvable>flag)) permissions.push(flag);
-    if (role.permissions.has("ADMINISTRATOR")) permissions = ["ADMINISTRATOR"];
+    let permissions = [];
+    for (const flag of Object.keys(Discord.PermissionsBitField.Flags)) if (role.permissions.has(<PermissionResolvable>flag)) permissions.push(flag);
+    if (role.permissions.has(Discord.PermissionsBitField.Flags.Administrator)) permissions = ["ADMINISTRATOR"];
 
-    const Embed = new Discord.MessageEmbed()
+    const Embed = new Discord.EmbedBuilder()
       .setColor(color())
       .setTitle("Information of " + role.name)
       .setDescription("In server **" + guild.name + "**")
-      .addField("ID", role.id, true)
-      .addField("Name", role.name, true)
-      .addField("Member Count", `Members: \`${memberCount}\`\nUsers: \`${userMemberCount.length}\`\nBots: \`${botMemberCount.length}\``, true)
-      .addField("Hoist? (Separated)", role.hoist ? "Yes" : "No", true)
-      .addField("Position", role.position.toString(), true)
-      .addField("Color", (!role.hexColor.startsWith("#") ? "#" : "") + role.hexColor.toUpperCase(), true)
-      .addField("Permissions", "`" + (permissions.length > 0 ? permissions.join("`, `").replace(/_/g, " ") : "N/A") + "`")
+      .addFields([
+        { name: "ID", value: role.id, inline: true },
+        { name: "Name", value: role.name, inline: true },
+        { name: "Member Count", value: `Members: \`${memberCount}\`\nUsers: \`${userMemberCount.length}\`\nBots: \`${botMemberCount.length}\``, inline: true },
+        { name: "Hoist? (Separated)", value: role.hoist ? "Yes" : "No", inline: true },
+        { name: "Position", value: role.position.toString(), inline: true },
+        { name: "Color", value: (!role.hexColor.startsWith("#") ? "#" : "") + role.hexColor.toUpperCase(), inline: true },
+        { name: "PermissionsBitField", value: "`" + (permissions.length > 0 ? permissions.join("`, `").replace(/_/g, " ") : "N/A") + "`" }
+      ])
       .setTimestamp()
       .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
     return Embed;

@@ -37,7 +37,7 @@ class UnRoleCommand implements FullCommand {
   }
 
   async run(message: NorthMessage, args: string[]) {
-    var roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
+    const roleID = args[1].replace(/<@&/g, "").replace(/>/g, "");
     if (isNaN(parseInt(roleID))) {
       var role = await message.guild.roles.cache.find(x => x.name.toLowerCase() === args[1].toLowerCase());
       if (!role) return await message.channel.send("No role was found with the name " + args[1]);
@@ -68,7 +68,7 @@ class UnRoleCommand implements FullCommand {
       }
     }
   }
-};
+}
 
 const cmd = new UnRoleCommand();
 export default cmd;

@@ -5,7 +5,7 @@ import { commonRoleEmbed } from "../../function.js";
 
 class AddRoleCommand implements FullCommand {
     name = "addrole"
-    description = "Adds a new role to the server. The “color” parameter is optional."
+    description = "Adds a new role to the server. The \"color\" parameter is optional."
     args = 1
     usage = "<name> [color]"
     category = 0
@@ -50,7 +50,7 @@ class AddRoleCommand implements FullCommand {
             await message.channel.send({embeds: [embeds[1]]});
         }
     }
-};
+}
 
 const cmd = new AddRoleCommand();
 export default cmd;

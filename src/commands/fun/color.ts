@@ -9,17 +9,17 @@ function isArgsRgb(args: string[], length: number) {
 }
 function getColor(args: string[]): { red?: number, green?: number, blue?: number, random: boolean } {
     if (!args?.length) return { random: true };
-    var red = Math.floor(Math.random() * 256);
-    var green = Math.floor(Math.random() * 256);
-    var blue = Math.floor(Math.random() * 256);
-    var random = true;
+    let red = Math.floor(Math.random() * 256);
+    let green = Math.floor(Math.random() * 256);
+    let blue = Math.floor(Math.random() * 256);
+    let random = true;
     if(args.length >= 3 && isArgsRgb(args, 3)) {
         red = parseInt(args[0]);
         green = parseInt(args[1]);
         blue = parseInt(args[2]);
         random = false;
     } else if(args[0]) {
-        var rgb = hexToRgb(args[0]);
+        let rgb = hexToRgb(args[0]);
         if(rgb) {
             red = rgb.r;
             green = rgb.g;
@@ -55,7 +55,7 @@ class ColorCommand implements FullCommand {
         const ctx = canvas.getContext("2d");
         ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        const em = new Discord.MessageEmbed()
+        const em = new Discord.EmbedBuilder()
         .setTitle(`Color: ${red} ${green} ${blue}`)
         .setColor([red, green, blue])
         .setImage(`attachment://${red}_${green}_${blue}.png`)
@@ -69,7 +69,7 @@ class ColorCommand implements FullCommand {
         const ctx = canvas.getContext("2d");
         ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        const em = new Discord.MessageEmbed()
+        const em = new Discord.EmbedBuilder()
         .setTitle(`Color: ${red} ${green} ${blue}`)
         .setColor([red, green, blue])
         .setImage(`attachment://${red}_${green}_${blue}.png`)

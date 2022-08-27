@@ -92,9 +92,9 @@ class HentaiCommand implements FullCommand {
         const sub = interaction.options.getSubcommand();
         if (sub === "single") {
             const t = interaction.options.getString("tag");
-            var embed;
+            let embed;
             if (t) {
-                var tag = "random";
+                let tag = "random";
                 const i = this.tags.findIndex(t => t.toLowerCase() === t);
                 if (i !== -1) tag = this.tags[i];
                 embed = await (t.toLowerCase() === "tags" ? this.tagsList() : this.tagged(tag));
@@ -107,7 +107,7 @@ class HentaiCommand implements FullCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        var tag = "random";
+        let tag = "random";
         if (args.length >= 1) {
             if (args[0].toLowerCase() === "tags") return await message.channel.send({embeds: [await this.tagsList()]});
             else if (["auto", "a"].includes(args[0].toLowerCase())) {
@@ -125,7 +125,7 @@ class HentaiCommand implements FullCommand {
         if (tag === "neko") var result = akaneko.lewdNeko();
         else if (akaneko.nsfw[tag]) var result = await akaneko.nsfw[tag]();
         else return await this.random();
-        const embed = new Discord.MessageEmbed()
+        const embed = new Discord.EmbedBuilder()
             .setTitle("Tag: " + tag)
             .setColor(color())
             .setImage(result)
@@ -134,11 +134,11 @@ class HentaiCommand implements FullCommand {
         return embed;
     }
     async random() {
-        var index = Math.floor(Math.random() * this.tags.length);
-        var tag = this.tags[index];
+        const index = Math.floor(Math.random() * this.tags.length);
+        const tag = this.tags[index];
         if (tag === "neko") var result = akaneko.lewdNeko();
         else var result = await akaneko.nsfw[tag]();
-        const embed = new Discord.MessageEmbed()
+        const embed = new Discord.EmbedBuilder()
             .setTitle("Tag: " + tag)
             .setColor(color())
             .setImage(result)
@@ -147,7 +147,7 @@ class HentaiCommand implements FullCommand {
         return embed;
     }
     async tagsList() {
-        return new Discord.MessageEmbed()
+        return new Discord.EmbedBuilder()
             .setTitle("Tag list")
             .setColor(color())
             .setDescription("**" + this.tags.join("**\n**") + "**")
@@ -165,20 +165,20 @@ class HentaiCommand implements FullCommand {
         await msgOrRes(message, `Auto-hentai initialized. **${amount} messages** with interval **${interval} milliseconds**`);
         if (reverse) tags = tags.filter(str => !this.tags.includes(str));
         else tags = tags.filter(str => this.tags.includes(str));
-        var counter = 0;
+        let counter = 0;
         var i = setInterval(async () => {
             if (counter === amount) {
                 await message.channel.send("Auto-hentai ended. Thank you for using that!");
                 return clearInterval(i);
             }
-            var embed;
+            let embed;
             if (tags.length < 1) embed = await this.random();
             else embed = await this.tagged(tags[tags.length > 1 ? Math.floor(Math.random() * tags.length) : tags[0]]);
             await message.channel.send(embed);
             counter++;
         }, interval);
     }
-};
+}
 
 const cmd = new HentaiCommand();
 export default cmd;

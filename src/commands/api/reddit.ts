@@ -4,7 +4,7 @@ import { validImgurURL, color } from "../../function.js";
 import * as Discord from "discord.js";
 import { globalClient as client } from "../../common.js";
 
-var redditConn: { api: API };
+let redditConn: { api: API };
 
 const def = ["memes", "dankmemes", "meme"];
 
@@ -46,19 +46,19 @@ class RedditCommand implements FullCommand {
         else await message.channel.send({ embeds: [em] });
     }
 
-    async getPost(custom: string[], retry: number = 0) {
+    async getPost(custom: string[], retry = 0) {
         if (retry >= 3) return null;
-        var subreddits;
+        let subreddits;
         if (custom[0]) subreddits = custom;
         else subreddits = def;
         const chosen = subreddits[Math.floor(Math.random() * subreddits.length)];
 
         const response = await redditConn.api.get(`/r/${chosen}/hot`, { limit: 100 }).catch(console.error);
         if (!response[1]?.data?.children[0]?.data?.url) return await this.getPost(custom, ++retry);
-        var data = response[1].data.children[Math.floor(Math.random() * response[1].data.children.length)].data;
+        const data = response[1].data.children[Math.floor(Math.random() * response[1].data.children.length)].data;
         if (!data?.url || (!data.url.endsWith(".jpg") && !data.url.endsWith(".png") && !data.url.endsWith(".gif") && !validImgurURL(data.url))) return await this.getPost(custom, ++retry);
 
-        const em = new Discord.MessageEmbed()
+        const em = new Discord.EmbedBuilder()
             .setTitle(`${data.title.substring(0, 256)}`)
             .setURL(`https://reddit.com${data.permalink}`)
             .setImage(data.url)
@@ -67,7 +67,7 @@ class RedditCommand implements FullCommand {
             .setTimestamp();
         return em;
     }
-};
+}
 
 const cmd = new RedditCommand();
 export default cmd;

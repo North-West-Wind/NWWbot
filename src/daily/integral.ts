@@ -1,5 +1,5 @@
 import { DailyModule } from "../classes/NorthClient.js";
-import { getRandomNumber, toSubscript, toSuperscript } from "../function.js";
+import { getRandomNumber, toSuperscript } from "../function.js";
 
 class DailyIntegral implements DailyModule {
 	name = "integral";
@@ -12,8 +12,8 @@ class DailyIntegral implements DailyModule {
 
 	update() {
 		const trigo = Math.random() < 0.5;
-		var min = Math.round(getRandomNumber(-5, 5));
-		var max = Math.round(getRandomNumber(min, 5));
+		const min = Math.round(getRandomNumber(-5, 5));
+		let max = Math.round(getRandomNumber(min, 5));
 		if (max == min) max++;
 		const types = ["%u^%a", "ln(%u)", "e^%u", "e^(%u^%a)"];
 		if (trigo) {
@@ -27,7 +27,7 @@ class DailyIntegral implements DailyModule {
 			const exponents = !trigo ? Math.round(getRandomNumber(1, 2)) : 1;
 			const variables = [];
 			for (let jj = exponents; jj > 0; jj--) {
-				var coefficient = Math.round(getRandomNumber(-20 / jj, 20 / jj));
+				let coefficient = Math.round(getRandomNumber(-20 / jj, 20 / jj));
 				while (coefficient == 0) coefficient = Math.round(getRandomNumber(-20 / jj, 20 / jj));
 				if (jj == exponents) variables.push(`${coefficient}x${jj > 1 ? toSuperscript(jj.toString()) : ""}`);
 				else variables.push(`${coefficient > 0 ? "+" : ""}${coefficient}x${jj > 1 ? toSuperscript(jj.toString()) : ""}`);

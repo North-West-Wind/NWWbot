@@ -27,7 +27,7 @@ class AsciiCommand implements FullCommand {
     async execute(interaction: NorthInteraction) {
         const txt = interaction.options.getString("text");
         const text = figlet.textSync(txt);
-        const attachment = new Discord.MessageAttachment(Buffer.from(text, 'utf8'), sanitize(`${txt}.txt`));
+        const attachment = new Discord.AttachmentBuilder(Buffer.from(text, 'utf8')).setName(sanitize(`${txt}.txt`));
         await interaction.reply({files: [attachment]});
     }
 
@@ -37,7 +37,7 @@ class AsciiCommand implements FullCommand {
             case "text":
                 if (!args[1]) return await message.channel.send("You didn't provide any text! If you want to convert an image, use the `image` subcommand.");
                 const text = figlet.textSync(args.slice(1).join(" "));
-                const attachment = new Discord.MessageAttachment(Buffer.from(text, 'utf8'), sanitize(`${args.slice(1).join(" ")}.txt`));
+                const attachment = new Discord.AttachmentBuilder(Buffer.from(text, 'utf8')).setName(sanitize(`${args.slice(1).join(" ")}.txt`));
                 await message.channel.send({ files: [attachment] });
                 break;
             case "image":
@@ -61,9 +61,9 @@ class AsciiCommand implements FullCommand {
                         ctx.textAlign = "left";
                         ctx.fillStyle = 'dimgray';
                         ctx.fillRect(0, 0, width, height);
-                        var num = 0;
+                        let num = 0;
                         for (const line of lines) {
-                            var words = anser.ansiToJson(line);
+                            let words = anser.ansiToJson(line);
                             words = words.filter(x => x.content.length > 0);
                             for (let i = 0; i < words.length; i++) {
                                 ctx.fillStyle = 'white';
@@ -74,9 +74,9 @@ class AsciiCommand implements FullCommand {
                         }
                         const nameArr = attachment.name.split(".");
                         nameArr.splice(-1, 1);
-                        const newattachment = new Discord.MessageAttachment(canvas.toBuffer(), sanitize(`${nameArr.join(".")}.png`));
-                        const colorAtt = new Discord.MessageAttachment(Buffer.from(asciis, 'utf8'), sanitize(`${nameArr.join(" ")}_text.txt`));
-                        const noColorAtt = new Discord.MessageAttachment(Buffer.from(anser.ansiToText(asciis), 'utf8'), sanitize(`${nameArr.join(" ")}_text_no_color.txt`));
+                        const newattachment = new Discord.AttachmentBuilder(canvas.toBuffer()).setName(sanitize(`${nameArr.join(".")}.png`));
+                        const colorAtt = new Discord.AttachmentBuilder(Buffer.from(asciis, 'utf8')).setName(sanitize(`${nameArr.join(" ")}_text.txt`));
+                        const noColorAtt = new Discord.AttachmentBuilder(Buffer.from(anser.ansiToText(asciis), 'utf8')).setName(sanitize(`${nameArr.join(" ")}_text_no_color.txt`));
                         msg.delete().catch(() => { });
                         await message.channel.send({files: [newattachment]});
                         await message.channel.send({files: [colorAtt]});

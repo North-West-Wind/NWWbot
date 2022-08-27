@@ -23,7 +23,7 @@ function PNGtoPDF(doc: PDFKit.PDFDocument, url: string): Promise<void> {
             }
         });
     })
-};
+}
 
 class MusescoreCommand implements FullCommand {
     name = "musescore";
@@ -58,20 +58,22 @@ class MusescoreCommand implements FullCommand {
             console.error(err);
             return await msg.edit("There was an error trying to fetch data of the score!");
         }
-        const em = new Discord.MessageEmbed()
+        const em = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle(data.title)
             .setURL(data.url)
             .setThumbnail(data.thumbnails.original)
             .setDescription(`Description: **${data.description}**`)
-            .addField("ID", data.id.toString(), true)
-            .addField("Author", data.user.name, true)
-            .addField("Duration", data.duration, true)
-            .addField("Page Count", data.pages_count.toString(), true)
-            .addField("Date Created", new Date(data.date_created * 1000).toLocaleString(), true)
-            .addField("Date Updated", new Date(data.date_updated * 1000).toLocaleString(), true)
-            .addField(`Tags [${data.tags.length}]`, data.tags.length > 0 ? (data.tags.join(", ").length > 1024 ? (data.tags.join(" ").slice(0, 1020) + "...") : data.tags.join(" ")) : "None")
-            .addField(`Parts [${data.parts}]`, data.parts > 0 ? (data.parts_names.join(", ").length > 1024 ? (data.parts_names.join(" ").slice(0, 1020) + "...") : data.parts_names.join(" ")) : "None")
+            .addFields([
+                { name: "ID", value: data.id.toString(), inline: true },
+                { name: "Author", value: data.user.name, inline: true },
+                { name: "Duration", value: data.duration, inline: true },
+                { name: "Page Count", value: data.pages_count.toString(), inline: true },
+                { name: "Date Created", value: new Date(data.date_created * 1000).toLocaleString(), inline: true },
+                { name: "Date Updated", value: new Date(data.date_updated * 1000).toLocaleString(), inline: true },
+                { name: `Tags [${data.tags.length}]`, value: data.tags.length > 0 ? (data.tags.join(", value: ").length > 1024 ? (data.tags.join(" ").slice(0, 1020) + "...") : data.tags.join(" ")) : "None" },
+                { name: `Parts [${data.parts}]`, value: data.parts > 0 ? (data.parts_names.join(", value: ").length > 1024 ? (data.parts_names.join(" ").slice(0, 1020) + "...") : data.parts_names.join(" ")) : "None" }
+            ])
             .setTimestamp()
             .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
         //if (data.is_public_domain) em.setDescription(em.description + "\n\nClick 📥 to download **MP3/PDF/MIDI**\nFor **other formats (MSCZ/MXL)**, please use [Xmader's Musescore Downloader](https://github.com/LibreScore/dl-musescore)")
@@ -84,16 +86,16 @@ class MusescoreCommand implements FullCommand {
         if (collected && collected.first()) {
             try {
                 try {
-                    var mesg = await message.channel.send("Generating MP3...");
+                    let mesg = await message.channel.send("Generating MP3...");
                     const mp3 = await this.getMP3(url);
                     try {
                         if (mp3.error) throw new Error(mp3.message);
-                        var res;
+                        let res;
                         if (mp3.url.startsWith("https://www.youtube.com/embed/")) {
                             const ytid = mp3.url.split("/").slice(-1)[0].split("?")[0];
                             res = await requestYTDLStream(`https://www.youtube.com/watch?v=${ytid}`, { highWaterMark: 1 << 25, filter: "audioonly", dlChunkSize: 0 });
                         } else res = (await requestStream(mp3.url)).data;
-                        const att = new Discord.MessageAttachment(res, sanitize(`${data.title}.mp3`));
+                        const att = new Discord.AttachmentBuilder(res).setName(sanitize(`${data.title}.mp3`));
                         if (!res) throw new Error("Failed to get Readable Stream");
                         else if (res.status && res.status != 200) throw new Error("Received HTTP Status Code: " + res.statusCode);
                         else await message.channel.send({ files: [att] });
@@ -105,7 +107,7 @@ class MusescoreCommand implements FullCommand {
                     const { doc, hasPDF, err } = await this.getPDF(url, data);
                     try {
                         if (!hasPDF) throw new Error(err ? err : "No PDF available");
-                        const att = new Discord.MessageAttachment(doc, sanitize(`${data.title}.pdf`));
+                        const att = new Discord.AttachmentBuilder(doc).setName(sanitize(`${data.title}.pdf`));
                         await message.channel.send({ files: [att] });
                         await mesg.delete();
                     } catch (err: any) {
@@ -118,7 +120,7 @@ class MusescoreCommand implements FullCommand {
                         const res = await requestStream(midi.url);
                         if (!res) throw new Error("Failed to get Readable Stream");
                         else if (res.status && res.status != 200) throw new Error("Received HTTP Status Code: " + res.status);
-                        const att = new Discord.MessageAttachment(res.data, sanitize(`${data.title}.mid`));
+                        const att = new Discord.AttachmentBuilder(res.data).setName(sanitize(`${data.title}.mid`));
                         await message.channel.send({ files: [att] });
                         await mesg.delete();
                     } catch (err: any) {
@@ -137,23 +139,25 @@ class MusescoreCommand implements FullCommand {
 
     async search(message: NorthMessage | NorthInteraction, args: string, msg: Discord.Message) {
         const results = await museSearch(args);
-        var num = 0;
+        let num = 0;
         const allEmbeds = [];
         for (const score of results.page.data.scores) {
-            const em = new Discord.MessageEmbed()
+            const em = new Discord.EmbedBuilder()
                 .setColor(color())
                 .setTitle(score.title)
                 .setURL(score.url)
                 .setThumbnail(score.thumbnails.original)
                 .setDescription(`Description: **${score.description}**\n\nTo download, please copy the URL and use \`${message instanceof NorthMessage ? message.prefix : "/"}${this.name} <link>\``)
-                .addField("ID", score.id.toString(), true)
-                .addField("Author", score.user.name, true)
-                .addField("Duration", score.duration, true)
-                .addField("Page Count", score.pages_count.toString(), true)
-                .addField("Date Created", new Date(score.date_created * 1000).toLocaleString(), true)
-                .addField("Date Updated", new Date(score.date_updated * 1000).toLocaleString(), true)
-                .addField(`Tags [${score.tags.length}]`, score.tags.length > 0 ? score.tags.join(", ") : "None")
-                .addField(`Parts [${score.parts}]`, score.parts > 0 ? score.parts_names.join(", ") : "None")
+                .addFields([
+                    { name: "ID", value: score.id.toString(), inline: true },
+                    { name: "Author", value: score.user.name, inline: true },
+                    { name: "Duration", value: score.duration, inline: true },
+                    { name: "Page Count", value: score.pages_count.toString(), inline: true },
+                    { name: "Date Created", value: new Date(score.date_created * 1000).toLocaleString(), inline: true },
+                    { name: "Date Updated", value: new Date(score.date_updated * 1000).toLocaleString(), inline: true },
+                    { name: `Tags [${score.tags.length}]`, value: score.tags.length > 0 ? score.tags.join(", ") : "None" },
+                    { name: `Parts [${score.parts}]`, value: score.parts > 0 ? score.parts_names.join(", ") : "None" }
+                ])
                 .setTimestamp()
                 .setFooter({ text: `Currently on page ${++num}/${results.page.data.scores.length}`, iconURL: client.user.displayAvatarURL() });
             allEmbeds.push(em);
@@ -165,7 +169,7 @@ class MusescoreCommand implements FullCommand {
 
     async getMP3(url: string): Promise<{ error: boolean, url: string, message: string, timeTaken: number }> {
         return await run(async (page: Page) => {
-            var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
+            const result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
             const start = Date.now();
             try {
                 await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36');
@@ -190,7 +194,7 @@ class MusescoreCommand implements FullCommand {
 
     async getMIDI(url: string) {
         return await run(async (page: Page) => {
-            var result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
+            const result = { error: true, url: undefined, message: undefined, timeTaken: 0 };
             const start = Date.now();
             try {
                 await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36');
@@ -218,8 +222,8 @@ class MusescoreCommand implements FullCommand {
 
     async getPDF(url, data) {
         if (!data) data = await muse(url);
-        var result = { doc: null, hasPDF: false, err: null };
-        var score = data.firstPage.replace(/png$/, "svg");
+        const result = { doc: null, hasPDF: false, err: null };
+        let score = data.firstPage.replace(/png$/, "svg");
         var fetched = await fetch(score);
         if (!fetched.ok) {
             score = data.firstPage;
@@ -229,7 +233,7 @@ class MusescoreCommand implements FullCommand {
                 return result;
             }
         }
-        var pdf = [score];
+        let pdf = [score];
         if (data.pageCount > 1) {
             const pdfapi = await run(async (page: Page) => {
                 const result = { error: true, pdf: [], message: null, timeTaken: 0 };
@@ -250,9 +254,9 @@ class MusescoreCommand implements FullCommand {
                     });
                     await page.goto(url, { waitUntil: "domcontentloaded" });
                     const thumb = await page.waitForSelector("meta[property='og:image']");
-                    var png = (<string>await (await thumb.getProperty("content")).jsonValue()).split("@")[0];
-                    var svg = png.split(".").slice(0, -1).join(".") + ".svg";
-                    var el;
+                    const png = (<string>await (await thumb.getProperty("content")).jsonValue()).split("@")[0];
+                    const svg = png.split(".").slice(0, -1).join(".") + ".svg";
+                    let el;
                     try {
                         el = await page.waitForSelector(`img[src^="${svg}"]`, { timeout: 10000 });
                         pages.push(svg);
@@ -262,7 +266,7 @@ class MusescoreCommand implements FullCommand {
                     }
                     const height = (await el.boxModel()).height;
                     await el.hover();
-                    var scrolled = 0;
+                    let scrolled = 0;
                     while (pages.length < pageCount && scrolled <= pageCount) {
                         await page.mouse.wheel({ deltaY: height });
                         await page.waitForRequest(req => !!req.url().match(pattern));
@@ -281,7 +285,7 @@ class MusescoreCommand implements FullCommand {
             pdf = pdfapi.pdf;
         }
         const doc = new PDFKit();
-        var hasPDF = true;
+        let hasPDF = true;
         for (let i = 0; i < pdf.length; i++) {
             const page = pdf[i];
             try {

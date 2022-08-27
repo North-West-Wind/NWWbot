@@ -29,8 +29,8 @@ class GoogleCommand implements FullCommand {
 
   async getSearchEmbed(query: string, safe: boolean) {
     const { results } = await google.search(query, { page: 0, safe });
-    var num = 0;
-    const Embed = new Discord.MessageEmbed()
+    let num = 0;
+    const Embed = new Discord.EmbedBuilder()
       .setColor(color())
       .setTitle("Search results of " + query)
       .setDescription(results.map(result => `${++num}. **[${result.title}](${result.url})**`).join("\n"))

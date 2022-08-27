@@ -1,6 +1,6 @@
 
 import { Collection, Message, User } from "discord.js";
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { findUser, getOwner } from "../../function.js";
 
 class SpamCommand implements FullCommand {
@@ -27,7 +27,7 @@ class SpamCommand implements FullCommand {
         const time = interaction.options.getInteger("amount");
         if (time > 120) return await interaction.reply("Please don't spam more than 120 times. That would be annoying.")
         const msg = interaction.options.getString("message");
-        var i = 0;
+        let i = 0;
         var spam = setInterval(async function () {
             if (i == time) return clearInterval(spam);
             const owner = await getOwner();
@@ -41,7 +41,7 @@ class SpamCommand implements FullCommand {
     }
 
     async run(message: NorthMessage, args: string[]) {
-        var taggedUser: User;
+        let taggedUser: User;
         try {
             taggedUser = await findUser(args[0]);
         } catch (err: any) {
@@ -60,7 +60,7 @@ class SpamCommand implements FullCommand {
 
         const msg = args.slice(2).join(" ");
         message.delete().catch(() => { });
-        var i = 0;
+        let i = 0;
         var spam = setInterval(async function () {
             if (i == time) return clearInterval(spam);
             const owner = await getOwner();

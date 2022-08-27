@@ -4,8 +4,8 @@ import * as Discord from "discord.js";
 import { jsDate2Mysql, readableDateTime, setTimeout_, readableDateTimeText, genPermMsg, ms, color, query, findChannel, msgOrRes, mysqlEscape } from "../../function.js";
 import { globalClient as client } from "../../common.js";
 
-export async function endGiveaway(msg: Discord.Message, message: Discord.Message | Discord.CommandInteraction = null) {
-  var shouldDel = true;
+export async function endGiveaway(msg: Discord.Message, message: Discord.Message | Discord.ChatInputCommandInteraction = null) {
+  let shouldDel = true;
   try {
     if (!msg) throw new Error("Poll is deleted");
     shouldDel = false;
@@ -16,16 +16,16 @@ export async function endGiveaway(msg: Discord.Message, message: Discord.Message
     const remove = reacted.indexOf(client.user.id);
     if (remove > -1) reacted.splice(remove, 1);
   
-    const Ended = msg.embeds[0].setDescription("Giveaway ended");
+    const Ended = Discord.EmbedBuilder.from(msg.embeds[0]).setDescription("Giveaway ended");
     if (reacted.length === 0) {
-      Ended.addField("Winner(s)", "None. Cuz no one reacted.")
+      Ended.addFields([{ name: "Winner(s)", value: "None. Cuz no one reacted." }])
       await msg.edit({ embeds: [Ended] });
       msg.reactions.removeAll().catch(() => { });
       await query("DELETE FROM giveaways WHERE id = " + msg.id);
     } else {
-      var index = Math.floor(Math.random() * reacted.length);
+      let index = Math.floor(Math.random() * reacted.length);
       const winners = [];
-      var winnerMessage = "";
+      let winnerMessage = "";
       const winnerCount = giveaway.winner;
       for (let i = 0; i < winnerCount; i++) {
         const w = reacted[index];
@@ -35,10 +35,10 @@ export async function endGiveaway(msg: Discord.Message, message: Discord.Message
         index = Math.floor(Math.random() * reacted.length);
       }
       for (let i = 0; i < winners.length; i++) winnerMessage += "<@" + winners[i] + "> ";
-      Ended.addField("Winner(s)", winnerMessage);
+      Ended.addFields([{ name: "Winner(s)", value: winnerMessage }]);
       await msg.edit({ embeds: [Ended] });
       const link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
-      await msg.channel.send(`Congratulation, ${winnerMessage}! You won **${Ended.title}**!\n${link}`);
+      await msg.channel.send(`Congratulation, ${winnerMessage}! You won **${Ended.data.title}**!\n${link}`);
       msg.reactions.removeAll().catch(() => { });
       await query("DELETE FROM giveaways WHERE id = " + msg.id);
     }
@@ -56,14 +56,14 @@ async function setupGiveaway(message: NorthMessage | NorthInteraction, channel: 
   const newDate = new Date(Date.now() + time);
   const newDateSql = jsDate2Mysql(newDate);
   const readableTime = readableDateTime(newDate);
-  const Embed = new Discord.MessageEmbed()
+  const Embed = new Discord.EmbedBuilder()
     .setColor(color())
     .setTitle(item)
     .setDescription(`React with ${giveawayEmo} to participate!\n**${winnerCount} winner${winnerCount > 1 ? "s" : ""}** will win\nThis giveaway will end at: \n**${readableTime}**`)
     .setTimestamp()
     .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
   const giveawayMsg = giveawayEmo + "**GIVEAWAY**" + giveawayEmo;
-  var msg = await channel.send({ content: giveawayMsg, embeds: [Embed] });
+  const msg = await channel.send({ content: giveawayMsg, embeds: [Embed] });
   await query(`INSERT INTO giveaways VALUES('${msg.id}', '${message.guild.id}', '${channel.id}', '${author.id}', '${winnerCount}', '${newDateSql}', ${mysqlEscape(giveawayEmo)})`);
   await msg.react(giveawayEmo);
   setTimeout_(async () => await endGiveaway(await channel.messages.fetch(msg.id)), time);
@@ -123,15 +123,15 @@ class GiveawayCommand implements FullCommand {
       return await interaction.reply("The giveaway is being terminated...");
     } else if (sub === "list") {
       const results = await query(`SELECT * FROM giveaways WHERE guild = '${interaction.guild.id}'`)
-      const Embed = new Discord.MessageEmbed()
+      const Embed = new Discord.EmbedBuilder()
         .setColor(color())
         .setTitle("Giveaway list")
         .setDescription("**" + interaction.guild.name + "** - " + results.length + " giveaways")
         .setTimestamp()
         .setFooter({ text: "Have a nice day! :)", iconURL: interaction.client.user.displayAvatarURL() });
-      for (var i = 0; i < Math.min(25, results.length); i++) {
+      for (let i = 0; i < Math.min(25, results.length); i++) {
         const readableTime = readableDateTime(new Date(results[i].endAt));
-        Embed.addField(readableTime, results[i].item);
+        Embed.addFields([{ name: readableTime, value: results[i].item }]);
       }
       return await interaction.reply({ embeds: [Embed] });
     }
@@ -150,7 +150,7 @@ class GiveawayCommand implements FullCommand {
 
     const channel = await findChannel(message.guild, args[1].replace(/<#/g, "").replace(/>/g, ""));
     if (!channel || !(channel instanceof Discord.TextChannel)) return await message.channel.send(args[1] + " is not a valid channel!");
-    const permissions = channel.permissionsFor(message.guild.me);
+    const permissions = channel.permissionsFor(message.guild.members.me);
     const userPermission = channel.permissionsFor(message.member);
     if (!permissions.has(BigInt(18432))) return await message.channel.send(genPermMsg(18432, 1));
     if (!userPermission.has(BigInt(18432))) return await message.channel.send(genPermMsg(18432, 0));
@@ -174,20 +174,20 @@ class GiveawayCommand implements FullCommand {
 
   async list(message: NorthMessage) {
     const guild = message.guild;
-    var results = await query(`SELECT * FROM giveaways WHERE guild = '${guild.id}'`)
-    const Embed = new Discord.MessageEmbed()
+    const results = await query(`SELECT * FROM giveaways WHERE guild = '${guild.id}'`)
+    const Embed = new Discord.EmbedBuilder()
       .setColor(color())
       .setTitle("Giveaway list")
       .setDescription("**" + guild.name + "** - " + results.length + " giveaways")
       .setTimestamp()
       .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
-    for (var i = 0; i < Math.min(25, results.length); i++) {
+    for (let i = 0; i < Math.min(25, results.length); i++) {
       const readableTime = readableDateTime(new Date(results[i].endAt));
-      Embed.addField(readableTime, results[i].item);
+      Embed.addFields([{ name: readableTime, value: results[i].item }]);
     }
     await message.channel.send({ embeds: [Embed] });
   }
-};
+}
 
 const cmd = new GiveawayCommand();
 export default cmd;

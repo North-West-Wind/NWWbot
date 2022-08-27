@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 import { AliceHandler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
 import { changeTokens, getFetch, getLevel, getWeek, profile, query, updateGuildMemberMC } from "./function.js";
-import { Intents, Options, VoiceChannel } from "discord.js";
+import { GatewayIntentBits, Options, Partials, VoiceChannel } from "discord.js";
 import * as fs from "fs";
 dotenv.config();
 const config = JSON.parse(fs.readFileSync("config.json", { encoding: "utf8" })) || { prefix1: ">" };
@@ -10,21 +10,21 @@ const config = JSON.parse(fs.readFileSync("config.json", { encoding: "utf8" })) 
 const fetch = getFetch();
 
 const client = new NorthClient({
-  restRequestTimeout: 60000,
+  closeTimeout: 60000,
   makeCache: Options.cacheWithLimits({
       MessageManager: 50,
       PresenceManager: 0
   }),
-  partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER', 'GUILD_MEMBER'],
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.User, Partials.GuildMember],
   intents: [
-      Intents.FLAGS.DIRECT_MESSAGES,
-      Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
-      Intents.FLAGS.GUILDS,
-      Intents.FLAGS.GUILD_MEMBERS,
-      Intents.FLAGS.GUILD_MESSAGES,
-      Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-      Intents.FLAGS.GUILD_VOICE_STATES,
-      Intents.FLAGS.GUILD_PRESENCES
+      GatewayIntentBits.DirectMessages,
+      GatewayIntentBits.DirectMessageReactions,
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMembers,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.GuildMessageReactions,
+      GatewayIntentBits.GuildVoiceStates,
+      GatewayIntentBits.GuildPresences
   ]
 });
 NorthClient.storage = new ClientStorage();
@@ -34,8 +34,8 @@ client.id = 1;
 AliceHandler.setup(client, process.env.TOKEN1);
 
 const points = [5, 2, 1];
-var top3: { uuid: string, exp: number }[] = [];
-var lastDate: string, lastWeek = getWeek(new Date());
+let top3: { uuid: string, exp: number }[] = [];
+let lastDate: string, lastWeek = getWeek(new Date());
 setInterval(async () => {
   try {
     const guild = await client.guilds.fetch("622311594654695434");
@@ -49,7 +49,7 @@ setInterval(async () => {
     }
   } catch (err: any) { }
   try {
-    var guildApi = <any> await fetch(`https://api.slothpixel.me/api/guilds/id/5b5548e70cf21fddabf8c6c1?key=${process.env.API}`).then(res => res.json());
+    let guildApi = <any> await fetch(`https://api.slothpixel.members.me/api/guilds/id/5b5548e70cf21fddabf8c6c1?key=${process.env.API}`).then(res => res.json());
     if (guildApi.error) {
       guildApi = <any> await fetch(`https://api.hypixel.net/guild?id=5b5548e70cf21fddabf8c6c1`, { headers: { "API-Key": process.env.API } }).then(res => res.json());
       guildApi = guildApi.guild;

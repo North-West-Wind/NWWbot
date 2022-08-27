@@ -17,25 +17,25 @@ class AvatarCommand implements FullCommand {
     }];
 
     async execute(interaction: NorthInteraction) {
-        var user = interaction.options.getUser("user") || interaction.user;
-        const Embed = new Discord.MessageEmbed()
+        const user = interaction.options.getUser("user") || interaction.user;
+        const Embed = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle(user.username + "'s avatar: ")
-            .setImage(user.displayAvatarURL({ size: 4096, dynamic: true }))
+            .setImage(user.displayAvatarURL({ size: 4096 }))
             .setTimestamp()
             .setFooter({ text: "Have a nice day! :)", iconURL: interaction.client.user.displayAvatarURL() });
         await interaction.reply({ embeds: [Embed] });
     }
 
     async run(message: NorthMessage, args: string[]) {
-        var user;
+        let user;
         if (!args[0]) user = message.author;
         else try {
             user = await findUser(args[0]);
         } catch (err: any) {
             return await message.channel.send(err.message);
         }
-        const Embed = new Discord.MessageEmbed()
+        const Embed = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle(user.username + "'s avatar: ")
             .setImage(user.displayAvatarURL({ size: 4096, dynamic: true }))

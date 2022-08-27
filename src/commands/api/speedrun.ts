@@ -24,8 +24,8 @@ class SpeedrunCommand implements FullCommand {
         await interaction.deferReply();
         const game = interaction.options.getString("game");
         const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${encodeURIComponent(game)}`).then(res => <any> res.json());
-        var data: any, msg: Discord.Message;
-        const em = new Discord.MessageEmbed()
+        let data: any, msg: Discord.Message;
+        const em = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle("Loading...")
             .setDescription("This will take a while.")
@@ -48,12 +48,12 @@ class SpeedrunCommand implements FullCommand {
 
     async run(message: NorthMessage, args: string[]) {
         const gameFetch = await fetch(`https://www.speedrun.com/api/v1/games/${encodeURIComponent(args.join(" "))}`).then(res => <any> res.json());
-        var data, msg: Discord.Message;
+        let data, msg: Discord.Message;
         if (!gameFetch) {
             ({ data, msg } = await this.chooseGame(message, args.join(" ")));
             if (!data) return;
         } else {
-            var em = new Discord.MessageEmbed()
+            var em = new Discord.EmbedBuilder()
                 .setColor(color())
                 .setTitle("Loading...")
                 .setDescription("This will take a while.")
@@ -76,9 +76,9 @@ class SpeedrunCommand implements FullCommand {
     async chooseGame(message: Discord.Message | NorthInteraction, name: string) {
         const games = [];
         const author = message instanceof Discord.Message ? message.author.id : message.user.id;
-        var result = await fetch(`https://www.speedrun.com/api/v1/games?name=${encodeURIComponent(name)}&_bulk=1`).then(res => <any> res.json());
+        const result = await fetch(`https://www.speedrun.com/api/v1/games?name=${encodeURIComponent(name)}&_bulk=1`).then(res => <any> res.json());
         for (var i = 0; i < (result.data.length > 10 ? 10 : result.data.length); i++) games.push(`${i + 1}. **${result.data[i].names.international}** : **${result.data[i].abbreviation}**`);
-        const em = new Discord.MessageEmbed()
+        const em = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle("Which game are you looking for?")
             .setDescription(games.join("\n"))
@@ -89,11 +89,11 @@ class SpeedrunCommand implements FullCommand {
             else await message.editReply("No game was found!");
             return { data: null, msg };
         }
-        var msg: Discord.Message, index: number;
+        let msg: Discord.Message, index: number;
         if (message instanceof Discord.Message) msg = await message.channel.send({embeds: [em]});
         else msg = <Discord.Message> await message.editReply({ embeds: [em] });
         if (result.data.length > 1) {
-            var choices = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "⏹"];
+            const choices = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "⏹"];
             for (var i = 0; i < games.length; i++) await msg.react(choices[i]);
             await msg.react(choices[10]);
             const collected = await msg.awaitReactions({ filter: (reaction, user) => choices.includes(reaction.emoji.name) && user.id === author, max: 1, time: 30000 });
@@ -125,7 +125,7 @@ class SpeedrunCommand implements FullCommand {
             if (record.category) var categoryFetch = await fetch(`https://www.speedrun.com/api/v1/categories/${record.category}`).then(res => <any> res.json());
             const level = levelFetch && levelFetch.data ? levelFetch.data.name : "N/A";
             const category = categoryFetch && categoryFetch.data ? categoryFetch.data.name : "N/A";
-            const embed = new Discord.MessageEmbed()
+            const embed = new Discord.EmbedBuilder()
                 .setColor(color())
                 .setTitle(data.names.international)
                 .setDescription(`Category: **${category}**\nLevel: **${level}**`)
@@ -143,16 +143,16 @@ class SpeedrunCommand implements FullCommand {
                     const userFetch = await fetch(run.run.players[0].uri).then(res => <any> res.json());
                     player = userFetch.data.name.international;
                 }
-                var time = run.run.times.primary_t;
-                var date = run.run.date;
-                var place = run.place;
-                embed.addField(`Rank #${place}`, `Player: **${player}**\nTime: **${time}s**\nDate: **${date}**\nPlatform: **${platform}**\nRegion: **${region}**`);
+                const time = run.run.times.primary_t;
+                const date = run.run.date;
+                const place = run.place;
+                embed.addFields({ name: `Rank #${place}`, value: `Player: **${player}**\nTime: **${time}s**\nDate: **${date}**\nPlatform: **${platform}**\nRegion: **${region}**` });
             }
             allEmbeds.push(embed);
         }
         return allEmbeds;
     }
-};
+}
 
 const cmd = new SpeedrunCommand();
 export default cmd;

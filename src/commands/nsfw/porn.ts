@@ -7,8 +7,8 @@ import RedditAPI, { API } from "reddit-wrapper-v2";
 import Gfycat from "gfycat-sdk";
 
 const fetch = getFetch();
-var gfycat;
-var redditConn: { api: API };
+let gfycat;
+let redditConn: { api: API };
 
 class PornCommand implements FullCommand {
     name = "porn"
@@ -482,7 +482,7 @@ class PornCommand implements FullCommand {
     
     async execute(interaction: NorthInteraction) {
         await interaction.reply("Finding porn...");
-        var nArgs = [];
+        let nArgs = [];
         const sub = interaction.options.getSubcommand();
         if (sub === "single") {
             const tags = interaction.options.getString("tags");
@@ -506,9 +506,9 @@ class PornCommand implements FullCommand {
         else return await this.nsfw411(message, args);
     }
     async nsfw411(message: NorthMessage | NorthInteraction, args: string[]) {
-        var subs = [];
-        var tags = [];
-        var more = [];
+        let subs = [];
+        const tags = [];
+        let more = [];
 
         switch (args[0] ? args[0].toLowerCase() : undefined) {
             case "age":
@@ -2251,8 +2251,8 @@ class PornCommand implements FullCommand {
         if (!response || !response[1]?.data?.children || !response[1].data.children[0]) return await this.send(message, args, subs, tags, more);
         const data = response[1].data.children[Math.floor(Math.random() * response[1].data.children.length)].data;
         if (!data || !data.url) return await this.send(message, args, subs, tags, more);
-        const tag = !!tags ? (tags.length > 0 ? tags.join("->") : "`N/A`") : Object.keys(this.listofsubreddits).find(key => this.listofsubreddits[key].includes(picked));
-        const em = new Discord.MessageEmbed()
+        const tag = tags ? (tags.length > 0 ? tags.join("->") : "`N/A`") : Object.keys(this.listofsubreddits).find(key => this.listofsubreddits[key].includes(picked));
+        const em = new Discord.EmbedBuilder()
             .setTitle(`${data.title.substring(0, 256)}`)
             .setDescription(`Tag: \`${tag}\`\n${more ? `(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\n` : ""}From r/${picked}`)
             .setURL(`https://reddit.com${data.permalink}`)
@@ -2261,14 +2261,14 @@ class PornCommand implements FullCommand {
             .setFooter({ text: `${data.ups} 👍 | ${data.downs} 👎 | ${data.num_comments} 🗨`, iconURL: message.client.user.displayAvatarURL() })
             .setTimestamp();
         if (validNotImgurURL(data.url)) em.setImage(data.url.replace("imgur", "i.imgur") + ".jpg");
-        var link;
+        let link;
         if (!validImgurURL(data.url) && !validRedditURL(data.url)) {
             if (validImgurVideoURL(data.url) || validRedditVideoURL(data.url)) link = data.url;
             else if (validGfyURL(data.url)) {
                 try {
                     await gfycat.authenticate();
-                    var gif = await gfycat.getGifDetails({ gfyId: data.url.split("/")[3] });
-                    var name = gif.gfyItem.gfyName;
+                    const gif = await gfycat.getGifDetails({ gfyId: data.url.split("/")[3] });
+                    const name = gif.gfyItem.gfyName;
                     link = `https://thumbs.gfycat.com/${name}-mobile.mp4`;
                 } catch (err: any) {
                     console.error(err);
@@ -2278,11 +2278,11 @@ class PornCommand implements FullCommand {
                 const $ = cheerio.load(response);
                 link = (<any>$("video source:first-child")[0])?.attribs?.src?.replace("-mobile", "");
             } else if (data.media && data.media.type === "gfycat.com") {
-                var image = decodeHtmlEntity(data.media.oembed.html).split("&").find(x => x.startsWith("image"));
+                const image = decodeHtmlEntity(data.media.oembed.html).split("&").find(x => x.startsWith("image"));
                 if (!image) em.setDescription(`Tag: \`${tag}\`\n${more ? `(Further tags: \`${more.length > 0 ? more.join("`, `") : "`N/A`"}\`)\n` : ""}From r/${picked}\n\nThe post is a [video](${data.url}) from [${data.url.split("/")[2]}](https://${data.url.split("/")[2]}).`).setImage(undefined);
                 else {
-                    var arr = image.split("/");
-                    var id = arr[arr.length - 1].split("-")[0];
+                    const arr = image.split("/");
+                    const id = arr[arr.length - 1].split("-")[0];
                     link = `https://thumbs.gfycat.com/${id}-mobile.mp4`;
                 }
             }
@@ -2291,7 +2291,7 @@ class PornCommand implements FullCommand {
         }
         if (link) {
             try {
-                var video = new Discord.MessageAttachment(link, "video.mp4");
+                const video = new Discord.AttachmentBuilder(link).setName("video.mp4");
                 await msgOrRes(message, em);
                 await message.channel.send({files: [video]});
             } catch (err: any) {

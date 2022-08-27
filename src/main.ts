@@ -1,27 +1,27 @@
 import * as dotenv from "dotenv";
 import { Handler, V2Handler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
-import { Intents, Options } from "discord.js";
+import { GatewayIntentBits, Options, Partials } from "discord.js";
 import express from "express";
 import * as fs from "fs";
 dotenv.config();
 const config = JSON.parse(fs.readFileSync("config.json", { encoding: "utf8" })) || { prefix1: "?" };
 
 const client = new NorthClient({
-    restRequestTimeout: 60000,
+    closeTimeout: 60000,
     makeCache: Options.cacheWithLimits({
         MessageManager: 50,
         PresenceManager: 0
     }),
-    partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER', 'GUILD_MEMBER'],
+    partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.User, Partials.GuildMember],
     intents: [
-        Intents.FLAGS.DIRECT_MESSAGES,
-        Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
-        Intents.FLAGS.GUILDS,
-        Intents.FLAGS.GUILD_MEMBERS,
-        Intents.FLAGS.GUILD_MESSAGES,
-        Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-        Intents.FLAGS.GUILD_VOICE_STATES
+        GatewayIntentBits.DirectMessages,
+        GatewayIntentBits.DirectMessageReactions,
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildVoiceStates
     ]
 });
 NorthClient.storage = new ClientStorage();
@@ -34,8 +34,8 @@ else V2Handler.setup(client, process.env.TOKEN0);
 const app = express();
 
 app.get("/checkGuild/:guild", async (req, res) => {
-    var isInGuild = false;
-    var id = null;
+    let isInGuild = false;
+    let id = null;
     try {
         const guild = await client.guilds.fetch(req.params.guild);
         if (guild) {

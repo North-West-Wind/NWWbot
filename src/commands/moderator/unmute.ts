@@ -43,7 +43,7 @@ class UnMuteCommand implements FullCommand {
     async run(message: NorthMessage, args: string[]) {
         const member = await findMember(message, args[0]);
         if (!member) return;
-        var reason;
+        let reason;
         if (args[1]) reason = args.slice(1).join(" ");
         const embeds = commonModerationEmbed(message.guild, message.author, member, "unmute", "unmuted", reason);
         try {

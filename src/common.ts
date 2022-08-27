@@ -6,9 +6,9 @@ import isOnline from "is-online";
 import SimpleNodeLogger, { Logger } from "simple-node-logger";
 import { AliceHandler, CanaryHandler, Handler, V2Handler } from "./handler.js";
 const pkg = JSON.parse(fs.readFileSync("package.json", { encoding: "utf8" }));
-var globalClient: NorthClient;
-var logger: Logger;
-var localIp: string;
+let globalClient: NorthClient;
+let logger: Logger;
+let localIp: string;
 
 process.on('unhandledRejection', (reason) => {
   console.error('Reason:', reason);

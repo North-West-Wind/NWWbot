@@ -1,4 +1,4 @@
-import { Message, MessageEmbed, MessageReaction, Snowflake } from "discord.js";
+import { Message, EmbedBuilder, MessageReaction, Snowflake } from "discord.js";
 import { Aki, region } from "aki-api";
 import { FullCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
 import { color } from "../../function.js";
@@ -65,7 +65,7 @@ export class AkiCommand implements FullCommand {
   }
 
   async execute(interaction: NorthInteraction) {
-    let region = interaction.options.getString("region") || "en";
+    const region = interaction.options.getString("region") || "en";
     await interaction.deferReply();
     await this.logic(interaction, region);
   }
@@ -79,7 +79,7 @@ export class AkiCommand implements FullCommand {
       if (i !== -1) region = this.regions[i];
     }
     await this.logic(message, region);
-  };
+  }
 
   async logic(message: Message | NorthInteraction, region: string) {
     const aki = new Aki({ region: <region>region });
@@ -88,15 +88,15 @@ export class AkiCommand implements FullCommand {
     let found = false;
     const str = `${this.reactions[0]} **Yes**\n${this.reactions[1]} **No**\n${this.reactions[2]} **Probably**\n${this.reactions[3]} **Probably Not**\n${this.reactions[4]} **Don't know**\n${this.reactions[5]} **Back**\n${this.reactions[6]} **Stop**`;
 
-    var author: Snowflake;
+    let author: Snowflake;
     if (message instanceof Message) author = message.author.id;
     else author = message.user.id;
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(color())
       .setTitle("Getting ready...")
       .setTimestamp()
       .setFooter({ text: "Please wait until all reactions appear.", iconURL: message.client.user.displayAvatarURL() });
-    var msg: Message;
+    let msg: Message;
     if (message instanceof Message) msg = await message.channel.send({ embeds: [embed] });
     else msg = <Message>await message.editReply({ embeds: [embed] });
     for (const r of this.reactions) await msg.react(r);
@@ -197,7 +197,7 @@ export class AkiCommand implements FullCommand {
   }
 
   async region(message: NorthMessage) {
-    const regionEmbed = new MessageEmbed()
+    const regionEmbed = new EmbedBuilder()
       .setColor(color())
       .setTitle("Akinator")
       .setDescription("Region list\n\n`" + this.regions.join("`\n`") + "`")

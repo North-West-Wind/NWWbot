@@ -1,4 +1,4 @@
-import { GuildMember, Message, MessageEmbed, Snowflake, TextChannel } from "discord.js";
+import { GuildMember, Message, EmbedBuilder, Snowflake, TextChannel } from "discord.js";
 
 import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { genPermMsg, findRole, msgOrRes, query, findChannel, mysqlEscape } from "../../function.js";
@@ -22,7 +22,7 @@ class RoleMessageCommand implements FullCommand {
         const results = await query(`SELECT guild FROM rolemsg WHERE guild = '${message.guildId}'`);
         if (results.length > 5) return await msgOrRes(message, "You already have 5 role-messages! Try deleting some for this to work!");
         const author = message.member.user;
-        var msg = <Message> (message instanceof Message ? await message.channel.send("Please enter the message you want to send.") : await message.reply({ content: "Please enter the message you want to send.", fetchReply: true }));
+        const msg = <Message>(message instanceof Message ? await message.channel.send("Please enter the message you want to send.") : await message.reply({ content: "Please enter the message you want to send.", fetchReply: true }));
         const collected = await message.channel.awaitMessages({ filter: x => x.author.id === author.id, time: 120000, max: 1 });
         if (!collected.first()) return await msg.edit("Did not receive any message in time! Action cancelled.");
         await collected.first().delete();
@@ -38,8 +38,8 @@ class RoleMessageCommand implements FullCommand {
         const channelID = collected2.first().content.replace(/<#/g, "").replace(/>/g, "");
         const channel = await findChannel(message.guild, channelID);
         if (!channel || !(channel instanceof TextChannel)) return msg.edit(channelID + " isn't a valid channel!");
-        if (!channel.permissionsFor(message.guild.me).has(BigInt(10240))) return await msg.edit(genPermMsg(10240, 1));
-        if (!channel.permissionsFor(<GuildMember> message.member).has(BigInt(10240))) return await msg.edit(genPermMsg(10240, 0));
+        if (!channel.permissionsFor(message.guild.members.me).has(BigInt(10240))) return await msg.edit(genPermMsg(10240, 1));
+        if (!channel.permissionsFor(<GuildMember>message.member).has(BigInt(10240))) return await msg.edit(genPermMsg(10240, 0));
         await msg.edit(`Great! The channel will be <#${channel.id}>.\n\nAfter that, can you tell me what role you are giving the users? Please break a line for each role.`);
         const collected3 = await message.channel.awaitMessages({ filter: x => x.author.id === author.id, time: 60000, max: 1 });
         if (!collected3.first()) return await msg.edit("Did not receive any role in time! Action cancelled.");
@@ -56,7 +56,7 @@ class RoleMessageCommand implements FullCommand {
                     await message.channel.send(`No role was found with \`${stri}\`!`);
                     continue;
                 }
-                const highest = message.guild.me.roles.highest.position;
+                const highest = message.guild.members.me.roles.highest.position;
                 if (role.position > highest) return await msg.edit("I cannot assign this role to users.");
                 roless.push(role.id);
             }
@@ -68,19 +68,21 @@ class RoleMessageCommand implements FullCommand {
         await collected4.first().delete();
         if (!collected4.first().content) return await msg.edit("Did not receive any emoji! Action cancelled.");
         if (collected4.first().content === "cancel") return await msg.edit("Action cancelled.");
-        var emojis = collected4.first().content.split("\n");
+        const emojis = collected4.first().content.split("\n");
         await this.directCreate(message, pendingMsg, channel, author.id, roles, emojis, results.length);
     }
 
     async directCreate(message: NorthMessage | NorthInteraction, msg: string, channel: TextChannel, authorId: Snowflake, roles: Snowflake[][], emojis: string[], totalRm: number) {
         emojis = emojis.map(emoji => emoji.replace(/ +/g, ""));
-        const roleIndexes = new MessageEmbed()
+        const roleIndexes = new EmbedBuilder()
             .setTitle("Role Index")
-            .addField("Reaction", emojis.join("\n"), true)
-            .addField("Role(s)", roles.map(roless => roless.map(r => `<@&${r}>`)).join("\n"), true)
+            .addFields([
+                { name: "Reaction", value: emojis.join("\n"), inline: true },
+                { name: "Role(s)", value: roles.map(roless => roless.map(r => `<@&${r}>`)).join("\n"), inline: true }
+            ])
             .setTimestamp()
             .setFooter({ text: "React to claim your role.", iconURL: message.client.user.displayAvatarURL() });
-        var mesg = await channel.send({ content: msg, embeds: [roleIndexes] });
+        const mesg = await channel.send({ content: msg, embeds: [roleIndexes] });
         try {
             for (const emoji of emojis) await mesg.react(emoji);
         } catch (err: any) {

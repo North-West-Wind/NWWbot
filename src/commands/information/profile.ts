@@ -16,13 +16,13 @@ class ProfileCommand implements FullCommand {
 
     async execute(interaction: NorthInteraction) {
         if (!interaction.guild) return await interaction.reply("This command only works on server.");
-        const member = <Discord.GuildMember> interaction.options.getMember("user") || await (<Discord.GuildMember> interaction.member).fetch();
+        const member = <Discord.GuildMember>interaction.options.getMember("user") || await (<Discord.GuildMember>interaction.member).fetch();
         await interaction.reply({ embeds: [this.createProfileEmbed(member)] });
     }
 
     async run(message: NorthMessage, args: string[]) {
         if (!message.guild) return await message.channel.send("This command only works on server.");
-        var member = message.member;
+        let member = message.member;
         if (args[0]) member = await findMember(message, args[0]);
         else await member.fetch();
         if (!member) return;
@@ -41,16 +41,18 @@ class ProfileCommand implements FullCommand {
         const premium = member.premiumSince;
         const createdTime = readableDateTime(createdAt);
         const joinedTime = readableDateTime(joinedAt);
-        const Embed = new Discord.MessageEmbed()
+        const Embed = new Discord.EmbedBuilder()
             .setTitle("Profile of " + username)
             .setDescription("In server **" + guild.name + "**")
             .setThumbnail(user.displayAvatarURL())
-            .addField("ID", id, true)
-            .addField("Username", tag, true)
-            .addField("Premium", premium ? readableDateTime(premium) : "False", true)
-            .addField("Nickname", nick, true)
-            .addField("Created", createdTime, true)
-            .addField("Joined", joinedTime, true)
+            .addFields([
+                { name: "ID", value: id, inline: true },
+                { name: "Username", value: tag, inline: true },
+                { name: "Premium", value: premium ? readableDateTime(premium) : "False", inline: true },
+                { name: "Nickname", value: nick, inline: true },
+                { name: "Created", value: createdTime, inline: true },
+                { name: "Joined", value: joinedTime, inline: true }
+            ])
             .setColor(color())
             .setTimestamp()
             .setFooter({ text: "Have a nice day! :)", iconURL: guild.client.user.displayAvatarURL() });

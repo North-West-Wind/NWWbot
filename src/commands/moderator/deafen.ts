@@ -47,7 +47,7 @@ class DeafenCommand implements FullCommand {
 
     if (!member) return;
     await message.delete();
-    var reason;
+    let reason;
     if (args[1]) reason = args.slice(1).join(" ");
     const embeds = commonModerationEmbed(message.guild, message.author, member, "deafen", "deafened", reason);
     try {

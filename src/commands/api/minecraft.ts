@@ -1,8 +1,8 @@
-import { CategoryList, SectionTypes, SortTypes } from "aio-mc-api/lib/typings/CurseForge/Constants.js";
+import { CategoryList, SectionTypes, SortTypes } from "@northwestwind/aio-mc-api/lib/typings/CurseForge/Constants.js";
 
 import { nameToUuid, profile, createEmbedScrolling, getKeyByValue, color, nameHistory, getFetch, isValidMCVer } from "../../function.js";
-import { Message, MessageEmbed } from "discord.js";
-import mcapi from "aio-mc-api";
+import { Message, EmbedBuilder } from "discord.js";
+import mcapi from "@northwestwind/aio-mc-api";
 import { FullCommand, NorthMessage, NorthInteraction } from "../../classes/NorthClient.js";
 import { globalClient as client } from "../../common.js";
 
@@ -99,7 +99,7 @@ class MinecraftCommand implements FullCommand {
         const sub = interaction.options.getSubcommand();
         if (sub === this.subcommands[0]) {
             const str = interaction.options.getString("username");
-            var r = await profile(str);
+            const r = await profile(str);
             if (!r) return await interaction.editReply("No player named **" + str + "** were found");
             const em = this.getProfileEmbed(r);
             await interaction.editReply({ embeds: [em] });
@@ -108,7 +108,7 @@ class MinecraftCommand implements FullCommand {
             const url = `https://api.mcsrvstat.us/2/${encodeURIComponent(str)}`;
             const res = await fetch(url);
             if (!res.ok) return await interaction.editReply("Received HTTP Status Code " + res.status);
-            const body = <any> await res.json();
+            const body = <any>await res.json();
             if (body.online) return await interaction.editReply({ embeds: [this.getServerEmbed(body, str)[0]], content: null });
             else await interaction.editReply({ content: "The server - **" + str + "** - is offline/under maintenance." });
         } else if (sub === this.subcommands[2]) {
@@ -121,9 +121,9 @@ class MinecraftCommand implements FullCommand {
 
     async run(message: NorthMessage, args: string[]) {
         if (args[0] === "profile" || args[0] === "pro" || !args[1]) {
-            var str = args[0];
+            let str = args[0];
             if (args[1]) str = args[1];
-            var r = await profile(str);
+            const r = await profile(str);
             if (!r) return await message.channel.send("No player named **" + str + "** were found");
             const em = this.getProfileEmbed(r);
             await message.channel.send({ embeds: [em] });
@@ -131,7 +131,7 @@ class MinecraftCommand implements FullCommand {
             const url = `https://api.mcsrvstat.us/2/${args.slice(1).join(" ")}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error("Received HTTP Status Code " + res.status);
-            const body = <any> await res.json();
+            const body = <any>await res.json();
             if (body.online) {
                 const allEmbeds = this.getServerEmbed(body, args.slice(1).join(" "));
                 if (allEmbeds.length < 2) await message.channel.send({ embeds: [allEmbeds[0]] });
@@ -140,7 +140,7 @@ class MinecraftCommand implements FullCommand {
         } else if (args[0] === "history" || args[0] === "his") {
             const res = await profile(args[1]);
             if (!res) return message.channel.send("No player named **" + args[1] + "** were found");
-            await message.channel.send({ embeds:[await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(args[1]))] });
+            await message.channel.send({ embeds: [await this.getHistoryEmbed(<{ name: string, changedToAt: number }[]><unknown>await nameHistory(args[1]))] });
         } else if (args[0] === "curseforge" || args[0] === "cf") return await this.cf(message, args.shift(), args.shift(), args.shift(), args.join(" "));
     }
 
@@ -154,9 +154,9 @@ class MinecraftCommand implements FullCommand {
         const realver = isValidMCVer(version) ? version : undefined;
         const projects = <mcapi.SimpleProject[]>await mcapi.curseforge.searchProject({ category: realcategory, gameVersion: realver, sort: realsort, filter: filters.filter(x => x).join(" ") });
         const allEmbeds = [];
-        var categories = CategoryList;
+        const categories = CategoryList;
         for (let i = 0; i < Math.ceil(projects.length / 10); i++) {
-            const em = new MessageEmbed()
+            const em = new EmbedBuilder()
                 .setColor(color())
                 .setTitle(`CurseForge Minecraft - ${getKeyByValue(Object.assign(categories, SectionTypes), realcategory)}`)
                 .setDescription(`Sort by: **${getKeyByValue(SortTypes, realsort)}**\nVersion: **${realver ? realver : "All"}**\nFilter: ${filter ? `**${filter}**` : "None"}\n\n`)
@@ -164,9 +164,9 @@ class MinecraftCommand implements FullCommand {
                 .setFooter({ text: `Page ${i + 1}/${Math.ceil(projects.length / 10)}`, iconURL: message.client.user.displayAvatarURL() });
             for (let u = 0; u < Math.min(10, projects.length - 10 * i); u++) {
                 const project = projects[i * 10 + u];
-                em.setDescription(em.description + `**[${project.section.name}: ${project.name} - ${project.authors.map(a => a.name).join(", ")}](${project.url})**\n`);
+                em.setDescription(em.data.description + `**[${project.section.name}: ${project.name} - ${project.authors.map(a => a.name).join(", ")}](${project.url})**\n`);
             }
-            em.setDescription(em.description + "React with ◀, ▶, ⏮, ⏭ to turn the page.\nReact with ⏹ to exit.");
+            em.setDescription(em.data.description + "React with ◀, ▶, ⏮, ⏭ to turn the page.\nReact with ⏹ to exit.");
             allEmbeds.push(em);
         }
         if (message instanceof Message) await createEmbedScrolling(message, allEmbeds);
@@ -174,12 +174,14 @@ class MinecraftCommand implements FullCommand {
     }
 
     getProfileEmbed(r) {
-        let skin = "https://visage.surgeplay.com/full/256/" + r.id;
-        const Embed = new MessageEmbed()
+        const skin = "https://visage.surgeplay.com/full/256/" + r.id;
+        const Embed = new EmbedBuilder()
             .setColor(color())
             .setTitle(r.name)
-            .addField("UUID", r.id, true)
-            .addField("Username", r.name, true)
+            .addFields([
+                { name: "UUID", value: r.id, inline: true },
+                { name: "Username", value: r.name, inline: true }
+            ])
             .setImage(skin)
             .setTimestamp()
             .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
@@ -194,20 +196,22 @@ class MinecraftCommand implements FullCommand {
         const hostname = body.hostname;
         const desc = body.motd.clean.join("\n");
         const spaceRemoved = desc.replace(/ +(?= )/g, '');
-        const Embed = new MessageEmbed()
+        const Embed = new EmbedBuilder()
             .setTitle(name)
             .setColor(color())
-            .addField("IP", "`" + ip + "`", true)
-            .addField("Port", "`" + port + "`", true)
-            .addField("Player/Max", "`" + player + "`", true)
-            .addField("Version", "`" + version + "`", true)
-            .addField("Hostname", "`" + hostname + "`", true)
-            .addField("Description", "`" + spaceRemoved + "`")
+            .addFields([
+                { name: "IP", value: "`" + ip + "`", inline: true },
+                { name: "Port", value: "`" + port + "`", inline: true },
+                { name: "Player/Max", value: "`" + player + "`", inline: true },
+                { name: "Version", value: "`" + version + "`", inline: true },
+                { name: "Hostname", value: "`" + hostname + "`", inline: true },
+                { name: "Description", value: "`" + spaceRemoved + "`" }
+            ])
             .setTimestamp()
             .setFooter({ text: "Have a nice day! :)", iconURL: client.user.displayAvatarURL() });
         const allEmbeds = [Embed];
         if (body.players?.list) for (let i = 0; i < Math.ceil(body.players.list.length / 10); i++) {
-            const em = new MessageEmbed()
+            const em = new EmbedBuilder()
                 .setTitle("Online Players")
                 .setTimestamp()
                 .setFooter({ text: `Page ${i + 1}/${Math.ceil(body.players.list.length / 10)}`, iconURL: client.user.displayAvatarURL() });
@@ -221,14 +225,14 @@ class MinecraftCommand implements FullCommand {
 
     async getHistoryEmbed(history: { name: string, changedToAt?: number }[]) {
         const result = history;
-        var names = [];
-        var num = 0
-        for (var i = result.length - 1; i > -1; i--) {
+        const names = [];
+        let num = 0
+        for (let i = result.length - 1; i > -1; i--) {
             ++num;
             if (num === 1) names.push("**" + num + ". " + result[i].name + "**");
             else names.push(num + ". " + result[i].name);
         }
-        const Embed = new MessageEmbed()
+        const Embed = new EmbedBuilder()
             .setColor(color())
             .setTitle(history[0].name + "'s Username History")
             .setDescription(names.join("\n"))

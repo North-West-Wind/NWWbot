@@ -23,21 +23,21 @@ class MathGameCommand implements FullCommand {
         }
         for (const arrs of Array.from(console.mathgames.values())) if (arrs.includes(message.author.id)) return message.channel.send("You are already in another game!");
         */
-        var msg = await message.channel.send("Who will be playing this game? (Please mention them)");
-        var collected;
+        let msg = await message.channel.send("Who will be playing this game? (Please mention them)");
+        let collected;
         collected = await msg.channel.awaitMessages({ filter: x => x.author.id === message.author.id, time: 30000, max: 1 });
         if (!collected || !collected.first() || !collected.first().content) return msg.edit("You didn't answer me within 30 seconds! Please try again.");
         await collected.first().delete().catch(() => console.error("Cannot delete message"));
-        var players = [message.author];
-        var scores = {};
+        const players = [message.author];
+        const scores = {};
         scores[message.author.id] = 0;
         //for (const arrs of Array.from(console.mathgames.values()))
             for (const user of <User[]> Array.from(collected.first().mentions.users.values()))
                 //if (arrs.includes(user.id)) return msg.edit(`**${user.tag}** is already in another game!`);
                 /*else */if (user.id !== message.author.id) { players.push(user); scores[user.id] = 0; }
-        let mode = await this.selectMode(message);
-        var questions = -1;
-        var time = -1;
+        const mode = await this.selectMode(message);
+        let questions = -1;
+        let time = -1;
         collected = undefined;
         switch(mode) {
             case -1:
@@ -58,7 +58,7 @@ class MathGameCommand implements FullCommand {
                 time = ms(collected.first().content);
                 if(!time || time === 0) return msg.edit("That's not a valid number!");
         }
-        var em = new Discord.MessageEmbed()
+        const em = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle("Math Game Prototype")
             .setDescription(`Game Mode: **${questions > 0 ? `Limited Question Mode (${questions} Questions)` : time > 0 ? `Timer Mode (${duration(Math.round(time / 1000), "seconds")})` : "Endless Mode"}**\n**${players.length < 2 ? "Singleplayer" : "Multiplayer"} Game**\nReact with "👌🏻" when you are ready!`)
@@ -71,16 +71,16 @@ class MathGameCommand implements FullCommand {
         if (!collected || !collected.first()) return await msg.edit({ content: "Seriously? No one reacted?", embeds: null });
         if (collected.first().count - 1 < players.length) return await msg.edit({ content: "Someone is not active!", embeds: null });
         msg.reactions.removeAll().catch(() => {});
-        let now = Date.now();
+        const now = Date.now();
         //console.mathgames.set(now, players.map(x => x.id));
-        var questionCount = 0;
-        var running = true;
+        let questionCount = 0;
+        let running = true;
         if(time > 0) setTimeout(() => running = false, time);
         while(running) {
             const generated = await this.generateQuestion(questionCount);
-            em.setTitle(`Question ${++questionCount}`).setDescription(`${generated.question}`).setTimestamp().setFooter("Send your answer here!");
+            em.setTitle(`Question ${++questionCount}`).setDescription(`${generated.question}`).setTimestamp().setFooter({ text: "Send your answer here!" });
             msg = await msg.edit({embeds: [em]});
-            var correct = false;
+            let correct = false;
             while(!correct) {
                 collected = undefined;
                 collected = await msg.channel.awaitMessages({ filter: x => players.map(u => u.id).includes(x.author.id), time: questions < 0 && time < 0 ? 15000 : 60000 * 5, max: 1 });
@@ -96,7 +96,7 @@ class MathGameCommand implements FullCommand {
             }
             if(questionCount >= questions && questions > 0) running = false;
         }
-        let winner = {
+        const winner = {
             name: "",
             score: 0
         };
@@ -113,29 +113,29 @@ class MathGameCommand implements FullCommand {
     }
 
     async selectMode(message) {
-        var em1 = new Discord.MessageEmbed()
+        const em1 = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle("Limited Questions Mode")
             .setDescription("In this mode, you can set the **amount of questions**\nThe maximum time allowed for each question is **5 minutes**\nAnswers are all integers\nQuestions will get **harder** as the game goes")
             .setTimestamp()
-            .setFooter("React with ✅ to choose this one.");
-        var em2 = new Discord.MessageEmbed()
+            .setFooter({ text: "React with ✅ to choose this one." });
+        const em2 = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle("Timer Mode")
             .setDescription("In this mode, you can set the **amount of time allowed for the entire game**\nThe maximum time allowed for each question is **5 minutes**\nAnswers are all integers\nQuestions will get **harder** as the game goes")
             .setTimestamp()
-            .setFooter("React with ✅ to choose this one.");
-        var em3 = new Discord.MessageEmbed()
+            .setFooter({ text: "React with ✅ to choose this one." });
+        const em3 = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle("Endless Mode")
             .setDescription("In this mode, you can answer **endless amount of questions**\nThe maximum time allowed for each question is **10 seconds + 5 seconds Network Buffer**\nAnswers are all integers\nQuestions will get **harder** as the game goes")
             .setTimestamp()
-            .setFooter("React with ✅ to choose this one.");
+            .setFooter({ text: "React with ✅ to choose this one." });
         const allEmbeds = [em1, em2, em3];
         const filter = (reaction, user) => {
             return (["✅", "◀", "▶", "⏮", "⏭", "⏹"].includes(reaction.emoji.name) && user.id === message.author.id);
-        }; var s = 0;
-        var msg = await message.channel.send(
+        }; let s = 0;
+        const msg = await message.channel.send(
             allEmbeds[0]
         );
 
@@ -145,7 +145,7 @@ class MathGameCommand implements FullCommand {
         await msg.react("▶");
         await msg.react("⏭");
         await msg.react("⏹");
-        var collector = await msg.createReactionCollector(
+        const collector = await msg.createReactionCollector(
             filter,
             { idle: 60000 }
         );
@@ -200,15 +200,15 @@ class MathGameCommand implements FullCommand {
             "*",
             "/"
         ];
-        let numberCount = Math.floor(questionCount / 15 + 2);
-        let numbers = [];
+        const numberCount = Math.floor(questionCount / 15 + 2);
+        const numbers = [];
         for(let i = 0; i < numberCount; i++) {
-            let num = Math.round(Math.random() * Math.floor(questionCount / 25 + 1) * 10);
+            const num = Math.round(Math.random() * Math.floor(questionCount / 25 + 1) * 10);
             numbers.push(num);
         }
-        let operators = [];
+        const operators = [];
         for(let i = 0; i < numbers.length - 1; i++) {
-            let oper = operatorConst[Math.floor(Math.random() * Math.min(questionCount / 10, operatorConst.length))];
+            const oper = operatorConst[Math.floor(Math.random() * Math.min(questionCount / 10, operatorConst.length))];
             if(oper == "/") numbers[i+1] = math.gcd(numbers[i], numbers[i+1]);
             operators.push(oper);
         }
@@ -217,7 +217,7 @@ class MathGameCommand implements FullCommand {
             if(i % 2 != 0) question += operators[(i - 1) / 2];
             else question += numbers[i / 2];
         }
-        let answer = math.evaluate(question);
+        const answer = math.evaluate(question);
         return {
             question: question, answer: answer
         }

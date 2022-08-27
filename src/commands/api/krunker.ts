@@ -5,6 +5,7 @@ import { run } from "../../helpers/puppeteer.js";
 import { Page } from "puppeteer-core";
 import { globalClient as client } from "../../common.js";
 import { Clan, Profile, Response } from "../../classes/Krunker.js";
+import { ButtonStyle, MessageActionRowComponentBuilder, TextInputStyle } from "discord.js";
 
 class KrunkerCommand implements FullCommand {
     name = "krunker";
@@ -90,30 +91,32 @@ class KrunkerCommand implements FullCommand {
         }
     }
 
-    async stats(message: Discord.Message | Discord.CommandInteraction, username: string) {
+    async stats(message: Discord.Message | Discord.ChatInputCommandInteraction, username: string) {
         try {
             const res = await getFetch()("https://kr.vercel.app/api/profile?username=" + username);
             if (!res.ok) throw new Error();
             const json = <Response>await res.json();
             if (!json.success) throw new Error(json.error);
             const data = <Profile>json.data;
-            const em = new Discord.MessageEmbed()
+            const em = new Discord.EmbedBuilder()
                 .setTitle(`${data.username} [${data.clan}]`)
                 .setURL("https://krunker.io/social.html?p=profile&q=" + data.username)
                 .setColor(color())
                 .setDescription(`ID: **${data.id}**\nLevel: **${data.level}** | **${data.levelPercentage.percent}%**`)
-                .addField("Kills / Deaths", `**${data.kills}** / **${data.deaths}**`, true)
-                .addField("Wins / Losses", `**${data.wins}** / **${data.games - data.wins}**`, true)
-                .addField("Score / Games", `**${data.score}** / **${data.games}**`, true)
-                .addField("KDR / WLR", `**${roundTo(data.kills / data.deaths, 2)}** / **${roundTo(data.wins / (data.games - data.wins), 2)}**`, true)
-                .addField("SPK / SPG", `**${roundTo(data.score / data.kills, 2)}** / **${roundTo(data.score / data.games, 2)}**`, true)
-                .addField("KR", `**${data.funds}**`, true)
-                .addField("Time Played", `**${milliToHumanDuration(data.timePlayed)}**`, true)
-                .addField("Creation Date", `**${readableDateTime(new Date(data.createdAt))}**`, true)
-                .addField("Followers / Following", `**${data.followers}** / **${data.following}**`, true)
-                .addField("Hacker / Verified / Infected", `**${data.hacker ? "Y" : "N"}** / **${data.verified ? "Y" : "N"}** / **${data.infected ? "Y" : "N"}**`, true)
-                .addField("Maps / Mods", `**${data.maps.length}** / **${data.mods.length}**`, true)
-                .addField("Assets / Skins", `**${data.assets.length}** / **${data.skins.length}**`, true)
+                .addFields([
+                    { name: "Kills / Deaths", value: `**${data.kills}** / **${data.deaths}**`, inline: true },
+                    { name: "Wins / Losses", value: `**${data.wins}** / **${data.games - data.wins}**`, inline: true },
+                    { name: "Score / Games", value: `**${data.score}** / **${data.games}**`, inline: true },
+                    { name: "KDR / WLR", value: `**${roundTo(data.kills / data.deaths, 2)}** / **${roundTo(data.wins / (data.games - data.wins), 2)}**`, inline: true },
+                    { name: "SPK / SPG", value: `**${roundTo(data.score / data.kills, 2)}** / **${roundTo(data.score / data.games, 2)}**`, inline: true },
+                    { name: "KR", value: `**${data.funds}**`, inline: true },
+                    { name: "Time Played", value: `**${milliToHumanDuration(data.timePlayed)}**`, inline: true },
+                    { name: "Creation Date", value: `**${readableDateTime(new Date(data.createdAt))}**`, inline: true },
+                    { name: "Followers / Following", value: `**${data.followers}** / **${data.following}**`, inline: true },
+                    { name: "Hacker / Verified / Infected", value: `**${data.hacker ? "Y" : "N"}** / **${data.verified ? "Y" : "N"}** / **${data.infected ? "Y" : "N"}**`, inline: true },
+                    { name: "Maps / Mods", value: `**${data.maps.length}** / **${data.mods.length}**`, inline: true },
+                    { name: "Assets / Skins", value: `**${data.assets.length}** / **${data.skins.length}**`, inline: true }
+                ])
                 .setTimestamp()
                 .setFooter({ text: "Made with hitthemoney's API", iconURL: message.client.user.displayAvatarURL() });
             await msgOrRes(message, em);
@@ -123,24 +126,26 @@ class KrunkerCommand implements FullCommand {
         }
     }
 
-    async clan(message: Discord.Message | Discord.CommandInteraction, name: string) {
+    async clan(message: Discord.Message | Discord.ChatInputCommandInteraction, name: string) {
         try {
             const res = await getFetch()("https://kr.vercel.app/api/clan?clan=" + name);
             if (!res.ok) throw new Error();
             const json = <Response>await res.json();
             if (!json.success) throw new Error(json.error);
             const data = <Clan>json.data;
-            const em = new Discord.MessageEmbed()
+            const em = new Discord.EmbedBuilder()
                 .setTitle(`${data.name}`)
                 .setURL("https://krunker.io/social.html?p=clan&q=" + data.name)
                 .setColor(color())
                 .setDescription(`ID: **${data.id}**\nLevel: **${data.level}**\nOwner: **${data.owner}**`)
-                .addField("Members", `**${data.members.length}**`, true)
-                .addField("Score", `**${data.score}**`, true)
-                .addField("KR", `**${data.funds}**`, true)
+                .addFields(
+                    { name: "Members", value: `**${data.members.length}**`, inline: true },
+                    { name: "Score", value: `**${data.score}**`, inline: true },
+                    { name: "KR", value: `**${data.funds}**`, inline: true }
+                )
                 .setTimestamp()
                 .setFooter({ text: "Made with hitthemoney's API", iconURL: message.client.user.displayAvatarURL() });
-            if (data.discord) em.setDescription(em.description + `\nDiscord: [Join](https://discord.gg/${data.discord})`);
+            if (data.discord) em.setDescription(em.data.description + `\nDiscord: [Join](https://discord.gg/${data.discord})`);
             await msgOrRes(message, em);
         } catch (err: any) {
             await msgOrRes(message, "Failed to acquire user stats!");
@@ -148,12 +153,12 @@ class KrunkerCommand implements FullCommand {
         }
     }
 
-    async server(message: Discord.Message | Discord.CommandInteraction, search: string, author: Discord.User) {
+    async server(message: Discord.Message | Discord.ChatInputCommandInteraction, search: string, author: Discord.User) {
         try {
             const servers = await this.getServers();
             if (servers.error) throw new Error(servers.message);
-            var official = [];
-            var custom = [];
+            let official = [];
+            let custom = [];
             if (!search) {
                 official = servers.games.filter(x => !x[4].cs);
                 custom = servers.games.filter(x => x[4].cs);
@@ -163,15 +168,15 @@ class KrunkerCommand implements FullCommand {
             }
             if (official.length < 1 && custom.length < 1) return await msgOrRes(message, "No server was found!");
             official.sort(function (a, b) {
-                var nameA = a[0];
-                var nameB = b[0];
+                const nameA = a[0];
+                const nameB = b[0];
                 if (nameA < nameB) return -1;
                 if (nameA > nameB) return 1;
                 return 0;
             });
             custom.sort(function (a, b) {
-                var nameA = a[0];
-                var nameB = b[0];
+                const nameA = a[0];
+                const nameB = b[0];
                 if (nameA < nameB) return -1;
                 if (nameA > nameB) return 1;
                 return 0;
@@ -185,7 +190,7 @@ class KrunkerCommand implements FullCommand {
                 var str = "";
                 for (let j = i * 25; j < i * 25 + 25; j++) if (official[j]) str += `${j + 1}. **[${official[j][4].i}](https://krunker.io/?game=${official[j][0]})** - **${official[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${official[j][2]}/${official[j][3]}**\n`
                 str += `\nReact with 🎲 to get a random official game!\nReact with 🔗 to get a random official game in the specified region!\nReact with ⏩ to warp to a page!`
-                const em = new Discord.MessageEmbed()
+                const em = new Discord.EmbedBuilder()
                     .setTitle(`Official Games (${i + 1}/${officialPage})`)
                     .setColor(officialColor)
                     .setDescription(str)
@@ -197,7 +202,7 @@ class KrunkerCommand implements FullCommand {
                 var str = "";
                 for (let j = i * 25; j < i * 25 + 25; j++) if (custom[j]) str += `${j + 1}. **[${custom[j][4].i}](https://krunker.io/?game=${custom[j][0]})** - **${custom[j][0].match(/(\b[A-Z][A-Z]+|\b[A-Z]\b)/g)[0]} ${custom[j][2]}/${custom[j][3]}**\n`
                 str += `\nReact with 🎲 to get a random custom game!\nReact with 🔗 to get a random custom game in the specified region!\nReact with ⏩ to warp to a page!`
-                const em = new Discord.MessageEmbed()
+                const em = new Discord.EmbedBuilder()
                     .setTitle(`Custom Games (${i + 1}/${customPage})`)
                     .setColor(customColor)
                     .setDescription(str)
@@ -205,28 +210,28 @@ class KrunkerCommand implements FullCommand {
                     .setFooter({ text: `There are ${customPage} pages for custom games.`, iconURL: client.user.displayAvatarURL() });
                 allEmbeds.push(em);
             }
-            var s = 0;
-            const row1 = new Discord.MessageActionRow()
-                .addComponents(new Discord.MessageButton({ label: "<< First", customId: "first", style: "PRIMARY" }))
-                .addComponents(new Discord.MessageButton({ label: "< Previous", customId: "previous", style: "PRIMARY" }))
-                .addComponents(new Discord.MessageButton({ label: "> Next", customId: "next", style: "PRIMARY" }))
-                .addComponents(new Discord.MessageButton({ label: ">> Last", customId: "last", style: "PRIMARY" }))
-                .addComponents(new Discord.MessageButton({ label: "Stop", emoji: "✖️", customId: "stop", style: "DANGER" }));
-            const row2 = new Discord.MessageActionRow()
-                .addComponents(new Discord.MessageButton({ label: "Random Game", emoji: "🎲", customId: "random", style: "SECONDARY" }))
-                .addComponents(new Discord.MessageButton({ label: "Random Regional", emoji: "🔗", customId: "region", style: "SECONDARY" }))
-                .addComponents(new Discord.MessageButton({ label: "Page Warp", emoji: "⏩", customId: "warp", style: "SECONDARY" }));
+            let s = 0;
+            const row1 = new Discord.ActionRowBuilder<MessageActionRowComponentBuilder>()
+                .addComponents(new Discord.ButtonBuilder({ label: "<< First", customId: "first", style: ButtonStyle.Primary }))
+                .addComponents(new Discord.ButtonBuilder({ label: "< Previous", customId: "previous", style: ButtonStyle.Primary }))
+                .addComponents(new Discord.ButtonBuilder({ label: "> Next", customId: "next", style: ButtonStyle.Primary }))
+                .addComponents(new Discord.ButtonBuilder({ label: ">> Last", customId: "last", style: ButtonStyle.Primary }))
+                .addComponents(new Discord.ButtonBuilder({ label: "Stop", emoji: "✖️", customId: "stop", style: ButtonStyle.Danger }));
+            const row2 = new Discord.ActionRowBuilder<MessageActionRowComponentBuilder>()
+                .addComponents(new Discord.ButtonBuilder({ label: "Random Game", emoji: "🎲", customId: "random", style: ButtonStyle.Secondary }))
+                .addComponents(new Discord.ButtonBuilder({ label: "Random Regional", emoji: "🔗", customId: "region", style: ButtonStyle.Secondary }))
+                .addComponents(new Discord.ButtonBuilder({ label: "Page Warp", emoji: "⏩", customId: "warp", style: ButtonStyle.Secondary }));
             const msg = await msgOrRes(message, { embeds: [allEmbeds[0]], components: [row1, row2] });
-            var collector = msg.createMessageComponentCollector({
+            const collector = msg.createMessageComponentCollector({
                 filter: (interaction) => interaction.user.id === author.id,
                 idle: 60000
             });
-            const linkEmbed = new Discord.MessageEmbed()
+            const linkEmbed = new Discord.EmbedBuilder()
                 .setColor(color())
                 .setTitle("Random Game Generator")
                 .setTimestamp()
                 .setFooter({ text: "Please decide within 30 seconds.", iconURL: client.user.displayAvatarURL() });
-            const pageWarp = new Discord.MessageEmbed()
+            const pageWarp = new Discord.EmbedBuilder()
                 .setColor(color())
                 .setTitle("Krunker Server Browser")
                 .setDescription("Enter the page number to warp to that page.")
@@ -242,9 +247,9 @@ class KrunkerCommand implements FullCommand {
                         var options = [];
                         if (s > officialPage - 1) options = Array.from(new Set(custom.map(x => x[0].split(":")[0])));
                         else options = Array.from(new Set(official.map(x => x[0].split(":")[0])));
-                        const menu = new Discord.MessageSelectMenu().setCustomId("region_menu").addOptions(options.map(x => ({ label: x, value: x })));
+                        const menu = new Discord.SelectMenuBuilder().setCustomId("region_menu").addOptions(options.map(x => ({ label: x, value: x })));
                         linkEmbed.setDescription(`Please choose a region in the menu.`);
-                        await interaction.update({ embeds: [linkEmbed], components: [new Discord.MessageActionRow(menu)] });
+                        await interaction.update({ embeds: [linkEmbed], components: [new Discord.ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(menu)] });
                         break;
                     case "region_menu":
                         const region = (<Discord.SelectMenuInteraction>interaction).values[0];
@@ -256,19 +261,19 @@ class KrunkerCommand implements FullCommand {
                         break;
                     case "warp":
                         await interaction.update({ embeds: [pageWarp] });
-                        const modal = new Discord.Modal().setTitle("Page Select").addComponents(
-                            new Discord.MessageActionRow<Discord.TextInputComponent>().addComponents(
-                                new Discord.TextInputComponent()
+                        const modal = new Discord.ModalBuilder().setTitle("Page Select").addComponents(
+                            new Discord.ActionRowBuilder<Discord.TextInputBuilder>().addComponents(
+                                new Discord.TextInputBuilder()
                                     .setCustomId("page")
                                     .setLabel("Please enter the page number")
-                                    .setStyle("SHORT")
+                                    .setStyle(TextInputStyle.Short)
                             ));
                         await interaction.showModal(modal);
                         const collected1 = await interaction.awaitModalSubmit({ filter: int => int.user.id === author.id, time: 30000 });
                         const parsed = parseInt(collected1.fields.getTextInputValue("page"));
                         s = (parsed - 1) % allEmbeds.length;
                         if (s < 0) s = 0;
-                        await collected1.update({ embeds: [allEmbeds[s]], components: [row1, row2] });
+                        await collected1.editReply({ embeds: [allEmbeds[s]], components: [row1, row2] });
                         break;
                     case "first":
                         s = 0;
@@ -295,7 +300,7 @@ class KrunkerCommand implements FullCommand {
             collector.on("end", async function () {
                 try {
                     await msg.edit({ components: [] });
-                    var random = "";
+                    let random = "";
                     if (s > officialPage - 1) random = (`https://krunker.io/?game=${custom[Math.floor(Math.random() * custom.length)][0]}`);
                     else random = (`https://krunker.io/?game=${official[Math.floor(Math.random() * official.length)][0]}`);
                     if (random.endsWith("undefined")) random = "";
@@ -309,11 +314,11 @@ class KrunkerCommand implements FullCommand {
         }
     }
 
-    async changelog(message: Discord.Message | Discord.CommandInteraction, version: string, author: Discord.User) {
+    async changelog(message: Discord.Message | Discord.ChatInputCommandInteraction, version: string, author: Discord.User) {
         try {
             const changelogs = await this.getChangelog();
             if (changelogs.error) throw new Error(changelogs.message);
-            var changelog = {};
+            let changelog = {};
             changelog[Object.keys(changelogs).find(x => x.includes("UPDATE"))] = changelogs[Object.keys(changelogs).find(x => x.includes("UPDATE"))];
             if (version) {
                 const key = Object.keys(changelogs).find(x => x.includes(version.toUpperCase()));
@@ -330,7 +335,7 @@ class KrunkerCommand implements FullCommand {
 
     async getServers() {
         return await run(async (page: Page) => {
-            var result = { error: true, message: null };
+            let result = { error: true, message: null };
             try {
                 await page.goto("https://matchmaker.krunker.io/game-list?hostname=krunker.io");
                 const element = await page.$("pre");
@@ -347,8 +352,8 @@ class KrunkerCommand implements FullCommand {
 
     async getChangelog() {
         return await run(async (page: Page) => {
-            var result = { error: true, message: null };
-            var lines = {};
+            const result = { error: true, message: null };
+            const lines = {};
             try {
                 await page.goto("https://krunker.io/docs/versions.txt");
                 const element = await page.$("pre");

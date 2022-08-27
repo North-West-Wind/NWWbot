@@ -1,5 +1,5 @@
 
-import { NorthClient, NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
+import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import * as math from "mathjs";
 import * as Discord from "discord.js";
 import { color, createEmbedScrolling } from "../../function.js";
@@ -69,7 +69,7 @@ class MathCommand implements FullCommand {
         await message.channel.send(done);
     }
     async help(message: NorthMessage | NorthInteraction) {
-        var operators = {
+        const operators = {
             "Add": "x + y // add(x, y)",
             "Subtract": "x - y // subtract(x, y)",
             "Multiply": "x * y // multiply(x, y)",
@@ -168,7 +168,7 @@ class MathCommand implements FullCommand {
             "Tangent": "tan(x)",
             "Hyperbolic Tangent": "tanh(x)"
         };
-        var constants = {
+        const constants = {
           "Euler's Number": "e // E",
           "Imaginary Unit": "i",
           "Infinity": "Infinity",
@@ -185,38 +185,38 @@ class MathCommand implements FullCommand {
           "Twice Pi": "tau",
           "Undefined": "undefined"
         }
-        let keys = Object.keys(operators);
-        let values = Object.values(operators);
-        let morekeys = Object.keys(constants);
-        let morevalues = Object.values(constants);
-        let strings = [];
-        let strings2 = [];
-        let strings3 = [];
+        const keys = Object.keys(operators);
+        const values = Object.values(operators);
+        const morekeys = Object.keys(constants);
+        const morevalues = Object.values(constants);
+        const strings = [];
+        const strings2 = [];
+        const strings3 = [];
         for(let i = 0; i < 63; i++) {
-            let str = `${keys[i]} : ${values[i]}`;
+            const str = `${keys[i]} : ${values[i]}`;
             strings.push(str);
         }
         for(let i = 63; i < keys.length; i++) {
-            let str = `${keys[i]} : ${values[i]}`;
+            const str = `${keys[i]} : ${values[i]}`;
             strings2.push(str);
         }
         for(let i = 0; i < morekeys.length; i++) {
-            let str = `${morekeys[i]} : ${morevalues[i]}`;
+            const str = `${morekeys[i]} : ${morevalues[i]}`;
             strings3.push(str);
         }
-        var em = new Discord.MessageEmbed()
+        const em = new Discord.EmbedBuilder()
         .setColor(color())
         .setTitle("Math Operators/Functions/Constants List [Page 1/3]")
         .setDescription(strings.join("\n"))
         .setTimestamp()
         .setFooter({ text: "Have a nice day! :D", iconURL: message.client.user.displayAvatarURL() });
-        var em2 = new Discord.MessageEmbed()
+        const em2 = new Discord.EmbedBuilder()
         .setColor(color())
         .setTitle("Math Operators/Functions/Constants List [Page 2/3]")
         .setDescription(strings2.join("\n"))
         .setTimestamp()
         .setFooter({ text: "Have a nice day! :D", iconURL: message.client.user.displayAvatarURL() });
-        var em3 = new Discord.MessageEmbed()
+        const em3 = new Discord.EmbedBuilder()
         .setColor(color())
         .setTitle("Math Operators/Functions/Constants List [Page 3/3]")
         .setDescription(strings3.join("\n"))

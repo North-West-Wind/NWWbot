@@ -3,8 +3,8 @@ import * as Discord from "discord.js";
 import { color, findChannel, jsDate2Mysql, ms, msgOrRes, mysqlEscape, query, readableDateTime, readableDateTimeText } from "../../function.js";
 export const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
 
-export async function endPoll(msg: Discord.Message, message: Discord.Message | Discord.CommandInteraction = null) {
-    var shouldDel = true;
+export async function endPoll(msg: Discord.Message, message: Discord.Message | Discord.ChatInputCommandInteraction = null) {
+    let shouldDel = true;
     try {
         if (!msg) throw new Error("Poll is deleted");
         const poll = NorthClient.storage.polls.get(msg.id);
@@ -17,7 +17,7 @@ export async function endPoll(msg: Discord.Message, message: Discord.Message | D
             end.push(mesg);
         }
         const pollMsg = "⬆**Poll**⬇";
-        const Ended = msg.embeds[0].setDescription(`Poll ended. Here are the results:\n\n${end.join("\n")}`);
+        const Ended = Discord.EmbedBuilder.from(msg.embeds[0]).setDescription(`Poll ended. Here are the results:\n\n${end.join("\n")}`);
         msg.edit({ content: pollMsg, embeds: [Ended] });
         const link = `https://discord.com/channels/${msg.guild.id}/${msg.channel.id}/${msg.id}`;
         await msg.channel.send("A poll has ended!\n" + link);
@@ -118,9 +118,9 @@ class PollCommand implements FullCommand {
         else if (options.length > 10) return await msg.edit("Please provide at most 10 options! Cancelled action.");
         await msg.edit(`Nice! **${options.length}** options it is!\nThe poll will be held in channel ${channel} for **${readableDateTimeText(duration)}** with the title **${title}** and the options will be **${optionString.first().content.split("\n").join(", ")}**`);
 
-        var optionArray = [];
-        var allOptions = [];
-        var num = -1;
+        const optionArray = [];
+        const allOptions = [];
+        let num = -1;
         for (let i = 0; i < options.length; i++) try {
             ++num;
             optionArray.push(emojis[num] + " - " + options[i]);
@@ -134,14 +134,14 @@ class PollCommand implements FullCommand {
         const newDateSql = jsDate2Mysql(newDate);
         const readableTime = readableDateTime(newDate);
         const pollMsg = "⬆**Poll**⬇";
-        const Embed = new Discord.MessageEmbed()
+        const Embed = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle(title)
             .setDescription(`React with the numbers to vote!\nThis poll will end at:\n**${readableTime}**\n\n${optionArray.join("\n")}`)
             .setTimestamp()
             .setFooter({ text: "Hosted by " + author.tag, iconURL: author.displayAvatarURL() });
         const mesg = await channel.send({ content: pollMsg, embeds: [Embed] });
-        for (var i = 0; i < optionArray.length; i++) await mesg.react(emojis[i]);
+        for (let i = 0; i < optionArray.length; i++) await mesg.react(emojis[i]);
         const votes: Set<Discord.Snowflake>[] = [];
         for (let i = 0; i < options.length; i++) votes.push(new Set());
         NorthClient.storage.polls.set(mesg.id, { options: allOptions, votes });
@@ -153,7 +153,7 @@ class PollCommand implements FullCommand {
 
     async end(message: NorthMessage | NorthInteraction, msgID: string) {
         if (!msgID) return await msgOrRes(message, "Please provide the ID of the message!");
-        var result = await query("SELECT * FROM polls WHERE id = '" + msgID + "'");
+        const result = await query("SELECT * FROM polls WHERE id = '" + msgID + "'");
         if (result.length == 0) return msgOrRes(message, "No poll was found!");
         const author = message instanceof Discord.Message ? message.author : message.user;
         if (result[0].author !== author.id) return msgOrRes(message, "You cannot end a poll that was not created by you!");
@@ -165,21 +165,21 @@ class PollCommand implements FullCommand {
     }
 
     async list(message: NorthMessage | NorthInteraction) {
-        var results = await query("SELECT * FROM polls WHERE guild = " + message.guild.id);
-        const Embed = new Discord.MessageEmbed()
+        const results = await query("SELECT * FROM polls WHERE guild = " + message.guild.id);
+        const Embed = new Discord.EmbedBuilder()
             .setColor(color())
             .setTitle("Poll list")
             .setDescription("**" + message.guild.name + "** - " + results.length + " polls")
             .setTimestamp()
             .setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
-        for (var i = 0; i < Math.min(25, results.length); i++) {
+        for (let i = 0; i < Math.min(25, results.length); i++) {
             const newDate = new Date(results[i].endAt);
             const readableTime = readableDateTime(newDate);
-            Embed.addField(readableTime, results[i].title);
+            Embed.addFields([{ name: readableTime, value: results[i].title }]);
         }
         await msgOrRes(message, { embeds: [Embed] });
     }
-};
+}
 
 const cmd = new PollCommand();
 export default cmd;
