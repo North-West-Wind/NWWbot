@@ -87,7 +87,7 @@ class SpeedrunCommand implements FullCommand {
         if (result.data.length == 0) {
             if (message instanceof Discord.Message) await message.channel.send("No game was found!");
             else await message.editReply("No game was found!");
-            return { data: null, msg };
+            return { data: null, msg: null };
         }
         let msg: Discord.Message, index: number;
         if (message instanceof Discord.Message) msg = await message.channel.send({embeds: [em]});

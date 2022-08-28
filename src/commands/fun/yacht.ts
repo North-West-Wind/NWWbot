@@ -252,7 +252,7 @@ class YachtCommand implements FullCommand {
         });
         async function end() {
             em.setTitle(`Yacht Dice Game (Ended)`).setDescription(`You scored **${Object.values(scores).map(x => x.score).reduce((a, c) => a + c)} points**\nThanks for playing!`).setFooter({ text: "Have a nice day! :)", iconURL: message.client.user.displayAvatarURL() });
-            msg.edit({embeds: [em]}).catch(() => message.channel.send({embeds: [em]}));
+            msg.edit({embeds: [em]}).catch(() => {});
         }
     }
 }
