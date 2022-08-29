@@ -690,6 +690,11 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
             NorthClient.storage.guilds[id] = new GuildConfig();
         } catch (err: any) { }
     }
+    if ((await await query("SELECT id FROM servers WHERE id = " + id)).length <= 0) {
+        try {
+            await query(`INSERT INTO servers (id) VALUES ('${id}')`);
+        } catch (err: any) { }
+    }
     return NorthClient.storage.guilds[id];
 }
 
