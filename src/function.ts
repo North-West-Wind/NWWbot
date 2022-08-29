@@ -686,7 +686,7 @@ export async function fixGuildRecord(id: Discord.Snowflake) {
     if (results.length > 0) NorthClient.storage.guilds[results[0].id] = new GuildConfig(results[0]);
     else {
         try {
-            await query(`INSERT INTO configs (id, token, safe) VALUES ('${id}', ${await ID()}, 1)`);
+            await query(`INSERT INTO configs (id, token, safe) VALUES ('${id}', '${await ID()}', 1)`);
             NorthClient.storage.guilds[id] = new GuildConfig();
         } catch (err: any) { }
     }
