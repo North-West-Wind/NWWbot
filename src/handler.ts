@@ -265,8 +265,8 @@ export class Handler {
 
     async guildMemberAdd(member: GuildMember) {
         const guild = member.guild;
-        const simMems = NorthClient.storage.guilds[guild.id].checkMember(member);
-        if (simMems.length >= 2) console.debug(`Potential nuke happening on ${guild.name}. Members: ${simMems.map(mem => mem.user.tag).join(" ")} ${member}`);
+        const simMems = NorthClient.storage.guilds[guild.id]?.checkMember(member);
+        if ((simMems?.length || 0) >= 2) console.debug(`Potential nuke happening on ${guild.name}. Members: ${simMems.map(mem => mem.user.tag).join(" ")} ${member}`);
         if (member.user.bot) return;
         guild.invites.fetch().then(async invites => {
             const ei = NorthClient.storage.guilds[member.guild.id].invites;
