@@ -127,8 +127,10 @@ class ConfigCommand implements FullCommand {
       .setFooter({ text: "Please enter within 60 seconds.", iconURL: message.client.user.displayAvatarURL() });
     const mesg = <Discord.Message>await msgOrRes(message, login);
     const loginToken = await message.channel.awaitMessages({ filter: msgFilter, idle: 60000, max: 1 }).catch(() => null);
-    console.debug(loginToken?.first()?.content);
-    if (!loginToken?.first()?.content) return await end(mesg);
+    if (!loginToken?.first()?.content) {
+      login.setDescription("No token received in time.").setFooter({ text: "Try again when you have the correct one for your server.", iconURL: message.client.user.displayAvatarURL() });
+      return await mesg.edit({ embeds: [login] });
+    }
     const receivedToken = loginToken.first().content;
     loginToken.first().delete().catch(() => { });
     if (config.token !== receivedToken) {
