@@ -2,7 +2,6 @@ import { GuildConfig, NorthClient, NorthInteraction } from "./classes/NorthClien
 import crypto from "crypto";
 import { globalClient, localIp } from "./common.js";
 import * as Discord from "discord.js";
-import fetch from "node-fetch";
 import { parseString } from "xml2js";
 import superms from "ms";
 import mcapi from "@northwestwind/aio-mc-api";
@@ -139,15 +138,27 @@ export function toSubscript(str: string) {
 }
 
 // Stream/Buffer operations
-export function streamToString(stream: NodeJS.ReadableStream, enc = undefined) {
-    let str = ''
+export function nodeStreamToString(stream: NodeJS.ReadableStream, enc = undefined) {
+    var str = '';
     return new Promise((resolve, reject) => {
         stream.on('data', (data) => str += (typeof enc === 'string') ? data.toString(enc) : data.toString());
         stream.on('end', () => resolve(str));
         stream.on('error', (err) => reject(err));
     })
 }
-export function bufferToStream(buf: any, chunkSize = 0) {
+export async function bunStreamToString(stream: ReadableStream, enc = undefined) {
+    var str = '';
+    const reader = stream.getReader();
+    var { done, value } = await reader.read();
+    while (!done) {
+        str += (typeof enc === 'string') ? value.toString(enc) : value.toString();
+        const data = await reader.read();
+        done = data.done;
+        value = data.value;
+    }
+    return str;
+}
+export function bufferToStream(buf: any, chunkSize: number = 0) {
     if (typeof buf === 'string') buf = Buffer.from(buf, 'utf8');
     if (!Buffer.isBuffer(buf)) throw new TypeError(`"buf" argument must be a string or an instance of Buffer`);
     const reader = new Readable();

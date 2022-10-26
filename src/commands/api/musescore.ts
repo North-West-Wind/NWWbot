@@ -1,5 +1,5 @@
 import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
-import { validMSURL, requestStream, streamToString, color, requestYTDLStream, createEmbedScrolling } from "../../function.js";
+import { validMSURL, requestStream, nodeStreamToString, color, requestYTDLStream, createEmbedScrolling } from "../../function.js";
 import { run } from "../../helpers/puppeteer.js";
 import { muse, museSearch } from "musescore-metadata";
 import * as Discord from "discord.js";
@@ -291,7 +291,7 @@ class MusescoreCommand implements FullCommand {
             try {
                 const ext = page.split("?")[0].split(".").slice(-1)[0];
                 if (ext === "svg") try {
-                    SVGtoPDF(doc, await streamToString((await requestStream(page)).data), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
+                    SVGtoPDF(doc, await nodeStreamToString((await requestStream(page)).data), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
                 } catch (err: any) {
                     SVGtoPDF(doc, await fetch(page).then(res => res.text()), 0, 0, { preserveAspectRatio: "xMinYMin meet" });
                 }

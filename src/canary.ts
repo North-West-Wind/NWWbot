@@ -1,9 +1,7 @@
-import * as dotenv from "dotenv";
 import { CanaryHandler } from "./handler.js";
 import { NorthClient, ClientStorage } from "./classes/NorthClient.js";
 import { Options, GatewayIntentBits, Partials } from "discord.js";
 import * as fs from "fs";
-dotenv.config();
 const config = JSON.parse(fs.readFileSync("config.json", { encoding: "utf8" })) || { prefix1: "%" };
 
 const client = new NorthClient({
