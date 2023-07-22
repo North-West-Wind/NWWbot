@@ -44,7 +44,7 @@
     "node-fetch": "^3.2.10",
     "number-to-words": "^1.2.4",
     "pdfkit": "^0.13.0",
-    "puppeteer-core": "^17.0.0",
+    "puppeteer": "^20.9.0",
     "reddit-wrapper-v2": "^1.1.6",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",

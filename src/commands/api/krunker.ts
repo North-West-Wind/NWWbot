@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { color, getFetch, milliToHumanDuration, msgOrRes, readableDateTime, roundTo, wait } from "../../function.js";
 import { NorthInteraction, NorthMessage, FullCommand } from "../../classes/NorthClient.js";
 import { run } from "../../helpers/puppeteer.js";
-import { Page } from "puppeteer-core";
+import { Page } from "puppeteer";
 import { globalClient as client } from "../../common.js";
 import { Clan, Profile, Response } from "../../classes/Krunker.js";
 import { ButtonStyle, MessageActionRowComponentBuilder, TextInputStyle } from "discord.js";
@@ -339,7 +339,7 @@ class KrunkerCommand implements FullCommand {
             try {
                 await page.goto("https://matchmaker.krunker.io/game-list?hostname=krunker.io");
                 const element = await page.$("pre");
-                const servers = JSON.parse(await (await element.getProperty('textContent')).jsonValue());
+                const servers = JSON.parse(<any>await (await element.getProperty('textContent')).jsonValue());
                 servers.error = false;
                 result = servers;
             } catch (err: any) {

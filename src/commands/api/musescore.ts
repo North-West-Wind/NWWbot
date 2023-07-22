@@ -7,7 +7,7 @@ import sanitize from "sanitize-filename";
 import PDFKit from "pdfkit";
 import fetch from "node-fetch";
 import { globalClient as client } from "../../common.js";
-import { Page } from 'puppeteer-core';
+import { Page } from 'puppeteer';
 import SVGtoPDF from "svg-to-pdfkit";
 function PNGtoPDF(doc: PDFKit.PDFDocument, url: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
@@ -209,7 +209,7 @@ class MusescoreCommand implements FullCommand {
                     const url = res.url();
                     return url.startsWith("https://musescore.com/api/jmuse") && url.includes("type=midi");
                 });
-                result.url = (await midi.json())?.info?.url;
+                result.url = (<any> await midi.json())?.info?.url;
                 result.error = false;
             } catch (err: any) {
                 result.message = err.message;

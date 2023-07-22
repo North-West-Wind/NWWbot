@@ -1,11 +1,11 @@
-import puppeteer from 'puppeteer-core';
+import * as puppeteer from 'puppeteer';
 let browser: puppeteer.Browser, timeout: NodeJS.Timeout;
 
 async function getBrowser() {
     if (!browser) browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-accelerated-2d-canvas', '--no-first-run', '--no-zygote', '--single-process', '--disable-gpu', "--proxy-server='direct://'", '--proxy-bypass-list=*'],
       headless: true,
-      executablePath: process.env.CHROMIUM
+      //executablePath: process.env.CHROMIUM
     });
     return browser;
 }
