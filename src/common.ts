@@ -75,7 +75,6 @@ export default async (client: NorthClient) => {
     const item = <Item>(await import(file)).default;
     NorthClient.storage.items.set(item.id, item);
   }
-  if (!fs.existsSync(process.env.CACHE_DIR)) fs.mkdirSync(process.env.CACHE_DIR);
 
   setInterval(async () => {
     const results = await query(`SELECT * FROM leveling`);
