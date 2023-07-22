@@ -1,9 +1,7 @@
-import * as dotenv from "dotenv";
+import "dotenv/config";
 import express from "express";
 import * as mysql from "mysql2";
 import { PoolConnection } from "mysql2/promise";
-
-dotenv.config();
 
 const mysql_config = {
     connectTimeout: 60000,
