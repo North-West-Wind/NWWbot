@@ -17,7 +17,7 @@ class DailyIntegral implements DailyModule {
 		if (max == min) max++;
 		const types = ["%u^%a", "ln(%u)", "e^%u", "e^(%u^%a)"];
 		if (trigo) {
-			delete types[3];
+			types.splice(3, 1);
 			types.push("sin%u^%a", "cos%u^%a", "tan%u^%a", "csc%u^%a", "sec%u^%a", "cot%u^%a");
 		}
 		const length = Math.round(getRandomNumber(1, 3));
