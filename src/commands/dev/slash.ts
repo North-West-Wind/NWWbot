@@ -53,6 +53,7 @@ class DevSlashCommand implements FullCommand {
                     options: (<ISlash> <unknown> command).options
                 };
                 await client.application.commands.create(options);
+                console.log("Registered", command.name);
             } catch (err: any) {
                 console.log("Failed to create slash command " + command.name);
                 console.error(err);

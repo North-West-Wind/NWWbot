@@ -13,7 +13,7 @@ const ytdlFix = `const ytdl = async (link, options) => {
 module.exports = ytdl;`;
 
 readFile("./node_modules/discord.js/typings/index.d.ts", { encoding: 'utf8' }, function (err, data) {
-    var formatted = data.replace(/private constructor\(client: Client, data: RawMessageData\);/g, 'public constructor(client: Client, data: RawMessageData);');
+    var formatted = data.replace(/private constructor\(client: Client<true>, data: RawMessageData\);/g, 'public constructor(client: Client, data: RawMessageData);');
     writeFile("./node_modules/discord.js/typings/index.d.ts", formatted, 'utf8', function (err) {
         if (err) return console.log(err);
     });

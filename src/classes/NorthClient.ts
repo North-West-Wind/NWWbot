@@ -2,7 +2,7 @@ import { Client, ClientOptions, Collection, GuildMember, Invite, Message, EmbedB
 import { RowDataPacket } from "mysql2/promise";
 import { strDist } from "../function.js";
 
-export class NorthClient extends Client {
+export class NorthClient<Ready extends boolean = boolean> extends Client<Ready> {
     constructor(options?: ClientOptions) {
         super(options);
     }
@@ -263,12 +263,12 @@ export class PollVote {
 
 export class NorthMessage extends Message {
     prefix: string;
-    client: NorthClient;
+    client: NorthClient<true>;
 }
 
 export class NorthInteraction extends ChatInputCommandInteraction {
     readonly prefix: string = "/";
-    client: NorthClient;
+    client: NorthClient<true>;
 }
 
 export interface Item {
